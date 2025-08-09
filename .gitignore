@@ -1,0 +1,19 @@
+# Ignorar directorios de caché de Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Ignorar archivos de configuración del editor
+.vscode/
+.idea/
+
+# Ignorar entornos virtuales
+venv/
+env/
+.env
+
+# Ignorar archivos de distribución y construcción
+build/
+dist/
+*.egg-info/
