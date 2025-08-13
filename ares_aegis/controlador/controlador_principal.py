@@ -19,6 +19,8 @@ from ares_aegis.controlador.controlador_utilidades import ControladorUtilidades
 from ares_aegis.controlador.controlador_auditoria import ControladorAuditoria
 from ares_aegis.controlador.controlador_herramientas import ControladorHerramientas
 from ares_aegis.controlador.controlador_reportes import ControladorReportes
+from ares_aegis.controlador.controlador_wordlists import ControladorWordlists
+from ares_aegis.controlador.controlador_diccionarios import ControladorDiccionarios
 
 class ControladorPrincipal(ControladorBase):
     """
@@ -73,7 +75,9 @@ class ControladorPrincipal(ControladorBase):
                 'utilidades': ControladorUtilidades(self.modelo),
                 'auditoria': ControladorAuditoria(self.modelo),
                 'herramientas': ControladorHerramientas(self.modelo),
-                'reportes': ControladorReportes(self.modelo)
+                'reportes': ControladorReportes(self.modelo),
+                'wordlists': ControladorWordlists(self.modelo),
+                'diccionarios': ControladorDiccionarios(self.modelo)
             }
             
             self.logger.info(f"Inicializados {len(self._controladores)} controladores especializados")
@@ -722,6 +726,48 @@ class ControladorPrincipal(ControladorBase):
         except Exception as e:
             self.logger.error(f"Error recargando datos: {e}")
             return {'exito': False, 'error': str(e)}
+
+    # === PROPIEDADES DE ACCESO A CONTROLADORES ===
+    
+    @property
+    def controlador_wordlists(self):
+        """Acceso al controlador de wordlists."""
+        return self._controladores.get('wordlists')
+    
+    @property
+    def controlador_diccionarios(self):
+        """Acceso al controlador de diccionarios."""
+        return self._controladores.get('diccionarios')
+    
+    @property
+    def controlador_escaneo(self):
+        """Acceso al controlador de escaneo."""
+        return self._controladores.get('escaneo')
+    
+    @property
+    def controlador_monitoreo(self):
+        """Acceso al controlador de monitoreo."""
+        return self._controladores.get('monitoreo')
+    
+    @property
+    def controlador_utilidades(self):
+        """Acceso al controlador de utilidades."""
+        return self._controladores.get('utilidades')
+    
+    @property
+    def controlador_auditoria(self):
+        """Acceso al controlador de auditoría."""
+        return self._controladores.get('auditoria')
+    
+    @property
+    def controlador_herramientas(self):
+        """Acceso al controlador de herramientas."""
+        return self._controladores.get('herramientas')
+    
+    @property
+    def controlador_reportes(self):
+        """Acceso al controlador de reportes."""
+        return self._controladores.get('reportes')
 
 # RESUMEN TÉCNICO: Controlador Principal avanzado para Ares Aegis con arquitectura asíncrona,
 # gestión centralizada de configuración, coordinación de múltiples controladores especializados,

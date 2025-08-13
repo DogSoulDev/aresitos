@@ -28,6 +28,59 @@ class VistaWordlists(tk.Frame):
     
     def set_controlador(self, controlador):
         self.controlador = controlador
+        # Actualizar datos cuando se establece el controlador
+        self.actualizar_datos_wordlists()
+    
+    def actualizar_datos_wordlists(self):
+        """Actualizar la vista con las wordlists cargadas."""
+        if not self.controlador:
+            return
+            
+        try:
+            # Limpiar el texto actual
+            self.wordlist_text.delete(1.0, tk.END)
+            
+            # Obtener información de wordlists
+            info_wordlists = self.controlador.obtener_informacion_completa()
+            
+            if info_wordlists:
+                self.wordlist_text.insert(tk.END, "📝 WORDLISTS CARGADAS EN ARESITOS\n")
+                self.wordlist_text.insert(tk.END, "=" * 50 + "\n\n")
+                
+                total_wordlists = info_wordlists.get('total_wordlists', 0)
+                total_categorias = info_wordlists.get('total_categorias', 0)
+                
+                self.wordlist_text.insert(tk.END, f"📊 Total de wordlists: {total_wordlists}\n")
+                self.wordlist_text.insert(tk.END, f"📂 Categorías disponibles: {total_categorias}\n\n")
+                
+                # Mostrar categorías con conteos
+                categorias = info_wordlists.get('categorias', {})
+                self.wordlist_text.insert(tk.END, "📋 CATEGORÍAS Y CONTEOS:\n")
+                self.wordlist_text.insert(tk.END, "-" * 30 + "\n")
+                
+                for categoria, datos in categorias.items():
+                    if isinstance(datos, dict) and 'count' in datos:
+                        count = datos['count']
+                        self.wordlist_text.insert(tk.END, f"  • {categoria}: {count:,} elementos\n")
+                    else:
+                        self.wordlist_text.insert(tk.END, f"  • {categoria}: datos disponibles\n")
+                
+                # Mostrar archivos cargados
+                archivos = info_wordlists.get('archivos_cargados', [])
+                if archivos:
+                    self.wordlist_text.insert(tk.END, f"\n📁 ARCHIVOS CARGADOS ({len(archivos)}):\n")
+                    self.wordlist_text.insert(tk.END, "-" * 30 + "\n")
+                    for archivo in archivos:
+                        self.wordlist_text.insert(tk.END, f"  ✅ {archivo}\n")
+                
+                self.wordlist_text.insert(tk.END, "\n💡 Usa los botones para gestionar wordlists")
+                
+            else:
+                self.wordlist_text.insert(tk.END, "❌ No hay wordlists cargadas\n")
+                self.wordlist_text.insert(tk.END, "Usa 'Cargar Base' para importar wordlists")
+                
+        except Exception as e:
+            self.wordlist_text.insert(tk.END, f"❌ Error cargando datos: {str(e)}\n")
     
     def crear_interfaz(self):
         if self.theme:

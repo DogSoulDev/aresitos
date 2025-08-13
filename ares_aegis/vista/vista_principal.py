@@ -2,9 +2,17 @@
 
 import tkinter as tk
 from tkinter import ttk
+
+# Importar todas las vistas disponibles
+from ares_aegis.vista.vista_dashboard import VistaDashboard
 from ares_aegis.vista.vista_escaneo import VistaEscaneo
 from ares_aegis.vista.vista_monitoreo import VistaMonitoreo
 from ares_aegis.vista.vista_utilidades import VistaUtilidades
+from ares_aegis.vista.vista_auditoria import VistaAuditoria
+from ares_aegis.vista.vista_wordlists import VistaWordlists
+from ares_aegis.vista.vista_diccionarios import VistaDiccionarios
+from ares_aegis.vista.vista_herramientas import VistaHerramientas
+from ares_aegis.vista.vista_reportes import VistaReportes
 
 try:
     from ares_aegis.vista.burp_theme import burp_theme
@@ -42,12 +50,26 @@ class VistaPrincipal(tk.Frame):
 
     def set_controlador(self, controlador):
         self.controlador = controlador
+        
+        # Configurar controladores para todas las vistas
+        if hasattr(self, 'vista_dashboard'):
+            self.vista_dashboard.set_controlador(controlador)
         if hasattr(self.controlador, 'controlador_escaneo'):
             self.vista_escaneo.set_controlador(self.controlador.controlador_escaneo)
         if hasattr(self.controlador, 'controlador_monitoreo'):
             self.vista_monitoreo.set_controlador(self.controlador.controlador_monitoreo)
         if hasattr(self.controlador, 'controlador_utilidades'):
             self.vista_utilidades.set_controlador(self.controlador.controlador_utilidades)
+        if hasattr(self.controlador, 'controlador_auditoria'):
+            self.vista_auditoria.set_controlador(self.controlador.controlador_auditoria)
+        if hasattr(self.controlador, 'controlador_wordlists'):
+            self.vista_wordlists.set_controlador(self.controlador.controlador_wordlists)
+        if hasattr(self.controlador, 'controlador_diccionarios'):
+            self.vista_diccionarios.set_controlador(self.controlador.controlador_diccionarios)
+        if hasattr(self.controlador, 'controlador_herramientas'):
+            self.vista_herramientas.set_controlador(self.controlador.controlador_herramientas)
+        if hasattr(self.controlador, 'controlador_reportes'):
+            self.vista_reportes.set_controlador(self.controlador.controlador_reportes)
 
     def crear_widgets(self):
         # Barra de título estilo Burp Suite
@@ -133,15 +155,59 @@ class VistaPrincipal(tk.Frame):
             self.notebook = ttk.Notebook(self)
         self.notebook.pack(fill="both", expand=True, padx=2, pady=2)
         
-        # Crear las vistas manteniendo toda la funcionalidad original
+        # 1. DASHBOARD - Primera pestaña con métricas en tiempo real
+        try:
+            self.vista_dashboard = VistaDashboard(self.notebook)
+            self.notebook.add(self.vista_dashboard, text="🚀 Dashboard")
+        except Exception as e:
+            print(f"Error creando vista dashboard: {e}")
+        
+        # 2. ESCANEO Y SIEM - Funcionalidad principal de escaneo
         self.vista_escaneo = VistaEscaneo(self.notebook)
         self.notebook.add(self.vista_escaneo, text="🎯 Escaneo y SIEM")
         
+        # 3. MONITOREO Y CUARENTENA - Monitoreo del sistema
         self.vista_monitoreo = VistaMonitoreo(self.notebook)
         self.notebook.add(self.vista_monitoreo, text="📊 Monitoreo y Cuarentena")
         
+        # 4. AUDITORÍA - Auditoría de seguridad avanzada
+        try:
+            self.vista_auditoria = VistaAuditoria(self.notebook)
+            self.notebook.add(self.vista_auditoria, text="🔍 Auditoría")
+        except Exception as e:
+            print(f"Error creando vista auditoría: {e}")
+        
+        # 5. WORDLISTS - Gestión de wordlists para pentesting
+        try:
+            self.vista_wordlists = VistaWordlists(self.notebook)
+            self.notebook.add(self.vista_wordlists, text="📝 Wordlists")
+        except Exception as e:
+            print(f"Error creando vista wordlists: {e}")
+        
+        # 6. DICCIONARIOS - Gestión de diccionarios de datos
+        try:
+            self.vista_diccionarios = VistaDiccionarios(self.notebook)
+            self.notebook.add(self.vista_diccionarios, text="📚 Diccionarios")
+        except Exception as e:
+            print(f"Error creando vista diccionarios: {e}")
+        
+        # 7. HERRAMIENTAS - Herramientas adicionales de seguridad
+        try:
+            self.vista_herramientas = VistaHerramientas(self.notebook)
+            self.notebook.add(self.vista_herramientas, text="🛠️ Herramientas")
+        except Exception as e:
+            print(f"Error creando vista herramientas: {e}")
+        
+        # 8. REPORTES - Generación y visualización de reportes
+        try:
+            self.vista_reportes = VistaReportes(self.notebook)
+            self.notebook.add(self.vista_reportes, text="📋 Reportes")
+        except Exception as e:
+            print(f"Error creando vista reportes: {e}")
+        
+        # 9. UTILIDADES - Utilidades varias del sistema
         self.vista_utilidades = VistaUtilidades(self.notebook)
-        self.notebook.add(self.vista_utilidades, text="🛠️ Utilidades y Reportes")
+        self.notebook.add(self.vista_utilidades, text="⚙️ Utilidades")
     
     def crear_barra_estado(self):
         """Crea la barra de estado inferior estilo Burp"""

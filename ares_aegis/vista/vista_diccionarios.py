@@ -29,6 +29,62 @@ class VistaDiccionarios(tk.Frame):
     
     def set_controlador(self, controlador):
         self.controlador = controlador
+        # Actualizar datos cuando se establece el controlador
+        self.actualizar_datos_diccionarios()
+    
+    def actualizar_datos_diccionarios(self):
+        """Actualizar la vista con los diccionarios cargados."""
+        if not self.controlador:
+            return
+            
+        try:
+            # Limpiar el texto actual
+            self.diccionario_text.delete(1.0, tk.END)
+            
+            # Obtener información de diccionarios
+            info_diccionarios = self.controlador.obtener_informacion_completa()
+            
+            if info_diccionarios:
+                self.diccionario_text.insert(tk.END, "📚 DICCIONARIOS CARGADOS EN ARESITOS\n")
+                self.diccionario_text.insert(tk.END, "=" * 50 + "\n\n")
+                
+                total_diccionarios = info_diccionarios.get('total_diccionarios', 0)
+                total_entradas = info_diccionarios.get('total_entradas', 0)
+                
+                self.diccionario_text.insert(tk.END, f"📊 Total de diccionarios: {total_diccionarios}\n")
+                self.diccionario_text.insert(tk.END, f"📝 Total de entradas: {total_entradas:,}\n\n")
+                
+                # Mostrar diccionarios con conteos
+                diccionarios = info_diccionarios.get('diccionarios', {})
+                self.diccionario_text.insert(tk.END, "📋 DICCIONARIOS DISPONIBLES:\n")
+                self.diccionario_text.insert(tk.END, "-" * 35 + "\n")
+                
+                for nombre, datos in diccionarios.items():
+                    if isinstance(datos, dict) and 'entradas' in datos:
+                        entradas = datos['entradas']
+                        descripcion = datos.get('descripcion', 'Sin descripción')
+                        self.diccionario_text.insert(tk.END, f"  • {nombre}:\n")
+                        self.diccionario_text.insert(tk.END, f"    Entradas: {entradas:,}\n")
+                        self.diccionario_text.insert(tk.END, f"    Desc: {descripcion}\n\n")
+                    else:
+                        self.diccionario_text.insert(tk.END, f"  • {nombre}: datos disponibles\n")
+                
+                # Mostrar archivos cargados
+                archivos = info_diccionarios.get('archivos_cargados', [])
+                if archivos:
+                    self.diccionario_text.insert(tk.END, f"📁 ARCHIVOS CARGADOS ({len(archivos)}):\n")
+                    self.diccionario_text.insert(tk.END, "-" * 30 + "\n")
+                    for archivo in archivos:
+                        self.diccionario_text.insert(tk.END, f"  ✅ {archivo}\n")
+                
+                self.diccionario_text.insert(tk.END, "\n💡 Usa los botones para gestionar diccionarios")
+                
+            else:
+                self.diccionario_text.insert(tk.END, "❌ No hay diccionarios cargados\n")
+                self.diccionario_text.insert(tk.END, "Usa 'Cargar Diccionario' para importar datos")
+                
+        except Exception as e:
+            self.diccionario_text.insert(tk.END, f"❌ Error cargando datos: {str(e)}\n")
     
     def crear_interfaz(self):
         if self.theme:
