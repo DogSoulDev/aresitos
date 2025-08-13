@@ -1,0 +1,9 @@
+{
+    "mi_diccionario_personal": {
+        "servidor1": "Servidor principal de la empresa",
+        "backup_server": "Servidor de respaldo",
+        "database": "Base de datos principal",
+        "firewall": "Configuración de firewall",
+        "router": "Router principal de red"
+    }
+}

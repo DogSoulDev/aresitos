@@ -1,0 +1,268 @@
+21 - FTP - File Transfer Protocol
+22 - SSH - Secure Shell
+23 - Telnet - Unencrypted text communications
+25 - SMTP - Simple Mail Transfer Protocol
+53 - DNS - Domain Name System
+80 - HTTP - Hypertext Transfer Protocol
+110 - POP3 - Post Office Protocol v3
+143 - IMAP - Internet Message Access Protocol
+443 - HTTPS - HTTP Secure
+993 - IMAPS - IMAP over SSL
+995 - POP3S - POP3 over SSL
+135 - RPC - Remote Procedure Call
+139 - NetBIOS - NetBIOS Session Service
+445 - SMB - Server Message Block
+1433 - MSSQL - Microsoft SQL Server
+1521 - Oracle - Oracle Database
+3306 - MySQL - MySQL Database
+5432 - PostgreSQL - PostgreSQL Database
+6379 - Redis - Redis Database
+27017 - MongoDB - MongoDB Database
+161 - SNMP - Simple Network Management Protocol
+162 - SNMP Trap - SNMP Trap
+389 - LDAP - Lightweight Directory Access Protocol
+636 - LDAPS - LDAP over SSL
+88 - Kerberos - Kerberos Authentication
+464 - Kerberos Password Change
+749 - Kerberos Admin
+750 - Kerberos Admin
+751 - Kerberos Admin
+1723 - PPTP - Point-to-Point Tunneling Protocol
+1812 - RADIUS - Remote Authentication Dial-In User Service
+1813 - RADIUS Accounting
+69 - TFTP - Trivial File Transfer Protocol
+111 - RPC Portmapper - Remote Procedure Call
+123 - NTP - Network Time Protocol
+137 - NetBIOS Name Service
+138 - NetBIOS Datagram Service
+514 - Syslog - System Logging Protocol
+515 - LPD - Line Printer Daemon
+873 - Rsync - Remote Sync
+2049 - NFS - Network File System
+111 - Portmapper - RPC Portmapper
+135 - MS-RPC - Microsoft RPC
+1024 - Dynamic RPC - Often used by Windows
+1025 - Dynamic RPC - Often used by Windows
+1026 - Dynamic RPC - Often used by Windows
+1027 - Dynamic RPC - Often used by Windows
+593 - HTTP RPC Endpoint Mapper - Microsoft
+3389 - RDP - Remote Desktop Protocol
+5985 - WinRM HTTP - Windows Remote Management
+5986 - WinRM HTTPS - Windows Remote Management over SSL
+47001 - WinRM - Windows Remote Management
+1900 - UPnP - Universal Plug and Play
+5353 - mDNS - Multicast DNS
+427 - SLP - Service Location Protocol
+548 - AFP - Apple Filing Protocol
+631 - IPP - Internet Printing Protocol
+5060 - SIP - Session Initiation Protocol
+5061 - SIPS - SIP over TLS
+1720 - H.323 - Video conferencing
+1719 - H.323 RAS - Registration, Admission, and Status
+554 - RTSP - Real Time Streaming Protocol
+1935 - RTMP - Real Time Messaging Protocol
+8080 - HTTP Alternate - Alternative HTTP port
+8443 - HTTPS Alternate - Alternative HTTPS port
+8000 - HTTP Alternate - Alternative HTTP port
+8008 - HTTP Alternate - Alternative HTTP port
+8888 - HTTP Alternate - Alternative HTTP port
+9000 - HTTP Alternate - Alternative HTTP port
+3000 - HTTP Alternate - Development server
+4000 - HTTP Alternate - Development server
+5000 - HTTP Alternate - Development server
+7000 - HTTP Alternate - Development server
+8090 - HTTP Alternate - Development server
+9090 - HTTP Alternate - Development server
+9999 - HTTP Alternate - Development server
+10000 - Webmin - Web-based system administration
+10001 - Webmin SSL - Webmin over SSL
+2222 - SSH Alternate - Alternative SSH port
+2223 - SSH Alternate - Alternative SSH port
+8022 - SSH Alternate - Alternative SSH port
+2082 - cPanel - Control panel
+2083 - cPanel SSL - cPanel over SSL
+2086 - WHM - Web Host Manager
+2087 - WHM SSL - WHM over SSL
+2095 - Webmail - cPanel Webmail
+2096 - Webmail SSL - cPanel Webmail over SSL
+8443 - Plesk - Plesk control panel
+11211 - Memcached - Memory caching system
+6667 - IRC - Internet Relay Chat
+6697 - IRC SSL - IRC over SSL
+194 - IRC - Internet Relay Chat
+994 - IRC SSL - IRC over SSL
+1863 - MSN Messenger - Microsoft Network
+5190 - AIM - AOL Instant Messenger
+5222 - XMPP - Extensible Messaging and Presence Protocol
+5223 - XMPP SSL - XMPP over SSL
+5269 - XMPP Server - XMPP Server-to-Server
+6881-6889 - BitTorrent - Peer-to-peer file sharing
+6969 - BitTorrent Tracker - BitTorrent tracker
+7001 - Cassandra - Apache Cassandra
+9042 - Cassandra CQL - Cassandra Query Language
+9160 - Cassandra Thrift - Cassandra Thrift interface
+7473 - Neo4j - Neo4j HTTP
+7474 - Neo4j - Neo4j Browser
+7687 - Neo4j Bolt - Neo4j Bolt protocol
+9200 - Elasticsearch - Elasticsearch HTTP
+9300 - Elasticsearch - Elasticsearch transport
+8983 - Solr - Apache Solr
+8984 - Solr - Apache Solr
+50070 - Hadoop NameNode - Hadoop NameNode web UI
+50075 - Hadoop DataNode - Hadoop DataNode web UI
+8088 - Hadoop ResourceManager - Hadoop ResourceManager web UI
+19888 - Hadoop JobHistory - Hadoop JobHistory web UI
+8020 - Hadoop NameNode - Hadoop NameNode RPC
+9000 - Hadoop NameNode - Hadoop NameNode RPC
+8032 - Hadoop ResourceManager - Hadoop ResourceManager RPC
+8030 - Hadoop ResourceManager - Hadoop ResourceManager scheduler
+8031 - Hadoop ResourceManager - Hadoop ResourceManager tracker
+8033 - Hadoop ResourceManager - Hadoop ResourceManager admin
+2181 - ZooKeeper - Apache ZooKeeper
+2888 - ZooKeeper - ZooKeeper peer communication
+3888 - ZooKeeper - ZooKeeper leader election
+9092 - Kafka - Apache Kafka
+2375 - Docker - Docker daemon
+2376 - Docker SSL - Docker daemon over SSL
+2377 - Docker Swarm - Docker Swarm cluster management
+4789 - Docker Overlay - Docker overlay network
+7946 - Docker Swarm - Docker Swarm communication
+6443 - Kubernetes API - Kubernetes API server
+2379 - etcd - etcd client communication
+2380 - etcd - etcd peer communication
+10250 - Kubelet - Kubernetes Kubelet
+10255 - Kubelet Read-only - Kubernetes Kubelet read-only
+10256 - Kube-proxy - Kubernetes Kube-proxy health check
+8080 - Kubernetes Dashboard - Kubernetes Dashboard
+9113 - Nginx Exporter - Prometheus Nginx exporter
+9100 - Node Exporter - Prometheus Node exporter
+3000 - Grafana - Grafana web interface
+9090 - Prometheus - Prometheus web interface
+9093 - Alertmanager - Prometheus Alertmanager
+9094 - Alertmanager Cluster - Prometheus Alertmanager cluster
+5601 - Kibana - Elasticsearch Kibana
+9200 - Logstash - Logstash HTTP
+5044 - Beats - Logstash Beats input
+5000 - Logstash - Logstash input
+8089 - Splunk - Splunk web interface
+8000 - Splunk - Splunk web interface
+9997 - Splunk - Splunk indexer
+8191 - Splunk - Splunk deployment server
+8065 - Mattermost - Mattermost web interface
+3000 - Slack - Slack development server
+9000 - Discord - Discord development server
+5432 - PostgreSQL - PostgreSQL database
+5433 - PostgreSQL - PostgreSQL alternate port
+1433 - MSSQL - Microsoft SQL Server
+1434 - MSSQL Browser - Microsoft SQL Server Browser
+3306 - MySQL - MySQL database
+33060 - MySQL X - MySQL X Protocol
+1521 - Oracle - Oracle database
+1522 - Oracle - Oracle alternate port
+1523 - Oracle - Oracle alternate port
+1526 - Oracle - Oracle alternate port
+1527 - Oracle - Oracle alternate port
+1528 - Oracle - Oracle alternate port
+1529 - Oracle - Oracle alternate port
+1530 - Oracle - Oracle alternate port
+50000 - DB2 - IBM DB2 database
+50001 - DB2 - IBM DB2 alternate port
+1583 - Pervasive SQL - Pervasive SQL database
+3050 - Firebird - Firebird database
+1972 - Cache - InterSystems Cache
+7777 - MSSQL - Microsoft SQL Server
+3341 - OracleEM - Oracle Enterprise Manager
+5500 - MSSQL - Microsoft SQL Server
+5501 - MSSQL - Microsoft SQL Server
+8020 - MSSQL - Microsoft SQL Server
+8021 - MSSQL - Microsoft SQL Server
+1030 - MSSQL - Microsoft SQL Server
+1031 - MSSQL - Microsoft SQL Server
+1032 - MSSQL - Microsoft SQL Server
+1033 - MSSQL - Microsoft SQL Server
+1434 - MSSQL - Microsoft SQL Server Browser
+2433 - MSSQL - Microsoft SQL Server
+4022 - MSSQL - Microsoft SQL Server
+1521 - Oracle TNS - Oracle Transparent Network Substrate
+1748 - Oracle - Oracle database
+1754 - Oracle - Oracle database
+1808 - Oracle - Oracle database
+1809 - Oracle - Oracle database
+1810 - Oracle - Oracle database
+1811 - Oracle - Oracle database
+1812 - Oracle - Oracle database
+1813 - Oracle - Oracle database
+1814 - Oracle - Oracle database
+1815 - Oracle - Oracle database
+1816 - Oracle - Oracle database
+1817 - Oracle - Oracle database
+1818 - Oracle - Oracle database
+1819 - Oracle - Oracle database
+1820 - Oracle - Oracle database
+1521 - Oracle XE - Oracle Express Edition
+8080 - Oracle APEX - Oracle Application Express
+7001 - Oracle - Oracle WebLogic
+7002 - Oracle - Oracle WebLogic SSL
+7777 - Oracle - Oracle Enterprise Manager
+1158 - Oracle - Oracle OEMAGENT
+3938 - Oracle - Oracle Data Guard Broker
+1630 - Oracle - Oracle Connection Manager
+1830 - Oracle - Oracle Connection Manager SSL
+5500 - Oracle - Oracle Enterprise Manager Database Control
+5501 - Oracle - Oracle Enterprise Manager Database Control SSL
+1748 - Oracle - Oracle TNS Listener
+1754 - Oracle - Oracle TNS Listener
+27017 - MongoDB - MongoDB database
+27018 - MongoDB - MongoDB shard server
+27019 - MongoDB - MongoDB config server
+28017 - MongoDB - MongoDB web interface
+6379 - Redis - Redis database
+16379 - Redis - Redis Sentinel
+26379 - Redis - Redis Sentinel
+11211 - Memcached - Memcached database
+11212 - Memcached - Memcached database
+5984 - CouchDB - Apache CouchDB
+5986 - CouchDB - Apache CouchDB SSL
+9200 - Elasticsearch - Elasticsearch HTTP
+9300 - Elasticsearch - Elasticsearch transport
+8098 - Riak - Riak HTTP
+8087 - Riak - Riak Protocol Buffers
+7000 - Cassandra - Cassandra inter-node communication
+7001 - Cassandra - Cassandra SSL inter-node communication
+7199 - Cassandra - Cassandra JMX
+9042 - Cassandra - Cassandra native protocol
+9160 - Cassandra - Cassandra Thrift
+8983 - Solr - Apache Solr HTTP
+7574 - Solr - Apache Solr replication
+8443 - Solr - Apache Solr HTTPS
+28015 - RethinkDB - RethinkDB client driver
+29015 - RethinkDB - RethinkDB intracluster
+8080 - RethinkDB - RethinkDB web admin
+8090 - RethinkDB - RethinkDB web admin
+8091 - Couchbase - Couchbase web admin
+8092 - Couchbase - Couchbase views
+8093 - Couchbase - Couchbase query
+8094 - Couchbase - Couchbase search
+8095 - Couchbase - Couchbase analytics
+8096 - Couchbase - Couchbase eventing
+11207 - Couchbase - Couchbase smart client
+11210 - Couchbase - Couchbase data
+11211 - Couchbase - Couchbase data SSL
+2375 - Docker - Docker daemon API
+2376 - Docker - Docker daemon API SSL
+2377 - Docker Swarm - Docker Swarm manager
+7946 - Docker Swarm - Docker Swarm node communication
+4789 - VXLAN - Docker overlay network
+5000 - Docker Registry - Docker Registry
+5001 - Docker Registry - Docker Registry
+5002 - Docker Registry - Docker Registry
+8000 - Docker Registry - Docker Registry
+9000 - Portainer - Docker management UI
+9443 - Portainer - Docker management UI SSL
+6060 - Docker - Docker development server
+2375 - Rancher - Rancher server
+2376 - Rancher - Rancher server SSL
+8080 - Rancher - Rancher web UI
+8443 - Rancher - Rancher web UI SSL
+443 - Rancher - Rancher web UI HTTPS
+80 - Rancher - Rancher web UI HTTP

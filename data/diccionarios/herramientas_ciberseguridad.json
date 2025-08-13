@@ -1,0 +1,12 @@
+{
+  "NMAP": "Escáner de puertos y discovery de red para auditorías de seguridad",
+  "METASPLOIT": "Framework de explotación para pruebas de penetración",
+  "BURP_SUITE": "Plataforma integrada para testing de seguridad en aplicaciones web",
+  "WIRESHARK": "Analizador de protocolos de red para captura y análisis de tráfico",
+  "JOHN_THE_RIPPER": "Herramienta de cracking de contraseñas",
+  "HASHCAT": "Herramienta avanzada de recuperación de contraseñas",
+  "AIRCRACK_NG": "Suite de herramientas para auditoría de redes inalámbricas",
+  "SQLMAP": "Herramienta automática para detección y explotación de SQL injection",
+  "HYDRA": "Herramienta de fuerza bruta para login paralelo",
+  "LYNIS": "Herramienta de auditoría y hardening de sistemas Unix/Linux"
+}

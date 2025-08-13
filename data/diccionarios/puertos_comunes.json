@@ -1,0 +1,22 @@
+{
+  "21": "FTP - File Transfer Protocol",
+  "22": "SSH - Secure Shell",
+  "23": "Telnet",
+  "25": "SMTP - Simple Mail Transfer Protocol",
+  "53": "DNS - Domain Name System",
+  "80": "HTTP - HyperText Transfer Protocol",
+  "110": "POP3 - Post Office Protocol v3",
+  "143": "IMAP - Internet Message Access Protocol",
+  "443": "HTTPS - HTTP Secure",
+  "993": "IMAPS - IMAP Secure",
+  "995": "POP3S - POP3 Secure",
+  "3389": "RDP - Remote Desktop Protocol",
+  "5432": "PostgreSQL Database",
+  "3306": "MySQL Database",
+  "1433": "Microsoft SQL Server",
+  "27017": "MongoDB",
+  "6379": "Redis",
+  "8080": "HTTP Alternate",
+  "8443": "HTTPS Alternate",
+  "9200": "Elasticsearch"
+}

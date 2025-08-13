@@ -76,9 +76,13 @@ class VistaEscaneo(tk.Frame):
         
         eventos = self.controlador.obtener_eventos_siem()
         for evento in eventos:
-            timestamp = evento['timestamp'].strftime("%Y-%m-%d %H:%M:%S")
+            timestamp = evento.get('timestamp', '')
+            if isinstance(timestamp, str):
+                timestamp_str = timestamp
+            else:
+                timestamp_str = str(timestamp)
             self.text_resultados.insert(tk.END, 
-                f"[{timestamp}] {evento['tipo']}: {evento['descripcion']}\n")
+                f"[{timestamp_str}] {evento.get('tipo', 'Desconocido')}: {evento.get('descripcion', 'Sin descripción')}\n")
 
 
 # RESUMEN: Interfaz de escaneo de vulnerabilidades con opciones básicas y avanzadas.

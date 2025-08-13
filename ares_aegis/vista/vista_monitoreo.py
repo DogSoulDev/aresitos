@@ -104,7 +104,14 @@ class VistaMonitoreo(tk.Frame):
         
         if estado["datos_recientes"]:
             ultimo_dato = estado["datos_recientes"][-1]
-            timestamp = time.strftime("%H:%M:%S", time.localtime(ultimo_dato.get("timestamp", time.time())))
+            timestamp_raw = ultimo_dato.get("timestamp", time.time())
+            
+            if isinstance(timestamp_raw, str):
+                timestamp = timestamp_raw
+            elif isinstance(timestamp_raw, (int, float)):
+                timestamp = time.strftime("%H:%M:%S", time.localtime(timestamp_raw))
+            else:
+                timestamp = time.strftime("%H:%M:%S", time.localtime())
             
             info = f"[{timestamp}] "
             if "memoria_porcentaje" in ultimo_dato:

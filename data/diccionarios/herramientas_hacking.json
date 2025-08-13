@@ -1,0 +1,16 @@
+{
+  "nmap": "Network Mapper - Escáner de puertos y servicios",
+  "nessus": "Escáner de vulnerabilidades",
+  "burp": "Burp Suite - Plataforma de pruebas de aplicaciones web",
+  "metasploit": "Framework de explotación",
+  "wireshark": "Analizador de protocolos de red",
+  "sqlmap": "Herramienta de inyección SQL automática",
+  "nikto": "Escáner de vulnerabilidades web",
+  "dirb": "Escáner de directorios web",
+  "gobuster": "Herramienta de fuzzing de directorios/archivos",
+  "hydra": "Herramienta de fuerza bruta",
+  "john": "John the Ripper - Crackeador de contraseñas",
+  "hashcat": "Crackeador de hashes avanzado",
+  "aircrack": "Suite de herramientas para auditoría Wi-Fi",
+  "maltego": "Herramienta de inteligencia y análisis forense"
+}

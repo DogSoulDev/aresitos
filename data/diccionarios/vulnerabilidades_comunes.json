@@ -1,0 +1,16 @@
+{
+  "SQLi": "SQL Injection - Inyección de código SQL",
+  "XSS": "Cross-Site Scripting - Secuencias de comandos en sitios cruzados",
+  "CSRF": "Cross-Site Request Forgery - Falsificación de petición en sitios cruzados",
+  "LFI": "Local File Inclusion - Inclusión de archivos locales",
+  "RFI": "Remote File Inclusion - Inclusión de archivos remotos",
+  "XXE": "XML External Entity - Entidad externa XML",
+  "SSRF": "Server-Side Request Forgery - Falsificación de solicitudes del lado del servidor",
+  "RCE": "Remote Code Execution - Ejecución remota de código",
+  "IDOR": "Insecure Direct Object References - Referencias directas a objetos inseguras",
+  "LPE": "Local Privilege Escalation - Escalación local de privilegios",
+  "BOF": "Buffer Overflow - Desbordamiento de búfer",
+  "LDAP": "LDAP Injection - Inyección LDAP",
+  "XPATH": "XPath Injection - Inyección XPath",
+  "SSTI": "Server-Side Template Injection - Inyección de plantillas del lado del servidor"
+}

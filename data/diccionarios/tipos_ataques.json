@@ -1,0 +1,12 @@
+{
+  "PHISHING": "Suplantación de identidad para robar credenciales",
+  "MALWARE": "Software malicioso diseñado para dañar sistemas",
+  "RANSOMWARE": "Malware que cifra archivos y exige rescate",
+  "DDoS": "Ataque distribuido de denegación de servicio",
+  "MAN_IN_THE_MIDDLE": "Interceptación de comunicaciones entre dos partes",
+  "SOCIAL_ENGINEERING": "Manipulación psicológica para obtener información",
+  "BRUTE_FORCE": "Ataque por fuerza bruta para descifrar contraseñas",
+  "ZERO_DAY": "Explotación de vulnerabilidades no conocidas públicamente",
+  "APT": "Amenaza persistente avanzada - ataque dirigido y prolongado",
+  "INSIDER_THREAT": "Amenaza interna de empleados o personal con acceso"
+}

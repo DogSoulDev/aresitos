@@ -1,0 +1,14 @@
+{
+  "hash": "Función criptográfica que produce un valor único para datos",
+  "timeline": "Línea de tiempo de eventos en un sistema",
+  "artifact": "Evidencia digital dejada por actividad en el sistema",
+  "imaging": "Proceso de crear copia exacta de un dispositivo",
+  "carving": "Recuperación de archivos sin metadatos del sistema de archivos",
+  "volatility": "Análisis de memoria volátil (RAM)",
+  "steganography": "Técnica de ocultar información en otros medios",
+  "chain_custody": "Cadena de custodia de evidencia digital",
+  "write_blocker": "Dispositivo que previene escritura en evidencia",
+  "slack_space": "Espacio no utilizado en clusters del disco",
+  "unallocated": "Espacio del disco no asignado a archivos",
+  "metadata": "Datos sobre datos, información adicional de archivos"
+}

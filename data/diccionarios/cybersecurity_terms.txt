@@ -1,0 +1,419 @@
+APT - Advanced Persistent Threat
+CVE - Common Vulnerabilities and Exposures
+CWE - Common Weakness Enumeration
+CVSS - Common Vulnerability Scoring System
+OWASP - Open Web Application Security Project
+SANS - SysAdmin, Audit, Network and Security
+NIST - National Institute of Standards and Technology
+ISO27001 - Information Security Management System Standard
+SOC - Security Operations Center
+SIEM - Security Information and Event Management
+SOAR - Security Orchestration, Automation and Response
+UEBA - User and Entity Behavior Analytics
+EDR - Endpoint Detection and Response
+XDR - Extended Detection and Response
+NDR - Network Detection and Response
+MDR - Managed Detection and Response
+DLP - Data Loss Prevention
+CASB - Cloud Access Security Broker
+SASE - Secure Access Service Edge
+ZTNA - Zero Trust Network Access
+PAM - Privileged Access Management
+IAM - Identity and Access Management
+MFA - Multi-Factor Authentication
+2FA - Two-Factor Authentication
+SSO - Single Sign-On
+RBAC - Role-Based Access Control
+ABAC - Attribute-Based Access Control
+PKI - Public Key Infrastructure
+HSM - Hardware Security Module
+TPM - Trusted Platform Module
+WAF - Web Application Firewall
+NGFW - Next-Generation Firewall
+IDS - Intrusion Detection System
+IPS - Intrusion Prevention System
+HIDS - Host-based Intrusion Detection System
+NIDS - Network-based Intrusion Detection System
+UTM - Unified Threat Management
+DDoS - Distributed Denial of Service
+DoS - Denial of Service
+SQL Injection - Structured Query Language Injection
+XSS - Cross-Site Scripting
+CSRF - Cross-Site Request Forgery
+SSRF - Server-Side Request Forgery
+XXE - XML External Entity
+LDAP Injection - Lightweight Directory Access Protocol Injection
+Command Injection - OS Command Injection
+Path Traversal - Directory Traversal
+LFI - Local File Inclusion
+RFI - Remote File Inclusion
+RCE - Remote Code Execution
+ACE - Arbitrary Code Execution
+Buffer Overflow - Memory Buffer Overflow
+Heap Overflow - Heap Memory Overflow
+Stack Overflow - Stack Memory Overflow
+Integer Overflow - Arithmetic Overflow
+Format String - Format String Vulnerability
+Race Condition - Time-of-Check-Time-of-Use
+TOCTOU - Time-of-Check-Time-of-Use
+Use After Free - Dangling Pointer Dereference
+Double Free - Multiple Free Vulnerability
+Memory Leak - Memory Allocation Without Deallocation
+Null Pointer Dereference - Null Pointer Access
+Privilege Escalation - Elevation of Privilege
+EoP - Elevation of Privilege
+Lateral Movement - Horizontal Movement
+Persistence - Maintaining Access
+Evasion - Defense Evasion
+Collection - Data Collection
+Exfiltration - Data Exfiltration
+C2 - Command and Control
+C&C - Command and Control
+Backdoor - Covert Access Method
+Rootkit - Stealth Malware
+Trojan - Trojan Horse
+RAT - Remote Access Trojan
+Worm - Self-Replicating Malware
+Virus - Parasitic Malware
+Ransomware - Encryption Extortion Malware
+Spyware - Information Gathering Malware
+Adware - Advertisement Malware
+Keylogger - Keystroke Logging Malware
+Botnet - Network of Compromised Computers
+Zombie - Compromised Computer in Botnet
+Bot - Automated Malicious Program
+Phishing - Fraudulent Information Harvesting
+Spear Phishing - Targeted Phishing Attack
+Whaling - Executive-Targeted Phishing
+Vishing - Voice Phishing
+Smishing - SMS Phishing
+Pharming - DNS Spoofing Attack
+Typosquatting - Domain Name Squatting
+Watering Hole - Strategic Website Compromise
+Social Engineering - Human Manipulation Attack
+Pretexting - False Identity Deception
+Baiting - Physical Media Attack
+Quid Pro Quo - Service Exchange Deception
+Tailgating - Physical Access Following
+Piggybacking - Authorized Access Abuse
+Dumpster Diving - Trash Information Gathering
+Shoulder Surfing - Visual Information Theft
+Eavesdropping - Communication Interception
+MITM - Man-in-the-Middle Attack
+MITB - Man-in-the-Browser Attack
+DNS Spoofing - Domain Name System Manipulation
+ARP Spoofing - Address Resolution Protocol Attack
+IP Spoofing - Internet Protocol Address Falsification
+MAC Spoofing - Media Access Control Address Change
+Session Hijacking - Session Token Theft
+Cookie Hijacking - Web Cookie Theft
+Clickjacking - UI Redress Attack
+Iframe Injection - Inline Frame Attack
+Tabnabbing - Tab Deception Attack
+Drive-by Download - Passive Malware Installation
+Malvertising - Malicious Advertisement
+Cryptojacking - Cryptocurrency Mining Malware
+Fileless Malware - Memory-Resident Malware
+Living off the Land - Legitimate Tool Abuse
+Binary Padding - Executable Size Inflation
+Packing - Executable Compression
+Obfuscation - Code Concealment
+Polymorphism - Self-Modifying Code
+Metamorphism - Complete Code Transformation
+Steganography - Data Hiding in Media
+Covert Channel - Hidden Communication Method
+Side Channel - Information Leakage Attack
+Timing Attack - Execution Time Analysis
+Power Analysis - Power Consumption Attack
+Acoustic Cryptanalysis - Sound-Based Attack
+Electromagnetic Analysis - Radio Frequency Attack
+Cold Boot Attack - Memory Remanence Exploitation
+Evil Maid Attack - Physical Access Attack
+Rubber Ducky - USB Keystroke Injection
+BadUSB - USB Firmware Attack
+Juice Jacking - USB Charging Attack
+Skimming - Card Data Theft
+RFID Cloning - Radio Frequency Identification Duplication
+Bluetooth Attack - Bluejacking, Bluesnarfing
+WiFi Pineapple - Rogue Access Point
+Rogue AP - Unauthorized Access Point
+Evil Twin - Fake Access Point
+Deauth Attack - WiFi Disconnection Attack
+WPS Attack - WiFi Protected Setup Exploitation
+WEP Cracking - Wired Equivalent Privacy Break
+WPA Cracking - WiFi Protected Access Break
+Handshake Capture - WiFi Authentication Interception
+Pixie Dust Attack - WPS PIN Exploitation
+KRACK - Key Reinstallation Attack
+Password Spraying - Low-Rate Password Attack
+Credential Stuffing - Reused Password Attack
+Brute Force - Exhaustive Password Attack
+Dictionary Attack - Wordlist Password Attack
+Hybrid Attack - Combined Password Attack
+Mask Attack - Pattern-Based Password Attack
+Rule-Based Attack - Password Transformation Attack
+Rainbow Table - Precomputed Hash Attack
+Hash Collision - Cryptographic Hash Conflict
+Salt Cracking - Hash Salt Exploitation
+Pass-the-Hash - NTLM Hash Reuse
+Pass-the-Ticket - Kerberos Ticket Reuse
+Golden Ticket - Forged Kerberos TGT
+Silver Ticket - Forged Kerberos Service Ticket
+Overpass-the-Hash - NTLM to Kerberos Attack
+DCSync - Domain Controller Replication
+DCShadow - Rogue Domain Controller
+Skeleton Key - Domain Persistence Attack
+Kerberoasting - Service Account Hash Extraction
+ASREPRoasting - Account Hash Extraction
+BloodHound - Active Directory Mapping
+PowerShell Empire - Post-Exploitation Framework
+Cobalt Strike - Commercial Attack Framework
+Metasploit - Penetration Testing Framework
+Mimikatz - Windows Credential Extraction
+PsExec - Remote Command Execution
+WMI - Windows Management Instrumentation
+DCOM - Distributed Component Object Model
+Living off the Land Binaries - LOLBins
+Bring Your Own Vulnerable Driver - BYOVD
+DLL Hijacking - Dynamic Link Library Attack
+COM Hijacking - Component Object Model Attack
+Service DLL Hijacking - Windows Service Attack
+Phantom DLL Hijacking - Missing DLL Attack
+DLL Sideloading - Legitimate Application Abuse
+Binary Planting - Executable Placement Attack
+UAC Bypass - User Account Control Evasion
+Token Impersonation - Access Token Abuse
+Process Hollowing - Process Memory Injection
+Process Injection - Code Injection into Process
+DLL Injection - Library Injection Attack
+Reflective DLL Loading - Fileless DLL Execution
+Thread Execution Hijacking - Thread Manipulation
+Atom Bombing - Windows Atom Table Abuse
+Process Doppelgänging - NTFS Transaction Abuse
+Process Ghosting - Delete-Pending File Abuse
+Heaven's Gate - WOW64 Abuse
+Syscall Hooking - System Call Interception
+SSDT Hooking - System Service Descriptor Table
+IAT Hooking - Import Address Table Modification
+EAT Hooking - Export Address Table Modification
+Inline Hooking - Function Prologue Modification
+Hardware Breakpoint - Debug Register Abuse
+Exception Handler Abuse - SEH Exploitation
+Code Cave - Unused Memory Space Abuse
+Return-Oriented Programming - ROP Chain
+Jump-Oriented Programming - JOP Chain
+Call-Oriented Programming - COP Chain
+Gadget Chain - Code Reuse Attack Sequence
+Stack Pivot - Stack Pointer Manipulation
+ASLR Bypass - Address Space Layout Randomization Defeat
+DEP Bypass - Data Execution Prevention Defeat
+SMEP Bypass - Supervisor Mode Execution Prevention Defeat
+SMAP Bypass - Supervisor Mode Access Prevention Defeat
+Control Flow Guard - CFG Protection
+Return Flow Guard - RFG Protection
+Intel CET - Control-Flow Enforcement Technology
+ARM Pointer Authentication - PAC Protection
+Intel MPX - Memory Protection Extensions
+Shadow Stack - Return Address Protection
+Stack Canary - Buffer Overflow Protection
+Fortify Source - Compile-Time Protection
+Stack Protector - GCC Stack Protection
+ProPolice - Stack Smashing Protection
+RELRO - RELocation Read-Only
+PIE - Position Independent Executable
+NX Bit - No-Execute Bit
+W^X - Write XOR Execute
+KASLR - Kernel Address Space Layout Randomization
+KPTI - Kernel Page Table Isolation
+SMEP - Supervisor Mode Execution Prevention
+SMAP - Supervisor Mode Access Prevention
+UMIP - User Mode Instruction Prevention
+PCID - Process Context Identifier
+INVPCID - Invalidate Process Context Identifier
+IBT - Indirect Branch Tracking
+Spectre - Speculative Execution Attack
+Meltdown - Out-of-Order Execution Attack
+Foreshadow - L1 Terminal Fault
+MDS - Microarchitectural Data Sampling
+Zombieload - Load Value Injection
+RIDL - Rogue In-Flight Data Load
+Fallout - Store-to-Leak Forwarding
+LVI - Load Value Injection
+CacheOut - L1D Eviction Sampling
+CrossTalk - Special Register Buffer Data Sampling
+Platypus - Power Analysis Attack
+SPOILER - Memory Subsystem Attack
+RAMBleed - Row Hammer Variant
+Rowhammer - DRAM Disturbance Error
+TRRespass - Many-Sided Rowhammer
+Drammer - Android Rowhammer
+GLitch - Graphics-Based Rowhammer
+CLKscrew - Voltage Scaling Attack
+Plundervolt - Undervolting Attack
+SGAxe - SGX Enclave Attack
+Faulticorn - Fault Injection Attack
+Prime+Probe - Cache Side-Channel Attack
+Flush+Reload - Cache Side-Channel Attack
+Flush+Flush - Cache Side-Channel Attack
+Prime+Abort - TSX Cache Attack
+Evict+Time - Cache Eviction Attack
+Bernstein Attack - Cache Timing Attack
+Lucky Thirteen - CBC Padding Oracle
+POODLE - Padding Oracle On Downgraded Legacy Encryption
+BEAST - Browser Exploit Against SSL/TLS
+CRIME - Compression Ratio Info-leak Made Easy
+BREACH - Browser Reconnaissance & Exfiltration via Adaptive Compression of Hypertext
+TIME - Timing Info-leak Made Easy
+HEIST - HTTP Encrypted Information can be Stolen through TCP-windows
+Logjam - Diffie-Hellman Key Exchange Attack
+FREAK - Factoring RSA Export Keys
+Sweet32 - 64-bit Block Cipher Attack
+DROWN - Decrypting RSA with Obsolete and Weakened eNcryption
+ROBOT - Return Of Bleichenbacher's Oracle Threat
+Bleichenbacher - PKCS#1 Padding Oracle
+Invalid Curve Attack - Elliptic Curve Parameter Attack
+Twist Attack - Elliptic Curve Order Attack
+Montgomery Ladder - Scalar Multiplication Attack
+Pohlig-Hellman - Discrete Logarithm Attack
+Pollard's Rho - Discrete Logarithm Attack
+Baby-step Giant-step - Discrete Logarithm Attack
+Index Calculus - Discrete Logarithm Attack
+Quadratic Sieve - Integer Factorization
+General Number Field Sieve - Integer Factorization
+Elliptic Curve Factorization - ECM Algorithm
+Pollard's p-1 - Integer Factorization
+Williams p+1 - Integer Factorization
+Trial Division - Naive Factorization
+Fermat's Factorization - Difference of Squares
+Birthday Attack - Hash Collision Attack
+Length Extension - Hash Function Attack
+Meet-in-the-Middle - Cryptographic Attack
+Chosen Plaintext Attack - CPA
+Chosen Ciphertext Attack - CCA
+Known Plaintext Attack - KPA
+Ciphertext-Only Attack - COA
+Related-Key Attack - RKA
+Distinguishing Attack - Statistical Analysis
+Differential Cryptanalysis - Plaintext Difference Analysis
+Linear Cryptanalysis - Linear Approximation Attack
+Integral Cryptanalysis - Square Attack
+Boomerang Attack - Differential Variant
+Slide Attack - Periodic Key Schedule
+Rotational Cryptanalysis - Rotation-Invariant Properties
+Algebraic Attack - Equation System Solving
+Cube Attack - High-Order Differential
+Correlation Attack - Stream Cipher Attack
+Berlekamp-Massey - Linear Feedback Shift Register Attack
+Time-Memory Trade-off - Hellman's Attack
+Biometric Spoofing - Biometric System Bypass
+Presentation Attack - Biometric Circumvention
+Liveness Detection - Anti-Spoofing Measure
+Template Attack - Profiled Side-Channel Attack
+Correlation Power Analysis - CPA
+Differential Power Analysis - DPA
+Simple Power Analysis - SPA
+Electromagnetic Analysis - EMA
+Fault Injection - Glitching Attack
+Laser Fault Injection - Optical Perturbation
+Clock Glitching - Timing Manipulation
+Voltage Glitching - Power Supply Manipulation
+Body Bias Injection - Substrate Injection
+Focused Ion Beam - FIB Attack
+Microprobing - Direct Contact Attack
+Decapsulation - Package Removal
+Reverse Engineering - Design Analysis
+Static Analysis - Code Examination
+Dynamic Analysis - Runtime Analysis
+Fuzzing - Input Randomization Testing
+Symbolic Execution - Path Exploration
+Concolic Testing - Concrete-Symbolic Execution
+Taint Analysis - Data Flow Tracking
+Control Flow Analysis - Execution Path Analysis
+Data Flow Analysis - Variable Tracking
+Points-to Analysis - Pointer Alias Analysis
+Escape Analysis - Object Lifetime Analysis
+Shape Analysis - Data Structure Analysis
+Abstract Interpretation - Program Approximation
+Model Checking - Formal Verification
+Theorem Proving - Mathematical Verification
+SAT Solving - Boolean Satisfiability
+SMT Solving - Satisfiability Modulo Theories
+Constraint Solving - Mathematical Constraint Resolution
+Bounded Model Checking - BMC
+Counterexample-Guided Abstraction Refinement - CEGAR
+Property-Directed Reachability - PDR
+IC3 - Incremental Construction of Inductive Clauses
+Interpolation - Craig Interpolation
+Predicate Abstraction - Boolean Program Construction
+SLAM - Software Model Checker
+BLAST - Berkeley Lazy Abstraction Software Verification Tool
+CBMC - Bounded Model Checker for C/C++
+ESBMC - SMT-Based Bounded Model Checker
+LLBMC - Low-Level Bounded Model Checker
+KLEE - Symbolic Execution Engine
+SAGE - Whitebox Fuzzing Tool
+CATG - Concolic Testing Tool
+CREST - Concolic Testing Tool
+jCUTE - Concolic Unit Testing Engine
+SPLAT - Static Program Analysis Tool
+Polyspace - Static Analysis Tool
+Astrée - Static Analyzer for C
+PolySpace - Ada Static Analysis
+SPARK - Ada Subset for Formal Verification
+Dafny - Verification-Aware Programming Language
+Whiley - Extended Static Checking
+Spec# - Specification Language for C#
+JML - Java Modeling Language
+ACSL - ANSI/ISO C Specification Language
+Frama-C - Framework for Static Analysis of C
+TLA+ - Temporal Logic of Actions
+Alloy - Declarative Modeling Language
+Z Notation - Formal Specification Language
+VDM - Vienna Development Method
+B-Method - Formal Method
+Event-B - Discrete System Modeling
+CSP - Communicating Sequential Processes
+CCS - Calculus of Communicating Systems
+π-Calculus - Pi-Calculus Process Algebra
+Ambient Calculus - Mobile Process Calculus
+Join-Calculus - Concurrent Process Calculus
+Petri Net - Mathematical Modeling Language
+Colored Petri Net - CPN
+Timed Petri Net - Time Extension
+Stochastic Petri Net - Probabilistic Extension
+Workflow Net - Business Process Modeling
+BPMN - Business Process Model and Notation
+UML - Unified Modeling Language
+SysML - Systems Modeling Language
+AADL - Architecture Analysis & Design Language
+MARTE - Modeling and Analysis of Real-Time and Embedded Systems
+OCL - Object Constraint Language
+QVT - Query/View/Transformation
+ATL - Atlas Transformation Language
+ETL - Epsilon Transformation Language
+Kermeta - Metamodeling Language
+Ecore - Eclipse Modeling Framework Core
+EMF - Eclipse Modeling Framework
+GMF - Graphical Modeling Framework
+Xtext - Language Development Framework
+Xtend - Java-Like Programming Language
+Epsilon - Model Management Platform
+Acceleo - Model-to-Text Transformation
+Sirius - Modeling Workbench
+Papyrus - UML Modeling Tool
+MagicDraw - UML Modeling Tool
+Enterprise Architect - Modeling Platform
+Rational Rose - UML Modeling Tool
+Together - UML Modeling Tool
+ArgoUML - Open Source UML Tool
+StarUML - UML Modeling Tool
+PlantUML - Text-Based UML Tool
+yUML - Web-Based UML Tool
+Gliffy - Diagramming Tool
+Draw.io - Diagramming Tool
+Lucidchart - Diagramming Tool
+Visio - Microsoft Diagramming Tool
+OmniGraffle - Mac Diagramming Tool
+ConceptDraw - Diagramming Software
+Creately - Online Diagramming Tool
+SmartDraw - Automatic Diagramming Software

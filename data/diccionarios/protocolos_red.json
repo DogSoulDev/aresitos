@@ -1,0 +1,12 @@
+{
+  "HTTP": "Protocolo de transferencia de hipertexto para navegación web",
+  "HTTPS": "HTTP seguro con cifrado SSL/TLS",
+  "FTP": "Protocolo de transferencia de archivos",
+  "SSH": "Secure Shell para acceso remoto seguro",
+  "TELNET": "Protocolo de acceso remoto sin cifrado (inseguro)",
+  "SMTP": "Protocolo simple de transferencia de correo",
+  "POP3": "Protocolo de oficina postal versión 3",
+  "IMAP": "Protocolo de acceso a mensajes de Internet",
+  "DNS": "Sistema de nombres de dominio",
+  "DHCP": "Protocolo de configuración dinámica de host"
+}

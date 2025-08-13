@@ -1,0 +1,415 @@
+Initial Access - TA0001
+Valid Accounts - T1078
+External Remote Services - T1133
+Phishing - T1566
+Supply Chain Compromise - T1195
+Exploit Public-Facing Application - T1190
+Drive-by Compromise - T1189
+Replication Through Removable Media - T1091
+Trusted Relationship - T1199
+Hardware Additions - T1200
+
+Execution - TA0002
+Command and Scripting Interpreter - T1059
+Native API - T1106
+Shared Modules - T1129
+Software Deployment Tools - T1072
+System Services - T1569
+User Execution - T1204
+Windows Management Instrumentation - T1047
+Scheduled Task/Job - T1053
+Inter-Process Communication - T1559
+Container Administration Command - T1609
+
+Persistence - TA0003
+Account Manipulation - T1098
+BITS Jobs - T1197
+Boot or Logon Autostart Execution - T1547
+Boot or Logon Initialization Scripts - T1037
+Browser Extensions - T1176
+Compromise Client Software Binary - T1554
+Create Account - T1136
+Create or Modify System Process - T1543
+Event Triggered Execution - T1546
+External Remote Services - T1133
+Hijack Execution Flow - T1574
+Implant Internal Image - T1525
+Modify Authentication Process - T1556
+Office Application Startup - T1137
+Pre-OS Boot - T1542
+Scheduled Task/Job - T1053
+Server Software Component - T1505
+Traffic Signaling - T1205
+Valid Accounts - T1078
+
+Privilege Escalation - TA0004
+Abuse Elevation Control Mechanism - T1548
+Access Token Manipulation - T1134
+Boot or Logon Autostart Execution - T1547
+Boot or Logon Initialization Scripts - T1037
+Create or Modify System Process - T1543
+Domain Policy Modification - T1484
+Escape to Host - T1611
+Event Triggered Execution - T1546
+Exploitation for Privilege Escalation - T1068
+Hijack Execution Flow - T1574
+Process Injection - T1055
+Scheduled Task/Job - T1053
+Valid Accounts - T1078
+
+Defense Evasion - TA0005
+Abuse Elevation Control Mechanism - T1548
+Access Token Manipulation - T1134
+BITS Jobs - T1197
+Build Image on Host - T1612
+Debugger Evasion - T1622
+Deobfuscate/Decode Files or Information - T1140
+Deploy Container - T1610
+Direct Volume Access - T1006
+Domain Policy Modification - T1484
+Execution Guardrails - T1480
+Exploitation for Defense Evasion - T1211
+File and Directory Permissions Modification - T1222
+Hide Artifacts - T1564
+Hijack Execution Flow - T1574
+Impair Defenses - T1562
+Indicator Removal on Host - T1070
+Indirect Command Execution - T1202
+Masquerading - T1036
+Modify Authentication Process - T1556
+Modify Registry - T1112
+Network Boundary Bridging - T1599
+Obfuscated Files or Information - T1027
+Plist File Modification - T1647
+Pre-OS Boot - T1542
+Process Injection - T1055
+Reflective Code Loading - T1620
+Rogue Domain Controller - T1207
+Rootkit - T1014
+Signed Binary Proxy Execution - T1218
+Signed Script Proxy Execution - T1216
+Subvert Trust Controls - T1553
+System Binary Proxy Execution - T1218
+Template Injection - T1221
+Traffic Signaling - T1205
+Trusted Developer Utilities Proxy Execution - T1127
+Use Alternate Authentication Material - T1550
+Valid Accounts - T1078
+Virtualization/Sandbox Evasion - T1497
+Weaken Encryption - T1600
+XSL Script Processing - T1220
+
+Credential Access - TA0006
+Adversary-in-the-Middle - T1557
+Brute Force - T1110
+Credentials from Password Stores - T1555
+Exploitation for Credential Access - T1212
+Forced Authentication - T1187
+Forge Web Credentials - T1606
+Input Capture - T1056
+Man-in-the-Browser - T1185
+Modify Authentication Process - T1556
+Network Sniffing - T1040
+OS Credential Dumping - T1003
+Steal Application Access Token - T1528
+Steal or Forge Kerberos Tickets - T1558
+Steal Web Session Cookie - T1539
+Two-Factor Authentication Interception - T1111
+Unsecured Credentials - T1552
+
+Discovery - TA0007
+Account Discovery - T1087
+Application Window Discovery - T1010
+Browser Bookmark Discovery - T1217
+Cloud Infrastructure Discovery - T1580
+Cloud Service Dashboard - T1538
+Cloud Service Discovery - T1526
+Cloud Storage Object Discovery - T1619
+Container and Resource Discovery - T1613
+Domain Trust Discovery - T1482
+File and Directory Discovery - T1083
+Group Policy Discovery - T1615
+Network Service Scanning - T1046
+Network Share Discovery - T1135
+Network Sniffing - T1040
+Password Policy Discovery - T1201
+Peripheral Device Discovery - T1120
+Permission Groups Discovery - T1069
+Process Discovery - T1057
+Query Registry - T1012
+Remote System Discovery - T1018
+Software Discovery - T1518
+System Information Discovery - T1082
+System Location Discovery - T1614
+System Network Configuration Discovery - T1016
+System Network Connections Discovery - T1049
+System Owner/User Discovery - T1033
+System Service Discovery - T1007
+System Time Discovery - T1124
+Virtualization/Sandbox Evasion - T1497
+
+Lateral Movement - TA0008
+Exploitation of Remote Services - T1210
+Internal Spearphishing - T1534
+Lateral Tool Transfer - T1570
+Remote Service Session Hijacking - T1563
+Remote Services - T1021
+Replication Through Removable Media - T1091
+Software Deployment Tools - T1072
+Taint Shared Content - T1080
+Use Alternate Authentication Material - T1550
+
+Collection - TA0009
+Archive Collected Data - T1560
+Audio Capture - T1123
+Automated Collection - T1119
+Browser Session Hijacking - T1185
+Clipboard Data - T1115
+Data from Cloud Storage Object - T1530
+Data from Configuration Repository - T1602
+Data from Information Repositories - T1213
+Data from Local System - T1005
+Data from Network Shared Drive - T1039
+Data from Removable Media - T1025
+Data Staged - T1074
+Email Collection - T1114
+Input Capture - T1056
+Screen Capture - T1113
+Video Capture - T1125
+
+Command and Control - TA0011
+Application Layer Protocol - T1071
+Communication Through Removable Media - T1092
+Data Encoding - T1132
+Data Obfuscation - T1001
+Dynamic Resolution - T1568
+Encrypted Channel - T1573
+Fallback Channels - T1008
+Ingress Tool Transfer - T1105
+Multi-Stage Channels - T1104
+Non-Application Layer Protocol - T1095
+Non-Standard Port - T1571
+Protocol Tunneling - T1572
+Proxy - T1090
+Remote Access Software - T1219
+Traffic Signaling - T1205
+Web Service - T1102
+
+Exfiltration - TA0010
+Automated Exfiltration - T1020
+Data Transfer Size Limits - T1030
+Exfiltration Over Alternative Protocol - T1048
+Exfiltration Over C2 Channel - T1041
+Exfiltration Over Other Network Medium - T1011
+Exfiltration Over Physical Medium - T1052
+Exfiltration Over Web Service - T1567
+Scheduled Transfer - T1029
+
+Impact - TA0040
+Account Access Removal - T1531
+Data Destruction - T1485
+Data Encrypted for Impact - T1486
+Data Manipulation - T1565
+Defacement - T1491
+Disk Wipe - T1561
+Endpoint Denial of Service - T1499
+Firmware Corruption - T1495
+Inhibit System Recovery - T1490
+Network Denial of Service - T1498
+Resource Hijacking - T1496
+Service Stop - T1489
+System Shutdown/Reboot - T1529
+
+APT1 - Comment Crew - PLA Unit 61398
+APT28 - Fancy Bear - Sofacy - Pawn Storm
+APT29 - Cozy Bear - The Dukes
+APT30 - Naikon
+APT32 - OceanLotus
+APT33 - Elfin - Magnallium
+APT34 - OilRig - Helix Kitten
+APT35 - Charming Kitten - Phosphorus
+APT37 - Reaper - ScarCruft
+APT38 - Lazarus Group
+APT39 - Chafer - Remix Kitten
+APT40 - Leviathan - Kryptonite Panda
+APT41 - Barium - Winnti Group
+Lazarus Group - Hidden Cobra
+Equation Group - NSA TAO
+Carbanak - FIN7
+Cobalt Group - Cobalt Spider
+FIN6 - Magecart Group 6
+FIN7 - Carbanak - Navigator Group
+FIN8 - Syssphinx
+TA505 - Evil Corp
+Wizard Spider - TrickBot Gang
+Silence Group - Silence
+Turla - Venomous Bear - Waterbug
+Dragonfly - Energetic Bear - Crouching Yeti
+Sandworm Team - Voodoo Bear - IRIDIUM
+Kimsuky - Velvet Chollima - Black Banshee
+DarkHalo - UNC2452 - SolarWinds Hackers
+HAFNIUM - Microsoft Exchange Attackers
+REvil - Sodinokibi - Gold Southfield
+DarkSide - Carbon Spider
+Conti - Wizard Spider
+Ryuk - Wizard Spider
+Maze - TA2101
+Egregor - Maze Successor
+NetWalker - Circus Spider
+Avaddon - TA2101
+Clop - TA505 - FIN11
+LockBit - LockBit Gang
+BlackMatter - DarkSide Successor
+Hive - DEV-0237
+BlackCat - ALPHV - Noberus
+Quantum - MountLocker Gang
+AvosLocker - Unknown
+LockFile - Unknown
+AtomSilo - Unknown
+HelloKitty - FiveHands
+Babuk - Babuk Locker
+Ragnar Locker - Viking Spider
+Medusa Locker - Unknown
+Phobos - 8Base
+STOP - Djvu - STOP/Djvu
+GandCrab - REvil Predecessor
+WannaCry - Lazarus Group
+NotPetya - Sandworm Team
+Bad Rabbit - Unknown
+SamSam - GOLD LOWELL
+LockerGoga - TA2101
+MegaCortex - TA2101
+Dharma - CrySIS - Phobos
+Scarab - Unknown
+GlobeImposter - Unknown
+Jigsaw - Unknown
+Cerber - Unknown
+Locky - TA505
+TeslaCrypt - Unknown
+CryptoLocker - Unknown
+CryptoWall - Unknown
+CTB-Locker - Unknown
+TorrentLocker - Unknown
+Dridex - Evil Corp
+Emotet - Mealybug - TA542
+TrickBot - Wizard Spider
+QakBot - TA570
+BazarLoader - Wizard Spider
+IcedID - TA551
+Ursnif - Gozi - ISFB
+Zeus - GameOver Zeus
+Carberp - Unknown
+SpyEye - Unknown
+Citadel - Unknown
+Kronos - Unknown
+Gootkit - TA513
+Ramnit - Unknown
+Tinba - Tiny Banker
+Vawtrak - Neverquest
+Shylock - Unknown
+Dyre - Dyreza
+BackSwap - Unknown
+Silence - Silence Group
+Carbanak - FIN7
+SWIFT - Lazarus Group
+Cobalt Strike - Various APTs
+Metasploit - Various APTs
+Empire - Various APTs
+Covenant - Various APTs
+PoshC2 - Various APTs
+Sliver - Various APTs
+Mythic - Various APTs
+Havoc - Various APTs
+Brute Ratel C4 - Various APTs
+Mimikatz - Various APTs
+BloodHound - Various APTs
+PowerView - Various APTs
+PowerUp - Various APTs
+WinPEAS - Various APTs
+LinPEAS - Various APTs
+Impacket - Various APTs
+CrackMapExec - Various APTs
+Responder - Various APTs
+NTLMRelayx - Various APTs
+Rubeus - Various APTs
+Kekeo - Various APTs
+ASREPRoast - Various APTs
+Kerberoast - Various APTs
+DCSync - Various APTs
+DCShadow - Various APTs
+Golden Ticket - Various APTs
+Silver Ticket - Various APTs
+Skeleton Key - Various APTs
+Pass-the-Hash - Various APTs
+Pass-the-Ticket - Various APTs
+Overpass-the-Hash - Various APTs
+Living off the Land - Various APTs
+LOLBAS - Various APTs
+GTFOBins - Various APTs
+Process Hollowing - Various APTs
+Process Injection - Various APTs
+DLL Injection - Various APTs
+Reflective DLL Loading - Various APTs
+Thread Execution Hijacking - Various APTs
+Atom Bombing - Various APTs
+Process Doppelgänging - Various APTs
+Process Ghosting - Various APTs
+Heaven's Gate - Various APTs
+Syscall Hooking - Various APTs
+SSDT Hooking - Various APTs
+IAT Hooking - Various APTs
+EAT Hooking - Various APTs
+Inline Hooking - Various APTs
+Hardware Breakpoint - Various APTs
+Exception Handler Abuse - Various APTs
+Code Cave - Various APTs
+Return-Oriented Programming - Various APTs
+Jump-Oriented Programming - Various APTs
+Call-Oriented Programming - Various APTs
+Stack Pivot - Various APTs
+ASLR Bypass - Various APTs
+DEP Bypass - Various APTs
+SMEP Bypass - Various APTs
+SMAP Bypass - Various APTs
+Control Flow Guard Bypass - Various APTs
+Return Flow Guard Bypass - Various APTs
+Intel CET Bypass - Various APTs
+ARM Pointer Authentication Bypass - Various APTs
+Shadow Stack Bypass - Various APTs
+Stack Canary Bypass - Various APTs
+Fortify Source Bypass - Various APTs
+Stack Protector Bypass - Various APTs
+ProPolice Bypass - Various APTs
+RELRO Bypass - Various APTs
+PIE Bypass - Various APTs
+NX Bit Bypass - Various APTs
+W^X Bypass - Various APTs
+KASLR Bypass - Various APTs
+KPTI Bypass - Various APTs
+SMEP Bypass - Various APTs
+SMAP Bypass - Various APTs
+UMIP Bypass - Various APTs
+PCID Bypass - Various APTs
+INVPCID Bypass - Various APTs
+IBT Bypass - Various APTs
+Spectre - Various APTs
+Meltdown - Various APTs
+Foreshadow - Various APTs
+MDS - Various APTs
+Zombieload - Various APTs
+RIDL - Various APTs
+Fallout - Various APTs
+LVI - Various APTs
+CacheOut - Various APTs
+CrossTalk - Various APTs
+Platypus - Various APTs
+SPOILER - Various APTs
+RAMBleed - Various APTs
+Rowhammer - Various APTs
+TRRespass - Various APTs
+Drammer - Various APTs
+GLitch - Various APTs
+CLKscrew - Various APTs
+Plundervolt - Various APTs
+SGAxe - Various APTs
+Faulticorn - Various APTs

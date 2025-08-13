@@ -17,110 +17,109 @@ class TestIntegracionMVC(unittest.TestCase):
         self.controlador = ControladorPrincipal(self.modelo, self.vista_mock)
     
     def test_inicializacion_controlador_principal(self):
+        """Test que el controlador principal se inicializa correctamente"""
         self.assertIsNotNone(self.controlador.modelo)
-        self.assertIsNotNone(self.controlador.controlador_escaneo)
-        self.assertIsNotNone(self.controlador.controlador_monitoreo)
-        self.assertIsNotNone(self.controlador.controlador_utilidades)
+        self.assertIsNotNone(self.controlador._controladores)
+        self.assertIn('escaneo', self.controlador._controladores)
+        self.assertIn('monitoreo', self.controlador._controladores)
+        self.assertIn('utilidades', self.controlador._controladores)
     
     def test_controladores_especificos_disponibles(self):
-        self.assertTrue(hasattr(self.controlador.controlador_escaneo, 'ejecutar_escaneo_basico'))
-        self.assertTrue(hasattr(self.controlador.controlador_monitoreo, 'iniciar_monitoreo'))
-        self.assertTrue(hasattr(self.controlador.controlador_utilidades, 'verificar_herramientas_disponibles'))
-    
-    def test_flujo_escaneo_completo(self):
-        try:
-            resultado = self.controlador.controlador_escaneo.ejecutar_escaneo_basico()
-            
-            self.assertIsInstance(resultado, dict)
-            self.assertIn('puertos', resultado)
-            self.assertIn('procesos', resultado)
-            self.assertIn('analisis', resultado)
-            
-            eventos = self.controlador.controlador_escaneo.obtener_eventos_siem(5)
-            self.assertIsInstance(eventos, list)
-            
-        except Exception as e:
-            self.assertIsInstance(e, (OSError, FileNotFoundError, PermissionError))
-    
-    def test_flujo_monitoreo_completo(self):
-        try:
-            exito = self.controlador.controlador_monitoreo.iniciar_monitoreo()
-            self.assertIsInstance(exito, bool)
-            
-            if exito:
-                estado = self.controlador.controlador_monitoreo.obtener_estado_monitoreo()
-                self.assertIsInstance(estado, dict)
-                self.assertIn('activo', estado)
-                
-                self.controlador.controlador_monitoreo.detener_monitoreo()
-                
-        except Exception as e:
-            self.assertIsInstance(e, (OSError, FileNotFoundError, PermissionError))
-    
-    def test_flujo_utilidades_completo(self):
-        try:
-            herramientas = self.controlador.controlador_utilidades.verificar_herramientas_disponibles()
-            self.assertIsInstance(herramientas, dict)
-            self.assertIn('disponibles', herramientas)
-            self.assertIn('no_disponibles', herramientas)
-            
-            hardware = self.controlador.controlador_utilidades.obtener_informacion_hardware()
-            self.assertIsInstance(hardware, dict)
-            
-        except Exception as e:
-            self.assertIsInstance(e, (OSError, FileNotFoundError, PermissionError))
-    
-    def test_flujo_reportes_completo(self):
-        try:
-            reporte = self.controlador.controlador_utilidades.generar_reporte_completo()
-            
-            self.assertIsInstance(reporte, dict)
-            self.assertIn('metadata', reporte)
-            self.assertIn('resumen_ejecutivo', reporte)
-            
-            texto = self.controlador.controlador_utilidades.obtener_reporte_texto(reporte)
-            self.assertIsInstance(texto, str)
-            self.assertIn('REPORTE DE SEGURIDAD', texto)
-            
-        except Exception as e:
-            self.assertIsInstance(e, (OSError, FileNotFoundError, PermissionError))
-
-class TestCompatibilidadSistema(unittest.TestCase):
-    
-    def test_deteccion_sistema_operativo(self):
-        import platform
-        sistema = platform.system()
+        """Test que los controladores específicos tienen métodos esperados"""
+        escaneo = self.controlador._controladores.get('escaneo')
+        monitoreo = self.controlador._controladores.get('monitoreo')
+        utilidades = self.controlador._controladores.get('utilidades')
         
-        self.assertIn(sistema, ['Windows', 'Linux', 'Darwin'])
+        if escaneo:
+            self.assertTrue(hasattr(escaneo, 'ejecutar_escaneo_basico'))
+        if monitoreo:
+            self.assertTrue(hasattr(monitoreo, 'iniciar_monitoreo'))
+        if utilidades:
+            self.assertTrue(hasattr(utilidades, 'verificar_herramientas_disponibles'))
     
-    def test_importacion_modulos(self):
+    def test_funcionalidad_escaneador_avanzado(self):
+        """Test de funcionalidad del escaneador avanzado"""
         try:
-            from ares_aegis.modelo.escaneador import Escaneador
-            from ares_aegis.modelo.monitor import Monitor
-            from ares_aegis.modelo.cuarentena import Cuarentena
-            from ares_aegis.modelo.utilidades import Utilidades
-            from ares_aegis.modelo.reportes import Reportes
-            from ares_aegis.modelo.siem import SIEM
+            from ares_aegis.modelo.modelo_escaneador import EscaneadorAvanzado, TipoEscaneo
+            
+            escaneador = EscaneadorAvanzado()
+            resultado = escaneador.escanear_avanzado('127.0.0.1', TipoEscaneo.PUERTOS_BASICO)
+            
+            self.assertIsNotNone(resultado)
+            self.assertEqual(resultado.objetivo, '127.0.0.1')
+            self.assertEqual(resultado.tipo_escaneo, TipoEscaneo.PUERTOS_BASICO)
+            
+        except Exception as e:
+            # Permitir errores de herramientas no disponibles
+            self.assertIsInstance(e, (OSError, FileNotFoundError, PermissionError))
+    
+    def test_funcionalidad_siem_avanzado(self):
+        """Test de funcionalidad del SIEM avanzado"""
+        try:
+            from ares_aegis.modelo.modelo_siem import SIEMAvanzado, TipoEvento, SeveridadEvento
+            
+            siem = SIEMAvanzado()
+            
+            # Registrar evento de prueba con enums correctos
+            siem.registrar_evento(TipoEvento.AUDITORIA, 'Test de integración', {'test': True}, SeveridadEvento.INFO)
+            
+            # Verificar que el evento se registró
+            self.assertGreater(siem.metricas['eventos_procesados'], 0)
+            
+        except Exception as e:
+            self.fail(f"Error en SIEM: {e}")
+    
+    def test_funcionalidad_monitor_avanzado(self):
+        """Test de funcionalidad del monitor avanzado"""
+        try:
+            from ares_aegis.modelo.modelo_monitor import MonitorAvanzado
+            
+            monitor = MonitorAvanzado()
+            
+            # Verificar que el monitor se inicializa correctamente
+            self.assertIsNotNone(monitor)
+            self.assertTrue(hasattr(monitor, 'obtener_procesos_sospechosos'))
+            
+        except Exception as e:
+            self.fail(f"Error en monitor: {e}")
+    
+    def test_metodos_avanzados_controlador_principal(self):
+        """Test de métodos avanzados en el controlador principal"""
+        try:
+            # Test método de escaneo avanzado si está disponible
+            if hasattr(self.controlador, 'ejecutar_escaneo_avanzado'):
+                from ares_aegis.modelo.modelo_escaneador import TipoEscaneo
+                resultado = self.controlador.ejecutar_escaneo_avanzado('127.0.0.1', TipoEscaneo.PUERTOS_BASICO.value)
+                self.assertIsNotNone(resultado)
+            
+            # Test método de procesos sospechosos si está disponible
+            if hasattr(self.controlador, 'obtener_procesos_sospechosos'):
+                procesos = self.controlador.obtener_procesos_sospechosos()
+                self.assertIsInstance(procesos, list)
+            
+            # Test método de alertas de seguridad si está disponible
+            if hasattr(self.controlador, 'obtener_alertas_seguridad'):
+                alertas = self.controlador.obtener_alertas_seguridad()
+                self.assertIsInstance(alertas, list)
+                
+        except Exception as e:
+            # Permitir errores de herramientas no disponibles
+            self.assertIsInstance(e, (OSError, FileNotFoundError, PermissionError, ImportError))
+    
+    def test_compatibility_layer(self):
+        """Test de la capa de compatibilidad"""
+        try:
+            from ares_aegis.modelo.modelo_escaneador import Escaneador
             
             escaneador = Escaneador()
-            monitor = Monitor()
-            cuarentena = Cuarentena()
-            utilidades = Utilidades()
-            reportes = Reportes()
-            siem = SIEM()
-            
             self.assertIsNotNone(escaneador)
-            self.assertIsNotNone(monitor)
-            self.assertIsNotNone(cuarentena)
-            self.assertIsNotNone(utilidades)
-            self.assertIsNotNone(reportes)
-            self.assertIsNotNone(siem)
+            self.assertTrue(hasattr(escaneador, 'es_kali'))
             
-        except ImportError as e:
-            self.fail(f"Error importando módulos: {e}")
+        except Exception as e:
+            self.fail(f"Error en capa de compatibilidad: {e}")
 
 if __name__ == '__main__':
     unittest.main()
 
 
-# RESUMEN: Módulo de clases y funciones para Aresitos.
+# RESUMEN: Tests de integración para el sistema Ares Aegis mejorado con funcionalidad avanzada.

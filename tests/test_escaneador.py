@@ -8,7 +8,7 @@ import os
 
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
-from ares_aegis.modelo.escaneador import Escaneador
+from ares_aegis.modelo.modelo_escaneador import Escaneador
 
 class TestEscaneador(unittest.TestCase):
     

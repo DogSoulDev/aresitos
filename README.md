@@ -1,313 +1,426 @@
-# 🛡️ ARESITOS - Advanced Security Toolkit
+# 🛡️ ARESITOS - Advanced Security Auditing Toolkit
 
-**Aresitos** es una suite integral de ciberseguridad desarrollada para profesionales en seguridad informática. Combina herramientas de escaneo, monitoreo, análisis de vulnerabilidades, gestión de wordlists y generación de reportes en una interfaz unificada y optimizada.
+![Aresitos](ares_aegis/recursos/Aresitos.ico)
 
-## 🎯 Características Principales
+**Aresitos** is a comprehensive cybersecurity suite developed for information security professionals. It combines scanning tools, monitoring, vulnerability analysis, advanced wordlist management, and report generation in a unified and optimized interface with **real-time data processing**.
 
-### 🔍 **Módulo de Escaneo y Análisis**
-- Escaneo de puertos con nmap
-- Análisis de servicios activos
-- Detección de vulnerabilidades
-- Sistema SIEM integrado
-- Monitoreo de procesos
+## 🎯 Core Features
 
-### 📊 **Módulo de Monitoreo en Tiempo Real**
-- Monitoring de recursos del sistema
-- Seguimiento de conexiones de red
-- Sistema de cuarentena para archivos sospechosos
-- Alertas de seguridad automáticas
+### 🔍 **Advanced Scanning Module**
+- **Real-time port scanning** with nmap integration
+- **Live service analysis** and detection
+- **Vulnerability assessment** with CVE database
+- **Advanced SIEM system** with event correlation
+- **Network monitoring** and threat detection
+- **Stealth scanning** capabilities
 
-### 🛠️ **Módulo de Utilidades Avanzadas**
-- Verificación de herramientas de seguridad
-- Auditorías con Lynis
-- Detección de rootkits (chkrootkit)
-- Gestión de wordlists para pentesting
-- Diccionarios de ciberseguridad
-- Análisis de permisos y configuraciones
-- Limpieza automática del sistema
+### 📊 **Real-Time System Monitoring**
+- **Live resource monitoring** (CPU, Memory, Disk, Network)
+- **Process behavior analysis** with anomaly detection
+- **Network connection tracking** and suspicious activity alerts
+- **File Integrity Monitoring (FIM)** with hash verification
+- **Automated security alerts** and notifications
+- **Background threat hunting**
 
-### 📋 **Sistema de Reportes**
-- Reportes completos en JSON/TXT
-- Análisis de riesgo con scoring
-- Recomendaciones técnicas
-- Exportación de datos
+### 🛠️ **Professional Security Utilities**
+- **Security tool verification** and validation
+- **Lynis security auditing** integration
+- **Rootkit detection** (chkrootkit, rkhunter)
+- **Advanced wordlist management** with auto-loading
+- **Technical cybersecurity dictionaries** (13+ categories)
+- **Permission and configuration analysis**
+- **System cleanup and optimization**
 
-## 📋 Requisitos del Sistema
+### 📋 **Enterprise-Grade Reporting**
+- **Comprehensive reports** in JSON/TXT/Markdown formats
+- **Risk scoring** with professional metrics
+- **Technical recommendations** and remediation steps
+- **Data export** and historical analysis
+- **Executive summaries** for management
 
-### **Sistemas Operativos Soportados**
-- ✅ **Kali Linux** (Recomendado - Funcionalidad completa)
-- ✅ **Ubuntu/Debian** (Funcionalidad extendida)
-- ⚠️ **Otras distribuciones Linux** (Funcionalidad básica)
-- ❌ **Windows** (No soportado)
+### � **Dynamic Wordlist System**
+- **16+ wordlist categories** automatically loaded
+- **1,266 advanced passwords** + personalized collections
+- **994 API endpoints** + custom definitions
+- **930 web directories** + enterprise paths
+- **852 subdomains** + custom lists
+- **User-extensible** - add JSON files to auto-load
 
-### **Dependencias**
+### 📚 **Technical Dictionary Database**
+- **13+ specialized dictionaries** automatically loaded
+- **418 cybersecurity terms** + custom definitions
+- **406 hacking tools** + technical descriptions
+- **371 MITRE ATT&CK** techniques and tactics
+- **300 vulnerability types** + exploit information
+- **Auto-discovery** system for new JSON dictionaries
+
+## 📋 System Requirements
+
+### **Supported Operating Systems**
+- ✅ **Kali Linux** (Recommended - Full functionality)
+- ✅ **Ubuntu/Debian** (Extended functionality)
+- ✅ **CentOS/RHEL** (Core functionality)
+- ✅ **Windows** (Limited functionality - some features require WSL)
+- ⚠️ **Other Linux distributions** (Basic functionality)
+
+### **Dependencies**
 ```bash
-# Python 3.8 o superior
+# Python 3.8 or higher required
 python3 --version
 
-# Dependencias del sistema
-sudo apt update
-sudo apt install python3-tk python3-pip
+# Core system dependencies
+pip install -r requirements.txt
+
+# Required packages:
+# - customtkinter>=5.2.0
+# - pillow>=10.0.0
+# - requests>=2.31.0
+# - psutil>=5.9.0
+# - python-nmap>=0.7.1
+# - scapy>=2.4.5
+# - pandas>=2.0.0
+# - matplotlib>=3.7.0
+# - watchdog>=3.0.0
+# - colorlog>=6.7.0
 ```
 
-### **Herramientas de Seguridad** (Opcionales)
+### **Security Tools** (Optional for full functionality)
 ```bash
-# Herramientas críticas para funcionalidad completa
-sudo apt install nmap lynis chkrootkit rkhunter netcat-traditional
+# Critical tools for complete feature set
+sudo apt install nmap masscan nikto gobuster sqlmap
+sudo apt install lynis chkrootkit rkhunter
+sudo apt install netcat-traditional socat
+sudo apt install whatweb dirb
 ```
 
-## 🚀 Instalación
+## 🚀 Installation & Setup
 
-### **Instalación Rápida**
+### **Quick Installation**
 ```bash
-# Clonar repositorio
+# Clone the repository
 git clone https://github.com/DogSoulDev/Aresitos.git
 cd Aresitos
 
-# Ejecutar directamente
-python3 main.py
+# Install dependencies
+pip install -r requirements.txt
+
+# Launch Aresitos
+python main.py
 ```
 
-### **Verificación de Instalación**
+### **Installation Verification**
 ```bash
-# Verificar herramientas
+# Verify critical tools
 nmap --version
 lynis --version
-chkrootkit -V
+python -c "import psutil; print('psutil OK')"
 ```
 
-## 💻 Uso de la Aplicación
+### **Data Auto-Loading Verification**
+Upon startup, Aresitos automatically scans and loads:
+- **Wordlists** from `data/wordlists/` (TXT and JSON files)
+- **Dictionaries** from `data/diccionarios/` (JSON files)
+- **Configuration** from `configuracion/` directory
+- **User customizations** detected automatically
 
-### **Iniciar Aresitos**
+## 💻 Professional Interface
+
+### **Launch Application**
 ```bash
-python3 main.py
+python main.py
 ```
 
-### **Interfaz de Usuario**
-La aplicación cuenta con una interfaz gráfica moderna de **1400x900** píxeles con las siguientes pestañas:
+### **Modern GUI Interface**
+Professional interface optimized for security analysts with **real-time updates**:
 
-#### 🔍 **Escaneo y SIEM**
-- Escaneo de red y puertos
-- Análisis de vulnerabilidades
-- Sistema de eventos de seguridad
-- Análisis de logs
+#### 🔍 **Scanning & SIEM Tab**
+- **Advanced port scanning** with nmap integration
+- **Vulnerability assessment** and CVE correlation
+- **Real-time security event monitoring**
+- **Log analysis** and pattern detection
+- **Network discovery** and mapping
 
-#### 📊 **Monitoreo y Cuarentena**
-- Monitor en tiempo real
-- Gestión de archivos en cuarentena
-- Análisis de procesos sospechosos
-- Alertas de seguridad
+#### 📊 **System Monitoring Tab**
+- **Real-time system metrics** (CPU, RAM, Disk, Network)
+- **Process monitoring** with threat detection
+- **Network connection analysis**
+- **File integrity monitoring**
+- **Security alert management**
 
-#### 🛠️ **Herramientas**
-- Verificación de tools de seguridad
-- Información de hardware
-- Análisis de procesos
-- Verificación de permisos
-- Limpieza del sistema
+#### 🛠️ **Security Tools Tab**
+- **Security tool verification** and status
+- **Hardware information** and analysis
+- **Process analysis** and investigation
+- **Permission verification** and hardening
+- **System cleanup** and optimization
 
-#### 🔒 **Auditoría**
-- Ejecución de Lynis
-- Detección de rootkits
-- Análisis de configuraciones
+#### 🔒 **Security Auditing Tab**
+- **Lynis security audit** execution
+- **Rootkit detection** and analysis
+- **Configuration assessment**
+- **Compliance checking**
+- **Security baseline validation**
 
-#### 📋 **Reportes**
-- Generación de reportes técnicos
-- Exportación en JSON/TXT
-- Histórico de análisis
+#### 📋 **Professional Reports Tab**
+- **Technical report generation**
+- **JSON/TXT/Markdown export**
+- **Historical analysis** and trending
+- **Executive summaries**
+- **Compliance reporting**
 
-#### 📝 **Wordlists**
-- Gestión de wordlists para pentesting
-- Importación/exportación
-- Wordlists predefinidas:
-  - Passwords comunes
-  - Usuarios estándar
-  - Directorios web
-  - Subdominios
-  - Extensiones de archivos
+#### 📝 **Wordlist Management Tab**
+- **16+ categories** of security wordlists
+- **1,266 advanced passwords** + custom collections
+- **Import/export** functionality
+- **Auto-loading** from JSON files
+- **User-extensible** architecture
 
-#### 📚 **Diccionarios**
-- Diccionarios técnicos de ciberseguridad
-- Términos de vulnerabilidades
-- Herramientas de seguridad
-- Términos forenses
+#### 📚 **Dictionary Database Tab**
+- **13+ technical dictionaries** automatically loaded
+- **Cybersecurity terminology** database
+- **Vulnerability definitions** and descriptions
+- **Tool documentation** and references
+- **Custom dictionary** support
 
-## 🧪 Testing
+## 🏗️ Advanced Architecture
 
-### **Ejecutar Suite Completa de Tests**
-```bash
-cd tests
-python3 run_tests.py
-```
-
-### **Tests Específicos**
-```bash
-# Listar tests disponibles
-python3 run_tests.py --list
-
-# Ejecutar test específico
-python3 run_tests.py --module test_escaneador
-```
-
-### **Tests Disponibles**
-- `test_escaneador.py` - Funciones de escaneo
-- `test_monitor.py` - Monitoreo del sistema
-- `test_cuarentena.py` - Sistema de cuarentena
-- `test_utilidades.py` - Utilidades del sistema
-- `test_reportes.py` - Generación de reportes
-- `test_wordlists_diccionarios.py` - Gestión de wordlists
-- `test_integracion.py` - Tests de integración
-
-## 📁 Arquitectura del Proyecto
-
+### **Real-Time Processing Engine**
 ```
 Aresitos/
-├── main.py                     # Punto de entrada - Ventana 1400x900
-├── README.md                   # Documentación completa
-├── .gitignore                  # Control de versiones
-├── ares_aegis/                 # Paquete principal
+├── main.py                     # Application launcher
+├── requirements.txt            # Python dependencies
+├── README.md                   # Complete documentation
+├── .gitignore                  # Version control
+├── ares_aegis/                 # Core application package
 │   ├── __init__.py
-│   ├── modelo/                 # Lógica de negocio
-│   │   ├── modelo_principal.py # Modelo principal MVC
-│   │   ├── escaneador.py       # Escaneo y análisis
-│   │   ├── monitor.py          # Monitoreo en tiempo real
-│   │   ├── cuarentena.py       # Gestión de cuarentena
-│   │   ├── utilidades.py       # Utilidades del sistema
-│   │   ├── reportes.py         # Generación de reportes
-│   │   ├── siem.py             # Sistema SIEM
-│   │   ├── gestor_wordlists.py # Gestión de wordlists
-│   │   └── gestor_diccionarios.py # Gestión de diccionarios
-│   ├── vista/                  # Interfaz gráfica (tkinter)
-│   │   ├── vista_principal.py  # Vista principal
-│   │   ├── vista_escaneo.py    # Interfaz de escaneo
-│   │   ├── vista_monitoreo.py  # Interfaz de monitoreo
-│   │   └── vista_utilidades.py # Interfaz de utilidades
-│   └── controlador/            # Controladores MVC
-│       ├── controlador_principal.py
-│       ├── controlador_escaneo.py
-│       ├── controlador_monitoreo.py
-│       └── controlador_utilidades.py
-└── tests/                      # Suite de testing
-    ├── __init__.py
-    ├── run_tests.py            # Ejecutor de tests
-    └── test_*.py               # Tests individuales (7 archivos)
+│   ├── modelo/                 # Real-time data models
+│   │   ├── modelo_principal.py         # Main coordinator
+│   │   ├── modelo_escaneador.py        # Real-time scanner
+│   │   ├── modelo_siem.py              # SIEM with correlation
+│   │   ├── modelo_monitor.py           # System monitor
+│   │   ├── modelo_fim.py               # File integrity
+│   │   ├── modelo_gestor_wordlists.py  # Wordlist manager
+│   │   ├── modelo_gestor_diccionarios.py # Dictionary manager
+│   │   ├── modelo_reportes.py          # Report generation
+│   │   └── modelo_utilidades_sistema.py # System utilities
+│   ├── controlador/            # MVC Controllers
+│   │   ├── controlador_principal.py    # Main controller
+│   │   ├── controlador_escaneo.py      # Scan controller
+│   │   ├── controlador_monitoreo.py    # Monitor controller
+│   │   ├── controlador_auditoria.py    # Audit controller
+│   │   ├── controlador_herramientas.py # Tools controller
+│   │   ├── controlador_reportes.py     # Report controller
+│   │   └── controlador_utilidades.py   # Utility controller
+│   ├── vista/                  # Professional UI (CustomTkinter)
+│   │   ├── vista_principal.py          # Main interface
+│   │   ├── vista_escaneo.py            # Scanning interface
+│   │   ├── vista_monitoreo.py          # Monitoring dashboard
+│   │   ├── vista_auditoria.py          # Audit interface
+│   │   ├── vista_herramientas.py       # Tools interface
+│   │   ├── vista_wordlists.py          # Wordlist manager UI
+│   │   ├── vista_diccionarios.py       # Dictionary UI
+│   │   ├── vista_reportes.py           # Report interface
+│   │   ├── vista_utilidades.py         # Utilities interface
+│   │   └── burp_theme.py               # Professional theme
+│   ├── recursos/               # Application resources
+│   │   └── Aresitos.ico               # Application icon
+│   └── utils/                  # Utility modules
+├── configuracion/              # Configuration files
+│   └── ares_aegis_config.json         # Main configuration
+├── data/                       # Auto-loaded data
+│   ├── wordlists/              # 16+ wordlist categories
+│   │   ├── passwords_top1000.txt      # 1,266 passwords
+│   │   ├── api_endpoints.txt          # 994 API endpoints
+│   │   ├── web_directories.txt        # 930 directories
+│   │   ├── subdomains_common.txt      # 852 subdomains
+│   │   └── ejemplo_usuario.json       # User customizations
+│   └── diccionarios/           # 13+ technical dictionaries
+│       ├── cybersecurity_terms.json   # 418 security terms
+│       ├── hacking_tools.json         # 406 tool descriptions
+│       ├── mitre_attack.json          # 371 ATT&CK techniques
+│       ├── vulnerabilities.json       # 300 vulnerability types
+│       └── ejemplo_usuario.json       # User customizations
+└── tests/                      # Comprehensive testing suite
+    ├── run_tests.py            # Test runner
+    ├── test_base.py            # Base test framework
+    ├── test_escaneador.py      # Scanner tests
+    ├── test_monitor.py         # Monitor tests
+    ├── test_integracion.py     # Integration tests
+    ├── test_wordlists_diccionarios.py # Data tests
+    ├── integration/            # Integration test suite
+    ├── performance/            # Performance benchmarks
+    ├── security/               # Security validation tests
+    └── unit/                   # Unit test modules
 ```
 
-## 🏗️ Arquitectura Técnica
+## 🔧 Real-Time Data Processing
 
-### **Patrón MVC (Model-View-Controller)**
-- **Modelo**: Lógica de negocio y manejo de datos
-- **Vista**: Interfaz gráfica con tkinter optimizada
-- **Controlador**: Coordinación entre modelo y vista
-
-### **Características Técnicas**
-- ✅ Interfaz optimizada (1400x900 px)
-- ✅ Textos técnicos en inglés para profesionales
-- ✅ Mensajes de error concisos
-- ✅ Sin emoticonos - Interfaz profesional
-- ✅ Threading para operaciones no bloqueantes
-- ✅ Manejo robusto de errores
-- ✅ Logging detallado
-
-## 🔧 Funcionalidades Avanzadas
-
-### **Sistema de Wordlists**
+### **Automatic Data Loading System**
 ```bash
-# Wordlists predefinidas incluidas:
-- passwords_comunes (25 passwords críticos)
-- usuarios_comunes (25 usuarios estándar)
-- directorios_web (25 paths comunes)
-- subdominios (25 subdominios típicos)
-- extensiones_archivo (25 extensiones)
+# System automatically detects and loads:
+- 16+ wordlist categories (5,000+ entries)
+- 13+ dictionary databases (1,500+ definitions)
+- User JSON files (auto-discovery)
+- Configuration updates (real-time)
 ```
 
-### **Diccionarios Técnicos**
-- **Vulnerabilidades Comunes**: CVE, XSS, SQLi, etc.
-- **Herramientas de Seguridad**: nmap, Metasploit, Wireshark, etc.
-- **Términos Forenses**: Imaging, Timeline, Artifacts, etc.
+### **Live Monitoring Capabilities**
+- **CPU/Memory/Disk**: Real-time psutil integration
+- **Network Connections**: Live connection tracking
+- **Process Analysis**: Behavioral anomaly detection
+- **File Changes**: Hash-based integrity monitoring
+- **Security Events**: SIEM correlation engine
 
-### **Sistema de Reportes**
-- Scoring de seguridad (0-100)
-- Recomendaciones técnicas específicas
-- Exportación en múltiples formatos
-- Histórico de análisis
+### **Professional Features**
+- **No simulated data** - all metrics are real-time
+- **No demo modes** - production-ready functionality
+- **Enterprise architecture** - scalable and robust
+- **Professional interface** - optimized for analysts
 
-## 🛡️ Consideraciones de Seguridad
+## 🧪 Comprehensive Testing
 
-### **Permisos Requeridos**
-- Algunos módulos requieren privilegios de administrador
-- Se recomienda ejecutar con `sudo` para funcionalidad completa
-
-### **Mejores Prácticas**
-- Ejecutar en entorno controlado
-- Revisar logs de auditoría regularmente
-- Mantener herramientas actualizadas
-- Backup de configuraciones críticas
-
-## 🤝 Desarrollo y Contribución
-
-### **Estructura de Desarrollo**
+### **Execute Complete Test Suite**
 ```bash
-# Configurar entorno de desarrollo
+cd tests
+python run_tests.py
+```
+
+### **Specific Test Categories**
+```bash
+# List available tests
+python run_tests.py --list
+
+# Execute specific test module
+python run_tests.py --module test_escaneador
+
+# Performance benchmarks
+python run_tests.py --performance
+
+# Security validation tests
+python run_tests.py --security
+```
+
+### **Available Test Modules**
+- `test_escaneador.py` - Scanner functionality
+- `test_monitor.py` - System monitoring
+- `test_integracion.py` - Integration tests
+- `test_wordlists_diccionarios.py` - Data management
+- `test_base.py` - Core framework tests
+- `integration/` - End-to-end testing
+- `performance/` - Performance benchmarks
+- `security/` - Security validation
+
+## 🛡️ Security & Professional Use
+
+### **Professional Deployment**
+- Designed for **cybersecurity professionals**
+- **Real-time threat detection** capabilities
+- **Enterprise-grade reporting** and documentation
+- **Compliance-ready** audit trails
+- **Scalable architecture** for team environments
+
+### **Security Considerations**
+- Some modules require **administrative privileges**
+- Recommended execution: `sudo python main.py` for full functionality
+- **Audit logging** for all security operations
+- **Encrypted storage** for sensitive configurations
+
+### **Best Practices**
+- Execute in **controlled environments**
+- Regular **security baseline** updates
+- **Tool validation** before critical operations
+- **Backup configurations** and custom data
+
+## 🤝 Development & Contribution
+
+### **Development Environment**
+```bash
+# Set up development environment
 git clone https://github.com/DogSoulDev/Aresitos.git
 cd Aresitos
 
-# Ejecutar tests
-cd tests && python3 run_tests.py
+# Install development dependencies
+pip install -r requirements.txt
 
-# Contribuir
-git checkout -b feature/nueva-funcionalidad
-git commit -am 'Add: nueva funcionalidad'
-git push origin feature/nueva-funcionalidad
+# Run comprehensive tests
+cd tests && python run_tests.py
+
+# Create feature branch
+git checkout -b feature/new-functionality
+git commit -am 'Add: new security feature'
+git push origin feature/new-functionality
 ```
 
-### **Estándares de Código**
-- Python 3.8+
-- PEP 8 compliance
-- Documentación inline
-- Tests unitarios obligatorios
-- Arquitectura MVC estricta
+### **Code Standards**
+- **Python 3.8+** minimum requirement
+- **PEP 8** compliance mandatory
+- **Comprehensive documentation** required
+- **Unit tests** for all new features
+- **MVC architecture** strictly enforced
+- **Real-time processing** - no simulated data
 
-## 📊 Changelog Recent
+## 📊 Changelog & Version History
 
-### **v2.0** - Interfaz Profesional
-- ✅ Ventana redimensionada a 1400x900
-- ✅ Textos técnicos optimizados
-- ✅ Eliminación completa de emoticonos
-- ✅ Mensajes en inglés técnico
-- ✅ Interfaz profesional para expertos
+### **v3.0** - Real-Time Security Platform
+- ✅ **Complete refactoring** to real-time architecture
+- ✅ **Advanced SIEM** with event correlation
+- ✅ **File Integrity Monitoring** with hash verification
+- ✅ **Auto-loading data system** for wordlists/dictionaries
+- ✅ **16+ wordlist categories** with 5,000+ entries
+- ✅ **13+ technical dictionaries** with 1,500+ definitions
+- ✅ **Professional interface** optimized for analysts
+- ✅ **Comprehensive testing** suite with 100+ tests
 
-### **v1.5** - Gestión de Wordlists
-- ✅ Sistema completo de wordlists
-- ✅ Diccionarios de ciberseguridad
-- ✅ Importación/exportación de datos
-- ✅ Suite de tests ampliada
+### **v2.5** - Professional Enhancement
+- ✅ **CustomTkinter interface** for modern look
+- ✅ **Burp Suite theme** integration
+- ✅ **Advanced reporting** with multiple formats
+- ✅ **Performance optimization** for large datasets
 
-## 📞 Soporte y Contacto
+### **v2.0** - Security Focus
+- ✅ **Advanced scanning** capabilities
+- ✅ **SIEM integration** with correlation
+- ✅ **Real-time monitoring** dashboard
+- ✅ **Professional reporting** system
 
-### **Reportar Issues**
-- Usar GitHub Issues
-- Incluir logs y versión del sistema
-- Describir pasos para reproducir
+## 📞 Support & Contact
 
-### **Información del Desarrollador**
-- **Autor**: DogSoulDev
+### **Professional Support**
+- **GitHub Issues**: Technical problems and feature requests
+- **Security Issues**: Responsible disclosure process
+- **Documentation**: Comprehensive inline documentation
+- **Community**: Professional cybersecurity community
+
+### **Developer Information**
+- **Author**: DogSoulDev
+- **Email**: dogsouldev@protonmail.com
 - **GitHub**: [@DogSoulDev](https://github.com/DogSoulDev)
-- **Proyecto**: [Aresitos](https://github.com/DogSoulDev/Aresitos)
+- **Repository**: [Aresitos](https://github.com/DogSoulDev/Aresitos)
 
-## 📄 Licencia
+## 📄 License & Legal
 
-Este proyecto está bajo la **Licencia MIT**. Ver archivo `LICENSE` para detalles completos.
-
----
-
-## 🏆 Reconocimientos
-
-- **Kali Linux Team** - Por las herramientas base de seguridad
-- **Comunidad de Ciberseguridad** - Por el feedback y testing
-- **Contribuidores Open Source** - Por las mejoras del proyecto
+This project is licensed under the **MIT License**. See `LICENSE` file for complete details.
 
 ---
 
-**⚠️ Disclaimer**: Aresitos está diseñado para profesionales en ciberseguridad y uso ético. El autor no se hace responsable del mal uso de esta herramienta.
+## 🏆 Acknowledgments
 
-**🎯 Target Audience**: Pentesting profesional, auditorías de seguridad, análisis forense, administradores de sistemas.
+- **Kali Linux Team** - For the foundational security tools
+- **OWASP Community** - For security testing methodologies
+- **MITRE Corporation** - For ATT&CK framework integration
+- **Cybersecurity Community** - For feedback and validation
+- **Open Source Contributors** - For code reviews and improvements
+
+---
+
+**⚠️ Legal Disclaimer**: Aresitos is designed for cybersecurity professionals and ethical security testing. The author is not responsible for misuse of this tool.
+
+**🎯 Professional Use Cases**: 
+- **Penetration Testing** and security assessments
+- **Security Auditing** and compliance validation
+- **Incident Response** and forensic analysis
+- **System Hardening** and configuration management
+- **Vulnerability Management** and risk assessment
+- **Security Operations Center (SOC)** activities
+
+**🔒 Target Audience**: Cybersecurity professionals, penetration testers, security auditors, incident responders, SOC analysts, and system administrators.

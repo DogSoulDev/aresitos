@@ -1,0 +1,16 @@
+{
+    "passwords_personalizadas": [
+        "password123",
+        "admin123",
+        "user123",
+        "test123",
+        "demo123"
+    ],
+    "usuarios_empresa": [
+        "administrador",
+        "usuario",
+        "invitado",
+        "soporte",
+        "tecnico"
+    ]
+}
