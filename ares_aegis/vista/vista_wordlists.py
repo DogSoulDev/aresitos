@@ -17,6 +17,8 @@ class VistaWordlists(tk.Frame):
     def __init__(self, parent):
         super().__init__(parent)
         self.controlador = None
+        self.proceso_wordlist_activo = False
+        self.thread_wordlist = None
         
         if BURP_THEME_AVAILABLE:
             self.theme = burp_theme
@@ -184,6 +186,7 @@ class VistaWordlists(tk.Frame):
         if self.theme:
             buttons = [
                 ("Generar Wordlist", self.generar_wordlist, '#ff6633'),
+                ("❌ Cancelar", self.cancelar_wordlist, '#cc0000'),
                 ("Cargar Base", self.cargar_base, '#404040'),
                 ("Combinar Listas", self.combinar_listas, '#404040'),
                 ("Filtrar Duplicados", self.filtrar_duplicados, '#404040'),
@@ -195,10 +198,21 @@ class VistaWordlists(tk.Frame):
             for text, command, bg_color in buttons:
                 btn = tk.Button(right_frame, text=text, command=command,
                               bg=bg_color, fg='white', font=('Arial', 10))
+                if text == "❌ Cancelar":
+                    btn.config(state="disabled")
+                    self.btn_cancelar_wordlist = btn
                 btn.pack(fill=tk.X, pady=2)
         else:
-            ttk.Button(right_frame, text="Generar Wordlist", 
-                      command=self.generar_wordlist).pack(fill=tk.X, pady=5)
+            # Crear botones individuales para mejor control
+            self.btn_generar = ttk.Button(right_frame, text="Generar Wordlist", 
+                                         command=self.generar_wordlist)
+            self.btn_generar.pack(fill=tk.X, pady=5)
+            
+            self.btn_cancelar_wordlist = ttk.Button(right_frame, text="❌ Cancelar", 
+                                                   command=self.cancelar_wordlist,
+                                                   state="disabled")
+            self.btn_cancelar_wordlist.pack(fill=tk.X, pady=5)
+            
             ttk.Button(right_frame, text="Cargar Base", 
                       command=self.cargar_base).pack(fill=tk.X, pady=5)
             ttk.Button(right_frame, text="Combinar Listas", 
@@ -214,44 +228,103 @@ class VistaWordlists(tk.Frame):
                       command=self.limpiar_wordlist).pack(fill=tk.X, pady=5)
     
     def generar_wordlist(self):
-        def ejecutar():
-            try:
-                self.wordlist_text.config(state=tk.NORMAL)
-                self.wordlist_text.insert(tk.END, "Generando wordlist para Kali Linux...\n")
-                self.wordlist_text.update()
-                
-                tipo = self.tipo_wordlist.get()
-                patron = self.patron_base.get()
-                num_var = int(self.num_variaciones.get()) if self.num_variaciones.get().isdigit() else 100
-                
-                opciones = {
-                    'incluir_numeros': self.incluir_numeros.get(),
-                    'incluir_simbolos': self.incluir_simbolos.get(),
-                    'usar_leet': self.usar_leet.get()
-                }
-                
-                wordlist_generada = []
-                
-                if tipo == "Passwords":
-                    wordlist_generada = self.generar_passwords(patron, num_var, opciones)
-                elif tipo == "Directorios":
-                    wordlist_generada = self.generar_directorios(num_var)
-                elif tipo == "Subdominios":
-                    wordlist_generada = self.generar_subdominios(num_var)
-                elif tipo == "API Endpoints":
-                    wordlist_generada = self.generar_api_endpoints(num_var)
-                elif tipo == "Usernames":
-                    wordlist_generada = self.generar_usernames(num_var)
-                
-                self.wordlist_text.delete(1.0, tk.END)
-                for palabra in wordlist_generada[:num_var]:
-                    self.wordlist_text.insert(tk.END, f"{palabra}\n")
-                
-                self.wordlist_text.config(state=tk.DISABLED)
-            except Exception as e:
-                messagebox.showerror("Error", f"Error generando wordlist: {str(e)}")
+        """Generar wordlist con configuración seleccionada."""
+        if self.proceso_wordlist_activo:
+            messagebox.showwarning("Atención", "Ya hay una generación de wordlist en curso.")
+            return
         
-        threading.Thread(target=ejecutar, daemon=True).start()
+        # Validaciones básicas
+        tipo = self.tipo_wordlist.get()
+        if not tipo:
+            messagebox.showerror("Error", "Debe seleccionar un tipo de wordlist.")
+            return
+        
+        try:
+            num_var = int(self.num_variaciones.get()) if self.num_variaciones.get().isdigit() else 100
+            if num_var < 1:
+                raise ValueError("Número de variaciones inválido")
+        except ValueError:
+            messagebox.showerror("Error", "El número de variaciones debe ser válido.")
+            return
+        
+        # Iniciar proceso
+        self.proceso_wordlist_activo = True
+        self._habilitar_cancelar_wordlist(True)
+        
+        # Ejecutar en hilo separado
+        self.thread_wordlist = threading.Thread(
+            target=self._generar_wordlist_async,
+            args=(tipo, num_var),
+            daemon=True
+        )
+        self.thread_wordlist.start()
+    
+    def _generar_wordlist_async(self, tipo, num_var):
+        """Generar wordlist de forma asíncrona."""
+        try:
+            self.wordlist_text.config(state=tk.NORMAL)
+            self.wordlist_text.delete(1.0, tk.END)
+            self.wordlist_text.insert(tk.END, f"🔄 Generando wordlist '{tipo}'...\n")
+            self.wordlist_text.config(state=tk.DISABLED)
+            
+            if not self.proceso_wordlist_activo:
+                return
+            
+            patron = self.patron_base.get()
+            opciones = {
+                'incluir_numeros': self.incluir_numeros.get(),
+                'incluir_simbolos': self.incluir_simbolos.get(),
+                'usar_leet': self.usar_leet.get()
+            }
+            
+            wordlist_generada = []
+            
+            if not self.proceso_wordlist_activo:
+                return
+            
+            # Generar según tipo
+            if tipo == "Passwords":
+                wordlist_generada = self.generar_passwords(patron, num_var, opciones)
+            elif tipo == "Directorios":
+                wordlist_generada = self.generar_directorios(num_var)
+            elif tipo == "Subdominios":
+                wordlist_generada = self.generar_subdominios(num_var)
+            elif tipo == "API Endpoints":
+                wordlist_generada = self.generar_api_endpoints(num_var)
+            elif tipo == "Usernames":
+                wordlist_generada = self.generar_usernames(num_var)
+            
+            if not self.proceso_wordlist_activo:
+                return
+            
+            # Mostrar resultados
+            self.wordlist_text.config(state=tk.NORMAL)
+            self.wordlist_text.delete(1.0, tk.END)
+            
+            count = 0
+            for palabra in wordlist_generada[:num_var]:
+                if not self.proceso_wordlist_activo:
+                    return
+                
+                self.wordlist_text.insert(tk.END, f"{palabra}\n")
+                count += 1
+                
+                # Verificar cancelación cada 50 elementos
+                if count % 50 == 0:
+                    self.wordlist_text.update()
+            
+            if self.proceso_wordlist_activo:
+                self.wordlist_text.insert(tk.END, f"\n✅ Wordlist generada: {count} elementos\n")
+                self.wordlist_text.config(state=tk.DISABLED)
+                
+        except Exception as e:
+            if self.proceso_wordlist_activo:
+                self.wordlist_text.config(state=tk.NORMAL)
+                self.wordlist_text.insert(tk.END, f"❌ Error en generación: {str(e)}\n")
+                self.wordlist_text.config(state=tk.DISABLED)
+        finally:
+            if self.proceso_wordlist_activo:
+                self._finalizar_proceso_wordlist()
     
     def generar_passwords(self, patron, num_var, opciones):
         import random
@@ -434,3 +507,24 @@ class VistaWordlists(tk.Frame):
         self.wordlist_text.config(state=tk.NORMAL)
         self.wordlist_text.delete(1.0, tk.END)
         self.wordlist_text.config(state=tk.DISABLED)
+    
+    def cancelar_wordlist(self):
+        """Cancelar la generación de wordlist en curso."""
+        if self.proceso_wordlist_activo:
+            self.proceso_wordlist_activo = False
+            self.wordlist_text.config(state=tk.NORMAL)
+            self.wordlist_text.insert(tk.END, "\n⚠️ Generación de wordlist cancelada por el usuario.\n")
+            self.wordlist_text.config(state=tk.DISABLED)
+            self._finalizar_proceso_wordlist()
+    
+    def _habilitar_cancelar_wordlist(self, habilitar):
+        """Habilitar o deshabilitar botón de cancelar wordlist."""
+        estado = "normal" if habilitar else "disabled"
+        if hasattr(self, 'btn_cancelar_wordlist'):
+            self.btn_cancelar_wordlist.config(state=estado)
+    
+    def _finalizar_proceso_wordlist(self):
+        """Finalizar proceso de wordlist."""
+        self.proceso_wordlist_activo = False
+        self._habilitar_cancelar_wordlist(False)
+        self.thread_wordlist = None

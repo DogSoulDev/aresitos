@@ -10,6 +10,8 @@ class VistaMonitoreo(tk.Frame):
         super().__init__(parent)
         self.controlador = None
         self.monitor_activo = False
+        self.monitor_red_activo = False
+        self.thread_red = None
         self.crear_widgets()
         self.actualizar_estado()
     
@@ -42,6 +44,11 @@ class VistaMonitoreo(tk.Frame):
         self.btn_red = ttk.Button(control_frame, text="Monitorear Red", 
                                 command=self.monitorear_red)
         self.btn_red.pack(side="left", padx=(0, 5))
+        
+        self.btn_cancelar_red = ttk.Button(control_frame, text="❌ Cancelar Red", 
+                                          command=self.cancelar_monitoreo_red,
+                                          state="disabled")
+        self.btn_cancelar_red.pack(side="left", padx=(0, 5))
         
         self.label_estado = ttk.Label(control_frame, text="Estado: Detenido")
         self.label_estado.pack(side="right")
@@ -129,15 +136,77 @@ class VistaMonitoreo(tk.Frame):
     
     def monitorear_red(self):
         if not self.controlador:
+            messagebox.showwarning("Advertencia", 
+                                 "El controlador de monitoreo no está configurado.\n"
+                                 "Por favor, reinicie la aplicación.")
+            return
+        
+        if self.monitor_red_activo:
+            messagebox.showwarning("Advertencia", "Ya hay un monitoreo de red en curso.")
             return
             
-        self.text_monitor.insert(tk.END, "\n=== MONITOREO DE RED ===\n")
-        resultados = self.controlador.monitorear_red()
+        self.monitor_red_activo = True
+        self.btn_red.config(state="disabled")
+        self.btn_cancelar_red.config(state="normal")
         
+        self.text_monitor.insert(tk.END, "\n🔄 === MONITOREO DE RED INICIADO ===\n")
+        
+        # Ejecutar monitoreo en thread separado
+        import threading
+        self.thread_red = threading.Thread(target=self._monitorear_red_async)
+        self.thread_red.daemon = True
+        self.thread_red.start()
+    
+    def _monitorear_red_async(self):
+        """Monitorear red en thread separado."""
+        try:
+            # Verificar que el controlador esté configurado
+            if not self.controlador:
+                self.after(0, self._mostrar_error_red, "Controlador de monitoreo no configurado")
+                return
+            
+            resultados = self.controlador.monitorear_red()
+            
+            if not self.monitor_red_activo:  # Verificar si fue cancelado
+                return
+            
+            # Actualizar UI en el hilo principal
+            self.after(0, self._mostrar_resultados_red, resultados)
+            
+        except Exception as e:
+            if self.monitor_red_activo:
+                self.after(0, self._mostrar_error_red, str(e))
+        finally:
+            self.after(0, self._finalizar_monitoreo_red)
+    
+    def _mostrar_resultados_red(self, resultados):
+        """Mostrar resultados del monitoreo de red."""
+        if not self.monitor_red_activo:
+            return
+            
         for resultado in resultados:
             self.text_monitor.insert(tk.END, f"{resultado}\n")
         
         self.text_monitor.see(tk.END)
+    
+    def _mostrar_error_red(self, error):
+        """Mostrar error del monitoreo de red."""
+        self.text_monitor.insert(tk.END, f"\n❌ Error en monitoreo de red: {error}\n")
+    
+    def _finalizar_monitoreo_red(self):
+        """Finalizar monitoreo de red."""
+        self.monitor_red_activo = False
+        self.btn_red.config(state="normal")
+        self.btn_cancelar_red.config(state="disabled")
+        self.thread_red = None
+        self.text_monitor.insert(tk.END, "\n=== MONITOREO DE RED FINALIZADO ===\n")
+    
+    def cancelar_monitoreo_red(self):
+        """Cancelar el monitoreo de red."""
+        if self.monitor_red_activo:
+            self.monitor_red_activo = False
+            self.text_monitor.insert(tk.END, "\n⚠️ Monitoreo de red cancelado por el usuario.\n")
+            self._finalizar_monitoreo_red()
     
     def agregar_a_cuarentena(self):
         archivo = filedialog.askopenfilename(title="Seleccionar archivo para cuarentena")

@@ -16,6 +16,8 @@ class VistaAuditoria(tk.Frame):
     def __init__(self, parent):
         super().__init__(parent)
         self.controlador = None
+        self.proceso_auditoria_activo = False
+        self.thread_auditoria = None
         
         if BURP_THEME_AVAILABLE:
             self.theme = burp_theme
@@ -75,6 +77,7 @@ class VistaAuditoria(tk.Frame):
         if self.theme:
             buttons = [
                 ("Ejecutar Lynis", self.ejecutar_lynis, '#ff6633'),
+                ("❌ Cancelar", self.cancelar_auditoria, '#cc0000'),
                 ("Detectar Rootkits", self.detectar_rootkits, '#404040'),
                 ("Analizar Servicios", self.analizar_servicios, '#404040'),
                 ("Verificar Permisos", self.verificar_permisos, '#404040'),
@@ -83,13 +86,24 @@ class VistaAuditoria(tk.Frame):
                 ("Limpiar Pantalla", self.limpiar_auditoria, '#404040')
             ]
             
-            for text, command, bg_color in buttons:
+            for i, (text, command, bg_color) in enumerate(buttons):
                 btn = tk.Button(right_frame, text=text, command=command,
                               bg=bg_color, fg='white', font=('Arial', 10))
+                if text == "❌ Cancelar":
+                    btn.config(state="disabled")
+                    self.btn_cancelar_auditoria = btn
                 btn.pack(fill=tk.X, pady=2)
         else:
-            ttk.Button(right_frame, text="Ejecutar Lynis", 
-                      command=self.ejecutar_lynis).pack(fill=tk.X, pady=5)
+            # Crear botones individuales para mejor control
+            self.btn_lynis = ttk.Button(right_frame, text="Ejecutar Lynis", 
+                                       command=self.ejecutar_lynis)
+            self.btn_lynis.pack(fill=tk.X, pady=5)
+            
+            self.btn_cancelar_auditoria = ttk.Button(right_frame, text="❌ Cancelar", 
+                                                    command=self.cancelar_auditoria,
+                                                    state="disabled")
+            self.btn_cancelar_auditoria.pack(fill=tk.X, pady=5)
+            
             ttk.Button(right_frame, text="Detectar Rootkits", 
                       command=self.detectar_rootkits).pack(fill=tk.X, pady=5)
             ttk.Button(right_frame, text="Analizar Servicios", 
@@ -105,33 +119,89 @@ class VistaAuditoria(tk.Frame):
                       command=self.limpiar_auditoria).pack(fill=tk.X, pady=5)
     
     def ejecutar_lynis(self):
-        def ejecutar():
-            try:
-                self.auditoria_text.config(state=tk.NORMAL)
-                self.auditoria_text.insert(tk.END, "Ejecutando auditoria Lynis en Kali Linux...\n")
-                self.auditoria_text.update()
-                
-                import subprocess
-                
-                try:
-                    resultado = subprocess.run(['lynis', 'audit', 'system'], 
-                                             capture_output=True, text=True, timeout=600)
-                    if resultado.returncode == 0:
-                        self.auditoria_text.insert(tk.END, "✓ Auditoria Lynis completada\n")
-                        self.auditoria_text.insert(tk.END, resultado.stdout[-2000:])
-                    else:
-                        self.auditoria_text.insert(tk.END, f"✗ Error en Lynis: {resultado.stderr}\n")
-                except subprocess.TimeoutExpired:
-                    self.auditoria_text.insert(tk.END, "⏱ Timeout - auditoria cancelada\n")
-                except FileNotFoundError:
-                    self.auditoria_text.insert(tk.END, "✗ Lynis no encontrado. Instale con: apt install lynis\n")
-                
-                self.auditoria_text.insert(tk.END, "\n")
-                self.auditoria_text.config(state=tk.DISABLED)
-            except Exception as e:
-                messagebox.showerror("Error", f"Error ejecutando Lynis: {str(e)}")
+        if self.proceso_auditoria_activo:
+            return
+            
+        self.proceso_auditoria_activo = True
+        self._habilitar_cancelar(True)
         
-        threading.Thread(target=ejecutar, daemon=True).start()
+        self.auditoria_text.config(state=tk.NORMAL)
+        self.auditoria_text.insert(tk.END, "Iniciando auditoría Lynis en Kali Linux...\n")
+        self.auditoria_text.config(state=tk.DISABLED)
+        
+        # Ejecutar en thread separado
+        self.thread_auditoria = threading.Thread(target=self._ejecutar_lynis_async)
+        self.thread_auditoria.daemon = True
+        self.thread_auditoria.start()
+    
+    def _ejecutar_lynis_async(self):
+        """Ejecutar Lynis en thread separado."""
+        try:
+            import subprocess
+            
+            # Actualizar UI
+            self.after(0, self._actualizar_texto_auditoria, "Ejecutando auditoría Lynis (puede tardar varios minutos)...\n")
+            
+            try:
+                proceso = subprocess.Popen(['lynis', 'audit', 'system'], 
+                                         stdout=subprocess.PIPE, 
+                                         stderr=subprocess.PIPE, 
+                                         text=True)
+                
+                # Verificar periódicamente si fue cancelado
+                while proceso.poll() is None and self.proceso_auditoria_activo:
+                    import time
+                    time.sleep(1)
+                
+                if not self.proceso_auditoria_activo:
+                    # Fue cancelado, terminar el proceso
+                    proceso.terminate()
+                    proceso.wait()
+                    self.after(0, self._actualizar_texto_auditoria, "\n⚠️ Auditoría Lynis cancelada por el usuario.\n")
+                    return
+                
+                stdout, stderr = proceso.communicate()
+                
+                if proceso.returncode == 0:
+                    self.after(0, self._actualizar_texto_auditoria, "✓ Auditoría Lynis completada\n")
+                    self.after(0, self._actualizar_texto_auditoria, stdout[-2000:])  # Últimas 2000 caracteres
+                else:
+                    self.after(0, self._actualizar_texto_auditoria, f"✗ Error en Lynis: {stderr}\n")
+                    
+            except FileNotFoundError:
+                self.after(0, self._actualizar_texto_auditoria, "✗ Lynis no encontrado. Instale con: apt install lynis\n")
+            except Exception as e:
+                self.after(0, self._actualizar_texto_auditoria, f"✗ Error ejecutando Lynis: {str(e)}\n")
+                
+        finally:
+            self.after(0, self._finalizar_auditoria)
+    
+    def _actualizar_texto_auditoria(self, texto):
+        """Actualizar texto de auditoría en el hilo principal."""
+        if self.auditoria_text:
+            self.auditoria_text.config(state=tk.NORMAL)
+            self.auditoria_text.insert(tk.END, texto)
+            self.auditoria_text.see(tk.END)
+            self.auditoria_text.config(state=tk.DISABLED)
+    
+    def _habilitar_cancelar(self, habilitar):
+        """Habilitar o deshabilitar botón de cancelar."""
+        estado = "normal" if habilitar else "disabled"
+        if hasattr(self, 'btn_cancelar_auditoria'):
+            self.btn_cancelar_auditoria.config(state=estado)
+    
+    def _finalizar_auditoria(self):
+        """Finalizar proceso de auditoría."""
+        self.proceso_auditoria_activo = False
+        self._habilitar_cancelar(False)
+        self.thread_auditoria = None
+        self._actualizar_texto_auditoria("\n=== Auditoría finalizada ===\n\n")
+    
+    def cancelar_auditoria(self):
+        """Cancelar la auditoría en curso."""
+        if self.proceso_auditoria_activo:
+            self.proceso_auditoria_activo = False
+            self._actualizar_texto_auditoria("\n⚠️ Cancelando auditoría...\n")
     
     def detectar_rootkits(self):
         def ejecutar():
