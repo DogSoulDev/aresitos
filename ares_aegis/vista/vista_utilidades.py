@@ -6,8 +6,7 @@ from tkinter import ttk
 from ares_aegis.vista.vista_herramientas import VistaHerramientas
 from ares_aegis.vista.vista_auditoria import VistaAuditoria
 from ares_aegis.vista.vista_reportes import VistaReportes
-from ares_aegis.vista.vista_wordlists import VistaWordlists
-from ares_aegis.vista.vista_diccionarios import VistaDiccionarios
+from ares_aegis.vista.vista_gestion_datos import VistaGestionDatos
 
 try:
     from ares_aegis.vista.burp_theme import burp_theme
@@ -39,10 +38,8 @@ class VistaUtilidades(tk.Frame):
             self.vista_auditoria.set_controlador(controlador)
         if hasattr(self, 'vista_reportes'):
             self.vista_reportes.set_controlador(controlador)
-        if hasattr(self, 'vista_wordlists'):
-            self.vista_wordlists.set_controlador(controlador)
-        if hasattr(self, 'vista_diccionarios'):
-            self.vista_diccionarios.set_controlador(controlador)
+        if hasattr(self, 'vista_gestion_datos'):
+            self.vista_gestion_datos.set_controlador(controlador)
     
     def crear_interfaz(self):
         if self.theme:
@@ -87,11 +84,8 @@ class VistaUtilidades(tk.Frame):
         self.vista_reportes = VistaReportes(self.notebook)
         self.notebook.add(self.vista_reportes, text="📊 Reportes")
         
-        self.vista_wordlists = VistaWordlists(self.notebook)
-        self.notebook.add(self.vista_wordlists, text="📝 Wordlists")
-        
-        self.vista_diccionarios = VistaDiccionarios(self.notebook)
-        self.notebook.add(self.vista_diccionarios, text="📚 Diccionarios")
+        self.vista_gestion_datos = VistaGestionDatos(self.notebook)
+        self.notebook.add(self.vista_gestion_datos, text="�️ Gestión de Datos")
         
         if self.controlador:
             self.set_controlador(self.controlador)

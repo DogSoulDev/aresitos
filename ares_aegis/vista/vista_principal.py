@@ -9,8 +9,7 @@ from ares_aegis.vista.vista_escaneo import VistaEscaneo
 from ares_aegis.vista.vista_monitoreo import VistaMonitoreo
 from ares_aegis.vista.vista_utilidades import VistaUtilidades
 from ares_aegis.vista.vista_auditoria import VistaAuditoria
-from ares_aegis.vista.vista_wordlists import VistaWordlists
-from ares_aegis.vista.vista_diccionarios import VistaDiccionarios
+from ares_aegis.vista.vista_gestion_datos import VistaGestionDatos
 from ares_aegis.vista.vista_herramientas import VistaHerramientas
 from ares_aegis.vista.vista_reportes import VistaReportes
 
@@ -62,10 +61,9 @@ class VistaPrincipal(tk.Frame):
             self.vista_utilidades.set_controlador(self.controlador.controlador_utilidades)
         if hasattr(self.controlador, 'controlador_auditoria'):
             self.vista_auditoria.set_controlador(self.controlador.controlador_auditoria)
-        if hasattr(self.controlador, 'controlador_wordlists'):
-            self.vista_wordlists.set_controlador(self.controlador.controlador_wordlists)
-        if hasattr(self.controlador, 'controlador_diccionarios'):
-            self.vista_diccionarios.set_controlador(self.controlador.controlador_diccionarios)
+        if hasattr(self, 'vista_gestion_datos'):
+            # Vista unificada para wordlists y diccionarios
+            self.vista_gestion_datos.set_controlador(self.controlador)
         if hasattr(self.controlador, 'controlador_herramientas'):
             self.vista_herramientas.set_controlador(self.controlador.controlador_herramientas)
         if hasattr(self.controlador, 'controlador_reportes'):
@@ -177,35 +175,28 @@ class VistaPrincipal(tk.Frame):
         except Exception as e:
             print(f"Error creando vista auditoría: {e}")
         
-        # 5. WORDLISTS - Gestión de wordlists para pentesting
+        # 5. GESTIÓN DE DATOS - Wordlists y Diccionarios unificados
         try:
-            self.vista_wordlists = VistaWordlists(self.notebook)
-            self.notebook.add(self.vista_wordlists, text="📝 Wordlists")
+            self.vista_gestion_datos = VistaGestionDatos(self.notebook)
+            self.notebook.add(self.vista_gestion_datos, text="�️ Gestión de Datos")
         except Exception as e:
-            print(f"Error creando vista wordlists: {e}")
+            print(f"Error creando vista gestión de datos: {e}")
         
-        # 6. DICCIONARIOS - Gestión de diccionarios de datos
-        try:
-            self.vista_diccionarios = VistaDiccionarios(self.notebook)
-            self.notebook.add(self.vista_diccionarios, text="📚 Diccionarios")
-        except Exception as e:
-            print(f"Error creando vista diccionarios: {e}")
-        
-        # 7. HERRAMIENTAS - Herramientas adicionales de seguridad
+        # 6. HERRAMIENTAS - Herramientas adicionales de seguridad
         try:
             self.vista_herramientas = VistaHerramientas(self.notebook)
             self.notebook.add(self.vista_herramientas, text="🛠️ Herramientas")
         except Exception as e:
             print(f"Error creando vista herramientas: {e}")
         
-        # 8. REPORTES - Generación y visualización de reportes
+        # 7. REPORTES - Generación y visualización de reportes
         try:
             self.vista_reportes = VistaReportes(self.notebook)
             self.notebook.add(self.vista_reportes, text="📋 Reportes")
         except Exception as e:
             print(f"Error creando vista reportes: {e}")
         
-        # 9. UTILIDADES - Utilidades varias del sistema
+        # 8. UTILIDADES - Utilidades varias del sistema
         self.vista_utilidades = VistaUtilidades(self.notebook)
         self.notebook.add(self.vista_utilidades, text="⚙️ Utilidades")
     

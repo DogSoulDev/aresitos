@@ -4,6 +4,13 @@ import tkinter as tk
 from tkinter import ttk, scrolledtext, filedialog, messagebox
 import time
 
+try:
+    from ares_aegis.vista.burp_theme import burp_theme
+    BURP_THEME_AVAILABLE = True
+except ImportError:
+    BURP_THEME_AVAILABLE = False
+    burp_theme = None
+
 class VistaMonitoreo(tk.Frame):
     
     def __init__(self, parent):
@@ -12,6 +19,14 @@ class VistaMonitoreo(tk.Frame):
         self.monitor_activo = False
         self.monitor_red_activo = False
         self.thread_red = None
+        
+        # Aplicar tema Burp Suite si está disponible
+        if BURP_THEME_AVAILABLE and burp_theme:
+            self.theme = burp_theme
+            self.configure(bg='#2b2b2b')
+        else:
+            self.theme = None
+            
         self.crear_widgets()
         self.actualizar_estado()
     
@@ -19,63 +34,167 @@ class VistaMonitoreo(tk.Frame):
         self.controlador = controlador
     
     def crear_widgets(self):
-        self.notebook = ttk.Notebook(self)
+        # Frame principal con tema Burp Suite
+        self.notebook = tk.Frame(self, bg='#2b2b2b')
         self.notebook.pack(fill="both", expand=True, padx=10, pady=10)
         
+        # Crear pestañas como frames separados con navegación por botones
+        self.crear_navegacion_pestanas()
         self.crear_pestana_monitoreo()
-        
         self.crear_pestana_cuarentena()
+        
+        # Mostrar pestaña por defecto
+        self.mostrar_pestana('monitoreo')
+    
+    def crear_navegacion_pestanas(self):
+        """Crear navegación por pestañas con tema Burp Suite."""
+        nav_frame = tk.Frame(self.notebook, bg='#2b2b2b')
+        nav_frame.pack(fill="x", pady=(0, 10))
+        
+        self.btn_monitoreo = tk.Button(nav_frame, text="👁️ Monitoreo Sistema",
+                                     command=lambda: self.mostrar_pestana('monitoreo'),
+                                     bg='#ff6633', fg='white',
+                                     font=('Arial', 10, 'bold'),
+                                     relief='flat', bd=0, padx=15, pady=8,
+                                     activebackground='#e55a2b', activeforeground='white')
+        self.btn_monitoreo.pack(side="left", padx=(0, 5))
+        
+        self.btn_cuarentena = tk.Button(nav_frame, text="🔒 Cuarentena",
+                                      command=lambda: self.mostrar_pestana('cuarentena'),
+                                      bg='#404040', fg='white',
+                                      font=('Arial', 10),
+                                      relief='flat', bd=0, padx=15, pady=8,
+                                      activebackground='#505050', activeforeground='white')
+        self.btn_cuarentena.pack(side="left")
+    
+    def mostrar_pestana(self, pestana):
+        """Mostrar la pestaña seleccionada."""
+        # Actualizar colores de botones
+        if pestana == 'monitoreo':
+            self.btn_monitoreo.configure(bg='#ff6633')
+            self.btn_cuarentena.configure(bg='#404040')
+            
+            if hasattr(self, 'frame_cuarentena'):
+                self.frame_cuarentena.pack_forget()
+            if hasattr(self, 'frame_monitor'):
+                self.frame_monitor.pack(fill="both", expand=True)
+        else:
+            self.btn_monitoreo.configure(bg='#404040')
+            self.btn_cuarentena.configure(bg='#ff6633')
+            
+            if hasattr(self, 'frame_monitor'):
+                self.frame_monitor.pack_forget()
+            if hasattr(self, 'frame_cuarentena'):
+                self.frame_cuarentena.pack(fill="both", expand=True)
     
     def crear_pestana_monitoreo(self):
-        frame_monitor = ttk.Frame(self.notebook)
-        self.notebook.add(frame_monitor, text="Monitoreo Sistema")
+        self.frame_monitor = tk.Frame(self.notebook, bg='#2b2b2b')
         
-        control_frame = ttk.Frame(frame_monitor)
+        # Título
+        titulo_frame = tk.Frame(self.frame_monitor, bg='#2b2b2b')
+        titulo_frame.pack(fill="x", pady=(0, 15))
+        
+        titulo_label = tk.Label(titulo_frame, text="👁️ MONITOR DEL SISTEMA", 
+                              font=('Arial', 14, 'bold'),
+                              bg='#2b2b2b', fg='#ff6633')
+        titulo_label.pack()
+        
+        # Frame de controles con tema
+        control_frame = tk.Frame(self.frame_monitor, bg='#2b2b2b')
         control_frame.pack(fill="x", pady=(0, 10))
         
-        self.btn_iniciar_monitor = ttk.Button(control_frame, text="Iniciar Monitoreo", 
-                                            command=self.iniciar_monitoreo)
-        self.btn_iniciar_monitor.pack(side="left", padx=(0, 5))
+        self.btn_iniciar_monitor = tk.Button(control_frame, text="▶️ Iniciar Monitoreo", 
+                                           command=self.iniciar_monitoreo,
+                                           bg='#ff6633', fg='white',
+                                           font=('Arial', 10, 'bold'),
+                                           relief='flat', bd=0, padx=15, pady=8,
+                                           activebackground='#e55a2b', activeforeground='white')
+        self.btn_iniciar_monitor.pack(side="left", padx=(0, 10))
         
-        self.btn_detener_monitor = ttk.Button(control_frame, text="Detener Monitoreo", 
-                                            command=self.detener_monitoreo, state="disabled")
-        self.btn_detener_monitor.pack(side="left", padx=(0, 5))
+        self.btn_detener_monitor = tk.Button(control_frame, text="⏹️ Detener Monitoreo", 
+                                            command=self.detener_monitoreo, state="disabled",
+                                            bg='#404040', fg='white',
+                                            font=('Arial', 10),
+                                            relief='flat', bd=0, padx=15, pady=8,
+                                            activebackground='#505050', activeforeground='white')
+        self.btn_detener_monitor.pack(side="left", padx=(0, 10))
         
-        self.btn_red = ttk.Button(control_frame, text="Monitorear Red", 
-                                command=self.monitorear_red)
-        self.btn_red.pack(side="left", padx=(0, 5))
+        self.btn_red = tk.Button(control_frame, text="🌐 Monitorear Red", 
+                               command=self.monitorear_red,
+                               bg='#404040', fg='white',
+                               font=('Arial', 10),
+                               relief='flat', bd=0, padx=15, pady=8,
+                               activebackground='#505050', activeforeground='white')
+        self.btn_red.pack(side="left", padx=(0, 10))
         
-        self.btn_cancelar_red = ttk.Button(control_frame, text="❌ Cancelar Red", 
-                                          command=self.cancelar_monitoreo_red,
-                                          state="disabled")
-        self.btn_cancelar_red.pack(side="left", padx=(0, 5))
+        self.btn_cancelar_red = tk.Button(control_frame, text="❌ Cancelar Red", 
+                                        command=self.cancelar_monitoreo_red,
+                                        state="disabled",
+                                        bg='#404040', fg='white',
+                                        font=('Arial', 10),
+                                        relief='flat', bd=0, padx=15, pady=8,
+                                        activebackground='#505050', activeforeground='white')
+        self.btn_cancelar_red.pack(side="left", padx=(0, 10))
         
-        self.label_estado = ttk.Label(control_frame, text="Estado: Detenido")
-        self.label_estado.pack(side="right")
+        self.label_estado = tk.Label(control_frame, text="Estado: Detenido",
+                                   bg='#2b2b2b', fg='#ffffff',
+                                   font=('Arial', 10))
+        self.label_estado.pack(side="right", padx=(10, 0))
         
-        self.text_monitor = scrolledtext.ScrolledText(frame_monitor, height=28)
+        # Área de texto con tema
+        self.text_monitor = scrolledtext.ScrolledText(self.frame_monitor, height=25,
+                                                    bg='#1e1e1e', fg='#ffffff',
+                                                    font=('Consolas', 10),
+                                                    insertbackground='#ff6633',
+                                                    selectbackground='#404040')
         self.text_monitor.pack(fill="both", expand=True)
     
     def crear_pestana_cuarentena(self):
-        frame_cuarentena = ttk.Frame(self.notebook)
-        self.notebook.add(frame_cuarentena, text="Cuarentena")
+        self.frame_cuarentena = tk.Frame(self.notebook, bg='#2b2b2b')
         
-        control_frame = ttk.Frame(frame_cuarentena)
+        # Título
+        titulo_frame = tk.Frame(self.frame_cuarentena, bg='#2b2b2b')
+        titulo_frame.pack(fill="x", pady=(0, 15))
+        
+        titulo_label = tk.Label(titulo_frame, text="🔒 GESTIÓN DE CUARENTENA", 
+                              font=('Arial', 14, 'bold'),
+                              bg='#2b2b2b', fg='#ff6633')
+        titulo_label.pack()
+        
+        # Frame de controles con tema
+        control_frame = tk.Frame(self.frame_cuarentena, bg='#2b2b2b')
         control_frame.pack(fill="x", pady=(0, 10))
         
-        self.btn_agregar_cuarentena = ttk.Button(control_frame, text="Agregar Archivo", 
-                                               command=self.agregar_a_cuarentena)
-        self.btn_agregar_cuarentena.pack(side="left", padx=(0, 5))
+        self.btn_agregar_cuarentena = tk.Button(control_frame, text="➕ Agregar Archivo", 
+                                              command=self.agregar_a_cuarentena,
+                                              bg='#ff6633', fg='white',
+                                              font=('Arial', 10, 'bold'),
+                                              relief='flat', bd=0, padx=15, pady=8,
+                                              activebackground='#e55a2b', activeforeground='white')
+        self.btn_agregar_cuarentena.pack(side="left", padx=(0, 10))
         
-        self.btn_listar_cuarentena = ttk.Button(control_frame, text="Listar Archivos", 
-                                              command=self.listar_cuarentena)
-        self.btn_listar_cuarentena.pack(side="left", padx=(0, 5))
+        self.btn_listar_cuarentena = tk.Button(control_frame, text="📋 Listar Archivos", 
+                                             command=self.listar_cuarentena,
+                                             bg='#404040', fg='white',
+                                             font=('Arial', 10),
+                                             relief='flat', bd=0, padx=15, pady=8,
+                                             activebackground='#505050', activeforeground='white')
+        self.btn_listar_cuarentena.pack(side="left", padx=(0, 10))
         
-        self.btn_limpiar_cuarentena = ttk.Button(control_frame, text="Limpiar Todo", 
-                                               command=self.limpiar_cuarentena)
+        self.btn_limpiar_cuarentena = tk.Button(control_frame, text="🗑️ Limpiar Todo", 
+                                              command=self.limpiar_cuarentena,
+                                              bg='#404040', fg='white',
+                                              font=('Arial', 10),
+                                              relief='flat', bd=0, padx=15, pady=8,
+                                              activebackground='#505050', activeforeground='white')
         self.btn_limpiar_cuarentena.pack(side="left")
         
-        self.text_cuarentena = scrolledtext.ScrolledText(frame_cuarentena, height=28)
+        # Área de texto con tema
+        self.text_cuarentena = scrolledtext.ScrolledText(self.frame_cuarentena, height=25,
+                                                       bg='#1e1e1e', fg='#ffffff',
+                                                       font=('Consolas', 10),
+                                                       insertbackground='#ff6633',
+                                                       selectbackground='#404040')
         self.text_cuarentena.pack(fill="both", expand=True)
     
     def iniciar_monitoreo(self):
