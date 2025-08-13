@@ -1,0 +1,45 @@
+[project]
+name = "ares-aegis"
+version = "1.0.0"
+description = "Suite de seguridad y análisis de vulnerabilidades"
+authors = [{name = "DogSoulDev"}]
+requires-python = ">=3.8"
+
+[tool.black]
+line-length = 88
+target-version = ['py38']
+extend-exclude = '''
+/(
+  # directories
+  \.eggs
+  | \.git
+  | \.hg
+  | \.mypy_cache
+  | \.tox
+  | \.venv
+  | build
+  | dist
+)/
+'''
+
+[tool.isort]
+profile = "black"
+skip_gitignore = true
+
+[tool.pylint]
+disable = [
+    "missing-docstring",
+    "too-few-public-methods",
+    "invalid-name"
+]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+python_files = ["test_*.py", "*_test.py"]
+python_classes = ["Test*"]
+python_functions = ["test_*"]
+addopts = "--no-cov --tb=short"
+
+[build-system]
+requires = ["setuptools>=45", "wheel"]
+build-backend = "setuptools.build_meta"

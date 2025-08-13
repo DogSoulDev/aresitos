@@ -3,17 +3,47 @@ __pycache__/
 *.pyc
 *.pyo
 *.pyd
+*.so
 
-# Ignorar archivos de configuración del editor
-.vscode/
+# Ignorar archivos de configuración del editor (excepto settings.json específicos)
+.vscode/launch.json
+.vscode/tasks.json
+.vscode/c_cpp_properties.json
+.vscode/workspace.json
 .idea/
 
 # Ignorar entornos virtuales
 venv/
 env/
 .env
+.venv/
 
 # Ignorar archivos de distribución y construcción
 build/
 dist/
 *.egg-info/
+
+# Ignorar archivos temporales del sistema
+.DS_Store
+Thumbs.db
+*.tmp
+*.temp
+*.log
+
+# Ignorar archivos de Jupyter
+.ipynb_checkpoints/
+*.ipynb
+
+# Ignorar archivos de pytest
+.pytest_cache/
+.coverage
+
+# Ignorar archivos de backup
+*.bak
+*.backup
+*~
+
+# Ignorar archivos específicos del proyecto que no deben subir
+configuracion/*.backup
+data/wordlists/generadas/*.tmp
+data/*.cache
