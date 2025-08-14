@@ -1,8 +1,21 @@
-# 🛡️ ARES AEGIS - Suite Avanzada de Auditoría de Seguridad
+# 🛡️ ARESITOS - Herramienta Avanzada de Auditoría de Seguridad
 
 ![Ares Aegis](recursos/AresAegis.png)
 
-**Ares Aegis** es una suite integral de ciberseguridad desarrollada para profesionales de seguridad informática. Combina herramientas de escaneo, monitoreo, análisis de vulnerabilidades, gestión avanzada de wordlists y generación de reportes en una interfaz unificada y optimizada con **procesamiento de datos en tiempo real**.
+**Aresitos** es una herramienta integral de ciberseguridad desarrollada para profesionales de seguridad informática, parte del ecosistema **Ares Aegis**. Combina herramientas de escaneo, monitoreo, análisis de vulnerabilidades, gestión avanzada de wordlists y generación de reportes en una interfaz unificada y optimizada con **procesamiento de datos en tiempo real**.
+
+## 🏗️ Información del Proyecto
+
+**Aresitos** forma parte del ecosistema de herramientas de ciberseguridad **Ares Aegis**, siendo una de las primeras herramientas especializadas del conjunto. Este proyecto representa el desarrollo continuo de soluciones profesionales de seguridad.
+
+### **Repositorios del Proyecto**
+- **🚀 Repositorio Principal**: [Aresitos](https://github.com/DogSoulDev/Aresitos) - Herramienta principal de auditoría
+- **🧪 Repositorio de Pruebas**: [Ares-Aegis](https://github.com/DogSoulDev/Ares-Aegis) - Entorno de desarrollo y testing
+
+### **Créditos de Desarrollo**
+- **👨‍💻 Creado por**: [DogSoulDev](https://github.com/DogSoulDev)
+- **🤖 Editado y Optimizado por**: GitHub Copilot
+- **🔄 Desarrollo Colaborativo**: Humano + IA para máxima eficiencia
 
 ## 🎯 Características Principales
 
@@ -97,14 +110,27 @@ sudo apt install whatweb dirb
 
 ### **Instalación Rápida**
 ```bash
-# Clonar el repositorio
+# Clonar el repositorio principal
 git clone https://github.com/DogSoulDev/Aresitos.git
-cd Ares-Aegis
+cd Aresitos
 
 # Instalar dependencias
 pip install -r requirements.txt
 
-# Ejecutar Ares Aegis
+# Ejecutar Aresitos
+python main.py
+```
+
+### **Instalación desde Repositorio de Desarrollo**
+```bash
+# Para desarrolladores - Repositorio de testing
+git clone https://github.com/DogSoulDev/Ares-Aegis.git
+cd Ares-Aegis
+
+# Instalar dependencias de desarrollo
+pip install -r requirements.txt
+
+# Ejecutar versión de desarrollo
 python main.py
 ```
 
@@ -179,7 +205,7 @@ Interfaz profesional optimizada para analistas de seguridad con **actualizacione
 
 ### **Motor de Procesamiento en Tiempo Real**
 ```
-Ares-Aegis/
+Aresitos/
 ├── main.py                     # Lanzador de aplicación
 ├── requirements.txt            # Dependencias Python
 ├── README.md                   # Documentación completa
@@ -317,8 +343,12 @@ python -m pytest tests/performance/
 
 ### **Entorno de Desarrollo**
 ```bash
-# Configurar entorno de desarrollo
+# Configurar entorno de desarrollo - Repositorio principal
 git clone https://github.com/DogSoulDev/Aresitos.git
+cd Aresitos
+
+# Para desarrollo avanzado - Repositorio de testing
+git clone https://github.com/DogSoulDev/Ares-Aegis.git
 cd Ares-Aegis
 
 # Instalar dependencias de desarrollo
@@ -332,6 +362,12 @@ git checkout -b feature/nueva-funcionalidad
 git commit -am 'Agregar: nueva característica de seguridad'
 git push origin feature/nueva-funcionalidad
 ```
+
+### **Filosofía de Desarrollo**
+- **🧠 Desarrollo Humano-IA**: Combinación de creatividad humana y precisión de IA
+- **⚡ Iteración Rápida**: Desarrollo acelerado con GitHub Copilot
+- **🔍 Calidad Asegurada**: Revisión humana de toda funcionalidad crítica
+- **🌟 Innovación Continua**: Exploración de nuevas capacidades de seguridad
 
 ### **Estándares de Código**
 - **Python 3.8+** requisito mínimo
@@ -376,10 +412,17 @@ git push origin feature/nueva-funcionalidad
 - **Comunidad**: Comunidad profesional de ciberseguridad
 
 ### **Información del Desarrollador**
-- **Autor**: DogSoulDev
-- **Email**: dogsouldev@protonmail.com
-- **GitHub**: [@DogSoulDev](https://github.com/DogSoulDev)
-- **Repositorio**: [Aresitos](https://github.com/DogSoulDev/Aresitos)
+- **👨‍💻 Autor**: [DogSoulDev](https://github.com/DogSoulDev)
+- **🤖 Co-desarrollador**: GitHub Copilot
+- **📧 Email**: dogsouldev@protonmail.com
+- **🚀 Repositorio Principal**: [Aresitos](https://github.com/DogSoulDev/Aresitos)
+- **🧪 Repositorio de Testing**: [Ares-Aegis](https://github.com/DogSoulDev/Ares-Aegis)
+
+### **Ecosistema Ares Aegis**
+**Aresitos** es la primera herramienta del ecosistema **Ares Aegis**, con más herramientas especializadas en desarrollo:
+- 🛡️ **Aresitos** - Auditoría y análisis de seguridad (Actual)
+- 🔍 **Futuras herramientas** - Especialización en diferentes áreas de ciberseguridad
+- 🌐 **Integración completa** - Ecosystem unificado de herramientas
 
 ## 📄 Licencia y Legal
 
@@ -389,15 +432,23 @@ Este proyecto está licenciado bajo la **Licencia MIT**. Ver archivo `LICENSE` p
 
 ## 🏆 Reconocimientos
 
+- **👨‍💻 DogSoulDev** - Creador y arquitecto principal del proyecto
+- **🤖 GitHub Copilot** - Co-desarrollador IA para optimización y funcionalidades avanzadas
 - **Equipo Kali Linux** - Por las herramientas fundamentales de seguridad
 - **Comunidad OWASP** - Por las metodologías de pruebas de seguridad
 - **Corporación MITRE** - Por la integración del framework ATT&CK
 - **Comunidad de Ciberseguridad** - Por retroalimentación y validación
 - **Contribuidores Open Source** - Por revisiones de código y mejoras
 
+### **Desarrollo Colaborativo Humano-IA**
+Este proyecto representa una colaboración innovadora entre:
+- 🧠 **Creatividad Humana**: Visión, arquitectura y dirección del proyecto
+- 🤖 **Precisión de IA**: Implementación optimizada y funcionalidades avanzadas
+- ⚡ **Sinergia**: Desarrollo acelerado manteniendo calidad profesional
+
 ---
 
-**⚠️ Descargo Legal**: Ares Aegis está diseñado para profesionales de ciberseguridad y pruebas éticas de seguridad. El autor no es responsable del mal uso de esta herramienta.
+**⚠️ Descargo Legal**: Aresitos está diseñado para profesionales de ciberseguridad y pruebas éticas de seguridad. Los autores (DogSoulDev y GitHub Copilot) no son responsables del mal uso de esta herramienta.
 
 **🎯 Casos de Uso Profesional**: 
 - **Pruebas de Penetración** y evaluaciones de seguridad
@@ -415,7 +466,11 @@ Este proyecto está licenciado bajo la **Licencia MIT**. Ver archivo `LICENSE` p
 
 ### **Comando Único de Instalación**
 ```bash
-git clone https://github.com/DogSoulDev/Aresitos.git && cd Ares-Aegis && pip install -r requirements.txt && python main.py
+# Instalación desde repositorio principal
+git clone https://github.com/DogSoulDev/Aresitos.git && cd Aresitos && pip install -r requirements.txt && python main.py
+
+# Instalación desde repositorio de desarrollo
+git clone https://github.com/DogSoulDev/Ares-Aegis.git && cd Ares-Aegis && pip install -r requirements.txt && python main.py
 ```
 
 ### **Verificación Rápida**
@@ -429,4 +484,4 @@ git clone https://github.com/DogSoulDev/Aresitos.git && cd Ares-Aegis && pip ins
 🎉 Inicialización de gestores completada
 ```
 
-**¡Ares Aegis está listo para uso profesional!** 🛡️
+**¡Aresitos está listo para uso profesional!** 🛡️
