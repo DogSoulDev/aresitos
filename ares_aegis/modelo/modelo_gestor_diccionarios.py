@@ -18,10 +18,10 @@ class ModeloGestorDiccionarios:
         directorio_data = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(__file__))), "data", "diccionarios")
         
         if not os.path.exists(directorio_data):
-            print(f"📁 Directorio data/diccionarios no encontrado: {directorio_data}")
+            print(f" Directorio data/diccionarios no encontrado: {directorio_data}")
             return
         
-        print(f"📂 Escaneando diccionarios en: {directorio_data}")
+        print(f" Escaneando diccionarios en: {directorio_data}")
         
         # Detectar automáticamente todos los archivos JSON
         try:
@@ -29,13 +29,13 @@ class ModeloGestorDiccionarios:
             archivos_json = [f for f in archivos_en_directorio if f.endswith('.json')]
             
             if not archivos_json:
-                print("📄 No se encontraron archivos JSON en data/diccionarios")
+                print(" No se encontraron archivos JSON en data/diccionarios")
                 return
             
-            print(f"🔍 Encontrados {len(archivos_json)} archivos JSON")
+            print(f" Encontrados {len(archivos_json)} archivos JSON")
             
         except Exception as e:
-            print(f"❌ Error listando directorio: {e}")
+            print(f" Error listando directorio: {e}")
             return
         
         diccionarios_cargados = 0
@@ -55,9 +55,9 @@ class ModeloGestorDiccionarios:
                     diccionarios_cargados += 1
                     
             except Exception as e:
-                print(f"❌ Error cargando {archivo}: {e}")
+                print(f" Error cargando {archivo}: {e}")
         
-        print(f"✅ {diccionarios_cargados} diccionarios cargados exitosamente")
+        print(f" {diccionarios_cargados} diccionarios cargados exitosamente")
         
         # Crear índice actualizado
         self._crear_indice_diccionarios()
@@ -65,7 +65,7 @@ class ModeloGestorDiccionarios:
     def _procesar_diccionario_json(self, nombre: str, datos: Any, archivo_origen: str) -> bool:
         """Procesa un archivo JSON y lo integra en los diccionarios"""
         try:
-            print(f"📋 Procesando: {archivo_origen}")
+            print(f" Procesando: {archivo_origen}")
             
             if isinstance(datos, dict):
                 # Caso 1: Diccionario con múltiples categorías
@@ -80,7 +80,7 @@ class ModeloGestorDiccionarios:
                                 'datos': contenido,
                                 'origen': archivo_origen
                             }
-                            print(f"   ✓ Lista '{categoria}': {len(contenido)} elementos")
+                            print(f"    Lista '{categoria}': {len(contenido)} elementos")
                         
                         elif isinstance(contenido, dict):
                             self.diccionarios_predefinidos[nombre_categoria] = {
@@ -89,7 +89,7 @@ class ModeloGestorDiccionarios:
                                 'datos': contenido,
                                 'origen': archivo_origen
                             }
-                            print(f"   ✓ Diccionario '{categoria}': {len(contenido)} claves")
+                            print(f"    Diccionario '{categoria}': {len(contenido)} claves")
                 
                 # Caso 2: Diccionario simple
                 else:
@@ -99,7 +99,7 @@ class ModeloGestorDiccionarios:
                         'datos': datos,
                         'origen': archivo_origen
                     }
-                    print(f"   ✓ Diccionario '{nombre}': {len(datos)} claves")
+                    print(f"    Diccionario '{nombre}': {len(datos)} claves")
             
             elif isinstance(datos, list):
                 # Caso 3: Lista directa
@@ -109,16 +109,16 @@ class ModeloGestorDiccionarios:
                     'datos': datos,
                     'origen': archivo_origen
                 }
-                print(f"   ✓ Lista '{nombre}': {len(datos)} elementos")
+                print(f"    Lista '{nombre}': {len(datos)} elementos")
             
             else:
-                print(f"   ⚠️ Formato no reconocido en {archivo_origen}")
+                print(f"    Formato no reconocido en {archivo_origen}")
                 return False
             
             return True
             
         except Exception as e:
-            print(f"❌ Error procesando {archivo_origen}: {e}")
+            print(f" Error procesando {archivo_origen}: {e}")
             return False
     
     def _crear_directorio_diccionarios(self) -> str:
@@ -510,10 +510,10 @@ class ModeloGestorDiccionarios:
                 f.write("---\n")
                 f.write("*Índice generado automáticamente por Aresitos*\n")
             
-            print(f"📄 Índice de diccionarios creado: {indice_path}")
+            print(f" Índice de diccionarios creado: {indice_path}")
             
         except Exception as e:
-            print(f"❌ Error creando índice de diccionarios: {e}")
+            print(f" Error creando índice de diccionarios: {e}")
 
 # RESUMEN: Gestor completo de diccionarios de ciberseguridad que maneja almacenamiento JSON,
 # incluye diccionarios predefinidos (vulnerabilidades, herramientas, ataques, protocolos, puertos),

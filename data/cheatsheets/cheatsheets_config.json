@@ -1,0 +1,63 @@
+{
+    "cheatsheets_config": {
+        "version": "1.0",
+        "descripcion": "Configuración de cheatsheets para Ares Aegis",
+        "categorias": [
+            {
+                "id": "nmap",
+                "nombre": "Nmap - Escaneo de Puertos",
+                "archivo": "nmap_basico.txt",
+                "descripcion": "Comandos básicos y avanzados de Nmap"
+            },
+            {
+                "id": "metasploit",
+                "nombre": "Metasploit Framework",
+                "archivo": "metasploit_framework.txt",
+                "descripcion": "Framework de explotación Metasploit"
+            },
+            {
+                "id": "linux_commands",
+                "nombre": "Comandos Linux Seguridad",
+                "archivo": "comandos_linux.txt",
+                "descripcion": "Comandos Linux orientados a ciberseguridad"
+            },
+            {
+                "id": "reverse_shells",
+                "nombre": "Shells Inversas",
+                "archivo": "shells_inversas.txt",
+                "descripcion": "Reverse shells en múltiples lenguajes"
+            },
+            {
+                "id": "john_ripper",
+                "nombre": "John the Ripper",
+                "archivo": "john_the_ripper.txt",
+                "descripcion": "Cracking de passwords con John"
+            },
+            {
+                "id": "burp_suite",
+                "nombre": "Burp Suite",
+                "archivo": "burp_suite.txt",
+                "descripcion": "Herramienta de testing web"
+            },
+            {
+                "id": "log_analysis",
+                "nombre": "Análisis de Logs",
+                "archivo": "analisis_logs.txt",
+                "descripcion": "Análisis forense de logs del sistema"
+            },
+            {
+                "id": "osint",
+                "nombre": "OSINT Básico",
+                "archivo": "osint_basico.txt",
+                "descripcion": "Inteligencia de fuentes abiertas"
+            }
+        ],
+        "configuracion": {
+            "directorio_cheatsheets": "data/cheatsheets/",
+            "extension_archivos": ".txt",
+            "codificacion": "utf-8",
+            "editable": true,
+            "auto_guardar": true
+        }
+    }
+}

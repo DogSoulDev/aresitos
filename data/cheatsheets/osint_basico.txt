@@ -1,0 +1,46 @@
+# INTELIGENCIA DE FUENTES ABIERTAS (OSINT)
+
+## Búsqueda de Dominios
+whois dominio.com                 # Información WHOIS
+dig dominio.com                   # DNS lookup
+nslookup dominio.com              # DNS lookup alternativo
+host dominio.com                  # Host lookup
+theHarvester -d dominio.com -b google  # Recolección de emails
+
+## Subdominios
+sublist3r -d dominio.com          # Enumeración de subdominios
+amass enum -d dominio.com         # Mapeo de subdominios
+gobuster dns -d dominio.com -w wordlist.txt  # Fuerza bruta DNS
+
+## Google Dorks
+site:dominio.com                  # Páginas de un sitio
+filetype:pdf site:dominio.com     # PDFs del sitio
+inurl:admin site:dominio.com      # URLs con "admin"
+intitle:"index of" site:dominio.com  # Directorios listados
+cache:dominio.com                 # Caché de Google
+
+## Shodan
+shodan search apache             # Buscar servidores Apache
+shodan search port:22            # Servidores SSH
+shodan search country:ES         # Dispositivos en España
+shodan search org:"Nombre Empresa" # Por organización
+
+## Redes Sociales
+sherlock nombre_usuario          # Buscar usuario en redes
+social-analyzer -u nombre_usuario # Análisis de redes sociales
+twint -u nombre_usuario          # Scraping de Twitter
+
+## Metadatos
+exiftool imagen.jpg              # Metadatos de imagen
+metagoofil -d dominio.com -t pdf # Metadatos de documentos
+foca                             # Fingerprinting Organizations
+
+## Herramientas Web
+archive.org                      # Wayback Machine
+censys.io                        # Motor de búsqueda de dispositivos
+builtwith.com                    # Tecnologías de sitios web
+netcraft.com                     # Información de hosting
+
+## Números de Teléfono
+phoneinfoga scan -n +34123456789 # Información de teléfonos
+truecaller                       # Base de datos de números

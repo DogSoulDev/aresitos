@@ -1,0 +1,42 @@
+# BURP SUITE PROFESSIONAL
+
+## Atajos de Teclado
+Ctrl+Shift+T                      # Nuevo proyecto temporal
+Ctrl+I                            # Enviar a Intruder
+Ctrl+R                            # Enviar a Repeater
+Ctrl+D                            # Eliminar elemento
+Ctrl+U                            # URL decode
+Ctrl+Shift+U                      # URL encode
+Ctrl+H                            # HTML encode/decode
+Ctrl+Shift+B                      # Base64 encode/decode
+
+## Configuración Proxy
+127.0.0.1:8080                    # Puerto por defecto
+Intercept On/Off                  # Interceptar peticiones
+Forward                           # Enviar petición
+Drop                              # Descartar petición
+
+## Intruder - Tipos de Ataque
+Sniper                            # Un payload set, una posición
+Battering Ram                     # Un payload set, todas las posiciones
+Pitchfork                         # Múltiples payload sets sincronizados
+Cluster Bomb                      # Todas las combinaciones
+
+## Payloads Comunes
+' OR '1'='1                       # SQL injection básica
+<script>alert('XSS')</script>     # XSS básico
+../../../etc/passwd               # Path traversal
+{{7*7}}                           # Template injection
+${7*7}                            # Expression language injection
+
+## Scanner
+Passive scanning                  # Análisis automático
+Active scanning                   # Pruebas invasivas
+Live scanning                     # Escaneo en tiempo real
+
+## Extensiones Útiles
+Autorize                          # Testing de autorización
+J2EEScan                          # Vulnerabilidades Java
+Retire.js                         # Vulnerabilidades JavaScript
+Hackvertor                        # Encoding/decoding
+Logger++                          # Logging avanzado

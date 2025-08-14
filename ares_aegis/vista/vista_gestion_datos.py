@@ -55,11 +55,11 @@ class VistaGestionDatos(tk.Frame):
         
         # Título
         if self.theme:
-            titulo = tk.Label(main_frame, text="🗂️ Gestión de Datos", 
+            titulo = tk.Label(main_frame, text=" Gestión de Datos", 
                             font=('Arial', 16, 'bold'),
                             bg='#2b2b2b', fg='#ff6633')
         else:
-            titulo = tk.Label(main_frame, text="🗂️ Gestión de Datos", 
+            titulo = tk.Label(main_frame, text=" Gestión de Datos", 
                             font=('Arial', 16, 'bold'))
         titulo.pack(pady=(0, 20))
         
@@ -86,23 +86,23 @@ class VistaGestionDatos(tk.Frame):
         
         # Botones de selección
         if self.theme:
-            self.btn_wordlists = tk.Button(selector_frame, text="📝 Wordlists", 
+            self.btn_wordlists = tk.Button(selector_frame, text=" Wordlists", 
                                          command=lambda: self.cambiar_tipo("wordlists"),
                                          bg='#ff6633', fg='white', font=('Arial', 11, 'bold'),
                                          relief='flat', padx=20, pady=8)
             self.btn_wordlists.pack(side=tk.LEFT, padx=(0, 10))
             
-            self.btn_diccionarios = tk.Button(selector_frame, text="📚 Diccionarios", 
+            self.btn_diccionarios = tk.Button(selector_frame, text=" Diccionarios", 
                                             command=lambda: self.cambiar_tipo("diccionarios"),
                                             bg='#404040', fg='white', font=('Arial', 11),
                                             relief='flat', padx=20, pady=8)
             self.btn_diccionarios.pack(side=tk.LEFT)
         else:
-            self.btn_wordlists = ttk.Button(selector_frame, text="📝 Wordlists", 
+            self.btn_wordlists = ttk.Button(selector_frame, text=" Wordlists", 
                                           command=lambda: self.cambiar_tipo("wordlists"))
             self.btn_wordlists.pack(side=tk.LEFT, padx=(0, 10))
             
-            self.btn_diccionarios = ttk.Button(selector_frame, text="📚 Diccionarios", 
+            self.btn_diccionarios = ttk.Button(selector_frame, text=" Diccionarios", 
                                              command=lambda: self.cambiar_tipo("diccionarios"))
             self.btn_diccionarios.pack(side=tk.LEFT)
     
@@ -168,11 +168,11 @@ class VistaGestionDatos(tk.Frame):
         
         # Botones de acción
         acciones = [
-            ("📁 Cargar", self.cargar_archivo, '#4CAF50'),
-            ("✏️ Editar", self.editar_archivo, '#2196F3'),
-            ("💾 Guardar", self.guardar_archivo, '#FF9800'),
-            ("🗑️ Eliminar", self.eliminar_archivo, '#f44336'),
-            ("📤 Exportar", self.exportar_archivo, '#9C27B0')
+            (" Cargar", self.cargar_archivo, '#4CAF50'),
+            (" Editar", self.editar_archivo, '#2196F3'),
+            (" Guardar", self.guardar_archivo, '#FF9800'),
+            (" Eliminar", self.eliminar_archivo, '#f44336'),
+            (" Exportar", self.exportar_archivo, '#9C27B0')
         ]
         
         for i, (texto, comando, color) in enumerate(acciones):
@@ -240,9 +240,9 @@ class VistaGestionDatos(tk.Frame):
             for archivo in archivos:
                 # Mostrar nombre del archivo con icono según tipo
                 if archivo.suffix == '.json':
-                    icono = "📋"
+                    icono = ""
                 else:
-                    icono = "📄"
+                    icono = ""
                 self.lista_archivos.insert(tk.END, f"{icono} {archivo.name}")
     
     def on_archivo_seleccionado(self, event):

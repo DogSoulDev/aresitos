@@ -85,7 +85,7 @@ class VistaHerramientas(tk.Frame):
                                     bg='#ff6633', fg='white', font=('Arial', 10, 'bold'))
             btn_verificar.pack(fill=tk.X, pady=5)
             
-            self.btn_cancelar_verificacion = tk.Button(right_frame, text="❌ Cancelar", 
+            self.btn_cancelar_verificacion = tk.Button(right_frame, text=" Cancelar", 
                                                       command=self.cancelar_verificacion,
                                                       bg='#cc3333', fg='white', font=('Arial', 10),
                                                       state='disabled')
@@ -96,7 +96,7 @@ class VistaHerramientas(tk.Frame):
                                   bg='#404040', fg='white', font=('Arial', 10))
             btn_limpiar.pack(fill=tk.X, pady=5)
             
-            self.btn_cancelar_limpieza = tk.Button(right_frame, text="❌ Cancelar", 
+            self.btn_cancelar_limpieza = tk.Button(right_frame, text=" Cancelar", 
                                                   command=self.cancelar_limpieza,
                                                   bg='#cc3333', fg='white', font=('Arial', 10),
                                                   state='disabled')
@@ -110,7 +110,7 @@ class VistaHerramientas(tk.Frame):
             ttk.Button(right_frame, text="Verificar Herramientas", 
                       command=self.verificar_herramientas).pack(fill=tk.X, pady=5)
             
-            self.btn_cancelar_verificacion = ttk.Button(right_frame, text="❌ Cancelar", 
+            self.btn_cancelar_verificacion = ttk.Button(right_frame, text=" Cancelar", 
                                                        command=self.cancelar_verificacion,
                                                        state='disabled')
             self.btn_cancelar_verificacion.pack(fill=tk.X, pady=5)
@@ -118,7 +118,7 @@ class VistaHerramientas(tk.Frame):
             ttk.Button(right_frame, text="Limpiar Sistema", 
                       command=self.limpiar_sistema).pack(fill=tk.X, pady=5)
             
-            self.btn_cancelar_limpieza = ttk.Button(right_frame, text="❌ Cancelar", 
+            self.btn_cancelar_limpieza = ttk.Button(right_frame, text=" Cancelar", 
                                                    command=self.cancelar_limpieza,
                                                    state='disabled')
             self.btn_cancelar_limpieza.pack(fill=tk.X, pady=5)
@@ -148,7 +148,7 @@ class VistaHerramientas(tk.Frame):
         try:
             self.herramientas_text.config(state=tk.NORMAL)
             self.herramientas_text.delete(1.0, tk.END)
-            self.herramientas_text.insert(tk.END, "🔄 Verificando herramientas de Kali Linux...\n\n")
+            self.herramientas_text.insert(tk.END, " Verificando herramientas de Kali Linux...\n\n")
             self.herramientas_text.update()
             
             herramientas_kali = [
@@ -169,19 +169,19 @@ class VistaHerramientas(tk.Frame):
                     resultado = subprocess.run(['which', herramienta], 
                                              capture_output=True, text=True, timeout=10)
                     if resultado.returncode == 0:
-                        self.herramientas_text.insert(tk.END, f"✓ {herramienta}: {resultado.stdout.strip()}\n")
+                        self.herramientas_text.insert(tk.END, f" {herramienta}: {resultado.stdout.strip()}\n")
                     else:
-                        self.herramientas_text.insert(tk.END, f"✗ {herramienta}: No encontrado\n")
+                        self.herramientas_text.insert(tk.END, f" {herramienta}: No encontrado\n")
                 except Exception as e:
                     if self.proceso_verificacion_activo:
-                        self.herramientas_text.insert(tk.END, f"✗ {herramienta}: Error - {str(e)}\n")
+                        self.herramientas_text.insert(tk.END, f" {herramienta}: Error - {str(e)}\n")
                 
                 # Actualizar cada 5 herramientas
                 if i % 5 == 0:
                     self.herramientas_text.update()
             
             if self.proceso_verificacion_activo:
-                self.herramientas_text.insert(tk.END, "\n✅ Verificación completada.\n")
+                self.herramientas_text.insert(tk.END, "\n Verificación completada.\n")
                 self.herramientas_text.config(state=tk.DISABLED)
                 
         except Exception as e:
@@ -196,7 +196,7 @@ class VistaHerramientas(tk.Frame):
         if self.proceso_verificacion_activo:
             self.proceso_verificacion_activo = False
             self.herramientas_text.config(state=tk.NORMAL)
-            self.herramientas_text.insert(tk.END, "\n⚠️ Verificación cancelada por el usuario.\n")
+            self.herramientas_text.insert(tk.END, "\n Verificación cancelada por el usuario.\n")
             self.herramientas_text.config(state=tk.DISABLED)
             self._finalizar_proceso_verificacion()
     
@@ -235,7 +235,7 @@ class VistaHerramientas(tk.Frame):
         try:
             self.herramientas_text.config(state=tk.NORMAL)
             self.herramientas_text.delete(1.0, tk.END)
-            self.herramientas_text.insert(tk.END, "🔄 Ejecutando limpieza del sistema...\n\n")
+            self.herramientas_text.insert(tk.END, " Ejecutando limpieza del sistema...\n\n")
             self.herramientas_text.update()
             
             import subprocess
@@ -271,16 +271,16 @@ class VistaHerramientas(tk.Frame):
                     
                     if self.proceso_limpieza_activo:
                         if proceso.returncode == 0:
-                            self.herramientas_text.insert(tk.END, "✓ Completado\n\n")
+                            self.herramientas_text.insert(tk.END, " Completado\n\n")
                         else:
-                            self.herramientas_text.insert(tk.END, f"✗ Error: {stderr}\n\n")
+                            self.herramientas_text.insert(tk.END, f" Error: {stderr}\n\n")
                         
                 except Exception as e:
                     if self.proceso_limpieza_activo:
-                        self.herramientas_text.insert(tk.END, f"✗ Error: {str(e)}\n\n")
+                        self.herramientas_text.insert(tk.END, f" Error: {str(e)}\n\n")
             
             if self.proceso_limpieza_activo:
-                self.herramientas_text.insert(tk.END, "✅ Limpieza completada.\n")
+                self.herramientas_text.insert(tk.END, " Limpieza completada.\n")
                 self.herramientas_text.config(state=tk.DISABLED)
                 messagebox.showinfo("Éxito", "Limpieza del sistema completada")
                 
@@ -296,7 +296,7 @@ class VistaHerramientas(tk.Frame):
         if self.proceso_limpieza_activo:
             self.proceso_limpieza_activo = False
             self.herramientas_text.config(state=tk.NORMAL)
-            self.herramientas_text.insert(tk.END, "\n⚠️ Limpieza cancelada por el usuario.\n")
+            self.herramientas_text.insert(tk.END, "\n Limpieza cancelada por el usuario.\n")
             self.herramientas_text.config(state=tk.DISABLED)
             self._finalizar_proceso_limpieza()
     

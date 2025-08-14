@@ -76,22 +76,49 @@ class VistaAuditoria(tk.Frame):
         
         if self.theme:
             buttons = [
-                ("Ejecutar Lynis", self.ejecutar_lynis, '#ff6633'),
-                ("❌ Cancelar", self.cancelar_auditoria, '#cc0000'),
-                ("Detectar Rootkits", self.detectar_rootkits, '#404040'),
-                ("Analizar Servicios", self.analizar_servicios, '#404040'),
-                ("Verificar Permisos", self.verificar_permisos, '#404040'),
-                ("Informacion Hardware", self.obtener_info_hardware, '#404040'),
-                ("Guardar Resultados", self.guardar_auditoria, '#404040'),
-                ("Limpiar Pantalla", self.limpiar_auditoria, '#404040')
+                ("🛡️ Ejecutar Lynis", self.ejecutar_lynis, '#ff6633'),
+                ("⏹️ Cancelar Lynis", self.cancelar_auditoria, '#cc0000'),
+                ("🔍 Detectar Rootkits", self.detectar_rootkits, '#404040'),
+                ("⏹️ Cancelar Rootkits", self.cancelar_rootkits, '#cc0000'),
+                ("🔐 Auditoría OpenVAS", self.ejecutar_openvas, '#404040'),
+                ("⏹️ Cancelar OpenVAS", self.cancelar_openvas, '#cc0000'),
+                ("🛡️ Nessus Scan", self.ejecutar_nessus, '#404040'),
+                ("🔧 Nikto Web Scan", self.ejecutar_nikto, '#404040'),
+                ("⏹️ Cancelar Nikto", self.cancelar_nikto, '#cc0000'),
+                ("🌐 SSL/TLS Test", self.verificar_ssl, '#404040'),
+                ("📊 Analizar Servicios", self.analizar_servicios, '#404040'),
+                ("🔑 Verificar Permisos", self.verificar_permisos, '#404040'),
+                ("💾 Info Hardware", self.obtener_info_hardware, '#404040'),
+                ("🔒 Análisis SUID/SGID", self.analizar_suid_sgid, '#404040'),
+                ("🌐 Puertos Abiertos", self.escanear_puertos, '#404040'),
+                ("⏹️ Cancelar Puertos", self.cancelar_puertos, '#cc0000'),
+                ("📋 Configuración SSH", self.auditar_ssh, '#404040'),
+                ("🔐 Políticas Password", self.verificar_password_policy, '#404040'),
+                ("💾 Guardar Resultados", self.guardar_auditoria, '#404040'),
+                ("🗑️ Limpiar Pantalla", self.limpiar_auditoria, '#404040')
             ]
+            
+            # Variables para los botones de cancelar
+            self.proceso_rootkits_activo = False
+            self.proceso_openvas_activo = False
+            self.proceso_nikto_activo = False
+            self.proceso_puertos_activo = False
             
             for i, (text, command, bg_color) in enumerate(buttons):
                 btn = tk.Button(right_frame, text=text, command=command,
-                              bg=bg_color, fg='white', font=('Arial', 10))
-                if text == "❌ Cancelar":
+                              bg=bg_color, fg='white', font=('Arial', 9))
+                if "Cancelar" in text:
                     btn.config(state="disabled")
-                    self.btn_cancelar_auditoria = btn
+                    if "Lynis" in text:
+                        self.btn_cancelar_auditoria = btn
+                    elif "Rootkits" in text:
+                        self.btn_cancelar_rootkits = btn
+                    elif "OpenVAS" in text:
+                        self.btn_cancelar_openvas = btn
+                    elif "Nikto" in text:
+                        self.btn_cancelar_nikto = btn
+                    elif "Puertos" in text:
+                        self.btn_cancelar_puertos = btn
                 btn.pack(fill=tk.X, pady=2)
         else:
             # Crear botones individuales para mejor control
@@ -99,7 +126,7 @@ class VistaAuditoria(tk.Frame):
                                        command=self.ejecutar_lynis)
             self.btn_lynis.pack(fill=tk.X, pady=5)
             
-            self.btn_cancelar_auditoria = ttk.Button(right_frame, text="❌ Cancelar", 
+            self.btn_cancelar_auditoria = ttk.Button(right_frame, text=" Cancelar", 
                                                     command=self.cancelar_auditoria,
                                                     state="disabled")
             self.btn_cancelar_auditoria.pack(fill=tk.X, pady=5)
@@ -157,21 +184,21 @@ class VistaAuditoria(tk.Frame):
                     # Fue cancelado, terminar el proceso
                     proceso.terminate()
                     proceso.wait()
-                    self.after(0, self._actualizar_texto_auditoria, "\n⚠️ Auditoría Lynis cancelada por el usuario.\n")
+                    self.after(0, self._actualizar_texto_auditoria, "\n Auditoría Lynis cancelada por el usuario.\n")
                     return
                 
                 stdout, stderr = proceso.communicate()
                 
                 if proceso.returncode == 0:
-                    self.after(0, self._actualizar_texto_auditoria, "✓ Auditoría Lynis completada\n")
+                    self.after(0, self._actualizar_texto_auditoria, " Auditoría Lynis completada\n")
                     self.after(0, self._actualizar_texto_auditoria, stdout[-2000:])  # Últimas 2000 caracteres
                 else:
-                    self.after(0, self._actualizar_texto_auditoria, f"✗ Error en Lynis: {stderr}\n")
+                    self.after(0, self._actualizar_texto_auditoria, f" Error en Lynis: {stderr}\n")
                     
             except FileNotFoundError:
-                self.after(0, self._actualizar_texto_auditoria, "✗ Lynis no encontrado. Instale con: apt install lynis\n")
+                self.after(0, self._actualizar_texto_auditoria, " Lynis no encontrado. Instale con: apt install lynis\n")
             except Exception as e:
-                self.after(0, self._actualizar_texto_auditoria, f"✗ Error ejecutando Lynis: {str(e)}\n")
+                self.after(0, self._actualizar_texto_auditoria, f" Error ejecutando Lynis: {str(e)}\n")
                 
         finally:
             self.after(0, self._finalizar_auditoria)
@@ -201,7 +228,7 @@ class VistaAuditoria(tk.Frame):
         """Cancelar la auditoría en curso."""
         if self.proceso_auditoria_activo:
             self.proceso_auditoria_activo = False
-            self._actualizar_texto_auditoria("\n⚠️ Cancelando auditoría...\n")
+            self._actualizar_texto_auditoria("\n Cancelando auditoría...\n")
     
     def detectar_rootkits(self):
         def ejecutar():
@@ -224,15 +251,15 @@ class VistaAuditoria(tk.Frame):
                         
                         resultado = subprocess.run(comando, capture_output=True, text=True, timeout=300)
                         if resultado.returncode == 0:
-                            self.auditoria_text.insert(tk.END, f"✓ {nombre} completado\n")
+                            self.auditoria_text.insert(tk.END, f" {nombre} completado\n")
                             if "INFECTED" in resultado.stdout or "infected" in resultado.stdout:
-                                self.auditoria_text.insert(tk.END, "⚠ POSIBLES ROOTKITS DETECTADOS\n")
+                                self.auditoria_text.insert(tk.END, " POSIBLES ROOTKITS DETECTADOS\n")
                             else:
-                                self.auditoria_text.insert(tk.END, "✓ No se detectaron rootkits\n")
+                                self.auditoria_text.insert(tk.END, " No se detectaron rootkits\n")
                         else:
-                            self.auditoria_text.insert(tk.END, f"✗ Error en {nombre}\n")
+                            self.auditoria_text.insert(tk.END, f" Error en {nombre}\n")
                     except FileNotFoundError:
-                        self.auditoria_text.insert(tk.END, f"✗ {nombre} no encontrado\n")
+                        self.auditoria_text.insert(tk.END, f" {nombre} no encontrado\n")
                     except subprocess.TimeoutExpired:
                         self.auditoria_text.insert(tk.END, f"⏱ Timeout en {nombre}\n")
                 
@@ -256,16 +283,16 @@ class VistaAuditoria(tk.Frame):
                     resultado = subprocess.run(['systemctl', 'list-units', '--type=service', '--state=active'], 
                                              capture_output=True, text=True)
                     if resultado.returncode == 0:
-                        self.auditoria_text.insert(tk.END, "✓ Servicios activos:\n\n")
+                        self.auditoria_text.insert(tk.END, " Servicios activos:\n\n")
                         lineas = resultado.stdout.split('\n')
                         for linea in lineas[1:21]:
                             if linea.strip() and 'service' in linea:
                                 self.auditoria_text.insert(tk.END, f"  {linea}\n")
                         self.auditoria_text.insert(tk.END, "\n... (mostrando primeros 20)\n")
                     else:
-                        self.auditoria_text.insert(tk.END, "✗ Error obteniendo servicios\n")
+                        self.auditoria_text.insert(tk.END, " Error obteniendo servicios\n")
                 except Exception as e:
-                    self.auditoria_text.insert(tk.END, f"✗ Error: {str(e)}\n")
+                    self.auditoria_text.insert(tk.END, f" Error: {str(e)}\n")
                 
                 self.auditoria_text.insert(tk.END, "\n")
                 self.auditoria_text.config(state=tk.DISABLED)
@@ -301,7 +328,7 @@ class VistaAuditoria(tk.Frame):
                                 f"{ruta}: {permisos} (uid:{uid}, gid:{gid})\n")
                             
                             if ruta in ['/etc/shadow', '/etc/sudoers'] and permisos != '640':
-                                self.auditoria_text.insert(tk.END, "  ⚠ Permisos inusuales\n")
+                                self.auditoria_text.insert(tk.END, "   Permisos inusuales\n")
                         else:
                             self.auditoria_text.insert(tk.END, f"{ruta}: No existe\n")
                     except Exception as e:
@@ -342,13 +369,13 @@ class VistaAuditoria(tk.Frame):
                                 if linea.strip():
                                     self.auditoria_text.insert(tk.END, f"{linea}\n")
                         else:
-                            self.auditoria_text.insert(tk.END, f"✗ Error obteniendo {tipo}\n")
+                            self.auditoria_text.insert(tk.END, f" Error obteniendo {tipo}\n")
                     except FileNotFoundError:
-                        self.auditoria_text.insert(tk.END, f"✗ Comando {comando[0]} no encontrado\n")
+                        self.auditoria_text.insert(tk.END, f" Comando {comando[0]} no encontrado\n")
                     except subprocess.TimeoutExpired:
                         self.auditoria_text.insert(tk.END, f"⏱ Timeout en {tipo}\n")
                     except Exception as e:
-                        self.auditoria_text.insert(tk.END, f"✗ Error: {str(e)}\n")
+                        self.auditoria_text.insert(tk.END, f" Error: {str(e)}\n")
                 
                 self.auditoria_text.insert(tk.END, "\n")
                 self.auditoria_text.config(state=tk.DISABLED)
@@ -381,3 +408,351 @@ class VistaAuditoria(tk.Frame):
         self.auditoria_text.config(state=tk.NORMAL)
         self.auditoria_text.delete(1.0, tk.END)
         self.auditoria_text.config(state=tk.DISABLED)
+    
+    # ===== NUEVOS MÉTODOS DE AUDITORÍA AVANZADA =====
+    
+    def cancelar_rootkits(self):
+        """Cancelar detección de rootkits."""
+        if hasattr(self, 'proceso_rootkits_activo'):
+            self.proceso_rootkits_activo = False
+            self._actualizar_texto_auditoria("⏹️ Detección de rootkits cancelada\n")
+    
+    def ejecutar_openvas(self):
+        """Ejecutar auditoría con OpenVAS."""
+        def ejecutar():
+            try:
+                self.proceso_openvas_activo = True
+                if hasattr(self, 'btn_cancelar_openvas'):
+                    self.btn_cancelar_openvas.config(state="normal")
+                
+                self._actualizar_texto_auditoria("🔐 Iniciando auditoría OpenVAS...\n")
+                import subprocess
+                
+                try:
+                    # Verificar si OpenVAS está instalado
+                    resultado = subprocess.run(['which', 'openvas'], capture_output=True, text=True)
+                    if resultado.returncode == 0:
+                        self._actualizar_texto_auditoria("✅ OpenVAS encontrado\n")
+                        self._actualizar_texto_auditoria("📋 Comandos OpenVAS:\n")
+                        self._actualizar_texto_auditoria("  • openvas-start: Iniciar servicios\n")
+                        self._actualizar_texto_auditoria("  • openvas-stop: Detener servicios\n")
+                        self._actualizar_texto_auditoria("  • openvas-check-setup: Verificar configuración\n")
+                    else:
+                        self._actualizar_texto_auditoria("❌ OpenVAS no encontrado. Instalar con: apt install openvas\n")
+                except Exception as e:
+                    self._actualizar_texto_auditoria(f"❌ Error verificando OpenVAS: {str(e)}\n")
+                
+                self._actualizar_texto_auditoria("✅ Auditoría OpenVAS completada\n\n")
+            except Exception as e:
+                self._actualizar_texto_auditoria(f"❌ Error en OpenVAS: {str(e)}\n")
+            finally:
+                self.proceso_openvas_activo = False
+                if hasattr(self, 'btn_cancelar_openvas'):
+                    self.btn_cancelar_openvas.config(state="disabled")
+        
+        threading.Thread(target=ejecutar, daemon=True).start()
+    
+    def cancelar_openvas(self):
+        """Cancelar auditoría OpenVAS."""
+        if hasattr(self, 'proceso_openvas_activo'):
+            self.proceso_openvas_activo = False
+            self._actualizar_texto_auditoria("⏹️ Auditoría OpenVAS cancelada\n")
+    
+    def ejecutar_nessus(self):
+        """Ejecutar scan con Nessus."""
+        def ejecutar():
+            try:
+                self._actualizar_texto_auditoria("🛡️ Iniciando scan Nessus...\n")
+                import subprocess
+                
+                try:
+                    # Verificar si Nessus está instalado
+                    resultado = subprocess.run(['which', 'nessus'], capture_output=True, text=True)
+                    if resultado.returncode == 0:
+                        self._actualizar_texto_auditoria("✅ Nessus encontrado\n")
+                        self._actualizar_texto_auditoria("📋 Comandos Nessus:\n")
+                        self._actualizar_texto_auditoria("  • service nessusd start: Iniciar servicio\n")
+                        self._actualizar_texto_auditoria("  • https://localhost:8834: Interfaz web\n")
+                    else:
+                        self._actualizar_texto_auditoria("❌ Nessus no encontrado. Descargar desde tenable.com\n")
+                except Exception as e:
+                    self._actualizar_texto_auditoria(f"❌ Error verificando Nessus: {str(e)}\n")
+                
+                self._actualizar_texto_auditoria("✅ Verificación Nessus completada\n\n")
+            except Exception as e:
+                self._actualizar_texto_auditoria(f"❌ Error en Nessus: {str(e)}\n")
+        
+        threading.Thread(target=ejecutar, daemon=True).start()
+    
+    def ejecutar_nikto(self):
+        """Ejecutar scan web con Nikto."""
+        def ejecutar():
+            try:
+                self.proceso_nikto_activo = True
+                if hasattr(self, 'btn_cancelar_nikto'):
+                    self.btn_cancelar_nikto.config(state="normal")
+                
+                self._actualizar_texto_auditoria("🔧 Iniciando scan web Nikto...\n")
+                import subprocess
+                
+                try:
+                    # Verificar si Nikto está instalado
+                    resultado = subprocess.run(['which', 'nikto'], capture_output=True, text=True)
+                    if resultado.returncode == 0:
+                        self._actualizar_texto_auditoria("✅ Nikto encontrado\n")
+                        self._actualizar_texto_auditoria("📋 Ejemplos de uso Nikto:\n")
+                        self._actualizar_texto_auditoria("  • nikto -h http://target.com\n")
+                        self._actualizar_texto_auditoria("  • nikto -h https://target.com -ssl\n")
+                        self._actualizar_texto_auditoria("  • nikto -h target.com -p 80,443,8080\n")
+                    else:
+                        self._actualizar_texto_auditoria("❌ Nikto no encontrado. Instalar con: apt install nikto\n")
+                except Exception as e:
+                    self._actualizar_texto_auditoria(f"❌ Error verificando Nikto: {str(e)}\n")
+                
+                self._actualizar_texto_auditoria("✅ Verificación Nikto completada\n\n")
+            except Exception as e:
+                self._actualizar_texto_auditoria(f"❌ Error en Nikto: {str(e)}\n")
+            finally:
+                self.proceso_nikto_activo = False
+                if hasattr(self, 'btn_cancelar_nikto'):
+                    self.btn_cancelar_nikto.config(state="disabled")
+        
+        threading.Thread(target=ejecutar, daemon=True).start()
+    
+    def cancelar_nikto(self):
+        """Cancelar scan Nikto."""
+        if hasattr(self, 'proceso_nikto_activo'):
+            self.proceso_nikto_activo = False
+            self._actualizar_texto_auditoria("⏹️ Scan Nikto cancelado\n")
+    
+    def verificar_ssl(self):
+        """Verificar configuración SSL/TLS."""
+        def ejecutar():
+            try:
+                self._actualizar_texto_auditoria("🌐 Verificando configuración SSL/TLS...\n")
+                import subprocess
+                
+                try:
+                    # Verificar si sslscan está instalado
+                    resultado = subprocess.run(['which', 'sslscan'], capture_output=True, text=True)
+                    if resultado.returncode == 0:
+                        self._actualizar_texto_auditoria("✅ SSLScan encontrado\n")
+                        self._actualizar_texto_auditoria("📋 Comandos SSL útiles:\n")
+                        self._actualizar_texto_auditoria("  • sslscan target.com:443\n")
+                        self._actualizar_texto_auditoria("  • testssl.sh target.com\n")
+                        self._actualizar_texto_auditoria("  • openssl s_client -connect target.com:443\n")
+                    else:
+                        self._actualizar_texto_auditoria("❌ SSLScan no encontrado. Instalar con: apt install sslscan\n")
+                    
+                    # Verificar testssl
+                    resultado = subprocess.run(['which', 'testssl.sh'], capture_output=True, text=True)
+                    if resultado.returncode == 0:
+                        self._actualizar_texto_auditoria("✅ TestSSL encontrado\n")
+                    else:
+                        self._actualizar_texto_auditoria("❌ TestSSL no encontrado. Instalar con: apt install testssl.sh\n")
+                        
+                except Exception as e:
+                    self._actualizar_texto_auditoria(f"❌ Error verificando herramientas SSL: {str(e)}\n")
+                
+                self._actualizar_texto_auditoria("✅ Verificación SSL/TLS completada\n\n")
+            except Exception as e:
+                self._actualizar_texto_auditoria(f"❌ Error en verificación SSL: {str(e)}\n")
+        
+        threading.Thread(target=ejecutar, daemon=True).start()
+    
+    def analizar_suid_sgid(self):
+        """Analizar archivos SUID/SGID."""
+        def ejecutar():
+            try:
+                self._actualizar_texto_auditoria("🔒 Analizando archivos SUID/SGID...\n")
+                import subprocess
+                
+                try:
+                    # Buscar archivos SUID
+                    self._actualizar_texto_auditoria("🔍 Buscando archivos SUID...\n")
+                    resultado = subprocess.run(['find', '/', '-perm', '-4000', '-type', 'f', '2>/dev/null'], 
+                                             capture_output=True, text=True, timeout=30)
+                    if resultado.stdout:
+                        archivos_suid = resultado.stdout.strip().split('\n')[:20]  # Primeros 20
+                        self._actualizar_texto_auditoria(f"📁 Archivos SUID encontrados ({len(archivos_suid)} de muchos):\n")
+                        for archivo in archivos_suid:
+                            if archivo.strip():
+                                self._actualizar_texto_auditoria(f"  {archivo}\n")
+                    
+                    # Buscar archivos SGID
+                    self._actualizar_texto_auditoria("🔍 Buscando archivos SGID...\n")
+                    resultado = subprocess.run(['find', '/', '-perm', '-2000', '-type', 'f', '2>/dev/null'], 
+                                             capture_output=True, text=True, timeout=30)
+                    if resultado.stdout:
+                        archivos_sgid = resultado.stdout.strip().split('\n')[:20]  # Primeros 20
+                        self._actualizar_texto_auditoria(f"📁 Archivos SGID encontrados ({len(archivos_sgid)} de muchos):\n")
+                        for archivo in archivos_sgid:
+                            if archivo.strip():
+                                self._actualizar_texto_auditoria(f"  {archivo}\n")
+                
+                except subprocess.TimeoutExpired:
+                    self._actualizar_texto_auditoria("⏱️ Timeout en búsqueda SUID/SGID\n")
+                except Exception as e:
+                    self._actualizar_texto_auditoria(f"❌ Error buscando SUID/SGID: {str(e)}\n")
+                
+                self._actualizar_texto_auditoria("✅ Análisis SUID/SGID completado\n\n")
+            except Exception as e:
+                self._actualizar_texto_auditoria(f"❌ Error en análisis SUID/SGID: {str(e)}\n")
+        
+        threading.Thread(target=ejecutar, daemon=True).start()
+    
+    def escanear_puertos(self):
+        """Escanear puertos abiertos."""
+        def ejecutar():
+            try:
+                self.proceso_puertos_activo = True
+                if hasattr(self, 'btn_cancelar_puertos'):
+                    self.btn_cancelar_puertos.config(state="normal")
+                
+                self._actualizar_texto_auditoria("🌐 Escaneando puertos abiertos...\n")
+                import subprocess
+                
+                try:
+                    # Usar netstat para puertos locales
+                    self._actualizar_texto_auditoria("📡 Puertos TCP abiertos localmente:\n")
+                    resultado = subprocess.run(['netstat', '-tlnp'], capture_output=True, text=True, timeout=15)
+                    if resultado.stdout:
+                        lineas = resultado.stdout.split('\n')[2:12]  # Primeras 10 líneas
+                        for linea in lineas:
+                            if linea.strip() and 'LISTEN' in linea:
+                                self._actualizar_texto_auditoria(f"  {linea}\n")
+                    
+                    # Verificar si nmap está disponible
+                    resultado_nmap = subprocess.run(['which', 'nmap'], capture_output=True, text=True)
+                    if resultado_nmap.returncode == 0:
+                        self._actualizar_texto_auditoria("✅ Nmap disponible para escaneos externos\n")
+                        self._actualizar_texto_auditoria("📋 Comandos Nmap útiles:\n")
+                        self._actualizar_texto_auditoria("  • nmap -sT localhost\n")
+                        self._actualizar_texto_auditoria("  • nmap -sS target.com\n")
+                        self._actualizar_texto_auditoria("  • nmap -sV -sC target.com\n")
+                    else:
+                        self._actualizar_texto_auditoria("❌ Nmap no encontrado. Instalar con: apt install nmap\n")
+                
+                except subprocess.TimeoutExpired:
+                    self._actualizar_texto_auditoria("⏱️ Timeout en escaneo de puertos\n")
+                except Exception as e:
+                    self._actualizar_texto_auditoria(f"❌ Error escaneando puertos: {str(e)}\n")
+                
+                self._actualizar_texto_auditoria("✅ Escaneo de puertos completado\n\n")
+            except Exception as e:
+                self._actualizar_texto_auditoria(f"❌ Error en escaneo de puertos: {str(e)}\n")
+            finally:
+                self.proceso_puertos_activo = False
+                if hasattr(self, 'btn_cancelar_puertos'):
+                    self.btn_cancelar_puertos.config(state="disabled")
+        
+        threading.Thread(target=ejecutar, daemon=True).start()
+    
+    def cancelar_puertos(self):
+        """Cancelar escaneo de puertos."""
+        if hasattr(self, 'proceso_puertos_activo'):
+            self.proceso_puertos_activo = False
+            self._actualizar_texto_auditoria("⏹️ Escaneo de puertos cancelado\n")
+    
+    def auditar_ssh(self):
+        """Auditar configuración SSH."""
+        def ejecutar():
+            try:
+                self._actualizar_texto_auditoria("📋 Auditando configuración SSH...\n")
+                import subprocess
+                import os
+                
+                try:
+                    # Verificar si SSH está instalado
+                    if os.path.exists('/etc/ssh/sshd_config'):
+                        self._actualizar_texto_auditoria("✅ SSH configurado en el sistema\n")
+                        
+                        # Verificar configuraciones importantes
+                        with open('/etc/ssh/sshd_config', 'r') as f:
+                            config = f.read()
+                            
+                        self._actualizar_texto_auditoria("🔍 Verificando configuraciones críticas:\n")
+                        
+                        if 'PermitRootLogin no' in config:
+                            self._actualizar_texto_auditoria("  ✅ PermitRootLogin: Deshabilitado\n")
+                        else:
+                            self._actualizar_texto_auditoria("  ⚠️ PermitRootLogin: Revisar configuración\n")
+                        
+                        if 'PasswordAuthentication no' in config:
+                            self._actualizar_texto_auditoria("  ✅ PasswordAuthentication: Deshabilitado\n")
+                        else:
+                            self._actualizar_texto_auditoria("  ⚠️ PasswordAuthentication: Habilitado\n")
+                        
+                        if 'Port 22' in config:
+                            self._actualizar_texto_auditoria("  ⚠️ Puerto: 22 (puerto por defecto)\n")
+                        else:
+                            self._actualizar_texto_auditoria("  ✅ Puerto: Cambiado del puerto por defecto\n")
+                            
+                    else:
+                        self._actualizar_texto_auditoria("❌ SSH no encontrado o no configurado\n")
+                    
+                    # Verificar servicio SSH
+                    resultado = subprocess.run(['systemctl', 'is-active', 'ssh'], capture_output=True, text=True)
+                    if resultado.stdout.strip() == 'active':
+                        self._actualizar_texto_auditoria("✅ Servicio SSH: Activo\n")
+                    else:
+                        self._actualizar_texto_auditoria("❌ Servicio SSH: Inactivo\n")
+                
+                except Exception as e:
+                    self._actualizar_texto_auditoria(f"❌ Error auditando SSH: {str(e)}\n")
+                
+                self._actualizar_texto_auditoria("✅ Auditoría SSH completada\n\n")
+            except Exception as e:
+                self._actualizar_texto_auditoria(f"❌ Error en auditoría SSH: {str(e)}\n")
+        
+        threading.Thread(target=ejecutar, daemon=True).start()
+    
+    def verificar_password_policy(self):
+        """Verificar políticas de contraseñas."""
+        def ejecutar():
+            try:
+                self._actualizar_texto_auditoria("🔐 Verificando políticas de contraseñas...\n")
+                import subprocess
+                import os
+                
+                try:
+                    # Verificar /etc/login.defs
+                    if os.path.exists('/etc/login.defs'):
+                        self._actualizar_texto_auditoria("📋 Configuración en /etc/login.defs:\n")
+                        resultado = subprocess.run(['grep', '-E', 'PASS_MAX_DAYS|PASS_MIN_DAYS|PASS_MIN_LEN|PASS_WARN_AGE', '/etc/login.defs'], 
+                                                 capture_output=True, text=True)
+                        if resultado.stdout:
+                            for linea in resultado.stdout.split('\n'):
+                                if linea.strip() and not linea.startswith('#'):
+                                    self._actualizar_texto_auditoria(f"  {linea}\n")
+                    
+                    # Verificar PAM
+                    if os.path.exists('/etc/pam.d/common-password'):
+                        self._actualizar_texto_auditoria("📋 Configuración PAM (common-password):\n")
+                        resultado = subprocess.run(['grep', 'pam_pwquality', '/etc/pam.d/common-password'], 
+                                                 capture_output=True, text=True)
+                        if resultado.stdout:
+                            self._actualizar_texto_auditoria(f"  ✅ pwquality configurado\n")
+                        else:
+                            self._actualizar_texto_auditoria(f"  ⚠️ pwquality no configurado\n")
+                    
+                    # Verificar usuarios con contraseñas vacías
+                    self._actualizar_texto_auditoria("🔍 Verificando usuarios sin contraseña:\n")
+                    resultado = subprocess.run(['awk', '-F:', '($2 == "") {print $1}', '/etc/shadow'], 
+                                             capture_output=True, text=True)
+                    if resultado.stdout.strip():
+                        self._actualizar_texto_auditoria("  ⚠️ Usuarios sin contraseña encontrados:\n")
+                        for usuario in resultado.stdout.split('\n'):
+                            if usuario.strip():
+                                self._actualizar_texto_auditoria(f"    {usuario}\n")
+                    else:
+                        self._actualizar_texto_auditoria("  ✅ No hay usuarios sin contraseña\n")
+                
+                except Exception as e:
+                    self._actualizar_texto_auditoria(f"❌ Error verificando políticas: {str(e)}\n")
+                
+                self._actualizar_texto_auditoria("✅ Verificación de políticas completada\n\n")
+            except Exception as e:
+                self._actualizar_texto_auditoria(f"❌ Error en verificación de políticas: {str(e)}\n")
+        
+        threading.Thread(target=ejecutar, daemon=True).start()

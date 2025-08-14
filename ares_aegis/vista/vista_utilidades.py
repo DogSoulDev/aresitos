@@ -76,16 +76,16 @@ class VistaUtilidades(tk.Frame):
     
     def crear_pestanas(self):
         self.vista_herramientas = VistaHerramientas(self.notebook)
-        self.notebook.add(self.vista_herramientas, text="🔧 Herramientas")
+        self.notebook.add(self.vista_herramientas, text=" Herramientas")
         
         self.vista_auditoria = VistaAuditoria(self.notebook)
-        self.notebook.add(self.vista_auditoria, text="🔍 Auditoria")
+        self.notebook.add(self.vista_auditoria, text=" Auditoria")
         
         self.vista_reportes = VistaReportes(self.notebook)
-        self.notebook.add(self.vista_reportes, text="📊 Reportes")
+        self.notebook.add(self.vista_reportes, text=" Reportes")
         
         self.vista_gestion_datos = VistaGestionDatos(self.notebook)
-        self.notebook.add(self.vista_gestion_datos, text="�️ Gestión de Datos")
+        self.notebook.add(self.vista_gestion_datos, text=" Gestión de Datos")
         
         if self.controlador:
             self.set_controlador(self.controlador)

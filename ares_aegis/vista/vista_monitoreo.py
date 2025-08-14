@@ -51,7 +51,7 @@ class VistaMonitoreo(tk.Frame):
         nav_frame = tk.Frame(self.notebook, bg='#2b2b2b')
         nav_frame.pack(fill="x", pady=(0, 10))
         
-        self.btn_monitoreo = tk.Button(nav_frame, text="👁️ Monitoreo Sistema",
+        self.btn_monitoreo = tk.Button(nav_frame, text=" Monitoreo Sistema",
                                      command=lambda: self.mostrar_pestana('monitoreo'),
                                      bg='#ff6633', fg='white',
                                      font=('Arial', 10, 'bold'),
@@ -59,7 +59,7 @@ class VistaMonitoreo(tk.Frame):
                                      activebackground='#e55a2b', activeforeground='white')
         self.btn_monitoreo.pack(side="left", padx=(0, 5))
         
-        self.btn_cuarentena = tk.Button(nav_frame, text="🔒 Cuarentena",
+        self.btn_cuarentena = tk.Button(nav_frame, text=" Cuarentena",
                                       command=lambda: self.mostrar_pestana('cuarentena'),
                                       bg='#404040', fg='white',
                                       font=('Arial', 10),
@@ -94,7 +94,7 @@ class VistaMonitoreo(tk.Frame):
         titulo_frame = tk.Frame(self.frame_monitor, bg='#2b2b2b')
         titulo_frame.pack(fill="x", pady=(0, 15))
         
-        titulo_label = tk.Label(titulo_frame, text="👁️ MONITOR DEL SISTEMA", 
+        titulo_label = tk.Label(titulo_frame, text=" MONITOR DEL SISTEMA", 
                               font=('Arial', 14, 'bold'),
                               bg='#2b2b2b', fg='#ff6633')
         titulo_label.pack()
@@ -103,7 +103,7 @@ class VistaMonitoreo(tk.Frame):
         control_frame = tk.Frame(self.frame_monitor, bg='#2b2b2b')
         control_frame.pack(fill="x", pady=(0, 10))
         
-        self.btn_iniciar_monitor = tk.Button(control_frame, text="▶️ Iniciar Monitoreo", 
+        self.btn_iniciar_monitor = tk.Button(control_frame, text=" Iniciar Monitoreo", 
                                            command=self.iniciar_monitoreo,
                                            bg='#ff6633', fg='white',
                                            font=('Arial', 10, 'bold'),
@@ -111,7 +111,7 @@ class VistaMonitoreo(tk.Frame):
                                            activebackground='#e55a2b', activeforeground='white')
         self.btn_iniciar_monitor.pack(side="left", padx=(0, 10))
         
-        self.btn_detener_monitor = tk.Button(control_frame, text="⏹️ Detener Monitoreo", 
+        self.btn_detener_monitor = tk.Button(control_frame, text="⏹ Detener Monitoreo", 
                                             command=self.detener_monitoreo, state="disabled",
                                             bg='#404040', fg='white',
                                             font=('Arial', 10),
@@ -119,7 +119,7 @@ class VistaMonitoreo(tk.Frame):
                                             activebackground='#505050', activeforeground='white')
         self.btn_detener_monitor.pack(side="left", padx=(0, 10))
         
-        self.btn_red = tk.Button(control_frame, text="🌐 Monitorear Red", 
+        self.btn_red = tk.Button(control_frame, text=" Monitorear Red", 
                                command=self.monitorear_red,
                                bg='#404040', fg='white',
                                font=('Arial', 10),
@@ -127,7 +127,7 @@ class VistaMonitoreo(tk.Frame):
                                activebackground='#505050', activeforeground='white')
         self.btn_red.pack(side="left", padx=(0, 10))
         
-        self.btn_cancelar_red = tk.Button(control_frame, text="❌ Cancelar Red", 
+        self.btn_cancelar_red = tk.Button(control_frame, text=" Cancelar Red", 
                                         command=self.cancelar_monitoreo_red,
                                         state="disabled",
                                         bg='#404040', fg='white',
@@ -156,7 +156,7 @@ class VistaMonitoreo(tk.Frame):
         titulo_frame = tk.Frame(self.frame_cuarentena, bg='#2b2b2b')
         titulo_frame.pack(fill="x", pady=(0, 15))
         
-        titulo_label = tk.Label(titulo_frame, text="🔒 GESTIÓN DE CUARENTENA", 
+        titulo_label = tk.Label(titulo_frame, text=" GESTIÓN DE CUARENTENA", 
                               font=('Arial', 14, 'bold'),
                               bg='#2b2b2b', fg='#ff6633')
         titulo_label.pack()
@@ -165,7 +165,7 @@ class VistaMonitoreo(tk.Frame):
         control_frame = tk.Frame(self.frame_cuarentena, bg='#2b2b2b')
         control_frame.pack(fill="x", pady=(0, 10))
         
-        self.btn_agregar_cuarentena = tk.Button(control_frame, text="➕ Agregar Archivo", 
+        self.btn_agregar_cuarentena = tk.Button(control_frame, text=" Agregar Archivo", 
                                               command=self.agregar_a_cuarentena,
                                               bg='#ff6633', fg='white',
                                               font=('Arial', 10, 'bold'),
@@ -173,7 +173,7 @@ class VistaMonitoreo(tk.Frame):
                                               activebackground='#e55a2b', activeforeground='white')
         self.btn_agregar_cuarentena.pack(side="left", padx=(0, 10))
         
-        self.btn_listar_cuarentena = tk.Button(control_frame, text="📋 Listar Archivos", 
+        self.btn_listar_cuarentena = tk.Button(control_frame, text=" Listar Archivos", 
                                              command=self.listar_cuarentena,
                                              bg='#404040', fg='white',
                                              font=('Arial', 10),
@@ -181,7 +181,7 @@ class VistaMonitoreo(tk.Frame):
                                              activebackground='#505050', activeforeground='white')
         self.btn_listar_cuarentena.pack(side="left", padx=(0, 10))
         
-        self.btn_limpiar_cuarentena = tk.Button(control_frame, text="🗑️ Limpiar Todo", 
+        self.btn_limpiar_cuarentena = tk.Button(control_frame, text=" Limpiar Todo", 
                                               command=self.limpiar_cuarentena,
                                               bg='#404040', fg='white',
                                               font=('Arial', 10),
@@ -268,7 +268,7 @@ class VistaMonitoreo(tk.Frame):
         self.btn_red.config(state="disabled")
         self.btn_cancelar_red.config(state="normal")
         
-        self.text_monitor.insert(tk.END, "\n🔄 === MONITOREO DE RED INICIADO ===\n")
+        self.text_monitor.insert(tk.END, "\n === MONITOREO DE RED INICIADO ===\n")
         
         # Ejecutar monitoreo en thread separado
         import threading
@@ -310,7 +310,7 @@ class VistaMonitoreo(tk.Frame):
     
     def _mostrar_error_red(self, error):
         """Mostrar error del monitoreo de red."""
-        self.text_monitor.insert(tk.END, f"\n❌ Error en monitoreo de red: {error}\n")
+        self.text_monitor.insert(tk.END, f"\n Error en monitoreo de red: {error}\n")
     
     def _finalizar_monitoreo_red(self):
         """Finalizar monitoreo de red."""
@@ -324,7 +324,7 @@ class VistaMonitoreo(tk.Frame):
         """Cancelar el monitoreo de red."""
         if self.monitor_red_activo:
             self.monitor_red_activo = False
-            self.text_monitor.insert(tk.END, "\n⚠️ Monitoreo de red cancelado por el usuario.\n")
+            self.text_monitor.insert(tk.END, "\n Monitoreo de red cancelado por el usuario.\n")
             self._finalizar_monitoreo_red()
     
     def agregar_a_cuarentena(self):

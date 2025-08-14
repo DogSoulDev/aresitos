@@ -23,58 +23,58 @@ class ModeloPrincipal:
     def _inicializar_gestores(self):
         """Inicializa todos los gestores de datos automáticamente"""
         try:
-            print("🚀 Inicializando gestores de datos de Aresitos...")
+            print("Inicializando gestores de datos de Aresitos...")
             
             # Inicializar gestor de wordlists
             try:
                 from ares_aegis.modelo.modelo_gestor_wordlists import ModeloGestorWordlists
                 self.gestor_wordlists = ModeloGestorWordlists()
-                print("✅ Gestor de Wordlists inicializado")
+                print("Gestor de Wordlists inicializado")
             except Exception as e:
-                print(f"❌ Error inicializando gestor de wordlists: {e}")
+                print("Error inicializando gestor de wordlists: {e}")
             
             # Inicializar gestor de diccionarios
             try:
                 from ares_aegis.modelo.modelo_gestor_diccionarios import ModeloGestorDiccionarios
                 self.gestor_diccionarios = ModeloGestorDiccionarios()
-                print("✅ Gestor de Diccionarios inicializado")
+                print("Gestor de Diccionarios inicializado")
             except Exception as e:
-                print(f"❌ Error inicializando gestor de diccionarios: {e}")
+                print(f"Error inicializando gestor de diccionarios: {e}")
             
             # Inicializar componentes avanzados
             try:
                 from ares_aegis.modelo.modelo_escaneador import EscaneadorAvanzado
                 self.escaneador_avanzado = EscaneadorAvanzado()
-                print("✅ Escaneador Avanzado inicializado")
+                print("Escaneador Avanzado inicializado")
             except Exception as e:
-                print(f"❌ Error inicializando escaneador avanzado: {e}")
+                print(f"Error inicializando escaneador avanzado: {e}")
             
             try:
                 from ares_aegis.modelo.modelo_siem import SIEMAvanzado
                 self.siem_avanzado = SIEMAvanzado()
-                print("✅ SIEM Avanzado inicializado")
+                print("SIEM Avanzado inicializado")
             except Exception as e:
-                print(f"❌ Error inicializando SIEM avanzado: {e}")
+                print(f"Error inicializando SIEM avanzado: {e}")
             
             try:
                 from ares_aegis.modelo.modelo_monitor import MonitorAvanzado
                 self.monitor_avanzado = MonitorAvanzado()
-                print("✅ Monitor Avanzado inicializado")
+                print("Monitor Avanzado inicializado")
             except Exception as e:
-                print(f"❌ Error inicializando monitor avanzado: {e}")
+                print(f"Error inicializando monitor avanzado: {e}")
             
             try:
                 from ares_aegis.modelo.modelo_fim import FIMAvanzado
                 self.fim_avanzado = FIMAvanzado()
-                print("✅ FIM Avanzado inicializado")
+                print("FIM Avanzado inicializado")
             except Exception as e:
-                print(f"❌ Error inicializando FIM avanzado: {e}")
+                print(f"Error inicializando FIM avanzado: {e}")
             
-            print("🎉 Inicialización de gestores completada")
+            print("Inicialización de gestores completada")
             
         except Exception as e:
             self.logger.error(f"Error en inicialización de gestores: {e}")
-            print(f"❌ Error general en inicialización: {e}")
+            print(f" Error general en inicialización: {e}")
     
     def obtener_estadisticas_generales(self) -> dict:
         """Obtiene estadísticas generales de todos los gestores"""

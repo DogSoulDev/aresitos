@@ -1,0 +1,42 @@
+# ANÁLISIS DE LOGS PARA CIBERSEGURIDAD
+
+## Ubicaciones de Logs Comunes
+/var/log/auth.log                # Autenticación (Debian/Ubuntu)
+/var/log/secure                  # Autenticación (RedHat/CentOS)
+/var/log/syslog                  # Mensajes del sistema
+/var/log/messages                # Mensajes generales
+/var/log/kern.log                # Mensajes del kernel
+/var/log/apache2/access.log      # Logs de acceso Apache
+/var/log/apache2/error.log       # Logs de error Apache
+/var/log/nginx/access.log        # Logs de acceso Nginx
+/var/log/nginx/error.log         # Logs de error Nginx
+
+## Comandos de Análisis
+tail -f /var/log/auth.log        # Seguimiento en tiempo real
+grep "Failed password" /var/log/auth.log  # Intentos fallidos
+grep "Accepted" /var/log/auth.log # Logins exitosos
+awk '{print $1}' access.log | sort | uniq -c | sort -nr  # IPs más frecuentes
+
+## Detección de Ataques SSH
+grep "Invalid user" /var/log/auth.log     # Usuarios inválidos
+grep "Failed password" /var/log/auth.log | grep -o '[0-9]\\{1,3\\}\\.[0-9]\\{1,3\\}\\.[0-9]\\{1,3\\}\\.[0-9]\\{1,3\\}' | sort | uniq -c | sort -nr  # IPs con más fallos
+
+## Análisis de Logs Web
+awk '{print $7}' access.log | sort | uniq -c | sort -nr  # URLs más solicitadas
+awk '{print $1}' access.log | sort | uniq -c | sort -nr  # IPs más activas
+grep " 404 " access.log          # Errores 404
+grep " 500 " access.log          # Errores del servidor
+
+## Filtrado por Tiempo
+awk '$0 ~ /Dec 25 1[0-5]:/ {print}' /var/log/syslog  # Entre 10:00-15:59
+sed -n '/Dec 25 10:00/,/Dec 25 15:00/p' /var/log/syslog  # Rango horario
+
+## Eventos de Seguridad
+grep -i "attack\\|hack\\|exploit\\|malware" /var/log/syslog
+grep -E "(sudo|su):" /var/log/auth.log   # Uso de sudo/su
+grep "session opened" /var/log/auth.log   # Sesiones abiertas
+
+## Rotación de Logs
+logrotate -d /etc/logrotate.conf # Dry run de rotación
+journalctl --since "2023-01-01" # Logs desde fecha
+journalctl -u ssh                # Logs de servicio específico

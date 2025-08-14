@@ -1,0 +1,37 @@
+# JOHN THE RIPPER - CRACKING DE PASSWORDS
+
+## Comandos Básicos
+john --list=formats               # Formatos soportados
+john hashes.txt                   # Ataque por diccionario
+john --show hashes.txt            # Mostrar passwords crackeadas
+john --restore                    # Restaurar sesión
+
+## Tipos de Hash
+john --format=raw-md5 hash.txt    # MD5
+john --format=raw-sha1 hash.txt   # SHA1
+john --format=raw-sha256 hash.txt # SHA256
+john --format=nt hash.txt         # NTLM
+john --format=lm hash.txt         # LM
+
+## Modos de Ataque
+john --single hashes.txt          # Modo single crack
+john --wordlist=rockyou.txt hashes.txt  # Ataque de diccionario
+john --incremental hashes.txt     # Fuerza bruta
+john --external=mode hashes.txt   # Modo externo
+
+## Opciones Útiles
+john --users=admin hashes.txt     # Solo usuario específico
+john --groups=0 hashes.txt        # Solo grupo específico
+john --shell=/bin/bash hashes.txt # Solo usuarios con shell
+john --salts=-1 hashes.txt        # Sin salt específico
+
+## Generación de Wordlists
+john --wordlist=base.txt --rules --stdout > nueva.txt
+john --incremental=Digits --stdout --session=digitos
+
+## Extracción de Hashes
+unshadow passwd shadow > combinado.txt    # Combinar passwd/shadow
+pdf2john archivo.pdf > hash.txt           # PDF
+zip2john archivo.zip > hash.txt           # ZIP
+rar2john archivo.rar > hash.txt           # RAR
+ssh2john id_rsa > hash.txt                # SSH key

@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """
 Ares Aegis - Prueba de Controladores
-Script de prueba para verificar la funcionalidad de los controladores mejorados
+Script de prueba para verificar la funcionalidad de los controladores    print("IN           print(f"\nERROR EN PRUEBAS: {e}")    print("TODAS LAS PRUEBAS COMPLETADAS EXITOSAMENTE")CIANDO PRUEBAS DE CONTROLADORES MEJORADOS")mejorados
 """
 
 import asyncio
@@ -135,7 +135,7 @@ def probar_controlador_escaneo():
 
 async def ejecutar_todas_las_pruebas():
     """Ejecutar todas las pruebas de forma secuencial."""
-    print("🚀 INICIANDO PRUEBAS DE CONTROLADORES MEJORADOS")
+    print(" INICIANDO PRUEBAS DE CONTROLADORES MEJORADOS")
     print("=" * 60)
     
     try:
@@ -148,10 +148,10 @@ async def ejecutar_todas_las_pruebas():
         probar_controlador_escaneo()
         
         print("\n" + "=" * 60)
-        print("✅ TODAS LAS PRUEBAS COMPLETADAS EXITOSAMENTE")
+        print(" TODAS LAS PRUEBAS COMPLETADAS EXITOSAMENTE")
         
     except Exception as e:
-        print(f"\n❌ ERROR EN PRUEBAS: {e}")
+        print(f"\n ERROR EN PRUEBAS: {e}")
         import traceback
         traceback.print_exc()
 

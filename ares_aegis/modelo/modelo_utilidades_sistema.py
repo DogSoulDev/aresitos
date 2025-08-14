@@ -457,7 +457,7 @@ class ModeloUtilidadesSistema:
         lineas = salida.split('\n')[1:]  # Saltar header
         
         for linea in lineas:
-            if linea.strip() and not linea.startswith('●'):
+            if linea.strip() and not linea.startswith(''):
                 partes = linea.split()
                 if len(partes) >= 4:
                     servicios.append({

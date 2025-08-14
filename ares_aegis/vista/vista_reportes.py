@@ -37,7 +37,7 @@ class VistaReportes(tk.Frame):
             titulo_frame = tk.Frame(self)
         titulo_frame.pack(fill=tk.X, pady=(0, 10))
         
-        titulo = tk.Label(titulo_frame, text="📊 Generación y Gestión de Reportes",
+        titulo = tk.Label(titulo_frame, text=" Generación y Gestión de Reportes",
                          font=('Arial', 16, 'bold'),
                          bg='#2b2b2b' if self.theme else 'white',
                          fg='#ff6633' if self.theme else 'black')
@@ -53,12 +53,12 @@ class VistaReportes(tk.Frame):
             left_frame = tk.Frame(main_frame, bg='#2b2b2b')
             left_frame.pack(side=tk.LEFT, fill=tk.BOTH, expand=True, padx=(0, 10))
             
-            left_label = tk.Label(left_frame, text="📄 Contenido del Reporte",
+            left_label = tk.Label(left_frame, text=" Contenido del Reporte",
                                  font=('Arial', 12, 'bold'),
                                  bg='#2b2b2b', fg='#ff6633')
             left_label.pack(anchor=tk.W, pady=(0, 5))
         else:
-            left_frame = ttk.LabelFrame(main_frame, text="📄 Contenido del Reporte", padding=10)
+            left_frame = ttk.LabelFrame(main_frame, text=" Contenido del Reporte", padding=10)
             left_frame.pack(side=tk.LEFT, fill=tk.BOTH, expand=True, padx=(0, 10))
         
         self.reporte_text = scrolledtext.ScrolledText(left_frame, height=25, width=70,
@@ -72,24 +72,24 @@ class VistaReportes(tk.Frame):
             right_frame = tk.Frame(main_frame, bg='#2b2b2b')
             right_frame.pack(side=tk.RIGHT, fill=tk.Y)
             
-            right_label = tk.Label(right_frame, text="🔧 Opciones de Reporte",
+            right_label = tk.Label(right_frame, text=" Opciones de Reporte",
                                   font=('Arial', 12, 'bold'),
                                   bg='#2b2b2b', fg='#ff6633')
             right_label.pack(anchor=tk.W, pady=(0, 10))
         else:
-            right_frame = ttk.LabelFrame(main_frame, text="🔧 Opciones de Reporte", padding=10)
+            right_frame = ttk.LabelFrame(main_frame, text=" Opciones de Reporte", padding=10)
             right_frame.pack(side=tk.RIGHT, fill=tk.Y)
         
         if self.theme:
             config_frame = tk.Frame(right_frame, bg='#2b2b2b')
             config_frame.pack(fill=tk.X, pady=(0, 10))
             
-            config_label = tk.Label(config_frame, text="📋 Incluir en el Reporte:",
+            config_label = tk.Label(config_frame, text=" Incluir en el Reporte:",
                                    font=('Arial', 10, 'bold'),
                                    bg='#2b2b2b', fg='white')
             config_label.pack(anchor=tk.W)
         else:
-            config_frame = ttk.LabelFrame(right_frame, text="📋 Incluir en el Reporte", padding=5)
+            config_frame = ttk.LabelFrame(right_frame, text=" Incluir en el Reporte", padding=5)
             config_frame.pack(fill=tk.X, pady=(0, 10))
         
         self.incluir_escaneo = tk.BooleanVar(value=True)
@@ -97,9 +97,9 @@ class VistaReportes(tk.Frame):
         self.incluir_utilidades = tk.BooleanVar(value=True)
         
         opciones = [
-            ("✅ Resultados de Escaneo", self.incluir_escaneo),
-            ("✅ Datos de Monitoreo", self.incluir_monitoreo),
-            ("✅ Información de Utilidades", self.incluir_utilidades)
+            (" Resultados de Escaneo", self.incluir_escaneo),
+            (" Datos de Monitoreo", self.incluir_monitoreo),
+            (" Información de Utilidades", self.incluir_utilidades)
         ]
         
         for texto, variable in opciones:
@@ -113,8 +113,8 @@ class VistaReportes(tk.Frame):
                 ttk.Checkbutton(config_frame, text=texto, variable=variable).pack(anchor=tk.W, pady=2)
         
         botones_generar = [
-            ("📊 Generar Reporte Completo", self.generar_reporte_completo),
-            ("🔄 Actualizar Vista", self.actualizar_reporte)
+            (" Generar Reporte Completo", self.generar_reporte_completo),
+            (" Actualizar Vista", self.actualizar_reporte)
         ]
         
         for texto, comando in botones_generar:
@@ -133,11 +133,11 @@ class VistaReportes(tk.Frame):
             ttk.Separator(right_frame, orient=tk.HORIZONTAL).pack(fill=tk.X, pady=10)
         
         botones_gestion = [
-            ("💾 Guardar JSON", self.guardar_json),
-            ("📄 Guardar TXT", self.guardar_texto),
-            ("📁 Cargar Reporte", self.cargar_reporte),
-            ("📋 Listar Reportes", self.listar_reportes),
-            ("🗑️ Limpiar Vista", self.limpiar_reporte)
+            (" Guardar JSON", self.guardar_json),
+            (" Guardar TXT", self.guardar_texto),
+            (" Cargar Reporte", self.cargar_reporte),
+            (" Listar Reportes", self.listar_reportes),
+            (" Limpiar Vista", self.limpiar_reporte)
         ]
         
         for texto, comando in botones_gestion:
@@ -153,7 +153,7 @@ class VistaReportes(tk.Frame):
             info_frame = tk.Frame(right_frame, bg='#2b2b2b')
             info_frame.pack(fill=tk.X, pady=(20, 0))
             
-            info_title = tk.Label(info_frame, text="ℹ️ Información",
+            info_title = tk.Label(info_frame, text="ℹ Información",
                                  font=('Arial', 10, 'bold'),
                                  bg='#2b2b2b', fg='#ff6633')
             info_title.pack(anchor=tk.W)
@@ -164,7 +164,7 @@ class VistaReportes(tk.Frame):
                                  bg='#2b2b2b', fg='white', font=('Arial', 9))
             info_label.pack(anchor=tk.W, pady=(5, 0))
         else:
-            info_frame = ttk.LabelFrame(right_frame, text="ℹ️ Información", padding=5)
+            info_frame = ttk.LabelFrame(right_frame, text="ℹ Información", padding=5)
             info_frame.pack(fill=tk.X, pady=(20, 0))
             
             info_text = "Genera reportes completos del sistema con datos de escaneo, monitoreo y utilidades."
@@ -180,7 +180,7 @@ class VistaReportes(tk.Frame):
                     return
                 
                 self.reporte_text.delete(1.0, tk.END)
-                self.reporte_text.insert(tk.END, "📊 Generando reporte completo...\n\n")
+                self.reporte_text.insert(tk.END, " Generando reporte completo...\n\n")
                 self.reporte_text.update()
                 
                 incluir_escaneo = {} if self.incluir_escaneo.get() else None
@@ -193,10 +193,10 @@ class VistaReportes(tk.Frame):
                 if self.reporte_actual:
                     self.mostrar_reporte(self.reporte_actual)
                 else:
-                    self.reporte_text.insert(tk.END, "❌ Error al generar el reporte")
+                    self.reporte_text.insert(tk.END, " Error al generar el reporte")
                     
             except Exception as e:
-                self.reporte_text.insert(tk.END, f"❌ Error durante la generación: {str(e)}")
+                self.reporte_text.insert(tk.END, f" Error durante la generación: {str(e)}")
         
         thread = threading.Thread(target=generar)
         thread.daemon = True
@@ -295,7 +295,7 @@ class VistaReportes(tk.Frame):
             reportes = self.controlador.listar_reportes_guardados()
             
             self.reporte_text.delete(1.0, tk.END)
-            self.reporte_text.insert(tk.END, "📋 REPORTES GUARDADOS\n")
+            self.reporte_text.insert(tk.END, " REPORTES GUARDADOS\n")
             self.reporte_text.insert(tk.END, "=" * 50 + "\n\n")
             
             if reportes:

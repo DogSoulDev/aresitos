@@ -7,11 +7,12 @@ from tkinter import ttk
 from ares_aegis.vista.vista_dashboard import VistaDashboard
 from ares_aegis.vista.vista_escaneo import VistaEscaneo
 from ares_aegis.vista.vista_monitoreo import VistaMonitoreo
-from ares_aegis.vista.vista_utilidades import VistaUtilidades
 from ares_aegis.vista.vista_auditoria import VistaAuditoria
 from ares_aegis.vista.vista_gestion_datos import VistaGestionDatos
 from ares_aegis.vista.vista_herramientas import VistaHerramientas
 from ares_aegis.vista.vista_reportes import VistaReportes
+from ares_aegis.vista.vista_fim import VistaFIM
+from ares_aegis.vista.vista_siem import VistaSIEM
 
 try:
     from ares_aegis.vista.burp_theme import burp_theme
@@ -57,8 +58,6 @@ class VistaPrincipal(tk.Frame):
             self.vista_escaneo.set_controlador(self.controlador.controlador_escaneo)
         if hasattr(self.controlador, 'controlador_monitoreo'):
             self.vista_monitoreo.set_controlador(self.controlador.controlador_monitoreo)
-        if hasattr(self.controlador, 'controlador_utilidades'):
-            self.vista_utilidades.set_controlador(self.controlador.controlador_utilidades)
         if hasattr(self.controlador, 'controlador_auditoria'):
             self.vista_auditoria.set_controlador(self.controlador.controlador_auditoria)
         if hasattr(self, 'vista_gestion_datos'):
@@ -68,6 +67,10 @@ class VistaPrincipal(tk.Frame):
             self.vista_herramientas.set_controlador(self.controlador.controlador_herramientas)
         if hasattr(self.controlador, 'controlador_reportes'):
             self.vista_reportes.set_controlador(self.controlador.controlador_reportes)
+        if hasattr(self.controlador, '_controladores') and 'fim' in self.controlador._controladores:
+            self.vista_fim.set_controlador(self.controlador._controladores['fim'])
+        if hasattr(self.controlador, '_controladores') and 'siem' in self.controlador._controladores:
+            self.vista_siem.set_controlador(self.controlador._controladores['siem'])
 
     def crear_widgets(self):
         # Barra de título estilo Burp Suite
@@ -92,7 +95,7 @@ class VistaPrincipal(tk.Frame):
         if self.theme:
             titulo_label = tk.Label(
                 titulo_frame,
-                text="🛡️ ARESITOS",
+                text=" ARESITOS",
                 font=("Arial", 16, "bold"),
                 fg=self.theme.get_color('fg_accent'),
                 bg=self.theme.get_color('bg_secondary')
@@ -100,7 +103,7 @@ class VistaPrincipal(tk.Frame):
         else:
             titulo_label = tk.Label(
                 titulo_frame,
-                text="🛡️ ARESITOS",
+                text=" ARESITOS",
                 font=("Arial", 16, "bold"),
                 fg='#ff6633',
                 bg='#f0f0f0'
@@ -130,7 +133,7 @@ class VistaPrincipal(tk.Frame):
         if self.theme:
             info_label = tk.Label(
                 titulo_frame,
-                text="🐧 Kali Linux Ready",
+                text=" Kali Linux Ready",
                 font=("Arial", 8),
                 fg=self.theme.get_color('fg_secondary'),
                 bg=self.theme.get_color('bg_secondary')
@@ -138,7 +141,7 @@ class VistaPrincipal(tk.Frame):
         else:
             info_label = tk.Label(
                 titulo_frame,
-                text="🐧 Kali Linux Ready",
+                text=" Kali Linux Ready",
                 font=("Arial", 8),
                 fg='#666666',
                 bg='#f0f0f0'
@@ -156,49 +159,59 @@ class VistaPrincipal(tk.Frame):
         # 1. DASHBOARD - Primera pestaña con métricas en tiempo real
         try:
             self.vista_dashboard = VistaDashboard(self.notebook)
-            self.notebook.add(self.vista_dashboard, text="🚀 Dashboard")
+            self.notebook.add(self.vista_dashboard, text="Dashboard")
         except Exception as e:
             print(f"Error creando vista dashboard: {e}")
         
-        # 2. ESCANEO Y SIEM - Funcionalidad principal de escaneo
+        # 2. ESCANEO - Funcionalidad principal de escaneo
         self.vista_escaneo = VistaEscaneo(self.notebook)
-        self.notebook.add(self.vista_escaneo, text="🎯 Escaneo y SIEM")
+        self.notebook.add(self.vista_escaneo, text="Escaneo")
         
         # 3. MONITOREO Y CUARENTENA - Monitoreo del sistema
         self.vista_monitoreo = VistaMonitoreo(self.notebook)
-        self.notebook.add(self.vista_monitoreo, text="📊 Monitoreo y Cuarentena")
+        self.notebook.add(self.vista_monitoreo, text="Monitoreo y Cuarentena")
         
         # 4. AUDITORÍA - Auditoría de seguridad avanzada
         try:
             self.vista_auditoria = VistaAuditoria(self.notebook)
-            self.notebook.add(self.vista_auditoria, text="🔍 Auditoría")
+            self.notebook.add(self.vista_auditoria, text="Auditoría")
         except Exception as e:
             print(f"Error creando vista auditoría: {e}")
         
-        # 5. GESTIÓN DE DATOS - Wordlists y Diccionarios unificados
+        # 5. WORDLISTS & DICCIONARIOS - Gestión de datos unificados
         try:
             self.vista_gestion_datos = VistaGestionDatos(self.notebook)
-            self.notebook.add(self.vista_gestion_datos, text="�️ Gestión de Datos")
+            self.notebook.add(self.vista_gestion_datos, text="Wordlists y Diccionarios")
         except Exception as e:
             print(f"Error creando vista gestión de datos: {e}")
         
         # 6. HERRAMIENTAS - Herramientas adicionales de seguridad
         try:
             self.vista_herramientas = VistaHerramientas(self.notebook)
-            self.notebook.add(self.vista_herramientas, text="🛠️ Herramientas")
+            self.notebook.add(self.vista_herramientas, text="Herramientas")
         except Exception as e:
             print(f"Error creando vista herramientas: {e}")
         
         # 7. REPORTES - Generación y visualización de reportes
         try:
             self.vista_reportes = VistaReportes(self.notebook)
-            self.notebook.add(self.vista_reportes, text="📋 Reportes")
+            self.notebook.add(self.vista_reportes, text="Reportes")
         except Exception as e:
             print(f"Error creando vista reportes: {e}")
         
-        # 8. UTILIDADES - Utilidades varias del sistema
-        self.vista_utilidades = VistaUtilidades(self.notebook)
-        self.notebook.add(self.vista_utilidades, text="⚙️ Utilidades")
+        # 8. FIM - File Integrity Monitoring
+        try:
+            self.vista_fim = VistaFIM(self.notebook)
+            self.notebook.add(self.vista_fim, text="FIM")
+        except Exception as e:
+            print(f"Error creando vista FIM: {e}")
+        
+        # 9. SIEM - Security Information & Event Management
+        try:
+            self.vista_siem = VistaSIEM(self.notebook)
+            self.notebook.add(self.vista_siem, text="SIEM")
+        except Exception as e:
+            print(f"Error creando vista SIEM: {e}")
     
     def crear_barra_estado(self):
         """Crea la barra de estado inferior estilo Burp"""

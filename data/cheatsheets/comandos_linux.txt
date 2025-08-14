@@ -1,0 +1,45 @@
+# COMANDOS LINUX PARA CIBERSEGURIDAD
+
+## Reconocimiento del Sistema
+uname -a                          # Información del kernel
+cat /etc/os-release               # Información del SO
+whoami                            # Usuario actual
+id                                # UID y grupos
+groups                            # Grupos del usuario
+last                              # Últimos logins
+w                                 # Usuarios conectados
+ps aux                            # Procesos en ejecución
+netstat -tulpn                    # Puertos y servicios
+ss -tulpn                         # Sockets (más moderno)
+
+## Escalación de Privilegios
+sudo -l                           # Comandos sudo permitidos
+find / -perm -4000 2>/dev/null    # Archivos SUID
+find / -perm -2000 2>/dev/null    # Archivos SGID
+find / -writable 2>/dev/null      # Archivos escribibles
+getcap -r / 2>/dev/null           # Capabilities
+crontab -l                        # Cron jobs del usuario
+cat /etc/crontab                  # Cron jobs del sistema
+
+## Análisis de Logs
+tail -f /var/log/auth.log         # Logs de autenticación
+tail -f /var/log/syslog           # Logs del sistema
+grep "Failed password" /var/log/auth.log  # Intentos fallidos
+journalctl -f                     # Systemd logs
+lastlog                           # Último login de usuarios
+
+## Red y Conectividad
+ifconfig                          # Interfaces de red
+ip addr show                      # Interfaces (comando ip)
+route -n                          # Tabla de rutas
+arp -a                            # Tabla ARP
+netstat -rn                       # Rutas de red
+lsof -i                           # Archivos y puertos abiertos
+tcpdump -i eth0                   # Captura de tráfico
+
+## Forense Básico
+strings archivo                   # Cadenas legibles
+hexdump -C archivo                # Volcado hexadecimal
+file archivo                      # Tipo de archivo
+stat archivo                      # Metadatos del archivo
+find /home -name "*.txt" -mtime -1 # Archivos modificados ayer

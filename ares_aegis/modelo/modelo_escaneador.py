@@ -91,7 +91,7 @@ class EscaneadorAvanzado:
             'intentos_maximos': 3
         }
         
-        self.logger.info("🔍 Escaneador Avanzado Ares Aegis inicializado")
+        self.logger.info(" Escaneador Avanzado Ares Aegis inicializado")
     
     def _cargar_base_vulnerabilidades(self) -> Dict[str, Any]:
         """Cargar base de datos de vulnerabilidades conocidas."""
@@ -150,10 +150,10 @@ class EscaneadorAvanzado:
                                          capture_output=True, text=True, timeout=5)
                 disponibles[herramienta] = resultado.returncode == 0
                 if disponibles[herramienta]:
-                    self.logger.debug(f"✅ {herramienta} disponible")
+                    self.logger.debug(f" {herramienta} disponible")
             except Exception as e:
                 disponibles[herramienta] = False
-                self.logger.debug(f"❌ {herramienta} no disponible: {e}")
+                self.logger.debug(f" {herramienta} no disponible: {e}")
         
         return disponibles
     
@@ -377,7 +377,7 @@ class EscaneadorAvanzado:
         self.escaneos_activos[escaneo_id] = resultado
         
         try:
-            self.logger.info(f"🔍 Iniciando escaneo {tipo_escaneo.value} en {objetivo}")
+            self.logger.info(f" Iniciando escaneo {tipo_escaneo.value} en {objetivo}")
             
             if self.siem:
                 self.siem.registrar_evento(
@@ -409,10 +409,10 @@ class EscaneadorAvanzado:
             # Analizar vulnerabilidades encontradas
             self._analizar_vulnerabilidades(resultado)
             
-            self.logger.info(f"✅ Escaneo {tipo_escaneo.value} completado en {objetivo}")
+            self.logger.info(f" Escaneo {tipo_escaneo.value} completado en {objetivo}")
             
         except Exception as e:
-            self.logger.error(f"❌ Error en escaneo {tipo_escaneo.value}: {e}")
+            self.logger.error(f" Error en escaneo {tipo_escaneo.value}: {e}")
             resultado.errores.append(str(e))
             resultado.estado = "error"
             resultado.fin = datetime.datetime.now()
@@ -752,16 +752,16 @@ class EscaneadorAvanzado:
     def generar_reporte_avanzado(self, resultado: ResultadoEscaneo) -> str:
         """Generar reporte avanzado del escaneo."""
         reporte = f"""
-# 🔍 REPORTE DE ESCANEO AVANZADO - ARES AEGIS
+#  REPORTE DE ESCANEO AVANZADO - ARES AEGIS
 
-## 📋 INFORMACIÓN GENERAL
+##  INFORMACIÓN GENERAL
 - **Objetivo**: {resultado.objetivo}
 - **Tipo de Escaneo**: {resultado.tipo_escaneo.value}
 - **Inicio**: {resultado.inicio.strftime('%Y-%m-%d %H:%M:%S')}
 - **Fin**: {resultado.fin.strftime('%Y-%m-%d %H:%M:%S') if resultado.fin else 'En progreso'}
 - **Estado**: {resultado.estado}
 
-## 🔓 PUERTOS ABIERTOS ({len(resultado.puertos_abiertos or [])})
+##  PUERTOS ABIERTOS ({len(resultado.puertos_abiertos or [])})
 """
         
         if resultado.puertos_abiertos:
@@ -770,28 +770,28 @@ class EscaneadorAvanzado:
         else:
             reporte += "No se encontraron puertos abiertos.\n"
         
-        reporte += f"\n## 🛠️ SERVICIOS DETECTADOS ({len(resultado.servicios_detectados or [])})\n"
+        reporte += f"\n##  SERVICIOS DETECTADOS ({len(resultado.servicios_detectados or [])})\n"
         
         if resultado.servicios_detectados:
             for servicio in resultado.servicios_detectados:
                 reporte += f"- **{servicio['servicio']}** en puerto {servicio['puerto']}: {servicio.get('version', 'Versión desconocida')}\n"
         
-        reporte += f"\n## 🚨 VULNERABILIDADES ({len(resultado.vulnerabilidades or [])})\n"
+        reporte += f"\n##  VULNERABILIDADES ({len(resultado.vulnerabilidades or [])})\n"
         
         if resultado.vulnerabilidades:
             for vuln in resultado.vulnerabilidades:
-                emoji = {"CRITICA": "🔴", "ALTA": "🟠", "MEDIA": "🟡", "BAJA": "🟢", "INFO": "🔵"}
-                reporte += f"{emoji.get(vuln.criticidad.value, '❓')} **{vuln.criticidad.value}**: {vuln.descripcion}\n"
+                emoji = {"CRITICA": "", "ALTA": "🟠", "MEDIA": "🟡", "BAJA": "🟢", "INFO": ""}
+                reporte += f"{emoji.get(vuln.criticidad.value, '')} **{vuln.criticidad.value}**: {vuln.descripcion}\n"
                 if vuln.solucion:
-                    reporte += f"  💡 *Solución*: {vuln.solucion}\n"
+                    reporte += f"   *Solución*: {vuln.solucion}\n"
         else:
-            reporte += "✅ No se detectaron vulnerabilidades críticas.\n"
+            reporte += " No se detectaron vulnerabilidades críticas.\n"
         
         if resultado.sistema_operativo:
-            reporte += f"\n## 💻 SISTEMA OPERATIVO\n{resultado.sistema_operativo}\n"
+            reporte += f"\n##  SISTEMA OPERATIVO\n{resultado.sistema_operativo}\n"
         
         if resultado.errores:
-            reporte += f"\n## ⚠️ ERRORES\n"
+            reporte += f"\n##  ERRORES\n"
             for error in resultado.errores:
                 reporte += f"- {error}\n"
         

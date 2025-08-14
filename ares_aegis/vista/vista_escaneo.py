@@ -39,7 +39,7 @@ class VistaEscaneo(tk.Frame):
             titulo_frame = tk.Frame(main_frame, bg='#2b2b2b')
             titulo_frame.pack(fill="x", pady=(0, 15))
             
-            titulo_label = tk.Label(titulo_frame, text="🔍 ESCANEADOR DE VULNERABILIDADES", 
+            titulo_label = tk.Label(titulo_frame, text=" ESCANEADOR DE VULNERABILIDADES", 
                                   font=('Arial', 14, 'bold'),
                                   bg='#2b2b2b', fg='#ff6633')
             titulo_label.pack()
@@ -55,7 +55,7 @@ class VistaEscaneo(tk.Frame):
         
         # Botones con tema Burp Suite
         if self.theme:
-            self.btn_escanear = tk.Button(btn_frame, text="🔍 Escanear Sistema", 
+            self.btn_escanear = tk.Button(btn_frame, text=" Escanear Sistema", 
                                         command=self.ejecutar_escaneo,
                                         bg='#ff6633', fg='white', 
                                         font=('Arial', 10, 'bold'),
@@ -63,7 +63,7 @@ class VistaEscaneo(tk.Frame):
                                         activebackground='#e55a2b', activeforeground='white')
             self.btn_escanear.pack(side="left", padx=(0, 10))
             
-            self.btn_cancelar_escaneo = tk.Button(btn_frame, text="❌ Cancelar", 
+            self.btn_cancelar_escaneo = tk.Button(btn_frame, text=" Cancelar", 
                                                 command=self.cancelar_escaneo,
                                                 state="disabled",
                                                 bg='#404040', fg='white',
@@ -72,7 +72,7 @@ class VistaEscaneo(tk.Frame):
                                                 activebackground='#505050', activeforeground='white')
             self.btn_cancelar_escaneo.pack(side="left", padx=(0, 15))
             
-            self.btn_logs = tk.Button(btn_frame, text="📋 Ver Logs", 
+            self.btn_logs = tk.Button(btn_frame, text=" Ver Logs", 
                                     command=self.ver_logs,
                                     bg='#404040', fg='white',
                                     font=('Arial', 10),
@@ -80,7 +80,7 @@ class VistaEscaneo(tk.Frame):
                                     activebackground='#505050', activeforeground='white')
             self.btn_logs.pack(side="left", padx=(0, 10))
             
-            self.btn_eventos = tk.Button(btn_frame, text="🚨 Eventos SIEM", 
+            self.btn_eventos = tk.Button(btn_frame, text=" Eventos SIEM", 
                                        command=self.ver_eventos,
                                        bg='#404040', fg='white',
                                        font=('Arial', 10),
@@ -100,7 +100,7 @@ class VistaEscaneo(tk.Frame):
                                           command=self.ejecutar_escaneo)
             self.btn_escanear.pack(side="left", padx=(0, 5))
             
-            self.btn_cancelar_escaneo = ttk.Button(btn_frame, text="❌ Cancelar", 
+            self.btn_cancelar_escaneo = ttk.Button(btn_frame, text=" Cancelar", 
                                                   command=self.cancelar_escaneo,
                                                   state="disabled")
             self.btn_cancelar_escaneo.pack(side="left", padx=(0, 15))
@@ -133,7 +133,7 @@ class VistaEscaneo(tk.Frame):
         self.btn_cancelar_escaneo.config(state="normal")
         
         self.text_resultados.delete(1.0, tk.END)
-        self.text_resultados.insert(tk.END, "🔄 Iniciando escaneo...\n\n")
+        self.text_resultados.insert(tk.END, " Iniciando escaneo...\n\n")
         
         # Ejecutar escaneo en thread separado
         import threading
@@ -182,7 +182,7 @@ class VistaEscaneo(tk.Frame):
     
     def _mostrar_error_escaneo(self, error):
         """Mostrar error en la UI."""
-        self.text_resultados.insert(tk.END, f"\n❌ Error durante el escaneo: {error}\n")
+        self.text_resultados.insert(tk.END, f"\n Error durante el escaneo: {error}\n")
     
     def _finalizar_escaneo(self):
         """Finalizar el proceso de escaneo."""
@@ -195,7 +195,7 @@ class VistaEscaneo(tk.Frame):
         """Cancelar el escaneo en curso."""
         if self.proceso_activo:
             self.proceso_activo = False
-            self.text_resultados.insert(tk.END, "\n⚠️ Escaneo cancelado por el usuario.\n")
+            self.text_resultados.insert(tk.END, "\n Escaneo cancelado por el usuario.\n")
             self._finalizar_escaneo()
     
     def ver_logs(self):

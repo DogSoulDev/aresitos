@@ -1,0 +1,38 @@
+# NMAP - ESCANEO DE PUERTOS Y REDES
+
+## Escaneos Básicos
+nmap objetivo.com                    # Escaneo básico
+nmap -sP 192.168.1.0/24             # Ping scan
+nmap -sS objetivo.com               # TCP SYN scan
+nmap -sT objetivo.com               # TCP connect scan
+nmap -sU objetivo.com               # UDP scan
+
+## Detección de Servicios
+nmap -sV objetivo.com               # Detección de versiones
+nmap -sC objetivo.com               # Scripts por defecto
+nmap -A objetivo.com                # Escaneo agresivo
+nmap -O objetivo.com                # Detección de SO
+
+## Evasión de Firewalls
+nmap -f objetivo.com                # Fragmentar paquetes
+nmap -D RND:10 objetivo.com         # Escaneo señuelo
+nmap --source-port 53 objetivo.com  # Puerto origen
+nmap -T0 objetivo.com               # Timing paranoico
+
+## Puertos Específicos
+nmap -p 80 objetivo.com             # Puerto específico
+nmap -p 80,443 objetivo.com         # Múltiples puertos
+nmap -p 1-1000 objetivo.com         # Rango de puertos
+nmap -p- objetivo.com               # Todos los puertos
+
+## Scripts NSE
+nmap --script vuln objetivo.com     # Vulnerabilidades
+nmap --script http-* objetivo.com   # Scripts HTTP
+nmap --script ssh-* objetivo.com    # Scripts SSH
+nmap --script ssl-* objetivo.com    # Scripts SSL
+
+## Salidas
+nmap -oN escaneo.txt objetivo.com      # Salida normal
+nmap -oX escaneo.xml objetivo.com      # Salida XML
+nmap -oG escaneo.grep objetivo.com     # Salida grepeable
+nmap -oA escaneo objetivo.com          # Todos los formatos

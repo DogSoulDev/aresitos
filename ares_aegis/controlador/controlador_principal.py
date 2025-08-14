@@ -21,6 +21,8 @@ from ares_aegis.controlador.controlador_herramientas import ControladorHerramien
 from ares_aegis.controlador.controlador_reportes import ControladorReportes
 from ares_aegis.controlador.controlador_wordlists import ControladorWordlists
 from ares_aegis.controlador.controlador_diccionarios import ControladorDiccionarios
+from ares_aegis.controlador.controlador_fim import ControladorFIM
+from ares_aegis.controlador.controlador_siem import ControladorSIEM
 
 class ControladorPrincipal(ControladorBase):
     """
@@ -77,7 +79,9 @@ class ControladorPrincipal(ControladorBase):
                 'herramientas': ControladorHerramientas(self.modelo),
                 'reportes': ControladorReportes(self.modelo),
                 'wordlists': ControladorWordlists(self.modelo),
-                'diccionarios': ControladorDiccionarios(self.modelo)
+                'diccionarios': ControladorDiccionarios(self.modelo),
+                'fim': ControladorFIM(self.modelo),
+                'siem': ControladorSIEM(self.modelo)
             }
             
             self.logger.info(f"Inicializados {len(self._controladores)} controladores especializados")
@@ -593,7 +597,7 @@ class ControladorPrincipal(ControladorBase):
             escaneador = self.obtener_escaneador_avanzado()
             if escaneador and hasattr(escaneador, 'obtener_estadisticas_escaneos'):
                 stats = escaneador.obtener_estadisticas_escaneos()
-                reportes.append(f"## 🔍 ESCANEADOR\n- Escaneos activos: {stats.get('escaneos_activos', 0)}\n- Herramientas disponibles: {stats.get('herramientas_disponibles', 0)}/{stats.get('total_herramientas', 0)}")
+                reportes.append(f"##  ESCANEADOR\n- Escaneos activos: {stats.get('escaneos_activos', 0)}\n- Herramientas disponibles: {stats.get('herramientas_disponibles', 0)}/{stats.get('total_herramientas', 0)}")
             
             # Reporte del monitor
             monitor = self.obtener_monitor_avanzado()
@@ -610,10 +614,10 @@ class ControladorPrincipal(ControladorBase):
             if reportes:
                 return "\n\n".join(reportes)
             else:
-                return "# 📊 REPORTE BÁSICO - ARES AEGIS\n\nSistema funcionando con funcionalidad básica."
+                return "#  REPORTE BÁSICO - ARES AEGIS\n\nSistema funcionando con funcionalidad básica."
                 
         except Exception as e:
-            return f"# ❌ ERROR GENERANDO REPORTE\n\n{str(e)}"
+            return f"#  ERROR GENERANDO REPORTE\n\n{str(e)}"
     
     def obtener_metricas_avanzadas(self) -> Dict[str, Any]:
         """Obtener métricas avanzadas de todos los componentes."""

@@ -161,18 +161,18 @@ class ControladorMonitoreo:
         datos_sistema = self.monitor.obtener_datos_sistema_recientes(1)
         datos_red = self.monitor.obtener_datos_red_recientes(1)
         
-        reporte = "# 🔍 REPORTE DE MONITOREO - ARES AEGIS\n\n"
+        reporte = "#  REPORTE DE MONITOREO - ARES AEGIS\n\n"
         
         if datos_sistema:
             sistema = datos_sistema[0].get('sistema', {})
-            reporte += f"## 📊 ESTADO DEL SISTEMA\n"
+            reporte += f"##  ESTADO DEL SISTEMA\n"
             reporte += f"- **CPU**: {sistema.get('cpu', 'N/A')}%\n"
             reporte += f"- **Memoria**: {sistema.get('memoria', 'N/A')}%\n"
             reporte += f"- **Disco**: {sistema.get('disco', 'N/A')}%\n\n"
         
         if datos_red:
             red = datos_red[0]
-            reporte += f"## 🌐 ESTADO DE RED\n"
+            reporte += f"##  ESTADO DE RED\n"
             reporte += f"- **Conexiones**: {red.get('conexiones_activas', 'N/A')}\n"
             reporte += f"- **Tráfico**: {red.get('trafico_total', {}).get('bytes_recibidos', 'N/A')} bytes\n\n"
         

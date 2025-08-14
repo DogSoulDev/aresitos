@@ -119,7 +119,7 @@ class MonitorAvanzado:
             'swapper', 'watchdog', 'NetworkManager', 'sshd', 'cron', 'rsyslog'
         }
         
-        self.logger.info("🔍 Monitor Avanzado Ares Aegis inicializado")
+        self.logger.info(" Monitor Avanzado Ares Aegis inicializado")
     
     def iniciar_monitoreo_completo(self) -> Dict[str, Any]:
         """Iniciar monitoreo completo del sistema."""
@@ -191,7 +191,7 @@ class MonitorAvanzado:
                         mensaje="Monitoreo del sistema detenido"
                     )
                 
-                self.logger.info("🔴 Monitoreo detenido")
+                self.logger.info(" Monitoreo detenido")
                 
                 return {
                     'exito': True,
@@ -726,26 +726,26 @@ class MonitorAvanzado:
         procesos_sospechosos = self.obtener_procesos_sospechosos()
         
         reporte = f"""
-# 🔍 REPORTE DE MONITOREO - ARES AEGIS
+#  REPORTE DE MONITOREO - ARES AEGIS
 
-## 📊 ESTADO DEL SISTEMA
+##  ESTADO DEL SISTEMA
 - **CPU Promedio**: {datos_sistema.get('cpu_promedio', 'N/A'):.1f}%
 - **Memoria Usada**: {datos_sistema.get('memoria_porcentaje', 'N/A'):.1f}%
 - **Disco Usado**: {datos_sistema.get('disco_porcentaje', 'N/A'):.1f}%
 
-## 🌐 ESTADO DE RED
+##  ESTADO DE RED
 - **Conexiones Totales**: {datos_red.get('conexiones_totales', 'N/A')}
 - **Conexiones Establecidas**: {datos_red.get('conexiones_establecidas', 'N/A')}
 - **Puertos en Escucha**: {datos_red.get('puertos_escucha', 'N/A')}
 
-## 🚨 PROCESOS SOSPECHOSOS ({len(procesos_sospechosos)})
+##  PROCESOS SOSPECHOSOS ({len(procesos_sospechosos)})
 """
         
         if procesos_sospechosos:
             for proceso in procesos_sospechosos[:10]:  # Primeros 10
                 reporte += f"- **{proceso['nombre']}** (PID: {proceso['pid']}) - CPU: {proceso['uso_cpu']:.1f}%, RAM: {proceso['uso_memoria']}MB\n"
         else:
-            reporte += "✅ No se detectaron procesos sospechosos.\n"
+            reporte += " No se detectaron procesos sospechosos.\n"
         
         reporte += f"\n---\n*Generado: {datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')}*"
         
