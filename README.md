@@ -852,3 +852,18 @@ Copyright (c) 2025 DogSoulDev
 
 *© 2025 Aresitos Project. Desarrollado por DogSoulDev y la comunidad de ciberseguridad.*  
 *"Securing the Digital Realm, One Line of Code at a Time"*
+
+---
+
+## 💝 **DEDICATORIA ESPECIAL**
+
+<div align="center">
+
+### 🐕 **En Memoria de Ares** 🐕
+
+*Este programa gratuito lo comparto con todos los compis de ciberseguridad en honor a mi hijo y perro, **Ares** - 25/04/2013 a 5/08/2025 DEP.*
+
+*Hasta que volvamos a vernos,*  
+**DogSoulDev** 💙
+
+</div>
