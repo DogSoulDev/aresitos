@@ -349,7 +349,11 @@ class VistaMonitoreo(tk.Frame):
             return
             
         self.text_cuarentena.delete(1.0, tk.END)
-        archivos = self.controlador.listar_archivos_cuarentena()
+        try:
+            archivos = self.controlador.listar_archivos_cuarentena()
+        except AttributeError:
+            archivos = []
+            print("Funcionalidad de cuarentena no disponible")
         
         if not archivos:
             self.text_cuarentena.insert(tk.END, "No hay archivos en cuarentena.\n")

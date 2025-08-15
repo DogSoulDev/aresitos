@@ -205,7 +205,10 @@ class VistaEscaneo(tk.Frame):
         self.text_resultados.delete(1.0, tk.END)
         self.text_resultados.insert(tk.END, "Obteniendo logs...\n\n")
         
-        logs = self.controlador.obtener_logs()
+        try:
+            logs = self.controlador.obtener_logs_escaneo()
+        except AttributeError:
+            logs = []
         for linea in logs:
             self.text_resultados.insert(tk.END, f"{linea}\n")
     

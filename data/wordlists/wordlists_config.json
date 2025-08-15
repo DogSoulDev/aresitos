@@ -1,0 +1,38 @@
+{
+  "configuracion_global": {
+    "version": "1.0",
+    "descripcion": "Configuración de wordlists para Ares Aegis",
+    "fecha_creacion": "2025-08-15",
+    "autor": "Ares Aegis Security Team"
+  },
+  "categorias_personalizadas": {
+    "passwords_web": {
+      "descripcion": "Contraseñas comunes para aplicaciones web",
+      "archivo": "passwords_web.txt",
+      "prioridad": 1
+    },
+    "usuarios_linux": {
+      "descripcion": "Usuarios comunes en sistemas Linux",
+      "archivo": "usuarios_linux.txt", 
+      "prioridad": 2
+    },
+    "puertos_especiales": {
+      "descripcion": "Puertos para servicios específicos",
+      "archivo": "puertos_especiales.txt",
+      "prioridad": 3
+    }
+  },
+  "filtros_globales": {
+    "longitud_minima": 1,
+    "longitud_maxima": 100,
+    "caracteres_permitidos": "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-_.$@#!",
+    "excluir_duplicados": true,
+    "ordenar_alfabeticamente": false
+  },
+  "optimizacion": {
+    "eliminar_duplicados": true,
+    "normalizar_encoding": "utf-8",
+    "validar_formato": true,
+    "crear_indices": true
+  }
+}

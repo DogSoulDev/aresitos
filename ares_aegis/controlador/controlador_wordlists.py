@@ -108,13 +108,21 @@ class ControladorWordlists(ControladorBase):
         try:
             with self._lock:
                 # Verificar constructor de wordlists del modelo
-                if hasattr(self.modelo, 'constructor_wordlists'):
-                    self.wordlists_cargadas = self.modelo.constructor_wordlists.obtener_todas_las_wordlists()
-                    self._actualizar_estadisticas()
-                    self.logger.info(f"Cargadas {len(self.wordlists_cargadas)} wordlists")
-                    return self.wordlists_cargadas
+                if hasattr(self.modelo, 'gestor_wordlists') and hasattr(self.modelo.gestor_wordlists, 'constructor_wordlists'):
+                    constructor = self.modelo.gestor_wordlists.constructor_wordlists
+                    if constructor:
+                        # El constructor está disponible pero no tiene método obtener_todas_las_wordlists
+                        # Usar las wordlists cargadas del gestor
+                        if hasattr(self.modelo.gestor_wordlists, 'wordlists_predefinidas'):
+                            self.wordlists_cargadas = self.modelo.gestor_wordlists.wordlists_predefinidas
+                            self._actualizar_estadisticas()
+                            self.logger.info(f"Cargadas {len(self.wordlists_cargadas)} wordlists desde gestor")
+                            return self.wordlists_cargadas
+                    else:
+                        self.logger.info("Constructor de wordlists disponible pero no inicializado")
+                        return {}
                 else:
-                    self.logger.warning("Constructor de wordlists no disponible en el modelo")
+                    self.logger.info("Constructor de wordlists no disponible - usando modo básico")
                     return {}
                     
         except Exception as e:

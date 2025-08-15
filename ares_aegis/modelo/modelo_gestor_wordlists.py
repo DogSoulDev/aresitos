@@ -10,6 +10,15 @@ class ModeloGestorWordlists:
     def __init__(self):
         self.directorio_wordlists = self._crear_directorio_wordlists()
         self.wordlists_predefinidas = self._obtener_wordlists_predefinidas()
+        
+        # Inicializar constructor de wordlists
+        try:
+            from ares_aegis.modelo.constructor_wordlists import ConstructorWordlists
+            self.constructor_wordlists = ConstructorWordlists(self.directorio_wordlists)
+        except ImportError as e:
+            print(f"Warning: Constructor de wordlists no disponible: {e}")
+            self.constructor_wordlists = None
+        
         self._inicializar_wordlists_basicas()
         self._cargar_wordlists_desde_data()
     
