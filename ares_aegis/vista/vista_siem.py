@@ -112,7 +112,8 @@ class VistaSIEM(tk.Frame):
             buttons_monitoreo = [
                 ("🚀 Iniciar SIEM", self.iniciar_siem, '#5cb85c'),
                 ("⏹️ Detener SIEM", self.detener_siem, '#d9534f'),
-                ("🔄 Actualizar Dashboard", self.actualizar_dashboard, '#404040'),
+                ("� Verificar Kali", self.verificar_kali, '#337ab7'),
+                ("�🔄 Actualizar Dashboard", self.actualizar_dashboard, '#404040'),
                 ("📊 Estadísticas", self.mostrar_estadisticas, '#404040'),
                 ("🔔 Configurar Alertas", self.configurar_alertas, '#404040'),
                 ("📈 Métricas Sistema", self.metricas_sistema, '#404040'),
@@ -136,7 +137,9 @@ class VistaSIEM(tk.Frame):
                                              command=self.detener_siem, state="disabled")
             self.btn_detener_siem.pack(fill=tk.X, pady=2)
             
-            ttk.Button(right_frame, text="🔄 Actualizar Dashboard", 
+            ttk.Button(right_frame, text="� Verificar Kali", 
+                      command=self.verificar_kali).pack(fill=tk.X, pady=2)
+            ttk.Button(right_frame, text="�🔄 Actualizar Dashboard", 
                       command=self.actualizar_dashboard).pack(fill=tk.X, pady=2)
             ttk.Button(right_frame, text="📊 Estadísticas", 
                       command=self.mostrar_estadisticas).pack(fill=tk.X, pady=2)
@@ -749,3 +752,55 @@ class VistaSIEM(tk.Frame):
                 self._actualizar_texto_alertas(f"💾 Alertas exportadas a {archivo}\n")
         except Exception as e:
             messagebox.showerror("Error", f"Error al exportar: {str(e)}")
+
+    def verificar_kali(self):
+        """Verificar compatibilidad y funcionalidad SIEM en Kali Linux."""
+        if not self.controlador:
+            messagebox.showerror("Error", "No hay controlador SIEM configurado")
+            return
+            
+        try:
+            # Limpiar pantalla principal
+            self.siem_monitoreo_text.config(state=tk.NORMAL)
+            self.siem_monitoreo_text.delete(1.0, tk.END)
+            self.siem_monitoreo_text.insert(tk.END, "=== VERIFICACIÓN SIEM KALI LINUX ===\n\n")
+            
+            # Ejecutar verificación a través del controlador
+            resultado = self.controlador.verificar_funcionalidad_kali()
+            
+            # Mostrar resultados
+            funcionalidad_ok = resultado.get('funcionalidad_completa', False)
+            
+            if funcionalidad_ok:
+                self.siem_monitoreo_text.insert(tk.END, " ✅ VERIFICACIÓN SIEM EXITOSA\n\n")
+                self.siem_monitoreo_text.insert(tk.END, f"Sistema Operativo: {resultado.get('sistema_operativo', 'Desconocido')}\n")
+                self.siem_monitoreo_text.insert(tk.END, f"Gestor de Permisos: {'✅' if resultado.get('gestor_permisos') else '❌'}\n")
+                self.siem_monitoreo_text.insert(tk.END, f"Permisos Sudo: {'✅' if resultado.get('permisos_sudo') else '❌'}\n\n")
+                
+                self.siem_monitoreo_text.insert(tk.END, "=== HERRAMIENTAS SIEM DISPONIBLES ===\n")
+                for herramienta, estado in resultado.get('herramientas_disponibles', {}).items():
+                    disponible = estado.get('disponible', False)
+                    permisos = estado.get('permisos_ok', False)
+                    icono = "✅" if disponible and permisos else "❌"
+                    self.siem_monitoreo_text.insert(tk.END, f"  {icono} {herramienta}\n")
+                    
+            else:
+                self.siem_monitoreo_text.insert(tk.END, " ❌ VERIFICACIÓN SIEM FALLÓ\n\n")
+                self.siem_monitoreo_text.insert(tk.END, f"Sistema Operativo: {resultado.get('sistema_operativo', 'Desconocido')}\n")
+                self.siem_monitoreo_text.insert(tk.END, f"Gestor de Permisos: {'✅' if resultado.get('gestor_permisos') else '❌'}\n")
+                self.siem_monitoreo_text.insert(tk.END, f"Permisos Sudo: {'✅' if resultado.get('permisos_sudo') else '❌'}\n\n")
+                
+                if resultado.get('recomendaciones'):
+                    self.siem_monitoreo_text.insert(tk.END, "=== RECOMENDACIONES ===\n")
+                    for recomendacion in resultado['recomendaciones']:
+                        self.siem_monitoreo_text.insert(tk.END, f"  • {recomendacion}\n")
+                
+            if resultado.get('error'):
+                self.siem_monitoreo_text.insert(tk.END, f"\n⚠️ Error: {resultado['error']}\n")
+                
+            self.siem_monitoreo_text.config(state=tk.DISABLED)
+                
+        except Exception as e:
+            self.siem_monitoreo_text.config(state=tk.NORMAL)
+            self.siem_monitoreo_text.insert(tk.END, f" ❌ Error durante verificación: {str(e)}\n")
+            self.siem_monitoreo_text.config(state=tk.DISABLED)

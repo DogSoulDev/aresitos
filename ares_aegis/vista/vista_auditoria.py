@@ -78,7 +78,8 @@ class VistaAuditoria(tk.Frame):
             buttons = [
                 ("🛡️ Ejecutar Lynis", self.ejecutar_lynis, '#ff6633'),
                 ("⏹️ Cancelar Lynis", self.cancelar_auditoria, '#cc0000'),
-                ("🔍 Detectar Rootkits", self.detectar_rootkits, '#404040'),
+                ("� Verificar Kali", self.verificar_kali, '#337ab7'),
+                ("�🔍 Detectar Rootkits", self.detectar_rootkits, '#404040'),
                 ("⏹️ Cancelar Rootkits", self.cancelar_rootkits, '#cc0000'),
                 ("🔐 Auditoría OpenVAS", self.ejecutar_openvas, '#404040'),
                 ("⏹️ Cancelar OpenVAS", self.cancelar_openvas, '#cc0000'),
@@ -131,6 +132,8 @@ class VistaAuditoria(tk.Frame):
                                                     state="disabled")
             self.btn_cancelar_auditoria.pack(fill=tk.X, pady=5)
             
+            ttk.Button(right_frame, text="🔧 Verificar Kali", 
+                      command=self.verificar_kali).pack(fill=tk.X, pady=5)
             ttk.Button(right_frame, text="Detectar Rootkits", 
                       command=self.detectar_rootkits).pack(fill=tk.X, pady=5)
             ttk.Button(right_frame, text="Analizar Servicios", 
@@ -756,3 +759,54 @@ class VistaAuditoria(tk.Frame):
                 self._actualizar_texto_auditoria(f"❌ Error en verificación de políticas: {str(e)}\n")
         
         threading.Thread(target=ejecutar, daemon=True).start()
+
+    def verificar_kali(self):
+        """Verificar compatibilidad y funcionalidad de auditoría en Kali Linux."""
+        if not self.controlador:
+            messagebox.showerror("Error", "No hay controlador de auditoría configurado")
+            return
+            
+        try:
+            self.auditoria_text.config(state=tk.NORMAL)
+            self.auditoria_text.delete(1.0, tk.END)
+            self.auditoria_text.insert(tk.END, "=== VERIFICACIÓN AUDITORÍA KALI LINUX ===\n\n")
+            
+            # Ejecutar verificación a través del controlador
+            resultado = self.controlador.verificar_funcionalidad_kali()
+            
+            # Mostrar resultados
+            funcionalidad_ok = resultado.get('funcionalidad_completa', False)
+            
+            if funcionalidad_ok:
+                self.auditoria_text.insert(tk.END, " ✅ VERIFICACIÓN AUDITORÍA EXITOSA\n\n")
+                self.auditoria_text.insert(tk.END, f"Sistema Operativo: {resultado.get('sistema_operativo', 'Desconocido')}\n")
+                self.auditoria_text.insert(tk.END, f"Gestor de Permisos: {'✅' if resultado.get('gestor_permisos') else '❌'}\n")
+                self.auditoria_text.insert(tk.END, f"Permisos Sudo: {'✅' if resultado.get('permisos_sudo') else '❌'}\n\n")
+                
+                self.auditoria_text.insert(tk.END, "=== HERRAMIENTAS AUDITORÍA DISPONIBLES ===\n")
+                for herramienta, estado in resultado.get('herramientas_disponibles', {}).items():
+                    disponible = estado.get('disponible', False)
+                    permisos = estado.get('permisos_ok', False)
+                    icono = "✅" if disponible and permisos else "❌"
+                    self.auditoria_text.insert(tk.END, f"  {icono} {herramienta}\n")
+                    
+            else:
+                self.auditoria_text.insert(tk.END, " ❌ VERIFICACIÓN AUDITORÍA FALLÓ\n\n")
+                self.auditoria_text.insert(tk.END, f"Sistema Operativo: {resultado.get('sistema_operativo', 'Desconocido')}\n")
+                self.auditoria_text.insert(tk.END, f"Gestor de Permisos: {'✅' if resultado.get('gestor_permisos') else '❌'}\n")
+                self.auditoria_text.insert(tk.END, f"Permisos Sudo: {'✅' if resultado.get('permisos_sudo') else '❌'}\n\n")
+                
+                if resultado.get('recomendaciones'):
+                    self.auditoria_text.insert(tk.END, "=== RECOMENDACIONES ===\n")
+                    for recomendacion in resultado['recomendaciones']:
+                        self.auditoria_text.insert(tk.END, f"  • {recomendacion}\n")
+                
+            if resultado.get('error'):
+                self.auditoria_text.insert(tk.END, f"\n⚠️ Error: {resultado['error']}\n")
+                
+            self.auditoria_text.config(state=tk.DISABLED)
+                
+        except Exception as e:
+            self.auditoria_text.config(state=tk.NORMAL)
+            self.auditoria_text.insert(tk.END, f" ❌ Error durante verificación: {str(e)}\n")
+            self.auditoria_text.config(state=tk.DISABLED)

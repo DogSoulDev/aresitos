@@ -48,26 +48,35 @@ class ControladorFIM(ControladorBase):
             'archivos_monitoreados': 0
         }
         
-        # Configuración de FIM específica para Kali Linux
+        # Configuración de FIM específica para Kali Linux (solo archivos críticos específicos)
         self._config_fim = {
             'intervalo_escaneo_segundos': 300,  # 5 minutos
             'rutas_criticas_kali': [
+                # Archivos de sistema críticos
                 '/etc/passwd',
                 '/etc/shadow', 
                 '/etc/sudoers',
                 '/etc/ssh/sshd_config',
+                '/etc/ssh/ssh_config',
                 '/etc/hosts',
                 '/etc/crontab',
                 '/etc/fstab',
-                '/boot',
-                '/usr/bin',
-                '/usr/sbin',
-                '/opt',
-                '/var/log',
-                '/home'
+                '/boot/grub/grub.cfg',
+                
+                # Archivos de configuración de servicios
+                '/etc/apache2/apache2.conf',
+                '/etc/nginx/nginx.conf',
+                '/etc/proxychains.conf',
+                '/etc/tor/torrc',
+                
+                # Binarios críticos específicos
+                '/bin/bash',
+                '/bin/su',
+                '/usr/bin/sudo',
+                '/usr/sbin/sshd'
             ],
             'extensiones_criticas': {'.conf', '.cfg', '.ini', '.sh', '.py', '.pl', '.rb'},
-            'max_archivos_por_directorio': 10000,
+            'max_archivos_por_directorio': 100,  # Reducido para evitar spam
             'habilitar_hash_contenido': True,
             'detectar_cambios_permisos': True,
             'alertar_archivos_nuevos': True
@@ -712,6 +721,70 @@ class ControladorFIM(ControladorBase):
             error_msg = f"Error finalizando controlador FIM: {str(e)}"
             self.logger.error(error_msg)
             return {'exito': False, 'error': error_msg}
+
+    def verificar_funcionalidad_kali(self) -> Dict[str, Any]:
+        """
+        Verificar que todas las funcionalidades del FIM funcionen en Kali Linux.
+        """
+        resultado = {
+            'timestamp': datetime.now().isoformat(),
+            'sistema_operativo': None,
+            'gestor_permisos': False,
+            'herramientas_disponibles': {},
+            'permisos_sudo': False,
+            'funcionalidad_completa': False,
+            'recomendaciones': []
+        }
+        
+        try:
+            import platform
+            resultado['sistema_operativo'] = platform.system()
+            
+            # Verificar gestor de permisos
+            if self.fim and hasattr(self.fim, 'gestor_permisos'):
+                if self.fim.gestor_permisos is not None:
+                    resultado['gestor_permisos'] = True
+                    
+                    # Verificar permisos sudo si está disponible
+                    try:
+                        resultado['permisos_sudo'] = self.fim.gestor_permisos.verificar_sudo_disponible()
+                    except Exception:
+                        resultado['permisos_sudo'] = False
+                    
+                    # Verificar herramientas específicas de FIM
+                    herramientas = ['find', 'stat', 'md5sum', 'inotifywait']
+                    for herramienta in herramientas:
+                        estado = self.fim.gestor_permisos.verificar_permisos_herramienta(herramienta)
+                        resultado['herramientas_disponibles'][herramienta] = estado
+            
+            # Evaluar funcionalidad completa
+            herramientas_ok = sum(1 for h in resultado['herramientas_disponibles'].values() 
+                                if h.get('disponible', False) and h.get('permisos_ok', False))
+            
+            resultado['funcionalidad_completa'] = (
+                resultado['gestor_permisos'] and 
+                resultado['permisos_sudo'] and 
+                herramientas_ok >= 3  # Al menos find, stat, md5sum
+            )
+            
+            # Generar recomendaciones
+            if not resultado['funcionalidad_completa']:
+                if not resultado['gestor_permisos']:
+                    resultado['recomendaciones'].append("Gestor de permisos no disponible")
+                
+                if not resultado['permisos_sudo']:
+                    resultado['recomendaciones'].append("Ejecutar: sudo ./configurar_kali.sh")
+                
+                if herramientas_ok < 3:
+                    resultado['recomendaciones'].append("Instalar herramientas FIM: sudo apt install findutils coreutils inotify-tools")
+            
+            self.logger.info(f"Verificación FIM Kali completada - Funcionalidad: {'✅' if resultado['funcionalidad_completa'] else '❌'}")
+            
+        except Exception as e:
+            self.logger.error(f"Error en verificación FIM Kali: {e}")
+            resultado['error'] = str(e)
+        
+        return resultado
 
 
 # RESUMEN TÉCNICO: Controlador FIM avanzado para monitoreo de integridad de archivos en Kali Linux.

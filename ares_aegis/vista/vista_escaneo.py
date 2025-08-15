@@ -63,6 +63,14 @@ class VistaEscaneo(tk.Frame):
                                         activebackground='#e55a2b', activeforeground='white')
             self.btn_escanear.pack(side="left", padx=(0, 10))
             
+            self.btn_verificar = tk.Button(btn_frame, text=" Verificar Kali", 
+                                         command=self.verificar_kali,
+                                         bg='#6633ff', fg='white', 
+                                         font=('Arial', 10, 'bold'),
+                                         relief='flat', bd=0, padx=15, pady=8,
+                                         activebackground='#5a2be5', activeforeground='white')
+            self.btn_verificar.pack(side="left", padx=(0, 10))
+            
             self.btn_cancelar_escaneo = tk.Button(btn_frame, text=" Cancelar", 
                                                 command=self.cancelar_escaneo,
                                                 state="disabled",
@@ -99,6 +107,10 @@ class VistaEscaneo(tk.Frame):
             self.btn_escanear = ttk.Button(btn_frame, text="Escanear Sistema", 
                                           command=self.ejecutar_escaneo)
             self.btn_escanear.pack(side="left", padx=(0, 5))
+            
+            self.btn_verificar = ttk.Button(btn_frame, text="Verificar Kali", 
+                                          command=self.verificar_kali)
+            self.btn_verificar.pack(side="left", padx=(0, 5))
             
             self.btn_cancelar_escaneo = ttk.Button(btn_frame, text=" Cancelar", 
                                                   command=self.cancelar_escaneo,
@@ -196,6 +208,58 @@ class VistaEscaneo(tk.Frame):
         if self.proceso_activo:
             self.proceso_activo = False
             self.text_resultados.insert(tk.END, "\n Escaneo cancelado por el usuario.\n")
+    
+    def verificar_kali(self):
+        """Verificar compatibilidad y funcionalidad en Kali Linux."""
+        if not self.controlador:
+            messagebox.showerror("Error", "No hay controlador de escaneo configurado")
+            return
+            
+        try:
+            self.text_resultados.delete(1.0, tk.END)
+            self.text_resultados.insert(tk.END, "=== VERIFICACIÓN KALI LINUX ===\n\n")
+            
+            # Deshabilitar botón durante verificación
+            self.btn_verificar.config(state="disabled")
+            
+            # Ejecutar verificación a través del controlador
+            resultado = self.controlador.verificar_funcionalidad_kali()
+            
+            # Mostrar resultados
+            funcionalidad_ok = resultado.get('funcionalidad_completa', False)
+            
+            if funcionalidad_ok:
+                self.text_resultados.insert(tk.END, " ✅ VERIFICACIÓN EXITOSA\n\n")
+                self.text_resultados.insert(tk.END, f"Sistema Operativo: {resultado.get('sistema_operativo', 'Desconocido')}\n")
+                self.text_resultados.insert(tk.END, f"Gestor de Permisos: {'✅' if resultado.get('gestor_permisos') else '❌'}\n")
+                self.text_resultados.insert(tk.END, f"Permisos Sudo: {'✅' if resultado.get('permisos_sudo') else '❌'}\n\n")
+                
+                self.text_resultados.insert(tk.END, "=== HERRAMIENTAS DISPONIBLES ===\n")
+                for herramienta, estado in resultado.get('herramientas_disponibles', {}).items():
+                    disponible = estado.get('disponible', False)
+                    permisos = estado.get('permisos_ok', False)
+                    icono = "✅" if disponible and permisos else "❌"
+                    self.text_resultados.insert(tk.END, f"  {icono} {herramienta}\n")
+                    
+            else:
+                self.text_resultados.insert(tk.END, " ❌ VERIFICACIÓN FALLÓ\n\n")
+                self.text_resultados.insert(tk.END, f"Sistema Operativo: {resultado.get('sistema_operativo', 'Desconocido')}\n")
+                self.text_resultados.insert(tk.END, f"Gestor de Permisos: {'✅' if resultado.get('gestor_permisos') else '❌'}\n")
+                self.text_resultados.insert(tk.END, f"Permisos Sudo: {'✅' if resultado.get('permisos_sudo') else '❌'}\n\n")
+                
+                if resultado.get('recomendaciones'):
+                    self.text_resultados.insert(tk.END, "=== RECOMENDACIONES ===\n")
+                    for recomendacion in resultado['recomendaciones']:
+                        self.text_resultados.insert(tk.END, f"  • {recomendacion}\n")
+                
+            if resultado.get('error'):
+                self.text_resultados.insert(tk.END, f"\n⚠️ Error: {resultado['error']}\n")
+                
+        except Exception as e:
+            self.text_resultados.insert(tk.END, f" ❌ Error durante verificación: {str(e)}\n")
+        finally:
+            # Rehabilitar botón
+            self.btn_verificar.config(state="normal")
             self._finalizar_escaneo()
     
     def ver_logs(self):

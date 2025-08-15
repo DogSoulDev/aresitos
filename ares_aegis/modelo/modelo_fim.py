@@ -17,6 +17,15 @@ from collections import deque
 from dataclasses import dataclass, asdict
 from enum import Enum
 
+# Importar el gestor de permisos seguro
+try:
+    from ..utils.gestor_permisos import obtener_gestor_permisos
+    GESTOR_PERMISOS_DISPONIBLE = True
+except ImportError:
+    # Fallback si no está disponible
+    GESTOR_PERMISOS_DISPONIBLE = False
+    obtener_gestor_permisos = None
+
 class TipoArchivoFIM(Enum):
     """Tipos de archivo para clasificación FIM."""
     EJECUTABLE = "ejecutable"
@@ -70,16 +79,36 @@ class MetadatosArchivo:
             hash_md5, hash_sha1, hash_sha256 = cls._calcular_hashes(ruta_archivo)
             
             # Obtener información de propietario
+            propietario_nombre = "desconocido"
+            grupo_nombre = "desconocido"
+            
             try:
-                import pwd
-                import grp
-                propietario_info = pwd.getpwuid(stat_info.st_uid)
-                grupo_info = grp.getgrgid(stat_info.st_gid)
-                propietario_nombre = propietario_info.pw_name
-                grupo_nombre = grupo_info.gr_name
-            except:
-                propietario_nombre = "desconocido"
-                grupo_nombre = "desconocido"
+                import platform
+                
+                if platform.system() != "Windows":
+                    try:
+                        import pwd
+                        import grp
+                        # Usar getattr para acceso seguro a funciones
+                        getpwuid = getattr(pwd, 'getpwuid', None)
+                        getgrgid = getattr(grp, 'getgrgid', None)
+                        
+                        if getpwuid and getgrgid:
+                            propietario_info = getpwuid(stat_info.st_uid)
+                            grupo_info = getgrgid(stat_info.st_gid)
+                            propietario_nombre = propietario_info.pw_name
+                            grupo_nombre = grupo_info.gr_name
+                        else:
+                            propietario_nombre = str(stat_info.st_uid)
+                            grupo_nombre = str(stat_info.st_gid)
+                    except (KeyError, AttributeError, ImportError):
+                        propietario_nombre = str(getattr(stat_info, 'st_uid', 'unknown'))
+                        grupo_nombre = str(getattr(stat_info, 'st_gid', 'unknown'))
+                else:
+                    propietario_nombre = "usuario_windows"
+                    grupo_nombre = "grupo_windows"
+            except Exception:
+                pass  # Mantener valores por defecto
             
             # Determinar tipo de archivo
             tipo_archivo = cls._determinar_tipo_archivo(ruta_path)
@@ -188,6 +217,14 @@ class FIMAvanzado:
         self.siem = siem
         self.logger = self._configurar_logger()
         
+        # Inicializar gestor de permisos
+        if GESTOR_PERMISOS_DISPONIBLE and obtener_gestor_permisos is not None:
+            self.gestor_permisos = obtener_gestor_permisos()
+            self.logger.info("✅ FIM: Gestor de permisos inicializado")
+        else:
+            self.gestor_permisos = None
+            self.logger.warning("⚠️ FIM: Gestor de permisos no disponible - monitoreo limitado")
+        
         # Configuración
         self.archivo_base_datos = self._determinar_ruta_base_datos()
         self.rutas_monitoreadas: Set[str] = set()
@@ -212,7 +249,7 @@ class FIMAvanzado:
         self._cargar_configuracion_kali()
         self._cargar_base_datos()
         
-        self.logger.info("FIM Avanzado inicializado correctamente")
+        self.logger.info("🛡️ FIM Avanzado inicializado correctamente")
     
     def _configurar_logger(self) -> logging.Logger:
         """Configurar logger específico para FIM."""
@@ -242,37 +279,39 @@ class FIMAvanzado:
     
     def _cargar_configuracion_kali(self) -> None:
         """Cargar configuración específica para Kali Linux."""
-        # Rutas críticas para monitorear en Kali Linux
+        # Rutas críticas para monitorear en Kali Linux (solo archivos específicos importantes)
         rutas_criticas = [
-            # Sistema base
+            # Archivos de configuración críticos del sistema
             '/etc/passwd', '/etc/shadow', '/etc/group', '/etc/gshadow',
-            '/etc/sudoers', '/etc/sudoers.d/', '/etc/security/',
-            '/etc/pam.d/', '/etc/login.defs',
+            '/etc/sudoers', '/etc/security/access.conf', '/etc/security/limits.conf',
+            '/etc/pam.d/common-auth', '/etc/pam.d/common-password', '/etc/login.defs',
             
-            # Red y servicios
+            # Red y servicios críticos
             '/etc/hosts', '/etc/hosts.allow', '/etc/hosts.deny',
-            '/etc/resolv.conf', '/etc/ssh/', '/etc/ssl/',
+            '/etc/resolv.conf', '/etc/ssh/sshd_config', '/etc/ssh/ssh_config',
             
-            # Sistema y kernel
-            '/etc/fstab', '/etc/crontab', '/etc/systemd/',
-            '/boot/', '/etc/grub.d/',
+            # Sistema y kernel (solo archivos específicos)
+            '/etc/fstab', '/etc/crontab', '/boot/grub/grub.cfg',
+            '/etc/systemd/system.conf', '/etc/systemd/user.conf',
             
-            # Aplicaciones críticas
-            '/etc/apache2/', '/etc/nginx/', '/etc/mysql/',
-            '/etc/postgresql/', '/etc/fail2ban/',
+            # Aplicaciones críticas (solo archivos de configuración principales)
+            '/etc/apache2/apache2.conf', '/etc/nginx/nginx.conf',
+            '/etc/mysql/my.cnf', '/etc/postgresql/postgresql.conf',
+            '/etc/fail2ban/fail2ban.conf', '/etc/fail2ban/jail.conf',
             
-            # Herramientas de pentesting (Kali específico)
-            '/usr/share/metasploit-framework/config/',
-            '/etc/proxychains.conf', '/etc/tor/',
+            # Herramientas de pentesting (Kali específico - solo configs importantes)
+            '/etc/proxychains.conf', '/etc/tor/torrc',
             
-            # Binarios críticos
-            '/bin/', '/sbin/', '/usr/bin/', '/usr/sbin/',
-            '/usr/local/bin/', '/usr/local/sbin/'
+            # Binarios críticos específicos (no directorios completos)
+            '/bin/bash', '/bin/sh', '/bin/su', '/bin/sudo',
+            '/sbin/init', '/sbin/iptables', '/sbin/ip6tables',
+            '/usr/bin/passwd', '/usr/bin/sudo', '/usr/bin/ssh',
+            '/usr/sbin/sshd', '/usr/sbin/cron'
         ]
         
-        # Añadir rutas que existan
+        # Solo añadir archivos específicos que existan (no directorios)
         for ruta in rutas_criticas:
-            if os.path.exists(ruta):
+            if os.path.exists(ruta) and os.path.isfile(ruta):
                 self.rutas_monitoreadas.add(os.path.abspath(ruta))
         
         # Rutas a excluir (alta frecuencia de cambios)

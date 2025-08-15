@@ -32,8 +32,15 @@ class ControladorEscaneo(ControladorBase):
         try:
             self.siem = SIEM()  # Usar clase de compatibilidad
             self.escaneador = Escaneador(self.siem)  # Usar clase de compatibilidad
+            
+            # Verificar que el escaneador tenga gestor de permisos
+            if hasattr(self.escaneador, 'gestor_permisos') and self.escaneador.gestor_permisos:
+                self.logger.info("✅ Escaneador inicializado con gestor de permisos")
+            else:
+                self.logger.warning("⚠️  Escaneador sin gestor de permisos - funcionalidad limitada")
+                
         except Exception as e:
-            self.logger.error(f"Error inicializando componentes: {e}")
+            self.logger.error(f"❌ Error inicializando componentes: {e}")
             self.escaneador = None
             self.siem = None
         
@@ -72,6 +79,67 @@ class ControladorEscaneo(ControladorBase):
         ]
         
         self.logger.info("Controlador de Escaneo inicializado")
+    
+    def verificar_funcionalidad_kali(self) -> Dict[str, Any]:
+        """
+        Verificar que todas las funcionalidades del escaneador funcionen en Kali Linux.
+        """
+        resultado = {
+            'timestamp': datetime.now().isoformat(),
+            'sistema_operativo': None,
+            'gestor_permisos': False,
+            'herramientas_disponibles': {},
+            'permisos_sudo': False,
+            'funcionalidad_completa': False,
+            'recomendaciones': []
+        }
+        
+        try:
+            import platform
+            resultado['sistema_operativo'] = platform.system()
+            
+            # Verificar gestor de permisos
+            if self.escaneador and hasattr(self.escaneador, 'gestor_permisos'):
+                if self.escaneador.gestor_permisos is not None:
+                    resultado['gestor_permisos'] = True
+                    
+                    # Verificar sudo
+                    resultado['permisos_sudo'] = self.escaneador.gestor_permisos.verificar_sudo_disponible()
+                    
+                    # Verificar herramientas
+                    herramientas = ['nmap', 'netstat', 'ss']
+                    for herramienta in herramientas:
+                        estado = self.escaneador.gestor_permisos.verificar_permisos_herramienta(herramienta)
+                        resultado['herramientas_disponibles'][herramienta] = estado
+            
+            # Evaluar funcionalidad completa
+            herramientas_ok = sum(1 for h in resultado['herramientas_disponibles'].values() 
+                                if h.get('disponible', False) and h.get('permisos_ok', False))
+            
+            resultado['funcionalidad_completa'] = (
+                resultado['gestor_permisos'] and 
+                resultado['permisos_sudo'] and 
+                herramientas_ok >= 2
+            )
+            
+            # Generar recomendaciones
+            if not resultado['funcionalidad_completa']:
+                if not resultado['gestor_permisos']:
+                    resultado['recomendaciones'].append("Gestor de permisos no disponible")
+                
+                if not resultado['permisos_sudo']:
+                    resultado['recomendaciones'].append("Ejecutar: sudo ./configurar_kali.sh")
+                
+                if herramientas_ok < 2:
+                    resultado['recomendaciones'].append("Instalar herramientas: sudo apt install nmap netstat-nat net-tools")
+            
+            self.logger.info(f"Verificación Kali completada - Funcionalidad: {'✅' if resultado['funcionalidad_completa'] else '❌'}")
+            
+        except Exception as e:
+            self.logger.error(f"Error en verificación Kali: {e}")
+            resultado['error'] = str(e)
+        
+        return resultado
     
     def _validar_objetivo_escaneo(self, objetivo: str) -> Dict[str, Any]:
         """
@@ -285,10 +353,17 @@ class ControladorEscaneo(ControladorBase):
             }
         
         objetivo_seguro = validacion['objetivo_sanitizado']
-        self.logger.info(f"Iniciando escaneo básico validado de {objetivo_seguro}")
+        self.logger.info(f"🔍 Iniciando escaneo básico validado de {objetivo_seguro}")
         
         if not self.escaneador or not self.siem:
             return {'exito': False, 'error': 'Componentes no inicializados correctamente'}
+        
+        # Verificar funcionalidad en Kali Linux antes del escaneo
+        verificacion_kali = self.verificar_funcionalidad_kali()
+        if not verificacion_kali['funcionalidad_completa']:
+            self.logger.warning("⚠️  Funcionalidad limitada detectada en Kali Linux")
+            for rec in verificacion_kali['recomendaciones']:
+                self.logger.warning(f"💡 {rec}")
         
         with self._lock_escaneo:
             self._estado_escaneo['escaneo_en_progreso'] = True
@@ -299,6 +374,7 @@ class ControladorEscaneo(ControladorBase):
             
             # SECURITY: Usar objetivo validado en todas las operaciones
             # Escaneo de puertos con objetivo seguro
+            self.logger.info(f"🔧 Ejecutando escaneo de puertos para {objetivo_seguro}")
             puertos_resultado = self.escaneador.escanear_puertos_basico(objetivo_seguro)
             
             # Obtener conexiones activas

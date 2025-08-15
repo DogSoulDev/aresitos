@@ -1,20 +1,49 @@
-# Dependencias principales de Aresitos
+# ===================================================================
+# ARESITOS 7.0 BETA - DEPENDENCIAS PYTHON
+# ===================================================================
+# Archivo de dependencias para instalación con pip
+# IMPORTANTE: Usar siempre dentro de un entorno virtual en Kali Linux
+# 
+# Instalación:
+# 1. python3 -m venv venv_aresitos
+# 2. source venv_aresitos/bin/activate  
+# 3. pip install -r requirements.txt
+# ===================================================================
+
+# Framework GUI Moderno
 customtkinter>=5.2.0
+
+# Procesamiento de imágenes
 pillow>=10.0.0
+
+# Cliente HTTP y requests
 requests>=2.31.0
+
+# Información del sistema y procesos
 psutil>=5.9.0
+
+# Wrapper Python para Nmap
 python-nmap>=0.7.1
+
+# Manipulación de paquetes de red
 scapy>=2.4.5
 
-# Para análisis y reportes
+# Análisis de datos
 pandas>=2.0.0
+
+# Gráficos y visualización
 matplotlib>=3.7.0
 
-# Para hash y criptografía
-hashlib2>=2.0.0
-
-# Para monitoreo de archivos
+# Monitoreo de archivos en tiempo real
 watchdog>=3.0.0
 
-# Para logs estructurados
+# Sistema de logging con colores
 colorlog>=6.7.0
+
+# Criptografía y hashing (opcional, fallback a hashlib nativo)
+# hashlib2>=2.0.0
+
+# ===================================================================
+# DEPENDENCIAS OPCIONALES DEL SISTEMA (instalar con apt si es necesario):
+# sudo apt install -y python3-tk python3-dev build-essential
+# ===================================================================

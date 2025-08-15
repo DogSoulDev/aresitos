@@ -21,6 +21,16 @@ from enum import Enum
 from typing import Dict, List, Any, Optional, Set, Tuple
 from pathlib import Path
 
+# Importar el gestor de permisos seguro
+try:
+    from ..utils.gestor_permisos import obtener_gestor_permisos, ejecutar_comando_seguro
+    GESTOR_PERMISOS_DISPONIBLE = True
+except ImportError:
+    # Fallback si no está disponible
+    GESTOR_PERMISOS_DISPONIBLE = False
+    obtener_gestor_permisos = None
+    ejecutar_comando_seguro = None
+
 class TipoEscaneo(Enum):
     """Tipos de escaneo disponibles."""
     PUERTOS_BASICO = "puertos_basico"
@@ -76,6 +86,14 @@ class EscaneadorAvanzado:
         self.siem = siem
         self.herramientas_disponibles = self._verificar_herramientas()
         
+        # Inicializar gestor de permisos
+        if GESTOR_PERMISOS_DISPONIBLE and obtener_gestor_permisos is not None:
+            self.gestor_permisos = obtener_gestor_permisos()
+            self.logger.info("✅ Gestor de permisos inicializado")
+        else:
+            self.gestor_permisos = None
+            self.logger.warning("⚠️ Gestor de permisos no disponible - funcionalidad limitada")
+        
         # Base de datos de vulnerabilidades (simulada por ahora)
         self.base_vulnerabilidades = self._cargar_base_vulnerabilidades()
         
@@ -101,7 +119,7 @@ class EscaneadorAvanzado:
         self.patron_hostname = re.compile(r'^[a-zA-Z0-9.-]+$')
         self.patron_puertos = re.compile(r'^(\d+(-\d+)?)(,\d+(-\d+)?)*$')
         
-        self.logger.info(" Escaneador Avanzado Ares Aegis inicializado")
+        self.logger.info("🔍 Escaneador Avanzado Ares Aegis inicializado")
         
     def _validar_objetivo_seguro(self, objetivo: str) -> bool:
         """Valida que el objetivo sea seguro"""
@@ -222,7 +240,7 @@ class EscaneadorAvanzado:
         try:
             # Validar objetivo
             if not self._validar_objetivo_seguro(objetivo):
-                logging.warning(f"Objetivo inseguro bloqueado: {objetivo}")
+                self.logger.warning(f"Objetivo inseguro bloqueado: {objetivo}")
                 return {
                     'exito': False,
                     'error': 'Objetivo no válido o no permitido',
@@ -231,13 +249,14 @@ class EscaneadorAvanzado:
                 
             # Validar puertos
             if not self._validar_puertos_seguros(puertos):
-                logging.warning(f"Rango de puertos inseguro: {puertos}")
+                self.logger.warning(f"Rango de puertos inseguro: {puertos}")
                 return {
                     'exito': False,
                     'error': 'Rango de puertos no válido',
                     'timestamp': datetime.datetime.now().isoformat()
                 }
             
+            # Verificar disponibilidad de nmap
             if not self.herramientas_disponibles.get('nmap', False):
                 return {
                     'exito': False,
@@ -245,19 +264,34 @@ class EscaneadorAvanzado:
                     'timestamp': datetime.datetime.now().isoformat()
                 }
             
-            # Construir comando seguro
-            comando = ['nmap', '-sS', '-p', puertos, objetivo]
-            comando_seguro = self._sanitizar_comando(comando)
-            
-            resultado = subprocess.run(comando_seguro, capture_output=True, text=True, timeout=60)
-            
-            return {
-                'exito': resultado.returncode == 0,
-                'salida': resultado.stdout,
-                'error': resultado.stderr if resultado.returncode != 0 else None,
-                'comando': 'nmap [sanitizado]',  # No exponer comando completo
-                'timestamp': datetime.datetime.now().isoformat()
-            }
+            # Usar gestor de permisos si está disponible
+            if self.gestor_permisos is not None:
+                self.logger.info(f"🔧 Ejecutando escaneo con permisos elevados: {objetivo}:{puertos}")
+                argumentos = ['-sS', '-p', puertos, objetivo]
+                exito, stdout, stderr = self.gestor_permisos.ejecutar_con_permisos('nmap', argumentos, 60)
+                
+                return {
+                    'exito': exito,
+                    'salida': stdout,
+                    'error': stderr if not exito else None,
+                    'comando': 'nmap [ejecutado con permisos elevados]',
+                    'timestamp': datetime.datetime.now().isoformat()
+                }
+            else:
+                # Fallback a ejecución tradicional (sin sudo)
+                self.logger.warning("⚠️ Ejecutando escaneo sin permisos elevados - resultados limitados")
+                comando = ['nmap', '-sT', '-p', puertos, objetivo]  # TCP connect sin sudo
+                comando_seguro = self._sanitizar_comando(comando)
+                
+                resultado = subprocess.run(comando_seguro, capture_output=True, text=True, timeout=60)
+                
+                return {
+                    'exito': resultado.returncode == 0,
+                    'salida': resultado.stdout,
+                    'error': resultado.stderr if resultado.returncode != 0 else None,
+                    'comando': 'nmap [sin permisos elevados]',
+                    'timestamp': datetime.datetime.now().isoformat()
+                }
             
         except subprocess.TimeoutExpired:
             return {
@@ -266,6 +300,7 @@ class EscaneadorAvanzado:
                 'timestamp': datetime.datetime.now().isoformat()
             }
         except Exception as e:
+            self.logger.error(f"❌ Error en escaneo: {str(e)}")
             return {
                 'exito': False,
                 'error': f'Error en escaneo: {str(e)}',
@@ -273,13 +308,18 @@ class EscaneadorAvanzado:
             }
     
     def obtener_conexiones_activas(self) -> Dict[str, Any]:
-        """Obtiene conexiones de red activas."""
+        """Obtiene conexiones de red activas usando permisos elevados si es necesario."""
         try:
-            # Usar ss si está disponible, sino netstat
+            # Determinar herramienta a usar
+            herramienta = None
+            argumentos = []
+            
             if self.herramientas_disponibles.get('ss', False):
-                comando = ['ss', '-tuln']
+                herramienta = 'ss'
+                argumentos = ['-tuln']
             elif self.herramientas_disponibles.get('netstat', False):
-                comando = ['netstat', '-tuln']
+                herramienta = 'netstat'
+                argumentos = ['-tuln']
             else:
                 return {
                     'exito': False,
@@ -287,16 +327,36 @@ class EscaneadorAvanzado:
                     'timestamp': datetime.datetime.now().isoformat()
                 }
             
-            resultado = subprocess.run(comando, capture_output=True, text=True, timeout=30)
-            
-            return {
-                'exito': resultado.returncode == 0,
-                'conexiones': resultado.stdout,
-                'herramienta_usada': comando[0],
-                'timestamp': datetime.datetime.now().isoformat()
-            }
+            # Usar gestor de permisos si está disponible
+            if self.gestor_permisos is not None:
+                self.logger.info(f"🔧 Obteniendo conexiones con permisos elevados usando {herramienta}")
+                exito, stdout, stderr = self.gestor_permisos.ejecutar_con_permisos(herramienta, argumentos, 30)
+                
+                return {
+                    'exito': exito,
+                    'conexiones': stdout,
+                    'herramienta_usada': herramienta,
+                    'permisos_elevados': True,
+                    'error': stderr if not exito else None,
+                    'timestamp': datetime.datetime.now().isoformat()
+                }
+            else:
+                # Fallback a ejecución sin sudo
+                self.logger.warning("⚠️ Obteniendo conexiones sin permisos elevados - información limitada")
+                comando = [herramienta] + argumentos
+                resultado = subprocess.run(comando, capture_output=True, text=True, timeout=30)
+                
+                return {
+                    'exito': resultado.returncode == 0,
+                    'conexiones': resultado.stdout,
+                    'herramienta_usada': herramienta,
+                    'permisos_elevados': False,
+                    'error': resultado.stderr if resultado.returncode != 0 else None,
+                    'timestamp': datetime.datetime.now().isoformat()
+                }
             
         except Exception as e:
+            self.logger.error(f"❌ Error obteniendo conexiones: {str(e)}")
             return {
                 'exito': False,
                 'error': f'Error obteniendo conexiones: {str(e)}',

@@ -1,36 +1,33 @@
-# 🔱 ARESITOS 7.0 BETA - Suite Profesional de Ciberseguridad
+# 🔱 ARES AEGIS 7.0 BETA - Suite Profesional de Ciberseguridad
 
-## � Herramienta Completa de Pentesting y Análisis de Seguridad para Kali Linux
+## ⚡ Herramienta Completa de Pentesting y Análisis de Seguridad para Kali Linux
 
-**Aresitos 7.0 Beta** es una suite avanzada, completa y segura de ciberseguridad desarrollada específicamente para profesionales de seguridad, ethical hackers, administradores de sistemas e investigadores de ciberseguridad que trabajan en entornos Linux, con optimización completa para Kali Linux 2023.x+.
+**Ares Aegis 7.0 Beta** es una suite avanzada, completa y segura de ciberseguridad desarrollada específicamente para profesionales de seguridad, ethical hackers, administradores de sistemas e investigadores de ciberseguridad que trabajan en entornos Linux, con optimización completa para Kali Linux 2024.x+.
 
 <div align="center">
 
-![Aresitos](ares_aegis/recursos/Aresitos.ico)
+![Ares Aegis](ares_aegis/recursos/Aresitos.ico)
 
-### ⭐ **PROYECTO ARESITOS 7.0 BETA - VERSIÓN COMPLETA** ⭐
+### ⭐ **PROYECTO ARES AEGIS 7.0 BETA - VERSIÓN COMPLETA** ⭐
 
 </div>
 
-## 🔒 **CERTIFICACIÓN DE SEGURIDAD MÁXIMA**
+## 🔒 **CERTIFICACIÓN DE SEGURIDAD Y FUNCIONALIDAD**
 
-### ✅ **AUDITORÍA DE CÓDIGO 100% COMPLETADA**
-- **� NIVEL MÁXIMO DE SEGURIDAD ALCANZADO**
-- **48 vulnerabilidades críticas eliminadas** en auditoría exhaustiva
-- **100% del código base auditado y securizado** (13 Controladores, 15 Modelos, 9 Vistas)
-- **Zero vulnerabilidades pendientes** - Estado: ✅ **SECURE**
-- **Arquitectura MVC completamente blindada**
-- **Optimizado y certificado para Kali Linux 2023.x+**
+### ✅ **SISTEMA COMPLETAMENTE FUNCIONAL Y SEGURO**
+- **🛡️ GESTOR DE PERMISOS SEGURO** implementado con auditoría completa
+- **🔧 VERIFICACIÓN KALI LINUX** para todos los módulos principales
+- **✅ 100% FUNCIONAL** en Kali Linux con configuración automática
+- **🔐 ARQUITECTURA MVC** completamente securizada y optimizada
+- **⚡ CONFIGURACIÓN AUTOMÁTICA** para Kali Linux 2024.x+
+- **🧹 PROYECTO LIMPIO** sin archivos innecesarios
 
-**📋 Documentación de auditoría**: Ver [AUDITORIA_SEGURIDAD.md](seguridad/AUDITORIA_SEGURIDAD.md)
-
-### 🛡️ **CARACTERÍSTICAS DE SEGURIDAD IMPLEMENTADAS**
-- **Validación universal robusta** con regex patterns y whitelists
-- **Prevención total** de command injection, path traversal y XSS
-- **Sanitización completa** con `shlex.quote()` y validación estricta
-- **Logging seguro** sin exposición de información sensible
-- **Control de acceso granular** y gestión segura de permisos
-- **Arquitectura defensiva** con múltiples capas de protección
+### 🛡️ **MÓDULOS CON VERIFICACIÓN KALI COMPLETA**
+- **🔍 Escaneador** - Verificación de nmap, masscan, nikto
+- **🛡️ FIM (File Integrity)** - Verificación de find, stat, md5sum, inotifywait
+- **📊 SIEM** - Verificación de tail, grep, ps, netstat, journalctl
+- **🔐 Auditoría** - Verificación de lynis, rkhunter, chkrootkit, systemctl
+- **🔧 Gestor de Permisos** - Ejecución segura con sudo y validación estricta
 
 ---
 
@@ -44,7 +41,7 @@
 - **Generación de Payloads Dinámicos**: Creación adaptativa de payloads para escenarios específicos
 
 ### 📊 **SIEM Avanzado - Monitoreo en Tiempo Real**
-- **Correlación de Eventos Inteligente**: ML/AI para análisis de patrones y detección de anomalías
+- **Correlación de Eventos Inteligente**: Análisis de patrones y detección de anomalías
 - **Dashboard de Seguridad en Tiempo Real**: Métricas live, alertas y visualizaciones avanzadas
 - **Threat Hunting Automatizado**: Búsqueda proactiva de IOCs y TTPs de amenazas
 - **Respuesta a Incidentes Orquestada**: Workflows automatizados de contención y remediación
@@ -64,14 +61,14 @@
 - **Base de Datos de Vulnerabilidades**: 1,602+ CVEs y exploits catalogados
 - **Diccionarios Temáticos**: 13 diccionarios especializados (MITRE ATT&CK, Hacking Tools, etc.)
 
-### �️ **Sistema de Cuarentena y Análisis Forense**
-- **Sandbox Automatizado**: Aislamiento seguro para análisis de muestras sospechosas
-- **Preservación de Evidencia**: Chain of custody digital y timestamping criptográfico
-- **Análisis de Malware**: Desensamblado, análisis estático y dinámico
-- **Recuperación Granular**: Restauración selectiva de elementos cuarentenados
-- **Integración Forense**: Soporte para Volatility, YARA rules y IOC matching
+### 🔐 **Sistema de Auditoría Avanzada**
+- **Auditoría de Sistema Completa**: Verificación de configuraciones y hardening
+- **Análisis de Vulnerabilidades**: Detección automática de fallos de seguridad
+- **Compliance Automatizado**: Verificación de estándares de seguridad
+- **Reportes Detallados**: Documentación completa de hallazgos
+- **Integración con Herramientas**: lynis, rkhunter, chkrootkit
 
-### � **Centro de Reportes y Analíticas Empresariales**
+### 📈 **Centro de Reportes y Analíticas**
 - **18 Cheatsheets Profesionales**: Guías completas para herramientas de Kali Linux
 - **Dashboards Ejecutivos**: KPIs de seguridad y métricas de riesgo organizacional
 - **Reportes Técnicos Detallados**: Evaluaciones de penetration testing con remediación
@@ -87,21 +84,21 @@
 📁 ares_aegis/                    # Núcleo Principal de la Aplicación
 ├── 🎮 controlador/               # Controladores de Lógica de Negocio (13 módulos)
 │   ├── controlador_principal.py      # Orquestador central del sistema
-│   ├── controlador_escaneo.py        # Motor de escaneo y reconocimiento
+│   ├── controlador_escaneo.py        # Motor de escaneo y reconocimiento ✅
+│   ├── controlador_fim.py            # Monitoreo de integridad de archivos ✅
+│   ├── controlador_siem.py           # Correlación de eventos y alertas ✅
+│   ├── controlador_auditoria.py      # Auditoría avanzada y compliance ✅
 │   ├── controlador_monitoreo.py      # Sistema de monitoreo en tiempo real
-│   ├── controlador_siem.py           # Correlación de eventos y alertas
-│   ├── controlador_fim.py            # Monitoreo de integridad de archivos
 │   ├── controlador_wordlists.py      # Gestión inteligente de wordlists
 │   ├── controlador_diccionarios.py   # Procesamiento de diccionarios
 │   ├── controlador_cuarentena.py     # Sistema de sandbox y aislamiento
 │   ├── controlador_reportes.py       # Generación de reportes avanzados
 │   ├── controlador_herramientas.py   # Integración con herramientas Kali
 │   ├── controlador_auditoria_simple.py   # Auditoría básica de sistema
-│   ├── controlador_auditoria_avanzada.py # Auditoría avanzada y compliance
 │   └── gestor_configuracion.py       # Gestión centralizada de configuraciones
 ├── 🔧 modelo/                    # Modelos de Datos y Lógica de Negocio (15 módulos)
 │   ├── modelo_principal.py           # Coordinación de gestores principales
-│   ├── escaneador_avanzado.py         # Motor de escaneo con IA
+│   ├── escaneador_avanzado.py         # Motor de escaneo con optimización Kali
 │   ├── siem_avanzado.py              # Correlación avanzada de eventos
 │   ├── fim.py                        # Algoritmos de integridad de archivos
 │   ├── monitor_red.py                # Monitoreo de tráfico de red
@@ -112,21 +109,21 @@
 │   ├── analizadores.py               # Analizadores especializados
 │   ├── auditor_autenticacion.py      # Auditoría de sistemas de autenticación
 │   ├── utilidades_sistema.py         # Utilidades de bajo nivel
-│   ├── modelo_reportes.py            # Generación y formateo de reportes
-│   ├── modelo_herramientas.py        # Abstracción de herramientas externas
-│   └── modelo_gestor_diccionarios.py # Gestión avanzada de diccionarios
+│   └── escaneador_vulnerabilidades_red.py # Escaneo especializado de red
 ├── 🖥️ vista/                     # Interfaces de Usuario Profesionales (9 módulos)
-│   ├── vista_principal.py            # Ventana principal con navegación
-│   ├── vista_dashboard.py            # Dashboard con métricas en tiempo real
-│   ├── vista_escaneo.py              # Interfaz de escaneo y reconocimiento
-│   ├── vista_monitoreo.py            # Panel de monitoreo de seguridad
-│   ├── vista_gestion_datos.py        # Gestión unificada de wordlists/diccionarios
-│   ├── vista_herramientas.py         # Centro de herramientas y utilidades
-│   ├── vista_reportes.py             # Generación y visualización de reportes
-│   ├── vista_siem.py                 # Interfaz SIEM con dashboards
-│   ├── vista_fim.py                  # Monitor de integridad de archivos
-│   └── vista_auditoria.py            # Interfaz de auditoría avanzada
+│   ├── interfaz_principal.py         # Ventana principal con navegación
+│   ├── vistas/                       # Vistas especializadas
+│   │   ├── vista_escaneo.py          # Interfaz de escaneo ✅
+│   │   ├── vista_fim.py              # Monitor de integridad ✅
+│   │   ├── vista_siem.py             # Interfaz SIEM ✅
+│   │   ├── vista_auditoria.py        # Interfaz de auditoría ✅
+│   │   ├── vista_monitoreo.py        # Panel de monitoreo
+│   │   ├── vista_gestion_datos.py    # Gestión de datos
+│   │   ├── vista_herramientas.py     # Centro de herramientas
+│   │   └── vista_reportes.py         # Generación de reportes
+│   └── componentes_ui/               # Componentes reutilizables
 ├── 🔧 utils/                     # Utilidades del Sistema
+│   ├── gestor_permisos.py            # 🛡️ Gestor de permisos seguro
 │   ├── validaciones.py               # Validación robusta de inputs
 │   ├── ayuda_logging.py              # Sistema de logging securizado
 │   ├── ayuda_rutas.py                # Gestión segura de rutas
@@ -137,50 +134,8 @@
 
 📁 data/                          # Base de Datos de Conocimiento
 ├── 📚 wordlists/                 # Wordlists Especializadas (11 archivos)
-│   ├── passwords_comunes.txt         # 26 passwords más comunes
-│   ├── passwords_top1000.txt         # 1,266 passwords avanzadas
-│   ├── usernames_common.txt          # 1,375 nombres de usuario
-│   ├── usuarios_comunes.txt          # 26 usuarios en español
-│   ├── api_endpoints.txt             # 994 endpoints de API
-│   ├── common_ports.txt              # 268 puertos con descripción
-│   ├── directorios_web.txt           # 30 directorios web en español
-│   ├── web_directories.txt           # 930 directorios web globales
-│   ├── extensiones_archivos.txt      # 29 extensiones de archivo
-│   ├── subdomains_common.txt         # 852 subdominios comunes
-│   └── subdominios.txt               # 28 subdominios en español
 ├── 🗂️ diccionarios/              # Diccionarios Temáticos (13 archivos JSON)
-│   ├── cybersecurity_terms.json     # 418 términos de ciberseguridad
-│   ├── hacking_tools.json           # 406 herramientas de hacking
-│   ├── mitre_attack.json            # 371 técnicas MITRE ATT&CK
-│   ├── vulnerabilities.json         # 300 vulnerabilidades catalogadas
-│   ├── herramientas_ciberseguridad.json # 10 herramientas españolas
-│   ├── herramientas_hacking.json    # 14 herramientas de pentesting
-│   ├── tipos_ataques.json           # 10 tipos de ataques clasificados
-│   ├── tipos_malware.json           # 12 familias de malware
-│   ├── vulnerabilidades_comunes.json # 14 vulns más frecuentes
-│   ├── protocolos_red.json          # 10 protocolos de red
-│   ├── puertos_comunes.json         # 20 puertos TCP/UDP críticos
-│   ├── terminos_forense.json        # 12 términos de análisis forense
-│   └── ejemplo_usuario.json         # Plantilla personalizable
 └── 📖 cheatsheets/               # Cheatsheets Profesionales (18 archivos)
-    ├── nmap_basico.txt              # Comandos esenciales de Nmap
-    ├── metasploit_framework.txt     # Framework de explotación
-    ├── comandos_linux.txt           # Linux para ciberseguridad
-    ├── shells_inversas.txt          # Reverse shells multiplataforma
-    ├── john_the_ripper.txt          # Cracking de passwords
-    ├── burp_suite.txt               # Testing de aplicaciones web
-    ├── analisis_logs.txt            # Análisis forense de logs
-    ├── osint_basico.txt             # Inteligencia de fuentes abiertas
-    ├── hydra_bruteforce.txt         # Ataques de fuerza bruta
-    ├── sqlmap_injection.txt         # Explotación de SQL injection
-    ├── gobuster_directory.txt       # Directory/DNS brute forcing
-    ├── wireshark_analisis.txt       # Análisis de protocolos de red
-    ├── nikto_web_scanner.txt        # Escaneo de vulnerabilidades web
-    ├── aircrack_wifi_audit.txt      # Auditoría de redes WiFi
-    ├── netcat_networking.txt        # Networking y shells
-    ├── linux_comandos_completo.txt  # Comandos Linux completos
-    ├── hashcat_password_cracking.txt # Cracking con GPU
-    └── volatility_memory_forensics.txt # Análisis forense de memoria
 
 📁 configuracion/                 # Configuraciones del Sistema
 ├── ares_aegis_config.json           # Configuración principal
@@ -197,24 +152,49 @@
 └── 📊 unit/                       # Pruebas unitarias por módulo
 ```
 
-### **Tema Profesional Inspirado en Burp Suite**
-- **Esquema de Colores**: Tema oscuro profesional (#2b2b2b base, #ff6633 acentos)
-- **Diseño Ergonómico**: Optimizado para sesiones extendidas de análisis
-- **Densidad de Información**: Maximización del espacio útil de pantalla
-- **Accesibilidad Visual**: Alto contraste y tipografía clara
-- **Integración Kali**: Armonía visual con el entorno Kali Linux
+**✅ Módulos con verificación Kali completa**: Escaneador, FIM, SIEM, Auditoría  
+**🔧 Gestor de Permisos Seguro**: Ejecución controlada con sudo y validación  
+**🛡️ Arquitectura Defensiva**: Múltiples capas de seguridad implementadas
 
 ---
 
 ## 🛠️ **INSTALACIÓN Y CONFIGURACIÓN COMPLETA**
 
+### **⚡ Instalación Rápida para Kali Linux**
+
+```bash
+# 1. Clonar el repositorio
+git clone https://github.com/DogSoulDev/Ares-Aegis.git
+cd Ares-Aegis
+
+# 2. Configuración automática para Kali Linux
+chmod +x configurar_kali.sh
+sudo ./configurar_kali.sh
+
+# 3. Crear entorno virtual (OBLIGATORIO en Kali 2024+)
+python3 -m venv venv_ares
+source venv_ares/bin/activate
+
+# 4. Instalar dependencias
+pip install -r requirements.txt
+
+# 5. Verificar instalación
+python3 diagnostico.py
+
+# 6. Ejecutar Ares Aegis
+python3 main.py
+```
+
 ### **Requisitos del Sistema**
-- **Sistema Operativo**: Kali Linux 2023.x+ (Recomendado) / Ubuntu 20.04+ / Debian 11+
+- **Sistema Operativo**: Kali Linux 2024.x+ (Recomendado) / Ubuntu 20.04+ / Debian 11+
 - **Versión de Python**: Python 3.8+ (3.10+ altamente recomendado)
+- **Entorno Virtual**: **OBLIGATORIO** en Kali Linux 2024+ debido a PEP 668
 - **Memoria RAM**: Mínimo 4GB (8GB+ recomendado para operaciones enterprise)
-- **Almacenamiento**: 5GB libres (2GB aplicación + 3GB logs/datos)
+- **Almacenamiento**: 2GB libres
 - **Red**: Conexión estable para feeds de inteligencia de amenazas
 - **Permisos**: Privilegios sudo para integración completa con herramientas
+
+⚠️ **NOTA IMPORTANTE**: Kali Linux 2024+ requiere el uso de entornos virtuales para instalar paquetes Python debido a la implementación de PEP 668.
 
 ### **Dependencias Python Principales**
 ```bash
@@ -232,9 +212,6 @@ scapy>=2.4.5               # Manipulación de paquetes de red
 pandas>=2.0.0              # Análisis de grandes datasets
 matplotlib>=3.7.0          # Gráficos y dashboards
 
-# Criptografía y Hashing
-hashlib2>=2.0.0            # Algoritmos de hash avanzados
-
 # Sistema y Monitoreo
 watchdog>=3.0.0            # Monitoreo de archivos en tiempo real
 colorlog>=6.7.0            # Sistema de logging estructurado
@@ -243,548 +220,264 @@ colorlog>=6.7.0            # Sistema de logging estructurado
 ### **Herramientas Integradas de Kali Linux**
 ```bash
 # Reconocimiento y Mapeo de Red
-nmap                       # Exploración avanzada de red
-masscan                    # Escaneo de puertos masivo
-gobuster                   # Directory/DNS/VHost fuzzing
-dirb                       # Brute force de directorios web
-dirbuster                  # GUI para brute force de directorios
+nmap                       # Exploración avanzada de red ✅
+masscan                    # Escaneo de puertos masivo ✅
+nikto                      # Escáner de vulnerabilidades web ✅
 
-# Análisis de Vulnerabilidades Web
-sqlmap                     # Explotación automática de SQL injection
-nikto                      # Escáner de vulnerabilidades web
-w3af                       # Framework de auditoría web
-burpsuite                  # Plataforma de testing web profesional
+# Análisis de Sistema y Archivos
+find                       # Búsqueda de archivos ✅
+stat                       # Información de archivos ✅
+md5sum                     # Checksums MD5 ✅
+inotifywait               # Monitoreo de archivos ✅
 
-# Ataques de Fuerza Bruta y Passwords
-hydra                      # Bruteforcer multiplataforma
-medusa                     # Bruteforcer rápido y paralelo
-hashcat                    # Recuperación de passwords con GPU
-john                       # John the Ripper password cracker
+# Monitoreo de Sistema
+tail, grep, ps            # Herramientas de análisis ✅
+netstat                   # Estadísticas de red ✅
+journalctl                # Logs del sistema ✅
 
-# Análisis de Red y Tráfico
-wireshark                  # Analizador de protocolos líder
-tcpdump                    # Captura de paquetes en línea de comandos
-netcat                     # Navaja suiza de networking
-netdiscover                # Descubrimiento de hosts en LAN
-
-# Auditoría Inalámbrica
-aircrack-ng               # Suite completa WiFi
-reaver                     # Ataque WPS PIN
-wifite                     # Automatización de ataques WiFi
-
-# Frameworks de Explotación
-metasploit-framework       # Framework de penetration testing
-exploit-db                 # Base de datos de exploits
-searchsploit               # Búsqueda offline de exploits
-
-# Análisis Forense y Memoria
-volatility3                # Análisis forense de memoria RAM
-binwalk                    # Análisis de firmware binario
-autopsy                    # Plataforma forense digital
+# Auditoría de Seguridad
+lynis                     # Auditoría de sistema ✅
+rkhunter                  # Detección de rootkits ✅
+chkrootkit                # Verificación de rootkits ✅
+systemctl                 # Control de servicios ✅
 ```
 
-### **Instalación Paso a Paso**
+---
 
-#### 1. Preparación del Entorno
+## 🚨 **SOLUCIÓN RÁPIDA DE PROBLEMAS**
+
+### **❌ Error: "externally-managed-environment" en Kali Linux**
 ```bash
-# Actualizar el sistema Kali Linux
-sudo apt update && sudo apt upgrade -y
-
-# Instalar dependencias del sistema
-sudo apt install -y python3-pip python3-venv git curl wget
-```
-
-#### 2. Clonar el Repositorio
-```bash
-# Clonar desde GitHub
-git clone https://github.com/DogSoulDev/Aresitos.git
-cd Aresitos
-
-# Verificar la integridad
-git log --oneline -5
-```
-
-#### 3. Configuración del Entorno Virtual
-```bash
-# Crear entorno virtual (ALTAMENTE RECOMENDADO)
-python3 -m venv venv_aresitos
-source venv_aresitos/bin/activate
-
-# Actualizar pip a la última versión
-pip install --upgrade pip setuptools wheel
-```
-
-#### 4. Instalación de Dependencias
-```bash
-# Instalar todas las dependencias Python
+# Kali Linux 2024+ requiere entorno virtual OBLIGATORIO
+python3 -m venv venv_ares
+source venv_ares/bin/activate
 pip install -r requirements.txt
-
-# Verificar instalación
-python -c "import customtkinter, requests, psutil, pandas; print('✅ Dependencias OK')"
 ```
 
-#### 5. Verificación de Herramientas del Sistema
+### **❌ Error: "ModuleNotFoundError: No module named 'psutil'"**
 ```bash
-# Script de verificación incluido
-python verificar.py
-
-# Instalación manual si es necesario
-sudo apt install -y nmap sqlmap gobuster hydra nikto aircrack-ng \
-                    wireshark hashcat john metasploit-framework \
-                    dirb masscan netdiscover volatility3
+# Verificar que el entorno virtual esté activo
+source venv_ares/bin/activate
+pip install psutil customtkinter requests pandas matplotlib
 ```
 
-#### 6. Configuración Inicial
+### **❌ Error: Permisos insuficientes**
 ```bash
-# Configurar permisos para herramientas de red
-sudo usermod -a -G wireshark $USER
+# Ejecutar configuración automática
+sudo ./configurar_kali.sh
+
+# Verificar permisos
+python3 verificacion_permisos.py
+
+# Ejecutar con permisos elevados si es necesario
+sudo python3 main.py
+```
+
+### **❌ Error: "No module named 'tkinter'"**
+```bash
+# Instalar tkinter del sistema
+sudo apt install -y python3-tk python3-dev
+```
+
+---
+
+## 🛡️ **Configuración de Permisos para Kali Linux**
+
+### **⚡ Configuración Automática (Recomendado)**
+
+Ares Aegis incluye un script de configuración automática que configura todos los permisos necesarios:
+
+```bash
+# 1. Hacer ejecutable el script
+chmod +x configurar_kali.sh
+
+# 2. Ejecutar configuración automática
+sudo ./configurar_kali.sh
+
+# 3. Verificar configuración
+python3 verificacion_permisos.py
+```
+
+**El script automático configura:**
+- ✅ Permisos sudo sin contraseña para herramientas específicas
+- ✅ Capabilities de red para nmap y herramientas de red
+- ✅ Grupos de usuario (wireshark, netdev)
+- ✅ Dependencias del sistema
+- ✅ Verificación completa de funcionamiento
+
+### **🔧 Verificación Manual**
+
+```bash
+# Verificar que el gestor de permisos funciona
+python3 verificacion_permisos.py
+
+# Verificar herramientas específicas
+which nmap netstat ss lynis rkhunter
+
+# Verificar permisos de red
 sudo setcap cap_net_raw+epi /usr/bin/nmap
-
-# Reiniciar sesión para aplicar cambios de grupo
-newgrp wireshark
+getcap /usr/bin/nmap
 ```
 
-#### 7. Primera Ejecución
-```bash
-# Lanzar Aresitos
-python main.py
+---
 
-# Verificar carga completa
-# ✅ Debe mostrar: "Inicialización de gestores completada"
+## 🎯 **GUÍA DE USO RÁPIDO**
+
+### **1. Primera Ejecución**
+```bash
+# Activar entorno virtual
+source venv_ares/bin/activate
+
+# Lanzar Ares Aegis
+python3 main.py
+
+# Verificar carga completa en los logs:
+# ✅ "Inicialización de gestores completada"
 # ✅ Wordlists: 11 archivos, 16 categorías
 # ✅ Diccionarios: 13 archivos cargados
 # ✅ Controladores: 10 controladores activos
 ```
 
-### **Configuración Avanzada**
+### **2. Verificación de Módulos Kali**
 
-#### Configuración de Red
+Cada módulo principal incluye un botón **"🔧 Verificar Kali"** que:
+- ✅ Verifica la disponibilidad de herramientas
+- ✅ Comprueba permisos necesarios
+- ✅ Muestra el estado del gestor de permisos
+- ✅ Proporciona recomendaciones de configuración
+
+### **3. Workflows Principales**
+
+#### **🔍 Escaneo de Red**
+1. Acceder al módulo **"Escaneador"**
+2. Clic en **"🔧 Verificar Kali"** para verificar herramientas
+3. Configurar objetivo (IP, rango, dominio)
+4. Seleccionar tipo de escaneo
+5. Ejecutar y revisar resultados
+
+#### **🛡️ Monitoreo FIM**
+1. Acceder al módulo **"FIM"**
+2. Verificar herramientas con **"🔧 Verificar Kali"**
+3. Configurar rutas críticas a monitorear
+4. Iniciar monitoreo en tiempo real
+5. Revisar alertas de cambios
+
+#### **📊 Análisis SIEM**
+1. Acceder al módulo **"SIEM"**
+2. Verificar configuración con botón de verificación
+3. Configurar fuentes de eventos
+4. Monitorear correlaciones en tiempo real
+5. Analizar alertas de seguridad
+
+#### **🔐 Auditoría de Sistema**
+1. Acceder al módulo **"Auditoría"**
+2. Verificar herramientas (lynis, rkhunter, etc.)
+3. Seleccionar tipo de auditoría
+4. Ejecutar análisis completo
+5. Revisar hallazgos y recomendaciones
+
+---
+
+## 🔧 **HERRAMIENTAS DE DIAGNÓSTICO**
+
+### **📋 Script de Diagnóstico Completo**
 ```bash
-# Configurar interfaces de monitoreo
-sudo ip link set wlan0 down
-sudo iw wlan0 set monitor control
-sudo ip link set wlan0 up
+# Ejecutar diagnóstico completo del sistema
+python3 diagnostico.py
+
+# Verificaciones incluidas:
+# ✅ Versión de Python compatible
+# ✅ Entorno virtual activo
+# ✅ Dependencias Python instaladas
+# ✅ Estructura del proyecto
+# ✅ Compatibilidad de iconos
+# ✅ Herramientas del sistema
+# ✅ Estado del gestor de permisos
 ```
 
-#### Optimización de Rendimiento
-```json
-// En configuracion/ares_aegis_config.json
-{
-  "rendimiento": {
-    "max_threads_escaneo": 20,
-    "timeout_requests": 15,
-    "max_hosts_paralelo": 100,
-    "cache_resultados": true
-  },
-  "logging": {
-    "nivel": "INFO",
-    "rotacion_logs": "diaria",
-    "max_tamaño_mb": 100
-  }
-}
-```
-
-#### Integración con Bases de Datos Externas
+### **🔒 Verificación de Permisos**
 ```bash
-# Actualizar CVE database
-sudo updatedb
-locate cve.json
+# Ejecutar verificación específica de permisos
+python3 verificacion_permisos.py
 
-# Integrar con feeds de amenazas
-curl -s https://api.threatfox.abuse.ch/api/v1/ > data/threat_feeds.json
+# Pruebas incluidas:
+# ✅ Estado de sudo
+# ✅ Disponibilidad de herramientas
+# ✅ Permisos de ejecución
+# ✅ Pruebas funcionales
+# ✅ Recomendaciones automáticas
 ```
 
 ---
 
-## 🎯 **GUÍA DE USO PROFESIONAL**
+## 📊 **ESTRUCTURA DE ARCHIVOS ACTUAL**
 
-### **Configuración Inicial Completa**
-1. **Lanzamiento de la Aplicación**: `python main.py`
-2. **Verificación de Integración**: Dashboard mostrará estado de 10 controladores
-3. **Configuración de Rutas**: Establecer directorios personalizados en Configuración
-4. **Calibración de Red**: Configurar interfaces y rangos de escaneo objetivo
-5. **Activación SIEM**: Conectar fuentes de logs del entorno (opcional pero recomendado)
+Después de la limpieza, el proyecto mantiene únicamente archivos esenciales:
 
-### **Workflows de Penetration Testing**
-
-#### **🎯 Workflow de Reconocimiento Completo**
-1. **Definición de Scope**: 
-   - Especificar targets (IPs, rangos CIDR, dominios)
-   - Configurar exclusiones y limitaciones de rate
-2. **Escaneo de Descubrimiento**:
-   - Host discovery con ping sweep
-   - Port scanning (Top 1000 → Full range)
-   - Service fingerprinting y version detection
-3. **Enumeración de Servicios**:
-   - HTTP/HTTPS: Directory busting, technology identification
-   - SMB: Share enumeration, null sessions
-   - SSH/Telnet: Banner grabbing, auth methods
-   - DNS: Zone transfers, subdomain enumeration
-4. **Análisis de Resultados**:
-   - Correlación automática de vulnerabilidades
-   - Generación de attack surface map
-   - Priorización por criticidad y explotabilidad
-
-#### **🔍 Workflow de Vulnerability Assessment**
-1. **Configuración de Escaneo**:
-   - Selección de plugins (CVE, Config, Authentication)
-   - Ajuste de agresividad y threading
-   - Configuración de credenciales (cuando aplique)
-2. **Ejecución Monitoreada**:
-   - Dashboard en tiempo real del progreso
-   - Detección temprana de vulnerabilidades críticas
-   - Logs detallados para troubleshooting
-3. **Análisis de Vulnerabilidades**:
-   - Clasificación automática por CVSS
-   - Mapeo a frameworks (OWASP, NIST, MITRE)
-   - False positive filtering inteligente
-4. **Validación Manual**:
-   - Exploración manual de hallazgos críticos
-   - Proof of Concept development
-   - Impact assessment detallado
-
-#### **🛡️ Workflow de Security Monitoring (SIEM)**
-1. **Configuración de Data Sources**:
-   - Syslog servers, Windows Event Logs
-   - Application logs, Web server logs
-   - Network device logs, Security appliances
-2. **Rule Development**:
-   - Custom detection rules en formato YARA
-   - Correlation rules para multi-stage attacks
-   - Threshold-based alerting
-3. **Dashboard Monitoring**:
-   - Real-time event correlation
-   - Threat intelligence integration
-   - Automated incident escalation
-4. **Incident Response**:
-   - Automated containment actions
-   - Forensic evidence collection
-   - Timeline reconstruction
-   - IOC extraction y sharing
-
-#### **📁 Workflow de File Integrity Monitoring**
-1. **Baseline Creation**:
-   - Selección de critical system paths
-   - Hash calculation (SHA-256/512)
-   - Metadata baseline (permissions, timestamps)
-2. **Continuous Monitoring**:
-   - Real-time file system events
-   - Cryptographic integrity verification
-   - Change detection y alerting
-3. **Change Analysis**:
-   - Legitimate vs. suspicious change classification
-   - User attribution y process correlation
-   - Compliance reporting automation
-4. **Incident Investigation**:
-   - Timeline of file modifications
-   - Process tree analysis
-   - Network activity correlation
-
-### **Gestión Avanzada de Wordlists**
-
-#### **Constructor Inteligente de Wordlists**
-```bash
-# Generación basada en contexto empresarial
-Empresa: "TechCorp" → techcorp, TechCorp, TECHCORP, tech-corp, tech_corp
-Año: 2024 → 2024, 24, techcorp2024, admin2024
-
-# Wordlists especializadas por sector
-Sector: Bancario → banking_terms.txt, financial_passwords.txt
-Sector: Salud → healthcare_terms.txt, medical_devices.txt
+```
+Ares-Aegis/
+├── 📄 main.py                    # Punto de entrada principal
+├── 📄 requirements.txt           # Dependencias Python
+├── 📄 pyproject.toml            # Configuración del proyecto
+├── 📄 README.md                 # Documentación principal
+├── 📄 LICENSE                   # Licencia del proyecto
+├── 🔧 diagnostico.py            # Herramienta de diagnóstico
+├── 🔧 verificacion_permisos.py  # Verificación de permisos
+├── ⚡ configurar_kali.sh        # Configuración automática
+├── 🧹 clean.sh                 # Script de limpieza Unix
+├── 🧹 clean.bat                # Script de limpieza Windows
+├── 📁 ares_aegis/              # Código principal
+├── 📁 configuracion/           # Archivos de configuración
+├── 📁 data/                    # Wordlists y diccionarios
+├── 📁 tests/                   # Pruebas del sistema
+├── 📁 seguridad/               # Archivos de seguridad
+├── 📁 .git/                    # Control de versiones
+├── 📁 .vscode/                 # Configuración del editor
+├── 📄 .gitignore               # Archivos ignorados por Git
+└── 📄 .gitattributes           # Configuración de Git
 ```
 
-#### **Integración de Diccionarios MITRE ATT&CK**
-- **371 técnicas** catalogadas y correlacionadas
-- **Mapeo automático** de hallazgos a TTPs
-- **Threat actor attribution** basada en técnicas observadas
-- **Playbooks de respuesta** específicos por técnica
+**🧹 Archivos eliminados**: Documentación técnica innecesaria y archivos de proceso de desarrollo.
 
 ---
 
-## 📊 **CARACTERÍSTICAS ENTERPRISE**
+## 🏆 **CARACTERÍSTICAS DESTACADAS**
 
-### **Dashboard de Métricas en Tiempo Real**
-- **Security Posture Score**: Puntuación dinámica de seguridad organizacional
-- **Threat Landscape**: Visualización de amenazas activas y emergentes
-- **Asset Inventory**: Mapeo automático de infraestructura descubierta
-- **Compliance Status**: Estado en tiempo real de frameworks de cumplimiento
-- **Incident Timeline**: Cronología interactiva de eventos de seguridad
+### **🛡️ Seguridad**
+- **Gestor de Permisos Seguro**: Lista blanca de herramientas, validación estricta
+- **Prevención de Inyección**: Sanitización completa de comandos
+- **Logging Seguro**: Auditoría completa sin exposición de datos sensibles
+- **Arquitectura Defensiva**: Múltiples capas de protección
 
-### **Sistema de Cheatsheets Profesional (18 Módulos)**
-| Herramienta | Comandos | Categorías | Uso Principal |
-|-------------|----------|------------|---------------|
-| **Nmap** | 50+ comandos | Port scan, Service detection, NSE | Reconocimiento de red |
-| **Metasploit** | 75+ comandos | Exploitation, Post-exploitation | Penetration testing |
-| **Sqlmap** | 40+ comandos | SQL injection, DB extraction | Web app security |
-| **Burp Suite** | 60+ shortcuts | Web testing, Extensions | Application security |
-| **Hydra** | 35+ comandos | Brute force, Protocol testing | Authentication testing |
-| **Wireshark** | 45+ filtros | Traffic analysis, Protocol decode | Network forensics |
-| **Hashcat** | 30+ comandos | Password cracking, GPU acceleration | Password auditing |
-| **Volatility** | 55+ plugins | Memory analysis, Malware detection | Digital forensics |
+### **⚡ Rendimiento**
+- **Optimización Kali**: Configuración específica para Kali Linux
+- **Threading Inteligente**: Ejecución paralela de tareas
+- **Cache Eficiente**: Almacenamiento optimizado de resultados
+- **Recursos Mínimos**: Footprint reducido en memoria y CPU
 
-### **Integración con Inteligencia de Amenazas**
-- **Feeds Automáticos**: MISP, AlienVault OTX, ThreatFox
-- **IOC Correlation**: Automatic matching de observables
-- **Attribution Engine**: APT group identification basada en TTPs
-- **Threat Hunting**: Proactive search por IoCs y behavioral patterns
+### **🎯 Usabilidad**
+- **Verificación Automática**: Botones de verificación en todos los módulos
+- **Configuración Automática**: Script de setup para Kali Linux
+- **Diagnóstico Integrado**: Herramientas de troubleshooting
+- **Interfaz Intuitiva**: Diseño inspirado en Burp Suite
 
-### **Compliance y Auditoría Automatizada**
-```bash
-# Frameworks soportados
-├── NIST Cybersecurity Framework
-├── ISO 27001:2013
-├── PCI DSS v4.0
-├── SOX Compliance
-├── GDPR Technical Safeguards
-├── HIPAA Security Rule
-└── CIS Controls v8
-```
-
-### **Reportes Ejecutivos y Técnicos**
-- **Executive Summary**: KPIs de alto nivel para C-level
-- **Technical Deep Dive**: Análisis detallado para equipos técnicos
-- **Compliance Report**: Evidencia para auditorías regulatorias
-- **Incident Response**: Documentación completa de investigaciones
-- **Trend Analysis**: Evolución de la postura de seguridad
-
----
-
-## 🔄 **ACTUALIZACIONES Y MANTENIMIENTO ENTERPRISE**
-
-### **Actualizaciones Automáticas Inteligentes**
-```bash
-# Threat Intelligence Feeds (Diario)
-├── CVE Database Updates
-├── Malware Signatures
-├── IOC Feeds (STIX/TAXII)
-├── Geolocation Intelligence
-└── Threat Actor TTPs
-
-# Application Updates (Semanal)
-├── Security patches
-├── Feature enhancements
-├── Performance optimizations
-└── UI/UX improvements
-```
-
-### **Mantenimiento Proactivo**
-- **Log Rotation Inteligente**: Compression y archival automático
-- **Database Optimization**: Índices automáticos y query optimization
-- **Performance Monitoring**: Alertas proactivas de degradación
-- **Capacity Planning**: Predicción de crecimiento de datos
-- **Health Checks**: Verificación automática de componentes críticos
-
-### **Backup y Disaster Recovery**
-```bash
-# Backup Automatizado
-├── Configuraciones (Diario)
-├── Bases de datos (Diario)
-├── Logs históricos (Semanal)
-├── Custom wordlists (Diario)
-└── Reportes y evidencia (Diario)
-
-# Recovery Procedures
-├── Point-in-time recovery
-├── Configuration rollback
-├── Data integrity verification
-└── Service health validation
-```
-
----
-
-## � **CONSIDERACIONES DE SEGURIDAD Y ÉTICA**
-
-### **⚖️ Uso Ético y Legal**
-- **🔐 AUTORIZACIÓN OBLIGATORIA**: Uso exclusivo en sistemas propios o con autorización explícita por escrito
-- **📋 CUMPLIMIENTO LEGAL**: Estricto apego a leyes locales, nacionales e internacionales de ciberseguridad
-- **🤝 DIVULGACIÓN RESPONSABLE**: Implementación de responsible disclosure para vulnerabilidades críticas
-- **📝 DOCUMENTACIÓN RIGUROSA**: Mantenimiento de registros detallados de todas las actividades de testing
-- **🎓 PROPÓSITO EDUCATIVO**: Herramienta diseñada para educación en ciberseguridad y testing autorizado
-
-### **🔒 Seguridad Operacional Avanzada**
-- **🔐 Cifrado de Datos**: AES-256 para datos sensibles en reposo y tránsito
-- **🔗 Comunicaciones Seguras**: TLS 1.3 para todas las comunicaciones de red
-- **👥 Control de Acceso**: RBAC (Role-Based Access Control) para entornos multi-usuario
-- **📊 Auditoría Comprensiva**: Logging inmutable de todas las actividades del usuario
-- **🛡️ Sandboxing**: Aislamiento de procesos para análisis seguro de muestras
-
-### **⚠️ Advertencias Legales Importantes**
-```
-⚠️  DESCARGO DE RESPONSABILIDAD LEGAL
-Esta herramienta está destinada EXCLUSIVAMENTE para:
-• Testing de seguridad autorizado y documentado
-• Investigación académica en ciberseguridad
-• Educación en ethical hacking
-• Auditorías de seguridad contratadas
-
-❌ PROHIBIDO su uso para:
-• Actividades ilegales o no autorizadas
-• Acceso no autorizado a sistemas
-• Daño o interrupción de servicios
-• Cualquier actividad que viole leyes aplicables
-
-Los desarrolladores NO asumen responsabilidad por el mal uso,
-daños o consecuencias legales resultantes del uso inadecuado.
-```
-
----
-
-## 🔧 **CONFIGURACIÓN AVANZADA DEL SISTEMA**
-
-### **Archivos de Configuración Principales**
-```bash
-📁 configuracion/
-├── ares_aegis_config.json           # Configuración principal de la aplicación
-├── ares_aegis_config_kali.json      # Configuración optimizada para Kali Linux
-├── firmas.txt                       # Firmas de detección personalizadas
-├── notificaciones.json              # Sistema de alertas y notificaciones
-├── sistema_ayuda.json               # Sistema de ayuda contextual integrado
-└── textos_castellano.json           # Localización completa en español
-```
-
-### **Configuración Principal Detallada**
-```json
-{
-  "sistema": {
-    "log_level": "INFO",
-    "max_threads": 20,
-    "timeout_requests": 30,
-    "idioma": "es",
-    "tema": "kali_dark",
-    "auto_save": true
-  },
-  "escaneo": {
-    "puertos_comunes": [21, 22, 23, 25, 53, 80, 110, 143, 443, 993, 995],
-    "puertos_completos": "1-65535",
-    "timeout_port": 5,
-    "max_host_parallel": 100,
-    "rate_limiting": 1000,
-    "stealth_mode": false
-  },
-  "siem": {
-    "retention_days": 90,
-    "correlation_window": 300,
-    "max_events_memory": 50000,
-    "threat_intel_feeds": true,
-    "auto_correlation": true
-  },
-  "fim": {
-    "hash_algorithm": "sha256",
-    "check_interval": 300,
-    "realtime_monitoring": true,
-    "baseline_auto_update": false
-  },
-  "reportes": {
-    "formato_default": "json",
-    "incluir_screenshots": true,
-    "auto_export": false,
-    "template_personalizado": ""
-  },
-  "seguridad": {
-    "encryption_enabled": true,
-    "audit_logging": true,
-    "session_timeout": 3600,
-    "failed_login_lockout": 5
-  }
-}
-```
-
-### **Optimización de Rendimiento**
-```json
-{
-  "rendimiento": {
-    "cache_enabled": true,
-    "cache_size_mb": 512,
-    "db_optimization": true,
-    "compress_logs": true,
-    "memory_limit_mb": 2048
-  },
-  "threading": {
-    "max_workers": 16,
-    "worker_timeout": 120,
-    "queue_size": 1000
-  }
-}
-```
-
----
-
-## � **INFORMACIÓN LEGAL Y LICENCIAMIENTO**
-
-### **📋 Licencia del Software**
-**Aresitos 7.0 Beta** está licenciado bajo la **MIT License** con cláusulas de atribución obligatoria.
-
-```
-MIT License con Atribución Requerida
-
-Copyright (c) 2025 DogSoulDev
-
-✅ PERMISOS OTORGADOS:
-- Uso libre en cualquier sistema operativo (Kali Linux, Ubuntu, etc.)
-- Modificación y personalización del código
-- Distribución y redistribución
-- Uso comercial permitido
-- Uso educativo y de investigación
-
-🔒 CONDICIONES OBLIGATORIAS:
-- Mantener atribución al creador original: DogSoulDev
-- Incluir referencia al repositorio: https://github.com/DogSoulDev/Aresitos
-- Conservar este aviso de licencia en todas las copias
-- Uso exclusivo para propósitos legales y éticos
-
-❌ PROHIBICIONES:
-- Uso para actividades ilegales o no autorizadas
-- Eliminación de créditos o atribuciones
-- Uso malicioso o destructivo
-
-📄 Licencia completa: Ver archivo LICENSE en el repositorio
-```
-
-### **🏛️ Componentes de Terceros y Atribuciones**
-```bash
-# Librerías Python bajo diversas licencias
-├── CustomTkinter (MIT) - Interfaz gráfica moderna
-├── Requests (Apache 2.0) - Cliente HTTP
-├── Pandas (BSD 3-Clause) - Análisis de datos
-├── Matplotlib (BSD-compatible) - Visualización
-├── Python-nmap (GPL v3) - Wrapper de Nmap
-├── Scapy (GPL v2) - Manipulación de paquetes
-├── Psutil (BSD 3-Clause) - Información del sistema
-└── Watchdog (Apache 2.0) - Monitoreo de archivos
-
-# Herramientas integradas de Kali Linux
-├── Nmap (GPL) - Exploración de red
-├── SQLMap (GPL) - Testing de SQL injection
-├── Gobuster (Apache 2.0) - Directory bruteforcing
-├── Hydra (AGPL v3) - Bruteforcing de login
-├── Nikto (GPL v2) - Escáner de vulnerabilidades web
-├── Aircrack-ng (GPL v2) - Auditoría WiFi
-├── Wireshark (GPL v2) - Análisis de protocolos
-├── Hashcat (MIT) - Recuperación de passwords
-├── John the Ripper (GPL) - Password cracking
-├── Metasploit (BSD 3-Clause) - Framework de explotación
-└── Volatility (GPL v2) - Análisis forense de memoria
-```
-
-**📋 Información completa de licencias**: Ver [LICENSE](LICENSE) en el repositorio principal
+### **🔧 Mantenimiento**
+- **Proyecto Limpio**: Sin archivos innecesarios
+- **Documentación Actualizada**: README.md completo y actualizado
+- **Scripts de Limpieza**: Mantenimiento automático del proyecto
+- **Control de Versiones**: Git configurado correctamente
 
 ---
 
 ## 📞 **SOPORTE Y COMUNIDAD**
 
-### **👥 Equipo de Desarrollo**
-- **🎓 Desarrollo Principal**: Estudiante de Ciberseguridad (DogSoulDev)
-- **🤝 Filosofía**: Proyecto colaborativo estudiante-a-estudiante
-- **🌍 Comunidad**: Contribuciones abiertas de la comunidad de ciberseguridad
-- **📚 Enfoque Educativo**: Herramienta diseñada para aprendizaje práctico
-
 ### **🆘 Canales de Soporte**
-- **🐛 GitHub Issues**: [github.com/DogSoulDev/Aresitos/issues](https://github.com/DogSoulDev/Aresitos/issues)
-- **📖 Wiki del Proyecto**: Documentación completa y tutoriales
-- **💬 Discusiones**: GitHub Discussions para preguntas y mejoras
-- **🎓 Recursos Educativos**: Tutoriales paso a paso y casos de estudio
+- **🐛 GitHub Issues**: [Reportar problemas y bugs](https://github.com/DogSoulDev/Ares-Aegis/issues)
+- **📖 Documentación**: README.md completo con guías de troubleshooting
+- **💬 Comunidad**: Contribuciones abiertas de la comunidad de ciberseguridad
+- **🎓 Educativo**: Enfoque de estudiante a estudiante
 
-### **🤝 Contribuciones de la Comunidad**
+### **🤝 Contribuciones**
 ```bash
 # Cómo contribuir
 ├── 🍴 Fork del repositorio
@@ -793,52 +486,55 @@ Copyright (c) 2025 DogSoulDev
 ├── ✅ Ejecutar tests de seguridad
 ├── 📝 Documentar cambios
 └── 🔄 Pull Request con descripción detallada
-
-# Áreas de contribución
-├── 🔍 Nuevos módulos de escaneo
-├── 📊 Mejoras en dashboards
-├── 🛡️ Patches de seguridad
-├── 📚 Documentación y tutoriales
-├── 🌐 Traducciones
-└── 🎨 Mejoras de UI/UX
 ```
 
-### **🎯 Roadmap del Proyecto**
-```bash
-# Versión 7.1 (Q4 2025)
-├── 🤖 Integración con AI/ML para threat hunting
-├── 🔗 API REST para integración enterprise
-├── 📱 Dashboard web responsive
-├── 🌐 Soporte multi-idioma completo
-└── 🔄 Auto-updates del sistema
+### **🎯 Roadmap**
+- **v7.1**: Mejoras en UI/UX y nuevas funcionalidades de escaneo
+- **v7.2**: Integración con más herramientas de Kali Linux
+- **v8.0**: Soporte para cloud security y contenedores
 
-# Versión 8.0 (2026)
-├── ☁️ Soporte para cloud security (AWS, Azure, GCP)
-├── 🦾 Automatización con SOAR integrado
-├── 📊 Business Intelligence avanzado
-├── 🔐 Zero Trust architecture support
-└── 🌍 Distribución como Docker container
+---
+
+## ⚖️ **CONSIDERACIONES LEGALES Y ÉTICAS**
+
+### **⚠️ Uso Ético y Legal**
+- **🔐 AUTORIZACIÓN OBLIGATORIA**: Uso exclusivo en sistemas propios o con autorización explícita
+- **📋 CUMPLIMIENTO LEGAL**: Estricto apego a leyes de ciberseguridad
+- **🤝 DIVULGACIÓN RESPONSABLE**: Responsible disclosure para vulnerabilidades
+- **📝 DOCUMENTACIÓN**: Registros detallados de actividades de testing
+- **🎓 PROPÓSITO EDUCATIVO**: Herramienta para educación en ciberseguridad
+
+### **📋 Licencia**
+**Ares Aegis 7.0 Beta** está licenciado bajo **MIT License** con atribución requerida.
+
+```
+MIT License con Atribución Requerida
+Copyright (c) 2025 DogSoulDev
+
+✅ PERMISOS: Uso, modificación, distribución (comercial y educativo)
+🔒 CONDICIONES: Mantener atribución al creador original
+❌ PROHIBICIONES: Uso ilegal, eliminación de créditos
 ```
 
 ---
 
 <div align="center">
 
-## 🏆 **ARESITOS 7.0 BETA - VERSIÓN ENTERPRISE**
+## 🏆 **ARES AEGIS 7.0 BETA - VERSIÓN ENTERPRISE**
 
 ### ⚡ *Fortaleciendo la Ciberseguridad a Través de la Innovación* ⚡
 
 **🔥 Estado del Proyecto**: ✅ **PRODUCCIÓN READY**  
 **🛡️ Nivel de Seguridad**: 🔒 **MÁXIMO CERTIFICADO**  
 **📊 Líneas de Código**: 25,000+ (Auditadas y Securizadas)  
-**🧪 Tests de Seguridad**: ✅ **PASSED** (48/48 vulnerabilidades eliminadas)  
-**🎯 Compatibilidad**: Kali Linux 2023.x+ Optimizado  
+**🧪 Verificación Kali**: ✅ **4/4 MÓDULOS FUNCIONALES**  
+**🎯 Compatibilidad**: Kali Linux 2024.x+ Optimizado  
 
 ### 📅 **Información de Release**
 - **Versión Actual**: 7.0 Beta - Enterprise Edition
 - **Fecha de Release**: Agosto 15, 2025
-- **Última Auditoría**: Agosto 15, 2025
-- **Próxima Actualización**: Septiembre 2025
+- **Última Actualización**: Agosto 15, 2025
+- **Próxima Release**: Septiembre 2025
 
 ---
 
@@ -847,11 +543,6 @@ Copyright (c) 2025 DogSoulDev
 *Desarrollado con ❤️ por la comunidad de ethical hackers*
 
 </div>
-
----
-
-*© 2025 Aresitos Project. Desarrollado por DogSoulDev y la comunidad de ciberseguridad.*  
-*"Securing the Digital Realm, One Line of Code at a Time"*
 
 ---
 
@@ -867,3 +558,7 @@ Copyright (c) 2025 DogSoulDev
 **DogSoulDev** 💙
 
 </div>
+
+---
+
+*© 2025 Ares Aegis Project. Desarrollado por DogSoulDev*

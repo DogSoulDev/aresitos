@@ -152,7 +152,8 @@ class VistaFIM(tk.Frame):
                 ("🛡️ Crear Baseline", self.crear_baseline, '#ff6633'),
                 ("▶️ Iniciar Monitoreo", self.iniciar_monitoreo, '#5cb85c'),
                 ("⏹️ Detener Monitoreo", self.detener_monitoreo, '#d9534f'),
-                ("🔍 Verificar Integridad", self.verificar_integridad, '#404040'),
+                ("� Verificar Kali", self.verificar_kali, '#337ab7'),
+                ("�🔍 Verificar Integridad", self.verificar_integridad, '#404040'),
                 ("📊 Escaneo Manual", self.escaneo_manual, '#404040'),
                 ("🔧 Usar AIDE (Kali)", self.usar_aide, '#404040'),
                 ("🔧 Usar Tripwire", self.usar_tripwire, '#404040'),
@@ -183,7 +184,9 @@ class VistaFIM(tk.Frame):
                                                   state="disabled")
             self.btn_detener_monitoreo.pack(fill=tk.X, pady=2)
             
-            ttk.Button(right_frame, text="🔍 Verificar Integridad", 
+            ttk.Button(right_frame, text="� Verificar Kali", 
+                      command=self.verificar_kali).pack(fill=tk.X, pady=2)
+            ttk.Button(right_frame, text="�🔍 Verificar Integridad", 
                       command=self.verificar_integridad).pack(fill=tk.X, pady=2)
             ttk.Button(right_frame, text="📊 Escaneo Manual", 
                       command=self.escaneo_manual).pack(fill=tk.X, pady=2)
@@ -473,4 +476,55 @@ class VistaFIM(tk.Frame):
             self.fim_text.config(state=tk.NORMAL)
             self.fim_text.insert(tk.END, texto)
             self.fim_text.see(tk.END)
+            self.fim_text.config(state=tk.DISABLED)
+
+    def verificar_kali(self):
+        """Verificar compatibilidad y funcionalidad FIM en Kali Linux."""
+        if not self.controlador:
+            messagebox.showerror("Error", "No hay controlador FIM configurado")
+            return
+            
+        try:
+            self.fim_text.config(state=tk.NORMAL)
+            self.fim_text.delete(1.0, tk.END)
+            self.fim_text.insert(tk.END, "=== VERIFICACIÓN FIM KALI LINUX ===\n\n")
+            
+            # Ejecutar verificación a través del controlador
+            resultado = self.controlador.verificar_funcionalidad_kali()
+            
+            # Mostrar resultados
+            funcionalidad_ok = resultado.get('funcionalidad_completa', False)
+            
+            if funcionalidad_ok:
+                self.fim_text.insert(tk.END, " ✅ VERIFICACIÓN FIM EXITOSA\n\n")
+                self.fim_text.insert(tk.END, f"Sistema Operativo: {resultado.get('sistema_operativo', 'Desconocido')}\n")
+                self.fim_text.insert(tk.END, f"Gestor de Permisos: {'✅' if resultado.get('gestor_permisos') else '❌'}\n")
+                self.fim_text.insert(tk.END, f"Permisos Sudo: {'✅' if resultado.get('permisos_sudo') else '❌'}\n\n")
+                
+                self.fim_text.insert(tk.END, "=== HERRAMIENTAS FIM DISPONIBLES ===\n")
+                for herramienta, estado in resultado.get('herramientas_disponibles', {}).items():
+                    disponible = estado.get('disponible', False)
+                    permisos = estado.get('permisos_ok', False)
+                    icono = "✅" if disponible and permisos else "❌"
+                    self.fim_text.insert(tk.END, f"  {icono} {herramienta}\n")
+                    
+            else:
+                self.fim_text.insert(tk.END, " ❌ VERIFICACIÓN FIM FALLÓ\n\n")
+                self.fim_text.insert(tk.END, f"Sistema Operativo: {resultado.get('sistema_operativo', 'Desconocido')}\n")
+                self.fim_text.insert(tk.END, f"Gestor de Permisos: {'✅' if resultado.get('gestor_permisos') else '❌'}\n")
+                self.fim_text.insert(tk.END, f"Permisos Sudo: {'✅' if resultado.get('permisos_sudo') else '❌'}\n\n")
+                
+                if resultado.get('recomendaciones'):
+                    self.fim_text.insert(tk.END, "=== RECOMENDACIONES ===\n")
+                    for recomendacion in resultado['recomendaciones']:
+                        self.fim_text.insert(tk.END, f"  • {recomendacion}\n")
+                
+            if resultado.get('error'):
+                self.fim_text.insert(tk.END, f"\n⚠️ Error: {resultado['error']}\n")
+                
+            self.fim_text.config(state=tk.DISABLED)
+                
+        except Exception as e:
+            self.fim_text.config(state=tk.NORMAL)
+            self.fim_text.insert(tk.END, f" ❌ Error durante verificación: {str(e)}\n")
             self.fim_text.config(state=tk.DISABLED)
