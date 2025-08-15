@@ -712,24 +712,32 @@ daños o consecuencias legales resultantes del uso inadecuado.
 ## � **INFORMACIÓN LEGAL Y LICENCIAMIENTO**
 
 ### **📋 Licencia del Software**
+**Aresitos 7.0 Beta** está licenciado bajo la **MIT License** con cláusulas de atribución obligatoria.
+
 ```
-MIT License - Aresitos 7.0 Beta
+MIT License con Atribución Requerida
 
-Copyright (c) 2025 DogSoulDev & Colaboradores de la Comunidad
+Copyright (c) 2025 DogSoulDev
 
-Se concede permiso, libre de cargos, a cualquier persona que obtenga una 
-copia de este software y de los archivos de documentación asociados (el 
-"Software"), a utilizar el Software sin restricción, incluyendo sin 
-limitación los derechos a usar, copiar, modificar, fusionar, publicar, 
-distribuir, sublicenciar, y/o vender copias del Software.
+✅ PERMISOS OTORGADOS:
+- Uso libre en cualquier sistema operativo (Kali Linux, Ubuntu, etc.)
+- Modificación y personalización del código
+- Distribución y redistribución
+- Uso comercial permitido
+- Uso educativo y de investigación
 
-CONDICIONES:
-- El aviso de copyright anterior y este aviso de permiso se incluirán 
-  en todas las copias o partes sustanciales del Software.
-- Uso exclusivo para propósitos legales y éticos.
-- Prohibido el uso para actividades ilegales.
+🔒 CONDICIONES OBLIGATORIAS:
+- Mantener atribución al creador original: DogSoulDev
+- Incluir referencia al repositorio: https://github.com/DogSoulDev/Aresitos
+- Conservar este aviso de licencia en todas las copias
+- Uso exclusivo para propósitos legales y éticos
 
-EL SOFTWARE SE PROPORCIONA "COMO ESTÁ", SIN GARANTÍA DE NINGÚN TIPO.
+❌ PROHIBICIONES:
+- Uso para actividades ilegales o no autorizadas
+- Eliminación de créditos o atribuciones
+- Uso malicioso o destructivo
+
+📄 Licencia completa: Ver archivo LICENSE en el repositorio
 ```
 
 ### **🏛️ Componentes de Terceros y Atribuciones**
@@ -758,7 +766,7 @@ EL SOFTWARE SE PROPORCIONA "COMO ESTÁ", SIN GARANTÍA DE NINGÚN TIPO.
 └── Volatility (GPL v2) - Análisis forense de memoria
 ```
 
-**📋 Información completa de licencias**: Ver [THIRD-PARTY-LICENSES](docs/THIRD-PARTY-LICENSES.md)
+**📋 Información completa de licencias**: Ver [LICENSE](LICENSE) en el repositorio principal
 
 ---
 
