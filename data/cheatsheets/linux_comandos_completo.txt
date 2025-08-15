@@ -1,0 +1,356 @@
+# COMANDOS ESENCIALES DE LINUX PARA CIBERSEGURIDAD
+
+## Descripción
+Conjunto completo de comandos Linux fundamentales para administradores de sistemas,
+analistas de seguridad, pentesters y especialistas en ciberseguridad.
+Organizados por categorías con ejemplos prácticos.
+
+## Ejemplo Real
+Durante un incident response en un servidor comprometido, necesitas verificar
+procesos sospechosos: ps aux | grep -v "\[" | sort -k3 -nr | head -10
+para ver los procesos que más CPU consumen.
+
+## Navegación y Exploración del Sistema
+
+# Información básica del sistema
+uname -a                          # Información completa del kernel
+hostnamectl                       # Información del host (systemd)
+cat /etc/os-release               # Versión del SO
+lsb_release -a                    # Información de distribución
+uptime                            # Tiempo activo del sistema
+whoami                            # Usuario actual
+id                                # UID, GID y grupos
+groups                            # Grupos del usuario actual
+last                              # Últimos logins
+w                                 # Usuarios conectados actualmente
+who                               # Usuarios conectados (simple)
+
+# Navegación de directorios
+pwd                               # Directorio actual
+ls -la                            # Listar con detalles y ocultos
+ls -lah                           # Con tamaños legibles
+ls -lt                            # Ordenar por fecha modificación
+ls -lS                            # Ordenar por tamaño
+tree -a                           # Vista en árbol con ocultos
+find / -name "*.conf" 2>/dev/null # Buscar archivos de configuración
+
+# Espacio en disco
+df -h                             # Espacio en discos
+du -sh *                          # Tamaño de directorios
+du -sh * | sort -hr               # Ordenado por tamaño
+lsblk                             # Lista dispositivos de bloque
+fdisk -l                          # Particiones (como root)
+
+## Monitoreo de Procesos y Rendimiento
+
+# Procesos
+ps aux                            # Todos los procesos
+ps aux | grep ssh                 # Filtrar procesos SSH
+ps -eo pid,ppid,cmd,%cpu,%mem --sort=-%cpu | head # Top CPU
+ps -eo user,pid,cmd | grep root   # Procesos de root
+pstree                            # Árbol de procesos
+top                               # Monitor interactivo
+htop                              # Monitor mejorado (si está instalado)
+jobs                              # Trabajos en background
+
+# Información de hardware
+lscpu                             # Información de CPU
+free -h                           # Memoria RAM
+cat /proc/meminfo                 # Memoria detallada
+lspci                             # Dispositivos PCI
+lsusb                             # Dispositivos USB
+lshw                              # Hardware completo (como root)
+dmidecode                         # Información DMI/SMBIOS
+
+# Carga del sistema
+iostat                            # Estadísticas I/O
+vmstat 1                          # Estadísticas virtuales
+sar -u 1 5                        # CPU usage cada segundo
+sar -r 1 5                        # Memoria cada segundo
+
+## Red y Conectividad
+
+# Interfaces de red
+ip addr show                      # Interfaces y IPs (moderno)
+ip route show                     # Tabla de rutas
+ifconfig                          # Interfaces (tradicional)
+route -n                          # Rutas numéricas
+arp -a                            # Tabla ARP
+ss -tulpn                         # Sockets activos (moderno)
+netstat -tulpn                    # Conexiones de red (tradicional)
+netstat -rn                       # Tabla de rutas
+
+# Conectividad
+ping -c 4 google.com              # Test de conectividad
+traceroute google.com             # Ruta de paquetes
+nslookup google.com               # Consulta DNS básica
+dig google.com                    # Consulta DNS avanzada
+dig @8.8.8.8 google.com MX       # Consulta MX específica
+host google.com                   # Información de host
+
+# Monitoreo de red
+tcpdump -i eth0                   # Captura de paquetes
+tcpdump -i eth0 port 80           # Solo tráfico HTTP
+nethogs                           # Uso de ancho de banda por proceso
+iftop                             # Tráfico de red en tiempo real
+
+## Gestión de Archivos y Permisos
+
+# Búsqueda de archivos
+find / -name "password*" 2>/dev/null  # Buscar por nombre
+find / -type f -perm -4000 2>/dev/null # Archivos SUID
+find / -type f -perm -2000 2>/dev/null # Archivos SGID
+find / -writable 2>/dev/null      # Archivos escribibles
+find / -user root -perm -4000 2>/dev/null # SUID de root
+find /home -name "*.ssh" 2>/dev/null  # Archivos SSH
+find / -size +100M 2>/dev/null    # Archivos > 100MB
+find / -mtime -1 2>/dev/null      # Modificados en último día
+
+# Permisos y ownership
+chmod 755 archivo                 # Permisos estándar
+chmod +x script.sh                # Hacer ejecutable
+chown user:group archivo          # Cambiar propietario
+chgrp grupo archivo               # Cambiar grupo
+umask                             # Máscara de permisos
+getfacl archivo                   # ACLs extendidas
+setfacl -m u:user:rwx archivo     # Establecer ACL
+
+# Atributos especiales
+lsattr archivo                    # Atributos extendidos
+chattr +i archivo                 # Inmutable
+chattr +a archivo                 # Solo append
+getcap archivo                    # Capabilities
+setcap cap_net_raw+ep programa    # Establecer capability
+
+## Análisis de Logs y Forense
+
+# Logs principales
+tail -f /var/log/syslog            # Logs del sistema en tiempo real
+tail -f /var/log/auth.log          # Logs de autenticación
+tail -f /var/log/apache2/access.log # Logs de Apache
+journalctl -f                      # Logs de systemd
+journalctl -u ssh                  # Logs del servicio SSH
+journalctl --since "1 hour ago"   # Logs de la última hora
+
+# Análisis de logs de seguridad
+grep "Failed password" /var/log/auth.log # Intentos fallidos
+grep "sudo" /var/log/auth.log      # Comandos sudo
+grep "Accepted" /var/log/auth.log  # Logins exitosos
+lastlog                            # Último login de cada usuario
+last | head -20                    # Últimos logins
+utmpdump /var/log/wtmp             # Información de login detallada
+
+# Búsqueda en logs
+grep -r "error" /var/log/          # Buscar errores en todos los logs
+zgrep "pattern" /var/log/*.gz      # Buscar en logs comprimidos
+awk '/pattern/ {print $1, $3}' logfile # Extraer campos específicos
+
+## Escalación de Privilegios y Auditoría
+
+# Información de privilegios
+sudo -l                           # Comandos sudo permitidos
+cat /etc/sudoers                  # Configuración sudo (como root)
+groups $USER                      # Grupos del usuario
+getent group sudo                 # Miembros del grupo sudo
+
+# Archivos sensibles
+cat /etc/passwd                   # Usuarios del sistema
+cat /etc/shadow                   # Hashes de contraseñas (como root)
+cat /etc/group                    # Grupos del sistema
+cat /etc/hosts                    # Resolución local de nombres
+cat /etc/resolv.conf              # Configuración DNS
+
+# Cron jobs y tareas programadas
+crontab -l                        # Cron jobs del usuario
+cat /etc/crontab                  # Cron jobs del sistema
+ls -la /etc/cron.*                # Directorios de cron
+systemctl list-timers             # Timers de systemd
+
+# Variables de entorno
+env                               # Variables de entorno
+echo $PATH                        # Variable PATH
+echo $HOME                        # Directorio home
+echo $USER                        # Usuario actual
+
+## Servicios y Procesos
+
+# Gestión de servicios (systemd)
+systemctl status ssh              # Estado de servicio
+systemctl start ssh               # Iniciar servicio
+systemctl stop ssh                # Detener servicio
+systemctl restart ssh             # Reiniciar servicio
+systemctl enable ssh              # Habilitar al inicio
+systemctl disable ssh             # Deshabilitar al inicio
+systemctl list-units --type=service # Listar servicios
+
+# Gestión tradicional (SysV)
+service ssh status                # Estado del servicio
+/etc/init.d/ssh restart           # Reiniciar servicio
+update-rc.d ssh enable            # Habilitar al inicio
+
+# Puertos y servicios
+lsof -i                           # Archivos abiertos de red
+lsof -i :22                       # Qué usa el puerto 22
+lsof -u username                  # Archivos abiertos por usuario
+fuser -v 22/tcp                   # Qué proceso usa puerto 22
+
+## Transferencia y Manipulación de Datos
+
+# Transferencia de archivos
+scp archivo user@host:/path       # Copiar por SSH
+rsync -avz dir/ user@host:/path   # Sincronizar directorios
+wget http://example.com/file      # Descargar archivo
+curl -O http://example.com/file   # Descargar con curl
+curl -X POST -d "data" http://api # POST request
+
+# Compresión y archivado
+tar -czf archivo.tar.gz directorio/ # Crear tar.gz
+tar -xzf archivo.tar.gz           # Extraer tar.gz
+zip -r archivo.zip directorio/    # Crear ZIP
+unzip archivo.zip                 # Extraer ZIP
+gzip archivo                      # Comprimir con gzip
+gunzip archivo.gz                 # Descomprimir gzip
+
+# Manipulación de texto
+cat archivo                       # Mostrar contenido
+head -n 20 archivo                # Primeras 20 líneas
+tail -n 20 archivo                # Últimas 20 líneas
+grep "pattern" archivo            # Buscar patrón
+grep -r "pattern" directorio/     # Búsqueda recursiva
+grep -i "pattern" archivo         # Búsqueda insensible a mayúsculas
+awk '{print $1}' archivo          # Imprimir primera columna
+sed 's/old/new/g' archivo         # Reemplazar texto
+sort archivo                      # Ordenar líneas
+uniq archivo                      # Líneas únicas
+wc -l archivo                     # Contar líneas
+
+## Hashing y Verificación de Integridad
+
+# Hashes de archivos
+md5sum archivo                    # Hash MD5
+sha1sum archivo                   # Hash SHA1
+sha256sum archivo                 # Hash SHA256
+sha512sum archivo                 # Hash SHA512
+
+# Verificación de integridad
+md5sum archivo > archivo.md5      # Crear checksum
+md5sum -c archivo.md5             # Verificar checksum
+diff archivo1 archivo2            # Comparar archivos
+cmp archivo1 archivo2             # Comparar binarios
+
+## Análisis de Malware y Forense
+
+# Información de archivos
+file archivo                      # Tipo de archivo
+strings archivo                   # Cadenas legibles
+hexdump -C archivo | head         # Volcado hexadecimal
+xxd archivo | head                # Volcado hex alternativo
+stat archivo                      # Metadatos del archivo
+ls -li archivo                    # Número de inodo
+
+# Análisis de binarios
+ldd binario                       # Librerías dinámicas
+objdump -d binario | head         # Desensamblado
+readelf -h binario                # Headers ELF
+strace -o trace.txt programa      # Trace de system calls
+ltrace programa                   # Trace de library calls
+
+## Variables de Entorno y Configuración
+
+# Gestión de variables
+export VAR=valor                  # Establecer variable
+unset VAR                         # Eliminar variable
+env | grep VAR                    # Buscar variable
+printenv                          # Mostrar todas las variables
+
+# Archivos de configuración importantes
+~/.bashrc                         # Configuración de bash
+~/.bash_profile                   # Perfil de bash
+~/.ssh/config                     # Configuración SSH cliente
+/etc/ssh/sshd_config             # Configuración SSH servidor
+/etc/apache2/apache2.conf        # Configuración Apache
+/etc/nginx/nginx.conf            # Configuración Nginx
+
+## Automatización y Scripts
+
+# Bucles básicos
+for i in {1..10}; do echo $i; done # Bucle for
+while read line; do echo $line; done < archivo # Bucle while
+
+# Condicionales
+if [ -f archivo ]; then echo "existe"; fi # Si archivo existe
+[ -d directorio ] && echo "es directorio" # Directorio existe
+
+# Funciones básicas
+function backup() { cp $1 $1.bak; }      # Función de backup
+alias ll='ls -la'                        # Alias
+
+## Monitoreo Continuo
+
+# Watch commands
+watch -n 1 'ps aux | grep apache'       # Monitorear cada segundo
+watch 'netstat -tulpn | grep :80'       # Monitorear puerto 80
+watch 'df -h'                           # Monitorear espacio en disco
+
+# Pipelines útiles
+ps aux | sort -k3 -nr | head -10        # Top 10 procesos por CPU
+netstat -tulpn | grep LISTEN | sort     # Puertos en escucha ordenados
+du -sh */ | sort -hr                    # Directorios por tamaño
+cat /var/log/auth.log | grep "Failed" | wc -l # Contar fallos login
+
+## Troubleshooting del Sistema
+
+# Problemas de disco
+df -i                                   # Verificar inodos
+lsof +D /directorio                     # Archivos abiertos en directorio
+fuser -v /directorio                    # Procesos usando directorio
+
+# Problemas de memoria
+free -m                                 # Memoria en MB
+cat /proc/meminfo | grep -i swap        # Información de swap
+swapon -s                               # Dispositivos swap activos
+
+# Problemas de red
+ping -c 1 gateway_ip                    # Test conectividad gateway
+nslookup domain.com 8.8.8.8            # Test DNS específico
+telnet host puerto                      # Test conectividad puerto
+
+## Shortcuts y Trucos Útiles
+
+# Atajos de teclado en bash
+Ctrl+R                                  # Búsqueda en historial
+Ctrl+L                                  # Limpiar pantalla
+Ctrl+C                                  # Matar proceso actual
+Ctrl+Z                                  # Suspender proceso
+Ctrl+A                                  # Inicio de línea
+Ctrl+E                                  # Final de línea
+
+# History y comandos previos
+history                                 # Historial de comandos
+!number                                 # Ejecutar comando por número
+!!                                      # Repetir último comando
+!grep                                   # Último comando que empezó con grep
+
+# Redirecciones útiles
+comando > archivo 2>&1                  # Stdout y stderr a archivo
+comando | tee archivo                   # Mostrar y guardar output
+comando 2>/dev/null                     # Suprimir errores
+comando &                               # Ejecutar en background
+
+## Mejores Prácticas de Seguridad
+
+# Verificaciones regulares
+1. Monitorear procesos anómalos con ps y top
+2. Revisar logs de autenticación diariamente
+3. Verificar conexiones de red activas
+4. Auditar archivos SUID/SGID periódicamente
+5. Monitorear espacio en disco y uso de recursos
+6. Revisar cron jobs y servicios habilitados
+7. Verificar usuarios y grupos del sistema
+8. Comprobar integridad de archivos críticos
+
+# Comandos de emergencia
+killall -9 proceso_malicioso           # Matar proceso por nombre
+iptables -F                            # Limpiar reglas firewall
+mount -o remount,ro /                  # Montar root como solo lectura
+sync && init 1                         # Modo single user

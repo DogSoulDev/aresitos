@@ -50,6 +50,66 @@
                 "nombre": "OSINT Básico",
                 "archivo": "osint_basico.txt",
                 "descripcion": "Inteligencia de fuentes abiertas"
+            },
+            {
+                "id": "hydra",
+                "nombre": "Hydra - Brute Force",
+                "archivo": "hydra_bruteforce.txt",
+                "descripcion": "Ataques de fuerza bruta con Hydra"
+            },
+            {
+                "id": "sqlmap",
+                "nombre": "SQLMap - SQL Injection",
+                "archivo": "sqlmap_injection.txt",
+                "descripcion": "Herramienta automática de SQL injection"
+            },
+            {
+                "id": "gobuster",
+                "nombre": "Gobuster - Directory Brute Force",
+                "archivo": "gobuster_directory.txt",
+                "descripcion": "Fuerza bruta de directorios y archivos web"
+            },
+            {
+                "id": "wireshark",
+                "nombre": "Wireshark - Análisis de Red",
+                "archivo": "wireshark_analisis.txt",
+                "descripcion": "Análisis de tráfico de red y protocolos"
+            },
+            {
+                "id": "nikto",
+                "nombre": "Nikto - Web Vulnerability Scanner",
+                "archivo": "nikto_web_scanner.txt",
+                "descripcion": "Escáner de vulnerabilidades web"
+            },
+            {
+                "id": "aircrack",
+                "nombre": "Aircrack-ng - WiFi Security",
+                "archivo": "aircrack_wifi_audit.txt",
+                "descripcion": "Suite de auditoría de seguridad WiFi"
+            },
+            {
+                "id": "netcat",
+                "nombre": "Netcat - Networking Tool",
+                "archivo": "netcat_networking.txt",
+                "descripcion": "La navaja suiza de herramientas de red"
+            },
+            {
+                "id": "linux_completo",
+                "nombre": "Linux Comandos Completos",
+                "archivo": "linux_comandos_completo.txt",
+                "descripcion": "Comandos esenciales de Linux para ciberseguridad"
+            },
+            {
+                "id": "hashcat",
+                "nombre": "Hashcat - Password Cracking",
+                "archivo": "hashcat_password_cracking.txt",
+                "descripcion": "Herramienta avanzada de cracking de passwords"
+            },
+            {
+                "id": "volatility",
+                "nombre": "Volatility - Memory Forensics",
+                "archivo": "volatility_memory_forensics.txt",
+                "descripcion": "Framework de análisis forense de memoria"
             }
         ],
         "configuracion": {

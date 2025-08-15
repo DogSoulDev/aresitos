@@ -1,0 +1,413 @@
+# VOLATILITY - MEMORY FORENSICS FRAMEWORK
+
+## Descripción
+Volatility es el framework de análisis forense de memoria más avanzado.
+Permite extraer artefactos digitales de volcados de memoria RAM,
+incluyendo procesos, conexiones de red, llaves de registro y más.
+
+## Ejemplo Real
+Durante un incident response, sospechas que hay malware en memoria.
+Obtienes un volcado con: dd if=/dev/mem of=memory.raw
+Luego analizas con: volatility -f memory.raw --profile=Win7SP1x64 pslist
+
+## Instalación y Configuración
+
+# Volatility 2.x (Python 2)
+git clone https://github.com/volatilityfoundation/volatility.git
+cd volatility
+python setup.py install
+
+# Volatility 3.x (Python 3)
+pip3 install volatility3
+git clone https://github.com/volatilityfoundation/volatility3.git
+
+# Verificar instalación
+volatility --info                      # Ver plugins disponibles
+vol.py --help                         # Volatility 3 help
+
+## Identificación de Perfil
+
+# Obtener información del sistema
+volatility -f memory.raw imageinfo
+
+# Listar perfiles disponibles
+volatility --info | grep -E "Win|Linux"
+
+# Usar perfil específico
+volatility -f memory.raw --profile=Win7SP1x64 pslist
+
+# Para Linux
+volatility -f memory.raw --profile=LinuxUbuntu1804x64 linux_pslist
+
+## Análisis de Procesos
+
+# Lista de procesos
+volatility -f memory.raw --profile=Win7SP1x64 pslist
+volatility -f memory.raw --profile=Win7SP1x64 pstree     # Vista en árbol
+volatility -f memory.raw --profile=Win7SP1x64 psxview    # Vista cruzada
+
+# Procesos ocultos
+volatility -f memory.raw --profile=Win7SP1x64 psscan
+
+# Información detallada de proceso
+volatility -f memory.raw --profile=Win7SP1x64 procinfo -p 1234
+
+# Volcar proceso completo
+volatility -f memory.raw --profile=Win7SP1x64 procdump -p 1234 -D ./output/
+
+# DLLs cargadas por proceso
+volatility -f memory.raw --profile=Win7SP1x64 dlllist -p 1234
+
+# Handles de proceso
+volatility -f memory.raw --profile=Win7SP1x64 handles -p 1234
+
+# Línea de comandos de procesos
+volatility -f memory.raw --profile=Win7SP1x64 cmdline
+
+# Variables de entorno
+volatility -f memory.raw --profile=Win7SP1x64 envars -p 1234
+
+## Análisis de Red
+
+# Conexiones de red activas
+volatility -f memory.raw --profile=Win7SP1x64 netscan
+volatility -f memory.raw --profile=Win7SP1x64 netstat     # Más básico
+
+# Conexiones por proceso
+volatility -f memory.raw --profile=Win7SP1x64 connscan
+
+# Sockets UDP
+volatility -f memory.raw --profile=Win7SP1x64 sockscan
+
+# Para sistemas antiguos (XP/2003)
+volatility -f memory.raw --profile=WinXPSP2x86 connections
+volatility -f memory.raw --profile=WinXPSP2x86 sockets
+
+## Análisis del Registro de Windows
+
+# Listar hives del registro
+volatility -f memory.raw --profile=Win7SP1x64 hivelist
+
+# Volcar hive específico
+volatility -f memory.raw --profile=Win7SP1x64 hivedump -o 0xfffff8a000024010
+
+# Imprimir clave específica
+volatility -f memory.raw --profile=Win7SP1x64 printkey -K "Software\Microsoft\Windows\CurrentVersion\Run"
+
+# Buscar en registro
+volatility -f memory.raw --profile=Win7SP1x64 hivescan
+
+# Usuarios registrados
+volatility -f memory.raw --profile=Win7SP1x64 hashdump    # Hashes de passwords
+volatility -f memory.raw --profile=Win7SP1x64 lsadump     # Secretos LSA
+
+## Análisis de Archivos
+
+# Escanear archivos
+volatility -f memory.raw --profile=Win7SP1x64 filescan
+
+# Volcar archivo por dirección física
+volatility -f memory.raw --profile=Win7SP1x64 dumpfiles -Q 0x000000007e410890 -D ./output/
+
+# Volcar archivo por regex
+volatility -f memory.raw --profile=Win7SP1x64 dumpfiles -r \\.exe$ -D ./output/
+
+# Master File Table (NTFS)
+volatility -f memory.raw --profile=Win7SP1x64 mftparser
+
+# Caché de archivos
+volatility -f memory.raw --profile=Win7SP1x64 shimcache
+
+## Detección de Malware
+
+# Hooks en sistema
+volatility -f memory.raw --profile=Win7SP1x64 ssdt         # System Service Descriptor Table
+volatility -f memory.raw --profile=Win7SP1x64 apihooks     # API hooks
+
+# Drivers sospechosos
+volatility -f memory.raw --profile=Win7SP1x64 modules      # Drivers cargados
+volatility -f memory.raw --profile=Win7SP1x64 driverscan   # Escanear drivers
+
+# Inyección de código
+volatility -f memory.raw --profile=Win7SP1x64 malfind      # Detectar código inyectado
+volatility -f memory.raw --profile=Win7SP1x64 hollowfind   # Process hollowing
+
+# Hooks y patches
+volatility -f memory.raw --profile=Win7SP1x64 devicetree
+volatility -f memory.raw --profile=Win7SP1x64 callbacks
+
+# Análisis Yara
+volatility -f memory.raw --profile=Win7SP1x64 yarascan -Y "rule malware { strings: $a = \"malicious\" condition: $a }"
+
+## Análisis de Timeline
+
+# Timeline de actividades
+volatility -f memory.raw --profile=Win7SP1x64 timeliner --output=body > timeline.body
+
+# Convertir timeline
+mactime -d -b timeline.body > timeline.csv
+
+# Shimcache timeline
+volatility -f memory.raw --profile=Win7SP1x64 shimcache --output=timeline
+
+# MFT timeline
+volatility -f memory.raw --profile=Win7SP1x64 mftparser --output=body
+
+## Plugins Específicos de Windows
+
+# Información del sistema
+volatility -f memory.raw --profile=Win7SP1x64 kdbgscan    # Buscar KDBG
+volatility -f memory.raw --profile=Win7SP1x64 kpcrscan    # Buscar KPCR
+
+# Servicios de Windows
+volatility -f memory.raw --profile=Win7SP1x64 svcscan
+
+# Eventos de Windows
+volatility -f memory.raw --profile=Win7SP1x64 evtlogs     # Event logs
+
+# Configuración de red
+volatility -f memory.raw --profile=Win7SP1x64 netscan
+
+# Clipboard
+volatility -f memory.raw --profile=Win7SP1x64 clipboard
+
+# Screenshots
+volatility -f memory.raw --profile=Win7SP1x64 screenshot -D ./output/
+
+## Plugins para Linux
+
+# Procesos Linux
+volatility -f memory.raw --profile=LinuxUbuntu1804x64 linux_pslist
+volatility -f memory.raw --profile=LinuxUbuntu1804x64 linux_pstree
+
+# Información del sistema Linux
+volatility -f memory.raw --profile=LinuxUbuntu1804x64 linux_banner
+volatility -f memory.raw --profile=LinuxUbuntu1804x64 linux_dmesg
+
+# Red en Linux
+volatility -f memory.raw --profile=LinuxUbuntu1804x64 linux_netstat
+volatility -f memory.raw --profile=LinuxUbuntu1804x64 linux_route_cache
+
+# Archivos Linux
+volatility -f memory.raw --profile=LinuxUbuntu1804x64 linux_find_file -F "/etc/passwd"
+volatility -f memory.raw --profile=LinuxUbuntu1804x64 linux_recover_filesystem
+
+# Bash history
+volatility -f memory.raw --profile=LinuxUbuntu1804x64 linux_bash
+
+# Módulos del kernel
+volatility -f memory.raw --profile=LinuxUbuntu1804x64 linux_lsmod
+
+## Análisis Avanzado
+
+# Memory strings
+strings memory.raw | grep -i password   # Buscar strings específicos
+
+# Análisis de heap
+volatility -f memory.raw --profile=Win7SP1x64 gahti      # Get All Heap Type Info
+
+# Pool tags
+volatility -f memory.raw --profile=Win7SP1x64 pools
+
+# Big pools
+volatility -f memory.raw --profile=Win7SP1x64 bigpools
+
+# Objects
+volatility -f memory.raw --profile=Win7SP1x64 object_types
+
+## Scripts de Automatización
+
+# Bash script para análisis completo
+#!/bin/bash
+MEMORY_FILE="$1"
+PROFILE="$2"
+OUTPUT_DIR="./volatility_output"
+
+if [ ! -f "$MEMORY_FILE" ]; then
+    echo "Archivo de memoria no encontrado: $MEMORY_FILE"
+    exit 1
+fi
+
+mkdir -p "$OUTPUT_DIR"
+
+echo "=== Análisis básico de procesos ==="
+volatility -f "$MEMORY_FILE" --profile="$PROFILE" pslist > "$OUTPUT_DIR/pslist.txt"
+volatility -f "$MEMORY_FILE" --profile="$PROFILE" pstree > "$OUTPUT_DIR/pstree.txt"
+
+echo "=== Análisis de red ==="
+volatility -f "$MEMORY_FILE" --profile="$PROFILE" netscan > "$OUTPUT_DIR/netscan.txt"
+
+echo "=== Búsqueda de malware ==="
+volatility -f "$MEMORY_FILE" --profile="$PROFILE" malfind > "$OUTPUT_DIR/malfind.txt"
+
+echo "=== Escaneo de archivos ==="
+volatility -f "$MEMORY_FILE" --profile="$PROFILE" filescan > "$OUTPUT_DIR/filescan.txt"
+
+echo "=== Timeline ==="
+volatility -f "$MEMORY_FILE" --profile="$PROFILE" timeliner --output=body > "$OUTPUT_DIR/timeline.body"
+
+echo "Análisis completado en: $OUTPUT_DIR"
+
+# Python script para detección automatizada
+#!/usr/bin/env python3
+import subprocess
+import sys
+import os
+
+class VolatilityAnalyzer:
+    def __init__(self, memory_file, profile):
+        self.memory_file = memory_file
+        self.profile = profile
+        self.base_cmd = f"volatility -f {memory_file} --profile={profile}"
+    
+    def run_plugin(self, plugin, args=""):
+        cmd = f"{self.base_cmd} {plugin} {args}"
+        try:
+            result = subprocess.run(cmd, shell=True, capture_output=True, text=True, timeout=300)
+            return result.stdout
+        except subprocess.TimeoutExpired:
+            return "TIMEOUT"
+        except Exception as e:
+            return f"ERROR: {e}"
+    
+    def detect_suspicious_processes(self):
+        pslist = self.run_plugin("pslist")
+        suspicious = []
+        
+        # Buscar procesos sospechosos
+        suspicious_names = ['cmd.exe', 'powershell.exe', 'wscript.exe', 'cscript.exe']
+        for line in pslist.split('\n'):
+            for susp in suspicious_names:
+                if susp in line.lower():
+                    suspicious.append(line.strip())
+        
+        return suspicious
+    
+    def detect_network_anomalies(self):
+        netscan = self.run_plugin("netscan")
+        anomalies = []
+        
+        # Buscar conexiones a puertos inusuales
+        unusual_ports = ['4444', '31337', '1337', '6666']
+        for line in netscan.split('\n'):
+            for port in unusual_ports:
+                if port in line:
+                    anomalies.append(line.strip())
+        
+        return anomalies
+    
+    def analyze(self):
+        print("Iniciando análisis automatizado...")
+        
+        print("\n=== Procesos Sospechosos ===")
+        suspicious_procs = self.detect_suspicious_processes()
+        for proc in suspicious_procs:
+            print(f"  {proc}")
+        
+        print("\n=== Anomalías de Red ===")
+        network_anomalies = self.detect_network_anomalies()
+        for anomaly in network_anomalies:
+            print(f"  {anomaly}")
+        
+        print("\n=== Búsqueda de Malware ===")
+        malfind = self.run_plugin("malfind")
+        if "Process:" in malfind:
+            print("  ¡Código inyectado detectado!")
+        else:
+            print("  No se detectó código inyectado")
+
+if __name__ == "__main__":
+    if len(sys.argv) != 3:
+        print("Uso: python3 volatility_analyzer.py <memory_file> <profile>")
+        sys.exit(1)
+    
+    analyzer = VolatilityAnalyzer(sys.argv[1], sys.argv[2])
+    analyzer.analyze()
+
+## Análisis de Cryptolockers/Ransomware
+
+# Buscar patrones de ransomware
+volatility -f memory.raw --profile=Win7SP1x64 yarascan -Y "rule ransomware { strings: $a = \"encrypted\" $b = \"bitcoin\" $c = \"decrypt\" condition: any of them }"
+
+# Procesos relacionados con cifrado
+volatility -f memory.raw --profile=Win7SP1x64 cmdline | grep -i "crypt\|encrypt\|ransom"
+
+# Archivos recientemente modificados
+volatility -f memory.raw --profile=Win7SP1x64 mftparser | grep -E "\.docx|\.pdf|\.jpg" | head -20
+
+## Integración con Otras Herramientas
+
+# Con Yara para detección de malware
+yara -r malware_rules.yar memory.raw
+
+# Con binwalk para análisis de archivos extraídos
+binwalk -e extracted_file.exe
+
+# Con strings para análisis de cadenas
+strings -a memory.raw | grep -E "http|ftp|\.exe|\.dll"
+
+# Con bulk_extractor
+bulk_extractor -o output_dir memory.raw
+
+# Con Rekall (alternativa a Volatility)
+rekall -f memory.raw pslist
+
+## Creación de Perfiles Personalizados
+
+# Para Windows
+# 1. Obtener símbolos de debug
+# 2. Usar el plugin para crear perfil
+# 3. Copiar a directorio de perfiles
+
+# Para Linux
+# 1. Compilar módulo de kernel
+# 2. Obtener System.map
+# 3. Crear perfil con make_profile.py
+
+## Mejores Prácticas Forenses
+
+# Documentación
+1. Registrar hash del archivo de memoria
+2. Documentar hora y método de adquisición
+3. Mantener cadena de custodia
+4. Usar herramientas validadas forenses
+
+# Análisis
+1. Comenzar con imageinfo para perfil correcto
+2. Hacer análisis básico antes que específico
+3. Correlacionar hallazgos entre plugins
+4. Validar resultados con múltiples métodos
+
+# Preservación
+1. Trabajar siempre en copias
+2. Documentar todos los comandos ejecutados
+3. Guardar outputs para revisión posterior
+4. Verificar integridad de evidencia
+
+## Limitaciones y Consideraciones
+
+# Limitaciones técnicas
+- Perfiles deben coincidir exactamente
+- Memoria comprimida puede causar problemas
+- Hibernation files requieren tratamiento especial
+- Volatility 2.x vs 3.x tienen diferencias
+
+# Consideraciones legales
+- Autorización para análisis de memoria
+- Privacidad de datos personales
+- Jurisdicción y leyes aplicables
+- Estándares de evidencia digital
+
+## Recursos Adicionales
+
+# Documentación oficial
+https://github.com/volatilityfoundation/volatility/wiki
+
+# Perfiles adicionales
+https://github.com/volatilityfoundation/profiles
+
+# Plugins de la comunidad
+https://github.com/volatilityfoundation/community
+
+# Reglas Yara para malware
+https://github.com/Yara-Rules/rules

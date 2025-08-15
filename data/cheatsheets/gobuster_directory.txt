@@ -1,0 +1,313 @@
+# GOBUSTER - DIRECTORY AND FILE BRUTE FORCER
+
+## Descripción
+Gobuster es una herramienta de fuerza bruta para directorios, archivos, DNS y vhosts.
+Escrita en Go, es extremadamente rápida y eficiente para reconocimiento web.
+
+## Ejemplo Real
+Encontraste un sitio web corporativo en https://empresa.com durante un pentest.
+Para descubrir directorios ocultos que podrían contener paneles administrativos:
+gobuster dir -u https://empresa.com -w /usr/share/wordlists/dirb/big.txt -t 50
+
+## Modos de Operación
+gobuster dir    # Brute force de directorios y archivos
+gobuster dns    # Brute force de subdominios DNS
+gobuster vhost  # Brute force de virtual hosts
+gobuster fuzz   # Brute force con fuzzing personalizado
+
+## Directory/File Brute Force (dir)
+
+# Escaneo básico de directorios
+gobuster dir -u http://target.com -w /usr/share/wordlists/dirb/common.txt
+
+# Con múltiples hilos para mayor velocidad
+gobuster dir -u http://target.com -w /usr/share/wordlists/dirb/big.txt -t 50
+
+# Buscar archivos específicos
+gobuster dir -u http://target.com -w /usr/share/wordlists/dirb/common.txt -x php,txt,html
+
+# Con autenticación básica
+gobuster dir -u http://target.com -w wordlist.txt -U username -P password
+
+# Usando proxy (Burp Suite)
+gobuster dir -u http://target.com -w wordlist.txt --proxy http://127.0.0.1:8080
+
+# Con cookies de sesión
+gobuster dir -u http://target.com -w wordlist.txt -c "PHPSESSID=abc123; auth=token"
+
+# Headers personalizados
+gobuster dir -u http://target.com -w wordlist.txt -H "X-Forwarded-For: 127.0.0.1"
+
+# Excluir códigos de estado
+gobuster dir -u http://target.com -w wordlist.txt -b 404,403
+
+# Solo mostrar códigos específicos
+gobuster dir -u http://target.com -w wordlist.txt -s 200,204,301,302,307,401,403
+
+# Con User-Agent personalizado
+gobuster dir -u http://target.com -w wordlist.txt -a "Mozilla/5.0 Custom Agent"
+
+# Timeout personalizado
+gobuster dir -u http://target.com -w wordlist.txt --timeout 10s
+
+# Seguir redirecciones
+gobuster dir -u http://target.com -w wordlist.txt -r
+
+# Mostrar longitud de respuesta
+gobuster dir -u http://target.com -w wordlist.txt -l
+
+# Modo verbose
+gobuster dir -u http://target.com -w wordlist.txt -v
+
+# Guardar resultados
+gobuster dir -u http://target.com -w wordlist.txt -o results.txt
+
+## DNS Subdomain Brute Force (dns)
+
+# Enumeración básica de subdominios
+gobuster dns -d target.com -w /usr/share/wordlists/amass/subdomains-top1mil-5000.txt
+
+# Con múltiples hilos
+gobuster dns -d target.com -w subdomains.txt -t 50
+
+# Mostrar IPs de subdominios
+gobuster dns -d target.com -w subdomains.txt -i
+
+# Usar resolver DNS específico
+gobuster dns -d target.com -w subdomains.txt -r 8.8.8.8
+
+# Timeout para DNS
+gobuster dns -d target.com -w subdomains.txt --timeout 5s
+
+# Modo verbose para DNS
+gobuster dns -d target.com -w subdomains.txt -v
+
+## Virtual Host Brute Force (vhost)
+
+# Enumeración de virtual hosts
+gobuster vhost -u http://target.com -w /usr/share/wordlists/seclists/Discovery/DNS/subdomains-top1million-5000.txt
+
+# Con autenticación
+gobuster vhost -u http://target.com -w vhosts.txt -U user -P pass
+
+# Headers personalizados para vhost
+gobuster vhost -u http://target.com -w vhosts.txt -H "X-Originating-IP: 127.0.0.1"
+
+## Fuzzing Mode (fuzz)
+
+# Fuzzing de parámetros
+gobuster fuzz -u http://target.com/page.php?FUZZ=value -w parameters.txt
+
+# Fuzzing con múltiples posiciones
+gobuster fuzz -u http://target.com/FUZZ/FUZ2Z -w wordlist1.txt:FUZZ,wordlist2.txt:FUZ2Z
+
+## Opciones Avanzadas
+
+# Rate limiting (requests por segundo)
+gobuster dir -u http://target.com -w wordlist.txt --delay 100ms
+
+# Ignorar certificados SSL
+gobuster dir -u https://target.com -w wordlist.txt -k
+
+# Número máximo de redirecciones
+gobuster dir -u http://target.com -w wordlist.txt --redirect-limit 3
+
+# Wildcard detection
+gobuster dir -u http://target.com -w wordlist.txt --wildcard
+
+# Pattern matching
+gobuster dir -u http://target.com -w wordlist.txt --pattern "admin*"
+
+# Excluir longitudes específicas
+gobuster dir -u http://target.com -w wordlist.txt --exclude-length 1024
+
+## Wordlists Recomendadas
+
+# Directorios comunes
+/usr/share/wordlists/dirb/common.txt              # Básica y rápida
+/usr/share/wordlists/dirb/big.txt                 # Más completa
+/usr/share/wordlists/dirbuster/directory-list-2.3-medium.txt # Muy completa
+
+# SecLists (más especializadas)
+/usr/share/seclists/Discovery/Web-Content/common.txt
+/usr/share/seclists/Discovery/Web-Content/directory-list-2.3-big.txt
+/usr/share/seclists/Discovery/Web-Content/raft-large-directories.txt
+/usr/share/seclists/Discovery/Web-Content/raft-large-files.txt
+
+# Subdominios
+/usr/share/seclists/Discovery/DNS/subdomains-top1million-5000.txt
+/usr/share/seclists/Discovery/DNS/bitquark-subdomains-top100000.txt
+/usr/share/amass/wordlists/subdomains.lst
+
+# Tecnología específica
+/usr/share/seclists/Discovery/Web-Content/CMS/wordpress.txt    # WordPress
+/usr/share/seclists/Discovery/Web-Content/CMS/drupal.txt       # Drupal
+/usr/share/seclists/Discovery/Web-Content/CMS/joomla.txt       # Joomla
+
+## Ejemplos Prácticos de Pentesting
+
+# Escenario 1: Sitio corporativo inicial
+gobuster dir -u https://company.com -w /usr/share/wordlists/dirb/common.txt -x php,html,txt -t 30 -s 200,204,301,302,307,401,403 -o initial_scan.txt
+
+# Escenario 2: Aplicación web compleja
+gobuster dir -u http://webapp.company.com -w /usr/share/seclists/Discovery/Web-Content/raft-large-directories.txt -x php,asp,aspx,jsp -t 50 --timeout 15s -o detailed_scan.txt
+
+# Escenario 3: API endpoints
+gobuster dir -u https://api.company.com -w /usr/share/seclists/Discovery/Web-Content/api/api-endpoints.txt -x json,xml -H "Accept: application/json" -t 20
+
+# Escenario 4: Subdominios corporativos
+gobuster dns -d company.com -w /usr/share/seclists/Discovery/DNS/subdomains-top1million-20000.txt -t 100 -i -o subdomains.txt
+
+# Escenario 5: Virtual hosts en IP específica
+gobuster vhost -u http://192.168.1.100 -w /usr/share/seclists/Discovery/DNS/subdomains-top1million-5000.txt -t 50
+
+# Escenario 6: Bypass de autenticación
+gobuster dir -u http://protected.company.com -w /usr/share/wordlists/dirb/common.txt -c "auth=bypasstoken" -b 401,403
+
+## Técnicas de Evasión
+
+# Usar diferentes User-Agents
+gobuster dir -u http://target.com -w wordlist.txt -a "Googlebot/2.1"
+gobuster dir -u http://target.com -w wordlist.txt -a "Mozilla/5.0 (compatible; Bingbot/2.0)"
+
+# Headers para bypass
+gobuster dir -u http://target.com -w wordlist.txt -H "X-Originating-IP: 127.0.0.1" -H "X-Forwarded-For: 127.0.0.1"
+
+# Rate limiting suave
+gobuster dir -u http://target.com -w wordlist.txt -t 10 --delay 500ms
+
+# Proxy chains para anonimato
+proxychains gobuster dir -u http://target.com -w wordlist.txt
+
+## Integración con Otras Herramientas
+
+# Con Nmap para puertos web
+nmap -p 80,443,8080,8443 target.com --open | grep open
+gobuster dir -u http://target.com:8080 -w wordlist.txt
+
+# Con ffuf para comparación
+ffuf -w wordlist.txt -u http://target.com/FUZZ -fs 1024
+gobuster dir -u http://target.com -w wordlist.txt --exclude-length 1024
+
+# Con Burp Suite para análisis
+gobuster dir -u http://target.com -w wordlist.txt --proxy http://127.0.0.1:8080
+
+# Pipear resultados a otras herramientas
+gobuster dir -u http://target.com -w wordlist.txt -q | grep 200 | awk '{print $1}' | while read dir; do
+    echo "Checking: http://target.com$dir"
+    curl -s "http://target.com$dir" | grep -i "admin\|login\|password"
+done
+
+## Scripts de Automatización
+
+# Bash script para múltiples objetivos
+#!/bin/bash
+TARGETS="targets.txt"
+WORDLIST="/usr/share/wordlists/dirb/big.txt"
+
+while read target; do
+    echo "Scanning: $target"
+    gobuster dir -u "$target" -w "$WORDLIST" -x php,html,txt -t 30 -o "results_$(echo $target | sed 's/[^a-zA-Z0-9]/_/g').txt"
+done < "$TARGETS"
+
+# Python script para análisis automatizado
+#!/usr/bin/env python3
+import subprocess
+import sys
+import os
+
+def run_gobuster(url, wordlist, extensions="php,html,txt", threads=30):
+    cmd = [
+        "gobuster", "dir",
+        "-u", url,
+        "-w", wordlist,
+        "-x", extensions,
+        "-t", str(threads),
+        "-q"
+    ]
+    
+    try:
+        result = subprocess.run(cmd, capture_output=True, text=True, timeout=300)
+        return result.stdout
+    except subprocess.TimeoutExpired:
+        return "Timeout occurred"
+    except Exception as e:
+        return f"Error: {e}"
+
+# Lista de objetivos
+targets = [
+    "http://target1.com",
+    "https://target2.com",
+    "http://target3.com:8080"
+]
+
+wordlist = "/usr/share/wordlists/dirb/common.txt"
+
+for target in targets:
+    print(f"Scanning {target}...")
+    results = run_gobuster(target, wordlist)
+    
+    # Guardar resultados
+    filename = f"gobuster_{target.replace('://', '_').replace('/', '_')}.txt"
+    with open(filename, 'w') as f:
+        f.write(results)
+    
+    print(f"Results saved to {filename}")
+
+## Análisis de Resultados
+
+# Filtrar solo códigos de éxito
+cat gobuster_results.txt | grep "(Status: 200)"
+
+# Buscar archivos sensibles
+cat gobuster_results.txt | grep -E "\.(config|bak|backup|old|txt|log)$"
+
+# Extraer solo las URLs encontradas
+cat gobuster_results.txt | grep "Status:" | awk '{print $1}' > found_dirs.txt
+
+# Verificar directorios interesantes
+for dir in admin config backup test dev staging; do
+    grep -i "$dir" gobuster_results.txt
+done
+
+## Configuración y Optimización
+
+# Archivo de configuración ~/.gobuster/config
+[DEFAULT]
+threads = 30
+timeout = 10s
+useragent = gobuster/3.6
+verbose = false
+
+# Variables de entorno útiles
+export GOBUSTER_THREADS=50
+export GOBUSTER_TIMEOUT=15s
+export GOBUSTER_WORDLIST=/usr/share/wordlists/dirb/big.txt
+
+## Troubleshooting Común
+
+# Error de certificados SSL
+gobuster dir -u https://target.com -w wordlist.txt -k
+
+# Timeouts frecuentes
+gobuster dir -u http://target.com -w wordlist.txt --timeout 30s -t 10
+
+# WAF blocking
+gobuster dir -u http://target.com -w wordlist.txt --delay 1s -a "Mozilla/5.0"
+
+# Rate limiting
+gobuster dir -u http://target.com -w wordlist.txt -t 5 --delay 2s
+
+## Notas de Seguridad
+- Respetar robots.txt en auditorías autorizadas
+- No sobrecargar servidores de producción
+- Documentar todos los directorios encontrados
+- Verificar permisos antes de acceder a contenido
+- Coordinar con administradores de sistema
+
+## Mejores Prácticas
+- Empezar con wordlists pequeñas y ir escalando
+- Usar múltiples extensiones según la tecnología detectada
+- Combinar con reconocimiento manual
+- Verificar falsos positivos
+- Mantener logs detallados de los escaneos

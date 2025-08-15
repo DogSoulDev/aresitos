@@ -45,6 +45,56 @@ Esta carpeta contiene cheatsheets de ciberseguridad para profesionales. Los arch
 - **Categorías**: Búsqueda de dominios, subdominios, Google dorks, Shodan, redes sociales, metadatos
 - **Uso**: Recopilación de información y reconocimiento
 
+### 9. **hydra_bruteforce.txt**
+- **Descripción**: Herramienta de fuerza bruta multiplataforma Hydra
+- **Categorías**: Ataques a SSH, FTP, HTTP, SMTP, SMB, RDP, bases de datos, evasión de protecciones
+- **Uso**: Auditoría de contraseñas y testing de autenticación
+
+### 10. **sqlmap_injection.txt**
+- **Descripción**: Herramienta automática de detección y explotación de SQL injection
+- **Categorías**: Detección, enumeración, extracción de datos, técnicas avanzadas, bypass WAF
+- **Uso**: Testing de seguridad en aplicaciones web y bases de datos
+
+### 11. **gobuster_directory.txt**
+- **Descripción**: Herramienta de fuerza bruta para directorios, archivos y subdominios
+- **Categorías**: Directory brute force, DNS enumeration, virtual host discovery, fuzzing
+- **Uso**: Reconocimiento web y descubrimiento de contenido oculto
+
+### 12. **wireshark_analisis.txt**
+- **Descripción**: Analizador de protocolos de red más avanzado del mundo
+- **Categorías**: Análisis de tráfico, filtros, detección de malware, forense de red, protocolos
+- **Uso**: Análisis de tráfico de red, troubleshooting e investigación forense
+
+### 13. **nikto_web_scanner.txt**
+- **Descripción**: Escáner de vulnerabilidades web con base de datos de 6700+ checks
+- **Categorías**: Escaneo de vulnerabilidades, configuraciones inseguras, bypass WAF
+- **Uso**: Auditoría de seguridad en servidores web y aplicaciones
+
+### 14. **aircrack_wifi_audit.txt**
+- **Descripción**: Suite completa de herramientas para auditoría de seguridad WiFi
+- **Categorías**: Captura de handshakes, ataques WEP/WPA, access points falsos, monitoreo
+- **Uso**: Auditoría de seguridad en redes inalámbricas
+
+### 15. **netcat_networking.txt**
+- **Descripción**: La navaja suiza de herramientas de red (nc)
+- **Categorías**: Transferencia de archivos, reverse shells, port scanning, tunneling, honeypots
+- **Uso**: Networking, pentesting, transferencia de datos y shells remotas
+
+### 16. **linux_comandos_completo.txt**
+- **Descripción**: Comandos esenciales de Linux para profesionales de ciberseguridad
+- **Categorías**: Navegación, procesos, red, archivos, logs, forense, escalación de privilegios
+- **Uso**: Administración de sistemas, análisis forense y operaciones de seguridad
+
+### 17. **hashcat_password_cracking.txt**
+- **Descripción**: Herramienta de cracking de passwords más avanzada con soporte GPU
+- **Categorías**: Ataques de diccionario, máscaras, reglas, optimización, múltiples formatos hash
+- **Uso**: Auditoría de contraseñas, análisis forense y testing de políticas de seguridad
+
+### 18. **volatility_memory_forensics.txt**
+- **Descripción**: Framework de análisis forense de memoria RAM más completo
+- **Categorías**: Análisis de procesos, red, registro, archivos, detección de malware, timeline
+- **Uso**: Incident response, análisis forense digital y detección de amenazas avanzadas
+
 ## Instrucciones de Uso
 
 ### Cargar Cheatsheets

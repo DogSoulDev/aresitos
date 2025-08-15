@@ -1,0 +1,438 @@
+# DIRECTORIOS WEB COMUNES EN ESPAÑOL
+
+# Administración y panel de control
+/admin
+/administracion
+/panel
+/panel-admin
+/panel-control
+/dashboard
+/escritorio
+/cpanel
+/control
+/gestion
+/manager
+/gerente
+/director
+/supervisor
+
+# Autenticación y usuarios
+/login
+/acceso
+/entrar
+/signin
+/auth
+/autenticacion
+/usuario
+/usuarios
+/user
+/users
+/perfil
+/profile
+/cuenta
+/account
+/registro
+/register
+/signup
+
+# Configuración y ajustes
+/config
+/configuracion
+/settings
+/ajustes
+/opciones
+/options
+/preferencias
+/preferences
+/parametros
+/parameters
+
+# Archivos y documentos
+/archivos
+/files
+/documentos
+/docs
+/documents
+/descargas
+/downloads
+/uploads
+/subidas
+/recursos
+/resources
+/assets
+/media
+/multimedia
+
+# Imágenes y contenido visual
+/images
+/imagenes
+/img
+/fotos
+/photos
+/galeria
+/gallery
+/pictures
+/pics
+/banners
+/logos
+
+# Scripts y aplicaciones
+/scripts
+/js
+/javascript
+/css
+/styles
+/estilos
+/app
+/aplicacion
+/application
+/programa
+/software
+
+# Bases de datos y backups
+/db
+/database
+/basedatos
+/backup
+/backups
+/respaldo
+/respaldos
+/sql
+/dump
+/export
+/exportar
+
+# APIs y servicios web
+/api
+/rest
+/soap
+/webservice
+/servicio
+/services
+/servicios
+/endpoint
+/ws
+
+# Logs y monitoreo
+/logs
+/log
+/registros
+/monitor
+/monitoring
+/monitoreo
+/stats
+/estadisticas
+/analytics
+/analiticas
+
+# Testing y desarrollo
+/test
+/testing
+/pruebas
+/dev
+/desarrollo
+/development
+/qa
+/calidad
+/debug
+/staging
+/stage
+
+# Comercio electrónico
+/shop
+/tienda
+/store
+/ecommerce
+/catalogo
+/catalog
+/productos
+/products
+/carrito
+/cart
+/checkout
+/pago
+/payment
+
+# Contenido y publicaciones
+/blog
+/noticias
+/news
+/articulos
+/articles
+/posts
+/publicaciones
+/content
+/contenido
+/paginas
+/pages
+
+# Soporte y ayuda
+/support
+/soporte
+/help
+/ayuda
+/faq
+/preguntas
+/contacto
+/contact
+/tickets
+/mesa-ayuda
+
+# Móvil y responsive
+/mobile
+/movil
+/m
+/touch
+/responsive
+/app-mobile
+
+# Seguridad
+/security
+/seguridad
+/ssl
+/https
+/cert
+/certificados
+/auth
+/oauth
+/saml
+
+# Instalación y setup
+/install
+/instalacion
+/setup
+/configurar
+/wizard
+/asistente
+/update
+/actualizar
+/upgrade
+
+# Error pages y utilidades
+/error
+/errors
+/errores
+/404
+/403
+/500
+/maintenance
+/mantenimiento
+/offline
+/construction
+/construccion
+
+# Idiomas
+/es
+/español
+/spanish
+/en
+/english
+/ingles
+/pt
+/portugues
+/fr
+/frances
+/it
+/italiano
+/de
+/aleman
+
+# Temporal y cache
+/temp
+/temporal
+/tmp
+/cache
+/session
+/sesion
+/cookies
+
+# Reportes y estadísticas
+/reports
+/reportes
+/informes
+/dashboard
+/metrics
+/metricas
+/charts
+/graficos
+
+# Recursos humanos
+/rrhh
+/hr
+/recursos-humanos
+/empleados
+/personal
+/nomina
+/payroll
+
+# Finanzas
+/finanzas
+/finance
+/contabilidad
+/accounting
+/facturacion
+/invoicing
+/billing
+
+# Marketing
+/marketing
+/publicidad
+/advertising
+/promociones
+/promotions
+/newsletter
+/boletin
+
+# Médico y salud
+/salud
+/health
+/medicina
+/medical
+/pacientes
+/patients
+/citas
+/appointments
+
+# Educación
+/educacion
+/education
+/cursos
+/courses
+/aula
+/classroom
+/estudiantes
+/students
+
+# Legal
+/legal
+/juridico
+/terminos
+/terms
+/politicas
+/policies
+/privacidad
+/privacy
+
+# Directorios específicos de CMS
+# WordPress
+/wp-admin
+/wp-content
+/wp-includes
+/wp-login
+/wp-config
+
+# Drupal
+/drupal
+/node
+/admin/config
+/admin/structure
+/admin/people
+
+# Joomla
+/joomla
+/administrator
+/components
+/modules
+/plugins
+
+# Magento
+/magento
+/admin_panel
+/downloader
+/skin
+/media
+
+# Prestashop
+/prestashop
+/admin123
+/adminer
+/backoffice
+
+# Directorios de servidores web
+# Apache
+/apache
+/htdocs
+/www
+/public_html
+/web
+/site
+/html
+
+# Nginx
+/nginx
+/var/www
+/usr/share/nginx
+
+# IIS
+/inetpub
+/wwwroot
+/aspnet_client
+
+# Directorios de aplicaciones comunes
+/phpmyadmin
+/phpMyAdmin
+/adminer
+/webmail
+/roundcube
+/squirrelmail
+/outlook
+/exchange
+
+# Cloud y virtualización
+/cloud
+/nube
+/aws
+/azure
+/docker
+/kubernetes
+/vm
+
+# Backup y archivos sensibles
+/backup.sql
+/database.sql
+/config.php
+/configuration.php
+/settings.php
+/wp-config.php
+/.env
+/.git
+/.svn
+/.htaccess
+/robots.txt
+/sitemap.xml
+
+# Directorios por defecto de aplicaciones
+/default
+/por-defecto
+/sample
+/ejemplo
+/demo
+/demostracion
+/template
+/plantilla
+/theme
+/tema
+
+# Directorios de idioma específicos por país
+# España
+/es-es
+/espana
+/spain
+# México
+/es-mx
+/mexico
+# Argentina
+/es-ar
+/argentina
+# Colombia
+/es-co
+/colombia
+# Chile
+/es-cl
+/chile
+# Perú
+/es-pe
+/peru
+# Venezuela
+/es-ve
+/venezuela

@@ -1,0 +1,341 @@
+# WIRESHARK - ANÁLISIS DE TRÁFICO DE RED
+
+## Descripción
+Wireshark es el analizador de protocolos de red más utilizado mundialmente.
+Permite capturar y analizar tráfico en tiempo real para investigación forense,
+análisis de malware, troubleshooting de red y auditorías de seguridad.
+
+## Ejemplo Real
+Durante un incident response, sospechas que hay tráfico malicioso en la red.
+Capturas tráfico con: tshark -i eth0 -w captura_sospechosa.pcap
+Luego analizas en Wireshark buscando comunicaciones con IPs externas inusuales.
+
+## Filtros de Captura (Capture Filters)
+
+# Interfaz específica
+-i eth0                           # Capturar en ethernet
+-i wlan0                          # Capturar en WiFi
+-i any                            # Capturar en todas las interfaces
+
+# Filtros básicos de captura
+host 192.168.1.1                 # Solo tráfico desde/hacia IP específica
+net 192.168.1.0/24               # Red específica
+port 80                           # Puerto específico
+portrange 80-443                  # Rango de puertos
+
+# Protocolos
+tcp                               # Solo TCP
+udp                               # Solo UDP
+icmp                              # Solo ICMP
+arp                               # Solo ARP
+
+# Combinaciones
+host 192.168.1.1 and port 80     # IP específica en puerto 80
+tcp and port 443                  # HTTPS traffic
+not port 22                       # Excluir SSH
+
+## Comandos tshark (CLI)
+
+# Captura básica
+tshark -i eth0                    # Captura en tiempo real
+tshark -i eth0 -w archivo.pcap    # Guardar en archivo
+tshark -r archivo.pcap            # Leer archivo existente
+
+# Capturas con filtros
+tshark -i eth0 -f "port 80"       # Filtro de captura
+tshark -r archivo.pcap -Y "http"  # Filtro de visualización
+
+# Información específica
+tshark -r archivo.pcap -T fields -e ip.src -e ip.dst -e tcp.dstport
+tshark -r archivo.pcap -z conv,ip # Estadísticas de conversaciones
+tshark -r archivo.pcap -z hosts   # Lista de hosts
+
+# Exportar objetos
+tshark -r archivo.pcap --export-objects http,objetos/
+
+## Filtros de Visualización (Display Filters)
+
+# Protocolos básicos
+ip                                # Todo el tráfico IP
+tcp                               # Solo TCP
+udp                               # Solo UDP
+dns                               # Solo DNS
+http                              # Solo HTTP
+https                             # Solo HTTPS (TLS)
+smtp                              # Solo SMTP
+ftp                               # Solo FTP
+ssh                               # Solo SSH
+
+# Direcciones IP
+ip.addr == 192.168.1.1            # Tráfico desde/hacia IP
+ip.src == 192.168.1.1             # Origen específico
+ip.dst == 192.168.1.1             # Destino específico
+ip.addr == 192.168.1.0/24         # Red específica
+
+# Puertos
+tcp.port == 80                    # Puerto TCP 80
+udp.port == 53                    # Puerto UDP 53
+tcp.dstport == 443                # Puerto destino 443
+tcp.srcport == 1234               # Puerto origen 1234
+
+# Flags TCP
+tcp.flags.syn == 1                # Paquetes SYN
+tcp.flags.ack == 1                # Paquetes ACK
+tcp.flags.fin == 1                # Paquetes FIN
+tcp.flags.rst == 1                # Paquetes RST
+
+# HTTP específico
+http.request.method == "GET"      # Solo requests GET
+http.request.method == "POST"     # Solo requests POST
+http.response.code == 200         # Respuestas exitosas
+http.response.code >= 400         # Errores HTTP
+http.host contains "google"       # Host específico
+http.user_agent contains "bot"    # User agents específicos
+
+# DNS específico
+dns.qry.name contains "malware"   # Consultas DNS sospechosas
+dns.flags.response == 0           # Solo queries (no responses)
+dns.flags.response == 1           # Solo responses
+
+# HTTPS/TLS
+tls.handshake.type == 1           # Client Hello
+tls.handshake.type == 2           # Server Hello
+ssl.record.content_type == 22     # Handshake records
+
+## Filtros de Análisis de Seguridad
+
+# Detección de ataques
+tcp.flags.syn == 1 and tcp.flags.ack == 0 and tcp.window_size <= 1024  # Posible SYN flood
+icmp.type == 8                    # ICMP ping requests
+tcp.analysis.retransmission       # Retransmisiones TCP
+tcp.analysis.duplicate_ack        # ACKs duplicados
+
+# Tráfico sospechoso
+ip.ttl <= 64 and ip.ttl >= 1      # TTL bajo (posible proxy/tunnel)
+tcp.dstport == 4444 or tcp.dstport == 31337  # Puertos de backdoors comunes
+dns.qry.name matches ".*\.tk$"    # Dominios .tk (frecuentemente maliciosos)
+
+# Malware y C2
+http.user_agent contains "bot" or http.user_agent == ""  # User agents sospechosos
+dns.qry.name matches ".*[0-9]{8,}.*"  # Dominios con DGA
+tcp.len == 0 and tcp.flags.ack == 1   # Keepalives de C2
+
+# Exfiltración de datos
+http.content_length > 10000       # Uploads grandes
+ftp.request.command == "STOR"     # Uploads FTP
+smtp.data.fragments               # Emails con attachments
+
+## Análisis de Protocolos Específicos
+
+# HTTP Analysis
+http.request.full_uri             # URLs completas
+http.file_data                    # Contenido de archivos
+http.cookie                       # Cookies
+http.authorization                # Headers de autenticación
+
+# DNS Analysis
+dns.qry.name                      # Nombres consultados
+dns.resp.addr                     # IPs respondidas
+dns.qry.type == 1                 # Consultas tipo A
+dns.qry.type == 15                # Consultas tipo MX
+
+# FTP Analysis
+ftp.request.command               # Comandos FTP
+ftp.request.arg                   # Argumentos
+ftp.response.code                 # Códigos de respuesta
+
+# SSH Analysis
+ssh.protocol                      # Versión del protocolo
+ssh.message_code                  # Códigos de mensaje
+
+## Estadísticas y Análisis
+
+# Menú Statistics -> Protocol Hierarchy
+# Muestra distribución de protocolos
+
+# Menú Statistics -> Conversations
+# Conversaciones entre hosts
+
+# Menú Statistics -> Endpoints
+# Estadísticas por endpoint
+
+# Menú Statistics -> I/O Graphs
+# Gráficos de entrada/salida
+
+# Menú Analyze -> Expert Information
+# Análisis automático de problemas
+
+## Casos de Uso en Ciberseguridad
+
+# Caso 1: Análisis de Malware
+# Filtros útiles para identificar comunicaciones C2
+ip.addr != 192.168.1.0/24 and ip.addr != 10.0.0.0/8 and ip.addr != 172.16.0.0/12
+dns.qry.name matches ".*[a-f0-9]{32}.*"  # Posibles dominios generados por DGA
+
+# Caso 2: Incident Response
+# Identificar tráfico hacia IPs maliciosas conocidas
+ip.dst == 1.2.3.4 or ip.dst == 5.6.7.8  # IPs de IOCs
+http.host in {"malicious.com" "evil.net"}
+
+# Caso 3: Análisis Forense
+# Reconstruir sesiones HTTP
+http.request.method == "POST" and http.content_length > 0
+tcp.stream eq 0  # Seguir stream TCP específico
+
+# Caso 4: Detección de Lateral Movement
+# Tráfico SMB/RPC sospechoso
+smb2 or dcerpc
+tcp.dstport == 445 or tcp.dstport == 135
+
+# Caso 5: Exfiltración de Datos
+# Transfers grandes o inusuales
+tcp.len > 1400 and (tcp.dstport == 80 or tcp.dstport == 443)
+ftp.request.command == "STOR" or http.request.method == "PUT"
+
+## Scripts y Automatización Lua
+
+# Script básico para contar paquetes por IP
+-- Guardar como count_ips.lua
+local ip_counts = {}
+
+function tap.packet(pinfo, tvb)
+    local src_ip = tostring(pinfo.src)
+    local dst_ip = tostring(pinfo.dst)
+    
+    ip_counts[src_ip] = (ip_counts[src_ip] or 0) + 1
+    ip_counts[dst_ip] = (ip_counts[dst_ip] or 0) + 1
+end
+
+function tap.draw()
+    for ip, count in pairs(ip_counts) do
+        print(ip .. ": " .. count)
+    end
+end
+
+# Ejecutar con: tshark -X lua_script:count_ips.lua -r archivo.pcap
+
+## Exportación de Datos
+
+# Exportar objetos HTTP
+File -> Export Objects -> HTTP
+
+# Exportar certificados TLS
+File -> Export Objects -> TLS
+
+# Exportar a CSV
+tshark -r archivo.pcap -T csv -E header=y > datos.csv
+
+# Exportar campos específicos
+tshark -r archivo.pcap -T fields -e ip.src -e ip.dst -e tcp.dstport -E header=y > conexiones.csv
+
+## Técnicas Avanzadas
+
+# Seguimiento de streams
+tcp.stream eq 5                   # Stream TCP específico
+udp.stream eq 2                   # Stream UDP específico
+
+# Análisis temporal
+frame.time >= "2024-01-01 00:00:00" and frame.time <= "2024-01-01 23:59:59"
+
+# Comparación de archivos
+# Menu: Analyze -> Compare -> With Capture File
+
+# Comentarios y marcadores
+# Click derecho -> Packet Comment
+# Ctrl+M para marcar paquete
+
+## Plugins Útiles
+
+# VirusTotal plugin
+# Consulta automática de hashes en VT
+
+# GeoIP plugin
+# Localización geográfica de IPs
+
+# Malware analysis plugins
+# Detección automática de patrones maliciosos
+
+## Optimización y Rendimiento
+
+# Para archivos grandes
+# View -> Time Display Format -> Seconds Since Beginning of Capture
+# Edit -> Preferences -> Protocols -> TCP -> Allow subdissector to reassemble TCP streams (desactivar)
+
+# Filtros de captura eficientes
+not port 22 and not arp           # Excluir SSH y ARP
+host 192.168.1.100 and (port 80 or port 443)  # Solo web traffic de host específico
+
+## Integración con Otras Herramientas
+
+# Con tcpdump
+tcpdump -i eth0 -w - | wireshark -k -i -
+
+# Con Suricata
+suricata -c suricata.yaml -i eth0 --pcap=archivo.pcap
+
+# Con Zeek (Bro)
+zeek -r archivo.pcap
+
+# Con NetworkMiner
+# Importar pcap en NetworkMiner para análisis forense
+
+## Scripts de Análisis Automatizado
+
+# Bash script para análisis básico
+#!/bin/bash
+PCAP_FILE="$1"
+
+echo "=== Análisis Básico de $PCAP_FILE ==="
+echo "Hosts únicos:"
+tshark -r "$PCAP_FILE" -T fields -e ip.src -e ip.dst | sort -u
+
+echo -e "\nProtocolos más comunes:"
+tshark -r "$PCAP_FILE" -z phs,tree
+
+echo -e "\nConexiones TCP:"
+tshark -r "$PCAP_FILE" -z conv,tcp
+
+echo -e "\nConsultas DNS:"
+tshark -r "$PCAP_FILE" -Y "dns.flags.response == 0" -T fields -e dns.qry.name | sort | uniq -c | sort -nr
+
+# Python script con pyshark
+#!/usr/bin/env python3
+import pyshark
+
+def analyze_pcap(filename):
+    cap = pyshark.FileCapture(filename)
+    
+    ips = set()
+    domains = set()
+    
+    for packet in cap:
+        try:
+            if hasattr(packet, 'ip'):
+                ips.add(packet.ip.src)
+                ips.add(packet.ip.dst)
+            
+            if hasattr(packet, 'dns') and hasattr(packet.dns, 'qry_name'):
+                domains.add(packet.dns.qry_name)
+        except:
+            continue
+    
+    print(f"IPs únicas: {len(ips)}")
+    print(f"Dominios únicos: {len(domains)}")
+    
+    return ips, domains
+
+# Uso: python3 analyze.py archivo.pcap
+
+## Notas de Forense Digital
+- Mantener cadena de custodia para evidencia legal
+- Documentar metodología de análisis
+- Usar timestamps precisos para correlación
+- Verificar integridad de archivos pcap
+- Considerar zona horaria en análisis temporal
+
+## Mejores Prácticas
+- Capturar en interfaces promiscuas cuando sea posible
+- Usar filtros de captura para optimizar almacenamiento
+- Rotar archivos de captura para evitar archivos enormes
+- Correlacionar con logs de sistemas y aplicaciones
+- Validar hallazgos con múltiples fuentes de evidencia
