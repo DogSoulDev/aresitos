@@ -13,6 +13,8 @@ import time
 import socket
 import threading
 import ipaddress
+import re
+import shlex
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from dataclasses import dataclass, field
 from enum import Enum
@@ -91,7 +93,65 @@ class EscaneadorAvanzado:
             'intentos_maximos': 3
         }
         
+        # Validaciones de seguridad
+        self.herramientas_permitidas = {
+            'nmap', 'masscan', 'nikto', 'dirb', 'gobuster', 'sqlmap', 'whatweb'
+        }
+        self.patron_ip = re.compile(r'^(\d{1,3}\.){3}\d{1,3}(/\d{1,2})?$')
+        self.patron_hostname = re.compile(r'^[a-zA-Z0-9.-]+$')
+        self.patron_puertos = re.compile(r'^(\d+(-\d+)?)(,\d+(-\d+)?)*$')
+        
         self.logger.info(" Escaneador Avanzado Ares Aegis inicializado")
+        
+    def _validar_objetivo_seguro(self, objetivo: str) -> bool:
+        """Valida que el objetivo sea seguro"""
+        if not objetivo:
+            return False
+            
+        # Verificar IP válida
+        if self.patron_ip.match(objetivo):
+            try:
+                # Verificar que no sea IP reservada/privada crítica
+                ip = ipaddress.ip_address(objetivo.split('/')[0])
+                if ip.is_loopback and objetivo != '127.0.0.1':
+                    return False
+                return True
+            except:
+                return False
+                
+        # Verificar hostname válido
+        if self.patron_hostname.match(objetivo):
+            return True
+            
+        return False
+        
+    def _validar_puertos_seguros(self, puertos: str) -> bool:
+        """Valida que el rango de puertos sea seguro"""
+        if not puertos or not self.patron_puertos.match(puertos):
+            return False
+            
+        # Verificar que no exceda límites razonables
+        rangos = puertos.replace(' ', '').split(',')
+        for rango in rangos:
+            if '-' in rango:
+                inicio, fin = rango.split('-')
+                if int(fin) - int(inicio) > 10000:  # Máximo 10k puertos por rango
+                    return False
+            if int(rango.split('-')[0]) > 65535:
+                return False
+                
+        return True
+        
+    def _sanitizar_comando(self, comando: List[str]) -> List[str]:
+        """Sanitiza comando para subprocess"""
+        comando_sanitizado = []
+        for arg in comando:
+            if not isinstance(arg, str):
+                continue
+            # Escapar argumentos potencialmente peligrosos
+            arg_seguro = shlex.quote(str(arg))
+            comando_sanitizado.append(arg_seguro.strip("'\""))
+        return comando_sanitizado
     
     def _cargar_base_vulnerabilidades(self) -> Dict[str, Any]:
         """Cargar base de datos de vulnerabilidades conocidas."""
@@ -158,8 +218,26 @@ class EscaneadorAvanzado:
         return disponibles
     
     def escanear_puertos_basico(self, objetivo: str, puertos: str = "1-1000") -> Dict[str, Any]:
-        """Escaneo básico de puertos usando nmap."""
+        """Escaneo básico de puertos usando nmap con validación de seguridad."""
         try:
+            # Validar objetivo
+            if not self._validar_objetivo_seguro(objetivo):
+                logging.warning(f"Objetivo inseguro bloqueado: {objetivo}")
+                return {
+                    'exito': False,
+                    'error': 'Objetivo no válido o no permitido',
+                    'timestamp': datetime.datetime.now().isoformat()
+                }
+                
+            # Validar puertos
+            if not self._validar_puertos_seguros(puertos):
+                logging.warning(f"Rango de puertos inseguro: {puertos}")
+                return {
+                    'exito': False,
+                    'error': 'Rango de puertos no válido',
+                    'timestamp': datetime.datetime.now().isoformat()
+                }
+            
             if not self.herramientas_disponibles.get('nmap', False):
                 return {
                     'exito': False,
@@ -167,15 +245,17 @@ class EscaneadorAvanzado:
                     'timestamp': datetime.datetime.now().isoformat()
                 }
             
+            # Construir comando seguro
             comando = ['nmap', '-sS', '-p', puertos, objetivo]
+            comando_seguro = self._sanitizar_comando(comando)
             
-            resultado = subprocess.run(comando, capture_output=True, text=True, timeout=60)
+            resultado = subprocess.run(comando_seguro, capture_output=True, text=True, timeout=60)
             
             return {
                 'exito': resultado.returncode == 0,
                 'salida': resultado.stdout,
                 'error': resultado.stderr if resultado.returncode != 0 else None,
-                'comando': ' '.join(comando),
+                'comando': 'nmap [sanitizado]',  # No exponer comando completo
                 'timestamp': datetime.datetime.now().isoformat()
             }
             

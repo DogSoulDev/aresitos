@@ -10,6 +10,8 @@ import time
 import json
 import subprocess
 import os
+import re
+import shlex
 from datetime import datetime, timedelta
 from typing import Dict, Any, List, Optional, Set
 from collections import defaultdict
@@ -93,11 +95,112 @@ class ControladorSIEM(ControladorBase):
         # Lock para operaciones concurrentes
         self._lock_siem = threading.Lock()
         
+        # SECURITY: Paths de logs permitidos para Kali (SECURITY FIX)
+        self._logs_permitidos = {
+            '/var/log/auth.log',
+            '/var/log/syslog', 
+            '/var/log/kern.log',
+            '/var/log/daemon.log',
+            '/var/log/apache2/access.log',
+            '/var/log/apache2/error.log',
+            '/var/log/nginx/access.log',
+            '/var/log/nginx/error.log',
+            '/var/log/mysql/error.log'
+        }
+        
+        # SECURITY: Comandos forenses permitidos para Kali (SECURITY FIX)
+        self._comandos_forenses_permitidos = {
+            'ps', 'netstat', 'grep', 'tail', 'head', 'cat', 'ls', 'find'
+        }
+        
         # Hilo de análisis continuo
         self._hilo_analisis = None
         self._detener_analisis = False
         
         self.logger.info("Controlador SIEM inicializado para Kali Linux")
+
+    def _validar_objetivo_forense(self, objetivo: str) -> Dict[str, Any]:
+        """
+        Valida que el objetivo de análisis forense sea seguro.
+        KALI OPTIMIZATION: Validación específica para análisis forense en Kali.
+        """
+        if not objetivo or not isinstance(objetivo, str):
+            return {'valido': False, 'error': 'Objetivo no válido'}
+        
+        # Limpiar espacios y caracteres peligrosos
+        objetivo = objetivo.strip()
+        
+        # SECURITY FIX: Prevenir command injection
+        if re.search(r'[;&|`$(){}[\]<>\\]', objetivo):
+            return {'valido': False, 'error': 'Objetivo contiene caracteres no seguros'}
+        
+        # Validar longitud razonable
+        if len(objetivo) > 255:
+            return {'valido': False, 'error': 'Objetivo demasiado largo'}
+        
+        # KALI SECURITY: Solo permitir análisis de logs conocidos o IPs locales
+        if objetivo in self._logs_permitidos:
+            return {
+                'valido': True,
+                'tipo': 'log_file',
+                'objetivo_sanitizado': objetivo
+            }
+        
+        # Si es una IP, validar que sea local/privada
+        try:
+            import ipaddress
+            ip_obj = ipaddress.ip_address(objetivo)
+            
+            # Rangos permitidos para análisis forense en Kali
+            redes_permitidas = [
+                '127.0.0.0/8',      # Localhost
+                '10.0.0.0/8',       # RFC 1918 - Redes privadas
+                '172.16.0.0/12',    # RFC 1918 - Redes privadas  
+                '192.168.0.0/16',   # RFC 1918 - Redes privadas
+                '169.254.0.0/16'    # Link-local
+            ]
+            
+            for red_permitida in redes_permitidas:
+                if ip_obj in ipaddress.ip_network(red_permitida):
+                    return {
+                        'valido': True,
+                        'tipo': 'ip_local',
+                        'objetivo_sanitizado': str(ip_obj)
+                    }
+                    
+            return {
+                'valido': False,
+                'error': f'IP {objetivo} no está en rangos permitidos para análisis forense'
+            }
+            
+        except ValueError:
+            # No es IP válida, rechazar por seguridad
+            return {
+                'valido': False,
+                'error': f'Objetivo {objetivo} no es un archivo de log válido ni una IP permitida'
+            }
+
+    def _validar_comando_forense(self, comando: str) -> Dict[str, Any]:
+        """
+        Valida que el comando forense sea seguro para Kali Linux.
+        KALI OPTIMIZATION: Solo permite comandos forenses seguros.
+        """
+        if not comando or not isinstance(comando, str):
+            return {'valido': False, 'error': 'Comando no válido'}
+        
+        comando = comando.strip()
+        
+        # SECURITY FIX: Validar que sea un comando permitido
+        if comando not in self._comandos_forenses_permitidos:
+            return {
+                'valido': False,
+                'error': f'Comando {comando} no está en whitelist de comandos forenses'
+            }
+        
+        return {
+            'valido': True,
+            'comando_sanitizado': comando
+        }
 
     async def _inicializar_impl(self) -> Dict[str, Any]:
         """Implementación específica de inicialización del controlador SIEM."""
@@ -182,27 +285,37 @@ class ControladorSIEM(ControladorBase):
         return resultado
 
     def _configurar_fuentes_logs(self) -> None:
-        """Configurar fuentes de logs disponibles en Kali Linux."""
+        """
+        Configurar fuentes de logs disponibles en Kali Linux con validación de seguridad.
+        KALI OPTIMIZATION: Solo permite logs seguros y validados.
+        """
         try:
             import os
             
             with self._lock_siem:
-                # Verificar qué fuentes de logs existen
+                # SECURITY: Verificar solo fuentes de logs permitidas
                 for fuente in self._config_siem['fuentes_logs_kali']:
+                    # SECURITY FIX: Validar que la fuente esté en whitelist
+                    if not any(fuente.startswith(log_permitido) for log_permitido in self._logs_permitidos):
+                        self.logger.warning(f"Fuente de log no permitida ignorada: {fuente}")
+                        continue
+                    
                     # Manejar logs con wildcards como postgresql
                     if '*' in fuente:
                         import glob
                         archivos_encontrados = glob.glob(fuente)
                         for archivo in archivos_encontrados:
-                            if os.path.exists(archivo) and os.access(archivo, os.R_OK):
+                            # SECURITY: Validar cada archivo encontrado
+                            if archivo in self._logs_permitidos and os.path.exists(archivo) and os.access(archivo, os.R_OK):
                                 self._estado_siem['fuentes_activas'].add(archivo)
                     else:
-                        if os.path.exists(fuente) and os.access(fuente, os.R_OK):
+                        # SECURITY: Validar archivo individual
+                        if fuente in self._logs_permitidos and os.path.exists(fuente) and os.access(fuente, os.R_OK):
                             self._estado_siem['fuentes_activas'].add(fuente)
                         else:
-                            self.logger.debug(f"Fuente de log no disponible: {fuente}")
+                            self.logger.debug(f"Fuente de log no disponible o no permitida: {fuente}")
                 
-                self.logger.info(f"Configuradas {len(self._estado_siem['fuentes_activas'])} fuentes de logs")
+                self.logger.info(f"Configuradas {len(self._estado_siem['fuentes_activas'])} fuentes de logs validadas")
                 
         except Exception as e:
             self.logger.error(f"Error configurando fuentes de logs: {e}")
@@ -323,15 +436,30 @@ class ControladorSIEM(ControladorBase):
                 time.sleep(30)  # Espera más larga en caso de error
 
     def _analizar_logs_sistema(self) -> List[Dict[str, Any]]:
-        """Analizar logs del sistema usando herramientas de Kali."""
+        """
+        Analizar logs del sistema usando herramientas de Kali con validación de seguridad.
+        KALI OPTIMIZATION: Solo analiza logs validados y seguros.
+        """
         eventos = []
         
         try:
-            # Analizar cada fuente de log activa
+            # Analizar cada fuente de log activa (ya validada en _configurar_fuentes_logs)
             for fuente_log in self._estado_siem['fuentes_activas']:
                 try:
-                    # Usar tail para obtener líneas recientes
-                    cmd = ['tail', '-n', '50', fuente_log]
+                    # SECURITY: Validar que la fuente esté en whitelist antes de procesarla
+                    if fuente_log not in self._logs_permitidos:
+                        self.logger.warning(f"Fuente de log no permitida omitida: {fuente_log}")
+                        continue
+                    
+                    # SECURITY: Validar comando tail
+                    validacion_tail = self._validar_comando_forense('tail')
+                    if not validacion_tail['valido']:
+                        self.logger.warning(f"Comando tail no permitido para: {fuente_log}")
+                        continue
+                    
+                    # SECURITY: Usar shlex.quote para sanitizar path del archivo
+                    fuente_quoted = shlex.quote(fuente_log)
+                    cmd = ['tail', '-n', '50', fuente_quoted]
                     result = subprocess.run(cmd, capture_output=True, text=True, timeout=10)
                     
                     if result.returncode == 0:
@@ -708,48 +836,78 @@ class ControladorSIEM(ControladorBase):
         return self.ejecutar_operacion_segura(self._ejecutar_analisis_forense_impl, objetivo)
 
     def _ejecutar_analisis_forense_impl(self, objetivo: str) -> Dict[str, Any]:
-        """Implementación del análisis forense."""
+        """
+        Implementación del análisis forense con validación de seguridad.
+        KALI OPTIMIZATION: Análisis forense seguro para pentesting profesional.
+        """
+        # SECURITY FIX: Validar objetivo antes de cualquier operación
+        validacion = self._validar_objetivo_forense(objetivo)
+        if not validacion['valido']:
+            self.logger.warning(f"Objetivo forense rechazado: {validacion['error']}")
+            return {
+                'exito': False,
+                'error': f"Objetivo no válido: {validacion['error']}",
+                'objetivo_rechazado': "[SANITIZADO]"  # SECURITY FIX: No loggear objetivo sin validar
+            }
+        
+        objetivo_seguro = validacion['objetivo_sanitizado']
+        self.logger.info(f"Ejecutando análisis forense validado para objetivo de tipo: {validacion['tipo']}")  # SECURITY FIX: No loggear objetivo sensible
+        
         try:
-            self.logger.info(f"Ejecutando análisis forense para: {objetivo}")
             tiempo_inicio = time.time()
             
             resultados = {}
             
-            # Análisis de procesos sospechosos
+            # SECURITY: Análisis de procesos sospechosos con comando validado
             try:
-                cmd_ps = ['ps', 'aux', '--sort=-%cpu']
-                result = subprocess.run(cmd_ps, capture_output=True, text=True, timeout=10)
-                if result.returncode == 0:
-                    resultados['procesos_top_cpu'] = result.stdout.split('\n')[:20]
+                validacion_ps = self._validar_comando_forense('ps')
+                if validacion_ps['valido']:
+                    cmd_ps = ['ps', 'aux', '--sort=-%cpu']
+                    result = subprocess.run(cmd_ps, capture_output=True, text=True, timeout=10)
+                    if result.returncode == 0:
+                        resultados['procesos_top_cpu'] = result.stdout.split('\n')[:20]
+                else:
+                    resultados['procesos_error'] = 'Comando ps no permitido'
             except Exception as e:
                 resultados['procesos_error'] = str(e)
             
-            # Análisis de conexiones de red
+            # SECURITY: Análisis de conexiones de red con comando validado
             try:
-                cmd_netstat = ['netstat', '-tuln']
-                result = subprocess.run(cmd_netstat, capture_output=True, text=True, timeout=10)
-                if result.returncode == 0:
-                    resultados['conexiones_activas'] = result.stdout.split('\n')
+                validacion_netstat = self._validar_comando_forense('netstat')
+                if validacion_netstat['valido']:
+                    cmd_netstat = ['netstat', '-tuln']
+                    result = subprocess.run(cmd_netstat, capture_output=True, text=True, timeout=10)
+                    if result.returncode == 0:
+                        resultados['conexiones_activas'] = result.stdout.split('\n')
+                else:
+                    resultados['conexiones_error'] = 'Comando netstat no permitido'
             except Exception as e:
                 resultados['conexiones_error'] = str(e)
             
-            # Análisis de logs específicos del objetivo
-            if objetivo in self._estado_siem['fuentes_activas']:
+            # SECURITY: Análisis de logs específicos con validación robusta
+            if validacion['tipo'] == 'log_file' and objetivo_seguro in self._estado_siem['fuentes_activas']:
                 try:
-                    cmd_grep = ['grep', '-i', r'error\|fail\|attack\|intrusion', objetivo]
-                    result = subprocess.run(cmd_grep, capture_output=True, text=True, timeout=15)
-                    if result.returncode == 0:
-                        resultados['eventos_sospechosos'] = result.stdout.split('\n')[:50]
+                    validacion_grep = self._validar_comando_forense('grep')
+                    if validacion_grep['valido']:
+                        # SECURITY FIX: Usar shlex.quote para sanitizar paths de archivos
+                        objetivo_quoted = shlex.quote(objetivo_seguro)
+                        cmd_grep = ['grep', '-i', r'error\|fail\|attack\|intrusion', objetivo_quoted]
+                        result = subprocess.run(cmd_grep, capture_output=True, text=True, timeout=15)
+                        if result.returncode == 0:
+                            resultados['eventos_sospechosos'] = result.stdout.split('\n')[:50]
+                    else:
+                        resultados['grep_error'] = 'Comando grep no permitido'
                 except Exception as e:
                     resultados['grep_error'] = str(e)
             
             tiempo_total = time.time() - tiempo_inicio
             
-            self.logger.info(f"Análisis forense completado en {tiempo_total:.2f}s")
+            self.logger.info(f"Análisis forense completado en {tiempo_total:.2f}s para tipo: {validacion['tipo']}")  # SECURITY FIX: No loggear objetivo sensible
             
             return {
                 'exito': True,
-                'objetivo': objetivo,
+                'objetivo': objetivo_seguro,  # SECURITY: Usar objetivo validado
+                'objetivo_validacion': validacion,  # SECURITY: Incluir info de validación
                 'tiempo_ejecucion': round(tiempo_total, 2),
                 'resultados': resultados,
                 'timestamp': datetime.now().isoformat()

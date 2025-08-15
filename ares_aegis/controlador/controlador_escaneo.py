@@ -7,6 +7,9 @@ Controlador especializado en operaciones de escaneo de seguridad
 import asyncio
 import threading
 import time
+import re
+import ipaddress
+import socket
 from datetime import datetime
 from typing import Dict, Any, List, Optional
 
@@ -42,6 +45,9 @@ class ControladorEscaneo(ControladorBase):
             'total_escaneos_realizados': 0
         }
         
+        # SECURITY: Lock para operaciones concurrentes (SECURITY FIX)
+        self._lock_escaneo = threading.Lock()
+        
         # Configuración de escaneo
         self._config_escaneo = {
             'timeout_conexion': 3,
@@ -50,6 +56,110 @@ class ControladorEscaneo(ControladorBase):
             'puerto_final': 1000,
             'intentos_maximos': 3
         }
+        
+        # SECURITY: Herramientas permitidas para escaneo en Kali (SECURITY FIX)
+        self._herramientas_escaneo_permitidas = {
+            'nmap', 'netstat', 'ss', 'lsof', 'arp-scan', 'masscan'
+        }
+        
+        # SECURITY: Rangos de IP permitidos para Kali (pentesting ético)
+        self._redes_permitidas = [
+            '127.0.0.0/8',      # Localhost
+            '10.0.0.0/8',       # RFC 1918 - Redes privadas
+            '172.16.0.0/12',    # RFC 1918 - Redes privadas  
+            '192.168.0.0/16',   # RFC 1918 - Redes privadas
+            '169.254.0.0/16'    # Link-local
+        ]
+        
+        self.logger.info("Controlador de Escaneo inicializado")
+    
+    def _validar_objetivo_escaneo(self, objetivo: str) -> Dict[str, Any]:
+        """
+        Valida que el objetivo de escaneo sea seguro y ético.
+        KALI OPTIMIZATION: Validación específica para pentesting ético.
+        """
+        if not objetivo or not isinstance(objetivo, str):
+            return {'valido': False, 'error': 'Objetivo no válido'}
+        
+        # Limpiar espacios y caracteres peligrosos
+        objetivo = objetivo.strip()
+        
+        # SECURITY FIX: Prevenir command injection
+        if re.search(r'[;&|`$(){}[\]<>]', objetivo):
+            return {'valido': False, 'error': 'Objetivo contiene caracteres no seguros'}
+        
+        # Validar longitud razonable
+        if len(objetivo) > 253:  # RFC 1035 - máximo para hostname
+            return {'valido': False, 'error': 'Objetivo demasiado largo'}
+        
+        try:
+            # Intentar parsear como IP
+            ip_obj = ipaddress.ip_address(objetivo)
+            
+            # KALI SECURITY: Verificar que la IP esté en rangos permitidos
+            for red_permitida in self._redes_permitidas:
+                if ip_obj in ipaddress.ip_network(red_permitida):
+                    return {
+                        'valido': True, 
+                        'tipo': 'ip', 
+                        'objetivo_sanitizado': str(ip_obj),
+                        'red_permitida': red_permitida
+                    }
+            
+            # Si no está en rangos permitidos, rechazar
+            return {
+                'valido': False, 
+                'error': f'IP {objetivo} no está en rangos de pentesting ético permitidos'
+            }
+            
+        except ValueError:
+            # No es una IP, validar como hostname
+            return self._validar_hostname(objetivo)
+    
+    def _validar_hostname(self, hostname: str) -> Dict[str, Any]:
+        """
+        Valida hostname para escaneo ético en Kali Linux.
+        KALI OPTIMIZATION: Solo permite hostnames seguros para pentesting.
+        """
+        # Validar formato de hostname
+        if not re.match(r'^[a-zA-Z0-9.-]+$', hostname):
+            return {'valido': False, 'error': 'Hostname contiene caracteres no válidos'}
+        
+        # No permitir hostnames que podrían ser problemáticos
+        hostnames_prohibidos = [
+            'google.com', 'facebook.com', 'microsoft.com', 'amazon.com',
+            'apple.com', 'twitter.com', 'github.com', 'stackoverflow.com'
+        ]
+        
+        if hostname.lower() in hostnames_prohibidos:
+            return {
+                'valido': False, 
+                'error': f'Hostname {hostname} no permitido para pentesting'
+            }
+        
+        # Intentar resolver DNS para verificar que es local/privado
+        try:
+            ip_resueltas = socket.getaddrinfo(hostname, None)
+            for ip_info in ip_resueltas:
+                ip_str = str(ip_info[4][0])  # SECURITY FIX: Convertir a string
+                
+                # Verificar que las IPs resueltas estén en rangos permitidos
+                validacion_ip = self._validar_objetivo_escaneo(ip_str)
+                if not validacion_ip['valido']:
+                    return {
+                        'valido': False,
+                        'error': f'Hostname {hostname} resuelve a IP no permitida: {ip_str}'
+                    }
+            
+            return {
+                'valido': True,
+                'tipo': 'hostname',
+                'objetivo_sanitizado': hostname.lower(),
+                'ips_resueltas': [str(ip[4][0]) for ip in ip_resueltas]
+            }
+            
+        except socket.gaierror:
+            return {'valido': False, 'error': f'No se puede resolver hostname: {hostname}'}
         
         # Lock para operaciones concurrentes
         self._lock_escaneo = threading.Lock()
@@ -160,21 +270,36 @@ class ControladorEscaneo(ControladorBase):
         return self.ejecutar_operacion_segura(self._ejecutar_escaneo_basico_impl, objetivo)
     
     def _ejecutar_escaneo_basico_impl(self, objetivo: str) -> Dict[str, Any]:
-        """Implementación del escaneo básico."""
-        self.logger.info(f"Iniciando escaneo básico de {objetivo}")
+        """
+        Implementación del escaneo básico con validación de seguridad.
+        KALI OPTIMIZATION: Escaneo seguro para pentesting ético.
+        """
+        # SECURITY FIX: Validar objetivo antes de cualquier operación
+        validacion = self._validar_objetivo_escaneo(objetivo)
+        if not validacion['valido']:
+            self.logger.warning(f"Objetivo rechazado: {validacion['error']}")
+            return {
+                'exito': False, 
+                'error': f"Objetivo no válido: {validacion['error']}",
+                'objetivo_rechazado': objetivo
+            }
+        
+        objetivo_seguro = validacion['objetivo_sanitizado']
+        self.logger.info(f"Iniciando escaneo básico validado de {objetivo_seguro}")
         
         if not self.escaneador or not self.siem:
             return {'exito': False, 'error': 'Componentes no inicializados correctamente'}
         
         with self._lock_escaneo:
             self._estado_escaneo['escaneo_en_progreso'] = True
-            self._estado_escaneo['ultimo_objetivo'] = objetivo
+            self._estado_escaneo['ultimo_objetivo'] = objetivo_seguro  # SECURITY: Solo guardar objetivo validado
         
         try:
             tiempo_inicio = time.time()
             
-            # Escaneo de puertos
-            puertos_resultado = self.escaneador.escanear_puertos_basico(objetivo)
+            # SECURITY: Usar objetivo validado en todas las operaciones
+            # Escaneo de puertos con objetivo seguro
+            puertos_resultado = self.escaneador.escanear_puertos_basico(objetivo_seguro)
             
             # Obtener conexiones activas
             conexiones_resultado = self.escaneador.obtener_conexiones_activas()
@@ -185,7 +310,8 @@ class ControladorEscaneo(ControladorBase):
             tiempo_total = time.time() - tiempo_inicio
             
             resultados = {
-                'objetivo': objetivo,
+                'objetivo': objetivo_seguro,  # SECURITY: Usar objetivo validado
+                'objetivo_validacion': validacion,  # SECURITY: Incluir info de validación
                 'timestamp': datetime.now().isoformat(),
                 'tiempo_ejecucion': round(tiempo_total, 2),
                 'puertos': puertos_resultado,
@@ -230,35 +356,51 @@ class ControladorEscaneo(ControladorBase):
         return self.ejecutar_operacion_segura(self._ejecutar_escaneo_completo_impl, objetivo)
     
     def _ejecutar_escaneo_completo_impl(self, objetivo: str) -> Dict[str, Any]:
-        """Implementación del escaneo completo."""
-        self.logger.info(f"Iniciando escaneo completo de {objetivo}")
+        """
+        Implementación del escaneo completo con validación de seguridad.
+        KALI OPTIMIZATION: Escaneo completo seguro para pentesting profesional.
+        """
+        # SECURITY FIX: Validar objetivo antes de cualquier operación
+        validacion = self._validar_objetivo_escaneo(objetivo)
+        if not validacion['valido']:
+            self.logger.warning(f"Objetivo rechazado en escaneo completo: {validacion['error']}")
+            return {
+                'exito': False, 
+                'error': f"Objetivo no válido: {validacion['error']}",
+                'objetivo_rechazado': objetivo
+            }
+        
+        objetivo_seguro = validacion['objetivo_sanitizado']
+        self.logger.info(f"Iniciando escaneo completo validado de {objetivo_seguro}")
         
         if not self.escaneador or not self.siem:
             return {'exito': False, 'error': 'Componentes no inicializados correctamente'}
         
         with self._lock_escaneo:
             self._estado_escaneo['escaneo_en_progreso'] = True
-            self._estado_escaneo['ultimo_objetivo'] = objetivo
+            self._estado_escaneo['ultimo_objetivo'] = objetivo_seguro  # SECURITY: Solo guardar objetivo validado
         
         try:
             tiempo_inicio = time.time()
             
-            # Escaneo básico
-            escaneo_basico = self._ejecutar_escaneo_basico_impl(objetivo)
+            # SECURITY: Usar objetivo validado en todas las operaciones
+            # Escaneo básico con objetivo seguro
+            escaneo_basico = self._ejecutar_escaneo_basico_impl(objetivo_seguro)
             
-            # Escaneo de servicios
-            servicios = self.escaneador.escanear_servicios(objetivo)
+            # Escaneo de servicios con objetivo seguro
+            servicios = self.escaneador.escanear_servicios(objetivo_seguro)
             
-            # Detección de sistema operativo
-            deteccion_os = self.escaneador.detectar_sistema_operativo(objetivo)
+            # Detección de sistema operativo con objetivo seguro
+            deteccion_os = self.escaneador.detectar_sistema_operativo(objetivo_seguro)
             
-            # Búsqueda de vulnerabilidades básicas
-            vulnerabilidades = self.escaneador.buscar_vulnerabilidades_basicas(objetivo)
+            # Búsqueda de vulnerabilidades básicas con objetivo seguro
+            vulnerabilidades = self.escaneador.buscar_vulnerabilidades_basicas(objetivo_seguro)
             
             tiempo_total = time.time() - tiempo_inicio
             
             resultados = {
-                'objetivo': objetivo,
+                'objetivo': objetivo_seguro,  # SECURITY: Usar objetivo validado
+                'objetivo_validacion': validacion,  # SECURITY: Incluir info de validación
                 'timestamp': datetime.now().isoformat(),
                 'tiempo_ejecucion': round(tiempo_total, 2),
                 'escaneo_basico': escaneo_basico.get('resultados', {}),
@@ -310,9 +452,66 @@ class ControladorEscaneo(ControladorBase):
         """
         return self.ejecutar_operacion_segura(self._ejecutar_escaneo_red_impl, rango_red)
     
+    def _validar_rango_red(self, rango_red: str) -> Dict[str, Any]:
+        """
+        Valida que el rango de red sea seguro para pentesting ético.
+        KALI OPTIMIZATION: Validación específica para escaneo de redes en Kali.
+        """
+        if not rango_red or not isinstance(rango_red, str):
+            return {'valido': False, 'error': 'Rango de red no válido'}
+        
+        # Limpiar espacios y caracteres peligrosos
+        rango_red = rango_red.strip()
+        
+        # SECURITY FIX: Prevenir command injection
+        if re.search(r'[;&|`$(){}[\]<>]', rango_red):
+            return {'valido': False, 'error': 'Rango contiene caracteres no seguros'}
+        
+        try:
+            # Intentar parsear como red CIDR
+            red_obj = ipaddress.ip_network(rango_red, strict=False)
+            
+            # KALI SECURITY: Verificar que la red esté en rangos permitidos
+            for red_permitida in self._redes_permitidas:
+                try:
+                    red_permitida_obj = ipaddress.ip_network(red_permitida)
+                    
+                    # Verificar si hay solapamiento (más simple y seguro)
+                    if red_obj.version == red_permitida_obj.version and red_obj.overlaps(red_permitida_obj):
+                        return {
+                            'valido': True,
+                            'rango_sanitizado': str(red_obj),
+                            'red_permitida': red_permitida,
+                            'total_hosts': red_obj.num_addresses - 2  # Excluir red y broadcast
+                        }
+                except Exception:
+                    continue
+            
+            return {
+                'valido': False,
+                'error': f'Rango de red {rango_red} no está en rangos de pentesting ético permitidos'
+            }
+            
+        except ValueError as e:
+            return {'valido': False, 'error': f'Formato de red inválido: {str(e)}'}
+
     def _ejecutar_escaneo_red_impl(self, rango_red: str) -> Dict[str, Any]:
-        """Implementación del escaneo de red."""
-        self.logger.info(f"Iniciando escaneo de red {rango_red}")
+        """
+        Implementación del escaneo de red con validación de seguridad.
+        KALI OPTIMIZATION: Escaneo seguro de redes para pentesting profesional.
+        """
+        # SECURITY FIX: Validar rango de red antes de cualquier operación
+        validacion = self._validar_rango_red(rango_red)
+        if not validacion['valido']:
+            self.logger.warning(f"Rango de red rechazado: {validacion['error']}")
+            return {
+                'exito': False,
+                'error': f"Rango de red no válido: {validacion['error']}",
+                'rango_rechazado': rango_red
+            }
+        
+        rango_seguro = validacion['rango_sanitizado']
+        self.logger.info(f"Iniciando escaneo de red validado {rango_seguro}")
         
         if not self.escaneador or not self.siem:
             return {'exito': False, 'error': 'Componentes no inicializados correctamente'}
@@ -320,8 +519,8 @@ class ControladorEscaneo(ControladorBase):
         try:
             tiempo_inicio = time.time()
             
-            # Descubrir hosts activos
-            hosts_activos = self.escaneador.descubrir_hosts_red(rango_red)
+            # SECURITY: Usar rango seguro para descubrir hosts
+            hosts_activos = self.escaneador.descubrir_hosts_red(rango_seguro)
             
             resultados_hosts = []
             hosts_procesados = 0
@@ -329,6 +528,7 @@ class ControladorEscaneo(ControladorBase):
             
             for host in hosts_activos[:max_hosts]:
                 try:
+                    # SECURITY: Cada host será validado en _ejecutar_escaneo_basico_impl
                     resultado_host = self._ejecutar_escaneo_basico_impl(host)
                     if resultado_host.get('exito'):
                         resultado_host['resultados']['host'] = host
@@ -340,7 +540,8 @@ class ControladorEscaneo(ControladorBase):
             tiempo_total = time.time() - tiempo_inicio
             
             resultados = {
-                'rango_red': rango_red,
+                'rango_red': rango_seguro,  # SECURITY: Usar rango validado
+                'rango_validacion': validacion,  # SECURITY: Incluir info de validación
                 'timestamp': datetime.now().isoformat(),
                 'tiempo_ejecucion': round(tiempo_total, 2),
                 'hosts_descubiertos': len(hosts_activos),

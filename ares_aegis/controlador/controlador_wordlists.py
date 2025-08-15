@@ -7,6 +7,8 @@ Gestión de wordlists para pentesting y análisis de seguridad
 import os
 import json
 import threading
+import re
+import logging
 from typing import Dict, List, Any, Optional
 from pathlib import Path
 from datetime import datetime
@@ -30,8 +32,67 @@ class ControladorWordlists(ControladorBase):
         self.ruta_wordlists = Path("data/wordlists")
         self._lock = threading.Lock()
         
+        # Configuraciones de seguridad
+        self.extensiones_permitidas = {'.txt', '.wordlist', '.dict'}
+        self.patron_nombre_seguro = re.compile(r'^[a-zA-Z0-9_-]+$')
+        self.tamano_max_archivo = 50 * 1024 * 1024  # 50MB
+        
         self.logger.info("Controlador de Wordlists inicializado")
         self._inicializar_impl()  # Llamada al método requerido por la clase base
+        
+    def _validar_path_seguro(self, ruta):
+        """Valida que el path sea seguro y esté dentro de directorios permitidos"""
+        try:
+            path_obj = Path(ruta).resolve()
+            base_permitida = self.ruta_wordlists.resolve()
+            
+            # Verificar que esté dentro del directorio base
+            if not str(path_obj).startswith(str(base_permitida)):
+                return False
+                
+            # Verificar extensión
+            if path_obj.suffix not in self.extensiones_permitidas:
+                return False
+                
+            return True
+        except:
+            return False
+            
+    def _validar_regex_segura(self, patron):
+        """Valida que el regex no sea malicioso (prevención ReDoS)"""
+        # Límite estricto de longitud
+        if len(patron) > 50:
+            return False
+            
+        # Patterns críticos que causan ReDoS
+        patrones_peligrosos = [
+            r'\(\?\=.*\)\*',     # Lookahead con repetición
+            r'\(\?\!.*\)\+',     # Lookahead negativo con repetición  
+            r'\(\.\*\)\{',       # .* con cuantificadores
+            r'\(\[\^\]\*\)',     # Negación con repetición
+            r'\*\+',             # Repetición anidada
+            r'\+\*',             # Repetición anidada
+            r'\{\d+,\}',         # Cuantificadores abiertos
+            r'\(\?\:.*\)\*\+',   # Grupos no captura con repetición
+        ]
+        
+        for peligroso in patrones_peligrosos:
+            if re.search(peligroso, patron):
+                logging.warning(f"Regex peligrosa bloqueada: {patron}")
+                return False
+                
+        # Límite de grupos de captura
+        if patron.count('(') > 3:
+            return False
+            
+        try:
+            # Compilar con timeout implícito para verificar sintaxis
+            compiled = re.compile(patron)
+            # Test rápido con string corta
+            compiled.search("test")
+            return True
+        except (re.error, Exception):
+            return False
     
     def _inicializar_impl(self) -> None:
         """Implementación específica de inicialización."""
@@ -157,17 +218,31 @@ class ControladorWordlists(ControladorBase):
             return []
     
     def exportar_wordlist(self, categoria: str, ruta_destino: str) -> bool:
-        """Exportar wordlist a archivo."""
+        """Exportar wordlist a archivo con validación de seguridad robusta."""
         try:
+            # Validar nombre de categoría
+            if not self.patron_nombre_seguro.match(categoria):
+                logging.warning(f"Categoría insegura bloqueada: {categoria}")
+                return False
+            
+            # Sanitizar nombre de archivo usando solo el basename
+            nombre_archivo = os.path.basename(ruta_destino)
+            if not self.patron_nombre_seguro.match(os.path.splitext(nombre_archivo)[0]):
+                logging.warning(f"Nombre de archivo inseguro: {nombre_archivo}")
+                return False
+                
             wordlist = self.obtener_wordlist(categoria)
             if not wordlist:
                 return False
             
-            with open(ruta_destino, 'w', encoding='utf-8') as archivo:
+            # Construir ruta segura usando solo el nombre de archivo
+            ruta_segura = self.ruta_wordlists / f"{categoria}.txt"
+            
+            with open(ruta_segura, 'w', encoding='utf-8') as archivo:
                 for entrada in wordlist:
                     archivo.write(f"{entrada}\n")
             
-            self.logger.info(f"Wordlist {categoria} exportada a {ruta_destino}")
+            self.logger.info(f"Wordlist {categoria} exportada a {ruta_segura}")
             return True
             
         except Exception as e:
@@ -175,12 +250,33 @@ class ControladorWordlists(ControladorBase):
             return False
     
     def importar_wordlist(self, ruta_archivo: str, categoria: str) -> bool:
-        """Importar wordlist desde archivo."""
+        """Importar wordlist desde archivo con validación de seguridad robusta."""
         try:
-            if not os.path.exists(ruta_archivo):
+            # Validar nombre de categoría
+            if not self.patron_nombre_seguro.match(categoria):
+                logging.warning(f"Nombre de categoría inseguro: {categoria}")
                 return False
             
-            with open(ruta_archivo, 'r', encoding='utf-8') as archivo:
+            # Sanitizar nombre de archivo usando solo el basename
+            nombre_archivo = os.path.basename(ruta_archivo)
+            nombre_base = os.path.splitext(nombre_archivo)[0]
+            if not self.patron_nombre_seguro.match(nombre_base):
+                logging.warning(f"Nombre de archivo inseguro: {nombre_archivo}")
+                return False
+            
+            # Construir path seguro dentro del directorio de wordlists
+            path_seguro = self.ruta_wordlists / nombre_archivo
+            
+            if not path_seguro.exists():
+                logging.warning(f"Archivo no encontrado: {path_seguro}")
+                return False
+                
+            # Verificar tamaño de archivo
+            if path_seguro.stat().st_size > self.tamano_max_archivo:
+                logging.warning(f"Archivo demasiado grande: {path_seguro}")
+                return False
+            
+            with open(path_seguro, 'r', encoding='utf-8') as archivo:
                 entradas = [linea.strip() for linea in archivo if linea.strip()]
             
             with self._lock:
@@ -260,9 +356,17 @@ class ControladorWordlists(ControladorBase):
             
             # Filtro por expresión regular
             if 'regex' in filtros:
-                import re
-                patron = re.compile(filtros['regex'], re.IGNORECASE)
-                resultado = [entrada for entrada in resultado if patron.search(entrada)]
+                patron_regex = filtros['regex']
+                if not self._validar_regex_segura(patron_regex):
+                    logging.warning(f"Regex insegura bloqueada: {patron_regex}")
+                    return []
+                    
+                try:
+                    patron = re.compile(patron_regex, re.IGNORECASE)
+                    resultado = [entrada for entrada in resultado if patron.search(entrada)]
+                except re.error:
+                    logging.error(f"Error en regex: {patron_regex}")
+                    return []
             
             self.logger.info(f"Wordlist {categoria} filtrada: {len(wordlist)} -> {len(resultado)} entradas")
             return resultado

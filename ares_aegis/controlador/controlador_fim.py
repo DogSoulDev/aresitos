@@ -9,6 +9,8 @@ import threading
 import time
 import os
 import subprocess
+import re
+import shlex
 from datetime import datetime
 from typing import Dict, Any, List, Optional, Set
 from pathlib import Path
@@ -74,11 +76,94 @@ class ControladorFIM(ControladorBase):
         # Lock para operaciones concurrentes
         self._lock_fim = threading.Lock()
         
+        # SECURITY: Rutas permitidas para monitoreo FIM en Kali (SECURITY FIX)
+        self._rutas_permitidas_fim = {
+            '/etc/passwd',
+            '/etc/shadow', 
+            '/etc/sudoers',
+            '/etc/ssh/sshd_config',
+            '/etc/hosts',
+            '/etc/crontab',
+            '/etc/fstab',
+            '/boot',
+            '/usr/bin',
+            '/usr/sbin',
+            '/opt',
+            '/var/log',
+            '/home',
+            '/root',
+            '/etc'
+        }
+        
+        # SECURITY: Rutas prohibidas (nunca monitorear) (SECURITY FIX)
+        self._rutas_prohibidas_fim = {
+            '/dev',
+            '/proc',
+            '/sys',
+            '/tmp',
+            '/var/tmp',
+            '/run',
+            '/media',
+            '/mnt'
+        }
+        
         # Hilo de monitoreo continuo
         self._hilo_monitoreo = None
         self._detener_monitoreo = False
         
         self.logger.info("Controlador FIM inicializado para Kali Linux")
+
+    def _validar_ruta_fim(self, ruta: str) -> Dict[str, Any]:
+        """
+        Valida que la ruta sea segura para monitoreo FIM en Kali Linux.
+        KALI OPTIMIZATION: Solo permite rutas críticas del sistema.
+        """
+        if not ruta or not isinstance(ruta, str):
+            return {'valido': False, 'error': 'Ruta no válida'}
+        
+        # Limpiar espacios y caracteres peligrosos
+        ruta = ruta.strip()
+        
+        # SECURITY FIX: Prevenir command injection
+        if re.search(r'[;&|`$(){}[\]<>]', ruta):
+            return {'valido': False, 'error': 'Ruta contiene caracteres no seguros'}
+        
+        # Normalizar ruta para prevenir path traversal
+        try:
+            ruta_normalizada = os.path.normpath(os.path.abspath(ruta))
+        except Exception:
+            return {'valido': False, 'error': 'Error normalizando ruta'}
+        
+        # SECURITY: Verificar que no esté en rutas prohibidas
+        for ruta_prohibida in self._rutas_prohibidas_fim:
+            if ruta_normalizada.startswith(ruta_prohibida):
+                return {
+                    'valido': False,
+                    'error': f'Ruta {ruta_prohibida} está prohibida para monitoreo FIM'
+                }
+        
+        # KALI SECURITY: Verificar que esté en rutas permitidas
+        ruta_permitida = False
+        for ruta_permitida_base in self._rutas_permitidas_fim:
+            if ruta_normalizada.startswith(ruta_permitida_base) or ruta_normalizada == ruta_permitida_base:
+                ruta_permitida = True
+                break
+        
+        if not ruta_permitida:
+            return {
+                'valido': False,
+                'error': f'Ruta {ruta_normalizada} no está en rutas permitidas para monitoreo FIM'
+            }
+        
+        # Verificar que la ruta exista
+        if not os.path.exists(ruta_normalizada):
+            return {'valido': False, 'error': f'Ruta no existe: {ruta_normalizada}'}
+        
+        return {
+            'valido': True,
+            'ruta_sanitizada': ruta_normalizada,
+            'tipo': 'file' if os.path.isfile(ruta_normalizada) else 'directory'
+        }
 
     async def _inicializar_impl(self) -> Dict[str, Any]:
         """Implementación específica de inicialización del controlador FIM."""
@@ -361,9 +446,28 @@ class ControladorFIM(ControladorBase):
         return self.ejecutar_operacion_segura(self._ejecutar_escaneo_manual_impl, ruta)
 
     def _ejecutar_escaneo_manual_impl(self, ruta: Optional[str] = None) -> Dict[str, Any]:
-        """Implementación del escaneo manual."""
+        """
+        Implementación del escaneo manual con validación de seguridad.
+        KALI OPTIMIZATION: Solo permite escanear rutas críticas validadas.
+        """
+        # SECURITY FIX: Validar ruta si se especifica
+        if ruta is not None:
+            validacion = self._validar_ruta_fim(ruta)
+            if not validacion['valido']:
+                self.logger.warning(f"Ruta FIM rechazada para escaneo: {validacion['error']}")
+                return {
+                    'exito': False,
+                    'error': f"Ruta no válida: {validacion['error']}",
+                    'ruta_rechazada': "[SANITIZADO]"  # SECURITY: No loggear ruta sin validar
+                }
+            ruta_segura = validacion['ruta_sanitizada']
+            tipo_escaneo = f"ruta {validacion['tipo']}"
+        else:
+            ruta_segura = None
+            tipo_escaneo = "completo"
+        
         try:
-            self.logger.info(f"Ejecutando escaneo manual FIM{' de ' + ruta if ruta else ''}")
+            self.logger.info(f"Ejecutando escaneo manual FIM {tipo_escaneo}")  # SECURITY: No loggear ruta sensible
             tiempo_inicio = time.time()
             
             if not self.fim:
@@ -372,12 +476,9 @@ class ControladorFIM(ControladorBase):
                     'error': 'Componente FIM no disponible'
                 }
             
-            if ruta:
-                # Escaneo de ruta específica - crear baseline solo para esa ruta
-                if not os.path.exists(ruta):
-                    return {'exito': False, 'error': f'Ruta no existe: {ruta}'}
-                
-                resultado = self.fim.crear_baseline([ruta])
+            if ruta_segura:
+                # SECURITY: Escaneo de ruta específica validada
+                resultado = self.fim.crear_baseline([ruta_segura])
             else:
                 # Escaneo completo
                 resultado = self.fim.crear_baseline()
@@ -385,12 +486,14 @@ class ControladorFIM(ControladorBase):
             tiempo_total = time.time() - tiempo_inicio
             
             if resultado:
-                self.logger.info(f"Escaneo manual completado en {tiempo_total:.2f}s")
+                self.logger.info(f"Escaneo manual {tipo_escaneo} completado en {tiempo_total:.2f}s")  # SECURITY: No loggear ruta sensible
                 return {
                     'exito': True,
                     'tiempo_ejecucion': round(tiempo_total, 2),
                     'archivos_procesados': resultado.get('archivos_procesados', 0),
                     'cambios_detectados': 0,  # Para baseline inicial no hay cambios
+                    'tipo_escaneo': tipo_escaneo,  # SECURITY: Info de tipo sin ruta sensible
+                    'ruta_validacion': validacion if ruta is not None else None,  # SECURITY: Info validación
                     'resultados': resultado
                 }
             else:
@@ -409,36 +512,49 @@ class ControladorFIM(ControladorBase):
         return self.ejecutar_operacion_segura(self._agregar_ruta_monitoreo_impl, ruta)
 
     def _agregar_ruta_monitoreo_impl(self, ruta: str) -> Dict[str, Any]:
-        """Implementación de agregar ruta al monitoreo."""
+        """
+        Implementación de agregar ruta al monitoreo con validación de seguridad.
+        KALI OPTIMIZATION: Solo permite rutas críticas del sistema.
+        """
+        # SECURITY FIX: Validar ruta antes de cualquier operación
+        validacion = self._validar_ruta_fim(ruta)
+        if not validacion['valido']:
+            self.logger.warning(f"Ruta FIM rechazada: {validacion['error']}")
+            return {
+                'exito': False,
+                'error': f"Ruta no válida: {validacion['error']}",
+                'ruta_rechazada': "[SANITIZADO]"  # SECURITY: No loggear ruta sin validar
+            }
+        
+        ruta_segura = validacion['ruta_sanitizada']
+        
         try:
-            if not os.path.exists(ruta):
-                return {'exito': False, 'error': f'Ruta no existe: {ruta}'}
-            
             with self._lock_fim:
-                if ruta in self._estado_fim['rutas_monitoreadas']:
-                    return {'exito': False, 'error': f'Ruta ya está siendo monitoreada: {ruta}'}
+                if ruta_segura in self._estado_fim['rutas_monitoreadas']:
+                    return {'exito': False, 'error': f'Ruta ya está siendo monitoreada'}
                 
-                self._estado_fim['rutas_monitoreadas'].add(ruta)
+                self._estado_fim['rutas_monitoreadas'].add(ruta_segura)
             
             # Agregar al FIM - el método retorna bool
             if self.fim:
-                resultado = self.fim.agregar_ruta_monitoreo(ruta)
+                resultado = self.fim.agregar_ruta_monitoreo(ruta_segura)
             else:
                 resultado = False
             
             if resultado:
-                self._registrar_evento_siem("RUTA_AGREGADA_FIM", f"Nueva ruta agregada al monitoreo: {ruta}", "info")
-                self.logger.info(f"Ruta agregada al monitoreo FIM: {ruta}")
+                self._registrar_evento_siem("RUTA_AGREGADA_FIM", f"Nueva ruta tipo {validacion['tipo']} agregada al monitoreo", "info")  # SECURITY: No loggear ruta sensible
+                self.logger.info(f"Ruta {validacion['tipo']} agregada al monitoreo FIM")  # SECURITY: Solo loggear tipo
                 
                 return {
                     'exito': True,
-                    'mensaje': f'Ruta agregada al monitoreo: {ruta}',
+                    'mensaje': f'Ruta {validacion["tipo"]} agregada al monitoreo',  # SECURITY: No exponer ruta real
+                    'ruta_validacion': validacion,  # SECURITY: Info de validación para auditoría
                     'total_rutas': len(self._estado_fim['rutas_monitoreadas'])
                 }
             else:
                 # Revertir cambio en caso de error
                 with self._lock_fim:
-                    self._estado_fim['rutas_monitoreadas'].discard(ruta)
+                    self._estado_fim['rutas_monitoreadas'].discard(ruta_segura)  # SECURITY: Usar ruta validada
                 
                 return {
                     'exito': False,
@@ -455,24 +571,40 @@ class ControladorFIM(ControladorBase):
         return self.ejecutar_operacion_segura(self._remover_ruta_monitoreo_impl, ruta)
 
     def _remover_ruta_monitoreo_impl(self, ruta: str) -> Dict[str, Any]:
-        """Implementación de remover ruta del monitoreo."""
+        """
+        Implementación de remover ruta del monitoreo con validación de seguridad.
+        KALI OPTIMIZATION: Solo permite remover rutas previamente validadas.
+        """
+        # SECURITY FIX: Validar ruta antes de cualquier operación
+        validacion = self._validar_ruta_fim(ruta)
+        if not validacion['valido']:
+            self.logger.warning(f"Ruta FIM rechazada para remoción: {validacion['error']}")
+            return {
+                'exito': False,
+                'error': f"Ruta no válida: {validacion['error']}",
+                'ruta_rechazada': "[SANITIZADO]"  # SECURITY: No loggear ruta sin validar
+            }
+        
+        ruta_segura = validacion['ruta_sanitizada']
+        
         try:
             with self._lock_fim:
-                if ruta not in self._estado_fim['rutas_monitoreadas']:
-                    return {'exito': False, 'error': f'Ruta no está siendo monitoreada: {ruta}'}
+                if ruta_segura not in self._estado_fim['rutas_monitoreadas']:
+                    return {'exito': False, 'error': f'Ruta no está siendo monitoreada'}
                 
-                self._estado_fim['rutas_monitoreadas'].discard(ruta)
+                self._estado_fim['rutas_monitoreadas'].discard(ruta_segura)
             
             # Remover del FIM - el método retorna bool
             if self.fim:
-                self.fim.remover_ruta_monitoreo(ruta)
+                self.fim.remover_ruta_monitoreo(ruta_segura)
             
-            self._registrar_evento_siem("RUTA_REMOVIDA_FIM", f"Ruta removida del monitoreo: {ruta}", "info")
-            self.logger.info(f"Ruta removida del monitoreo FIM: {ruta}")
+            self._registrar_evento_siem("RUTA_REMOVIDA_FIM", f"Ruta tipo {validacion['tipo']} removida del monitoreo", "info")  # SECURITY: No loggear ruta sensible
+            self.logger.info(f"Ruta {validacion['tipo']} removida del monitoreo FIM")  # SECURITY: Solo loggear tipo
             
             return {
                 'exito': True,
-                'mensaje': f'Ruta removida del monitoreo: {ruta}',
+                'mensaje': f'Ruta {validacion["tipo"]} removida del monitoreo',  # SECURITY: No exponer ruta real
+                'ruta_validacion': validacion,  # SECURITY: Info de validación para auditoría
                 'total_rutas': len(self._estado_fim['rutas_monitoreadas'])
             }
                 

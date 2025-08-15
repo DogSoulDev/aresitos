@@ -7,6 +7,8 @@ Gestión de diccionarios y datos de referencia para análisis de seguridad
 import os
 import json
 import threading
+import re
+import logging
 from typing import Dict, List, Any, Optional
 from pathlib import Path
 from datetime import datetime
@@ -30,8 +32,37 @@ class ControladorDiccionarios(ControladorBase):
         self.ruta_diccionarios = Path("data")
         self._lock = threading.Lock()
         
+        # Validaciones de seguridad
+        self.patron_nombre_seguro = re.compile(r'^[a-zA-Z0-9_-]+$')
+        self.extensiones_permitidas = {'.json', '.dict'}
+        self.tamano_max_archivo = 10 * 1024 * 1024  # 10MB
+        
         self.logger.info("Controlador de Diccionarios inicializado")
         self._inicializar_impl()  # Llamada al método requerido por la clase base
+        
+    def _validar_path_seguro(self, ruta):
+        """Valida que el path sea seguro"""
+        try:
+            # Solo permitir nombres base, no paths completos
+            nombre_archivo = os.path.basename(ruta)
+            nombre_base = os.path.splitext(nombre_archivo)[0]
+            extension = os.path.splitext(nombre_archivo)[1]
+            
+            # Validar nombre y extensión
+            if not self.patron_nombre_seguro.match(nombre_base):
+                return False
+            if extension not in self.extensiones_permitidas:
+                return False
+                
+            return True
+        except:
+            return False
+            
+    def _validar_categoria_segura(self, categoria):
+        """Valida nombres de categoría"""
+        if not categoria or not self.patron_nombre_seguro.match(categoria):
+            return False
+        return True
     
     def _inicializar_impl(self) -> None:
         """Implementación específica de inicialización."""
@@ -261,16 +292,30 @@ class ControladorDiccionarios(ControladorBase):
             return {}
     
     def exportar_diccionario(self, categoria: str, ruta_destino: str) -> bool:
-        """Exportar diccionario a archivo JSON."""
+        """Exportar diccionario a archivo JSON con validación de seguridad."""
         try:
+            # Validar categoría
+            if not self._validar_categoria_segura(categoria):
+                logging.warning(f"Categoría insegura bloqueada: {categoria}")
+                return False
+                
+            # Validar path de destino
+            if not self._validar_path_seguro(ruta_destino):
+                logging.warning(f"Path de exportación inseguro: {ruta_destino}")
+                return False
+                
             diccionario = self.obtener_diccionario(categoria)
             if not diccionario:
                 return False
             
-            with open(ruta_destino, 'w', encoding='utf-8') as archivo:
+            # Construir path seguro en directorio de datos
+            nombre_archivo = f"{categoria}.json"
+            ruta_segura = self.ruta_diccionarios / nombre_archivo
+            
+            with open(ruta_segura, 'w', encoding='utf-8') as archivo:
                 json.dump(diccionario, archivo, indent=2, ensure_ascii=False)
             
-            self.logger.info(f"Diccionario {categoria} exportado a {ruta_destino}")
+            self.logger.info(f"Diccionario {categoria} exportado correctamente")
             return True
             
         except Exception as e:
@@ -278,13 +323,38 @@ class ControladorDiccionarios(ControladorBase):
             return False
     
     def importar_diccionario(self, ruta_archivo: str, categoria: str) -> bool:
-        """Importar diccionario desde archivo JSON."""
+        """Importar diccionario desde archivo JSON con validación de seguridad."""
         try:
-            if not os.path.exists(ruta_archivo):
+            # Validar categoría
+            if not self._validar_categoria_segura(categoria):
+                logging.warning(f"Categoría insegura bloqueada: {categoria}")
+                return False
+                
+            # Validar path de archivo
+            if not self._validar_path_seguro(ruta_archivo):
+                logging.warning(f"Path de importación inseguro: {ruta_archivo}")
+                return False
+                
+            # Construir path seguro en directorio de datos
+            nombre_archivo = os.path.basename(ruta_archivo)
+            ruta_segura = self.ruta_diccionarios / nombre_archivo
+            
+            if not ruta_segura.exists():
+                logging.warning(f"Archivo no encontrado: {nombre_archivo}")
+                return False
+                
+            # Verificar tamaño de archivo
+            if ruta_segura.stat().st_size > self.tamano_max_archivo:
+                logging.warning(f"Archivo demasiado grande: {nombre_archivo}")
                 return False
             
-            with open(ruta_archivo, 'r', encoding='utf-8') as archivo:
+            with open(ruta_segura, 'r', encoding='utf-8') as archivo:
                 diccionario = json.load(archivo)
+            
+            # Validar que sea un diccionario válido
+            if not isinstance(diccionario, dict):
+                logging.warning(f"Archivo no contiene diccionario válido: {nombre_archivo}")
+                return False
             
             with self._lock:
                 self.diccionarios_cargados[categoria] = diccionario

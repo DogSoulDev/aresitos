@@ -1,6 +1,9 @@
 # -*- coding: utf-8 -*-
 
 import subprocess
+import shlex
+import logging
+import re
 from ares_aegis.modelo.modelo_utilidades_sistema import ModeloUtilidadesSistema
 from ares_aegis.modelo.modelo_reportes import ModeloReportes
 from ares_aegis.modelo.modelo_gestor_wordlists import ModeloGestorWordlists
@@ -14,6 +17,39 @@ class ControladorUtilidades:
         self.reportes = ModeloReportes()
         self.gestor_wordlists = ModeloGestorWordlists()
         self.gestor_diccionarios = ModeloGestorDiccionarios()
+        
+        # Validaciones de seguridad
+        self.comandos_permitidos = {
+            'apt-get', 'journalctl', 'find', 'systemctl', 'ps', 'netstat', 'ss'
+        }
+        self.patron_nombre_seguro = re.compile(r'^[a-zA-Z0-9_-]+$')
+        
+    def _validar_comando_seguro(self, comando_completo):
+        """Valida que el comando sea seguro y esté en whitelist"""
+        if not comando_completo:
+            return False
+            
+        # Extraer comando base
+        comando_base = comando_completo.split()[0]
+        
+        # Verificar whitelist
+        if comando_base not in self.comandos_permitidos:
+            logging.warning(f"Comando no permitido bloqueado: {comando_base}")
+            return False
+            
+        # Verificar caracteres peligrosos
+        caracteres_peligrosos = [';', '|', '&', '$(', '`', '<', '>']
+        if any(char in comando_completo for char in caracteres_peligrosos):
+            logging.warning(f"Comando con caracteres peligrosos bloqueado: {comando_completo}")
+            return False
+            
+        return True
+        
+    def _validar_nombre_archivo(self, nombre):
+        """Valida nombres de archivo/diccionario"""
+        if not nombre or not self.patron_nombre_seguro.match(nombre):
+            return False
+        return True
     
     def verificar_herramientas_disponibles(self):
         return self.utilidades_sistema.verificar_herramientas_kali_completo()
@@ -34,40 +70,67 @@ class ControladorUtilidades:
         return self.utilidades_sistema.obtener_info_hardware_completa()
     
     def ejecutar_limpieza_sistema(self):
+        """Ejecuta limpieza del sistema con validación de seguridad"""
         try:
             resultados = []
+            # Comandos pre-validados y seguros
             comandos_limpieza = [
-                ('apt-get clean', 'Limpiar cache de paquetes'),
-                ('apt-get autoclean', 'Limpiar paquetes obsoletos'),
-                ('journalctl --vacuum-time=7d', 'Limpiar logs antiguos'),
-                ('find /tmp -type f -atime +7 -delete', 'Limpiar archivos temporales')
+                (['apt-get', 'clean'], 'Limpiar cache de paquetes'),
+                (['apt-get', 'autoclean'], 'Limpiar paquetes obsoletos'),
+                (['journalctl', '--vacuum-time=7d'], 'Limpiar logs antiguos'),
+                (['find', '/tmp', '-type', 'f', '-atime', '+7', '-delete'], 'Limpiar archivos temporales')
             ]
             
-            for comando, descripcion in comandos_limpieza:
+            for comando_lista, descripcion in comandos_limpieza:
                 try:
+                    # Validar comando antes de ejecutar
+                    comando_str = ' '.join(comando_lista)
+                    if not self._validar_comando_seguro(comando_str):
+                        resultados.append({
+                            'comando': comando_str,
+                            'descripcion': descripcion,
+                            'exito': False,
+                            'error': 'Comando bloqueado por seguridad'
+                        })
+                        continue
+                    
+                    # Ejecutar con lista de argumentos (más seguro que string)
                     resultado = subprocess.run(
-                        comando.split(), 
+                        comando_lista, 
                         capture_output=True, 
                         text=True, 
-                        timeout=60
+                        timeout=60,
+                        check=False
                     )
+                    
                     resultados.append({
-                        'comando': comando,
+                        'comando': comando_str,
                         'descripcion': descripcion,
                         'exito': resultado.returncode == 0,
-                        'salida': resultado.stdout[:500]
+                        'salida': resultado.stdout[:500] if resultado.stdout else '',
+                        'codigo_retorno': resultado.returncode
                     })
-                except:
+                    
+                except subprocess.TimeoutExpired:
                     resultados.append({
-                        'comando': comando,
+                        'comando': comando_str,
                         'descripcion': descripcion,
                         'exito': False,
-                        'error': 'Error al ejecutar comando'
+                        'error': 'Timeout ejecutando comando'
+                    })
+                except Exception as e:
+                    logging.error(f"Error ejecutando {comando_str}: {str(e)}")
+                    resultados.append({
+                        'comando': comando_str,
+                        'descripcion': descripcion,
+                        'exito': False,
+                        'error': 'Error de ejecución'
                     })
             
             return {'exito': True, 'resultados': resultados}
         except Exception as e:
-            return {'exito': False, 'error': str(e)}
+            logging.error(f"Error en limpieza del sistema: {str(e)}")
+            return {'exito': False, 'error': 'Error general en limpieza'}
     
     def generar_reporte_completo(self, incluir_escaneo=None, incluir_monitoreo=None):
         datos_utilidades = {
@@ -100,15 +163,31 @@ class ControladorUtilidades:
         return self.gestor_wordlists.listar_wordlists()
     
     def cargar_wordlist(self, ruta_origen, nombre_destino=None):
+        """Carga wordlist con validación de nombre"""
+        if nombre_destino and not self._validar_nombre_archivo(nombre_destino):
+            logging.warning(f"Nombre de wordlist inseguro: {nombre_destino}")
+            return {'exito': False, 'error': 'Nombre no válido'}
         return self.gestor_wordlists.cargar_wordlist(ruta_origen, nombre_destino)
     
     def obtener_contenido_wordlist(self, nombre):
+        """Obtiene contenido con validación de nombre"""
+        if not self._validar_nombre_archivo(nombre):
+            logging.warning(f"Nombre de wordlist inseguro: {nombre}")
+            return {'exito': False, 'error': 'Nombre no válido'}
         return self.gestor_wordlists.obtener_contenido_wordlist(nombre)
     
     def guardar_wordlist(self, nombre, contenido):
+        """Guarda wordlist con validación de nombre"""
+        if not self._validar_nombre_archivo(nombre):
+            logging.warning(f"Nombre de wordlist inseguro: {nombre}")
+            return {'exito': False, 'error': 'Nombre no válido'}
         return self.gestor_wordlists.guardar_wordlist(nombre, contenido)
     
     def eliminar_wordlist(self, nombre):
+        """Elimina wordlist con validación de nombre"""
+        if not self._validar_nombre_archivo(nombre):
+            logging.warning(f"Nombre de wordlist inseguro: {nombre}")
+            return {'exito': False, 'error': 'Nombre no válido'}
         return self.gestor_wordlists.eliminar_wordlist(nombre)
     
     def exportar_wordlist(self, nombre, ruta_destino):

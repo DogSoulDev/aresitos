@@ -8,6 +8,8 @@ import asyncio
 import logging
 import threading
 import time
+import re
+import os
 from typing import Dict, Any, Optional, List
 from datetime import datetime
 
@@ -63,11 +65,113 @@ class ControladorPrincipal(ControladorBase):
         # Lock para operaciones thread-safe
         self._lock = threading.Lock()
         
+        # SECURITY: Controladores permitidos para acceso (SECURITY FIX)
+        self._controladores_permitidos = {
+            'escaneo', 'monitoreo', 'utilidades', 'auditoria', 
+            'herramientas', 'reportes', 'wordlists', 'diccionarios', 
+            'fim', 'siem'
+        }
+        
+        # SECURITY: Claves de configuración permitidas (SECURITY FIX)
+        self._config_keys_permitidas = {
+            'sistema.log_level', 'sistema.timeout', 'sistema.max_threads',
+            'kali.herramientas_path', 'kali.entorno_trabajo',
+            'escaneo.puerto_inicial', 'escaneo.puerto_final',
+            'fim.intervalo_escaneo', 'siem.intervalo_analisis'
+        }
+        
         # Configurar logging avanzado
         self._configurar_logging_avanzado()
         
         self.logger.info("Controlador Principal de Ares Aegis inicializado")
+
+    def _validar_objetivo_principal(self, objetivo: str) -> Dict[str, Any]:
+        """
+        Valida objetivo para escaneo avanzado en el controlador principal.
+        KALI OPTIMIZATION: Delega validación a controladores especializados.
+        """
+        if not objetivo or not isinstance(objetivo, str):
+            return {'valido': False, 'error': 'Objetivo no válido'}
+        
+        # Limpiar espacios y caracteres peligrosos
+        objetivo = objetivo.strip()
+        
+        # SECURITY FIX: Prevenir command injection básico
+        if re.search(r'[;&|`$(){}[\]<>]', objetivo):
+            return {'valido': False, 'error': 'Objetivo contiene caracteres no seguros'}
+        
+        # Validación de longitud razonable
+        if len(objetivo) > 253:  # RFC 1035 - máximo para hostname
+            return {'valido': False, 'error': 'Objetivo demasiado largo'}
+        
+        # KALI SECURITY: Delegar validación específica al controlador de escaneo
+        # El controlador de escaneo tiene validaciones más robustas
+        controlador_escaneo = self._controladores.get('escaneo')
+        if controlador_escaneo and hasattr(controlador_escaneo, '_validar_objetivo_escaneo'):
+            return controlador_escaneo._validar_objetivo_escaneo(objetivo)
+        
+        # Validación básica si no hay controlador de escaneo
+        return {
+            'valido': True,
+            'objetivo_sanitizado': objetivo,
+            'tipo': 'basic_validation',
+            'nota': 'Validación básica - use controlador específico para validación completa'
+        }
     
+    def _validar_nombre_controlador(self, nombre: str) -> Dict[str, Any]:
+        """
+        Valida nombre de controlador antes de acceso.
+        KALI OPTIMIZATION: Solo permite controladores autorizados.
+        """
+        if not nombre or not isinstance(nombre, str):
+            return {'valido': False, 'error': 'Nombre de controlador no válido'}
+        
+        # Limpiar espacios y convertir a lowercase
+        nombre = nombre.strip().lower()
+        
+        # SECURITY FIX: Prevenir command injection y path traversal
+        if re.search(r'[;&|`$(){}[\]<>/\\.]', nombre):
+            return {'valido': False, 'error': 'Nombre contiene caracteres no seguros'}
+        
+        # KALI SECURITY: Verificar que esté en whitelist
+        if nombre not in self._controladores_permitidos:
+            return {
+                'valido': False,
+                'error': f'Controlador {nombre} no está en la lista de controladores permitidos'
+            }
+        
+        return {
+            'valido': True,
+            'nombre_sanitizado': nombre
+        }
+    
+    def _validar_clave_configuracion(self, clave: str) -> Dict[str, Any]:
+        """
+        Valida clave de configuración antes de acceso/modificación.
+        KALI OPTIMIZATION: Solo permite claves de configuración seguras.
+        """
+        if not clave or not isinstance(clave, str):
+            return {'valido': False, 'error': 'Clave de configuración no válida'}
+        
+        # Limpiar espacios
+        clave = clave.strip()
+        
+        # SECURITY FIX: Prevenir command injection y path traversal
+        if re.search(r'[;&|`$(){}[\]<>\\]', clave):
+            return {'valido': False, 'error': 'Clave contiene caracteres no seguros'}
+        
+        # KALI SECURITY: Verificar que esté en whitelist
+        if clave not in self._config_keys_permitidas:
+            return {
+                'valido': False,
+                'error': f'Clave {clave} no está en la lista de configuraciones permitidas'
+            }
+        
+        return {
+            'valido': True,
+            'clave_sanitizada': clave
+        }
+
     def _inicializar_controladores(self) -> None:
         """Inicializar todos los controladores especializados."""
         try:
@@ -428,23 +532,78 @@ class ControladorPrincipal(ControladorBase):
             return {'exito': False, 'error': f'Error en detención síncrona: {str(e)}'}
     
     def obtener_controlador(self, nombre: str):
-        """Obtener referencia a un controlador específico."""
-        return self._controladores.get(nombre)
+        """
+        Obtener referencia a un controlador específico con validación.
+        KALI OPTIMIZATION: Solo permite acceso a controladores autorizados.
+        """
+        # SECURITY FIX: Validar nombre del controlador
+        validacion = self._validar_nombre_controlador(nombre)
+        if not validacion['valido']:
+            self.logger.warning(f"Acceso a controlador rechazado: {validacion['error']}")
+            return None
+        
+        nombre_seguro = validacion['nombre_sanitizado']
+        return self._controladores.get(nombre_seguro)
     
     def listar_controladores(self) -> List[str]:
         """Listar nombres de controladores disponibles."""
         return list(self._controladores.keys())
     
     def obtener_configuracion(self, clave: Optional[str] = None) -> Any:
-        """Obtener configuración del sistema."""
+        """
+        Obtener configuración del sistema con validación.
+        KALI OPTIMIZATION: Solo permite acceso a configuraciones seguras.
+        """
         if clave:
-            return self.gestor_config.obtener(clave)
+            # SECURITY FIX: Validar clave de configuración
+            validacion = self._validar_clave_configuracion(clave)
+            if not validacion['valido']:
+                self.logger.warning(f"Acceso a configuración rechazado: {validacion['error']}")
+                return None
+            
+            clave_segura = validacion['clave_sanitizada']
+            return self.gestor_config.obtener(clave_segura)
         else:
-            return self.gestor_config.obtener_configuracion_completa()
+            # SECURITY: Solo retornar configuraciones permitidas
+            config_completa = self.gestor_config.obtener_configuracion_completa()
+            config_filtrada = {}
+            for key in self._config_keys_permitidas:
+                if key in config_completa:
+                    config_filtrada[key] = config_completa[key]
+            return config_filtrada
     
     def establecer_configuracion(self, clave: str, valor: Any) -> bool:
-        """Establecer configuración del sistema."""
-        return self.gestor_config.establecer(clave, valor)
+        """
+        Establecer configuración del sistema con validación.
+        KALI OPTIMIZATION: Solo permite modificar configuraciones seguras.
+        """
+        # SECURITY FIX: Validar clave de configuración
+        validacion = self._validar_clave_configuracion(clave)
+        if not validacion['valido']:
+            self.logger.warning(f"Modificación de configuración rechazada: {validacion['error']}")
+            return False
+        
+        clave_segura = validacion['clave_sanitizada']
+        
+        # SECURITY: Validar tipo de valor según la clave
+        valores_permitidos = {
+            'sistema.log_level': ['DEBUG', 'INFO', 'WARNING', 'ERROR', 'CRITICAL'],
+            'sistema.timeout': lambda x: isinstance(x, (int, float)) and 1 <= x <= 300,
+            'sistema.max_threads': lambda x: isinstance(x, int) and 1 <= x <= 100,
+        }
+        
+        if clave_segura in valores_permitidos:
+            validador = valores_permitidos[clave_segura]
+            if isinstance(validador, list):
+                if valor not in validador:
+                    self.logger.warning(f"Valor no permitido para {clave_segura}: {valor}")
+                    return False
+            elif callable(validador):
+                if not validador(valor):
+                    self.logger.warning(f"Valor inválido para {clave_segura}: {valor}")
+                    return False
+        
+        return self.gestor_config.establecer(clave_segura, valor)
     
     def obtener_metricas_sistema(self) -> Dict[str, Any]:
         """Obtener métricas específicas del sistema."""
@@ -503,14 +662,29 @@ class ControladorPrincipal(ControladorBase):
         return None
     
     def ejecutar_escaneo_avanzado(self, objetivo: str, tipo_escaneo: str = "PUERTOS_AVANZADO") -> Dict[str, Any]:
-        """Ejecutar escaneo avanzado usando la nueva funcionalidad."""
+        """
+        Ejecutar escaneo avanzado con validación de seguridad.
+        KALI OPTIMIZATION: Validación robusta antes de delegar a controladores.
+        """
+        # SECURITY FIX: Validar objetivo antes de cualquier operación
+        validacion = self._validar_objetivo_principal(objetivo)
+        if not validacion['valido']:
+            self.logger.warning(f"Objetivo rechazado en escaneo avanzado: {validacion['error']}")
+            return {
+                'exito': False,
+                'error': f"Objetivo no válido: {validacion['error']}",
+                'objetivo_rechazado': "[SANITIZADO]"  # SECURITY: No loggear objetivo sin validar
+            }
+        
+        objetivo_seguro = validacion['objetivo_sanitizado']
+        
         try:
             escaneador = self.obtener_escaneador_avanzado()
             if escaneador and hasattr(escaneador, 'escanear_avanzado'):
                 from ares_aegis.modelo.modelo_escaneador import TipoEscaneo
                 
-                # Mapear string a enum
-                tipo_map = {
+                # SECURITY: Validar tipo de escaneo
+                tipos_permitidos = {
                     "PUERTOS_BASICO": TipoEscaneo.PUERTOS_BASICO,
                     "PUERTOS_AVANZADO": TipoEscaneo.PUERTOS_AVANZADO,
                     "VULNERABILIDADES": TipoEscaneo.VULNERABILIDADES,
@@ -520,13 +694,21 @@ class ControladorPrincipal(ControladorBase):
                     "STEALTH": TipoEscaneo.STEALTH
                 }
                 
-                tipo_enum = tipo_map.get(tipo_escaneo, TipoEscaneo.PUERTOS_AVANZADO)
-                resultado = escaneador.escanear_avanzado(objetivo, tipo_enum)
+                if tipo_escaneo not in tipos_permitidos:
+                    return {
+                        'exito': False,
+                        'error': f'Tipo de escaneo no permitido: {tipo_escaneo}',
+                        'tipos_permitidos': list(tipos_permitidos.keys())
+                    }
+                
+                tipo_enum = tipos_permitidos[tipo_escaneo]
+                resultado = escaneador.escanear_avanzado(objetivo_seguro, tipo_enum)  # SECURITY: Usar objetivo validado
                 
                 # Convertir resultado a formato de diccionario para la interfaz
                 return {
                     'exito': True,
-                    'objetivo': resultado.objetivo,
+                    'objetivo': objetivo_seguro,  # SECURITY: Usar objetivo validado
+                    'objetivo_validacion': validacion,  # SECURITY: Info de validación
                     'tipo_escaneo': resultado.tipo_escaneo.value,
                     'inicio': resultado.inicio.isoformat(),
                     'fin': resultado.fin.isoformat() if resultado.fin else None,
