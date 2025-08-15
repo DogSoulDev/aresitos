@@ -14,7 +14,7 @@ from datetime import datetime, timedelta
 from typing import Dict, Any, List, Optional, Set
 from collections import defaultdict
 
-from ares_aegis.controladores.controlador_base import ControladorBase
+from ares_aegis.controlador.controlador_base import ControladorBase
 from ares_aegis.modelo.modelo_siem import SIEMAvanzado, SIEM, TipoEvento, SeveridadEvento, EventoSIEM
 
 class ControladorSIEM(ControladorBase):

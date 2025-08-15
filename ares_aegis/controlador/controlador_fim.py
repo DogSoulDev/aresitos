@@ -13,7 +13,7 @@ from datetime import datetime
 from typing import Dict, Any, List, Optional, Set
 from pathlib import Path
 
-from ares_aegis.controladores.controlador_base import ControladorBase
+from ares_aegis.controlador.controlador_base import ControladorBase
 from ares_aegis.modelo.modelo_fim import FIMAvanzado, TipoArchivoFIM, TipoCambioFIM, MetadatosArchivo
 from ares_aegis.modelo.modelo_siem import SIEM, TipoEvento, SeveridadEvento
 

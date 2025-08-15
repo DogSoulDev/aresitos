@@ -10,7 +10,7 @@ import time
 from datetime import datetime
 from typing import Dict, Any, List, Optional
 
-from ares_aegis.controladores.controlador_base import ControladorBase
+from ares_aegis.controlador.controlador_base import ControladorBase
 from ares_aegis.modelo.modelo_escaneador import EscaneadorAvanzado, Escaneador, TipoEscaneo, NivelCriticidad
 from ares_aegis.modelo.modelo_siem import SIEMAvanzado, SIEM, TipoEvento, SeveridadEvento
 

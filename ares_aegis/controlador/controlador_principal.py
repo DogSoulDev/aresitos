@@ -11,8 +11,8 @@ import time
 from typing import Dict, Any, Optional, List
 from datetime import datetime
 
-from ares_aegis.controladores.controlador_base import ControladorBase
-from ares_aegis.controladores.gestor_configuracion import GestorConfiguracion
+from ares_aegis.controlador.controlador_base import ControladorBase
+from ares_aegis.controlador.gestor_configuracion import GestorConfiguracion
 from ares_aegis.controlador.controlador_escaneo import ControladorEscaneo
 from ares_aegis.controlador.controlador_monitoreo import ControladorMonitoreo
 from ares_aegis.controlador.controlador_utilidades import ControladorUtilidades

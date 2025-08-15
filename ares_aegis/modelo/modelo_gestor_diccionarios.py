@@ -249,6 +249,35 @@ class ModeloGestorDiccionarios:
         
         return sorted(diccionarios, key=lambda x: x['nombre'])
     
+    def obtener_todos_los_diccionarios(self) -> Dict[str, Any]:
+        """Obtener todos los diccionarios cargados como un diccionario."""
+        diccionarios_completos = {}
+        
+        if not os.path.exists(self.directorio_diccionarios):
+            return diccionarios_completos
+        
+        try:
+            for archivo in os.listdir(self.directorio_diccionarios):
+                if archivo.endswith('.json'):
+                    ruta_completa = os.path.join(self.directorio_diccionarios, archivo)
+                    nombre_diccionario = archivo[:-5]  # Quitar .json
+                    
+                    try:
+                        with open(ruta_completa, 'r', encoding='utf-8') as f:
+                            contenido = json.load(f)
+                            diccionarios_completos[nombre_diccionario] = contenido
+                    except Exception:
+                        continue
+                        
+        except Exception:
+            pass
+        
+        return diccionarios_completos
+    
+    def obtener_categorias(self) -> List[str]:
+        """Obtener lista de categorías disponibles."""
+        return list(self.obtener_todos_los_diccionarios().keys())
+    
     def cargar_diccionario(self, ruta_origen: str, nombre_destino: Optional[str] = None) -> Dict[str, Any]:
         try:
             if not os.path.exists(ruta_origen):

@@ -11,8 +11,8 @@ import os
 # Añadir el directorio del proyecto al path
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
-from ares_aegis.controladores.controlador_base import ControladorBase
-from ares_aegis.controladores.gestor_configuracion import GestorConfiguracion
+from ares_aegis.controlador.controlador_base import ControladorBase
+from ares_aegis.controlador.gestor_configuracion import GestorConfiguracion
 from ares_aegis.controlador.controlador_principal import ControladorPrincipal
 from ares_aegis.controlador.controlador_escaneo import ControladorEscaneo
 

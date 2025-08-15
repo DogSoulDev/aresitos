@@ -11,7 +11,7 @@ from typing import Dict, List, Any, Optional
 from pathlib import Path
 from datetime import datetime
 
-from ares_aegis.controladores.controlador_base import ControladorBase
+from ares_aegis.controlador.controlador_base import ControladorBase
 
 
 class ControladorDiccionarios(ControladorBase):
