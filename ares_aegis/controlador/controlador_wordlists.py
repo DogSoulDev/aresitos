@@ -118,6 +118,9 @@ class ControladorWordlists(ControladorBase):
                             self._actualizar_estadisticas()
                             self.logger.info(f"Cargadas {len(self.wordlists_cargadas)} wordlists desde gestor")
                             return self.wordlists_cargadas
+                        else:
+                            self.logger.warning("Gestor de wordlists sin datos predefinidos")
+                            return {}
                     else:
                         self.logger.info("Constructor de wordlists disponible pero no inicializado")
                         return {}
@@ -136,12 +139,14 @@ class ControladorWordlists(ControladorBase):
                 return self.wordlists_cargadas[categoria]
             
             # Intentar cargar desde el modelo
-            if hasattr(self.modelo, 'constructor_wordlists'):
-                wordlist = self.modelo.constructor_wordlists.obtener_wordlist(categoria)
-                if wordlist:
-                    with self._lock:
-                        self.wordlists_cargadas[categoria] = wordlist
-                    return wordlist
+            if hasattr(self.modelo, 'gestor_wordlists') and hasattr(self.modelo.gestor_wordlists, 'constructor_wordlists'):
+                constructor = self.modelo.gestor_wordlists.constructor_wordlists
+                if constructor and hasattr(constructor, 'obtener_wordlist'):
+                    wordlist = constructor.obtener_wordlist(categoria)
+                    if wordlist:
+                        with self._lock:
+                            self.wordlists_cargadas[categoria] = wordlist
+                        return wordlist
             
             return []
             
@@ -152,8 +157,10 @@ class ControladorWordlists(ControladorBase):
     def obtener_categorias_disponibles(self) -> List[str]:
         """Obtener lista de categorías de wordlists disponibles."""
         try:
-            if hasattr(self.modelo, 'constructor_wordlists'):
-                return self.modelo.constructor_wordlists.obtener_categorias()
+            if hasattr(self.modelo, 'gestor_wordlists') and hasattr(self.modelo.gestor_wordlists, 'constructor_wordlists'):
+                constructor = self.modelo.gestor_wordlists.constructor_wordlists
+                if constructor and hasattr(constructor, 'obtener_categorias'):
+                    return constructor.obtener_categorias()
             return list(self.wordlists_cargadas.keys())
             
         except Exception as e:
@@ -201,8 +208,10 @@ class ControladorWordlists(ControladorBase):
     def generar_wordlist_personalizada(self, base: str, configuracion: Dict[str, Any]) -> List[str]:
         """Generar wordlist personalizada basada en configuración."""
         try:
-            if hasattr(self.modelo, 'constructor_wordlists'):
-                return self.modelo.constructor_wordlists.generar_wordlist_personalizada(base, configuracion)
+            if hasattr(self.modelo, 'gestor_wordlists') and hasattr(self.modelo.gestor_wordlists, 'constructor_wordlists'):
+                constructor = self.modelo.gestor_wordlists.constructor_wordlists
+                if constructor and hasattr(constructor, 'generar_wordlist_personalizada'):
+                    return constructor.generar_wordlist_personalizada(base, configuracion)
             
             # Generación básica si no hay constructor avanzado
             resultado = [base]

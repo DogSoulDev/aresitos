@@ -195,6 +195,50 @@ class ControladorMonitoreo:
             'exito': False,
             'mensaje': 'No se pudieron actualizar los umbrales'
         }
+    
+    def listar_archivos_cuarentena(self) -> List[Dict[str, Any]]:
+        """
+        Listar archivos en cuarentena.
+        
+        Returns:
+            Lista de archivos en cuarentena con sus metadatos
+        """
+        try:
+            # Directorio de cuarentena por defecto
+            directorio_cuarentena = os.path.join(os.path.expanduser("~"), ".ares_aegis", "cuarentena")
+            
+            if not os.path.exists(directorio_cuarentena):
+                return []
+            
+            archivos_cuarentena = []
+            
+            for archivo in os.listdir(directorio_cuarentena):
+                ruta_archivo = os.path.join(directorio_cuarentena, archivo)
+                if os.path.isfile(ruta_archivo):
+                    stat_info = os.stat(ruta_archivo)
+                    
+                    archivos_cuarentena.append({
+                        'nombre': archivo,
+                        'ruta': ruta_archivo,
+                        'tamaño': stat_info.st_size,
+                        'fecha_cuarentena': stat_info.st_mtime,
+                        'hash_sha256': self._calcular_hash_archivo(ruta_archivo),
+                        'razon_cuarentena': 'Archivo sospechoso detectado'
+                    })
+            
+            return archivos_cuarentena
+            
+        except Exception as e:
+            return []
+    
+    def _calcular_hash_archivo(self, ruta_archivo: str) -> str:
+        """Calcular hash SHA256 de un archivo."""
+        try:
+            import hashlib
+            with open(ruta_archivo, 'rb') as f:
+                return hashlib.sha256(f.read()).hexdigest()
+        except:
+            return "hash_no_disponible"
 
 # RESUMEN TÉCNICO: Controlador de monitoreo avanzado que integra detección de anomalías,
 # análisis de procesos sospechosos y correlación de eventos de seguridad. Mantiene
