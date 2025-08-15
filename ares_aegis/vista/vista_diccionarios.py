@@ -9,11 +9,26 @@ from tkinter import ttk, messagebox, filedialog
 import threading
 from typing import Dict, List, Optional, Any
 
+try:
+    from ares_aegis.vista.burp_theme import burp_theme
+    BURP_THEME_AVAILABLE = True
+except ImportError:
+    BURP_THEME_AVAILABLE = False
+    burp_theme = None
+
 class VistaDiccionarios:
     def __init__(self, parent_frame, controlador):
         """Inicializa la vista de diccionarios"""
         self.parent_frame = parent_frame
         self.controlador = controlador
+        
+        # Configurar tema
+        if BURP_THEME_AVAILABLE and burp_theme:
+            self.theme = burp_theme
+            style = ttk.Style()
+            burp_theme.configure_ttk_style(style)
+        else:
+            self.theme = None
         
         # Variables de control
         self.diccionario_seleccionado = tk.StringVar()
@@ -23,24 +38,78 @@ class VistaDiccionarios:
         self._crear_interfaz()
         self._configurar_eventos()
         
+    def _crear_widget_con_tema(self, widget_type, parent, **kwargs):
+        """Crea un widget aplicando el tema Burp Suite si está disponible"""
+        if self.theme and widget_type in [tk.Label, tk.Frame, tk.LabelFrame, tk.Button, tk.Entry]:
+            # Aplicar colores del tema
+            if 'bg' not in kwargs:
+                kwargs['bg'] = self.theme.get_color('bg_primary')
+            if 'fg' not in kwargs and widget_type in [tk.Label, tk.Button]:
+                kwargs['fg'] = self.theme.get_color('fg_primary')
+            if widget_type == tk.Entry:
+                if 'bg' not in kwargs:
+                    kwargs['bg'] = self.theme.get_color('entry_bg')
+                if 'fg' not in kwargs:
+                    kwargs['fg'] = self.theme.get_color('entry_fg')
+            return widget_type(parent, **kwargs)
+        else:
+            # Usar TTK por defecto
+            if widget_type == tk.Label:
+                return ttk.Label(parent, **kwargs)
+            elif widget_type == tk.Frame:
+                return ttk.Frame(parent, **kwargs)
+            elif widget_type == tk.LabelFrame:
+                return ttk.LabelFrame(parent, **kwargs)
+            elif widget_type == tk.Button:
+                return ttk.Button(parent, **kwargs)
+            elif widget_type == tk.Entry:
+                return ttk.Entry(parent, **kwargs)
+            else:
+                return widget_type(parent, **kwargs)
+        
     def _crear_interfaz(self):
         """Crea la interfaz de usuario"""
-        # Frame principal
-        main_frame = ttk.Frame(self.parent_frame)
-        main_frame.pack(fill=tk.BOTH, expand=True, padx=10, pady=10)
-        
-        # Título
-        title_label = ttk.Label(main_frame, text="Gestión de Diccionarios", 
-                               font=('Arial', 16, 'bold'))
-        title_label.pack(pady=(0, 20))
-        
-        # Frame de controles
-        control_frame = ttk.LabelFrame(main_frame, text="Controles", padding="10")
-        control_frame.pack(fill=tk.X, pady=(0, 10))
-        
-        # Fila de filtros
-        filter_frame = ttk.Frame(control_frame)
-        filter_frame.pack(fill=tk.X, pady=(0, 10))
+        # Configurar tema si está disponible
+        if self.theme:
+            # Frame principal con tema
+            main_frame = tk.Frame(self.parent_frame, bg=self.theme.get_color('bg_primary'))
+            main_frame.pack(fill=tk.BOTH, expand=True, padx=10, pady=10)
+            
+            # Título con tema
+            title_label = tk.Label(main_frame, text="Gestión de Diccionarios", 
+                                 font=('Arial', 16, 'bold'),
+                                 bg=self.theme.get_color('bg_primary'),
+                                 fg=self.theme.get_color('fg_accent'))
+            title_label.pack(pady=(0, 20))
+            
+            # Frame de controles con tema
+            control_frame = tk.LabelFrame(main_frame, text="Controles", 
+                                        bg=self.theme.get_color('bg_primary'),
+                                        fg=self.theme.get_color('fg_accent'),
+                                        font=('Arial', 10, 'bold'),
+                                        padx=10, pady=10)
+            control_frame.pack(fill=tk.X, pady=(0, 10))
+            
+            # Fila de filtros con tema
+            filter_frame = tk.Frame(control_frame, bg=self.theme.get_color('bg_primary'))
+            filter_frame.pack(fill=tk.X, pady=(0, 10))
+        else:
+            # Frame principal sin tema
+            main_frame = ttk.Frame(self.parent_frame)
+            main_frame.pack(fill=tk.BOTH, expand=True, padx=10, pady=10)
+            
+            # Título sin tema
+            title_label = ttk.Label(main_frame, text="Gestión de Diccionarios", 
+                                   font=('Arial', 16, 'bold'))
+            title_label.pack(pady=(0, 20))
+            
+            # Frame de controles sin tema
+            control_frame = ttk.LabelFrame(main_frame, text="Controles", padding="10")
+            control_frame.pack(fill=tk.X, pady=(0, 10))
+            
+            # Fila de filtros sin tema
+            filter_frame = ttk.Frame(control_frame)
+            filter_frame.pack(fill=tk.X, pady=(0, 10))
         
         # Filtro por categoría
         ttk.Label(filter_frame, text="Categoría:").grid(row=0, column=0, padx=(0, 5))
