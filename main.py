@@ -1,125 +1,129 @@
 # -*- coding: utf-8 -*-
+"""
+Aresitos - Punto de Entrada Principal
+=====================================
 
-import tkinter as tk
+Punto de entrada principal para Aresitos que redirige al sistema
+de login GUI para una mejor experiencia de usuario.
+
+Exclusivamente para Kali Linux.
+
+Autor: DogSoulDev
+Fecha: 16 de Agosto de 2025
+"""
+
 import os
+import sys
 import platform
-from ares_aegis.vista.vista_principal import VistaPrincipal
-from ares_aegis.controlador.controlador_principal import ControladorPrincipal
-from ares_aegis.modelo.modelo_principal import ModeloPrincipal
+from pathlib import Path
+
+def verificar_kali_linux():
+    """Verificación básica de Kali Linux"""
+    try:
+        if os.path.exists('/etc/os-release'):
+            with open('/etc/os-release', 'r') as f:
+                content = f.read().lower()
+                return 'kali' in content
+        return False
+    except:
+        return False
+
+def main():
+    """Función principal que redirige al login GUI"""
+    print("ARESITOS - Sistema de Seguridad Cibernetica")
+    print("=" * 50)
+    
+    # Verificar Kali Linux antes de continuar
+    if not verificar_kali_linux():
+        print("ERROR: ARESITOS requiere Kali Linux")
+        print("Sistema operativo no compatible detectado")
+        sys.exit(1)
+    
+    # Verificar si existe vista login
+    directorio_actual = Path(__file__).parent
+    vista_login_path = directorio_actual / 'aresitos' / 'vista' / 'vista_login.py'
+    
+    if vista_login_path.exists():
+        print("Iniciando con interfaz de login...")
+        try:
+            # Importar y ejecutar vista login directamente
+            sys.path.insert(0, str(directorio_actual))
+            from aresitos.vista import vista_login
+            
+            # NO crear tk.Tk() aquí para evitar ventana en blanco
+            vista_login.main()
+            return
+        except ImportError as e:
+            print(f"Error importando vista login: {e}")
+        except Exception as e:
+            print(f"Error ejecutando vista login: {e}")
+    
+    # Fallback al método original solo si falla el login
+    print("Usando metodo de inicio clasico...")
+    iniciar_aplicacion_clasica()
+
+def iniciar_aplicacion_clasica():
+    """Metodo de inicio clasico sin login GUI"""
+    try:
+        import tkinter as tk
+        
+        # Cambiar a las rutas correctas de aresitos
+        from aresitos.vista.vista_principal import VistaPrincipal
+        from aresitos.controlador.controlador_principal import ControladorPrincipal  
+        from aresitos.modelo.modelo_principal import ModeloPrincipal
+        
+        print("Modulos principales cargados")
+        
+        # Crear aplicacion principal
+        root = tk.Tk()
+        root.title("ARESITOS - Sistema de Seguridad")
+        root.geometry("1200x800")
+        
+        # Inicializar MVC
+        modelo = ModeloPrincipal()
+        vista = VistaPrincipal(root)
+        controlador = ControladorPrincipal(modelo, vista)
+        
+        vista.controlador = controlador
+        
+        # Centrar ventana
+        root.update_idletasks()
+        x = (root.winfo_screenwidth() // 2) - (1200 // 2)
+        y = (root.winfo_screenheight() // 2) - (800 // 2)
+        root.geometry(f"1200x800+{x}+{y}")
+        
+        print("Aplicacion iniciada")
+        root.mainloop()
+        
+    except ImportError as e:
+        print(f"Error importando modulos: {e}")
+        print("Verifique la instalacion de ARESITOS")
+        print("Ejecute: python configurar.py")
+    except Exception as e:
+        print(f"Error iniciando aplicacion: {e}")
 
 def verificar_permisos_inicio():
     """Verificar permisos al inicio y mostrar recomendaciones."""
     if platform.system() == "Linux":
         try:
-            # Verificar si tenemos capacidades para herramientas de red
             import subprocess
+            # Verificar si tenemos capacidades para herramientas de red
             result = subprocess.run(["getcap", "/usr/bin/nmap"], 
                                   capture_output=True, text=True, timeout=5)
             
             if "cap_net_raw" not in result.stdout:
-                print("⚠️  AVISO: nmap podría no tener permisos para SYN scan")
-                print("💡 Para funcionalidad completa: sudo ./configurar_kali.sh")
+                print("AVISO: nmap podria no tener permisos para SYN scan")
+                print("Para funcionalidad completa: sudo python configurar.py")
             
             # Verificar sudo sin contraseña
             result_sudo = subprocess.run(["sudo", "-n", "true"], 
                                        capture_output=True, timeout=5)
             if result_sudo.returncode != 0:
-                print("⚠️  sudo requiere contraseña - funcionalidad limitada")
-                print("💡 Para configurar: sudo ./configurar_kali.sh")
+                print("sudo requiere contraseña - use el login GUI")
+                print("Ejecute: python -m aresitos.vista.vista_login")
                 
         except Exception:
             pass  # No mostrar errores si no se puede verificar
 
-class Aplicacion(tk.Tk):
-    """Clase principal de la aplicación."""
-    def __init__(self):
-        super().__init__()
-        self.title("Aresitos - Herramienta de Ciberseguridad")
-        self.geometry("1400x900")
-        self.minsize(1200, 800)  # Tamaño mínimo para mantener usabilidad
-        
-        # Configurar icono de la aplicación
-        self.configurar_icono()
-        
-        # Centrar la ventana en la pantalla
-        self.center_window()
-
-        # Crear componentes MVC
-        modelo = ModeloPrincipal()
-        vista = VistaPrincipal(self)
-        controlador = ControladorPrincipal(modelo, vista)
-
-        # Asignar controlador a la vista
-        vista.set_controlador(controlador)
-
-        vista.pack(side="top", fill="both", expand=True)
-    
-    def configurar_icono(self):
-        """Configura el icono de la aplicación."""
-        try:
-            # Configurar icono según el sistema operativo
-            ruta_script = os.path.dirname(os.path.abspath(__file__))
-            ruta_icono = os.path.join(ruta_script, "ares_aegis", "recursos", "Aresitos.ico")
-            
-            if os.path.exists(ruta_icono):
-                try:
-                    # En Windows y algunos sistemas, usar iconbitmap directamente
-                    self.iconbitmap(ruta_icono)
-                    print("✅ Icono cargado exitosamente")
-                except Exception:
-                    # En Linux/Unix, intentar convertir a PhotoImage usando PIL
-                    pil_cargado = False
-                    try:
-                        # Importación dinámica de PIL para evitar errores de lint
-                        import importlib
-                        pil_image = importlib.import_module("PIL.Image")
-                        pil_imagetk = importlib.import_module("PIL.ImageTk")
-                        
-                        # Abrir y redimensionar imagen
-                        img = pil_image.open(ruta_icono)
-                        img = img.resize((32, 32), pil_image.Resampling.LANCZOS)
-                        self.icon_photo = pil_imagetk.PhotoImage(img)
-                        self.iconphoto(False, self.icon_photo)
-                        print("✅ Icono cargado exitosamente con PIL")
-                        pil_cargado = True
-                    except ImportError:
-                        # Si PIL no está disponible, usar icono por defecto
-                        print("⚠️  PIL no disponible, usando icono por defecto")
-                        print("💡 Para mostrar iconos personalizados en Linux: pip install Pillow")
-                    except Exception as e:
-                        print(f"⚠️  No se pudo cargar el icono con PIL: {e}")
-                    
-                    if not pil_cargado:
-                        # Fallback: intentar usar el icono como PhotoImage básico
-                        try:
-                            # Buscar un PNG alternativo si existe
-                            ruta_png = ruta_icono.replace('.ico', '.png')
-                            if os.path.exists(ruta_png):
-                                self.icon_photo = tk.PhotoImage(file=ruta_png)
-                                self.iconphoto(False, self.icon_photo)
-                                print("✅ Icono PNG cargado como alternativa")
-                        except Exception:
-                            print("⚠️  Usando icono por defecto del sistema")
-            else:
-                print(f"⚠️  No se encontró el icono en {ruta_icono}")
-        except Exception as e:
-            print(f"❌ Error configurando icono: {e}")
-    
-    def center_window(self):
-        """Centra la ventana en la pantalla."""
-        self.update_idletasks()
-        width = self.winfo_width()
-        height = self.winfo_height()
-        x = (self.winfo_screenwidth() // 2) - (width // 2)
-        y = (self.winfo_screenheight() // 2) - (height // 2)
-        self.geometry(f"{width}x{height}+{x}+{y}")
-
 if __name__ == "__main__":
-    print("🔱 Iniciando Aresitos 7.0 Beta...")
-    
-    # Verificar permisos al inicio
-    verificar_permisos_inicio()
-    
-    print("🚀 Cargando interfaz...")
-    app = Aplicacion()
-    app.mainloop()
+    main()

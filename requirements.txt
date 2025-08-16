@@ -1,49 +1,44 @@
 # ===================================================================
-# ARESITOS 7.0 BETA - DEPENDENCIAS PYTHON
+# ARES AEGIS - DEPENDENCIAS PYTHON NATIVAS
 # ===================================================================
-# Archivo de dependencias para instalación con pip
-# IMPORTANTE: Usar siempre dentro de un entorno virtual en Kali Linux
+# Dependencias mínimas usando principalmente Python nativo y herramientas Kali
 # 
 # Instalación:
-# 1. python3 -m venv venv_aresitos
-# 2. source venv_aresitos/bin/activate  
+# 1. python3 -m venv venv_ares_aegis
+# 2. source venv_ares_aegis/bin/activate  
 # 3. pip install -r requirements.txt
 # ===================================================================
 
-# Framework GUI Moderno
-customtkinter>=5.2.0
-
-# Procesamiento de imágenes
-pillow>=10.0.0
-
-# Cliente HTTP y requests
-requests>=2.31.0
-
-# Información del sistema y procesos
+# Información del sistema y procesos (crítico para monitoreo)
 psutil>=5.9.0
 
-# Wrapper Python para Nmap
-python-nmap>=0.7.1
-
-# Manipulación de paquetes de red
-scapy>=2.4.5
-
-# Análisis de datos
-pandas>=2.0.0
-
-# Gráficos y visualización
-matplotlib>=3.7.0
-
-# Monitoreo de archivos en tiempo real
+# Monitoreo de archivos en tiempo real (para FIM)
 watchdog>=3.0.0
 
-# Sistema de logging con colores
-colorlog>=6.7.0
-
-# Criptografía y hashing (opcional, fallback a hashlib nativo)
-# hashlib2>=2.0.0
+# ===================================================================
+# PYTHON NATIVO USADO (no requiere instalación):
+# - tkinter (GUI)
+# - subprocess (ejecución de comandos Kali)
+# - hashlib (hashing MD5/SHA256)
+# - json (persistencia de datos)
+# - threading (concurrencia)
+# - datetime (timestamps)
+# - logging (sistema de logs)
+# - socket (networking)
+# - os/pathlib (filesystem)
+# - re (regex)
+# - tempfile (archivos temporales)
+# ===================================================================
 
 # ===================================================================
-# DEPENDENCIAS OPCIONALES DEL SISTEMA (instalar con apt si es necesario):
-# sudo apt install -y python3-tk python3-dev build-essential
+# HERRAMIENTAS KALI LINUX REQUERIDAS:
+# - nmap (escaneo de red)
+# - lynis (auditoría de sistema)  
+# - rkhunter (detección rootkits)
+# - chkrootkit (detección rootkits)
+# - clamav (antivirus)
+# - netstat/ss (conexiones de red)
+# - lsof (archivos abiertos)
+# - systemctl (servicios)
+# - chmod/chown (permisos)
 # ===================================================================
