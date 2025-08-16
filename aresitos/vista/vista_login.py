@@ -590,89 +590,119 @@ class LoginAresitos:
     def configurar_permisos_aresitos(self, password):
         """Configurar permisos completos para ARESITOS usando la contraseña root"""
         try:
-            # Obtener la ruta absoluta del directorio ARESITOS
-            script_dir = os.path.dirname(os.path.abspath(__file__))
-            aresitos_root = os.path.dirname(os.path.dirname(script_dir))  # Subir 2 niveles desde aresitos/vista/
+            # Detectar rutas posibles del proyecto
+            rutas_posibles = self._detectar_rutas_proyecto()
             
-            self.escribir_log(f"Configurando permisos para: {aresitos_root}")
-            
-            # Lista de comandos para configurar permisos
-            comandos_permisos = [
-                # Dar permisos de ejecución a todos los archivos Python
-                f"find {shlex.quote(aresitos_root)} -name '*.py' -exec chmod +x {{}} \\;",
+            for ruta in rutas_posibles:
+                if os.path.exists(ruta):
+                    self.escribir_log(f"Configurando permisos para: {ruta}")
+                    self._ejecutar_comandos_permisos(ruta, password)
+                    break
+            else:
+                self.escribir_log("WARNING No se encontró directorio válido del proyecto")
                 
-                # Dar permisos completos al directorio principal
-                f"chmod -R 755 {shlex.quote(aresitos_root)}",
-                
-                # Permisos especiales para archivos de configuración
-                f"chmod -R 644 {shlex.quote(os.path.join(aresitos_root, 'configuracion'))}",
-                
-                # Permisos de escritura para data (wordlists, diccionarios)
-                f"chmod -R 755 {shlex.quote(os.path.join(aresitos_root, 'data'))}",
-                
-                # Permisos completos para recursos
-                f"chmod -R 755 {shlex.quote(os.path.join(aresitos_root, 'recursos'))}",
-                
-                # Asegurar que main.py sea ejecutable
-                f"chmod +x {shlex.quote(os.path.join(aresitos_root, 'main.py'))}",
-                
-                # Configurar permisos para herramientas de Kali Linux (si existen)
-                "chmod +x /usr/bin/nmap 2>/dev/null || true",
-                "chmod +x /usr/bin/masscan 2>/dev/null || true", 
-                "chmod +x /usr/bin/nikto 2>/dev/null || true",
-                "chmod +x /usr/bin/lynis 2>/dev/null || true",
-                "chmod +x /usr/bin/rkhunter 2>/dev/null || true",
-                "chmod +x /usr/bin/chkrootkit 2>/dev/null || true",
-                
-                # Asegurar acceso a directorios temporales
-                "chmod 755 /tmp",
-                "mkdir -p /tmp/aresitos_quarantine && chmod 755 /tmp/aresitos_quarantine"
-            ]
-            
-            # Ejecutar cada comando con sudo
-            for i, comando in enumerate(comandos_permisos, 1):
-                try:
-                    self.escribir_log(f"Ejecutando comando {i}/{len(comandos_permisos)}: permisos...")
-                    
-                    # Construir el comando completo con sudo
-                    comando_sudo = f"sudo -S sh -c '{comando}'"
-                    
-                    resultado = subprocess.run(
-                        comando_sudo,
-                        input=password + '\n',
-                        text=True,
-                        shell=True,
-                        capture_output=True,
-                        timeout=30,
-                        check=False
-                    )
-                    
-                    if resultado.returncode == 0:
-                        self.escribir_log(f"✓ Comando {i} ejecutado exitosamente")
-                    else:
-                        self.escribir_log(f"⚠ Comando {i} falló (código {resultado.returncode})")
-                        if resultado.stderr:
-                            self.escribir_log(f"Error: {resultado.stderr.strip()[:100]}")
-                            
-                except subprocess.TimeoutExpired:
-                    self.escribir_log(f"⚠ Timeout en comando {i}")
-                except Exception as e:
-                    self.escribir_log(f"⚠ Error en comando {i}: {type(e).__name__}")
-            
-            # Verificación final de permisos
-            try:
-                main_py = os.path.join(aresitos_root, 'main.py')
-                if os.access(main_py, os.X_OK):
-                    self.escribir_log("✓ Permisos configurados correctamente - main.py ejecutable")
-                else:
-                    self.escribir_log("⚠ Advertencia: main.py podría no ser ejecutable")
-            except Exception:
-                pass
-                
-            self.escribir_log("Configuración de permisos completada")
-            
         except Exception as e:
             self.escribir_log(f"Error configurando permisos: {type(e).__name__}")
+    
+    def _detectar_rutas_proyecto(self):
+        """Detectar posibles rutas del proyecto ARESITOS"""
+        script_dir = os.path.dirname(os.path.abspath(__file__))
+        aresitos_root = os.path.dirname(os.path.dirname(script_dir))
+        
+        rutas_posibles = [
+            aresitos_root,  # Ruta calculada desde el script
+            "/home/kali/Aresitos",
+            "/home/kali/Desktop/Aresitos", 
+            "/home/kali/Ares-Aegis",
+            "/home/kali/Desktop/Ares-Aegis",
+            os.path.expanduser("~/Aresitos"),
+            os.path.expanduser("~/Desktop/Aresitos"),
+            os.path.expanduser("~/Ares-Aegis"),
+            os.path.expanduser("~/Desktop/Ares-Aegis")
+        ]
+        
+        return rutas_posibles
+    
+    def _ejecutar_comandos_permisos(self, ruta_proyecto, password):
+        """Ejecutar comandos de permisos para una ruta específica"""
+        # Lista de comandos para configurar permisos
+        comandos_permisos = [
+            # Permisos básicos para el proyecto
+            f"chmod -R 755 {shlex.quote(ruta_proyecto)}",
+            f"chown -R $USER:$USER {shlex.quote(ruta_proyecto)}",
+            
+            # Permisos especiales para configuración
+            f"chmod -R 777 {shlex.quote(os.path.join(ruta_proyecto, 'configuracion'))}",
+            f"chmod 777 {shlex.quote(os.path.join(ruta_proyecto, 'configuracion', 'aresitos_config.json'))} 2>/dev/null || true",
+            f"chmod 777 {shlex.quote(os.path.join(ruta_proyecto, 'configuracion', 'aresitos_config_kali.json'))} 2>/dev/null || true",
+            
+            # Permisos para data y logs
+            f"chmod -R 777 {shlex.quote(os.path.join(ruta_proyecto, 'data'))} 2>/dev/null || true",
+            f"chmod -R 777 {shlex.quote(os.path.join(ruta_proyecto, 'logs'))} 2>/dev/null || true",
+            
+            # Ejecutables Python
+            f"find {shlex.quote(ruta_proyecto)} -name '*.py' -exec chmod +x {{}} \\;",
+            f"chmod +x {shlex.quote(os.path.join(ruta_proyecto, 'main.py'))}",
+            
+            # Crear directorios necesarios
+            f"mkdir -p {shlex.quote(os.path.join(ruta_proyecto, 'logs'))} && chmod 777 {shlex.quote(os.path.join(ruta_proyecto, 'logs'))}",
+            f"mkdir -p /tmp/aresitos_quarantine && chmod 755 /tmp/aresitos_quarantine",
+            
+            # Herramientas de Kali Linux
+            "chmod +x /usr/bin/nmap 2>/dev/null || true",
+            "chmod +x /usr/bin/masscan 2>/dev/null || true", 
+            "chmod +x /usr/bin/nikto 2>/dev/null || true",
+            "chmod +x /usr/bin/lynis 2>/dev/null || true",
+            "chmod +x /usr/bin/rkhunter 2>/dev/null || true",
+            "chmod +x /usr/bin/chkrootkit 2>/dev/null || true"
+        ]
+        
+        # Ejecutar cada comando con sudo
+        for i, comando in enumerate(comandos_permisos, 1):
+            try:
+                self.escribir_log(f"Ejecutando comando {i}/{len(comandos_permisos)}: permisos...")
+                
+                # Construir el comando completo con sudo
+                comando_sudo = f"sudo -S sh -c '{comando}'"
+                
+                resultado = subprocess.run(
+                    comando_sudo,
+                    input=password + '\n',
+                    text=True,
+                    shell=True,
+                    capture_output=True,
+                    timeout=30,
+                    check=False
+                )
+                
+                if resultado.returncode == 0:
+                    self.escribir_log(f"Comando {i} ejecutado exitosamente")
+                else:
+                    self.escribir_log(f"Comando {i} falló (código {resultado.returncode})")
+                    if resultado.stderr:
+                        self.escribir_log(f"Error: {resultado.stderr.strip()[:100]}")
+                        
+            except subprocess.TimeoutExpired:
+                self.escribir_log(f"Timeout en comando {i}")
+            except Exception as e:
+                self.escribir_log(f"Error en comando {i}: {type(e).__name__}")
+        
+        # Verificación final de permisos
+        try:
+            main_py = os.path.join(ruta_proyecto, 'main.py')
+            config_file = os.path.join(ruta_proyecto, 'configuracion', 'aresitos_config.json')
+            
+            if os.access(main_py, os.X_OK):
+                self.escribir_log("main.py ejecutable")
+            if os.access(config_file, os.R_OK | os.W_OK):
+                self.escribir_log("Archivo de configuración accesible")
+            else:
+                self.escribir_log("Archivo de configuración no accesible")
+                
+        except Exception:
+            pass
+            
+        self.escribir_log("Configuración de permisos completada")
     
     def verificar_password(self):
         """Verificar la contraseña ingresada con medidas de seguridad mejoradas"""
@@ -841,15 +871,31 @@ def main():
     
     print("ARESITOS - Iniciando login...")
     
-    # Crear y ejecutar aplicación de login
-    app = LoginAresitos()
-    
+    # Verificar tkinter disponible
     try:
+        import tkinter as tk
+        print("✓ Tkinter importado correctamente")
+    except ImportError as e:
+        print(f"ERROR: tkinter no disponible: {e}")
+        print("Instale con: sudo apt install python3-tk")
+        sys.exit(1)
+    
+    # Crear y ejecutar aplicación de login
+    try:
+        print("Creando aplicación de login...")
+        app = LoginAresitos()
+        print("✓ Aplicación de login creada")
+        
+        print("Iniciando interfaz gráfica...")
         app.root.mainloop()
+        
     except KeyboardInterrupt:
         print("Login cancelado por el usuario")
     except Exception as e:
-        print(f"Error en login: {e}")
+        print(f"ERROR crítico en login: {e}")
+        import traceback
+        traceback.print_exc()
+        sys.exit(1)
 
 if __name__ == "__main__":
     main()

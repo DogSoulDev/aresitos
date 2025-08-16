@@ -28,6 +28,48 @@ def verificar_kali_linux():
     except:
         return False
 
+def configurar_permisos_basicos():
+    """Configurar permisos básicos para archivos de configuración"""
+    try:
+        directorio_actual = Path(__file__).parent
+        config_dir = directorio_actual / 'configuracion'
+        
+        # Asegurar que el directorio de configuración sea legible
+        if config_dir.exists():
+            os.chmod(config_dir, 0o755)
+            
+            # Asegurar que los archivos de configuración sean legibles
+            for config_file in config_dir.glob('*.json'):
+                try:
+                    os.chmod(config_file, 0o644)
+                except:
+                    pass
+        
+        # Asegurar permisos en data
+        data_dir = directorio_actual / 'data'
+        if data_dir.exists():
+            os.chmod(data_dir, 0o755)
+            
+    except Exception as e:
+        print(f"Advertencia: No se pudieron configurar permisos básicos: {e}")
+
+def verificar_tkinter():
+    """Verificar que tkinter esté disponible"""
+    try:
+        import tkinter as tk
+        # Crear una ventana de prueba para verificar DISPLAY
+        test_root = tk.Tk()
+        test_root.withdraw()  # Ocultar inmediatamente
+        test_root.destroy()
+        print("✓ Tkinter disponible y funcional")
+    except ImportError:
+        raise ImportError("tkinter no está instalado. Ejecute: sudo apt install python3-tk")
+    except Exception as e:
+        if "DISPLAY" in str(e):
+            raise Exception("No hay servidor X disponible. ¿Está ejecutando desde SSH? Use ssh -X o ejecute en entorno gráfico")
+        else:
+            raise Exception(f"Error con tkinter: {e}")
+
 def main():
     """Función principal que redirige al login GUI"""
     print("ARESITOS - Sistema de Seguridad Cibernetica")
@@ -39,6 +81,9 @@ def main():
         print("Sistema operativo no compatible detectado")
         sys.exit(1)
     
+    # Configurar permisos básicos de archivos antes de continuar
+    configurar_permisos_basicos()
+    
     # Verificar si existe vista login
     directorio_actual = Path(__file__).parent
     vista_login_path = directorio_actual / 'aresitos' / 'vista' / 'vista_login.py'
@@ -46,17 +91,22 @@ def main():
     if vista_login_path.exists():
         print("Iniciando con interfaz de login...")
         try:
+            # Verificar tkinter antes de importar
+            verificar_tkinter()
+            
             # Importar y ejecutar vista login directamente
             sys.path.insert(0, str(directorio_actual))
             from aresitos.vista import vista_login
             
-            # NO crear tk.Tk() aquí para evitar ventana en blanco
+            # Ejecutar login
             vista_login.main()
             return
         except ImportError as e:
             print(f"Error importando vista login: {e}")
+            print("Intentando con método clásico...")
         except Exception as e:
             print(f"Error ejecutando vista login: {e}")
+            print("Intentando con método clásico...")
     
     # Fallback al método original solo si falla el login
     print("Usando metodo de inicio clasico...")

@@ -1,44 +1,38 @@
 # ===================================================================
-# ARES AEGIS - DEPENDENCIAS PYTHON NATIVAS
+# ARESITOS - DEPENDENCIAS MÍNIMAS
 # ===================================================================
-# Dependencias mínimas usando principalmente Python nativo y herramientas Kali
-# 
 # Instalación:
-# 1. python3 -m venv venv_ares_aegis
-# 2. source venv_ares_aegis/bin/activate  
+# 1. python3 -m venv venv_aresitos
+# 2. source venv_aresitos/bin/activate  
 # 3. pip install -r requirements.txt
 # ===================================================================
 
 # Información del sistema y procesos (crítico para monitoreo)
 psutil>=5.9.0
 
-# Monitoreo de archivos en tiempo real (para FIM)
-watchdog>=3.0.0
-
 # ===================================================================
-# PYTHON NATIVO USADO (no requiere instalación):
-# - tkinter (GUI)
-# - subprocess (ejecución de comandos Kali)
-# - hashlib (hashing MD5/SHA256)
-# - json (persistencia de datos)
-# - threading (concurrencia)
-# - datetime (timestamps)
+# BIBLIOTECAS PYTHON NATIVAS INCLUIDAS:
+# - tkinter (interfaz gráfica)
+# - subprocess (ejecución de comandos del sistema)
+# - hashlib (hashing MD5/SHA256 para integridad)
+# - json (persistencia de configuración)
+# - threading (operaciones concurrentes)
+# - datetime (timestamps y fechas)
 # - logging (sistema de logs)
-# - socket (networking)
-# - os/pathlib (filesystem)
-# - re (regex)
+# - socket (networking básico)
+# - os/pathlib (manejo de archivos y rutas)
+# - re (expresiones regulares)
 # - tempfile (archivos temporales)
 # ===================================================================
 
 # ===================================================================
 # HERRAMIENTAS KALI LINUX REQUERIDAS:
-# - nmap (escaneo de red)
-# - lynis (auditoría de sistema)  
-# - rkhunter (detección rootkits)
-# - chkrootkit (detección rootkits)
-# - clamav (antivirus)
-# - netstat/ss (conexiones de red)
-# - lsof (archivos abiertos)
-# - systemctl (servicios)
-# - chmod/chown (permisos)
+# - nmap (escaneo de puertos y red)
+# - lynis (auditoría de seguridad del sistema)  
+# - rkhunter (detección de rootkits)
+# - chkrootkit (detección de rootkits adicional)
+# - clamav (escaneado antivirus)
+# - netstat/ss (monitoreo de conexiones)
+# - lsof (archivos y procesos abiertos)
+# - systemctl (gestión de servicios)
 # ===================================================================

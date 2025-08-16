@@ -27,6 +27,9 @@ class VistaPrincipal(tk.Frame):
         super().__init__(parent)
         self.controlador = None
         
+        # Diagnósticos del sistema
+        self._ejecutar_diagnosticos()
+        
         # Solo aplicar tema si está disponible
         if BURP_THEME_AVAILABLE:
             self.theme = burp_theme
@@ -35,6 +38,60 @@ class VistaPrincipal(tk.Frame):
             self.theme = None
             
         self.crear_widgets()
+    
+    def _ejecutar_diagnosticos(self):
+        """Ejecuta diagnósticos del sistema para detectar problemas"""
+        print("DIAGNÓSTICOS DEL SISTEMA ARESITOS")
+        print("=" * 50)
+        
+        # 1. Verificar importaciones críticas
+        try:
+            import tkinter
+            print("✓ tkinter disponible")
+        except Exception as e:
+            print(f"ERROR con tkinter: {e}")
+        
+        # 2. Verificar archivos de configuración
+        import os
+        from pathlib import Path
+        
+        # Detectar directorio del proyecto
+        script_dir = Path(__file__).parent.parent.parent
+        config_dir = script_dir / "configuracion"
+        
+        print(f"Directorio base: {script_dir}")
+        print(f"Directorio config: {config_dir}")
+        
+        config_files = [
+            "aresitos_config.json",
+            "aresitos_config_kali.json"
+        ]
+        
+        for config_file in config_files:
+            config_path = config_dir / config_file
+            if config_path.exists():
+                # Verificar permisos
+                readable = os.access(str(config_path), os.R_OK)
+                writable = os.access(str(config_path), os.W_OK)
+                print(f"✓ {config_file} - Lectura: {readable}, Escritura: {writable}")
+            else:
+                print(f"ERROR {config_file} no encontrado")
+        
+        # 3. Verificar variable DISPLAY (importante en Linux)
+        display = os.environ.get('DISPLAY')
+        if display:
+            print(f"✓ DISPLAY configurado: {display}")
+        else:
+            print("WARNING DISPLAY no configurado (puede causar problemas de GUI)")
+        
+        # 4. Verificar permisos del directorio actual
+        current_dir = os.getcwd()
+        dir_readable = os.access(current_dir, os.R_OK)
+        dir_writable = os.access(current_dir, os.W_OK)
+        print(f"Directorio actual: {current_dir}")
+        print(f"   Permisos - Lectura: {dir_readable}, Escritura: {dir_writable}")
+        
+        print("=" * 50)
 
     def setup_burp_theme(self, parent):
         """Configura el tema visual de Burp Suite"""
@@ -83,14 +140,116 @@ class VistaPrincipal(tk.Frame):
             self.vista_actualizacion.set_controlador(controlador)
 
     def crear_widgets(self):
-        # Barra de título estilo Burp Suite
-        self.crear_barra_titulo()
+        """Crear todos los widgets de la interfaz principal"""
+        print("Creando interfaz de usuario...")
         
-        # Notebook principal con tema
-        self.crear_notebook_principal()
+        try:
+            # Barra de título estilo Burp Suite
+            print("  Creando barra de título...")
+            self.crear_barra_titulo()
+            
+            # Notebook principal con tema
+            print("  Creando notebook principal...")
+            self.crear_notebook_principal()
+            
+            # Barra de estado
+            print("  Creando barra de estado...")
+            self.crear_barra_estado()
+            
+            print("Interfaz de usuario creada exitosamente")
+            
+        except Exception as e:
+            print(f"Error crítico creando interfaz: {e}")
+            import traceback
+            traceback.print_exc()
+            
+            # Crear interfaz de emergencia
+            self._crear_interfaz_emergencia(str(e))
+    
+    def _crear_interfaz_emergencia(self, error_msg):
+        """Crear una interfaz básica de emergencia si falla la principal"""
+        print("Creando interfaz de emergencia...")
         
-        # Barra de estado
-        self.crear_barra_estado()
+        # Limpiar cualquier widget existente
+        for widget in self.winfo_children():
+            widget.destroy()
+        
+        # Frame principal de emergencia
+        emergency_frame = tk.Frame(self, bg='#2b2b2b')
+        emergency_frame.pack(fill="both", expand=True, padx=10, pady=10)
+        
+        # Título de error con ícono de texto
+        title_label = tk.Label(
+            emergency_frame,
+            text="ARESITOS - MODO DE EMERGENCIA",
+            font=('Arial', 16, 'bold'),
+            fg='#ff6b6b',
+            bg='#2b2b2b'
+        )
+        title_label.pack(pady=10)
+        
+        # Mensaje de error
+        error_text = tk.Text(
+            emergency_frame,
+            height=10,
+            width=80,
+            bg='#1e1e1e',
+            fg='#ffffff',
+            font=('Courier', 10)
+        )
+        error_text.pack(pady=10, fill="both", expand=True)
+        
+        error_text.insert('1.0', f"Error en interfaz principal:\n\n{error_msg}\n\n")
+        error_text.insert('end', "Posibles soluciones:\n")
+        error_text.insert('end', "1. Verificar permisos de archivos de configuración\n")
+        error_text.insert('end', "2. Ejecutar como root/administrador\n")
+        error_text.insert('end', "3. Verificar instalación de dependencias\n")
+        error_text.insert('end', "4. Reiniciar el sistema\n")
+        
+        # Botones de acción
+        button_frame = tk.Frame(emergency_frame, bg='#2b2b2b')
+        button_frame.pack(pady=10)
+        
+        retry_btn = tk.Button(
+            button_frame,
+            text="Reintentar",
+            command=self._reintentar_interfaz,
+            bg='#4a9eff',
+            fg='white',
+            font=('Arial', 12)
+        )
+        retry_btn.pack(side="left", padx=5)
+        
+        exit_btn = tk.Button(
+            button_frame,
+            text="Salir",
+            command=self._salir_aplicacion,
+            bg='#ff6b6b',
+            fg='white',
+            font=('Arial', 12)
+        )
+        exit_btn.pack(side="left", padx=5)
+    
+    def _reintentar_interfaz(self):
+        """Reintentar crear la interfaz principal"""
+        print("Reintentando crear interfaz...")
+        try:
+            # Limpiar widgets
+            for widget in self.winfo_children():
+                widget.destroy()
+            
+            # Recrear interfaz
+            self.crear_widgets()
+            
+        except Exception as e:
+            print(f"Error en reintento: {e}")
+            self._crear_interfaz_emergencia(str(e))
+    
+    def _salir_aplicacion(self):
+        """Salir de la aplicación"""
+        print("Saliendo de ARESITOS...")
+        import sys
+        sys.exit(1)
     
     def crear_barra_titulo(self):
         """Crea la barra de título estilo Burp Suite"""
