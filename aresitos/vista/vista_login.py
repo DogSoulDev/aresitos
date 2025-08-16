@@ -587,6 +587,93 @@ class LoginAresitos:
         except Exception as e:
             self.escribir_log(f"Error verificando herramientas: {e}")
     
+    def configurar_permisos_aresitos(self, password):
+        """Configurar permisos completos para ARESITOS usando la contraseña root"""
+        try:
+            # Obtener la ruta absoluta del directorio ARESITOS
+            script_dir = os.path.dirname(os.path.abspath(__file__))
+            aresitos_root = os.path.dirname(os.path.dirname(script_dir))  # Subir 2 niveles desde aresitos/vista/
+            
+            self.escribir_log(f"Configurando permisos para: {aresitos_root}")
+            
+            # Lista de comandos para configurar permisos
+            comandos_permisos = [
+                # Dar permisos de ejecución a todos los archivos Python
+                f"find {shlex.quote(aresitos_root)} -name '*.py' -exec chmod +x {{}} \\;",
+                
+                # Dar permisos completos al directorio principal
+                f"chmod -R 755 {shlex.quote(aresitos_root)}",
+                
+                # Permisos especiales para archivos de configuración
+                f"chmod -R 644 {shlex.quote(os.path.join(aresitos_root, 'configuracion'))}",
+                
+                # Permisos de escritura para data (wordlists, diccionarios)
+                f"chmod -R 755 {shlex.quote(os.path.join(aresitos_root, 'data'))}",
+                
+                # Permisos completos para recursos
+                f"chmod -R 755 {shlex.quote(os.path.join(aresitos_root, 'recursos'))}",
+                
+                # Asegurar que main.py sea ejecutable
+                f"chmod +x {shlex.quote(os.path.join(aresitos_root, 'main.py'))}",
+                
+                # Configurar permisos para herramientas de Kali Linux (si existen)
+                "chmod +x /usr/bin/nmap 2>/dev/null || true",
+                "chmod +x /usr/bin/masscan 2>/dev/null || true", 
+                "chmod +x /usr/bin/nikto 2>/dev/null || true",
+                "chmod +x /usr/bin/lynis 2>/dev/null || true",
+                "chmod +x /usr/bin/rkhunter 2>/dev/null || true",
+                "chmod +x /usr/bin/chkrootkit 2>/dev/null || true",
+                
+                # Asegurar acceso a directorios temporales
+                "chmod 755 /tmp",
+                "mkdir -p /tmp/aresitos_quarantine && chmod 755 /tmp/aresitos_quarantine"
+            ]
+            
+            # Ejecutar cada comando con sudo
+            for i, comando in enumerate(comandos_permisos, 1):
+                try:
+                    self.escribir_log(f"Ejecutando comando {i}/{len(comandos_permisos)}: permisos...")
+                    
+                    # Construir el comando completo con sudo
+                    comando_sudo = f"sudo -S sh -c '{comando}'"
+                    
+                    resultado = subprocess.run(
+                        comando_sudo,
+                        input=password + '\n',
+                        text=True,
+                        shell=True,
+                        capture_output=True,
+                        timeout=30,
+                        check=False
+                    )
+                    
+                    if resultado.returncode == 0:
+                        self.escribir_log(f"✓ Comando {i} ejecutado exitosamente")
+                    else:
+                        self.escribir_log(f"⚠ Comando {i} falló (código {resultado.returncode})")
+                        if resultado.stderr:
+                            self.escribir_log(f"Error: {resultado.stderr.strip()[:100]}")
+                            
+                except subprocess.TimeoutExpired:
+                    self.escribir_log(f"⚠ Timeout en comando {i}")
+                except Exception as e:
+                    self.escribir_log(f"⚠ Error en comando {i}: {type(e).__name__}")
+            
+            # Verificación final de permisos
+            try:
+                main_py = os.path.join(aresitos_root, 'main.py')
+                if os.access(main_py, os.X_OK):
+                    self.escribir_log("✓ Permisos configurados correctamente - main.py ejecutable")
+                else:
+                    self.escribir_log("⚠ Advertencia: main.py podría no ser ejecutable")
+            except Exception:
+                pass
+                
+            self.escribir_log("Configuración de permisos completada")
+            
+        except Exception as e:
+            self.escribir_log(f"Error configurando permisos: {type(e).__name__}")
+    
     def verificar_password(self):
         """Verificar la contraseña ingresada con medidas de seguridad mejoradas"""
         password = self.password_entry.get()
@@ -632,6 +719,9 @@ class LoginAresitos:
             if resultado.returncode == 0:
                 self.password_correcta = True
                 self.escribir_log("Autenticacion exitosa - Permisos de root confirmados")
+                
+                # Configurar permisos completos para ARESITOS
+                self.configurar_permisos_aresitos(password)
                 
                 # Limpiar contraseña de memoria
                 self.utils_seguridad.limpiar_memoria_string(password)

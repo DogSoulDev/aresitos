@@ -52,6 +52,13 @@ class VistaPrincipal(tk.Frame):
     def set_controlador(self, controlador):
         self.controlador = controlador
         
+        if not self.controlador:
+            print("Advertencia: Controlador es None, saltando configuración")
+            return
+        
+        # Crear pestañas que requieren controlador
+        self.crear_pestanas_con_controlador()
+        
         # Configurar controladores para todas las vistas
         if hasattr(self, 'vista_dashboard'):
             self.vista_dashboard.set_controlador(controlador)
@@ -251,9 +258,20 @@ class VistaPrincipal(tk.Frame):
             print(f"Error creando vista reportes: {e}")
         
         # 10. ACTUALIZACIÓN - Sistema de actualización integral
+        # Esta pestaña se crea después cuando el controlador esté disponible
+        pass
+    
+    def crear_pestanas_con_controlador(self):
+        """Crea las pestañas que requieren controlador inicializado"""
+        if not self.controlador:
+            return
+            
         try:
-            self.vista_actualizacion = VistaActualizacion(self.notebook, self.controlador.controlador_actualizacion)
-            self.notebook.add(self.vista_actualizacion, text="Actualizacion")
+            if hasattr(self.controlador, '_controladores') and 'actualizacion' in self.controlador._controladores:
+                self.vista_actualizacion = VistaActualizacion(self.notebook, self.controlador._controladores['actualizacion'])
+                self.notebook.add(self.vista_actualizacion, text="Actualizacion")
+            else:
+                print("Advertencia: Controlador de actualización no disponible, vista omitida")
         except Exception as e:
             print(f"Error creando vista actualización: {e}")
     
