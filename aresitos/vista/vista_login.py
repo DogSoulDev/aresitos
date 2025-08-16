@@ -820,25 +820,43 @@ class LoginAresitos:
         self.escribir_log("Iniciando Aresitos...")
         
         try:
-            # Importar e iniciar la aplicacion principal Aresitos
+            # Importar módulos principales
             from aresitos.vista.vista_principal import VistaPrincipal
             from aresitos.controlador.controlador_principal import ControladorPrincipal
             from aresitos.modelo.modelo_principal import ModeloPrincipal
             
+            self.escribir_log("Módulos principales importados correctamente")
+            
             # Cerrar ventana de login
             self.root.destroy()
             
-            # Crear aplicacion principal
+            self.escribir_log("Creando aplicación principal...")
+            
+            # Crear aplicación principal
             root_app = tk.Tk()
             root_app.title("ARESITOS - Sistema de Seguridad Kali Linux")
             root_app.geometry("1200x800")
             
+            # Configurar ícono si está disponible
+            try:
+                icon_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), "recursos", "Aresitos.ico")
+                if os.path.exists(icon_path):
+                    root_app.iconbitmap(icon_path)
+            except:
+                pass
+            
+            self.escribir_log("Inicializando modelo de datos...")
             # Inicializar MVC
             modelo = ModeloPrincipal()
+            
+            self.escribir_log("Creando vista principal...")
             vista = VistaPrincipal(root_app)
+            
+            self.escribir_log("Inicializando controlador principal...")
             controlador = ControladorPrincipal(modelo, vista)
             
-            vista.controlador = controlador
+            self.escribir_log("Configurando conexión vista-controlador...")
+            vista.set_controlador(controlador)
             
             # Centrar ventana principal
             root_app.update_idletasks()
@@ -846,19 +864,33 @@ class LoginAresitos:
             y = (root_app.winfo_screenheight() // 2) - (800 // 2)
             root_app.geometry(f"1200x800+{x}+{y}")
             
+            # Forzar actualización de la ventana
+            root_app.update()
+            
+            self.escribir_log("Aplicación principal configurada. Iniciando interfaz...")
+            
+            # Mostrar ventana y comenzar loop principal
+            root_app.deiconify()  # Asegurar que la ventana esté visible
+            root_app.lift()       # Traer al frente
+            root_app.focus_force() # Forzar foco
+            
             root_app.mainloop()
             
         except ImportError as e:
             # Si no puede importar, usar el main original
-            self.escribir_log("Modulos principales no encontrados, usando modo basico")
+            self.escribir_log(f"Error de importación: {e}")
+            self.escribir_log("Módulos principales no encontrados, usando modo básico")
             messagebox.showinfo("Info", 
-                               "Aplicacion principal no encontrada.\n"
+                               "Aplicación principal no encontrada.\n"
                                "Ejecute: python main.py\n\n"
-                               "O instale la aplicacion completa.")
+                               "O instale la aplicación completa.")
             self.root.destroy()
             
         except Exception as e:
-            messagebox.showerror("Error", f"Error iniciando aplicacion:\n{e}")
+            self.escribir_log(f"Error crítico iniciando aplicación: {e}")
+            import traceback
+            traceback.print_exc()
+            messagebox.showerror("Error", f"Error iniciando aplicación:\n{e}")
             self.root.destroy()
 
 def main():

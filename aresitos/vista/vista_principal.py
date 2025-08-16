@@ -107,43 +107,88 @@ class VistaPrincipal(tk.Frame):
         self.theme.configure_ttk_style(self.style)
 
     def set_controlador(self, controlador):
+        """Configurar el controlador principal y actualizar la interfaz"""
+        print("Configurando controlador principal...")
         self.controlador = controlador
         
         if not self.controlador:
             print("Advertencia: Controlador es None, saltando configuración")
             return
         
-        # Crear pestañas que requieren controlador
-        self.crear_pestanas_con_controlador()
-        
-        # Configurar controladores para todas las vistas
-        if hasattr(self, 'vista_dashboard'):
-            self.vista_dashboard.set_controlador(controlador)
-        if hasattr(self.controlador, 'controlador_escaneo'):
-            self.vista_escaneo.set_controlador(self.controlador.controlador_escaneo)
-        if hasattr(self.controlador, 'controlador_monitoreo'):
-            self.vista_monitoreo.set_controlador(self.controlador.controlador_monitoreo)
-        if hasattr(self.controlador, 'controlador_auditoria'):
-            self.vista_auditoria.set_controlador(self.controlador.controlador_auditoria)
-        if hasattr(self, 'vista_gestion_datos'):
-            # Vista unificada para wordlists y diccionarios
-            self.vista_gestion_datos.set_controlador(self.controlador)
-        if hasattr(self.controlador, 'controlador_herramientas'):
-            self.vista_herramientas.set_controlador(self.controlador.controlador_herramientas)
-        if hasattr(self.controlador, 'controlador_reportes'):
-            self.vista_reportes.set_controlador(self.controlador.controlador_reportes)
-        if hasattr(self.controlador, '_controladores') and 'fim' in self.controlador._controladores:
-            self.vista_fim.set_controlador(self.controlador._controladores['fim'])
-        if hasattr(self.controlador, '_controladores') and 'siem' in self.controlador._controladores:
-            self.vista_siem.set_controlador(self.controlador._controladores['siem'])
-        if hasattr(self, 'vista_actualizacion'):
-            self.vista_actualizacion.set_controlador(controlador)
+        try:
+            # Crear pestañas que requieren controlador
+            print("Creando pestañas con controlador...")
+            self.crear_pestanas_con_controlador()
+            
+            # Configurar controladores para todas las vistas
+            print("Configurando controladores de vistas...")
+            
+            if hasattr(self, 'vista_dashboard'):
+                self.vista_dashboard.set_controlador(controlador)
+                print("Dashboard configurado")
+                
+            if hasattr(self.controlador, 'controlador_escaneo'):
+                self.vista_escaneo.set_controlador(self.controlador.controlador_escaneo)
+                print("Escaneador configurado")
+                
+            if hasattr(self.controlador, 'controlador_monitoreo'):
+                self.vista_monitoreo.set_controlador(self.controlador.controlador_monitoreo)
+                print("Monitoreo configurado")
+                
+            if hasattr(self.controlador, 'controlador_auditoria'):
+                self.vista_auditoria.set_controlador(self.controlador.controlador_auditoria)
+                print("Auditoría configurado")
+                
+            if hasattr(self, 'vista_gestion_datos'):
+                # Vista unificada para wordlists y diccionarios
+                self.vista_gestion_datos.set_controlador(self.controlador)
+                print("Gestión de datos configurado")
+                
+            if hasattr(self.controlador, 'controlador_herramientas'):
+                self.vista_herramientas.set_controlador(self.controlador.controlador_herramientas)
+                print("Herramientas configurado")
+                
+            if hasattr(self.controlador, 'controlador_reportes'):
+                self.vista_reportes.set_controlador(self.controlador.controlador_reportes)
+                print("Reportes configurado")
+                
+            if hasattr(self.controlador, '_controladores') and 'fim' in self.controlador._controladores:
+                self.vista_fim.set_controlador(self.controlador._controladores['fim'])
+                print("FIM configurado")
+                
+            if hasattr(self.controlador, '_controladores') and 'siem' in self.controlador._controladores:
+                self.vista_siem.set_controlador(self.controlador._controladores['siem'])
+                print("SIEM configurado")
+                
+            if hasattr(self, 'vista_actualizacion'):
+                self.vista_actualizacion.set_controlador(controlador)
+                print("Actualización configurado")
+            
+            # Forzar actualización de la interfaz
+            print("Actualizando interfaz...")
+            self.update_idletasks()
+            self.update()
+            
+            # Forzar repintado del notebook
+            if hasattr(self, 'notebook'):
+                self.notebook.update_idletasks()
+                self.notebook.update()
+            
+            print("Configuración de controladores completada exitosamente")
+            
+        except Exception as e:
+            print(f"Error configurando controladores: {e}")
+            import traceback
+            traceback.print_exc()
 
     def crear_widgets(self):
         """Crear todos los widgets de la interfaz principal"""
         print("Creando interfaz de usuario...")
         
         try:
+            # Configurar el contenedor principal
+            self.pack(fill="both", expand=True)
+            
             # Barra de título estilo Burp Suite
             print("  Creando barra de título...")
             self.crear_barra_titulo()
@@ -155,6 +200,10 @@ class VistaPrincipal(tk.Frame):
             # Barra de estado
             print("  Creando barra de estado...")
             self.crear_barra_estado()
+            
+            # Forzar actualización inicial
+            self.update_idletasks()
+            self.update()
             
             print("Interfaz de usuario creada exitosamente")
             
@@ -351,74 +400,110 @@ class VistaPrincipal(tk.Frame):
     
     def crear_notebook_principal(self):
         """Crea el notebook principal con estilo Burp Suite"""
+        print("    Configurando notebook...")
+        
         if self.theme:
             self.notebook = ttk.Notebook(self, style='Custom.TNotebook')
         else:
             self.notebook = ttk.Notebook(self)
         self.notebook.pack(fill="both", expand=True, padx=2, pady=2)
         
-        # ORDEN DE PRIORIDAD DE SEGURIDAD (SIN EMOJIS):
+        print("    Creando pestañas principales...")
+        pestanas_creadas = 0
         
         # 1. DASHBOARD - Vista principal con métricas en tiempo real
         try:
+            print("      Creando Dashboard...")
             self.vista_dashboard = VistaDashboard(self.notebook)
             self.notebook.add(self.vista_dashboard, text="Dashboard")
+            pestanas_creadas += 1
         except Exception as e:
-            print(f"Error creando vista dashboard: {e}")
+            print(f"      Error creando vista dashboard: {e}")
         
         # 2. SIEM - Security Information & Event Management (Prioritario)
         try:
+            print("      Creando SIEM...")
             self.vista_siem = VistaSIEM(self.notebook)
             self.notebook.add(self.vista_siem, text="SIEM")
+            pestanas_creadas += 1
         except Exception as e:
-            print(f"Error creando vista SIEM: {e}")
+            print(f"      Error creando vista SIEM: {e}")
         
         # 3. FIM - File Integrity Monitoring (Crítico para seguridad)
         try:
+            print("      Creando FIM...")
             self.vista_fim = VistaFIM(self.notebook)
             self.notebook.add(self.vista_fim, text="FIM")
+            pestanas_creadas += 1
         except Exception as e:
-            print(f"Error creando vista FIM: {e}")
+            print(f"      Error creando vista FIM: {e}")
         
         # 4. MONITOREO Y CUARENTENA - Protección activa del sistema
-        self.vista_monitoreo = VistaMonitoreo(self.notebook)
-        self.notebook.add(self.vista_monitoreo, text="Cuarentena")
+        try:
+            print("      Creando Monitoreo...")
+            self.vista_monitoreo = VistaMonitoreo(self.notebook)
+            self.notebook.add(self.vista_monitoreo, text="Cuarentena")
+            pestanas_creadas += 1
+        except Exception as e:
+            print(f"      Error creando vista monitoreo: {e}")
         
         # 5. ESCANEO - Detección de vulnerabilidades
-        self.vista_escaneo = VistaEscaneo(self.notebook)
-        self.notebook.add(self.vista_escaneo, text="Escaneo")
+        try:
+            print("      Creando Escaneador...")
+            self.vista_escaneo = VistaEscaneo(self.notebook)
+            self.notebook.add(self.vista_escaneo, text="Escaneo")
+            pestanas_creadas += 1
+        except Exception as e:
+            print(f"      Error creando vista escaneo: {e}")
         
         # 6. AUDITORÍA - Auditoría de seguridad avanzada
         try:
+            print("      Creando Auditoría...")
             self.vista_auditoria = VistaAuditoria(self.notebook)
             self.notebook.add(self.vista_auditoria, text="Auditoria")
+            pestanas_creadas += 1
         except Exception as e:
-            print(f"Error creando vista auditoría: {e}")
+            print(f"      Error creando vista auditoría: {e}")
         
         # 7. HERRAMIENTAS - Herramientas de seguridad especializadas
         try:
+            print("      Creando Herramientas...")
             self.vista_herramientas = VistaHerramientas(self.notebook)
             self.notebook.add(self.vista_herramientas, text="Herramientas")
+            pestanas_creadas += 1
         except Exception as e:
-            print(f"Error creando vista herramientas: {e}")
+            print(f"      Error creando vista herramientas: {e}")
         
         # 8. WORDLISTS & DICCIONARIOS - Gestión de datos para pentesting
         try:
+            print("      Creando Gestión de Datos...")
             self.vista_gestion_datos = VistaGestionDatos(self.notebook)
             self.notebook.add(self.vista_gestion_datos, text="Wordlists")
+            pestanas_creadas += 1
         except Exception as e:
-            print(f"Error creando vista gestión de datos: {e}")
+            print(f"      Error creando vista gestión de datos: {e}")
         
         # 9. REPORTES - Documentación y análisis de resultados
         try:
+            print("      Creando Reportes...")
             self.vista_reportes = VistaReportes(self.notebook)
             self.notebook.add(self.vista_reportes, text="Reportes")
+            pestanas_creadas += 1
         except Exception as e:
-            print(f"Error creando vista reportes: {e}")
+            print(f"      Error creando vista reportes: {e}")
+        
+        # Actualizar el notebook después de crear las pestañas
+        self.notebook.update_idletasks()
+        self.notebook.update()
+        
+        print(f"    Notebook creado con {pestanas_creadas} pestañas")
+        
+        # Seleccionar la primera pestaña por defecto
+        if pestanas_creadas > 0:
+            self.notebook.select(0)
         
         # 10. ACTUALIZACIÓN - Sistema de actualización integral
         # Esta pestaña se crea después cuando el controlador esté disponible
-        pass
     
     def crear_pestanas_con_controlador(self):
         """Crea las pestañas que requieren controlador inicializado"""
