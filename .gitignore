@@ -47,3 +47,21 @@ Thumbs.db
 configuracion/*.backup
 data/wordlists/generadas/*.tmp
 data/*.cache
+
+# Prevenir archivos vacíos creados por VS Code
+*.empty
+**/tempfile_*
+**/untitled*
+**/__new_file_*
+
+# Prevenir duplicación de carpetas principales
+/ares_aegis/
+/tests_temp/
+/seguridad_temp/
+/docs_temp/
+
+# Ignorar archivos temporales de VS Code
+**/*.tmp.py
+**/*.temp.py
+**/*.draft.py
+**/*.backup.py

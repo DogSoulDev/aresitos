@@ -21,5 +21,37 @@
     "workbench.enableExperiments": false,
     "telemetry.telemetryLevel": "off",
     "update.enableWindowsBackgroundUpdates": false,
-    "update.mode": "none"
+    "update.mode": "none",
+    "files.exclude": {
+        "**/__pycache__": true,
+        "**/*.pyc": true,
+        "**/*.pyo": true,
+        "**/*.tmp": true,
+        "**/*.temp": true,
+        "**/tempfile_*": true,
+        "**/untitled*": true,
+        "**/__new_file_*": true
+    },
+    "files.watcherExclude": {
+        "**/node_modules/**": true,
+        "**/.git/objects/**": true,
+        "**/.git/subtree-cache/**": true,
+        "**/venv/**": true,
+        "**/env/**": true,
+        "**/__pycache__/**": true
+    },
+    "search.exclude": {
+        "**/node_modules": true,
+        "**/bower_components": true,
+        "**/.git": true,
+        "**/venv": true,
+        "**/env": true,
+        "**/__pycache__": true
+    },
+    "git.autofetch": false,
+    "editor.autoClosingBrackets": "never",
+    "editor.autoClosingQuotes": "never",
+    "editor.autoIndent": "none",
+    "editor.suggest.showFiles": false,
+    "editor.quickSuggestionsDelay": 5000
 }
