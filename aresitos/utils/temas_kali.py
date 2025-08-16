@@ -222,7 +222,7 @@ def configurar_ventana_principal(ventana):
         
         # Intentar configurar icono si existe
         try:
-            ventana.iconbitmap("recursos/aresIcon.ico")
+            ventana.iconbitmap("aresitos/recursos/Aresitos.ico")
         except:
             pass  # Ignorar si no existe el icono
         

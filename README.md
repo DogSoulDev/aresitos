@@ -1,12 +1,10 @@
 # ARESITOS - Sistema de Ciberseguridad para Kali Linux
 
-## Herramienta C│   ├── modelo_siem.py                # SIEM básico y avanzado
-│   ├── modelo_fim.py                 # Monitoreo de integridad
-│   ├── modelo_monitor.py             # Monitor de red y procesos
-│   ├── modelo_gestor_wordlists.py    # Constructor de wordlists
-│   ├── cuarentena.py                 # Gestor de cuarentena
-│   ├── modelo_auditoria.py           # Auditor de autenticación
-│   └── modelo_utilidades_sistema.py  # Utilidades del sistemaAnálisis de Seguridad y Auditoría
+<p align="center">
+  <img src="aresitos/recursos/Aresitos.ico" alt="ARESITOS" width="128" height="128">
+</p>
+
+## Herramienta de Análisis de Seguridad y Auditoría
 
 **ARESITOS** es una suite de ciberseguridad desarrollada específicamente para profesionales de seguridad, ethical hackers, administradores de sistemas e investigadores que trabajan en entornos Kali Linux.
 
@@ -119,8 +117,7 @@ aresitos/                          # Núcleo Principal de la Aplicación
 │   ├── temas_kali.py                 # Tema visual Kali
 │   └── temas_simple.py               # Tema alternativo
 └── recursos/                      # Recursos Gráficos
-    ├── AresAegis.png                 # Logo principal
-    └── aresIcon.png                  # Icono de la aplicación
+    └── Aresitos.ico                  # Icono de la aplicación
 
 configuracion/                     # Configuraciones del Sistema
 ├── ares_aegis_config.json            # Configuración principal
