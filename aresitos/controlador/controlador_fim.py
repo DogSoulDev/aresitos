@@ -4,7 +4,6 @@ Ares Aegis - Controlador FIM (File Integrity Monitoring)
 Controlador especializado en monitoreo de integridad de archivos para Kali Linux
 """
 
-import asyncio
 import threading
 import time
 import os
@@ -209,9 +208,9 @@ class ControladorFIM(ControladorBase):
                 }
             
             # Verificar herramientas necesarias de Kali
-            verificacion = self._verificar_herramientas_fim()
-            if not verificacion['exito']:
-                self.logger.warning(f"Algunas herramientas FIM no disponibles: {verificacion}")
+            verificación = self._verificar_herramientas_fim()
+            if not verificación['exito']:
+                self.logger.warning(f"Algunas herramientas FIM no disponibles: {verificación}")
             
             # Configurar rutas iniciales
             self._configurar_rutas_iniciales()
@@ -225,7 +224,7 @@ class ControladorFIM(ControladorBase):
                     'exito': True,
                     'mensaje': 'Controlador FIM inicializado correctamente',
                     'escaneo_inicial': resultado_inicial,
-                    'herramientas': verificacion
+                    'herramientas': verificación
                 }
             else:
                 return {
@@ -1834,33 +1833,33 @@ report_url=stdout
         recomendaciones = []
         
         try:
-            analisis = resultados.get('analisis_detallado', {})
+            análisis = resultados.get('analisis_detallado', {})
             
             # Recomendaciones de inotify
-            if 'inotify' in analisis and not analisis['inotify'].get('exito', False):
+            if 'inotify' in análisis and not análisis['inotify'].get('exito', False):
                 recomendaciones.append("Instalar inotify-tools: sudo apt install inotify-tools")
             
             # Recomendaciones de AIDE
-            if 'aide_config' in analisis and not analisis['aide_config'].get('exito', False):
+            if 'aide_config' in análisis and not análisis['aide_config'].get('exito', False):
                 recomendaciones.append("Instalar y configurar AIDE: sudo apt install aide")
-            elif 'aide_verificacion' in analisis:
-                aide_result = analisis['aide_verificacion']
+            elif 'aide_verificacion' in análisis:
+                aide_result = análisis['aide_verificacion']
                 if not aide_result.get('exito', False):
                     recomendaciones.append("Inicializar base de datos AIDE: sudo aide --init")
                 elif aide_result.get('cambios_detectados', False):
                     recomendaciones.append(f"Investigar {aide_result.get('total_cambios', 0)} cambios detectados por AIDE")
             
             # Recomendaciones de auditd
-            if 'auditd' in analisis and not analisis['auditd'].get('exito', False):
+            if 'auditd' in análisis and not análisis['auditd'].get('exito', False):
                 recomendaciones.append("Instalar auditd: sudo apt install auditd")
-            elif 'auditd' in analisis:
-                auditd_result = analisis['auditd']
+            elif 'auditd' in análisis:
+                auditd_result = análisis['auditd']
                 if auditd_result.get('reglas_fallidas', 0) > 0:
                     recomendaciones.append("Revisar reglas de auditd fallidas - verificar permisos sudo")
             
             # Recomendaciones de logs
-            if 'logs_analysis' in analisis and analisis['logs_analysis'].get('exito', False):
-                eventos_logs = analisis['logs_analysis'].get('total_eventos_fim', 0)
+            if 'logs_analysis' in análisis and análisis['logs_analysis'].get('exito', False):
+                eventos_logs = análisis['logs_analysis'].get('total_eventos_fim', 0)
                 if eventos_logs > 50:
                     recomendaciones.append(f"Investigar alta actividad en logs: {eventos_logs} eventos FIM detectados")
             

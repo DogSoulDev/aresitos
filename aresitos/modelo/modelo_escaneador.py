@@ -29,21 +29,21 @@ __description__ = "Sistema modular de escaneo de seguridad"
 
 def crear_escaneador(tipo: str = "avanzado", **kwargs):
     """
-    Factory function para crear instancias del escaneador.
+    Factory function para crear instancias del escáner.
     
     Args:
-        tipo: Tipo de escaneador ('base' o 'avanzado')
+        tipo: Tipo de escáner ('base' o 'avanzado')
         **kwargs: Argumentos adicionales para el constructor
         
     Returns:
-        Instancia del escaneador solicitado
+        Instancia del escáner solicitado
     """
     if tipo.lower() == "base":
         return EscaneadorBase(**kwargs)
     elif tipo.lower() == "avanzado":
         return EscaneadorAvanzado(**kwargs)
     else:
-        raise ValueError(f"Tipo de escaneador no válido: {tipo}. Use 'base' o 'avanzado'")
+        raise ValueError(f"Tipo de escáner no válido: {tipo}. Use 'base' o 'avanzado'")
 
 def obtener_version():
     """Obtener información de versión del módulo."""

@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """
 Ares Aegis - Controlador Principal con Cuarentena Integrada
-Gestiona el escaneador con cuarentena automática para amenazas detectadas
+Gestiona el escáner con cuarentena automática para amenazas detectadas
 """
 
 import logging
@@ -10,7 +10,7 @@ from typing import Dict, List, Any, Optional, Union
 from datetime import datetime
 
 class MockResultado:
-    """Resultado mock para el escaneador."""
+    """Resultado mock para el escáner."""
     def __init__(self):
         self.vulnerabilidades = []
         self.exito = False
@@ -40,7 +40,7 @@ class MockCuarentena:
 
 class ControladorEscaneadorCuarentena:
     """
-    Controlador principal que integra el escaneador con el sistema de cuarentena.
+    Controlador principal que integra el escáner con el sistema de cuarentena.
     """
     
     def __init__(self):
@@ -48,7 +48,7 @@ class ControladorEscaneadorCuarentena:
         self.logger = logging.getLogger(f"AresAegis.{self.__class__.__name__}")
         
         # Configuración por defecto
-        self.configuracion = {
+        self.configuración = {
             'cuarentena_automatica': True,
             'niveles_cuarentena': ['critico', 'alto'],  # Niveles que van a cuarentena automáticamente
             'notificar_cuarentena': True,
@@ -56,22 +56,22 @@ class ControladorEscaneadorCuarentena:
         }
         
         # Inicializar componentes con tipos Union para flexibilidad
-        self.escaneador: Union[MockEscaneador, Any] = MockEscaneador()
+        self.escáner: Union[MockEscaneador, Any] = MockEscaneador()
         self.cuarentena: Union[MockCuarentena, Any] = MockCuarentena()
         
         self._inicializar_componentes()
     
     def _inicializar_componentes(self):
-        """Inicializa el escaneador y el sistema de cuarentena."""
-        # Inicializar escaneador
+        """Inicializa el escáner y el sistema de cuarentena."""
+        # Inicializar escáner
         try:
             from ..modelo.escaneador_avanzado import EscaneadorAvanzadoReal
-            self.escaneador = EscaneadorAvanzadoReal()
+            self.escáner = EscaneadorAvanzadoReal()
             self.logger.info("OK Escaneador avanzado inicializado")
         except Exception as e:
-            self.logger.error(f"Error inicializando escaneador: {e}")
-            self.escaneador = MockEscaneador()
-            self.logger.warning("WARNING Usando escaneador mock")
+            self.logger.error(f"Error inicializando escáner: {e}")
+            self.escáner = MockEscaneador()
+            self.logger.warning("WARNING Usando escáner mock")
         
         # Inicializar cuarentena
         try:
@@ -108,11 +108,11 @@ class ControladorEscaneadorCuarentena:
         try:
             # 1. Ejecutar escaneo
             if tipo_escaneo == 'completo':
-                resultado_escaneo = self.escaneador.escanear_completo()
+                resultado_escaneo = self.escáner.escanear_completo()
             elif tipo_escaneo == 'malware':
-                resultado_escaneo = self.escaneador.detectar_malware()
+                resultado_escaneo = self.escáner.detectar_malware()
             elif tipo_escaneo == 'vulnerabilidades':
-                resultado_escaneo = self.escaneador.escanear_vulnerabilidades_sistema()
+                resultado_escaneo = self.escáner.escanear_vulnerabilidades_sistema()
             else:
                 raise ValueError(f"Tipo de escaneo no válido: {tipo_escaneo}")
             
@@ -169,11 +169,11 @@ class ControladorEscaneadorCuarentena:
     
     def _debe_ir_a_cuarentena(self, vulnerabilidad) -> bool:
         """Determina si una vulnerabilidad debe ir a cuarentena automáticamente."""
-        if not self.configuracion['cuarentena_automatica']:
+        if not self.configuración['cuarentena_automatica']:
             return False
         
         nivel = vulnerabilidad.nivel_riesgo.value
-        return nivel in self.configuracion['niveles_cuarentena']
+        return nivel in self.configuración['niveles_cuarentena']
     
     def _procesar_amenaza_cuarentena(self, vulnerabilidad) -> bool:
         """Procesa una amenaza con el sistema de cuarentena."""
@@ -254,7 +254,7 @@ class ControladorEscaneadorCuarentena:
                     'limpiar_cuarentena_antigua',
                     'generar_reporte_cuarentena'
                 ],
-                'configuracion_actual': self.configuracion
+                'configuracion_actual': self.configuración
             }
             
         except Exception as e:
@@ -282,7 +282,7 @@ class ControladorEscaneadorCuarentena:
     def configurar_cuarentena(self, nueva_config: Dict[str, Any]) -> bool:
         """Actualiza la configuración de cuarentena."""
         try:
-            self.configuracion.update(nueva_config)
+            self.configuración.update(nueva_config)
             self.logger.info("OK Configuración de cuarentena actualizada")
             return True
         except Exception as e:
@@ -296,50 +296,92 @@ class ControladorEscaneadorCuarentena:
         self.logger.info(" Iniciando escaneo básico del sistema")
         
         try:
-            import psutil
             import socket
             import subprocess
+            import shutil
             
             resultado = {
                 'puertos': [],
                 'procesos': [],
-                'analisis': [],
+                'análisis': [],
                 'timestamp': datetime.now().isoformat()
             }
             
-            # 1. Escanear puertos locales abiertos
-            conexiones = psutil.net_connections(kind='inet')
-            puertos_encontrados = set()
+            # 1. Escanear puertos locales abiertos usando ss
+            try:
+                if shutil.which('ss'):
+                    cmd_result = subprocess.run(['ss', '-tuln'], capture_output=True, text=True, timeout=10)
+                    if cmd_result.returncode == 0:
+                        lines = cmd_result.stdout.strip().split('\n')
+                        puertos_encontrados = set()
+                        
+                        for line in lines[1:]:  # Skip header
+                            if 'LISTEN' in line:
+                                partes = line.split()
+                                if len(partes) >= 4:
+                                    direccion_local = partes[3]
+                                    if ':' in direccion_local:
+                                        puerto = direccion_local.split(':')[-1]
+                                        try:
+                                            puerto_num = int(puerto)
+                                            puertos_encontrados.add(puerto_num)
+                                            resultado['puertos'].append(f"Puerto {puerto_num}/tcp abierto")
+                                        except ValueError:
+                                            continue
+                        
+                        self.logger.info(f"Encontrados {len(puertos_encontrados)} puertos abiertos")
+                    else:
+                        # Fallback con netstat
+                        cmd_result = subprocess.run(['netstat', '-tuln'], capture_output=True, text=True, timeout=10)
+                        if cmd_result.returncode == 0:
+                            for line in cmd_result.stdout.split('\n'):
+                                if 'LISTEN' in line and ':' in line:
+                                    resultado['puertos'].append("Puerto detectado con netstat")
+            except Exception as e:
+                self.logger.warning(f"Error escaneando puertos: {e}")
+                resultado['análisis'].append("ERROR: No se pudieron escanear puertos")
             
-            for conn in conexiones:
-                if conn.laddr and conn.status == 'LISTEN':
-                    puerto = conn.laddr.port
-                    puertos_encontrados.add(puerto)
-                    resultado['puertos'].append(f"Puerto {puerto}/tcp abierto")
-            
-            # 2. Procesos en ejecución (filtrado)
-            procesos_importantes = []
-            for proc in psutil.process_iter(['pid', 'name', 'username']):
-                try:
-                    info = proc.info
-                    # Filtrar procesos importantes
-                    if any(keyword in info['name'].lower() for keyword in 
-                           ['ssh', 'apache', 'nginx', 'mysql', 'postgres', 'ftp', 'telnet']):
-                        procesos_importantes.append(f"PID {info['pid']}: {info['name']} ({info['username']})")
-                except (psutil.NoSuchProcess, psutil.AccessDenied):
-                    continue
-            
-            resultado['procesos'] = procesos_importantes[:15]  # Limitar a 15
+            # 2. Procesos en ejecución usando ps
+            try:
+                cmd_result = subprocess.run(['ps', 'aux'], capture_output=True, text=True, timeout=10)
+                if cmd_result.returncode == 0:
+                    lines = cmd_result.stdout.strip().split('\n')
+                    procesos_importantes = []
+                    
+                    for line in lines[1:]:  # Skip header
+                        if any(keyword in line.lower() for keyword in 
+                               ['ssh', 'apache', 'nginx', 'mysql', 'postgres', 'ftp', 'telnet', 'http']):
+                            partes = line.split(None, 10)
+                            if len(partes) >= 11:
+                                pid = partes[1]
+                                usuario = partes[0]
+                                comando = partes[10]
+                                procesos_importantes.append(f"PID {pid}: {comando[:50]} ({usuario})")
+                            
+                            if len(procesos_importantes) >= 15:
+                                break
+                    
+                    resultado['procesos'] = procesos_importantes
+                    self.logger.info(f"Encontrados {len(procesos_importantes)} procesos importantes")
+                else:
+                    resultado['análisis'].append("ERROR: No se pudieron listar procesos")
+                    
+            except Exception as e:
+                self.logger.warning(f"Error listando procesos: {e}")
+                resultado['análisis'].append("ERROR: Error listando procesos del sistema")
             
             # 3. Análisis básico
-            resultado['analisis'].append(f"OK Escaneo completado - {len(puertos_encontrados)} puertos encontrados")
-            resultado['analisis'].append(f" {len(procesos_importantes)} procesos de interés detectados")
+            total_puertos = len(resultado['puertos'])
+            total_procesos = len(resultado['procesos'])
+            resultado['análisis'].append(f"OK Escaneo completado - {total_puertos} puertos, {total_procesos} procesos")
+            resultado['análisis'].append(f" {total_procesos} procesos de interés detectados")
             
-            # Recomendaciones básicas
-            if 22 in puertos_encontrados:
-                resultado['analisis'].append("WARNING SSH activo - verificar configuración de seguridad")
-            if 80 in puertos_encontrados or 443 in puertos_encontrados:
-                resultado['analisis'].append(" Servidor web detectado - revisar configuración")
+            # Recomendaciones básicas basadas en puertos detectados
+            puertos_texto = ' '.join(resultado['puertos'])
+            if 'Puerto 22' in puertos_texto:
+                resultado['análisis'].append("WARNING SSH activo - verificar configuración de seguridad")
+            if 'Puerto 80' in puertos_texto or 'Puerto 443' in puertos_texto:
+                resultado['análisis'].append(" Servidor web detectado - revisar configuración")
             
             self.logger.info("OK Escaneo básico completado exitosamente")
             return resultado
@@ -349,7 +391,7 @@ class ControladorEscaneadorCuarentena:
             return {
                 'puertos': [f"Error: {str(e)}"],
                 'procesos': [],
-                'analisis': [f"ERROR Error durante el escaneo: {str(e)}"],
+                'análisis': [f"ERROR Error durante el escaneo: {str(e)}"],
                 'timestamp': datetime.now().isoformat()
             }
     
@@ -465,13 +507,13 @@ class ControladorEscaneadorCuarentena:
             return resultado
     
     def obtener_logs_escaneo(self) -> List[str]:
-        """Obtiene logs del escaneador."""
+        """Obtiene logs del escáner."""
         try:
             logs = [
                 f"[{datetime.now().strftime('%H:%M:%S')}] Sistema de escaneo iniciado",
                 f"[{datetime.now().strftime('%H:%M:%S')}] Controlador integrado con cuarentena: {'OK' if self.cuarentena else 'ERROR'}",
-                f"[{datetime.now().strftime('%H:%M:%S')}] Escaneador avanzado: {'OK' if hasattr(self.escaneador, 'escanear_completo') else 'ERROR'}",
-                f"[{datetime.now().strftime('%H:%M:%S')}] Cuarentena automática: {'OK' if self.configuracion['cuarentena_automatica'] else 'ERROR'}",
+                f"[{datetime.now().strftime('%H:%M:%S')}] Escaneador avanzado: {'OK' if hasattr(self.escáner, 'escanear_completo') else 'ERROR'}",
+                f"[{datetime.now().strftime('%H:%M:%S')}] Cuarentena automática: {'OK' if self.configuración['cuarentena_automatica'] else 'ERROR'}",
                 f"[{datetime.now().strftime('%H:%M:%S')}] Sistema listo para operaciones"
             ]
             return logs
@@ -490,7 +532,7 @@ class ControladorEscaneadorCuarentena:
                 {
                     'timestamp': datetime.now().isoformat(),
                     'tipo': 'CONFIGURACION_CUARENTENA',
-                    'descripcion': f"Cuarentena automática: {self.configuracion['cuarentena_automatica']}"
+                    'descripcion': f"Cuarentena automática: {self.configuración['cuarentena_automatica']}"
                 }
             ]
             return eventos
@@ -541,7 +583,6 @@ class ControladorEscaneadorCuarentena:
         
         try:
             import re
-            import ipaddress
             import socket
             
             # Limpiar objetivo
@@ -608,81 +649,186 @@ class ControladorEscaneadorCuarentena:
 
     def escanear_sistema(self) -> Dict[str, Any]:
         """
-        Método principal para escanear el sistema con herramientas avanzadas de Kali Linux.
-        Método requerido por la vista de escaneo.
-        
-        Returns:
-            Dict con resultados del escaneo avanzado
+        Método principal para escanear el sistema con herramientas de Kali Linux.
+        OPTIMIZADO: Funciona con herramientas básicas de Linux.
         """
         try:
-            self.logger.info(" Iniciando escaneo completo del sistema con herramientas de Kali Linux")
+            import time
+            import shutil
             
-            # Escaneo básico con herramientas nativas
-            resultado_puertos = self._escanear_puertos_locales()
-            resultado_procesos = self._escanear_procesos_activos()
-            resultado_servicios = self._escanear_servicios_sistema()
+            self.logger.info("Iniciando escaneo completo del sistema con herramientas de Kali Linux")
             
-            # Escaneo avanzado con herramientas de Kali
-            resultado_nmap = self._escanear_con_nmap()
-            resultado_masscan = self._escanear_con_masscan()
-            resultado_nikto = self._escanear_web_con_nikto()
-            resultado_gobuster = self._enumeracion_web_gobuster()
-            
-            # Análisis de seguridad del sistema
-            resultado_chkrootkit = self._detectar_rootkits_chkrootkit()
-            resultado_rkhunter = self._detectar_rootkits_rkhunter()
-            
-            # Combinar resultados
-            resultado_final = {
-                'exito': True,
+            resultado = {
+                'exito': False,
                 'timestamp': datetime.now().isoformat(),
-                'metodo_escaneo': 'Herramientas nativas de Kali Linux',
-                
-                # Resultados básicos
-                'puertos_abiertos': resultado_puertos.get('puertos', []),
-                'total_puertos': len(resultado_puertos.get('puertos', [])),
-                'procesos_detectados': resultado_procesos.get('procesos', []),
-                'total_procesos': len(resultado_procesos.get('procesos', [])),
-                'servicios_activos': resultado_servicios.get('servicios', []),
-                'total_servicios': len(resultado_servicios.get('servicios', [])),
-                
-                # Resultados avanzados
-                'escaneo_nmap': resultado_nmap,
-                'escaneo_masscan': resultado_masscan,
-                'analisis_web_nikto': resultado_nikto,
-                'enumeracion_gobuster': resultado_gobuster,
-                
-                # Análisis de seguridad
-                'deteccion_rootkits_chkrootkit': resultado_chkrootkit,
-                'deteccion_rootkits_rkhunter': resultado_rkhunter,
-                
-                # Resumen de vulnerabilidades
-                'vulnerabilidades': self._compilar_vulnerabilidades(
-                    resultado_nmap, resultado_nikto, resultado_chkrootkit, resultado_rkhunter
-                ),
-                'amenazas_cuarentena': []
+                'metodo_escaneo': 'Herramientas nativas de Linux/Kali',
+                'escaneos_ejecutados': [],
+                'vulnerabilidades_encontradas': [],
+                'resumen': {},
+                'tiempo_total': 0
             }
             
-            # Estadísticas finales
-            total_vulnerabilidades = len(resultado_final['vulnerabilidades'])
-            self.logger.info(
-                f"OK Escaneo avanzado completado: {resultado_final['total_puertos']} puertos, "
-                f"{resultado_final['total_procesos']} procesos, {total_vulnerabilidades} vulnerabilidades"
-            )
+            tiempo_inicio = time.time()
             
-            return resultado_final
+            # 1. Escaneo de puertos locales (SIEMPRE disponible)
+            self.logger.info("1/5 Escaneando puertos locales...")
+            try:
+                resultado_puertos = self._escanear_puertos_locales()
+                if resultado_puertos.get('exito'):
+                    resultado['escaneos_ejecutados'].append('puertos_locales')
+                    puertos_abiertos = resultado_puertos.get('puertos_abiertos', [])
+                    resultado['resumen']['puertos_abiertos'] = len(puertos_abiertos)
+                    resultado['puertos_abiertos'] = puertos_abiertos
+                    
+                    # Buscar vulnerabilidades básicas en puertos
+                    for puerto in puertos_abiertos:
+                        if isinstance(puerto, dict):
+                            puerto_num = puerto.get('puerto', 0)
+                            if puerto_num in [21, 23, 135, 139, 445]:  # Puertos riesgosos
+                                resultado['vulnerabilidades_encontradas'].append({
+                                    'tipo': 'PUERTO_RIESGOSO',
+                                    'severidad': 'MEDIA',
+                                    'descripcion': f"Puerto potencialmente riesgoso abierto: {puerto_num}",
+                                    'puerto': puerto_num,
+                                    'detalles': puerto
+                                })
+                self.logger.info("OK Escaneo de puertos completado")
+            except Exception as e:
+                self.logger.warning(f"Error en escaneo de puertos: {e}")
+            
+            # 2. Escaneo de procesos activos (SIEMPRE disponible)
+            self.logger.info("2/5 Escaneando procesos activos...")
+            try:
+                resultado_procesos = self._escanear_procesos_activos()
+                if resultado_procesos.get('exito'):
+                    resultado['escaneos_ejecutados'].append('procesos_activos')
+                    procesos = resultado_procesos.get('procesos', [])
+                    resultado['resumen']['procesos_analizados'] = len(procesos)
+                    resultado['procesos_detectados'] = procesos[:20]  # Limitar a 20
+                    
+                    # Buscar procesos sospechosos
+                    procesos_sospechosos = ['nc', 'netcat', 'ncat', 'backdoor', 'rootkit']
+                    for proceso in procesos:
+                        if isinstance(proceso, dict):
+                            comando = proceso.get('comando', '').lower()
+                            if any(sospechoso in comando for sospechoso in procesos_sospechosos):
+                                resultado['vulnerabilidades_encontradas'].append({
+                                    'tipo': 'PROCESO_SOSPECHOSO',
+                                    'severidad': 'ALTA',
+                                    'descripcion': f"Proceso potencialmente sospechoso: {comando}",
+                                    'proceso': proceso
+                                })
+                self.logger.info("OK Escaneo de procesos completado")
+            except Exception as e:
+                self.logger.warning(f"Error en escaneo de procesos: {e}")
+            
+            # 3. Escaneo de servicios del sistema
+            self.logger.info("3/5 Escaneando servicios del sistema...")
+            try:
+                resultado_servicios = self._escanear_servicios_sistema()
+                if resultado_servicios.get('exito'):
+                    resultado['escaneos_ejecutados'].append('servicios_sistema')
+                    servicios = resultado_servicios.get('servicios', [])
+                    resultado['resumen']['servicios_analizados'] = len(servicios)
+                    resultado['servicios_activos'] = servicios[:15]  # Limitar a 15
+                self.logger.info("OK Escaneo de servicios completado")
+            except Exception as e:
+                self.logger.warning(f"Error en escaneo de servicios: {e}")
+            
+            # 4. Escaneo con nmap (SOLO si está disponible)
+            self.logger.info("4/5 Verificando disponibilidad de nmap...")
+            if shutil.which('nmap'):
+                try:
+                    self.logger.info("nmap encontrado, ejecutando escaneo avanzado...")
+                    resultado_nmap = self._escanear_con_nmap()
+                    if resultado_nmap.get('exito'):
+                        resultado['escaneos_ejecutados'].append('nmap')
+                        resultado['resumen']['hosts_nmap'] = resultado_nmap.get('hosts_encontrados', 0)
+                        resultado['escaneo_nmap'] = resultado_nmap
+                    self.logger.info("OK Escaneo nmap completado")
+                except Exception as e:
+                    self.logger.warning(f"Error con nmap: {e}")
+            else:
+                self.logger.info("nmap no disponible, omitiendo escaneo avanzado")
+            
+            # 5. Verificación básica de integridad (usando find)
+            self.logger.info("5/5 Verificando integridad básica del sistema...")
+            try:
+                archivos_criticos = ['/etc/passwd', '/etc/shadow', '/etc/sudoers']
+                archivos_verificados = 0
+                
+                for archivo in archivos_criticos:
+                    try:
+                        import os
+                        import stat
+                        if os.path.exists(archivo):
+                            st = os.stat(archivo)
+                            permisos = oct(st.st_mode)[-3:]
+                            
+                            # Verificar permisos seguros
+                            if archivo == '/etc/shadow' and permisos != '640' and permisos != '600':
+                                resultado['vulnerabilidades_encontradas'].append({
+                                    'tipo': 'PERMISOS_INSEGUROS',
+                                    'severidad': 'ALTA',
+                                    'descripcion': f"Permisos inseguros en {archivo}: {permisos}",
+                                    'archivo': archivo,
+                                    'permisos': permisos
+                                })
+                            
+                            archivos_verificados += 1
+                    except:
+                        pass
+                
+                if archivos_verificados > 0:
+                    resultado['escaneos_ejecutados'].append('integridad_basica')
+                    resultado['resumen']['archivos_verificados'] = archivos_verificados
+                
+                self.logger.info("OK Verificación de integridad completada")
+            except Exception as e:
+                self.logger.warning(f"Error en verificación de integridad: {e}")
+            
+            # Calcular tiempo total
+            tiempo_total = time.time() - tiempo_inicio
+            resultado['tiempo_total'] = round(tiempo_total, 2)
+            
+            # Generar resumen final
+            total_vulnerabilidades = len(resultado['vulnerabilidades_encontradas'])
+            escaneos_completados = len(resultado['escaneos_ejecutados'])
+            
+            resultado['resumen'].update({
+                'total_vulnerabilidades': total_vulnerabilidades,
+                'escaneos_completados': escaneos_completados,
+                'vulnerabilidades_criticas': len([v for v in resultado['vulnerabilidades_encontradas'] 
+                                                 if v.get('severidad') == 'CRITICA']),
+                'vulnerabilidades_altas': len([v for v in resultado['vulnerabilidades_encontradas'] 
+                                              if v.get('severidad') == 'ALTA']),
+                'porcentaje_completado': round((escaneos_completados / 5) * 100, 1)
+            })
+            
+            # Evaluar éxito general
+            if escaneos_completados >= 3:  # Al menos 3 de 5 escaneos
+                resultado['exito'] = True
+                self.logger.info(f"Escaneo exitoso en {tiempo_total:.2f}s - {total_vulnerabilidades} vulnerabilidades")
+            else:
+                resultado['exito'] = False
+                resultado['error'] = f"Solo {escaneos_completados}/5 escaneos completados"
+                self.logger.warning(f"Escaneo parcial: {escaneos_completados}/5 completados")
+            
+            # Registrar evento del escaneo
+            try:
+                self.logger.info(f"ESCANEO_SISTEMA_COMPLETO: {total_vulnerabilidades} vulnerabilidades detectadas")
+            except Exception as e:
+                self.logger.error(f"Error registrando evento de escaneo: {str(e)}")
+            
+            return resultado
             
         except Exception as e:
-            self.logger.error(f"Error en escaneo del sistema: {e}")
+            error_msg = f"Error en escaneo del sistema: {str(e)}"
+            self.logger.error(error_msg)
             return {
                 'exito': False,
-                'error': str(e),
-                'puertos_abiertos': [],
-                'total_puertos': 0,
-                'procesos_detectados': [],
-                'total_procesos': 0,
-                'vulnerabilidades': [],
-                'amenazas_cuarentena': []
+                'error': error_msg,
+                'timestamp': datetime.now().isoformat()
             }
 
     def _escanear_puertos_locales(self) -> Dict[str, Any]:

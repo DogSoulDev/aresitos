@@ -164,7 +164,9 @@ class VistaEscaneo(tk.Frame):
                 self.after(0, self._mostrar_error_escaneo, "Controlador de escaneo no configurado")
                 return
             
-            resultados = self.controlador.ejecutar_escaneo_basico()
+            # KALI FIX: Usar objetivo localhost por defecto para escaneo básico
+            objetivo = "127.0.0.1"  # Usar IP directa para evitar problemas DNS
+            resultados = self.controlador.ejecutar_escaneo_basico(objetivo)
             
             if not self.proceso_activo:  # Verificar si fue cancelado
                 return
@@ -192,7 +194,7 @@ class VistaEscaneo(tk.Frame):
             self.text_resultados.insert(tk.END, f"{linea}\n")
         
         self.text_resultados.insert(tk.END, "\n=== ANÁLISIS ===\n")
-        for linea in resultados.get('analisis', []):
+        for linea in resultados.get('análisis', []):
             self.text_resultados.insert(tk.END, f"{linea}\n")
     
     def _mostrar_error_escaneo(self, error):

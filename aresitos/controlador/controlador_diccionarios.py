@@ -240,7 +240,7 @@ class ControladorDiccionarios(ControladorBase):
             if ips_maliciosas and ip in ips_maliciosas:
                 return {
                     'es_maliciosa': True,
-                    'informacion': ips_maliciosas[ip],
+                    'información': ips_maliciosas[ip],
                     'fuente': 'base_datos_local'
                 }
             
@@ -251,13 +251,13 @@ class ControladorDiccionarios(ControladorBase):
                     if self._ip_en_rango(ip, rango):
                         return {
                             'es_maliciosa': True,
-                            'informacion': info,
+                            'información': info,
                             'fuente': 'rango_de_red'
                         }
             
             return {
                 'es_maliciosa': False,
-                'informacion': 'IP no encontrada en listas de amenazas',
+                'información': 'IP no encontrada en listas de amenazas',
                 'fuente': 'verificacion_local'
             }
             
@@ -387,12 +387,44 @@ class ControladorDiccionarios(ControladorBase):
             self.logger.error(f"Error actualizando estadísticas: {e}")
     
     def _ip_en_rango(self, ip: str, rango: str) -> bool:
-        """Verificar si una IP está en un rango CIDR específico."""
+        """Verificar si una IP está en un rango CIDR específico usando funciones nativas."""
         try:
-            import ipaddress
-            red = ipaddress.ip_network(rango, strict=False)
-            direccion = ipaddress.ip_address(ip)
-            return direccion in red
+            # Implementación simple para rangos CIDR básicos
+            if '/' not in rango:
+                return ip == rango
+            
+            # Separar IP y máscara
+            red_ip, prefijo = rango.split('/')
+            prefijo = int(prefijo)
+            
+            # Convertir IPs a enteros para comparación
+            ip_num = self._ip_a_numero(ip)
+            red_num = self._ip_a_numero(red_ip)
+            
+            # Crear máscara
+            mascara = (0xFFFFFFFF << (32 - prefijo)) & 0xFFFFFFFF
+            
+            # Comparar redes
+            return (ip_num & mascara) == (red_num & mascara)
+            
+        except Exception as e:
+            self.logger.debug(f"Error verificando IP en rango: {e}")
+            return False
+    
+    def _ip_a_numero(self, ip: str) -> int:
+        """Convertir IP string a número entero."""
+        try:
+            partes = ip.split('.')
+            if len(partes) != 4:
+                return 0
+            
+            numero = 0
+            for i, parte in enumerate(partes):
+                numero += int(parte) << (8 * (3 - i))
+            
+            return numero
+        except Exception:
+            return 0
         except:
             return False
     

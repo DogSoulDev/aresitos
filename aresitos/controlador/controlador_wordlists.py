@@ -205,27 +205,27 @@ class ControladorWordlists(ControladorBase):
             self.logger.error(f"Error combinando wordlists: {e}")
             return []
     
-    def generar_wordlist_personalizada(self, base: str, configuracion: Dict[str, Any]) -> List[str]:
+    def generar_wordlist_personalizada(self, base: str, configuración: Dict[str, Any]) -> List[str]:
         """Generar wordlist personalizada basada en configuración."""
         try:
             if hasattr(self.modelo, 'gestor_wordlists') and hasattr(self.modelo.gestor_wordlists, 'constructor_wordlists'):
                 constructor = self.modelo.gestor_wordlists.constructor_wordlists
                 if constructor and hasattr(constructor, 'generar_wordlist_personalizada'):
-                    return constructor.generar_wordlist_personalizada(base, configuracion)
+                    return constructor.generar_wordlist_personalizada(base, configuración)
             
             # Generación básica si no hay constructor avanzado
             resultado = [base]
             
-            if configuracion.get('incluir_numeros', False):
+            if configuración.get('incluir_numeros', False):
                 for i in range(10):
                     resultado.extend([f"{base}{i}", f"{i}{base}"])
             
-            if configuracion.get('incluir_simbolos', False):
+            if configuración.get('incluir_simbolos', False):
                 simbolos = ['!', '@', '#', '$', '%']
                 for simbolo in simbolos:
                     resultado.extend([f"{base}{simbolo}", f"{simbolo}{base}"])
             
-            if configuracion.get('variaciones_caso', False):
+            if configuración.get('variaciones_caso', False):
                 resultado.extend([base.upper(), base.lower(), base.title()])
             
             return list(set(resultado))

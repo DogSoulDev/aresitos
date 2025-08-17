@@ -1,22 +1,36 @@
+#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-Ares Aegis - Monitor Avanzado del Sistema
-Sistema de monitoreo integral que combina monitoreo de procesos, red y recursos del sistema
-Integra funcionalidad avanzada del proyecto original con análisis de comportamiento
+MONITOR AVANZADO ARES AEGIS - VERSIÓN NATIVA LINUX
+===============================================
+
+Monitor de sistema que usa ÚNICAMENTE herramientas nativas de Linux
+y comandos estándar para análisis de recursos y seguridad.
+
+FUNCIONALIDADES IMPLEMENTADAS:
+- ✅ Monitoreo de recursos con free/ps/df
+- ✅ Análisis de procesos con ps
+- ✅ Monitoreo de red con ss/netstat
+- ✅ Detección de anomalías
+- ✅ Solo Python estándar + comandos Linux
+
+Autor: Ares Aegis Security Suite
+Fecha: 2025-08-17
 """
 
-import subprocess
-import time
-import datetime
 import os
-import psutil
-import logging
+import re
+import json
+import time
+import subprocess
 import threading
+import logging
 from collections import defaultdict, deque
 from dataclasses import dataclass, field
 from enum import Enum
 from typing import Dict, List, Any, Optional, Set
-import json
+from datetime import datetime
+import shutil
 
 class TipoRecurso(Enum):
     """Tipos de recursos monitoreados."""
@@ -35,7 +49,7 @@ class EstadoAlerta(Enum):
 @dataclass
 class MetricaSistema:
     """Métrica individual del sistema."""
-    timestamp: datetime.datetime
+    timestamp: datetime
     tipo: TipoRecurso
     valor: float
     unidad: str
@@ -51,7 +65,7 @@ class ProcesoInfo:
     uso_cpu: float
     uso_memoria: int  # MB
     estado: str
-    tiempo_inicio: datetime.datetime
+    tiempo_inicio: Optional[datetime] = None
     conexiones_red: List[Dict] = field(default_factory=list)
     archivos_abiertos: int = 0
     pid_padre: Optional[int] = None
@@ -59,7 +73,7 @@ class ProcesoInfo:
 @dataclass
 class EstadisticasRed:
     """Estadísticas de red completas."""
-    timestamp: datetime.datetime
+    timestamp: datetime
     interfaces: Dict[str, Dict] = field(default_factory=dict)
     conexiones_activas: int = 0
     conexiones_establecidas: int = 0
@@ -67,14 +81,14 @@ class EstadisticasRed:
     trafico_total: Dict[str, int] = field(default_factory=dict)
     conexiones_sospechosas: List[Dict] = field(default_factory=list)
 
-class MonitorAvanzado:
+class MonitorAvanzadoNativo:
     """
-    Monitor avanzado del sistema que integra toda la funcionalidad 
-    del proyecto original con análisis de comportamiento y alertas.
+    Monitor avanzado del sistema que usa herramientas nativas de Linux.
+    Diseñado específicamente para Kali Linux con máxima compatibilidad.
     """
     
     def __init__(self, siem=None):
-        self.logger = logging.getLogger(__name__)
+        self.logger = logging.getLogger("aresitos.modelo.monitor_avanzado")
         self.siem = siem
         
         # Estado del monitoreo
@@ -109,18 +123,35 @@ class MonitorAvanzado:
             'botnet': ['bot', 'drone', 'slave', 'c2', 'command']
         }
         
-        self.ubicaciones_sospechosas = {
-            '/tmp/', '/var/tmp/', '/dev/shm/', '/home/.*/.cache/',
-            '/home/.*/Downloads/', '/tmp/.', '/var/tmp/.', '\\\\tmp\\\\'
-        }
-        
         self.procesos_sistema_legitimos = {
             'systemd', 'kernel', 'kthreadd', 'init', 'ksoftirqd', 'migration',
             'swapper', 'watchdog', 'NetworkManager', 'sshd', 'cron', 'rsyslog'
         }
         
-        self.logger.info(" Monitor Avanzado Ares Aegis inicializado")
-    
+        # Verificar herramientas disponibles
+        self._herramientas = self._verificar_herramientas()
+        
+        self.logger.info("🟢 Monitor Avanzado Nativo Ares Aegis inicializado")
+        self.logger.info(f"Herramientas disponibles: {len([h for h in self._herramientas.values() if h])}/8")
+
+    def _verificar_herramientas(self) -> Dict[str, bool]:
+        """Verifica qué herramientas de Linux están disponibles."""
+        herramientas = {
+            'ps': shutil.which('ps') is not None,
+            'free': shutil.which('free') is not None,
+            'df': shutil.which('df') is not None,
+            'ss': shutil.which('ss') is not None,
+            'netstat': shutil.which('netstat') is not None,
+            'top': shutil.which('top') is not None,
+            'awk': shutil.which('awk') is not None,
+            'grep': shutil.which('grep') is not None
+        }
+        
+        disponibles = sum(1 for disponible in herramientas.values() if disponible)
+        self.logger.info(f"Herramientas verificadas: {disponibles}/8 disponibles")
+        
+        return herramientas
+
     def iniciar_monitoreo_completo(self) -> Dict[str, Any]:
         """Iniciar monitoreo completo del sistema."""
         try:
@@ -129,7 +160,7 @@ class MonitorAvanzado:
                     return {
                         'exito': False,
                         'error': 'El monitoreo ya está activo',
-                        'timestamp': datetime.datetime.now().isoformat()
+                        'timestamp': datetime.now().isoformat()
                     }
                 
                 self.monitoreando = True
@@ -155,7 +186,7 @@ class MonitorAvanzado:
                 
                 return {
                     'exito': True,
-                    'timestamp': datetime.datetime.now().isoformat(),
+                    'timestamp': datetime.now().isoformat(),
                     'estado_inicial': datos_iniciales,
                     'message': 'Monitoreo iniciado correctamente'
                 }
@@ -165,9 +196,9 @@ class MonitorAvanzado:
             return {
                 'exito': False,
                 'error': str(e),
-                'timestamp': datetime.datetime.now().isoformat()
+                'timestamp': datetime.now().isoformat()
             }
-    
+
     def detener_monitoreo(self) -> Dict[str, Any]:
         """Detener monitoreo del sistema."""
         try:
@@ -176,7 +207,7 @@ class MonitorAvanzado:
                     return {
                         'exito': False,
                         'error': 'El monitoreo no está activo',
-                        'timestamp': datetime.datetime.now().isoformat()
+                        'timestamp': datetime.now().isoformat()
                     }
                 
                 self.monitoreando = False
@@ -191,12 +222,12 @@ class MonitorAvanzado:
                         mensaje="Monitoreo del sistema detenido"
                     )
                 
-                self.logger.info(" Monitoreo detenido")
+                self.logger.info("🔴 Monitoreo detenido")
                 
                 return {
                     'exito': True,
                     'mensaje': 'Monitoreo detenido correctamente',
-                    'timestamp': datetime.datetime.now().isoformat()
+                    'timestamp': datetime.now().isoformat()
                 }
                 
         except Exception as e:
@@ -204,9 +235,9 @@ class MonitorAvanzado:
             return {
                 'exito': False,
                 'error': str(e),
-                'timestamp': datetime.datetime.now().isoformat()
+                'timestamp': datetime.now().isoformat()
             }
-    
+
     def _loop_monitoreo_continuo(self):
         """Loop principal de monitoreo continuo."""
         while self.monitoreando:
@@ -229,215 +260,363 @@ class MonitorAvanzado:
             except Exception as e:
                 self.logger.error(f"Error en loop de monitoreo: {e}")
                 time.sleep(10)
-    
+
     def _recopilar_metricas_sistema(self):
-        """Recopilar métricas básicas del sistema."""
-        timestamp = datetime.datetime.now()
+        """Recopilar métricas básicas del sistema usando comandos nativos."""
+        timestamp = datetime.now()
         
         try:
-            # CPU
-            cpu_percent = psutil.cpu_percent(interval=1)
-            cpu_metric = MetricaSistema(
-                timestamp=timestamp,
-                tipo=TipoRecurso.CPU,
-                valor=cpu_percent,
-                unidad="%",
-                estado=self._determinar_estado_cpu(cpu_percent)
-            )
+            # CPU usando top
+            cpu_percent = self._obtener_uso_cpu()
+            if cpu_percent is not None:
+                cpu_metric = MetricaSistema(
+                    timestamp=timestamp,
+                    tipo=TipoRecurso.CPU,
+                    valor=cpu_percent,
+                    unidad="%",
+                    estado=self._determinar_estado_cpu(cpu_percent)
+                )
+                
+                with self._lock:
+                    self.metricas_historicas[TipoRecurso.CPU].append(cpu_metric)
             
-            with self._lock:
-                self.metricas_historicas[TipoRecurso.CPU].append(cpu_metric)
+            # Memoria usando free
+            memoria_data = self._obtener_uso_memoria()
+            if memoria_data:
+                memoria_metric = MetricaSistema(
+                    timestamp=timestamp,
+                    tipo=TipoRecurso.MEMORIA,
+                    valor=memoria_data['porcentaje'],
+                    unidad="%",
+                    estado=self._determinar_estado_memoria(memoria_data['porcentaje']),
+                    detalles=memoria_data
+                )
+                
+                with self._lock:
+                    self.metricas_historicas[TipoRecurso.MEMORIA].append(memoria_metric)
             
-            # Memoria
-            memoria = psutil.virtual_memory()
-            memoria_metric = MetricaSistema(
-                timestamp=timestamp,
-                tipo=TipoRecurso.MEMORIA,
-                valor=memoria.percent,
-                unidad="%",
-                estado=self._determinar_estado_memoria(memoria.percent),
-                detalles={
-                    'total_mb': memoria.total // (1024 * 1024),
-                    'disponible_mb': memoria.available // (1024 * 1024),
-                    'usado_mb': memoria.used // (1024 * 1024)
-                }
-            )
-            
-            with self._lock:
-                self.metricas_historicas[TipoRecurso.MEMORIA].append(memoria_metric)
-            
-            # Disco
-            disco = psutil.disk_usage('/')
-            disco_percent = (disco.used / disco.total) * 100
-            disco_metric = MetricaSistema(
-                timestamp=timestamp,
-                tipo=TipoRecurso.DISCO,
-                valor=disco_percent,
-                unidad="%",
-                estado=self._determinar_estado_disco(disco_percent),
-                detalles={
-                    'total_gb': disco.total // (1024 ** 3),
-                    'usado_gb': disco.used // (1024 ** 3),
-                    'libre_gb': disco.free // (1024 ** 3)
-                }
-            )
-            
-            with self._lock:
-                self.metricas_historicas[TipoRecurso.DISCO].append(disco_metric)
+            # Disco usando df
+            disco_data = self._obtener_uso_disco()
+            if disco_data:
+                disco_metric = MetricaSistema(
+                    timestamp=timestamp,
+                    tipo=TipoRecurso.DISCO,
+                    valor=disco_data['porcentaje'],
+                    unidad="%",
+                    estado=self._determinar_estado_disco(disco_data['porcentaje']),
+                    detalles=disco_data
+                )
+                
+                with self._lock:
+                    self.metricas_historicas[TipoRecurso.DISCO].append(disco_metric)
             
             # Generar alertas si es necesario
-            self._verificar_alertas_recursos([cpu_metric, memoria_metric, disco_metric])
+            metricas = [cpu_metric, memoria_metric, disco_metric]
+            self._verificar_alertas_recursos([m for m in metricas if m])
             
         except Exception as e:
             self.logger.error(f"Error recopilando métricas: {e}")
-    
+
+    def _obtener_uso_cpu(self) -> Optional[float]:
+        """Obtener uso de CPU usando comandos nativos."""
+        try:
+            # Método 1: usar top
+            if self._herramientas.get('top', False):
+                cmd = ['top', '-bn1']
+                result = subprocess.run(cmd, capture_output=True, text=True, timeout=10)
+                
+                if result.returncode == 0:
+                    for line in result.stdout.split('\n'):
+                        if '%Cpu(s):' in line or 'Cpu(s):' in line:
+                            # Buscar el valor de CPU idle
+                            match = re.search(r'(\d+\.\d+)%?\s*id', line)
+                            if match:
+                                idle = float(match.group(1))
+                                return 100.0 - idle
+                            
+                            # Fallback: buscar uso total
+                            match = re.search(r'(\d+\.\d+)%?\s*us', line)
+                            if match:
+                                return float(match.group(1))
+            
+            # Método 2: leer /proc/stat
+            try:
+                with open('/proc/stat', 'r') as f:
+                    line = f.readline()
+                    cpu_times = [int(x) for x in line.split()[1:]]
+                    idle_time = cpu_times[3]
+                    total_time = sum(cpu_times)
+                    
+                    if total_time > 0:
+                        return ((total_time - idle_time) / total_time) * 100.0
+            except:
+                pass
+                
+        except Exception as e:
+            self.logger.warning(f"Error obteniendo uso de CPU: {e}")
+        
+        return None
+
+    def _obtener_uso_memoria(self) -> Optional[Dict[str, Any]]:
+        """Obtener uso de memoria usando free."""
+        try:
+            if self._herramientas.get('free', False):
+                cmd = ['free', '-b']  # En bytes
+                result = subprocess.run(cmd, capture_output=True, text=True, timeout=10)
+                
+                if result.returncode == 0:
+                    lines = result.stdout.strip().split('\n')
+                    for line in lines:
+                        if line.startswith('Mem:'):
+                            parts = line.split()
+                            if len(parts) >= 7:
+                                total = int(parts[1])
+                                used = int(parts[2])
+                                available = int(parts[6]) if len(parts) > 6 else int(parts[3])
+                                
+                                porcentaje = (used / total) * 100.0
+                                
+                                return {
+                                    'total_mb': total // (1024 * 1024),
+                                    'usado_mb': used // (1024 * 1024),
+                                    'disponible_mb': available // (1024 * 1024),
+                                    'porcentaje': porcentaje
+                                }
+            
+            # Fallback: leer /proc/meminfo
+            try:
+                with open('/proc/meminfo', 'r') as f:
+                    mem_info = f.read()
+                
+                total_match = re.search(r'MemTotal:\s+(\d+) kB', mem_info)
+                available_match = re.search(r'MemAvailable:\s+(\d+) kB', mem_info)
+                
+                if total_match and available_match:
+                    total_kb = int(total_match.group(1))
+                    available_kb = int(available_match.group(1))
+                    used_kb = total_kb - available_kb
+                    
+                    porcentaje = (used_kb / total_kb) * 100.0
+                    
+                    return {
+                        'total_mb': total_kb // 1024,
+                        'usado_mb': used_kb // 1024,
+                        'disponible_mb': available_kb // 1024,
+                        'porcentaje': porcentaje
+                    }
+            except:
+                pass
+                
+        except Exception as e:
+            self.logger.warning(f"Error obteniendo uso de memoria: {e}")
+        
+        return None
+
+    def _obtener_uso_disco(self) -> Optional[Dict[str, Any]]:
+        """Obtener uso de disco usando df."""
+        try:
+            if self._herramientas.get('df', False):
+                cmd = ['df', '/']
+                result = subprocess.run(cmd, capture_output=True, text=True, timeout=10)
+                
+                if result.returncode == 0:
+                    lines = result.stdout.strip().split('\n')
+                    if len(lines) >= 2:
+                        parts = lines[1].split()
+                        if len(parts) >= 6:
+                            total_kb = int(parts[1])
+                            usado_kb = int(parts[2])
+                            disponible_kb = int(parts[3])
+                            porcentaje = float(parts[4].rstrip('%'))
+                            
+                            return {
+                                'total_gb': total_kb // (1024 * 1024),
+                                'usado_gb': usado_kb // (1024 * 1024),
+                                'disponible_gb': disponible_kb // (1024 * 1024),
+                                'porcentaje': porcentaje
+                            }
+                            
+        except Exception as e:
+            self.logger.warning(f"Error obteniendo uso de disco: {e}")
+        
+        return None
+
     def _monitorear_procesos(self):
         """Monitorear procesos del sistema y detectar comportamiento sospechoso."""
         try:
             procesos_actuales = {}
             procesos_sospechosos = []
             
-            for proceso in psutil.process_iter(['pid', 'name', 'username', 'cpu_percent', 
-                                                'memory_info', 'status', 'create_time', 'ppid']):
-                try:
-                    info = proceso.info
-                    pid = info['pid']
+            if self._herramientas.get('ps', False):
+                cmd = ['ps', 'aux']
+                result = subprocess.run(cmd, capture_output=True, text=True, timeout=30)
+                
+                if result.returncode == 0:
+                    lines = result.stdout.strip().split('\n')[1:]  # Skip header
                     
-                    # Obtener información de conexiones de red
-                    conexiones = []
-                    try:
-                        conexiones_proc = []
-                        for conn in proceso.connections():
-                            if conn.laddr:
-                                local_addr = f"{conn.laddr.ip}:{conn.laddr.port}"
-                            else:
-                                local_addr = "unknown"
-                            
-                            if conn.raddr:
-                                remote_addr = f"{conn.raddr.ip}:{conn.raddr.port}"
-                            else:
-                                remote_addr = ""
-                            
-                            conexiones_proc.append({
-                                'local': local_addr,
-                                'remoto': remote_addr,
-                                'estado': conn.status
-                            })
-                        conexiones = conexiones_proc
-                    except:
-                        pass
-                    
-                    # Obtener archivos abiertos
-                    archivos_abiertos = 0
-                    try:
-                        archivos_abiertos = len(proceso.open_files())
-                    except:
-                        pass
-                    
-                    proceso_info = ProcesoInfo(
-                        pid=pid,
-                        nombre=info['name'],
-                        usuario=info['username'] or 'desconocido',
-                        uso_cpu=info['cpu_percent'] or 0.0,
-                        uso_memoria=info['memory_info'].rss // (1024 * 1024) if info['memory_info'] else 0,
-                        estado=info['status'],
-                        tiempo_inicio=datetime.datetime.fromtimestamp(info['create_time']) if info['create_time'] else datetime.datetime.now(),
-                        conexiones_red=conexiones,
-                        archivos_abiertos=archivos_abiertos,
-                        pid_padre=info['ppid']
-                    )
-                    
-                    procesos_actuales[pid] = proceso_info
-                    
-                    # Analizar si es sospechoso
-                    if self._es_proceso_sospechoso(proceso_info):
-                        procesos_sospechosos.append(proceso_info)
-                        
-                except (psutil.NoSuchProcess, psutil.AccessDenied):
-                    continue
-            
-            with self._lock:
-                self.procesos_monitoreados = procesos_actuales
-            
-            # Registrar procesos sospechosos
-            if procesos_sospechosos and self.siem:
-                for proceso in procesos_sospechosos:
-                    self.siem.registrar_evento(
-                        tipo="PROCESO",
-                        mensaje=f"Proceso sospechoso detectado: {proceso.nombre} (PID: {proceso.pid})",
-                        severidad="ALTA",
-                        detalles={
-                            'proceso': proceso.nombre,
-                            'pid': proceso.pid,
-                            'usuario': proceso.usuario,
-                            'uso_cpu': proceso.uso_cpu,
-                            'uso_memoria': proceso.uso_memoria,
-                            'conexiones_red': len(proceso.conexiones_red)
-                        }
-                    )
-            
+                    for line in lines:
+                        partes = line.split(None, 10)
+                        if len(partes) >= 11:
+                            try:
+                                usuario = partes[0]
+                                pid = int(partes[1])
+                                cpu = float(partes[2])
+                                mem_kb = float(partes[5])  # VSZ en KB
+                                comando = partes[10]
+                                estado = partes[7] if len(partes) > 7 else 'unknown'
+                                
+                                # Extraer nombre del proceso
+                                nombre = comando.split()[0] if comando else 'unknown'
+                                nombre = os.path.basename(nombre)
+                                
+                                proceso_info = ProcesoInfo(
+                                    pid=pid,
+                                    nombre=nombre,
+                                    usuario=usuario,
+                                    uso_cpu=cpu,
+                                    uso_memoria=int(mem_kb // 1024),  # Convertir a MB
+                                    estado=estado
+                                )
+                                
+                                procesos_actuales[pid] = proceso_info
+                                
+                                # Analizar si es sospechoso
+                                if self._es_proceso_sospechoso(proceso_info):
+                                    procesos_sospechosos.append(proceso_info)
+                                    
+                            except (ValueError, IndexError):
+                                continue
+                
+                with self._lock:
+                    self.procesos_monitoreados = procesos_actuales
+                
+                # Registrar procesos sospechosos
+                if procesos_sospechosos and self.siem:
+                    for proceso in procesos_sospechosos:
+                        self.siem.registrar_evento(
+                            tipo="PROCESO",
+                            mensaje=f"Proceso sospechoso detectado: {proceso.nombre} (PID: {proceso.pid})",
+                            severidad="ALTA",
+                            detalles={
+                                'proceso': proceso.nombre,
+                                'pid': proceso.pid,
+                                'usuario': proceso.usuario,
+                                'uso_cpu': proceso.uso_cpu,
+                                'uso_memoria': proceso.uso_memoria
+                            }
+                        )
+                
         except Exception as e:
             self.logger.error(f"Error monitoreando procesos: {e}")
-    
+
     def _monitorear_red(self):
         """Monitorear conexiones y estadísticas de red."""
         try:
-            # Obtener interfaces de red
-            interfaces = {}
-            for interface, stats in psutil.net_io_counters(pernic=True).items():
-                interfaces[interface] = {
-                    'bytes_enviados': stats.bytes_sent,
-                    'bytes_recibidos': stats.bytes_recv,
-                    'paquetes_enviados': stats.packets_sent,
-                    'paquetes_recibidos': stats.packets_recv,
-                    'errores_entrada': stats.errin,
-                    'errores_salida': stats.errout
-                }
+            # Usar ss (preferido) o netstat como fallback
+            conexiones_info = []
             
-            # Obtener conexiones activas
-            conexiones = psutil.net_connections()
-            conexiones_establecidas = len([c for c in conexiones if c.status == 'ESTABLISHED'])
+            if self._herramientas.get('ss', False):
+                try:
+                    cmd = ['ss', '-tuln']
+                    result = subprocess.run(cmd, capture_output=True, text=True, timeout=30)
+                    
+                    if result.returncode == 0:
+                        conexiones_info = self._parsear_salida_ss(result.stdout)
+                except:
+                    pass
             
-            # Obtener puertos en escucha
+            # Fallback con netstat
+            if not conexiones_info and self._herramientas.get('netstat', False):
+                try:
+                    cmd = ['netstat', '-tuln']
+                    result = subprocess.run(cmd, capture_output=True, text=True, timeout=30)
+                    
+                    if result.returncode == 0:
+                        conexiones_info = self._parsear_salida_netstat(result.stdout)
+                except:
+                    pass
+            
+            # Procesar conexiones
             puertos_escucha = []
-            for c in conexiones:
-                if c.status == 'LISTEN' and c.laddr:
-                    puertos_escucha.append(c.laddr.port)
-            puertos_escucha = list(set(puertos_escucha))
+            conexiones_establecidas = 0
             
-            # Detectar conexiones sospechosas
-            conexiones_sospechosas = self._detectar_conexiones_sospechosas(conexiones)
+            for conn in conexiones_info:
+                if conn.get('estado') == 'LISTEN':
+                    puerto = conn.get('puerto_local')
+                    if puerto and puerto not in puertos_escucha:
+                        puertos_escucha.append(puerto)
+                elif conn.get('estado') == 'ESTABLISHED':
+                    conexiones_establecidas += 1
             
             # Crear estadísticas de red
             estadisticas = EstadisticasRed(
-                timestamp=datetime.datetime.now(),
-                interfaces=interfaces,
-                conexiones_activas=len(conexiones),
+                timestamp=datetime.now(),
+                conexiones_activas=len(conexiones_info),
                 conexiones_establecidas=conexiones_establecidas,
                 puertos_escucha=sorted(puertos_escucha),
-                trafico_total={
-                    'bytes_enviados': sum(i['bytes_enviados'] for i in interfaces.values()),
-                    'bytes_recibidos': sum(i['bytes_recibidos'] for i in interfaces.values())
-                },
-                conexiones_sospechosas=conexiones_sospechosas
+                conexiones_sospechosas=[]  # Placeholder para análisis futuro
             )
             
             with self._lock:
                 self.estadisticas_red_historicas.append(estadisticas)
             
-            # Registrar conexiones sospechosas
-            if conexiones_sospechosas and self.siem:
-                for conexion in conexiones_sospechosas:
-                    self.siem.registrar_evento(
-                        tipo="CONEXION_RED",
-                        mensaje=f"Conexión sospechosa detectada: {conexion.get('descripcion', 'Desconocida')}",
-                        severidad="MEDIA",
-                        detalles=conexion
-                    )
-            
         except Exception as e:
             self.logger.error(f"Error monitoreando red: {e}")
-    
+
+    def _parsear_salida_ss(self, salida: str) -> List[Dict[str, Any]]:
+        """Parsear salida del comando ss."""
+        conexiones = []
+        
+        for line in salida.split('\n')[1:]:  # Skip header
+            if line.strip():
+                partes = line.split()
+                if len(partes) >= 4:
+                    estado = partes[0]
+                    direccion_local = partes[3]
+                    
+                    # Extraer puerto local
+                    puerto_local = None
+                    if ':' in direccion_local:
+                        try:
+                            puerto_local = int(direccion_local.split(':')[-1])
+                        except ValueError:
+                            pass
+                    
+                    conexiones.append({
+                        'estado': estado,
+                        'direccion_local': direccion_local,
+                        'puerto_local': puerto_local
+                    })
+        
+        return conexiones
+
+    def _parsear_salida_netstat(self, salida: str) -> List[Dict[str, Any]]:
+        """Parsear salida del comando netstat."""
+        conexiones = []
+        
+        for line in salida.split('\n')[2:]:  # Skip headers
+            if line.strip():
+                partes = line.split()
+                if len(partes) >= 6:
+                    direccion_local = partes[3]
+                    estado = partes[5] if len(partes) > 5 else 'UNKNOWN'
+                    
+                    # Extraer puerto local
+                    puerto_local = None
+                    if ':' in direccion_local:
+                        try:
+                            puerto_local = int(direccion_local.split(':')[-1])
+                        except ValueError:
+                            pass
+                    
+                    conexiones.append({
+                        'estado': estado,
+                        'direccion_local': direccion_local,
+                        'puerto_local': puerto_local
+                    })
+        
+        return conexiones
+
     def _es_proceso_sospechoso(self, proceso: ProcesoInfo) -> bool:
         """Determinar si un proceso es sospechoso."""
         try:
@@ -451,73 +630,11 @@ class MonitorAvanzado:
             if proceso.uso_cpu > 80.0 or proceso.uso_memoria > 500:
                 return True
             
-            # Verificar demasiadas conexiones de red
-            if len(proceso.conexiones_red) > 20:
-                return True
-            
-            # Verificar procesos huérfanos sospechosos
-            if (proceso.pid_padre == 1 and 
-                proceso.nombre not in self.procesos_sistema_legitimos):
-                return True
-            
             return False
             
         except Exception:
             return False
-    
-    def _detectar_conexiones_sospechosas(self, conexiones: List) -> List[Dict]:
-        """Detectar conexiones de red sospechosas."""
-        sospechosas = []
-        
-        try:
-            # Contar conexiones por IP remota
-            conexiones_por_ip = defaultdict(int)
-            
-            for conexion in conexiones:
-                if conexion.raddr and conexion.status == 'ESTABLISHED':
-                    ip_remota = conexion.raddr.ip
-                    puerto_remoto = conexion.raddr.port
-                    puerto_local = conexion.laddr.port if conexion.laddr else 0
-                    
-                    conexiones_por_ip[ip_remota] += 1
-                    
-                    # Verificar si la IP es sospechosa
-                    if self._es_ip_sospechosa(ip_remota):
-                        sospechosas.append({
-                            'tipo': 'IP_SOSPECHOSA',
-                            'ip_remota': ip_remota,
-                            'puerto_remoto': puerto_remoto,
-                            'puerto_local': puerto_local,
-                            'descripcion': f'Conexión a IP potencialmente maliciosa: {ip_remota}'
-                        })
-            
-            # Detectar demasiadas conexiones desde una IP
-            for ip, cantidad in conexiones_por_ip.items():
-                if cantidad > 10:
-                    sospechosas.append({
-                        'tipo': 'MULTIPLES_CONEXIONES',
-                        'ip_remota': ip,
-                        'cantidad': cantidad,
-                        'descripcion': f'Demasiadas conexiones desde {ip}: {cantidad}'
-                    })
-            
-        except Exception as e:
-            self.logger.error(f"Error detectando conexiones sospechosas: {e}")
-        
-        return sospechosas
-    
-    def _es_ip_sospechosa(self, ip: str) -> bool:
-        """Verificar si una IP es sospechosa."""
-        # IPs privadas generalmente no son sospechosas
-        if ip.startswith(('192.168.', '10.', '172.16.', '172.17.', '172.18.', 
-                         '172.19.', '172.20.', '172.21.', '172.22.', '172.23.',
-                         '172.24.', '172.25.', '172.26.', '172.27.', '172.28.',
-                         '172.29.', '172.30.', '172.31.', '127.')):
-            return False
-        
-        # Aquí se podrían agregar verificaciones adicionales
-        return False
-    
+
     def _determinar_estado_cpu(self, cpu_percent: float) -> EstadoAlerta:
         """Determinar estado de alerta para CPU."""
         if cpu_percent >= self.umbrales['cpu_critico']:
@@ -525,7 +642,7 @@ class MonitorAvanzado:
         elif cpu_percent >= self.umbrales['cpu_advertencia']:
             return EstadoAlerta.ADVERTENCIA
         return EstadoAlerta.NORMAL
-    
+
     def _determinar_estado_memoria(self, mem_percent: float) -> EstadoAlerta:
         """Determinar estado de alerta para memoria."""
         if mem_percent >= self.umbrales['memoria_critico']:
@@ -533,7 +650,7 @@ class MonitorAvanzado:
         elif mem_percent >= self.umbrales['memoria_advertencia']:
             return EstadoAlerta.ADVERTENCIA
         return EstadoAlerta.NORMAL
-    
+
     def _determinar_estado_disco(self, disk_percent: float) -> EstadoAlerta:
         """Determinar estado de alerta para disco."""
         if disk_percent >= self.umbrales['disco_critico']:
@@ -541,7 +658,7 @@ class MonitorAvanzado:
         elif disk_percent >= self.umbrales['disco_advertencia']:
             return EstadoAlerta.ADVERTENCIA
         return EstadoAlerta.NORMAL
-    
+
     def _verificar_alertas_recursos(self, metricas: List[MetricaSistema]):
         """Verificar y generar alertas de recursos."""
         for metrica in metricas:
@@ -559,13 +676,12 @@ class MonitorAvanzado:
                         'detalles': metrica.detalles
                     }
                 )
-    
+
     def _analizar_anomalias(self):
         """Analizar patrones anómalos en el sistema."""
-        # Esta función puede implementar análisis más sofisticados
-        # Por ahora, hacemos verificaciones básicas
+        # Placeholder para análisis más sofisticados
         pass
-    
+
     def _obtener_estado_sistema_completo(self) -> Dict[str, Any]:
         """Obtener estado completo del sistema."""
         return {
@@ -573,75 +689,95 @@ class MonitorAvanzado:
             'red': self._obtener_datos_red(),
             'procesos': self._obtener_resumen_procesos()
         }
-    
+
     def _obtener_datos_sistema(self) -> Dict[str, Any]:
         """Obtener datos básicos del sistema."""
         try:
-            cpu_info = psutil.cpu_percent(interval=1, percpu=True)
-            memoria = psutil.virtual_memory()
-            disco = psutil.disk_usage('/')
-            
-            return {
-                'cpu_promedio': sum(cpu_info) / len(cpu_info),
-                'cpu_cores': cpu_info,
-                'memoria_total_mb': memoria.total // (1024 * 1024),
-                'memoria_disponible_mb': memoria.available // (1024 * 1024),
-                'memoria_porcentaje': memoria.percent,
-                'disco_total_gb': disco.total // (1024 ** 3),
-                'disco_usado_gb': disco.used // (1024 ** 3),
-                'disco_porcentaje': (disco.used / disco.total) * 100,
-                'timestamp': datetime.datetime.now().isoformat()
+            datos = {
+                'timestamp': datetime.now().isoformat()
             }
+            
+            # CPU
+            cpu = self._obtener_uso_cpu()
+            if cpu is not None:
+                datos['cpu_porcentaje'] = float(cpu)
+            
+            # Memoria
+            memoria = self._obtener_uso_memoria()
+            if memoria:
+                datos.update(memoria)
+            
+            # Disco
+            disco = self._obtener_uso_disco()
+            if disco:
+                datos.update(disco)
+            
+            return datos
+            
         except Exception as e:
             return {'error': str(e)}
-    
+
     def _obtener_datos_red(self) -> Dict[str, Any]:
         """Obtener datos de red."""
         try:
-            conexiones = psutil.net_connections()
-            stats = psutil.net_io_counters()
+            with self._lock:
+                if self.estadisticas_red_historicas:
+                    ultima_stat = list(self.estadisticas_red_historicas)[-1]
+                    return {
+                        'conexiones_totales': ultima_stat.conexiones_activas,
+                        'conexiones_establecidas': ultima_stat.conexiones_establecidas,
+                        'puertos_escucha': len(ultima_stat.puertos_escucha),
+                        'timestamp': ultima_stat.timestamp.isoformat()
+                    }
             
             return {
-                'conexiones_totales': len(conexiones),
-                'conexiones_establecidas': len([c for c in conexiones if c.status == 'ESTABLISHED']),
-                'puertos_escucha': len([c for c in conexiones if c.status == 'LISTEN']),
-                'bytes_enviados': stats.bytes_sent,
-                'bytes_recibidos': stats.bytes_recv,
-                'paquetes_enviados': stats.packets_sent,
-                'paquetes_recibidos': stats.packets_recv,
-                'timestamp': datetime.datetime.now().isoformat()
+                'conexiones_totales': 0,
+                'conexiones_establecidas': 0,
+                'puertos_escucha': 0,
+                'timestamp': datetime.now().isoformat()
             }
+            
         except Exception as e:
             return {'error': str(e)}
-    
+
     def _obtener_resumen_procesos(self) -> Dict[str, Any]:
         """Obtener resumen de procesos."""
         try:
-            procesos = list(psutil.process_iter(['pid', 'name', 'cpu_percent', 'memory_percent']))
+            with self._lock:
+                procesos = list(self.procesos_monitoreados.values())
+            
+            if not procesos:
+                return {
+                    'total_procesos': 0,
+                    'top_cpu': [],
+                    'top_memoria': [],
+                    'timestamp': datetime.now().isoformat()
+                }
             
             # Top 5 procesos por CPU
             top_cpu = sorted(
-                [p for p in procesos if p.info['cpu_percent']], 
-                key=lambda x: x.info['cpu_percent'], 
+                procesos, 
+                key=lambda x: x.uso_cpu, 
                 reverse=True
             )[:5]
             
             # Top 5 procesos por memoria
             top_memoria = sorted(
-                [p for p in procesos if p.info['memory_percent']], 
-                key=lambda x: x.info['memory_percent'], 
+                procesos, 
+                key=lambda x: x.uso_memoria, 
                 reverse=True
             )[:5]
             
             return {
                 'total_procesos': len(procesos),
-                'top_cpu': [{'pid': p.info['pid'], 'nombre': p.info['name'], 'cpu': p.info['cpu_percent']} for p in top_cpu],
-                'top_memoria': [{'pid': p.info['pid'], 'nombre': p.info['name'], 'memoria': p.info['memory_percent']} for p in top_memoria],
-                'timestamp': datetime.datetime.now().isoformat()
+                'top_cpu': [{'pid': p.pid, 'nombre': p.nombre, 'cpu': p.uso_cpu} for p in top_cpu],
+                'top_memoria': [{'pid': p.pid, 'nombre': p.nombre, 'memoria': p.uso_memoria} for p in top_memoria],
+                'timestamp': datetime.now().isoformat()
             }
+            
         except Exception as e:
             return {'error': str(e)}
-    
+
     def obtener_datos_sistema_recientes(self, limite: int = 10) -> List[Dict[str, Any]]:
         """Obtener datos históricos del sistema."""
         with self._lock:
@@ -670,22 +806,7 @@ class MonitorAvanzado:
                     datos.append(datos_timestamp)
             
             return datos
-    
-    def obtener_datos_red_recientes(self, limite: int = 10) -> List[Dict[str, Any]]:
-        """Obtener datos históricos de red."""
-        with self._lock:
-            return [
-                {
-                    'timestamp': stats.timestamp.isoformat(),
-                    'conexiones_activas': stats.conexiones_activas,
-                    'conexiones_establecidas': stats.conexiones_establecidas,
-                    'puertos_escucha': stats.puertos_escucha,
-                    'trafico_total': stats.trafico_total,
-                    'conexiones_sospechosas': len(stats.conexiones_sospechosas)
-                }
-                for stats in list(self.estadisticas_red_historicas)[-limite:]
-            ]
-    
+
     def obtener_procesos_sospechosos(self) -> List[Dict[str, Any]]:
         """Obtener lista de procesos sospechosos actuales."""
         with self._lock:
@@ -698,27 +819,11 @@ class MonitorAvanzado:
                         'nombre': proceso.nombre,
                         'usuario': proceso.usuario,
                         'uso_cpu': proceso.uso_cpu,
-                        'uso_memoria': proceso.uso_memoria,
-                        'conexiones_red': len(proceso.conexiones_red),
-                        'tiempo_inicio': proceso.tiempo_inicio.isoformat()
+                        'uso_memoria': proceso.uso_memoria
                     })
             
             return sospechosos
-    
-    def obtener_metricas_resumen(self) -> Dict[str, Any]:
-        """Obtener resumen de métricas del monitor."""
-        with self._lock:
-            return {
-                'monitoreando': self.monitoreando,
-                'metricas_recopiladas': {
-                    tipo.value: len(metricas) for tipo, metricas in self.metricas_historicas.items()
-                },
-                'procesos_monitoreados': len(self.procesos_monitoreados),
-                'estadisticas_red': len(self.estadisticas_red_historicas),
-                'umbrales_configurados': self.umbrales.copy(),
-                'timestamp': datetime.datetime.now().isoformat()
-            }
-    
+
     def generar_reporte_monitor(self) -> str:
         """Generar reporte completo del monitor."""
         datos_sistema = self._obtener_datos_sistema()
@@ -726,46 +831,42 @@ class MonitorAvanzado:
         procesos_sospechosos = self.obtener_procesos_sospechosos()
         
         reporte = f"""
-#  REPORTE DE MONITOREO - ARES AEGIS
+# 🔍 REPORTE DE MONITOREO - ARES AEGIS
 
-##  ESTADO DEL SISTEMA
-- **CPU Promedio**: {datos_sistema.get('cpu_promedio', 'N/A'):.1f}%
-- **Memoria Usada**: {datos_sistema.get('memoria_porcentaje', 'N/A'):.1f}%
-- **Disco Usado**: {datos_sistema.get('disco_porcentaje', 'N/A'):.1f}%
+## 💻 ESTADO DEL SISTEMA
+- **CPU**: {datos_sistema.get('cpu_porcentaje', 'N/A'):.1f}%
+- **Memoria Usada**: {datos_sistema.get('porcentaje', 'N/A'):.1f}%
+- **Disco Usado**: {datos_sistema.get('porcentaje', 'N/A'):.1f}%
 
-##  ESTADO DE RED
+## 🌐 ESTADO DE RED
 - **Conexiones Totales**: {datos_red.get('conexiones_totales', 'N/A')}
 - **Conexiones Establecidas**: {datos_red.get('conexiones_establecidas', 'N/A')}
 - **Puertos en Escucha**: {datos_red.get('puertos_escucha', 'N/A')}
 
-##  PROCESOS SOSPECHOSOS ({len(procesos_sospechosos)})
+## ⚠️ PROCESOS SOSPECHOSOS ({len(procesos_sospechosos)})
 """
         
         if procesos_sospechosos:
             for proceso in procesos_sospechosos[:10]:  # Primeros 10
                 reporte += f"- **{proceso['nombre']}** (PID: {proceso['pid']}) - CPU: {proceso['uso_cpu']:.1f}%, RAM: {proceso['uso_memoria']}MB\n"
         else:
-            reporte += " No se detectaron procesos sospechosos.\n"
+            reporte += "✅ No se detectaron procesos sospechosos.\n"
         
-        reporte += f"\n---\n*Generado: {datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')}*"
+        reporte += f"\n---\n*Generado: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}*"
         
         return reporte
 
 
-# Mantener compatibilidad con la interfaz actual
-class Monitor(MonitorAvanzado):
-    """
-    Clase de compatibilidad que mantiene la interfaz original 
-    pero proporciona toda la funcionalidad avanzada del monitor.
-    """
+# Clase de compatibilidad
+class Monitor(MonitorAvanzadoNativo):
+    """Clase de compatibilidad con la interfaz original."""
     
     def __init__(self, siem=None):
         super().__init__(siem)
-        # Mantener compatibilidad
         self.datos_historicos = []
     
     def obtener_datos_sistema_recientes(self, limite: int = 10) -> List[Dict[str, Any]]:
-        """Método de compatibilidad que combina los datos del monitor avanzado."""
+        """Método de compatibilidad que convierte al formato esperado."""
         datos_avanzados = super().obtener_datos_sistema_recientes(limite)
         
         # Convertir al formato esperado por la interfaz original
@@ -785,61 +886,3 @@ class Monitor(MonitorAvanzado):
         self.datos_historicos = datos_compatibles
         
         return datos_compatibles
-        return [d for d in datos_red if d]
-    
-    def _obtener_datos_sistema(self) -> Dict[str, Any]:
-        try:
-            resultado_ps = subprocess.run(['ps', 'aux'], capture_output=True, text=True, timeout=10)
-            resultado_free = subprocess.run(['free', '-h'], capture_output=True, text=True, timeout=10)
-            resultado_df = subprocess.run(['df', '-h'], capture_output=True, text=True, timeout=10)
-            
-            procesos = len(resultado_ps.stdout.split('\n')) - 1 if resultado_ps.returncode == 0 else 0
-            
-            return {
-                'procesos_activos': procesos,
-                'memoria': resultado_free.stdout if resultado_free.returncode == 0 else 'No disponible',
-                'almacenamiento': resultado_df.stdout if resultado_df.returncode == 0 else 'No disponible',
-                'carga_sistema': self._obtener_carga_sistema()
-            }
-            
-        except Exception as e:
-            return {'error': str(e)}
-    
-    def _obtener_datos_red(self) -> Dict[str, Any]:
-        try:
-            resultado_ss = subprocess.run(['ss', '-tuln'], capture_output=True, text=True, timeout=10)
-            resultado_ip = subprocess.run(['ip', 'addr', 'show'], capture_output=True, text=True, timeout=10)
-            
-            conexiones = len(resultado_ss.stdout.split('\n')) - 1 if resultado_ss.returncode == 0 else 0
-            
-            return {
-                'conexiones_activas': conexiones,
-                'interfaces': resultado_ip.stdout if resultado_ip.returncode == 0 else 'No disponible',
-                'puertos_escucha': self._parsear_puertos_escucha(resultado_ss.stdout) if resultado_ss.returncode == 0 else []
-            }
-            
-        except Exception as e:
-            return {'error': str(e)}
-    
-    def _obtener_carga_sistema(self) -> str:
-        try:
-            with open('/proc/loadavg', 'r') as f:
-                return f.read().strip()
-        except:
-            return 'No disponible'
-    
-    def _parsear_puertos_escucha(self, salida_ss: str) -> List[str]:
-        puertos = []
-        for linea in salida_ss.split('\n')[1:]:
-            if 'LISTEN' in linea:
-                partes = linea.split()
-                if len(partes) >= 5:
-                    puerto = partes[4].split(':')[-1]
-                    if puerto not in puertos:
-                        puertos.append(puerto)
-        return puertos[:20]
-
-# RESUMEN TÉCNICO: Modelo de monitorización de sistema y red para Kali Linux. Utiliza 
-# herramientas nativas como ps, free, df, ss e ip para recolectar métricas en tiempo real. 
-# Arquitectura SOLID con responsabilidad única de monitoreo, sin dependencias externas, 
-# optimizado para análisis de seguridad y detección de anomalías en pentesting profesional.

@@ -1,0 +1,214 @@
+{
+  "ares_aegis": {
+    "titulo": "Ares Aegis - Auditoría de Seguridad para Kali Linux",
+    "subtitulo": "Sistema de Análisis Integral para Profesionales en Ciberseguridad",
+    "descripcion": "Ares Aegis es una herramienta especializada para auditorías de seguridad desarrollada específicamente para profesionales en ciberseguridad y hacking ético."
+  },
+  "interfaz": {
+    "menu_principal": {
+      "auditoria": "Auditoría de Seguridad",
+      "escaneador": "Escáner de Vulnerabilidades",
+      "monitor": "Monitor de Red",
+      "reportes": "Informes y Reportes",
+      "configuracion": "Configuración",
+      "herramientas": "Herramientas del Sistema",
+      "ayuda": "Ayuda y Documentación",
+      "salir": "Salir"
+    },
+    "botones": {
+      "iniciar": "Iniciar",
+      "detener": "Detener",
+      "pausar": "Pausar",
+      "reanudar": "Reanudar",
+      "cancelar": "Cancelar",
+      "guardar": "Guardar",
+      "cargar": "Cargar",
+      "exportar": "Exportar",
+      "importar": "Importar",
+      "aplicar": "Aplicar",
+      "restablecer": "Restablecer",
+      "actualizar": "Actualizar",
+      "verificar": "Verificar",
+      "analizar": "Analizar",
+      "generar": "Generar",
+      "enviar": "Enviar",
+      "limpiar": "Limpiar",
+      "buscar": "Buscar",
+      "filtrar": "Filtrar",
+      "refrescar": "Refrescar"
+    },
+    "etiquetas": {
+      "estado": "Estado:",
+      "progreso": "Progreso:",
+      "tiempo": "Tiempo:",
+      "objetivo": "Objetivo:",
+      "resultado": "Resultado:",
+      "vulnerabilidades": "Vulnerabilidades:",
+      "amenazas": "Amenazas:",
+      "riesgo": "Nivel de Riesgo:",
+      "fecha": "Fecha:",
+      "hora": "Hora:",
+      "usuario": "Usuario:",
+      "sistema": "Sistema:",
+      "version": "Versión:",
+      "configuracion": "Configuración:",
+      "log": "Registro:",
+      "eventos": "Eventos:",
+      "alertas": "Alertas:",
+      "notificaciones": "Notificaciones:"
+    }
+  },
+  "estados": {
+    "sistema": {
+      "iniciando": "Iniciando sistema...",
+      "ejecutando": "En ejecución",
+      "pausado": "Pausado",
+      "detenido": "Detenido",
+      "error": "Error del sistema",
+      "completado": "Completado",
+      "cancelado": "Cancelado",
+      "timeout": "Tiempo agotado",
+      "no_disponible": "No disponible",
+      "conectado": "Conectado",
+      "desconectado": "Desconectado",
+      "sincronizando": "Sincronizando",
+      "actualizado": "Actualizado"
+    },
+    "auditoria": {
+      "preparando": "Preparando auditoría...",
+      "escaneando": "Escaneando objetivos...",
+      "analizando": "Analizando vulnerabilidades...",
+      "generando_reporte": "Generando informe...",
+      "auditoria_completa": "Auditoría completada",
+      "vulnerabilidades_encontradas": "Vulnerabilidades detectadas",
+      "sin_amenazas": "No se detectaron amenazas",
+      "riesgo_alto": "Riesgo alto detectado",
+      "riesgo_medio": "Riesgo medio",
+      "riesgo_bajo": "Riesgo bajo"
+    },
+    "red": {
+      "descubriendo": "Descubriendo dispositivos...",
+      "mapeando": "Mapeando topología de red...",
+      "monitoreando": "Monitoreando tráfico...",
+      "analizando_trafico": "Analizando patrones de tráfico...",
+      "detectando_intrusiones": "Detectando posibles intrusiones...",
+      "bloqueando": "Bloqueando conexión sospechosa..."
+    }
+  },
+  "mensajes": {
+    "exito": {
+      "configuracion_guardada": "Configuración guardada exitosamente",
+      "escaneo_completado": "Escaneo completado satisfactoriamente",
+      "reporte_generado": "Informe generado correctamente",
+      "backup_creado": "Copia de seguridad creada",
+      "actualizacion_exitosa": "Actualización completada",
+      "conexion_establecida": "Conexión establecida",
+      "archivo_exportado": "Archivo exportado exitosamente"
+    },
+    "error": {
+      "configuracion_invalida": "Configuración inválida",
+      "objetivo_no_alcanzable": "Objetivo no accesible",
+      "permisos_insuficientes": "Permisos insuficientes",
+      "archivo_no_encontrado": "Archivo no encontrado",
+      "conexion_fallida": "Error de conexión",
+      "formato_incorrecto": "Formato de archivo incorrecto",
+      "espacio_insuficiente": "Espacio en disco insuficiente",
+      "timeout_operacion": "Tiempo de operación agotado"
+    },
+    "advertencia": {
+      "configuracion_cambios": "Los cambios requieren reinicio",
+      "operacion_irreversible": "Esta operación no se puede deshacer",
+      "datos_sensibles": "Trabajando con datos sensibles",
+      "conexion_insegura": "Conexión potencialmente insegura",
+      "recursos_limitados": "Recursos del sistema limitados",
+      "version_desactualizada": "Versión desactualizada detectada"
+    },
+    "informacion": {
+      "cargando_datos": "Cargando información...",
+      "preparando_analisis": "Preparando análisis...",
+      "sincronizando_base": "Sincronizando base de datos...",
+      "verificando_integridad": "Verificando integridad...",
+      "optimizando_rendimiento": "Optimizando rendimiento...",
+      "actualizando_firmas": "Actualizando firmas de seguridad..."
+    }
+  },
+  "configuracion": {
+    "general": {
+      "idioma": "Idioma",
+      "tema": "Tema visual",
+      "autosave": "Guardado automático",
+      "notificaciones": "Mostrar notificaciones",
+      "logs": "Nivel de registro",
+      "timeout": "Tiempo límite (segundos)",
+      "max_threads": "Máximo de hilos",
+      "buffer_size": "Tamaño de buffer"
+    },
+    "auditoria": {
+      "profundidad_escaneo": "Profundidad de escaneo",
+      "tipos_vulnerabilidades": "Tipos de vulnerabilidades",
+      "exclusiones": "Exclusiones de escaneo",
+      "timeout_host": "Tiempo límite por host",
+      "rate_limiting": "Limitación de velocidad",
+      "detectar_servicios": "Detección de servicios",
+      "fingerprinting": "Huella digital de SO"
+    },
+    "red": {
+      "interfaz_red": "Interfaz de red",
+      "filtros_trafico": "Filtros de tráfico",
+      "alertas_tiempo_real": "Alertas en tiempo real",
+      "captura_paquetes": "Captura de paquetes",
+      "analisis_protocolo": "Análisis de protocolo",
+      "deteccion_anomalias": "Detección de anomalías"
+    }
+  },
+  "reportes": {
+    "titulos": {
+      "resumen_ejecutivo": "Resumen Ejecutivo",
+      "vulnerabilidades_criticas": "Vulnerabilidades Críticas",
+      "analisis_riesgo": "Análisis de Riesgo",
+      "recomendaciones": "Recomendaciones de Seguridad",
+      "timeline_eventos": "Línea de tiempo de eventos",
+      "impacto_negocio": "Impacto en el negocio",
+      "plan_remediacion": "Plan de remediación"
+    },
+    "secciones": {
+      "metodologia": "Metodología empleada",
+      "alcance": "Alcance de la auditoría",
+      "limitaciones": "Limitaciones del análisis",
+      "hallazgos": "Hallazgos principales",
+      "evidencia": "Evidencia técnica",
+      "conclusiones": "Conclusiones"
+    }
+  },
+  "ayuda": {
+    "categorias": {
+      "inicio_rapido": "Inicio rápido",
+      "configuracion_inicial": "Configuración inicial",
+      "uso_herramientas": "Uso de herramientas",
+      "interpretacion_resultados": "Interpretación de resultados",
+      "solucion_problemas": "Solución de problemas",
+      "mejores_practicas": "Mejores prácticas",
+      "preguntas_frecuentes": "Preguntas frecuentes",
+      "contacto_soporte": "Contacto y soporte"
+    }
+  },
+  "accesibilidad": {
+    "atajos_teclado": {
+      "ctrl_n": "Nuevo análisis",
+      "ctrl_o": "Abrir archivo",
+      "ctrl_s": "Guardar",
+      "ctrl_e": "Exportar",
+      "ctrl_r": "Refrescar",
+      "f5": "Actualizar",
+      "escape": "Cancelar operación",
+      "f1": "Ayuda",
+      "alt_f4": "Salir"
+    },
+    "descripciones": {
+      "boton_iniciar": "Botón para iniciar el proceso de auditoría",
+      "tabla_resultados": "Tabla con los resultados del análisis",
+      "barra_progreso": "Indicador de progreso de la operación",
+      "campo_objetivo": "Campo de entrada para el objetivo del análisis"
+    }
+  }
+}

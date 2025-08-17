@@ -4,7 +4,7 @@ Módulo de modelos de Ares Aegis
 Incluye el sistema de escaneo modularizado
 """
 
-# Importar clases principales del escaneador
+# Importar clases principales del escáner
 from .modelo_escaneador import (
     Escaneador, 
     EscaneadorBase, 
@@ -16,7 +16,7 @@ from .modelo_escaneador import (
 )
 
 # Importar otros modelos principales
-from .modelo_siem import SIEM, SIEMAvanzado, TipoEvento, SeveridadEvento
+from .modelo_siem import SIEM, SIEMAvanzadoNativo, TipoEvento, SeveridadEvento
 from .modelo_fim import FIMAvanzado, TipoArchivoFIM, TipoCambioFIM
 
 __all__ = [
@@ -28,7 +28,7 @@ __all__ = [
     'NivelCriticidad',
     'crear_escaneador',
     'SIEM',
-    'SIEMAvanzado', 
+    'SIEMAvanzadoNativo', 
     'TipoEvento',
     'SeveridadEvento',
     'FIMAvanzado',

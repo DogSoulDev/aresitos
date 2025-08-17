@@ -4,7 +4,6 @@ Ares Aegis - Controlador Base
 Clase base abstracta para todos los controladores del sistema
 """
 
-import asyncio
 import logging
 import threading
 import time

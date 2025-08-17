@@ -29,7 +29,7 @@ except ImportError:
 class TipoArchivoFIM(Enum):
     """Tipos de archivo para clasificación FIM."""
     EJECUTABLE = "ejecutable"
-    CONFIGURACION = "configuracion"
+    CONFIGURACION = "configuración"
     LOG = "log"
     BIBLIOTECA = "biblioteca"
     SCRIPT = "script"

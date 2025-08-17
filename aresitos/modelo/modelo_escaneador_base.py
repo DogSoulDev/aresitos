@@ -10,7 +10,6 @@ import datetime
 import logging
 import time
 import socket
-import ipaddress
 import re
 import shlex
 import os
@@ -52,7 +51,7 @@ class NivelCriticidad(Enum):
 
 class EscaneadorBase:
     """
-    Clase base para el escaneador con funcionalidades fundamentales.
+    Clase base para el escáner con funcionalidades fundamentales.
     
     Características principales:
     - Configuración de seguridad básica
@@ -150,12 +149,14 @@ class EscaneadorBase:
         # Validaciones específicas por tipo
         if tipo == "ip":
             try:
-                ip = ipaddress.ip_address(entrada)
-                if ip.is_loopback and not self._permitir_loopback():
-                    raise SecurityError("Dirección loopback no permitida")
-                if ip.is_private and not self._permitir_privadas():
-                    raise SecurityError("Dirección privada no permitida")
-                return True
+                if self._es_ip_valida(entrada):
+                    if self._es_loopback(entrada) and not self._permitir_loopback():
+                        raise SecurityError("Dirección loopback no permitida")
+                    if self._es_privada(entrada) and not self._permitir_privadas():
+                        raise SecurityError("Dirección privada no permitida")
+                    return True
+                else:
+                    raise ValueError("IP inválida")
             except ValueError:
                 raise SecurityError(f"Dirección IP inválida: {entrada}")
         
@@ -183,6 +184,56 @@ class EscaneadorBase:
             return True
         
         return True
+
+    def _es_ip_valida(self, ip):
+        """Valida si una dirección IP es válida"""
+        try:
+            partes = ip.split('.')
+            if len(partes) != 4:
+                return False
+            for parte in partes:
+                if not 0 <= int(parte) <= 255:
+                    return False
+            return True
+        except (ValueError, AttributeError):
+            return False
+    
+    def _es_loopback(self, ip):
+        """Verifica si es dirección loopback (127.x.x.x)"""
+        try:
+            return ip.startswith('127.')
+        except AttributeError:
+            return False
+    
+    def _es_privada(self, ip):
+        """Verifica si es dirección privada"""
+        try:
+            partes = [int(x) for x in ip.split('.')]
+            # 10.0.0.0/8, 172.16.0.0/12, 192.168.0.0/16
+            return (partes[0] == 10 or 
+                   (partes[0] == 172 and 16 <= partes[1] <= 31) or
+                   (partes[0] == 192 and partes[1] == 168))
+        except (ValueError, IndexError):
+            return False
+
+    def _es_multicast(self, ip):
+        """Verifica si es dirección multicast (224.0.0.0-239.255.255.255)"""
+        try:
+            partes = [int(x) for x in ip.split('.')]
+            return 224 <= partes[0] <= 239
+        except (ValueError, IndexError):
+            return False
+    
+    def _es_reservada(self, ip):
+        """Verifica si es dirección reservada"""
+        try:
+            partes = [int(x) for x in ip.split('.')]
+            # 0.0.0.0/8, 240.0.0.0/4 (Class E), 255.255.255.255
+            return (partes[0] == 0 or 
+                   partes[0] >= 240 or
+                   ip == "255.255.255.255")
+        except (ValueError, IndexError):
+            return False
 
     def _permitir_loopback(self) -> bool:
         """Determinar si se permiten direcciones loopback."""
@@ -285,10 +336,13 @@ class EscaneadorBase:
         if self.patron_ip.match(objetivo):
             try:
                 # Verificar que no sea IP reservada/privada crítica
-                ip = ipaddress.ip_address(objetivo.split('/')[0])
-                if ip.is_multicast or ip.is_reserved:
+                ip_limpia = objetivo.split('/')[0]
+                if self._es_ip_valida(ip_limpia):
+                    if self._es_multicast(ip_limpia) or self._es_reservada(ip_limpia):
+                        return False
+                    return True
+                else:
                     return False
-                return True
             except ValueError:
                 return False
         

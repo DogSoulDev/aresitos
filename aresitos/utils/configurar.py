@@ -269,7 +269,7 @@ python3 login_gui.py "$@"
             ("Python", self.verificar_python()),
             ("Directorios", self.directorio_base.exists()),
             ("Login GUI", (self.directorio_base / 'login_gui.py').exists()),
-            ("Configuración", (self.directorio_base / 'configuracion').exists())
+            ("Configuración", (self.directorio_base / 'configuración').exists())
         ]
         
         exitoso = 0

@@ -119,7 +119,7 @@ def iniciar_aplicacion_clasica():
         
         # Cambiar a las rutas correctas de aresitos
         from aresitos.vista.vista_principal import VistaPrincipal
-        from aresitos.controlador.controlador_principal import ControladorPrincipal  
+        from aresitos.controlador.controlador_principal_nuevo import ControladorPrincipal  
         from aresitos.modelo.modelo_principal import ModeloPrincipal
         
         print("Modulos principales cargados")
@@ -132,7 +132,7 @@ def iniciar_aplicacion_clasica():
         # Inicializar MVC
         modelo = ModeloPrincipal()
         vista = VistaPrincipal(root)
-        controlador = ControladorPrincipal(modelo, vista)
+        controlador = ControladorPrincipal(modelo)
         
         vista.controlador = controlador
         

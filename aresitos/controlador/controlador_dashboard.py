@@ -184,13 +184,13 @@ class ControladorDashboard(ControladorBase):
         self.actualizaciones_pendientes.clear()
         return actualizaciones
     
-    async def configurar_widget(self, nombre_widget: str, configuracion: Dict[str, Any]) -> Dict[str, Any]:
+    async def configurar_widget(self, nombre_widget: str, configuración: Dict[str, Any]) -> Dict[str, Any]:
         """
         Configurar un widget específico del dashboard.
         
         Args:
             nombre_widget: Nombre del widget a configurar
-            configuracion: Configuración del widget
+            configuración: Configuración del widget
             
         Returns:
             Dict con resultado de la configuración
@@ -205,7 +205,7 @@ class ControladorDashboard(ControladorBase):
             
             if widget_encontrado:
                 # Actualizar configuración existente
-                widget_encontrado.update(configuracion)
+                widget_encontrado.update(configuración)
                 widget_encontrado['ultima_actualizacion'] = self._obtener_timestamp()
                 
                 return {

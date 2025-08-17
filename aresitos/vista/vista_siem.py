@@ -1092,32 +1092,40 @@ class VistaSIEM(tk.Frame):
                             
                         self._actualizar_texto_forense(f"� Analizando: {log_path}\n")
                         
-                        # Obtener tamaño del archivo
-                        size_cmd = f"wc -l {log_path}"
-                        size_result = subprocess.run(size_cmd, shell=True, capture_output=True, text=True, timeout=10)
-                        if size_result.returncode == 0:
-                            lineas = size_result.stdout.strip().split()[0]
-                            self._actualizar_texto_forense(f"   Total líneas: {lineas}\n")
+                        # Obtener tamaño del archivo de forma segura
+                        try:
+                            size_result = subprocess.run(["wc", "-l", log_path], capture_output=True, text=True, timeout=10)
+                            if size_result.returncode == 0:
+                                lineas = size_result.stdout.strip().split()[0]
+                                self._actualizar_texto_forense(f"   Total líneas: {lineas}\n")
+                        except (subprocess.TimeoutExpired, FileNotFoundError):
+                            self._actualizar_texto_forense("   Error obteniendo tamaño del archivo\n")
                         
-                        # Últimas 10 líneas (tail)
-                        tail_cmd = f"tail -n 10 {log_path}"
-                        tail_result = subprocess.run(tail_cmd, shell=True, capture_output=True, text=True, timeout=10)
-                        if tail_result.returncode == 0:
-                            self._actualizar_texto_forense("  � Últimas 10 líneas:\n")
-                            for i, linea in enumerate(tail_result.stdout.strip().split('\n')[-10:], 1):
-                                if linea.strip():
-                                    self._actualizar_texto_forense(f"    {i:2d}: {linea[:100]}...\n")
+                        # Últimas 10 líneas (tail) de forma segura
+                        try:
+                            tail_result = subprocess.run(["tail", "-n", "10", log_path], capture_output=True, text=True, timeout=10)
+                            if tail_result.returncode == 0:
+                                self._actualizar_texto_forense("  📄 Últimas 10 líneas:\n")
+                                for i, linea in enumerate(tail_result.stdout.strip().split('\n')[-10:], 1):
+                                    if linea.strip():
+                                        self._actualizar_texto_forense(f"    {i:2d}: {linea[:100]}...\n")
+                        except (subprocess.TimeoutExpired, FileNotFoundError):
+                            self._actualizar_texto_forense("   Error leyendo archivo\n")
                         
-                        # Búsqueda de patrones críticos con grep
+                        # Búsqueda de patrones críticos con grep de forma segura
                         patrones_criticos = ['FAILED', 'ERROR', 'CRITICAL', 'WARNING', 'ATTACK', 'INVALID']
                         for patron in patrones_criticos:
-                            grep_cmd = f"grep -i '{patron}' {log_path} | tail -n 3"
-                            grep_result = subprocess.run(grep_cmd, shell=True, capture_output=True, text=True, timeout=10)
-                            if grep_result.returncode == 0 and grep_result.stdout.strip():
-                                self._actualizar_texto_forense(f"  WARNING Patrón '{patron}' encontrado:\n")
-                                for linea in grep_result.stdout.strip().split('\n')[:3]:
-                                    if linea.strip():
-                                        self._actualizar_texto_forense(f"    └─ {linea[:80]}...\n")
+                            try:
+                                grep_result = subprocess.run(["grep", "-i", patron, log_path], capture_output=True, text=True, timeout=10)
+                                if grep_result.returncode == 0 and grep_result.stdout.strip():
+                                    # Limitar a las últimas 3 líneas
+                                    lineas_encontradas = grep_result.stdout.strip().split('\n')[-3:]
+                                    self._actualizar_texto_forense(f"  ⚠️ Patrón '{patron}' encontrado:\n")
+                                    for linea in lineas_encontradas:
+                                        if linea.strip():
+                                            self._actualizar_texto_forense(f"    └─ {linea[:80]}...\n")
+                            except (subprocess.TimeoutExpired, FileNotFoundError):
+                                continue
                         
                         self._actualizar_texto_forense("\n")
                         
@@ -1128,25 +1136,31 @@ class VistaSIEM(tk.Frame):
                 
                 # Análisis de journalctl (systemd logs)
                 try:
-                    self._actualizar_texto_forense("� Analizando logs de systemd (journalctl)...\n")
+                    self._actualizar_texto_forense("📊 Analizando logs de systemd (journalctl)...\n")
                     
-                    # Últimos errores críticos
-                    journal_cmd = "journalctl -p err -n 5 --no-pager"
-                    journal_result = subprocess.run(journal_cmd, shell=True, capture_output=True, text=True, timeout=15)
-                    if journal_result.returncode == 0:
-                        self._actualizar_texto_forense("  🚨 Últimos 5 errores del sistema:\n")
-                        for linea in journal_result.stdout.strip().split('\n'):
-                            if linea.strip():
-                                self._actualizar_texto_forense(f"    └─ {linea[:100]}...\n")
+                    # Últimos errores críticos de forma segura
+                    try:
+                        journal_result = subprocess.run(["journalctl", "-p", "err", "-n", "5", "--no-pager"], 
+                                                       capture_output=True, text=True, timeout=15)
+                        if journal_result.returncode == 0:
+                            self._actualizar_texto_forense("  🚨 Últimos 5 errores del sistema:\n")
+                            for linea in journal_result.stdout.strip().split('\n'):
+                                if linea.strip():
+                                    self._actualizar_texto_forense(f"    └─ {linea[:100]}...\n")
+                    except (subprocess.TimeoutExpired, FileNotFoundError):
+                        self._actualizar_texto_forense("  Error accediendo a journalctl\n")
                     
-                    # Últimos logins
-                    login_cmd = "journalctl _COMM=sshd -n 5 --no-pager"
-                    login_result = subprocess.run(login_cmd, shell=True, capture_output=True, text=True, timeout=15)
-                    if login_result.returncode == 0 and login_result.stdout.strip():
-                        self._actualizar_texto_forense("   Últimas conexiones SSH:\n")
-                        for linea in login_result.stdout.strip().split('\n'):
-                            if linea.strip():
-                                self._actualizar_texto_forense(f"    └─ {linea[:100]}...\n")
+                    # Últimos logins de forma segura
+                    try:
+                        login_result = subprocess.run(["journalctl", "_COMM=sshd", "-n", "5", "--no-pager"], 
+                                                     capture_output=True, text=True, timeout=15)
+                        if login_result.returncode == 0 and login_result.stdout.strip():
+                            self._actualizar_texto_forense("  🔐 Últimas conexiones SSH:\n")
+                            for linea in login_result.stdout.strip().split('\n'):
+                                if linea.strip():
+                                    self._actualizar_texto_forense(f"    └─ {linea[:100]}...\n")
+                    except (subprocess.TimeoutExpired, FileNotFoundError):
+                        self._actualizar_texto_forense("  Error accediendo a logs SSH\n")
                                 
                 except Exception as e:
                     self._actualizar_texto_forense(f"ERROR Error con journalctl: {str(e)}\n")
@@ -1173,42 +1187,54 @@ class VistaSIEM(tk.Frame):
                 
                 while self.monitoreo_activo and contador < 100:  # Límite de 100 iteraciones
                     try:
-                        # Monitoreo de conexiones de red (cada 10 segundos)
+                        # Monitoreo de conexiones de red (cada 10 segundos) - forma segura
                         if contador % 10 == 0:
-                            self._actualizar_texto_forense(f" Conexiones activas [{time.strftime('%H:%M:%S')}]:\n")
-                            ss_cmd = "ss -tuln | head -n 10"
-                            ss_result = subprocess.run(ss_cmd, shell=True, capture_output=True, text=True, timeout=5)
-                            if ss_result.returncode == 0:
-                                for linea in ss_result.stdout.strip().split('\n')[1:6]:  # Top 5
-                                    if linea.strip():
-                                        self._actualizar_texto_forense(f"  └─ {linea}\n")
+                            self._actualizar_texto_forense(f"🌐 Conexiones activas [{time.strftime('%H:%M:%S')}]:\n")
+                            try:
+                                ss_result = subprocess.run(["ss", "-tuln"], capture_output=True, text=True, timeout=5)
+                                if ss_result.returncode == 0:
+                                    lineas = ss_result.stdout.strip().split('\n')[1:6]  # Top 5
+                                    for linea in lineas:
+                                        if linea.strip():
+                                            self._actualizar_texto_forense(f"  └─ {linea}\n")
+                            except (subprocess.TimeoutExpired, FileNotFoundError):
+                                self._actualizar_texto_forense("  Error accediendo a conexiones de red\n")
                         
-                        # Monitoreo de procesos críticos (cada 15 segundos)
+                        # Monitoreo de procesos críticos (cada 15 segundos) - forma segura
                         if contador % 15 == 0:
-                            self._actualizar_texto_forense(f" Procesos críticos [{time.strftime('%H:%M:%S')}]:\n")
-                            ps_cmd = "ps aux | grep -E '(ssh|apache|mysql|postgres)' | grep -v grep | head -n 5"
-                            ps_result = subprocess.run(ps_cmd, shell=True, capture_output=True, text=True, timeout=5)
-                            if ps_result.returncode == 0 and ps_result.stdout.strip():
-                                for linea in ps_result.stdout.strip().split('\n'):
-                                    if linea.strip():
-                                        campos = linea.split()
-                                        if len(campos) >= 11:
-                                            self._actualizar_texto_forense(f"  └─ PID:{campos[1]} CPU:{campos[2]}% {campos[10]}\n")
+                            self._actualizar_texto_forense(f"⚡ Procesos críticos [{time.strftime('%H:%M:%S')}]:\n")
+                            try:
+                                ps_result = subprocess.run(["ps", "aux"], capture_output=True, text=True, timeout=5)
+                                if ps_result.returncode == 0 and ps_result.stdout.strip():
+                                    # Filtrar procesos críticos manualmente
+                                    lineas = ps_result.stdout.strip().split('\n')
+                                    procesos_criticos = [l for l in lineas if any(servicio in l.lower() 
+                                                       for servicio in ['ssh', 'apache', 'mysql', 'postgres']) 
+                                                       and 'grep' not in l][:5]
+                                    for linea in procesos_criticos:
+                                        if linea.strip():
+                                            campos = linea.split()
+                                            if len(campos) >= 11:
+                                                self._actualizar_texto_forense(f"  └─ PID:{campos[1]} CPU:{campos[2]}% {campos[10]}\n")
+                            except (subprocess.TimeoutExpired, FileNotFoundError):
+                                self._actualizar_texto_forense("  Error accediendo a lista de procesos\n")
                         
-                        # Monitoreo de logs críticos (cada 20 segundos)
+                        # Monitoreo de logs críticos (cada 20 segundos) - forma segura
                         if contador % 20 == 0:
-                            self._actualizar_texto_forense(f" Nuevos eventos [{time.strftime('%H:%M:%S')}]:\n")
-                            tail_cmd = "tail -n 3 /var/log/auth.log"
-                            tail_result = subprocess.run(tail_cmd, shell=True, capture_output=True, text=True, timeout=5)
-                            if tail_result.returncode == 0:
-                                for linea in tail_result.stdout.strip().split('\n'):
-                                    if linea.strip():
-                                        # Extraer timestamp y evento principal
-                                        partes = linea.split(' ')
-                                        if len(partes) >= 3:
-                                            timestamp = ' '.join(partes[:3])
-                                            evento = ' '.join(partes[4:8]) if len(partes) > 7 else linea[50:]
-                                            self._actualizar_texto_forense(f"  └─ {timestamp}: {evento}\n")
+                            self._actualizar_texto_forense(f"📋 Nuevos eventos [{time.strftime('%H:%M:%S')}]:\n")
+                            try:
+                                tail_result = subprocess.run(["tail", "-n", "3", "/var/log/auth.log"], capture_output=True, text=True, timeout=5)
+                                if tail_result.returncode == 0:
+                                    for linea in tail_result.stdout.strip().split('\n'):
+                                        if linea.strip():
+                                            # Extraer timestamp y evento principal
+                                            partes = linea.split(' ')
+                                            if len(partes) >= 3:
+                                                timestamp = ' '.join(partes[:3])
+                                                evento = ' '.join(partes[4:8]) if len(partes) > 7 else linea[50:]
+                                                self._actualizar_texto_forense(f"  └─ {timestamp}: {evento}\n")
+                            except (subprocess.TimeoutExpired, FileNotFoundError):
+                                self._actualizar_texto_forense("  Error accediendo a logs de autenticación\n")
                         
                         time.sleep(1)
                         contador += 1
@@ -1241,8 +1267,8 @@ class VistaSIEM(tk.Frame):
                 import subprocess
                 
                 # Verificar si osquery está disponible
-                verificacion = subprocess.run(['which', 'osqueryi'], capture_output=True, text=True, timeout=5)
-                if verificacion.returncode != 0:
+                verificación = subprocess.run(['which', 'osqueryi'], capture_output=True, text=True, timeout=5)
+                if verificación.returncode != 0:
                     self._actualizar_texto_forense("ERROR osquery no está instalado en este sistema\n")
                     self._actualizar_texto_forense(" Instalar con: sudo apt install osquery\n")
                     return

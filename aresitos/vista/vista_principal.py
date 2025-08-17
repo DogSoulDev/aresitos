@@ -60,7 +60,7 @@ class VistaPrincipal(tk.Frame):
         
         # Detectar directorio del proyecto
         script_dir = Path(__file__).parent.parent.parent
-        config_dir = script_dir / "configuracion"
+        config_dir = script_dir / "configuración"
         
         print(f"Directorio base: {script_dir}")
         print(f"Directorio config: {config_dir}")
@@ -181,8 +181,8 @@ class VistaPrincipal(tk.Frame):
             if hasattr(self.controlador, 'controlador_escaneador'):
                 self.vista_escaneo.set_controlador(self.controlador.controlador_escaneador)
                 print("Escaneador configurado")
-            elif hasattr(self.controlador, '_controladores') and 'escaneador' in self.controlador._controladores:
-                self.vista_escaneo.set_controlador(self.controlador._controladores['escaneador'])
+            elif hasattr(self.controlador, '_controladores') and 'escáner' in self.controlador._controladores:
+                self.vista_escaneo.set_controlador(self.controlador._controladores['escáner'])
                 print("Escaneador configurado desde _controladores")
                 
             if hasattr(self.controlador, 'controlador_monitoreo'):

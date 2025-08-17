@@ -78,7 +78,7 @@ class ConstructorWordlists:
         """Obtener lista de categorías disponibles."""
         return list(self.categorias_disponibles.keys())
     
-    def generar_wordlist_personalizada(self, base: str, configuracion: Dict[str, Any]) -> List[str]:
+    def generar_wordlist_personalizada(self, base: str, configuración: Dict[str, Any]) -> List[str]:
         """Generar wordlist personalizada basada en una palabra base."""
         try:
             if not self._validar_entrada_segura(base):
@@ -88,7 +88,7 @@ class ConstructorWordlists:
             resultado = set([base])  # Usar set para evitar duplicados
             
             # Aplicar transformaciones básicas
-            if configuracion.get('incluir_variaciones_caso', True):
+            if configuración.get('incluir_variaciones_caso', True):
                 resultado.update([
                     base.lower(),
                     base.upper(), 
@@ -97,8 +97,8 @@ class ConstructorWordlists:
                 ])
             
             # Agregar números
-            if configuracion.get('incluir_numeros', False):
-                numeros = configuracion.get('numeros_personalizados', ['123', '1', '01', '2023', '2024', '2025'])
+            if configuración.get('incluir_numeros', False):
+                numeros = configuración.get('numeros_personalizados', ['123', '1', '01', '2023', '2024', '2025'])
                 for num in numeros:
                     if self._validar_entrada_segura(f"{base}{num}"):
                         resultado.add(f"{base}{num}")
@@ -106,8 +106,8 @@ class ConstructorWordlists:
                         resultado.add(f"{num}{base}")
             
             # Agregar símbolos
-            if configuracion.get('incluir_simbolos', False):
-                simbolos = configuracion.get('simbolos_personalizados', ['!', '@', '#', '$', '%'])
+            if configuración.get('incluir_simbolos', False):
+                simbolos = configuración.get('simbolos_personalizados', ['!', '@', '#', '$', '%'])
                 for simbolo in simbolos:
                     if self._validar_entrada_segura(f"{base}{simbolo}"):
                         resultado.add(f"{base}{simbolo}")
@@ -115,7 +115,7 @@ class ConstructorWordlists:
                         resultado.add(f"{simbolo}{base}")
             
             # Aplicar plantillas específicas
-            categoria = configuracion.get('categoria', 'general')
+            categoria = configuración.get('categoria', 'general')
             if categoria in self.plantillas:
                 resultado.update(self._aplicar_plantilla(base, categoria))
             
@@ -126,7 +126,7 @@ class ConstructorWordlists:
                     resultado_final.append(palabra)
             
             # Aplicar límites de seguridad
-            max_entradas = configuracion.get('max_entradas', 1000)
+            max_entradas = configuración.get('max_entradas', 1000)
             if len(resultado_final) > max_entradas:
                 resultado_final = resultado_final[:max_entradas]
                 self.logger.warning(f"Wordlist truncada a {max_entradas} entradas por seguridad")
@@ -187,11 +187,11 @@ class ConstructorWordlists:
         
         return resultado
     
-    def combinar_wordlists(self, wordlists: List[List[str]], configuracion: Optional[Dict[str, Any]] = None) -> List[str]:
+    def combinar_wordlists(self, wordlists: List[List[str]], configuración: Optional[Dict[str, Any]] = None) -> List[str]:
         """Combinar múltiples wordlists en una sola."""
         try:
-            if not configuracion:
-                configuracion = {}
+            if not configuración:
+                configuración = {}
             
             resultado = set()
             
@@ -202,8 +202,8 @@ class ConstructorWordlists:
                         resultado.add(palabra)
             
             # Aplicar configuraciones de combinación
-            if configuracion.get('generar_combinaciones', False):
-                max_combinaciones = configuracion.get('max_combinaciones', 100)
+            if configuración.get('generar_combinaciones', False):
+                max_combinaciones = configuración.get('max_combinaciones', 100)
                 combinaciones_generadas = 0
                 
                 palabras_lista = list(resultado)
@@ -229,7 +229,7 @@ class ConstructorWordlists:
             resultado_final = sorted(list(resultado))
             
             # Aplicar límites
-            max_entradas = configuracion.get('max_entradas', 5000)
+            max_entradas = configuración.get('max_entradas', 5000)
             if len(resultado_final) > max_entradas:
                 resultado_final = resultado_final[:max_entradas]
                 self.logger.warning(f"Wordlist combinada truncada a {max_entradas} entradas")

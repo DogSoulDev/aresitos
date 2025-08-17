@@ -11,6 +11,7 @@ import hashlib
 import getpass
 import stat
 import os
+import re
 from typing import Dict, List, Any, Optional
 from .modelo_escaneador_base import EscaneadorBase, SecurityError
 
@@ -129,10 +130,14 @@ class EscaneadorAvanzado(EscaneadorBase):
     def _es_ip(self, cadena: str) -> bool:
         """Verificar si una cadena es una dirección IP."""
         try:
-            import ipaddress
-            ipaddress.ip_address(cadena)
+            partes = cadena.split('.')
+            if len(partes) != 4:
+                return False
+            for parte in partes:
+                if not 0 <= int(parte) <= 255:
+                    return False
             return True
-        except ValueError:
+        except:
             return False
 
     def _registrar_alerta(self, tipo: str, descripcion: str):
@@ -539,7 +544,7 @@ class EscaneadorAvanzado(EscaneadorBase):
                 'archivos_temporales': len(self._archivos_temporales),
                 'herramientas_disponibles': len([h for h, disponible in self.herramientas_disponibles.items() if disponible])
             },
-            'configuracion': {
+            'configuración': {
                 'timeouts': {
                     'defecto': self.config_seguridad['timeout_comando_defecto'],
                     'maximo': self.config_seguridad['timeout_maximo']
@@ -556,33 +561,98 @@ class EscaneadorAvanzado(EscaneadorBase):
 
     def obtener_estadisticas_rendimiento(self) -> Dict[str, Any]:
         """
-        Obtener estadísticas de rendimiento del sistema.
+        Obtener estadísticas de rendimiento del sistema usando comandos nativos.
         
         Returns:
             Dict: Estadísticas de rendimiento
         """
         try:
-            import psutil
             estadisticas = {
-                'cpu_percent': psutil.cpu_percent(interval=1),
-                'memoria': {
-                    'total': psutil.virtual_memory().total,
-                    'disponible': psutil.virtual_memory().available,
-                    'porcentaje_usado': psutil.virtual_memory().percent
-                },
-                'disco': {
-                    'total': psutil.disk_usage('/').total if os.name != 'nt' else psutil.disk_usage('C:').total,
-                    'libre': psutil.disk_usage('/').free if os.name != 'nt' else psutil.disk_usage('C:').free
-                },
-                'procesos': len(psutil.pids()),
-                'conexiones_red': len(psutil.net_connections()) if hasattr(psutil, 'net_connections') else 0
+                'timestamp': datetime.datetime.now().isoformat(),
+                'cpu': self._obtener_cpu_nativo(),
+                'memoria': self._obtener_memoria_nativo(),
+                'disco': self._obtener_disco_nativo(),
+                'red': self._obtener_red_nativo()
             }
-        except ImportError:
-            estadisticas = {
-                'mensaje': 'psutil no disponible - estadísticas limitadas',
-                'archivos_temporales': len(self._archivos_temporales),
-                'operaciones_totales': sum(self._contador_operaciones.values())
-            }
+            return estadisticas
+        except Exception as e:
+            self.logger.error(f"Error obteniendo estadísticas: {e}")
+            return {'error': str(e)}
+    
+    def _obtener_cpu_nativo(self) -> Dict[str, Any]:
+        """Obtener estadísticas de CPU usando comandos nativos."""
+        try:
+            result = subprocess.run(['top', '-bn1'], capture_output=True, text=True, timeout=10)
+            if result.returncode == 0:
+                for line in result.stdout.split('\n'):
+                    if '%Cpu(s):' in line or 'Cpu(s):' in line:
+                        # Buscar porcentaje idle
+                        match = re.search(r'(\d+\.\d+)%?\s*id', line)
+                        if match:
+                            idle = float(match.group(1))
+                            return {'porcentaje_uso': 100.0 - idle}
+            return {'porcentaje_uso': 0.0}
+        except:
+            return {'porcentaje_uso': 0.0}
+    
+    def _obtener_memoria_nativo(self) -> Dict[str, Any]:
+        """Obtener estadísticas de memoria usando comandos nativos."""
+        try:
+            result = subprocess.run(['free', '-m'], capture_output=True, text=True, timeout=10)
+            if result.returncode == 0:
+                lines = result.stdout.strip().split('\n')
+                for line in lines:
+                    if line.startswith('Mem:'):
+                        parts = line.split()
+                        if len(parts) >= 7:
+                            total = int(parts[1])
+                            usado = int(parts[2])
+                            disponible = int(parts[6]) if len(parts) > 6 else int(parts[3])
+                            return {
+                                'total_mb': total,
+                                'usado_mb': usado,
+                                'disponible_mb': disponible,
+                                'porcentaje_uso': (usado / total) * 100.0
+                            }
+            return {'total_mb': 0, 'usado_mb': 0, 'disponible_mb': 0, 'porcentaje_uso': 0.0}
+        except:
+            return {'total_mb': 0, 'usado_mb': 0, 'disponible_mb': 0, 'porcentaje_uso': 0.0}
+    
+    def _obtener_disco_nativo(self) -> Dict[str, Any]:
+        """Obtener estadísticas de disco usando comandos nativos."""
+        try:
+            result = subprocess.run(['df', '-h', '/'], capture_output=True, text=True, timeout=10)
+            if result.returncode == 0:
+                lines = result.stdout.strip().split('\n')
+                if len(lines) >= 2:
+                    parts = lines[1].split()
+                    if len(parts) >= 6:
+                        return {
+                            'total': parts[1],
+                            'usado': parts[2],
+                            'disponible': parts[3],
+                            'porcentaje_uso': float(parts[4].rstrip('%'))
+                        }
+            return {'total': '0G', 'usado': '0G', 'disponible': '0G', 'porcentaje_uso': 0.0}
+        except:
+            return {'total': '0G', 'usado': '0G', 'disponible': '0G', 'porcentaje_uso': 0.0}
+    
+    def _obtener_red_nativo(self) -> Dict[str, Any]:
+        """Obtener estadísticas de red usando comandos nativos."""
+        try:
+            result = subprocess.run(['ss', '-s'], capture_output=True, text=True, timeout=10)
+            if result.returncode == 0:
+                total_conexiones = 0
+                for line in result.stdout.split('\n'):
+                    if 'TCP:' in line:
+                        # Extraer número de conexiones TCP
+                        match = re.search(r'(\d+) established', line)
+                        if match:
+                            total_conexiones = int(match.group(1))
+                return {'conexiones_tcp': total_conexiones}
+            return {'conexiones_tcp': 0}
+        except:
+            return {'conexiones_tcp': 0}
         
         return estadisticas
 

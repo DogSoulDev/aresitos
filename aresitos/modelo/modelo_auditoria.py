@@ -123,7 +123,7 @@ class ModeloAuditoria:
         
         # Verificar actualizaciones pendientes
         hallazgos.append({
-            'categoria': 'configuracion',
+            'categoria': 'configuración',
             'severidad': 'media',
             'descripcion': 'Verificación de actualizaciones del sistema',
             'recomendacion': 'Mantener sistema actualizado'
@@ -232,10 +232,10 @@ class ModeloAuditoria:
         try:
             with self._lock:
                 if auditoria_id in self.auditorias_activas:
-                    auditoria = self.auditorias_activas.pop(auditoria_id)
-                    auditoria['estado'] = 'finalizada'
-                    auditoria['timestamp_fin'] = datetime.now().isoformat()
-                    self.historial_auditorias.append(auditoria)
+                    auditoría = self.auditorias_activas.pop(auditoria_id)
+                    auditoría['estado'] = 'finalizada'
+                    auditoría['timestamp_fin'] = datetime.now().isoformat()
+                    self.historial_auditorias.append(auditoría)
                     
             self.logger.info(f"Auditoría finalizada: {auditoria_id}")
             return True
@@ -271,10 +271,10 @@ class ModeloAuditoria:
                 auditorias_conservar = []
                 eliminadas = 0
                 
-                for auditoria in self.historial_auditorias:
-                    timestamp = datetime.fromisoformat(auditoria['timestamp']).timestamp()
+                for auditoría in self.historial_auditorias:
+                    timestamp = datetime.fromisoformat(auditoría['timestamp']).timestamp()
                     if timestamp >= fecha_limite:
-                        auditorias_conservar.append(auditoria)
+                        auditorias_conservar.append(auditoría)
                     else:
                         eliminadas += 1
                 

@@ -38,13 +38,13 @@ class GestorConfiguracion:
         """Obtener directorio de configuración por defecto."""
         # Intentar usar directorio relativo al proyecto
         directorio_actual = Path(__file__).parent.parent.parent
-        directorio_config = directorio_actual / "configuracion"
+        directorio_config = directorio_actual / "configuración"
         
         if directorio_config.exists():
             return str(directorio_config)
         
         # Fallback a directorio actual
-        return str(Path.cwd() / "configuracion")
+        return str(Path.cwd() / "configuración")
     
     def _obtener_configuracion_por_defecto(self) -> Dict[str, Any]:
         """Obtener configuración por defecto del sistema."""
@@ -57,7 +57,7 @@ class GestorConfiguracion:
                 "max_hilos": 4,
                 "timeout_operaciones": 60
             },
-            "escaneador": {
+            "escáner": {
                 "puerto_inicial": 1,
                 "puerto_final": 1000,
                 "timeout_conexion": 3,
@@ -242,20 +242,20 @@ class GestorConfiguracion:
         with self._lock:
             return self._configuraciones.get(seccion, {}).copy()
     
-    def establecer_seccion(self, seccion: str, configuracion: Dict[str, Any]) -> bool:
+    def establecer_seccion(self, seccion: str, configuración: Dict[str, Any]) -> bool:
         """
         Establecer sección completa de configuración.
         
         Args:
             seccion: Nombre de la sección
-            configuracion: Diccionario con la nueva configuración
+            configuración: Diccionario con la nueva configuración
         
         Returns:
             True si se estableció correctamente
         """
         with self._lock:
             try:
-                self._configuraciones[seccion] = configuracion.copy()
+                self._configuraciones[seccion] = configuración.copy()
                 return True
             except Exception:
                 return False
@@ -333,10 +333,10 @@ class GestorConfiguracion:
             if sistema.get("max_hilos", 0) < 1:
                 advertencias.append("Número de hilos muy bajo")
             
-            # Validar sección escaneador
-            escaneador = self.obtener_seccion("escaneador")
-            puerto_inicial = escaneador.get("puerto_inicial", 0)
-            puerto_final = escaneador.get("puerto_final", 0)
+            # Validar sección escáner
+            escáner = self.obtener_seccion("escáner")
+            puerto_inicial = escáner.get("puerto_inicial", 0)
+            puerto_final = escáner.get("puerto_final", 0)
             
             if puerto_inicial >= puerto_final:
                 errores.append("Rango de puertos inválido")
@@ -419,7 +419,7 @@ class GestorConfiguracion:
         Aplicar configuración predefinida según perfil.
         
         Args:
-            perfil: Tipo de perfil (desarrollo, produccion, auditoria)
+            perfil: Tipo de perfil (desarrollo, produccion, auditoría)
         
         Returns:
             True si se aplicó correctamente
@@ -439,7 +439,7 @@ class GestorConfiguracion:
                 "monitor.intervalo_actualizacion": 5,
                 "seguridad.nivel_paranoia": "alto"
             },
-            "auditoria": {
+            "auditoría": {
                 "sistema.debug": False,
                 "sistema.log_level": "WARNING",
                 "seguridad.logs_auditoria": True,

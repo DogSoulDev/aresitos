@@ -97,7 +97,7 @@ class ModeloGestorCheatsheets:
                         "descripcion": "Inteligencia de fuentes abiertas"
                     }
                 ],
-                "configuracion": {
+                "configuración": {
                     "directorio_cheatsheets": "data/cheatsheets/",
                     "extension_archivos": ".txt",
                     "codificacion": "utf-8",
@@ -236,7 +236,7 @@ class ModeloGestorCheatsheets:
                     "version": "1.0",
                     "descripcion": "Configuración de cheatsheets para Ares Aegis",
                     "categorias": list(self.categorias.values()),
-                    "configuracion": {
+                    "configuración": {
                         "directorio_cheatsheets": "data/cheatsheets/",
                         "extension_archivos": ".txt",
                         "codificacion": "utf-8",

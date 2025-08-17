@@ -120,14 +120,23 @@ class ActualizadorAresitos:
         print()
         
         while True:
-            respuesta = input("¿Desea continuar con la actualización? (s/n): ").lower().strip()
-            if respuesta in ['s', 'si', 'sí', 'y', 'yes']:
-                return True
-            elif respuesta in ['n', 'no']:
-                print("Actualización cancelada por el usuario.")
+            try:
+                respuesta = input("¿Desea continuar con la actualización? (s/n): ").lower().strip()
+                # Validar que la entrada sea segura
+                if len(respuesta) > 10 or not respuesta.replace('í', 'i').replace('ñ', 'n').isalpha():
+                    print("Entrada inválida. Por favor responda 's' para sí o 'n' para no.")
+                    continue
+                    
+                if respuesta in ['s', 'si', 'sí', 'y', 'yes']:
+                    return True
+                elif respuesta in ['n', 'no']:
+                    print("Actualización cancelada por el usuario.")
+                    return False
+                else:
+                    print("Por favor responda 's' para sí o 'n' para no.")
+            except (EOFError, KeyboardInterrupt):
+                print("\nActualización cancelada por el usuario.")
                 return False
-            else:
-                print("Por favor responda 's' para sí o 'n' para no.")
     
     def verificar_conexion_internet(self) -> bool:
         """Verificar conectividad a internet"""

@@ -43,22 +43,23 @@ class ModeloPrincipal:
             
             # Inicializar componentes avanzados
             try:
-                from aresitos.modelo.modelo_escaneador import EscaneadorAvanzado
-                self.escaneador_avanzado = EscaneadorAvanzado()
+                from aresitos.modelo.escaneador_avanzado import EscaneadorAvanzadoReal
+                self.escaneador_avanzado = EscaneadorAvanzadoReal()
                 print("Escaneador Avanzado inicializado")
             except Exception as e:
-                print(f"Error inicializando escaneador avanzado: {e}")
+                print(f"Error inicializando escáner avanzado: {e}")
+                self.escaneador_avanzado = None
             
             try:
-                from aresitos.modelo.modelo_siem import SIEMAvanzado
-                self.siem_avanzado = SIEMAvanzado()
+                from aresitos.modelo.modelo_siem import SIEMAvanzadoNativo
+                self.siem_avanzado = SIEMAvanzadoNativo()
                 print("SIEM Avanzado inicializado")
             except Exception as e:
                 print(f"Error inicializando SIEM avanzado: {e}")
             
             try:
-                from aresitos.modelo.modelo_monitor import MonitorAvanzado
-                self.monitor_avanzado = MonitorAvanzado()
+                from aresitos.modelo.modelo_monitor import MonitorAvanzadoNativo
+                self.monitor_avanzado = MonitorAvanzadoNativo()
                 print("Monitor Avanzado inicializado")
             except Exception as e:
                 print(f"Error inicializando monitor avanzado: {e}")
@@ -104,7 +105,7 @@ class ModeloPrincipal:
     
     def verificar_integridad_datos(self) -> dict:
         """Verifica la integridad de todos los datos cargados"""
-        verificacion = {
+        verificación = {
             'wordlists_ok': False,
             'diccionarios_ok': False,
             'componentes_ok': False,
@@ -114,28 +115,28 @@ class ModeloPrincipal:
         try:
             # Verificar wordlists
             if self.gestor_wordlists and len(self.gestor_wordlists.wordlists_predefinidas) > 0:
-                verificacion['wordlists_ok'] = True
+                verificación['wordlists_ok'] = True
             else:
-                verificacion['errores'].append("Wordlists no cargadas correctamente")
+                verificación['errores'].append("Wordlists no cargadas correctamente")
             
             # Verificar diccionarios
             if self.gestor_diccionarios and len(self.gestor_diccionarios.diccionarios_predefinidos) > 0:
-                verificacion['diccionarios_ok'] = True
+                verificación['diccionarios_ok'] = True
             else:
-                verificacion['errores'].append("Diccionarios no cargados correctamente")
+                verificación['errores'].append("Diccionarios no cargados correctamente")
             
             # Verificar componentes avanzados
             componentes_activos = sum(1 for comp in [self.escaneador_avanzado, self.siem_avanzado, 
                                                    self.monitor_avanzado, self.fim_avanzado] if comp is not None)
             if componentes_activos >= 2:  # Al menos 2 componentes activos
-                verificacion['componentes_ok'] = True
+                verificación['componentes_ok'] = True
             else:
-                verificacion['errores'].append("Componentes avanzados no inicializados correctamente")
+                verificación['errores'].append("Componentes avanzados no inicializados correctamente")
             
         except Exception as e:
-            verificacion['errores'].append(f"Error en verificación: {e}")
+            verificación['errores'].append(f"Error en verificación: {e}")
         
-        return verificacion
+        return verificación
 
 # RESUMEN: Modelo principal expandido que coordina todos los gestores de datos,
 # carga automáticamente wordlists y diccionarios desde data/, inicializa componentes

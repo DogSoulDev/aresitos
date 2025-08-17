@@ -443,7 +443,7 @@ class VistaAuditoria(tk.Frame):
         def ejecutar():
             try:
                 self.auditoria_text.config(state=tk.NORMAL)
-                self.auditoria_text.insert(tk.END, "Obteniendo informacion de hardware del sistema...\n")
+                self.auditoria_text.insert(tk.END, "Obteniendo información de hardware del sistema...\n")
                 self.auditoria_text.update()
                 
                 import subprocess

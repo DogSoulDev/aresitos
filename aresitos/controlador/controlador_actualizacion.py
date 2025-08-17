@@ -730,7 +730,7 @@ class ControladorActualizacion(ControladorBase):
             'timestamp': datetime.now().isoformat()
         }
     
-    def programar_actualizacion_automatica(self, configuracion: Dict[str, Any]) -> Dict[str, Any]:
+    def programar_actualizacion_automatica(self, configuración: Dict[str, Any]) -> Dict[str, Any]:
         """
         Programar actualizaciones automáticas (funcionalidad futura).
         """

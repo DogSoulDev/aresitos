@@ -30,7 +30,7 @@ class ArchivoEnCuarentena:
 
 class Cuarentena:
     """
-    Sistema de cuarentena para aislar archivos peligrosos detectados por el escaneador.
+    Sistema de cuarentena para aislar archivos peligrosos detectados por el escáner.
     """
     
     def __init__(self, directorio_base: str = None):

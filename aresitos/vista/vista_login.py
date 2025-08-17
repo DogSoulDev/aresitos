@@ -189,7 +189,7 @@ HERRAMIENTAS_REQUERIDAS = [
     'hydra', 'medusa', 'ncrack', 'john', 'hashcat', 'aircrack-ng',
     'crunch', 'cewl', 'cupp', 'patator',
     
-    # Forense y analisis
+    # Forense y análisis
     'volatility', 'autopsy', 'sleuthkit', 'binwalk', 'foremost',
     'strings', 'hexdump', 'xxd', 'file', 'exiftool',
     
@@ -277,7 +277,7 @@ def verificar_permisos_admin_seguro():
 
 class LoginAresitos:
     """
-    Interfaz grafica de login para Aresitos con verificacion completa del sistema.
+    Interfaz grafica de login para Aresitos con verificación completa del sistema.
     Exclusivamente para Kali Linux con tema Burp Suite.
     Implementa medidas de seguridad avanzadas.
     """
@@ -442,7 +442,7 @@ class LoginAresitos:
         )
         self.skip_btn.pack(side=tk.LEFT)
         
-        # Frame de verificacion del sistema
+        # Frame de verificación del sistema
         self.verify_frame = tk.LabelFrame(
             main_frame,
             text="Verificacion del Sistema",
@@ -550,7 +550,7 @@ class LoginAresitos:
             else:
                 self.escribir_log("Se requiere autenticacion de root para funcionalidad completa")
             
-            self.escribir_log("Iniciando verificacion automatica de herramientas...")
+            self.escribir_log("Iniciando verificación automatica de herramientas...")
             
             # Verificar herramientas en hilo separado
             threading.Thread(target=self.verificar_herramientas_inicial, daemon=True).start()
@@ -647,25 +647,25 @@ class LoginAresitos:
         """Ejecutar comandos de permisos para una ruta específica"""
         # Lista de comandos para configurar permisos
         comandos_permisos = [
-            # Permisos básicos para el proyecto
+            # Permisos básicos para el proyecto (más seguros)
             f"chmod -R 755 {shlex.quote(ruta_proyecto)}",
             f"chown -R $USER:$USER {shlex.quote(ruta_proyecto)}",
             
-            # Permisos especiales para configuración
-            f"chmod -R 777 {shlex.quote(os.path.join(ruta_proyecto, 'configuracion'))}",
-            f"chmod 777 {shlex.quote(os.path.join(ruta_proyecto, 'configuracion', 'aresitos_config.json'))} 2>/dev/null || true",
-            f"chmod 777 {shlex.quote(os.path.join(ruta_proyecto, 'configuracion', 'aresitos_config_kali.json'))} 2>/dev/null || true",
+            # Permisos seguros para configuración (solo escritura para propietario)
+            f"chmod -R 755 {shlex.quote(os.path.join(ruta_proyecto, 'configuración'))}",
+            f"chmod 644 {shlex.quote(os.path.join(ruta_proyecto, 'configuración', 'aresitos_config.json'))} 2>/dev/null || true",
+            f"chmod 644 {shlex.quote(os.path.join(ruta_proyecto, 'configuración', 'aresitos_config_kali.json'))} 2>/dev/null || true",
             
-            # Permisos para data y logs
-            f"chmod -R 777 {shlex.quote(os.path.join(ruta_proyecto, 'data'))} 2>/dev/null || true",
-            f"chmod -R 777 {shlex.quote(os.path.join(ruta_proyecto, 'logs'))} 2>/dev/null || true",
+            # Permisos seguros para data y logs (solo usuario puede escribir)
+            f"chmod -R 755 {shlex.quote(os.path.join(ruta_proyecto, 'data'))} 2>/dev/null || true",
+            f"chmod -R 755 {shlex.quote(os.path.join(ruta_proyecto, 'logs'))} 2>/dev/null || true",
             
             # Ejecutables Python
             f"find {shlex.quote(ruta_proyecto)} -name '*.py' -exec chmod +x {{}} \\;",
             f"chmod +x {shlex.quote(os.path.join(ruta_proyecto, 'main.py'))}",
             
-            # Crear directorios necesarios
-            f"mkdir -p {shlex.quote(os.path.join(ruta_proyecto, 'logs'))} && chmod 777 {shlex.quote(os.path.join(ruta_proyecto, 'logs'))}",
+            # Crear directorios necesarios con permisos seguros
+            f"mkdir -p {shlex.quote(os.path.join(ruta_proyecto, 'logs'))} && chmod 755 {shlex.quote(os.path.join(ruta_proyecto, 'logs'))}",
             f"mkdir -p /tmp/aresitos_quarantine && chmod 755 /tmp/aresitos_quarantine",
             
             # Herramientas de Kali Linux
@@ -710,7 +710,7 @@ class LoginAresitos:
         # Verificación final de permisos
         try:
             main_py = os.path.join(ruta_proyecto, 'main.py')
-            config_file = os.path.join(ruta_proyecto, 'configuracion', 'aresitos_config.json')
+            config_file = os.path.join(ruta_proyecto, 'configuración', 'aresitos_config.json')
             
             if os.access(main_py, os.X_OK):
                 self.escribir_log("main.py ejecutable")
@@ -786,7 +786,7 @@ class LoginAresitos:
                 self.escribir_log(" Configurando herramientas de Kali Linux...")
                 self.instalar_herramientas_kali_automatico(password)
                 
-                # Si ya completo verificacion, habilitar continuar
+                # Si ya completo verificación, habilitar continuar
                 if self.verificacion_completada:
                     self.continue_btn.config(state=tk.NORMAL)
             else:
@@ -804,22 +804,22 @@ class LoginAresitos:
             self.escribir_log("Timeout verificando contraseña")
             self.utils_seguridad.limpiar_memoria_string(password)
             self.password_entry.delete(0, tk.END)
-            messagebox.showerror("Error", "Timeout en verificacion")
+            messagebox.showerror("Error", "Timeout en verificación")
         except FileNotFoundError:
-            self.escribir_log("sudo no disponible - Continuando sin verificacion")
+            self.escribir_log("sudo no disponible - Continuando sin verificación")
             self.continuar_sin_root()
         except subprocess.SubprocessError as e:
             self.rate_limiter.registrar_intento(self.session_id)
             self.escribir_log(f"Error subprocess: {type(e).__name__}")
             self.utils_seguridad.limpiar_memoria_string(password)
             self.password_entry.delete(0, tk.END)
-            messagebox.showerror("Error", "Error en verificacion del sistema")
+            messagebox.showerror("Error", "Error en verificación del sistema")
         except Exception as e:
             self.rate_limiter.registrar_intento(self.session_id)
-            self.escribir_log(f"Error en verificacion: {type(e).__name__}")
+            self.escribir_log(f"Error en verificación: {type(e).__name__}")
             self.utils_seguridad.limpiar_memoria_string(password)
             self.password_entry.delete(0, tk.END)
-            messagebox.showerror("Error", "Error de verificacion")
+            messagebox.showerror("Error", "Error de verificación")
     
     def instalar_herramientas_kali_automatico(self, password):
         """Instalar automáticamente herramientas faltantes de Kali Linux"""
@@ -923,7 +923,7 @@ class LoginAresitos:
     def iniciar_aplicacion(self):
         """Iniciar la aplicacion principal"""
         if not self.verificacion_completada:
-            messagebox.showwarning("Advertencia", "Complete la verificacion del sistema primero")
+            messagebox.showwarning("Advertencia", "Complete la verificación del sistema primero")
             return
         
         self.escribir_log(" Abriendo ventana de herramientas de Kali Linux...")
@@ -949,7 +949,7 @@ class LoginAresitos:
         try:
             # Importar módulos principales
             from aresitos.vista.vista_principal import VistaPrincipal
-            from aresitos.controlador.controlador_principal import ControladorPrincipal
+            from aresitos.controlador.controlador_principal_nuevo import ControladorPrincipal
             from aresitos.modelo.modelo_principal import ModeloPrincipal
             
             self.escribir_log("Módulos principales importados correctamente")
@@ -980,7 +980,7 @@ class LoginAresitos:
             vista = VistaPrincipal(root_app)
             
             self.escribir_log("Inicializando controlador principal...")
-            controlador = ControladorPrincipal(modelo, vista)
+            controlador = ControladorPrincipal(modelo)
             
             self.escribir_log("Configurando conexión vista-controlador...")
             vista.set_controlador(controlador)

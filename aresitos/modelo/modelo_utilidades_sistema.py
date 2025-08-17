@@ -271,11 +271,11 @@ class ModeloUtilidadesSistema:
             problemas_encontrados = []
             
             for archivo in self.archivos_criticos:
-                analisis = self._analizar_archivo_critico(archivo)
-                archivos_analizados.append(analisis)
+                análisis = self._analizar_archivo_critico(archivo)
+                archivos_analizados.append(análisis)
                 
-                if analisis.get('problemas'):
-                    problemas_encontrados.extend(analisis['problemas'])
+                if análisis.get('problemas'):
+                    problemas_encontrados.extend(análisis['problemas'])
             
             return {
                 'exito': True,
@@ -521,7 +521,7 @@ class ModeloUtilidadesSistema:
     
     def _analizar_archivo_critico(self, archivo: str) -> Dict[str, Any]:
         """Analiza un archivo crítico específico."""
-        analisis = {
+        análisis = {
             'archivo': archivo,
             'existe': False,
             'legible': False,
@@ -533,37 +533,37 @@ class ModeloUtilidadesSistema:
         
         try:
             if os.path.exists(archivo):
-                analisis['existe'] = True
+                análisis['existe'] = True
                 
                 # Obtener información del archivo
                 stat_info = os.stat(archivo)
-                analisis['permisos'] = oct(stat_info.st_mode)[-3:]
-                analisis['propietario'] = stat_info.st_uid
-                analisis['grupo'] = stat_info.st_gid
+                análisis['permisos'] = oct(stat_info.st_mode)[-3:]
+                análisis['propietario'] = stat_info.st_uid
+                análisis['grupo'] = stat_info.st_gid
                 
                 # Verificar si es legible
-                analisis['legible'] = os.access(archivo, os.R_OK)
+                análisis['legible'] = os.access(archivo, os.R_OK)
                 
                 # Verificar problemas de seguridad
                 if archivo in ['/etc/passwd', '/etc/group']:
                     if stat_info.st_mode & stat.S_IWOTH:
-                        analisis['problemas'].append('Archivo escribible por otros usuarios')
+                        análisis['problemas'].append('Archivo escribible por otros usuarios')
                 
                 elif archivo == '/etc/shadow':
                     if stat_info.st_mode & (stat.S_IRGRP | stat.S_IROTH):
-                        analisis['problemas'].append('Archivo legible por grupo u otros')
+                        análisis['problemas'].append('Archivo legible por grupo u otros')
                 
                 elif archivo == '/etc/sudoers':
                     if stat_info.st_mode & (stat.S_IRGRP | stat.S_IROTH | stat.S_IWGRP | stat.S_IWOTH):
-                        analisis['problemas'].append('Permisos incorrectos en sudoers')
+                        análisis['problemas'].append('Permisos incorrectos en sudoers')
             
             else:
-                analisis['problemas'].append('Archivo no existe')
+                análisis['problemas'].append('Archivo no existe')
         
         except Exception as e:
-            analisis['problemas'].append(f'Error analizando: {str(e)}')
+            análisis['problemas'].append(f'Error analizando: {str(e)}')
         
-        return analisis
+        return análisis
     
     def _calcular_nivel_seguridad(self, problemas: List[str]) -> str:
         """Calcula el nivel de seguridad basado en problemas encontrados."""

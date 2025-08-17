@@ -32,7 +32,7 @@ def verificar_gestor_permisos():
     """Verificar que el gestor de permisos funciona correctamente."""
     logger = configurar_logging()
     
-    logger.info("[SCAN] Iniciando verificacion del gestor de permisos...")
+    logger.info("[SCAN] Iniciando verificación del gestor de permisos...")
     
     try:
         # Importar el gestor de permisos

