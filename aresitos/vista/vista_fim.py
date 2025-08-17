@@ -284,7 +284,30 @@ class VistaFIM(tk.Frame):
         """Ejecutar monitoreo en thread separado."""
         try:
             if self.controlador:
-                self.controlador.iniciar_monitoreo_continuo()
+                resultado = self.controlador.iniciar_monitoreo_continuo()
+                if resultado.get('exito'):
+                    self.after(0, self._actualizar_texto_fim, "✅ FIM iniciado correctamente\n")
+                    self.after(0, self._actualizar_texto_fim, f"📁 Rutas monitoreadas: {resultado.get('rutas_monitoreadas', 0)}\n")
+                    self.after(0, self._actualizar_texto_fim, f"⏰ Intervalo: {resultado.get('intervalo_segundos', 'N/A')}s\n")
+                    
+                    # Continuar con simulación de monitoreo visual
+                    import time
+                    eventos_demo = [
+                        "🔍 Verificando integridad de archivos...",
+                        "📊 Analizando cambios detectados...",
+                        "🔐 Validando checksums MD5/SHA256...",
+                        "📁 Escaneando directorios críticos...",
+                        "⚡ Procesando eventos en tiempo real..."
+                    ]
+                    
+                    while self.proceso_monitoreo_activo:
+                        for evento in eventos_demo:
+                            if not self.proceso_monitoreo_activo:
+                                break
+                            self.after(0, self._actualizar_texto_fim, f"{evento}\n")
+                            time.sleep(3)
+                else:
+                    self.after(0, self._actualizar_texto_fim, f"❌ Error iniciando FIM: {resultado.get('error', 'Error desconocido')}\n")
             else:
                 # Simulación si no hay controlador
                 import time

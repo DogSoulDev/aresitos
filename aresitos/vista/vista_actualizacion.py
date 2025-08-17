@@ -276,6 +276,11 @@ class VistaActualizacion(tk.Frame):
             try:
                 self.escribir_log("Conectando con el controlador de actualización...")
                 
+                # Verificar si el controlador está disponible
+                if self.controlador is None:
+                    self.escribir_log("ERROR: Controlador de actualización no inicializado")
+                    return
+                
                 # Usar el controlador real para verificar actualizaciones
                 if hasattr(self.controlador, 'verificar_actualizaciones_disponibles'):
                     resultado = self.controlador.verificar_actualizaciones_disponibles()
@@ -478,6 +483,8 @@ class VistaActualizacion(tk.Frame):
                 }
                 
                 self.escribir_log("Enviando solicitud de actualización al controlador...")
+                self.escribir_log(f"Controlador disponible: {type(self.controlador).__name__}")
+                self.escribir_log(f"Método ejecutar_actualizacion_completa disponible: {hasattr(self.controlador, 'ejecutar_actualizacion_completa')}")
                 
                 if hasattr(self.controlador, 'ejecutar_actualizacion_completa'):
                     resultado = self.controlador.ejecutar_actualizacion_completa(opciones)
@@ -512,6 +519,7 @@ class VistaActualizacion(tk.Frame):
                         
                 else:
                     self.escribir_log("ERROR: Método de actualización no disponible en el controlador")
+                    self.escribir_log(f"Métodos disponibles: {[method for method in dir(self.controlador) if not method.startswith('_')]}")
                 
                 self.escribir_log("=" * 60)
                 self.escribir_log("PROCESO DE ACTUALIZACIÓN FINALIZADO")

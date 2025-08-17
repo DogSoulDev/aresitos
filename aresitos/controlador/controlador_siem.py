@@ -60,12 +60,43 @@ class ControladorSIEM(ControladorBase):
         self._config_siem = {
             'analisis_en_tiempo_real': True,
             'intervalo_analisis': 30,  # segundos
+            'intervalo_analisis_segundos': 30,  # Alias para compatibilidad
             'max_eventos_memoria': 1000,
             'correlacion_habilitada': True,
+            'habilitar_correlacion': True,  # Alias para compatibilidad
             'respuesta_automatica': True,  # NUEVA FUNCIONALIDAD
             'cuarentena_automatica': True,  # NUEVA FUNCIONALIDAD
             'fim_integracion': True,  # NUEVA FUNCIONALIDAD
             'nivel_alerta_cuarentena': 'ALTA',  # Nivel mínimo para cuarentena automática
+            'fuentes_logs_kali': [  # Fuentes de logs específicas de Kali Linux
+                '/var/log/auth.log',
+                '/var/log/syslog',
+                '/var/log/kern.log',
+                '/var/log/daemon.log',
+                '/var/log/apache2/access.log',
+                '/var/log/apache2/error.log',
+                '/var/log/nginx/access.log', 
+                '/var/log/nginx/error.log',
+                '/var/log/mysql/error.log',
+                '/var/log/postgresql/postgresql-*.log'
+            ],
+            'patrones_sospechosos': [  # Patrones para detectar actividad sospechosa
+                r'Failed password for .* from (\d+\.\d+\.\d+\.\d+)',
+                r'Invalid user .* from (\d+\.\d+\.\d+\.\d+)',
+                r'authentication failure.*rhost=(\d+\.\d+\.\d+\.\d+)',
+                r'POSSIBLE BREAK-IN ATTEMPT',
+                r'refused connect from (\d+\.\d+\.\d+\.\d+)',
+                r'kernel: \[.*\] iptables.*DROP.*SRC=(\d+\.\d+\.\d+\.\d+)',
+                r'sudo.*COMMAND=(.*/rm\s+-rf|.*/dd\s+if=)',
+                r'(virus|malware|trojan|backdoor|rootkit).*detected',
+                r'unauthorized.*access',
+                r'privilege.*escalation'
+            ],
+            'umbrales_alerta': {  # Umbrales para generar alertas
+                'intentos_login_fallidos': 5,
+                'conexiones_sospechosas': 10,
+                'comandos_peligrosos': 3
+            },
             'patrones_malware': [
                 r'Trojan[./:]',
                 r'virus[\s:]',
@@ -353,26 +384,40 @@ class ControladorSIEM(ControladorBase):
     def _iniciar_monitoreo_eventos_impl(self) -> Dict[str, Any]:
         """Implementación del monitoreo de eventos."""
         try:
-            if self._estado_siem['monitoreo_activo']:
-                return {'exito': False, 'error': 'Monitoreo SIEM ya está activo'}
-            
             with self._lock_siem:
+                # Siempre detener el monitoreo anterior si existe
+                if self._estado_siem['monitoreo_activo']:
+                    self.logger.info("Deteniendo monitoreo SIEM previo...")
+                    self._detener_analisis = True
+                    self._estado_siem['monitoreo_activo'] = False
+                    
+                    # Esperar a que termine el hilo anterior
+                    if hasattr(self, '_hilo_analisis') and self._hilo_analisis and self._hilo_analisis.is_alive():
+                        self._hilo_analisis.join(timeout=3)
+                
+                # Inicializar estado para nuevo monitoreo
                 self._estado_siem['monitoreo_activo'] = True
                 self._detener_analisis = False
+                self._estado_siem['eventos_procesados'] = 0
+                self._estado_siem['alertas_generadas'] = 0
+                
+                # Configurar fuentes de logs si no están configuradas
+                if not self._estado_siem['fuentes_activas']:
+                    self._configurar_fuentes_logs()
             
             # Iniciar hilo de análisis
-            self._hilo_analisis = threading.Thread(target=self._bucle_analisis_eventos)
-            self._hilo_analisis.daemon = True
+            self._hilo_analisis = threading.Thread(target=self._bucle_analisis_eventos, daemon=True)
             self._hilo_analisis.start()
             
             self._registrar_evento_siem("INICIO_MONITOREO_SIEM", "Monitoreo de eventos SIEM iniciado", "info")
-            self.logger.info("Monitoreo de eventos SIEM iniciado")
+            self.logger.info("✅ Monitoreo de eventos SIEM iniciado correctamente")
             
             return {
                 'exito': True,
-                'mensaje': 'Monitoreo de eventos iniciado',
+                'mensaje': 'Monitoreo de eventos iniciado correctamente',
                 'intervalo_segundos': self._config_siem['intervalo_analisis_segundos'],
-                'fuentes_activas': len(self._estado_siem['fuentes_activas'])
+                'fuentes_activas': len(self._estado_siem['fuentes_activas']),
+                'estado': 'activo'
             }
             
         except Exception as e:

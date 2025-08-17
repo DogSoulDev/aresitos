@@ -330,20 +330,46 @@ class VistaDashboard(tk.Frame):
         # Frame para comandos rápidos
         comandos_frame = tk.LabelFrame(
             terminal_frame,
-            text="Comandos Rápidos de Ciberseguridad",
+            text="Terminal y Comandos de Ciberseguridad",
             bg=self.colors['bg_secondary'],
             fg=self.colors['fg_primary'],
             font=("Arial", 12, "bold")
         )
         comandos_frame.pack(fill="x", padx=10, pady=5)
         
-        # Botones de comandos rápidos
+        # Botón especial para abrir terminal real de Kali
+        terminal_kali_frame = tk.Frame(comandos_frame, bg=self.colors['bg_secondary'])
+        terminal_kali_frame.pack(fill="x", pady=5)
+        
+        btn_terminal_kali = tk.Button(
+            terminal_kali_frame,
+            text="🖥️ ABRIR TERMINAL REAL DE KALI LINUX",
+            command=self.abrir_terminal_kali,
+            bg='#00ff00',  # Verde brillante
+            fg='black',
+            font=("Arial", 12, "bold"),
+            height=2,
+            relief='raised',
+            bd=3
+        )
+        btn_terminal_kali.pack(fill="x", padx=5, pady=2)
+        
+        # Separador
+        tk.Label(comandos_frame, text="Comandos Rápidos:", 
+                bg=self.colors['bg_secondary'], fg=self.colors['fg_primary'],
+                font=("Arial", 10, "bold")).pack(anchor="w", padx=5, pady=(10,2))
+        
+        # Botones de comandos rápidos mejorados para Kali
         comandos_rapidos = [
-            ("netstat -an", "Ver conexiones de red"),
-            ("tasklist", "Listar procesos") if platform.system() == "Windows" else ("ps aux", "Listar procesos"),
-            ("ipconfig /all", "Configuración de red") if platform.system() == "Windows" else ("ifconfig", "Configuración de red"),
-            ("nslookup google.com", "Test DNS"),
-            ("ping -n 4 8.8.8.8", "Test conectividad") if platform.system() == "Windows" else ("ping -c 4 8.8.8.8", "Test conectividad")
+            ("netstat -tuln", "Conexiones de red"),
+            ("ps aux | head -20", "Procesos activos"),
+            ("ifconfig", "Configuración de red"),
+            ("nmap --version", "Verificar Nmap"),
+            ("df -h", "Espacio en disco"),
+            ("free -h", "Memoria RAM"),
+            ("whoami", "Usuario actual"),
+            ("uname -a", "Info del sistema"),
+            ("ss -tuln", "Sockets de red")
         ]
         
         # Crear grid de botones
@@ -1291,6 +1317,168 @@ journalctl -u ssh                # Logs de servicio específico
                 
         except Exception as e:
             print(f"Error en búsqueda: {e}")
+    
+    def abrir_terminal_kali(self):
+        """Abrir terminal real de Kali Linux con configuración optimizada."""
+        try:
+            import subprocess
+            import platform
+            import os
+            
+            print("Intentando abrir terminal de Kali Linux...")
+            
+            if platform.system() == "Linux":
+                # Intentar detectar entorno de escritorio y terminal disponible
+                terminals_kali = [
+                    "qterminal",       # QTerminal (KDE/Kali)
+                    "gnome-terminal",  # GNOME Terminal
+                    "konsole",         # KDE Konsole  
+                    "xfce4-terminal",  # XFCE Terminal
+                    "mate-terminal",   # MATE Terminal
+                    "lxterminal",      # LXDE Terminal
+                    "terminator",      # Terminator
+                    "tilix",           # Tilix
+                    "x-terminal-emulator", # Debian alternatives
+                    "xterm"            # Básico X Terminal
+                ]
+                
+                terminal_cmd = None
+                for terminal in terminals_kali:
+                    try:
+                        # Verificar si el terminal está disponible
+                        resultado = subprocess.run(
+                            ["which", terminal], 
+                            capture_output=True, 
+                            text=True
+                        )
+                        if resultado.returncode == 0:
+                            terminal_cmd = terminal
+                            break
+                    except:
+                        continue
+                
+                if terminal_cmd:
+                    # Configurar comando según el terminal disponible
+                    if terminal_cmd in ["gnome-terminal", "mate-terminal"]:
+                        cmd = [terminal_cmd, "--title=ARESITOS Kali Terminal", "--"]
+                    elif terminal_cmd in ["konsole", "qterminal"]:
+                        cmd = [terminal_cmd, "-T", "ARESITOS Kali Terminal"]
+                    elif terminal_cmd in ["xfce4-terminal", "lxterminal"]:
+                        cmd = [terminal_cmd, "--title=ARESITOS Kali Terminal"]
+                    elif terminal_cmd == "terminator":
+                        cmd = [terminal_cmd, "--title=ARESITOS Kali Terminal"]
+                    elif terminal_cmd == "tilix":
+                        cmd = [terminal_cmd, "--title=ARESITOS Kali Terminal"]
+                    else:
+                        cmd = [terminal_cmd]
+                    
+                    # Ejecutar terminal en background
+                    if os.name == 'posix':  # Unix/Linux/macOS
+                        subprocess.Popen(
+                            cmd,
+                            stdout=subprocess.DEVNULL,
+                            stderr=subprocess.DEVNULL,
+                            preexec_fn=os.setsid
+                        )
+                    else:  # Windows
+                        subprocess.Popen(
+                            cmd,
+                            stdout=subprocess.DEVNULL,
+                            stderr=subprocess.DEVNULL,
+                            creationflags=subprocess.CREATE_NEW_PROCESS_GROUP
+                        )
+                    
+                    print(f"✅ Terminal {terminal_cmd} abierto exitosamente")
+                    self.mostrar_notificacion(f"Terminal {terminal_cmd} iniciado", "info")
+                    
+                else:
+                    # Fallback: intentar xterm básico
+                    subprocess.Popen(
+                        ["xterm", "-title", "ARESITOS Kali Terminal"],
+                        stdout=subprocess.DEVNULL,
+                        stderr=subprocess.DEVNULL
+                    )
+                    print("✅ Terminal xterm abierto como fallback")
+                    self.mostrar_notificacion("Terminal xterm iniciado", "info")
+                    
+            elif platform.system() == "Windows":
+                # En Windows, abrir WSL o PowerShell con mensaje
+                try:
+                    # Intentar WSL primero (para Kali en WSL)
+                    subprocess.Popen(
+                        ["wsl", "-d", "kali-linux"],
+                        shell=True,
+                        stdout=subprocess.DEVNULL,
+                        stderr=subprocess.DEVNULL
+                    )
+                    print("✅ WSL Kali Linux abierto")
+                    self.mostrar_notificacion("WSL Kali Linux iniciado", "info")
+                except:
+                    # Fallback a PowerShell
+                    subprocess.Popen(
+                        ["powershell", "-WindowStyle", "Normal"],
+                        shell=True,
+                        stdout=subprocess.DEVNULL,
+                        stderr=subprocess.DEVNULL
+                    )
+                    print("✅ PowerShell abierto (Kali no detectado en WSL)")
+                    self.mostrar_notificacion("PowerShell iniciado - Kali no detectado", "warning")
+                    
+            else:
+                # macOS u otro sistema
+                subprocess.Popen(
+                    ["open", "-a", "Terminal"],
+                    stdout=subprocess.DEVNULL,
+                    stderr=subprocess.DEVNULL
+                )
+                print("✅ Terminal del sistema abierto")
+                self.mostrar_notificacion("Terminal del sistema iniciado", "info")
+                
+        except Exception as e:
+            print(f"❌ Error abriendo terminal: {e}")
+            self.mostrar_notificacion(f"Error: {str(e)}", "error")
+    
+    def mostrar_notificacion(self, mensaje, tipo="info"):
+        """Mostrar notificación temporal en la interfaz."""
+        try:
+            # Crear ventana de notificación temporal
+            ventana_notif = tk.Toplevel(self)
+            ventana_notif.title("ARESITOS")
+            ventana_notif.geometry("400x100")
+            ventana_notif.resizable(False, False)
+            
+            # Configurar colores según tipo
+            colores = {
+                "info": {"bg": "#d4edda", "fg": "#155724"},
+                "warning": {"bg": "#fff3cd", "fg": "#856404"},
+                "error": {"bg": "#f8d7da", "fg": "#721c24"}
+            }
+            
+            color = colores.get(tipo, colores["info"])
+            ventana_notif.configure(bg=color["bg"])
+            
+            # Etiqueta del mensaje
+            label = tk.Label(
+                ventana_notif,
+                text=mensaje,
+                bg=color["bg"],
+                fg=color["fg"],
+                font=("Arial", 11, "bold"),
+                wraplength=350
+            )
+            label.pack(expand=True, fill="both", padx=10, pady=10)
+            
+            # Centrar ventana
+            ventana_notif.update_idletasks()
+            x = (ventana_notif.winfo_screenwidth() // 2) - (400 // 2)
+            y = (ventana_notif.winfo_screenheight() // 2) - (100 // 2)
+            ventana_notif.geometry(f"400x100+{x}+{y}")
+            
+            # Auto cerrar después de 3 segundos
+            ventana_notif.after(3000, ventana_notif.destroy)
+            
+        except Exception as e:
+            print(f"Error mostrando notificación: {e}")
     
     def destroy(self):
         """Limpiar recursos al destruir la vista."""

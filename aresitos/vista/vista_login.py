@@ -864,6 +864,17 @@ class LoginAresitos:
             y = (root_app.winfo_screenheight() // 2) - (800 // 2)
             root_app.geometry(f"1200x800+{x}+{y}")
             
+            # Configurar ícono para la ventana principal también
+            try:
+                icon_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), "recursos", "Aresitos.ico")
+                if os.path.exists(icon_path):
+                    root_app.iconbitmap(icon_path)
+                    self.escribir_log("✅ Ícono de aplicación configurado correctamente")
+                else:
+                    self.escribir_log("⚠️ Archivo de ícono no encontrado en: " + icon_path)
+            except Exception as e:
+                self.escribir_log(f"⚠️ Error configurando ícono: {str(e)}")
+            
             # Forzar actualización de la ventana
             root_app.update()
             

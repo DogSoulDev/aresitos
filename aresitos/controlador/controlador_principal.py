@@ -107,7 +107,7 @@ class ControladorPrincipal(ControladorBase):
         
         # KALI SECURITY: Delegar validación específica al controlador de escaneo
         # El controlador de escaneo tiene validaciones más robustas
-        controlador_escaneo = self._controladores.get('escaneo')
+        controlador_escaneo = self._controladores.get('escaneador')
         if controlador_escaneo and hasattr(controlador_escaneo, '_validar_objetivo_escaneo'):
             return controlador_escaneo._validar_objetivo_escaneo(objetivo)
         

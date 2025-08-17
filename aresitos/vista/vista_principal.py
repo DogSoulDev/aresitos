@@ -1,7 +1,10 @@
 # -*- coding: utf-8 -*-
 
+import os
+import subprocess
+import threading
 import tkinter as tk
-from tkinter import ttk
+from tkinter import ttk, messagebox
 
 # Importar todas las vistas disponibles
 from aresitos.vista.vista_dashboard import VistaDashboard
@@ -106,6 +109,54 @@ class VistaPrincipal(tk.Frame):
         self.style = ttk.Style()
         self.theme.configure_ttk_style(self.style)
 
+    def log_sistema(self, mensaje, nivel='INFO'):
+        """Registra mensajes del sistema"""
+        import datetime
+        timestamp = datetime.datetime.now().strftime("%H:%M:%S")
+        print(f"[{nivel}] {timestamp}: {mensaje}")
+
+    def configurar_icono_aplicacion(self):
+        """Configura el icono de la aplicación en Kali Linux"""
+        try:
+            # Obtener ventana raíz
+            root = self.winfo_toplevel()
+            
+            # Buscar archivo de icono en recursos
+            icon_paths = [
+                os.path.join(os.path.dirname(os.path.dirname(__file__)), 'recursos', 'AresAegis.png'),
+                os.path.join(os.path.dirname(os.path.dirname(__file__)), 'recursos', 'aresIcon.png'),
+                os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(__file__))), 'recursos', 'AresAegis.png'),
+                '/usr/share/pixmaps/aresitos.png',  # Ubicación estándar en Linux
+                '/opt/aresitos/recursos/AresAegis.png'  # Ubicación de instalación
+            ]
+            
+            for icon_path in icon_paths:
+                if os.path.exists(icon_path):
+                    try:
+                        # En Kali Linux, usar PhotoImage para PNG
+                        if icon_path.endswith('.png'):
+                            icon_image = tk.PhotoImage(file=icon_path)
+                            root.iconphoto(True, icon_image)
+                            # Mantener referencia para evitar garbage collection
+                            setattr(root, '_icon_image', icon_image)
+                            self.log_sistema(f"Icono configurado: {icon_path}")
+                            return
+                        # Para archivos .ico en Linux, intentar usar iconbitmap
+                        elif icon_path.endswith('.ico'):
+                            root.iconbitmap(icon_path)
+                            self.log_sistema(f"Icono configurado: {icon_path}")
+                            return
+                    except Exception as e:
+                        self.log_sistema(f"Error con icono {icon_path}: {e}", 'WARNING')
+                        continue
+            
+            # Si no se encuentra icono, usar el titulo como identificación
+            root.title("ARESITOS - Cybersecurity Professional Suite")
+            self.log_sistema("Icono no encontrado, usando título por defecto", 'WARNING')
+            
+        except Exception as e:
+            self.log_sistema(f"Error configurando icono: {e}", 'ERROR')
+
     def set_controlador(self, controlador):
         """Configurar el controlador principal y actualizar la interfaz"""
         print("Configurando controlador principal...")
@@ -127,9 +178,12 @@ class VistaPrincipal(tk.Frame):
                 self.vista_dashboard.set_controlador(controlador)
                 print("Dashboard configurado")
                 
-            if hasattr(self.controlador, 'controlador_escaneo'):
-                self.vista_escaneo.set_controlador(self.controlador.controlador_escaneo)
+            if hasattr(self.controlador, 'controlador_escaneador'):
+                self.vista_escaneo.set_controlador(self.controlador.controlador_escaneador)
                 print("Escaneador configurado")
+            elif hasattr(self.controlador, '_controladores') and 'escaneador' in self.controlador._controladores:
+                self.vista_escaneo.set_controlador(self.controlador._controladores['escaneador'])
+                print("Escaneador configurado desde _controladores")
                 
             if hasattr(self.controlador, 'controlador_monitoreo'):
                 self.vista_monitoreo.set_controlador(self.controlador.controlador_monitoreo)
@@ -186,6 +240,9 @@ class VistaPrincipal(tk.Frame):
         print("Creando interfaz de usuario...")
         
         try:
+            # Configurar icono de la aplicación
+            self.configurar_icono_aplicacion()
+            
             # Configurar el contenedor principal
             self.pack(fill="both", expand=True)
             
@@ -748,6 +805,37 @@ class VistaPrincipal(tk.Frame):
             
         except Exception as e:
             messagebox.showerror("Error", f"Error abriendo actualizador: {str(e)}")
+
+    def abrir_terminal_kali(self):
+        """Abre terminal nativo de Kali Linux con permisos completos"""
+        try:
+            # Terminales de Kali Linux en orden de preferencia
+            terminales = ['gnome-terminal', 'konsole', 'xfce4-terminal', 'mate-terminal', 'xterm']
+            
+            for terminal in terminales:
+                try:
+                    # Usar terminal nativo de Kali con sesión completa
+                    subprocess.Popen([terminal], 
+                                   start_new_session=True,
+                                   env=os.environ.copy())
+                    self.log_sistema(f"Terminal {terminal} abierto exitosamente")
+                    return
+                except FileNotFoundError:
+                    continue
+            
+            # Fallback con x-terminal-emulator
+            try:
+                subprocess.Popen(['x-terminal-emulator'], 
+                               start_new_session=True,
+                               env=os.environ.copy())
+                self.log_sistema("Terminal x-terminal-emulator abierto exitosamente")
+            except FileNotFoundError:
+                raise Exception("No se encontró ningún emulador de terminal en Kali Linux")
+                
+        except Exception as e:
+            error_msg = f"Error abriendo terminal de Kali: {str(e)}"
+            self.log_sistema(error_msg, nivel='ERROR')
+            messagebox.showerror("Error Terminal", error_msg)
 
 
 # RESUMEN: Vista principal de la aplicación con interfaz de pestañas para módulos.

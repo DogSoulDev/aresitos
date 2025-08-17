@@ -409,8 +409,16 @@ class VistaSIEM(tk.Frame):
     def iniciar_siem(self):
         """Iniciar sistema SIEM."""
         if self.proceso_siem_activo:
+            self._actualizar_texto_monitoreo("🔄 SIEM ya activo - reiniciando...\n")
+            self.detener_siem()
+            # Dar tiempo para que termine
+            self.after(1000, self._iniciar_siem_impl)
             return
         
+        self._iniciar_siem_impl()
+    
+    def _iniciar_siem_impl(self):
+        """Implementación del inicio de SIEM."""
         self.proceso_siem_activo = True
         self._habilitar_botones_siem(False)
         
@@ -568,11 +576,106 @@ class VistaSIEM(tk.Frame):
         self._actualizar_texto_alertas("✅ Sistema de detección activo\n\n")
     
     def activar_ids(self):
-        """Activar sistema IDS."""
-        self._actualizar_texto_alertas("🛡️ Activando sistema IDS/IPS...\n")
-        self._actualizar_texto_alertas("🔧 Configurando Suricata...\n")
-        self._actualizar_texto_alertas("📋 Cargando reglas de detección...\n")
-        self._actualizar_texto_alertas("✅ IDS activado correctamente\n\n")
+        """Activar sistema IDS real con Suricata."""
+        def ejecutar_ids():
+            try:
+                self.after(0, self._actualizar_texto_alertas, "🛡️ Activando sistema IDS/IPS real...\n")
+                
+                import subprocess
+                import os
+                
+                # Verificar si Suricata está instalado
+                try:
+                    resultado = subprocess.run(['which', 'suricata'], capture_output=True, text=True)
+                    if resultado.returncode != 0:
+                        self.after(0, self._actualizar_texto_alertas, "❌ Suricata no encontrado. Instalando...\n")
+                        install = subprocess.run(['sudo', 'apt', 'update'], capture_output=True)
+                        install = subprocess.run(['sudo', 'apt', 'install', '-y', 'suricata'], capture_output=True)
+                        if install.returncode != 0:
+                            self.after(0, self._actualizar_texto_alertas, "❌ Error instalando Suricata\n")
+                            return
+                        self.after(0, self._actualizar_texto_alertas, "✅ Suricata instalado correctamente\n")
+                except Exception as e:
+                    self.after(0, self._actualizar_texto_alertas, f"❌ Error verificando Suricata: {e}\n")
+                    return
+                
+                # Configurar Suricata
+                self.after(0, self._actualizar_texto_alertas, "🔧 Configurando Suricata...\n")
+                
+                # Verificar configuración
+                config_paths = ['/etc/suricata/suricata.yaml', '/usr/local/etc/suricata/suricata.yaml']
+                config_found = False
+                for config_path in config_paths:
+                    if os.path.exists(config_path):
+                        config_found = True
+                        self.after(0, self._actualizar_texto_alertas, f"✅ Configuración encontrada: {config_path}\n")
+                        break
+                
+                if not config_found:
+                    self.after(0, self._actualizar_texto_alertas, "⚠️ Configuración no encontrada, usando valores por defecto\n")
+                
+                # Actualizar reglas
+                self.after(0, self._actualizar_texto_alertas, "📋 Actualizando reglas de detección...\n")
+                try:
+                    update_rules = subprocess.run(['sudo', 'suricata-update'], capture_output=True, text=True, timeout=30)
+                    if update_rules.returncode == 0:
+                        self.after(0, self._actualizar_texto_alertas, "✅ Reglas actualizadas correctamente\n")
+                    else:
+                        self.after(0, self._actualizar_texto_alertas, "⚠️ Usando reglas existentes\n")
+                except subprocess.TimeoutExpired:
+                    self.after(0, self._actualizar_texto_alertas, "⚠️ Timeout actualizando reglas, continuando\n")
+                except FileNotFoundError:
+                    self.after(0, self._actualizar_texto_alertas, "⚠️ suricata-update no encontrado, usando reglas existentes\n")
+                
+                # Obtener interfaz de red principal
+                try:
+                    interface_result = subprocess.run(['ip', 'route', 'show', 'default'], capture_output=True, text=True)
+                    if interface_result.returncode == 0:
+                        # Extraer interfaz de la línea default
+                        lines = interface_result.stdout.strip().split('\n')
+                        interface = 'eth0'  # Fallback
+                        for line in lines:
+                            if 'default' in line and 'dev' in line:
+                                parts = line.split()
+                                dev_index = parts.index('dev') + 1
+                                if dev_index < len(parts):
+                                    interface = parts[dev_index]
+                                    break
+                        
+                        self.after(0, self._actualizar_texto_alertas, f"🌐 Usando interfaz: {interface}\n")
+                        
+                        # Iniciar Suricata en modo IDS
+                        self.after(0, self._actualizar_texto_alertas, "🚀 Iniciando Suricata IDS...\n")
+                        
+                        # Crear directorio para logs si no existe
+                        log_dir = '/var/log/suricata'
+                        if not os.path.exists(log_dir):
+                            subprocess.run(['sudo', 'mkdir', '-p', log_dir], capture_output=True)
+                        
+                        # Comando para iniciar Suricata
+                        suricata_cmd = [
+                            'sudo', 'suricata', '-c', '/etc/suricata/suricata.yaml',
+                            '-i', interface, '-D', '--pidfile', '/var/run/suricata.pid'
+                        ]
+                        
+                        resultado_suricata = subprocess.run(suricata_cmd, capture_output=True, text=True)
+                        
+                        if resultado_suricata.returncode == 0:
+                            self.after(0, self._actualizar_texto_alertas, "✅ IDS activado correctamente\n")
+                            self.after(0, self._actualizar_texto_alertas, f"📁 Logs disponibles en: {log_dir}\n")
+                            self.after(0, self._actualizar_texto_alertas, "📊 Monitoreando tráfico en tiempo real\n")
+                            self.after(0, self._actualizar_texto_alertas, "🔍 Detectando: exploits, malware, escaneos\n")
+                        else:
+                            self.after(0, self._actualizar_texto_alertas, f"❌ Error iniciando Suricata: {resultado_suricata.stderr}\n")
+                            self.after(0, self._actualizar_texto_alertas, "💡 Verificar permisos sudo y configuración\n")
+                    
+                except Exception as e:
+                    self.after(0, self._actualizar_texto_alertas, f"❌ Error configurando interfaz: {e}\n")
+                
+            except Exception as e:
+                self.after(0, self._actualizar_texto_alertas, f"❌ Error activando IDS: {str(e)}\n")
+        
+        threading.Thread(target=ejecutar_ids, daemon=True).start()
     
     def monitor_honeypot(self):
         """Monitorear honeypots."""

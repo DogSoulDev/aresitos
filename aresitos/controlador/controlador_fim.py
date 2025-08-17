@@ -338,25 +338,56 @@ class ControladorFIM(ControladorBase):
     def _iniciar_monitoreo_continuo_impl(self) -> Dict[str, Any]:
         """Implementación del monitoreo continuo."""
         try:
-            if self._estado_fim['monitoreo_activo']:
-                return {'exito': False, 'error': 'Monitoreo ya está activo'}
-            
             with self._lock_fim:
+                # Siempre detener monitoreo previo si existe
+                if self._estado_fim['monitoreo_activo']:
+                    self.logger.info("Deteniendo monitoreo FIM previo...")
+                    self._detener_monitoreo = True
+                    self._estado_fim['monitoreo_activo'] = False
+                    
+                    # Esperar a que termine el hilo anterior
+                    if hasattr(self, '_hilo_monitoreo') and self._hilo_monitoreo and self._hilo_monitoreo.is_alive():
+                        self._hilo_monitoreo.join(timeout=3)
+                
+                # Verificar que el componente FIM está disponible
+                if not self.fim:
+                    self.logger.error("Componente FIM no disponible")
+                    return {'exito': False, 'error': 'Componente FIM no inicializado'}
+                
+                # Configurar rutas para monitoreo si no están configuradas
+                if not self._estado_fim['rutas_monitoreadas']:
+                    self.logger.info("Configurando rutas iniciales para monitoreo FIM...")
+                    self._configurar_rutas_iniciales()
+                
+                # Inicializar estado para nuevo monitoreo
                 self._estado_fim['monitoreo_activo'] = True
                 self._detener_monitoreo = False
+                self._estado_fim['cambios_detectados'] = 0
+                self._estado_fim['alertas_generadas'] = 0
+            
+            # Crear baseline inicial si es necesario
+            try:
+                self.logger.info("Verificando baseline FIM...")
+                resultado_baseline = self.fim.crear_baseline()
+                if resultado_baseline:
+                    self.logger.info("✅ Baseline FIM creado/verificado correctamente")
+                else:
+                    self.logger.warning("⚠️ Baseline FIM no disponible, usando monitoreo básico")
+            except Exception as e:
+                self.logger.warning(f"⚠️ Error con baseline FIM: {e}, continuando con monitoreo básico")
             
             # Iniciar hilo de monitoreo
-            self._hilo_monitoreo = threading.Thread(target=self._bucle_monitoreo_continuo)
-            self._hilo_monitoreo.daemon = True
+            self._hilo_monitoreo = threading.Thread(target=self._bucle_monitoreo_continuo, daemon=True)
             self._hilo_monitoreo.start()
             
             self._registrar_evento_siem("INICIO_MONITOREO_FIM", "Monitoreo continuo FIM iniciado", "info")
-            self.logger.info("Monitoreo continuo FIM iniciado")
+            self.logger.info("✅ Monitoreo continuo FIM iniciado correctamente")
             
             return {
                 'exito': True,
                 'mensaje': 'Monitoreo continuo iniciado',
-                'intervalo_segundos': self._config_fim['intervalo_escaneo_segundos']
+                'intervalo_segundos': self._config_fim['intervalo_escaneo_segundos'],
+                'rutas_monitoreadas': len(self._estado_fim['rutas_monitoreadas'])
             }
             
         except Exception as e:
@@ -1012,6 +1043,14 @@ class ControladorFIM(ControladorBase):
             
         except Exception as e:
             self.logger.error(f"Error creando baseline: {e}")
+
+    def _registrar_evento_siem(self, tipo: str, descripcion: str, severidad: str) -> None:
+        """Registrar evento en el sistema SIEM."""
+        try:
+            if self.siem:
+                self.siem.generar_evento(tipo, descripcion, severidad)
+        except Exception as e:
+            self.logger.error(f"Error registrando evento SIEM: {e}")
 
 
 # RESUMEN TÉCNICO: Controlador FIM avanzado para monitoreo de integridad de archivos en Kali Linux.

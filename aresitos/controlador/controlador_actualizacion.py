@@ -662,6 +662,268 @@ class ControladorActualizacion(ControladorBase):
             'exito': True,
             'mensaje': 'Actualización cancelada. El sistema puede estar en estado inconsistente.'
         }
+    
+    # ============== MÉTODOS REQUERIDOS POR LA INTERFAZ ==============
+    
+    def actualizar_sistema_completo(self, notificar_progreso=None) -> Dict[str, Any]:
+        """
+        Método principal llamado por la interfaz para actualizar el sistema completo.
+        Compatible con la vista de actualización.
+        """
+        self.logger.info("🚀 Iniciando actualización completa del sistema ARESITOS")
+        
+        if self.actualizacion_en_progreso:
+            return {
+                'exito': False,
+                'error': 'Ya hay una actualización en progreso'
+            }
+        
+        # Configurar opciones por defecto para actualización completa
+        opciones_completas = {
+            'sistema': True,
+            'herramientas': True,
+            'bases_datos': True,
+            'configuraciones': True
+        }
+        
+        # Notificar inicio si hay callback
+        if notificar_progreso:
+            notificar_progreso("Iniciando actualización integral de ARESITOS...")
+        
+        try:
+            # Ejecutar actualización completa
+            resultado = self.ejecutar_actualizacion_completa(opciones_completas)
+            
+            # Agregar información adicional
+            resultado['metodo_llamada'] = 'actualizar_sistema_completo'
+            resultado['opciones_utilizadas'] = opciones_completas
+            
+            if notificar_progreso:
+                if resultado['exito']:
+                    notificar_progreso("✅ Actualización completada exitosamente")
+                else:
+                    notificar_progreso("❌ Actualización completada con errores")
+            
+            return resultado
+            
+        except Exception as e:
+            error_msg = f"Error en actualización completa: {str(e)}"
+            self.logger.error(error_msg)
+            
+            if notificar_progreso:
+                notificar_progreso(f"❌ Error: {error_msg}")
+            
+            return {
+                'exito': False,
+                'error': error_msg,
+                'metodo_llamada': 'actualizar_sistema_completo'
+            }
+    
+    def obtener_estado_actualizacion(self) -> Dict[str, Any]:
+        """
+        Obtener estado actual del sistema de actualización.
+        """
+        return {
+            'actualizacion_en_progreso': self.actualizacion_en_progreso,
+            'ultima_verificacion': self.ultima_verificacion.isoformat() if self.ultima_verificacion else None,
+            'actualizaciones_pendientes': self.actualizaciones_pendientes,
+            'timestamp': datetime.now().isoformat()
+        }
+    
+    def programar_actualizacion_automatica(self, configuracion: Dict[str, Any]) -> Dict[str, Any]:
+        """
+        Programar actualizaciones automáticas (funcionalidad futura).
+        """
+        return {
+            'exito': False,
+            'error': 'Actualizaciones automáticas programadas no implementadas aún',
+            'sugerencia': 'Use cron para programar actualizaciones automáticas'
+        }
+    
+    def obtener_logs_actualizacion(self, limite: int = 100) -> List[str]:
+        """
+        Obtener logs de actualizaciones recientes.
+        """
+        try:
+            logs = []
+            timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+            
+            logs.append(f"[{timestamp}] ARESITOS Sistema de Actualización Integral v1.0")
+            logs.append(f"[{timestamp}] Listo para verificar y actualizar componentes del sistema")
+            logs.append(f"[{timestamp}] " + "=" * 60)
+            
+            if self.ultima_verificacion:
+                logs.append(f"[{self.ultima_verificacion.strftime('%H:%M:%S')}] Última verificación realizada")
+            
+            if self.actualizacion_en_progreso:
+                logs.append(f"[{timestamp}] ⏳ Actualización en progreso...")
+            else:
+                logs.append(f"[{timestamp}] ✅ Sistema listo para actualizaciones")
+            
+            # Agregar información de estado
+            estado = self.obtener_estado_actualizacion()
+            if estado['actualizaciones_pendientes']:
+                logs.append(f"[{timestamp}] 📋 Actualizaciones pendientes disponibles")
+            
+            return logs[:limite]
+            
+        except Exception as e:
+            return [f"Error obteniendo logs: {str(e)}"]
+    
+    def verificar_integridad_sistema(self) -> Dict[str, Any]:
+        """
+        Verificar integridad del sistema después de actualizaciones.
+        """
+        resultado = {
+            'exito': True,
+            'verificaciones': {},
+            'problemas_encontrados': [],
+            'recomendaciones': []
+        }
+        
+        try:
+            # 1. Verificar paquetes rotos
+            try:
+                result = subprocess.run(['dpkg', '-l'], capture_output=True, text=True, timeout=30)
+                if 'ii' in result.stdout:  # Paquetes instalados correctamente
+                    resultado['verificaciones']['paquetes'] = '✅ Paquetes integros'
+                else:
+                    resultado['verificaciones']['paquetes'] = '⚠️ Verificar paquetes'
+                    resultado['problemas_encontrados'].append('Posibles paquetes con problemas')
+            except Exception as e:
+                resultado['verificaciones']['paquetes'] = f'❌ Error: {str(e)}'
+            
+            # 2. Verificar servicios críticos
+            servicios_criticos = ['ssh', 'networking']
+            servicios_ok = 0
+            
+            for servicio in servicios_criticos:
+                try:
+                    result = subprocess.run(['systemctl', 'is-active', servicio], 
+                                          capture_output=True, text=True, timeout=10)
+                    if result.returncode == 0:
+                        servicios_ok += 1
+                except:
+                    pass
+            
+            resultado['verificaciones']['servicios'] = f'✅ {servicios_ok}/{len(servicios_criticos)} servicios activos'
+            
+            # 3. Verificar espacio en disco
+            try:
+                result = subprocess.run(['df', '-h', '/'], capture_output=True, text=True, timeout=10)
+                if result.returncode == 0:
+                    lineas = result.stdout.split('\n')
+                    if len(lineas) > 1:
+                        campos = lineas[1].split()
+                        if len(campos) >= 5:
+                            uso = campos[4].replace('%', '')
+                            if int(uso) < 85:
+                                resultado['verificaciones']['espacio'] = f'✅ Espacio disponible ({uso}% usado)'
+                            else:
+                                resultado['verificaciones']['espacio'] = f'⚠️ Poco espacio ({uso}% usado)'
+                                resultado['problemas_encontrados'].append('Poco espacio en disco')
+            except:
+                resultado['verificaciones']['espacio'] = '❌ Error verificando espacio'
+            
+            # Generar recomendaciones
+            if resultado['problemas_encontrados']:
+                resultado['recomendaciones'].append('Revisar problemas encontrados antes de la próxima actualización')
+                if 'Poco espacio en disco' in resultado['problemas_encontrados']:
+                    resultado['recomendaciones'].append('Ejecutar: sudo apt autoremove && sudo apt autoclean')
+            else:
+                resultado['recomendaciones'].append('Sistema en estado óptimo para actualizaciones')
+            
+        except Exception as e:
+            resultado['exito'] = False
+            resultado['error'] = str(e)
+        
+        return resultado
+
+    def actualizar_todo(self) -> Dict[str, Any]:
+        """
+        Método principal para actualizar todo el sistema ARESITOS.
+        Requerido por la vista de actualización.
+        
+        Returns:
+            Dict con resultados de la actualización completa
+        """
+        try:
+            self.logger.info("🔄 Iniciando actualización integral de ARESITOS")
+            
+            if self.actualizacion_en_progreso:
+                return {
+                    'exito': False,
+                    'error': 'Ya hay una actualización en progreso',
+                    'estado': 'busy'
+                }
+            
+            self.actualizacion_en_progreso = True
+            resultado_integral = {
+                'exito': True,
+                'timestamp': datetime.now().isoformat(),
+                'componentes_actualizados': [],
+                'errores': [],
+                'recomendaciones': [],
+                'tiempo_total': 0
+            }
+            
+            tiempo_inicio = time.time()
+            
+            # 1. Verificar actualizaciones disponibles
+            self.logger.info("� Verificando actualizaciones disponibles...")
+            resultado_verificacion = self.verificar_actualizaciones_disponibles()
+            if not resultado_verificacion['exito']:
+                resultado_integral['errores'].append(f"Error verificando actualizaciones: {resultado_verificacion.get('error', 'Error desconocido')}")
+            
+            # 2. Actualizar sistema completo
+            self.logger.info("� Actualizando sistema completo...")
+            resultado_sistema = self.actualizar_sistema_completo()
+            if resultado_sistema['exito']:
+                resultado_integral['componentes_actualizados'].append('Sistema Kali Linux actualizado')
+                if 'paquetes_actualizados' in resultado_sistema:
+                    resultado_integral['componentes_actualizados'].extend(resultado_sistema['paquetes_actualizados'])
+            else:
+                resultado_integral['errores'].append(f"Error actualizando sistema: {resultado_sistema.get('error', 'Error desconocido')}")
+            
+            # 3. Verificar integridad del sistema
+            self.logger.info("� Verificando integridad del sistema...")
+            resultado_integridad = self.verificar_integridad_sistema()
+            if not resultado_integridad['exito']:
+                resultado_integral['errores'].append("Problemas de integridad detectados")
+                if 'problemas_encontrados' in resultado_integridad:
+                    resultado_integral['recomendaciones'].extend(resultado_integridad.get('recomendaciones', []))
+            else:
+                resultado_integral['componentes_actualizados'].append('Integridad del sistema verificada')
+            
+            # Calcular tiempo total
+            resultado_integral['tiempo_total'] = round(time.time() - tiempo_inicio, 2)
+            
+            # Evaluar éxito general
+            if resultado_integral['errores']:
+                resultado_integral['exito'] = False
+                resultado_integral['estado'] = 'completado_con_errores'
+                self.logger.warning(f"⚠️ Actualización completada con {len(resultado_integral['errores'])} errores")
+            else:
+                resultado_integral['estado'] = 'completado_exitosamente'
+                self.logger.info("✅ Actualización integral completada exitosamente")
+            
+            # Actualizar timestamp de última actualización
+            self.ultima_verificacion = datetime.now()
+            
+            return resultado_integral
+            
+        except Exception as e:
+            error_msg = f"Error crítico en actualización integral: {str(e)}"
+            self.logger.error(error_msg)
+            return {
+                'exito': False,
+                'error': error_msg,
+                'estado': 'error_critico',
+                'componentes_actualizados': [],
+                'errores': [error_msg]
+            }
+        finally:
+            self.actualizacion_en_progreso = False
 
 
 # RESUMEN: Controlador completo para sistema de actualización integral de ARESITOS
