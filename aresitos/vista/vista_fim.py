@@ -20,9 +20,12 @@ class VistaFIM(tk.Frame):
         self.proceso_monitoreo_activo = False
         self.thread_monitoreo = None
         
-        if BURP_THEME_AVAILABLE:
+        if BURP_THEME_AVAILABLE and burp_theme:
             self.theme = burp_theme
-            self.configure(bg='#2b2b2b')
+            self.configure(bg=burp_theme.get_color('bg_primary'))
+            # Configurar estilos TTK
+            style = ttk.Style()
+            burp_theme.configure_ttk_style(style)
         else:
             self.theme = None
         

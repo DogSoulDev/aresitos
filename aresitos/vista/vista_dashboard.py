@@ -33,18 +33,21 @@ class VistaDashboard(tk.Frame):
         self.shell_detectado = self._detectar_shell()
         
         # Configurar tema y colores
-        if BURP_THEME_AVAILABLE:
+        if BURP_THEME_AVAILABLE and burp_theme:
             self.theme = burp_theme
+            self.configure(bg=burp_theme.get_color('bg_primary'))
+            # Configurar estilos TTK
+            style = ttk.Style()
+            burp_theme.configure_ttk_style(style)
             self.colors = {
-                'bg_primary': '#2b2b2b',
-                'bg_secondary': '#3a3a3a', 
-                'fg_primary': '#ffffff',
-                'fg_secondary': '#aaaaaa',
-                'fg_accent': '#ff6633',
-                'button_bg': '#ff6633',
-                'button_fg': '#ffffff'
+                'bg_primary': burp_theme.get_color('bg_primary'),
+                'bg_secondary': burp_theme.get_color('bg_secondary'), 
+                'fg_primary': burp_theme.get_color('fg_primary'),
+                'fg_secondary': burp_theme.get_color('fg_secondary'),
+                'fg_accent': burp_theme.get_color('fg_accent'),
+                'button_bg': burp_theme.get_color('button_bg'),
+                'button_fg': burp_theme.get_color('button_fg')
             }
-            self.configure(bg=self.colors['bg_primary'])
         else:
             self.theme = None
             self.colors = {

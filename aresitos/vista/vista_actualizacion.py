@@ -36,23 +36,33 @@ class VistaActualizacion(tk.Frame):
         # Configurar tema Burp Suite
         if BURP_THEME_AVAILABLE and burp_theme:
             self.theme = burp_theme
-            self.configure(bg='#1e1e1e')
-            self.bg_primary = '#1e1e1e'      # Fondo principal
-            self.bg_secondary = '#2d2d2d'    # Fondo secundario
-            self.bg_tertiary = '#3c3c3c'     # Fondo terciario
-            self.fg_primary = '#f0f0f0'      # Texto principal
-            self.fg_secondary = '#b0b0b0'    # Texto secundario
-            self.accent_orange = '#ff6633'   # Naranja Burp
-            self.accent_green = '#4caf50'
-            self.accent_red = '#f44336'
-            self.accent_blue = '#2196f3'
+            self.configure(bg=burp_theme.get_color('bg_primary'))
+            # Configurar estilos TTK
+            style = ttk.Style()
+            burp_theme.configure_ttk_style(style)
+            # Definir colores usando el tema
+            self.bg_primary = burp_theme.get_color('bg_primary')
+            self.bg_secondary = burp_theme.get_color('bg_secondary')
+            self.bg_tertiary = burp_theme.get_color('bg_tertiary')
+            self.fg_primary = burp_theme.get_color('fg_primary')
+            self.fg_secondary = burp_theme.get_color('fg_secondary')
+            self.accent_orange = burp_theme.get_color('fg_accent')
+            self.accent_green = burp_theme.get_color('success')
+            self.accent_red = burp_theme.get_color('danger')
+            self.accent_blue = burp_theme.get_color('info')
         else:
             self.theme = None
             self.configure(bg='#f0f0f0')
+            # Colores fallback
             self.bg_primary = '#f0f0f0'
             self.bg_secondary = '#e0e0e0'
             self.bg_tertiary = '#d0d0d0'
             self.fg_primary = '#000000'
+            self.fg_secondary = '#333333'
+            self.accent_orange = '#ff6633'
+            self.accent_green = '#4caf50'
+            self.accent_red = '#f44336'
+            self.accent_blue = '#2196f3'
             self.fg_secondary = '#666666'
             self.accent_orange = '#ff6633'
             self.accent_green = '#4caf50'
