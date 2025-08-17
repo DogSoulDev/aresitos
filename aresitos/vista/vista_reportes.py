@@ -95,10 +95,16 @@ class VistaReportes(tk.Frame):
         self.incluir_escaneo = tk.BooleanVar(value=True)
         self.incluir_monitoreo = tk.BooleanVar(value=True)
         self.incluir_utilidades = tk.BooleanVar(value=True)
+        self.incluir_fim = tk.BooleanVar(value=True)
+        self.incluir_siem = tk.BooleanVar(value=True)
+        self.incluir_cuarentena = tk.BooleanVar(value=True)
         
         opciones = [
             (" Resultados de Escaneo", self.incluir_escaneo),
             (" Datos de Monitoreo", self.incluir_monitoreo),
+            (" Datos de FIM (File Integrity)", self.incluir_fim),
+            (" Datos de SIEM", self.incluir_siem),
+            (" Datos de Cuarentena", self.incluir_cuarentena),
             (" Información de Utilidades", self.incluir_utilidades)
         ]
         
@@ -158,7 +164,7 @@ class VistaReportes(tk.Frame):
                                  bg='#2b2b2b', fg='#ff6633')
             info_title.pack(anchor=tk.W)
             
-            info_text = "Genera reportes completos del sistema con datos de escaneo, monitoreo y utilidades."
+            info_text = "Genera reportes completos del sistema con datos de escaneo, monitoreo, FIM, SIEM, cuarentena y utilidades optimizadas para Kali Linux."
             info_label = tk.Label(info_frame, text=info_text, 
                                  wraplength=180, justify=tk.LEFT,
                                  bg='#2b2b2b', fg='white', font=('Arial', 9))
@@ -167,7 +173,7 @@ class VistaReportes(tk.Frame):
             info_frame = ttk.LabelFrame(right_frame, text="ℹ Información", padding=5)
             info_frame.pack(fill=tk.X, pady=(20, 0))
             
-            info_text = "Genera reportes completos del sistema con datos de escaneo, monitoreo y utilidades."
+            info_text = "Genera reportes completos del sistema con datos de escaneo, monitoreo, FIM, SIEM, cuarentena y utilidades optimizadas para Kali Linux."
             info_label = tk.Label(info_frame, text=info_text, 
                                  wraplength=180, justify=tk.LEFT, font=('Arial', 9))
             info_label.pack()
@@ -185,9 +191,12 @@ class VistaReportes(tk.Frame):
                 
                 incluir_escaneo = {} if self.incluir_escaneo.get() else None
                 incluir_monitoreo = {} if self.incluir_monitoreo.get() else None
+                incluir_fim = {} if self.incluir_fim.get() else None
+                incluir_siem = {} if self.incluir_siem.get() else None
+                incluir_cuarentena = {} if self.incluir_cuarentena.get() else None
                 
                 self.reporte_actual = self.controlador.generar_reporte_completo(
-                    incluir_escaneo, incluir_monitoreo
+                    incluir_escaneo, incluir_monitoreo, incluir_fim, incluir_siem, incluir_cuarentena
                 )
                 
                 if self.reporte_actual:

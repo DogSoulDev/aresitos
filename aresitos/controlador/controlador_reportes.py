@@ -37,11 +37,15 @@ class ControladorReportes:
         """Valida que el formato sea permitido"""
         return formato.lower() in self.formatos_permitidos
     
-    def generar_reporte_completo(self, datos_escaneo=None, datos_monitoreo=None, datos_utilidades=None):
+    def generar_reporte_completo(self, datos_escaneo=None, datos_monitoreo=None, datos_utilidades=None, datos_fim=None, datos_siem=None, datos_cuarentena=None):
+        """Genera reporte completo incluyendo todos los módulos optimizados para Kali"""
         return self.reportes.generar_reporte_completo(
             datos_escaneo or {}, 
             datos_monitoreo or {}, 
-            datos_utilidades or {}
+            datos_utilidades or {},
+            datos_fim or {},
+            datos_siem or {},
+            datos_cuarentena or {}
         )
     
     def guardar_reporte_json(self, reporte, nombre_archivo=None):

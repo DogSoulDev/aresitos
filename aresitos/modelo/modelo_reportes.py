@@ -62,31 +62,44 @@ class ModeloReportes:
             import tempfile
             return tempfile.mkdtemp(prefix="ares_reportes_")
     
-    def generar_reporte_completo(self, datos_escaneo: Dict, datos_monitoreo: Dict, datos_utilidades: Dict) -> Dict[str, Any]:
+    def generar_reporte_completo(self, datos_escaneo: Dict, datos_monitoreo: Dict, datos_utilidades: Dict, datos_fim: Optional[Dict] = None, datos_siem: Optional[Dict] = None, datos_cuarentena: Optional[Dict] = None) -> Dict[str, Any]:
         timestamp = datetime.datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
+        
+        # Inicializar datos opcionales
+        datos_fim = datos_fim or {}
+        datos_siem = datos_siem or {}
+        datos_cuarentena = datos_cuarentena or {}
         
         reporte = {
             "timestamp": timestamp,
             "fecha_generacion": datetime.datetime.now().isoformat(),
+            "version": "ARESITOS v2.0.0-kali-optimized",
             "resumen": {
                 "total_herramientas": len(datos_utilidades.get('herramientas', [])),
                 "servicios_activos": len(datos_utilidades.get('servicios', [])),
                 "problemas_permisos": len(datos_utilidades.get('permisos_archivos', [])),
                 "alertas_escaneo": len(datos_escaneo.get('alertas', [])),
-                "eventos_monitoreo": len(datos_monitoreo.get('eventos', []))
+                "eventos_monitoreo": len(datos_monitoreo.get('eventos', [])),
+                "cambios_fim": len(datos_fim.get('cambios_detectados', [])),
+                "alertas_siem": len(datos_siem.get('alertas_generadas', [])),
+                "archivos_cuarentena": len(datos_cuarentena.get('archivos_aislados', []))
             },
             "datos": {
                 "escaneo": datos_escaneo,
                 "monitoreo": datos_monitoreo,
-                "utilidades": datos_utilidades
+                "utilidades": datos_utilidades,
+                "fim": datos_fim,
+                "siem": datos_siem,
+                "cuarentena": datos_cuarentena
             }
         }
         
         return reporte
     
     def generar_reporte_texto(self, reporte: Dict) -> str:
+        version = reporte.get('version', 'ARESITOS')
         texto = f"""
-REPORTE DE SEGURIDAD ARES AEGIS
+REPORTE DE SEGURIDAD {version}
 ===============================
 Fecha: {reporte.get('fecha_generacion', 'No disponible')}
 
@@ -97,6 +110,9 @@ Servicios activos: {reporte['resumen']['servicios_activos']}
 Problemas de permisos: {reporte['resumen']['problemas_permisos']}
 Alertas de escaneo: {reporte['resumen']['alertas_escaneo']}
 Eventos de monitoreo: {reporte['resumen']['eventos_monitoreo']}
+Cambios FIM detectados: {reporte['resumen'].get('cambios_fim', 0)}
+Alertas SIEM generadas: {reporte['resumen'].get('alertas_siem', 0)}
+Archivos en cuarentena: {reporte['resumen'].get('archivos_cuarentena', 0)}
 
 DETALLES
 --------
@@ -111,6 +127,24 @@ DETALLES
             texto += "\nServicios Activos:\n"
             for servicio in reporte['datos']['utilidades']['servicios']:
                 texto += f"- {servicio}\n"
+        
+        # Agregar información de FIM
+        if reporte['datos'].get('fim') and reporte['datos']['fim'].get('cambios_detectados'):
+            texto += "\nCambios de Integridad de Archivos (FIM):\n"
+            for cambio in reporte['datos']['fim']['cambios_detectados']:
+                texto += f"- {cambio}\n"
+        
+        # Agregar información de SIEM
+        if reporte['datos'].get('siem') and reporte['datos']['siem'].get('alertas_generadas'):
+            texto += "\nAlertas del Sistema SIEM:\n"
+            for alerta in reporte['datos']['siem']['alertas_generadas']:
+                texto += f"- {alerta}\n"
+        
+        # Agregar información de cuarentena
+        if reporte['datos'].get('cuarentena') and reporte['datos']['cuarentena'].get('archivos_aislados'):
+            texto += "\nArchivos en Cuarentena:\n"
+            for archivo in reporte['datos']['cuarentena']['archivos_aislados']:
+                texto += f"- {archivo}\n"
         
         return texto
     
