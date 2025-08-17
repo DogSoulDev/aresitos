@@ -28,6 +28,7 @@ from typing import Optional, Dict, List
 
 try:
     from aresitos.vista.burp_theme import burp_theme
+    from aresitos.vista.vista_herramientas_kali import VistaHerramientasKali
     BURP_THEME_AVAILABLE = True
 except ImportError:
     BURP_THEME_AVAILABLE = False
@@ -762,6 +763,10 @@ class LoginAresitos:
                 self.password_entry.config(state=tk.DISABLED)
                 self.skip_btn.config(state=tk.DISABLED)
                 
+                # INSTALACIÓN AUTOMÁTICA DE HERRAMIENTAS KALI
+                self.escribir_log("🔧 Configurando herramientas de Kali Linux...")
+                self.instalar_herramientas_kali_automatico(password)
+                
                 # Si ya completo verificacion, habilitar continuar
                 if self.verificacion_completada:
                     self.continue_btn.config(state=tk.NORMAL)
@@ -797,6 +802,91 @@ class LoginAresitos:
             self.password_entry.delete(0, tk.END)
             messagebox.showerror("Error", "Error de verificacion")
     
+    def instalar_herramientas_kali_automatico(self, password):
+        """Instalar automáticamente herramientas faltantes de Kali Linux"""
+        try:
+            self.escribir_log("🚀 Iniciando instalación automática de herramientas...")
+            
+            # Lista de herramientas críticas para Kali
+            herramientas_criticas = [
+                'nmap', 'masscan', 'nikto', 'sqlmap', 'hydra', 
+                'lynis', 'rkhunter', 'chkrootkit', 'tcpdump',
+                'net-tools', 'netstat-nat'
+            ]
+            
+            herramientas_a_instalar = []
+            for herramienta in herramientas_criticas:
+                if herramienta in self.herramientas_faltantes:
+                    herramientas_a_instalar.append(herramienta)
+            
+            if not herramientas_a_instalar:
+                self.escribir_log("✅ Todas las herramientas críticas ya están instaladas")
+                return
+            
+            self.escribir_log(f"📦 Instalando {len(herramientas_a_instalar)} herramientas faltantes...")
+            
+            # Ejecutar instalación en background
+            import threading
+            thread = threading.Thread(
+                target=self._ejecutar_instalacion_herramientas,
+                args=(herramientas_a_instalar, password),
+                daemon=True
+            )
+            thread.start()
+            
+        except Exception as e:
+            self.escribir_log(f"❌ Error en instalación automática: {e}")
+    
+    def _ejecutar_instalacion_herramientas(self, herramientas, password):
+        """Ejecutar instalación de herramientas en thread separado"""
+        try:
+            # Actualizar repositorios primero
+            self.escribir_log("📥 Actualizando repositorios...")
+            cmd_update = f"echo '{password}' | sudo -S apt update"
+            
+            result = subprocess.run(
+                cmd_update, 
+                shell=True, 
+                capture_output=True, 
+                text=True, 
+                timeout=60
+            )
+            
+            if result.returncode == 0:
+                self.escribir_log("✅ Repositorios actualizados")
+            else:
+                self.escribir_log("⚠️ Warning al actualizar repositorios")
+            
+            # Instalar herramientas una por una
+            for herramienta in herramientas[:5]:  # Limitamos a 5 para no sobrecargar
+                self.escribir_log(f"🔧 Instalando {herramienta}...")
+                
+                cmd_install = f"echo '{password}' | sudo -S apt install -y {herramienta}"
+                
+                result = subprocess.run(
+                    cmd_install,
+                    shell=True,
+                    capture_output=True,
+                    text=True,
+                    timeout=120
+                )
+                
+                if result.returncode == 0:
+                    self.escribir_log(f"✅ {herramienta} instalado correctamente")
+                    # Remover de la lista de faltantes
+                    if herramienta in self.herramientas_faltantes:
+                        self.herramientas_faltantes.remove(herramienta)
+                else:
+                    self.escribir_log(f"❌ Error instalando {herramienta}")
+            
+            self.escribir_log("🎯 Instalación automática completada")
+            
+            # Limpiar password de memoria
+            self.utils_seguridad.limpiar_memoria_string(password)
+            
+        except Exception as e:
+            self.escribir_log(f"❌ Error en instalación: {e}")
+
     def continuar_sin_root(self):
         """Continuar sin permisos de root"""
         self.escribir_log("Continuando sin permisos de root")
@@ -817,7 +907,25 @@ class LoginAresitos:
             messagebox.showwarning("Advertencia", "Complete la verificacion del sistema primero")
             return
         
-        self.escribir_log("Iniciando Aresitos...")
+        self.escribir_log("🔧 Abriendo ventana de herramientas de Kali Linux...")
+        
+        try:
+            # Mostrar vista de herramientas de Kali antes de la aplicación principal
+            def callback_herramientas_completadas():
+                """Callback para cuando se complete la configuración de herramientas"""
+                self._iniciar_aplicacion_principal()
+            
+            # Crear ventana de herramientas
+            vista_herramientas = VistaHerramientasKali(self.root, callback_herramientas_completadas)
+            
+        except Exception as e:
+            self.escribir_log(f"❌ Error mostrando vista de herramientas: {str(e)}")
+            # Si falla, continuar directamente a la aplicación principal
+            self._iniciar_aplicacion_principal()
+    
+    def _iniciar_aplicacion_principal(self):
+        """Iniciar la aplicación principal después de configurar herramientas"""
+        self.escribir_log("🚀 Iniciando ARESITOS...")
         
         try:
             # Importar módulos principales
@@ -878,7 +986,7 @@ class LoginAresitos:
             # Forzar actualización de la ventana
             root_app.update()
             
-            self.escribir_log("Aplicación principal configurada. Iniciando interfaz...")
+            self.escribir_log("🎉 Aplicación principal configurada. Iniciando interfaz...")
             
             # Mostrar ventana y comenzar loop principal
             root_app.deiconify()  # Asegurar que la ventana esté visible
@@ -895,14 +1003,12 @@ class LoginAresitos:
                                "Aplicación principal no encontrada.\n"
                                "Ejecute: python main.py\n\n"
                                "O instale la aplicación completa.")
-            self.root.destroy()
             
         except Exception as e:
             self.escribir_log(f"Error crítico iniciando aplicación: {e}")
             import traceback
             traceback.print_exc()
             messagebox.showerror("Error", f"Error iniciando aplicación:\n{e}")
-            self.root.destroy()
 
 def main():
     """Función principal de la aplicación de login"""

@@ -608,23 +608,174 @@ class ControladorEscaneadorCuarentena:
 
     def escanear_sistema(self) -> Dict[str, Any]:
         """
-        Método principal para escanear el sistema.
+        Método principal para escanear el sistema con herramientas avanzadas de Kali Linux.
         Método requerido por la vista de escaneo.
         
         Returns:
-            Dict con resultados del escaneo
+            Dict con resultados del escaneo avanzado
         """
         try:
-            self.logger.info("🔍 Iniciando escaneo completo del sistema")
-            return self.ejecutar_escaneo_con_cuarentena('completo')
+            self.logger.info("🔍 Iniciando escaneo completo del sistema con herramientas de Kali Linux")
+            
+            # Escaneo básico con herramientas nativas
+            resultado_puertos = self._escanear_puertos_locales()
+            resultado_procesos = self._escanear_procesos_activos()
+            resultado_servicios = self._escanear_servicios_sistema()
+            
+            # Escaneo avanzado con herramientas de Kali
+            resultado_nmap = self._escanear_con_nmap()
+            resultado_masscan = self._escanear_con_masscan()
+            resultado_nikto = self._escanear_web_con_nikto()
+            resultado_gobuster = self._enumeracion_web_gobuster()
+            
+            # Análisis de seguridad del sistema
+            resultado_chkrootkit = self._detectar_rootkits_chkrootkit()
+            resultado_rkhunter = self._detectar_rootkits_rkhunter()
+            
+            # Combinar resultados
+            resultado_final = {
+                'exito': True,
+                'timestamp': datetime.now().isoformat(),
+                'metodo_escaneo': 'Herramientas nativas de Kali Linux',
+                
+                # Resultados básicos
+                'puertos_abiertos': resultado_puertos.get('puertos', []),
+                'total_puertos': len(resultado_puertos.get('puertos', [])),
+                'procesos_detectados': resultado_procesos.get('procesos', []),
+                'total_procesos': len(resultado_procesos.get('procesos', [])),
+                'servicios_activos': resultado_servicios.get('servicios', []),
+                'total_servicios': len(resultado_servicios.get('servicios', [])),
+                
+                # Resultados avanzados
+                'escaneo_nmap': resultado_nmap,
+                'escaneo_masscan': resultado_masscan,
+                'analisis_web_nikto': resultado_nikto,
+                'enumeracion_gobuster': resultado_gobuster,
+                
+                # Análisis de seguridad
+                'deteccion_rootkits_chkrootkit': resultado_chkrootkit,
+                'deteccion_rootkits_rkhunter': resultado_rkhunter,
+                
+                # Resumen de vulnerabilidades
+                'vulnerabilidades': self._compilar_vulnerabilidades(
+                    resultado_nmap, resultado_nikto, resultado_chkrootkit, resultado_rkhunter
+                ),
+                'amenazas_cuarentena': []
+            }
+            
+            # Estadísticas finales
+            total_vulnerabilidades = len(resultado_final['vulnerabilidades'])
+            self.logger.info(
+                f"✅ Escaneo avanzado completado: {resultado_final['total_puertos']} puertos, "
+                f"{resultado_final['total_procesos']} procesos, {total_vulnerabilidades} vulnerabilidades"
+            )
+            
+            return resultado_final
+            
         except Exception as e:
             self.logger.error(f"Error en escaneo del sistema: {e}")
             return {
                 'exito': False,
                 'error': str(e),
+                'puertos_abiertos': [],
+                'total_puertos': 0,
+                'procesos_detectados': [],
+                'total_procesos': 0,
                 'vulnerabilidades': [],
                 'amenazas_cuarentena': []
             }
+
+    def _escanear_puertos_locales(self) -> Dict[str, Any]:
+        """Escanear puertos abiertos en el sistema local"""
+        try:
+            import subprocess
+            puertos_encontrados = []
+            
+            # Usar netstat para detectar puertos abiertos
+            cmd = ['netstat', '-tuln']
+            result = subprocess.run(cmd, capture_output=True, text=True, timeout=30)
+            
+            if result.returncode == 0:
+                lineas = result.stdout.split('\n')
+                for linea in lineas:
+                    if 'LISTEN' in linea or 'UDP' in linea:
+                        partes = linea.split()
+                        if len(partes) >= 4:
+                            direccion_local = partes[3]
+                            if ':' in direccion_local:
+                                puerto = direccion_local.split(':')[-1]
+                                if puerto.isdigit():
+                                    puertos_encontrados.append({
+                                        'puerto': int(puerto),
+                                        'protocolo': 'TCP' if 'tcp' in linea.lower() else 'UDP',
+                                        'estado': 'LISTENING',
+                                        'direccion': direccion_local
+                                    })
+            
+            return {'puertos': puertos_encontrados, 'exito': True}
+            
+        except Exception as e:
+            self.logger.error(f"Error escaneando puertos: {e}")
+            return {'puertos': [], 'exito': False, 'error': str(e)}
+
+    def _escanear_procesos_activos(self) -> Dict[str, Any]:
+        """Escanear procesos activos en el sistema"""
+        try:
+            import subprocess
+            procesos_encontrados = []
+            
+            # Usar ps para obtener procesos
+            cmd = ['ps', 'aux']
+            result = subprocess.run(cmd, capture_output=True, text=True, timeout=30)
+            
+            if result.returncode == 0:
+                lineas = result.stdout.split('\n')[1:]  # Saltar header
+                for linea in lineas[:50]:  # Limitar a 50 procesos
+                    if linea.strip():
+                        partes = linea.split(None, 10)
+                        if len(partes) >= 11:
+                            procesos_encontrados.append({
+                                'usuario': partes[0],
+                                'pid': partes[1],
+                                'cpu': partes[2],
+                                'memoria': partes[3],
+                                'comando': partes[10]
+                            })
+            
+            return {'procesos': procesos_encontrados, 'exito': True}
+            
+        except Exception as e:
+            self.logger.error(f"Error escaneando procesos: {e}")
+            return {'procesos': [], 'exito': False, 'error': str(e)}
+
+    def _escanear_servicios_sistema(self) -> Dict[str, Any]:
+        """Escanear servicios del sistema"""
+        try:
+            import subprocess
+            servicios_encontrados = []
+            
+            # Usar systemctl para obtener servicios
+            cmd = ['systemctl', 'list-units', '--type=service', '--state=active']
+            result = subprocess.run(cmd, capture_output=True, text=True, timeout=30)
+            
+            if result.returncode == 0:
+                lineas = result.stdout.split('\n')
+                for linea in lineas:
+                    if '.service' in linea and 'active' in linea:
+                        partes = linea.split()
+                        if len(partes) >= 4:
+                            servicios_encontrados.append({
+                                'nombre': partes[0],
+                                'estado': partes[1],
+                                'actividad': partes[2],
+                                'descripcion': ' '.join(partes[4:]) if len(partes) > 4 else ''
+                            })
+            
+            return {'servicios': servicios_encontrados[:20], 'exito': True}  # Limitar a 20
+            
+        except Exception as e:
+            self.logger.error(f"Error escaneando servicios: {e}")
+            return {'servicios': [], 'exito': False, 'error': str(e)}
 
     def verificar_kali_linux(self) -> Dict[str, Any]:
         """
@@ -690,3 +841,431 @@ class ControladorEscaneadorCuarentena:
                 'kali_detectado': False,
                 'recomendaciones': ['Error en verificación del sistema']
             }
+
+    # =================== MÉTODOS AVANZADOS CON HERRAMIENTAS DE KALI ===================
+    
+    def _escanear_con_nmap(self) -> Dict[str, Any]:
+        """Escanear puertos locales con nmap (herramienta de Kali)"""
+        try:
+            import subprocess
+            self.logger.info("🎯 Ejecutando escaneo con Nmap...")
+            
+            # Escanear localhost con nmap
+            cmd = ['nmap', '-sT', '-O', '--top-ports', '1000', 'localhost']
+            result = subprocess.run(cmd, capture_output=True, text=True, timeout=120)
+            
+            puertos_nmap = []
+            servicios_detectados = []
+            
+            if result.returncode == 0:
+                lineas = result.stdout.split('\\n')
+                for linea in lineas:
+                    # Parsear puertos abiertos
+                    if '/tcp' in linea and 'open' in linea:
+                        partes = linea.split()
+                        if len(partes) >= 3:
+                            puerto_info = partes[0].split('/')[0]
+                            estado = partes[1]
+                            servicio = partes[2] if len(partes) > 2 else 'unknown'
+                            
+                            puertos_nmap.append({
+                                'puerto': int(puerto_info),
+                                'protocolo': 'TCP',
+                                'estado': estado,
+                                'servicio': servicio,
+                                'herramienta': 'nmap'
+                            })
+                            
+                            servicios_detectados.append(servicio)
+                
+                return {
+                    'exito': True,
+                    'puertos_encontrados': puertos_nmap,
+                    'total_puertos': len(puertos_nmap),
+                    'servicios_detectados': list(set(servicios_detectados)),
+                    'raw_output': result.stdout,
+                    'herramienta': 'nmap'
+                }
+            else:
+                return {
+                    'exito': False,
+                    'error': result.stderr,
+                    'puertos_encontrados': [],
+                    'herramienta': 'nmap'
+                }
+                
+        except subprocess.TimeoutExpired:
+            self.logger.warning("Timeout en escaneo nmap")
+            return {
+                'exito': False,
+                'error': 'Timeout en escaneo nmap',
+                'puertos_encontrados': [],
+                'herramienta': 'nmap'
+            }
+        except Exception as e:
+            self.logger.error(f"Error en escaneo nmap: {e}")
+            return {
+                'exito': False,
+                'error': str(e),
+                'puertos_encontrados': [],
+                'herramienta': 'nmap'
+            }
+    
+    def _escanear_con_masscan(self) -> Dict[str, Any]:
+        """Escanear puertos con masscan (herramienta de Kali para escaneos rápidos)"""
+        try:
+            import subprocess
+            self.logger.info("⚡ Ejecutando escaneo rápido con Masscan...")
+            
+            # Escanear rango local con masscan
+            cmd = ['masscan', '127.0.0.1', '-p1-1000', '--rate=1000']
+            result = subprocess.run(cmd, capture_output=True, text=True, timeout=60)
+            
+            puertos_masscan = []
+            
+            if result.returncode == 0:
+                lineas = result.stdout.split('\\n')
+                for linea in lineas:
+                    if 'open' in linea and '127.0.0.1' in linea:
+                        # Parsear formato: "Discovered open port 22/tcp on 127.0.0.1"
+                        partes = linea.split()
+                        for parte in partes:
+                            if '/' in parte and parte.replace('/', '').replace('tcp', '').replace('udp', '').isdigit():
+                                puerto_info = parte.split('/')[0]
+                                protocolo = parte.split('/')[1].upper()
+                                
+                                puertos_masscan.append({
+                                    'puerto': int(puerto_info),
+                                    'protocolo': protocolo,
+                                    'estado': 'open',
+                                    'herramienta': 'masscan'
+                                })
+                
+                return {
+                    'exito': True,
+                    'puertos_encontrados': puertos_masscan,
+                    'total_puertos': len(puertos_masscan),
+                    'raw_output': result.stdout,
+                    'herramienta': 'masscan'
+                }
+            else:
+                return {
+                    'exito': False,
+                    'error': result.stderr,
+                    'puertos_encontrados': [],
+                    'herramienta': 'masscan'
+                }
+                
+        except subprocess.TimeoutExpired:
+            self.logger.warning("Timeout en escaneo masscan")
+            return {
+                'exito': False,
+                'error': 'Timeout en escaneo masscan',
+                'puertos_encontrados': [],
+                'herramienta': 'masscan'
+            }
+        except Exception as e:
+            self.logger.error(f"Error en escaneo masscan: {e}")
+            return {
+                'exito': False,
+                'error': str(e),
+                'puertos_encontrados': [],
+                'herramienta': 'masscan'
+            }
+    
+    def _escanear_web_con_nikto(self) -> Dict[str, Any]:
+        """Escanear vulnerabilidades web con nikto (herramienta de Kali)"""
+        try:
+            import subprocess
+            self.logger.info("🌐 Ejecutando análisis web con Nikto...")
+            
+            # Verificar si hay servicios web en puertos comunes
+            puertos_web = [80, 443, 8080, 8443, 3000, 5000]
+            resultados_nikto = []
+            
+            for puerto in puertos_web:
+                try:
+                    # Probar si el puerto está abierto
+                    import socket
+                    sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+                    sock.settimeout(2)
+                    result = sock.connect_ex(('127.0.0.1', puerto))
+                    sock.close()
+                    
+                    if result == 0:  # Puerto abierto
+                        self.logger.info(f"Puerto web {puerto} detectado, analizando con Nikto...")
+                        
+                        # Ejecutar nikto
+                        protocolo = 'https' if puerto in [443, 8443] else 'http'
+                        url = f"{protocolo}://127.0.0.1:{puerto}"
+                        
+                        cmd = ['nikto', '-h', url, '-timeout', '30']
+                        result = subprocess.run(cmd, capture_output=True, text=True, timeout=90)
+                        
+                        vulnerabilidades = []
+                        if result.returncode == 0:
+                            lineas = result.stdout.split('\\n')
+                            for linea in lineas:
+                                if '+' in linea and any(keyword in linea.lower() for keyword in 
+                                    ['vulnerability', 'vuln', 'security', 'exposure', 'risk']):
+                                    vulnerabilidades.append(linea.strip())
+                        
+                        resultados_nikto.append({
+                            'puerto': puerto,
+                            'url': url,
+                            'vulnerabilidades_encontradas': vulnerabilidades,
+                            'total_vulnerabilidades': len(vulnerabilidades),
+                            'raw_output': result.stdout[:1000],  # Limitar output
+                            'herramienta': 'nikto'
+                        })
+                
+                except Exception as e:
+                    self.logger.debug(f"Error verificando puerto {puerto}: {e}")
+                    continue
+            
+            return {
+                'exito': True,
+                'servicios_web_analizados': resultados_nikto,
+                'total_servicios': len(resultados_nikto),
+                'herramienta': 'nikto'
+            }
+                
+        except Exception as e:
+            self.logger.error(f"Error en análisis nikto: {e}")
+            return {
+                'exito': False,
+                'error': str(e),
+                'servicios_web_analizados': [],
+                'herramienta': 'nikto'
+            }
+    
+    def _enumeracion_web_gobuster(self) -> Dict[str, Any]:
+        """Enumeración de directorios web con gobuster (herramienta de Kali)"""
+        try:
+            import subprocess
+            self.logger.info("📁 Ejecutando enumeración de directorios con Gobuster...")
+            
+            # Verificar si hay servicios web
+            puertos_web = [80, 443, 8080]
+            resultados_gobuster = []
+            
+            for puerto in puertos_web:
+                try:
+                    import socket
+                    sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+                    sock.settimeout(2)
+                    result = sock.connect_ex(('127.0.0.1', puerto))
+                    sock.close()
+                    
+                    if result == 0:  # Puerto abierto
+                        protocolo = 'https' if puerto == 443 else 'http'
+                        url = f"{protocolo}://127.0.0.1:{puerto}"
+                        
+                        # Usar wordlist básica de dirb
+                        wordlist = '/usr/share/dirb/wordlists/common.txt'
+                        if not os.path.exists(wordlist):
+                            wordlist = '/usr/share/wordlists/dirb/common.txt'
+                        
+                        if os.path.exists(wordlist):
+                            cmd = ['gobuster', 'dir', '-u', url, '-w', wordlist, '-t', '10', '-q']
+                            result = subprocess.run(cmd, capture_output=True, text=True, timeout=60)
+                            
+                            directorios_encontrados = []
+                            if result.returncode == 0:
+                                lineas = result.stdout.split('\\n')
+                                for linea in lineas:
+                                    if '(Status:' in linea:
+                                        directorios_encontrados.append(linea.strip())
+                            
+                            resultados_gobuster.append({
+                                'puerto': puerto,
+                                'url': url,
+                                'directorios_encontrados': directorios_encontrados,
+                                'total_directorios': len(directorios_encontrados),
+                                'herramienta': 'gobuster'
+                            })
+                        
+                except Exception as e:
+                    self.logger.debug(f"Error en gobuster puerto {puerto}: {e}")
+                    continue
+            
+            return {
+                'exito': True,
+                'enumeracion_directorios': resultados_gobuster,
+                'total_servicios': len(resultados_gobuster),
+                'herramienta': 'gobuster'
+            }
+                
+        except Exception as e:
+            self.logger.error(f"Error en enumeración gobuster: {e}")
+            return {
+                'exito': False,
+                'error': str(e),
+                'enumeracion_directorios': [],
+                'herramienta': 'gobuster'
+            }
+    
+    def _detectar_rootkits_chkrootkit(self) -> Dict[str, Any]:
+        """Detectar rootkits con chkrootkit (herramienta de Kali)"""
+        try:
+            import subprocess
+            self.logger.info("🔍 Ejecutando detección de rootkits con chkrootkit...")
+            
+            cmd = ['chkrootkit', '-q']  # Modo silencioso
+            result = subprocess.run(cmd, capture_output=True, text=True, timeout=120)
+            
+            detecciones = []
+            if result.returncode == 0:
+                lineas = result.stdout.split('\\n')
+                for linea in lineas:
+                    if linea.strip() and 'INFECTED' in linea.upper():
+                        detecciones.append(linea.strip())
+            
+            return {
+                'exito': True,
+                'rootkits_detectados': detecciones,
+                'total_detecciones': len(detecciones),
+                'sistema_limpio': len(detecciones) == 0,
+                'raw_output': result.stdout[:1000],
+                'herramienta': 'chkrootkit'
+            }
+                
+        except subprocess.TimeoutExpired:
+            return {
+                'exito': False,
+                'error': 'Timeout en chkrootkit',
+                'rootkits_detectados': [],
+                'herramienta': 'chkrootkit'
+            }
+        except Exception as e:
+            self.logger.error(f"Error en chkrootkit: {e}")
+            return {
+                'exito': False,
+                'error': str(e),
+                'rootkits_detectados': [],
+                'herramienta': 'chkrootkit'
+            }
+    
+    def _detectar_rootkits_rkhunter(self) -> Dict[str, Any]:
+        """Detectar rootkits con rkhunter (herramienta de Kali)"""
+        try:
+            import subprocess
+            self.logger.info("🛡️ Ejecutando detección de rootkits con rkhunter...")
+            
+            cmd = ['rkhunter', '--check', '--skip-keypress', '--report-warnings-only']
+            result = subprocess.run(cmd, capture_output=True, text=True, timeout=180)
+            
+            warnings = []
+            detecciones_criticas = []
+            
+            if result.returncode in [0, 1]:  # 0 = limpio, 1 = warnings
+                lineas = result.stdout.split('\\n')
+                for linea in lineas:
+                    if 'WARNING' in linea.upper():
+                        warnings.append(linea.strip())
+                    elif 'INFECTED' in linea.upper() or 'ROOTKIT' in linea.upper():
+                        detecciones_criticas.append(linea.strip())
+            
+            return {
+                'exito': True,
+                'warnings': warnings,
+                'detecciones_criticas': detecciones_criticas,
+                'total_warnings': len(warnings),
+                'total_criticas': len(detecciones_criticas),
+                'sistema_limpio': len(detecciones_criticas) == 0,
+                'herramienta': 'rkhunter'
+            }
+                
+        except subprocess.TimeoutExpired:
+            return {
+                'exito': False,
+                'error': 'Timeout en rkhunter',
+                'warnings': [],
+                'detecciones_criticas': [],
+                'herramienta': 'rkhunter'
+            }
+        except Exception as e:
+            self.logger.error(f"Error en rkhunter: {e}")
+            return {
+                'exito': False,
+                'error': str(e),
+                'warnings': [],
+                'detecciones_criticas': [],
+                'herramienta': 'rkhunter'
+            }
+    
+    def _compilar_vulnerabilidades(self, resultado_nmap, resultado_nikto, resultado_chkrootkit, resultado_rkhunter) -> List[Dict[str, Any]]:
+        """Compilar todas las vulnerabilidades encontradas en un formato unificado"""
+        vulnerabilidades = []
+        
+        try:
+            # Vulnerabilidades de servicios (nmap)
+            if resultado_nmap.get('exito') and resultado_nmap.get('puertos_encontrados'):
+                for puerto in resultado_nmap['puertos_encontrados']:
+                    # Servicios comunes con vulnerabilidades conocidas
+                    servicios_riesgo = {
+                        'ssh': 'Servicio SSH expuesto - revisar configuración',
+                        'telnet': 'Telnet detectado - protocolo inseguro',
+                        'ftp': 'FTP detectado - revisar configuración de seguridad',
+                        'http': 'Servidor web detectado - revisar configuración',
+                        'https': 'Servidor web SSL detectado - verificar certificados'
+                    }
+                    
+                    servicio = puerto.get('servicio', '').lower()
+                    if servicio in servicios_riesgo:
+                        vulnerabilidades.append({
+                            'tipo': 'Servicio Expuesto',
+                            'descripcion': servicios_riesgo[servicio],
+                            'puerto': puerto['puerto'],
+                            'servicio': servicio,
+                            'severidad': 'Media',
+                            'herramienta': 'nmap'
+                        })
+            
+            # Vulnerabilidades web (nikto)
+            if resultado_nikto.get('exito') and resultado_nikto.get('servicios_web_analizados'):
+                for servicio in resultado_nikto['servicios_web_analizados']:
+                    for vuln in servicio.get('vulnerabilidades_encontradas', []):
+                        vulnerabilidades.append({
+                            'tipo': 'Vulnerabilidad Web',
+                            'descripcion': vuln,
+                            'puerto': servicio['puerto'],
+                            'url': servicio['url'],
+                            'severidad': 'Alta',
+                            'herramienta': 'nikto'
+                        })
+            
+            # Rootkits (chkrootkit)
+            if resultado_chkrootkit.get('exito') and resultado_chkrootkit.get('rootkits_detectados'):
+                for rootkit in resultado_chkrootkit['rootkits_detectados']:
+                    vulnerabilidades.append({
+                        'tipo': 'Rootkit Detectado',
+                        'descripcion': rootkit,
+                        'severidad': 'Crítica',
+                        'herramienta': 'chkrootkit'
+                    })
+            
+            # Warnings críticos (rkhunter)
+            if resultado_rkhunter.get('exito'):
+                for critica in resultado_rkhunter.get('detecciones_criticas', []):
+                    vulnerabilidades.append({
+                        'tipo': 'Detección Crítica',
+                        'descripcion': critica,
+                        'severidad': 'Crítica',
+                        'herramienta': 'rkhunter'
+                    })
+                
+                # Warnings importantes
+                for warning in resultado_rkhunter.get('warnings', [])[:5]:  # Limitar a 5
+                    vulnerabilidades.append({
+                        'tipo': 'Warning de Seguridad',
+                        'descripcion': warning,
+                        'severidad': 'Media',
+                        'herramienta': 'rkhunter'
+                    })
+            
+            return vulnerabilidades
+            
+        except Exception as e:
+            self.logger.error(f"Error compilando vulnerabilidades: {e}")
+            return [{'tipo': 'Error', 'descripcion': f'Error compilando vulnerabilidades: {str(e)}', 'severidad': 'Baja'}]

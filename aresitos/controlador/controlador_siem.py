@@ -460,32 +460,57 @@ class ControladorSIEM(ControladorBase):
         """Bucle principal del análisis de eventos SIEM."""
         self.logger.debug("Iniciando bucle de análisis de eventos SIEM")
         
-        while not self._detener_analisis:
+        # Contador de ciclos para logging
+        ciclos_ejecutados = 0
+        max_ciclos_sin_timeout = 100  # Máximo 100 ciclos antes de break forzado
+        
+        while not self._detener_analisis and ciclos_ejecutados < max_ciclos_sin_timeout:
             try:
-                # Analizar logs del sistema
+                # Verificar si aún debemos continuar
+                if not self._estado_siem.get('monitoreo_activo', False):
+                    self.logger.debug("Monitoreo desactivado, saliendo del bucle")
+                    break
+                
+                # Analizar logs del sistema con timeout
+                start_time = time.time()
                 eventos_nuevos = self._analizar_logs_sistema()
+                
+                # Verificar que no tardamos demasiado
+                if time.time() - start_time > 10:  # Más de 10 segundos
+                    self.logger.warning("Análisis de logs tardó demasiado, optimizando...")
                 
                 # Procesar eventos nuevos
                 if eventos_nuevos:
                     self._procesar_eventos_nuevos(eventos_nuevos)
                 
-                # Ejecutar correlación de eventos
-                if self._config_siem['habilitar_correlacion']:
+                # Ejecutar correlación de eventos (solo cada 3 ciclos)
+                if ciclos_ejecutados % 3 == 0 and self._config_siem['habilitar_correlacion']:
                     self._ejecutar_correlacion_eventos()
                 
-                # Actualizar métricas en tiempo real
-                self._actualizar_metricas_tiempo_real()
+                # Actualizar métricas en tiempo real (solo cada 5 ciclos)
+                if ciclos_ejecutados % 5 == 0:
+                    self._actualizar_metricas_tiempo_real()
                 
                 # Actualizar timestamp del último análisis
                 with self._lock_siem:
                     self._estado_siem['ultimo_analisis'] = datetime.now()
                 
-                # Esperar al siguiente ciclo
-                time.sleep(self._config_siem['intervalo_analisis_segundos'])
+                ciclos_ejecutados += 1
+                
+                # Esperar al siguiente ciclo (mínimo 5 segundos)
+                intervalo = max(5, self._config_siem['intervalo_analisis_segundos'])
+                time.sleep(intervalo)
                 
             except Exception as e:
                 self.logger.error(f"Error en bucle de análisis SIEM: {e}")
                 time.sleep(30)  # Espera más larga en caso de error
+                break  # Salir del loop en caso de error
+        
+        # Cleanup al finalizar el bucle
+        with self._lock_siem:
+            self._estado_siem['monitoreo_activo'] = False
+        
+        self.logger.info(f"Bucle SIEM finalizado después de {ciclos_ejecutados} ciclos")
 
     def _analizar_logs_sistema(self) -> List[Dict[str, Any]]:
         """
@@ -1363,6 +1388,612 @@ class ControladorSIEM(ControladorBase):
             resultado['error'] = str(e)
         
         return resultado
+
+    # =================== MÉTODOS AVANZADOS CON HERRAMIENTAS DE KALI ===================
+    
+    def configurar_auditd(self) -> Dict[str, Any]:
+        """
+        Configurar auditd para auditoría avanzada del sistema en Kali Linux.
+        KALI OPTIMIZATION: Configuración específica de auditd para pentesting profesional.
+        """
+        try:
+            self.logger.info("🔧 Configurando auditd para auditoría avanzada...")
+            
+            # Verificar si auditd está disponible
+            result_check = subprocess.run(['which', 'auditctl'], capture_output=True, text=True, timeout=5)
+            if result_check.returncode != 0:
+                return {
+                    'exito': False,
+                    'error': 'auditd no está instalado',
+                    'recomendacion': 'sudo apt install auditd audispd-plugins'
+                }
+            
+            # Configurar reglas de auditoría para seguridad
+            reglas_auditoria = [
+                # Acceso a archivos críticos del sistema
+                '-w /etc/passwd -p wa -k passwd_changes',
+                '-w /etc/shadow -p wa -k shadow_changes',
+                '-w /etc/sudoers -p wa -k sudoers_changes',
+                '-w /etc/hosts -p wa -k network_changes',
+                
+                # Ejecutables del sistema
+                '-w /bin/ -p x -k system_executables',
+                '-w /sbin/ -p x -k system_executables',
+                '-w /usr/bin/ -p x -k system_executables',
+                
+                # Logs del sistema
+                '-w /var/log/ -p wa -k log_access',
+                
+                # SSH y conexiones
+                '-w /etc/ssh/sshd_config -p wa -k ssh_config',
+                '-A always,exit -F arch=b64 -S connect -k network_connect',
+                
+                # Elevación de privilegios
+                '-A always,exit -F arch=b64 -S setuid -S setgid -k privilege_escalation',
+                
+                # Cambios en el kernel
+                '-w /boot/ -p wa -k kernel_changes',
+                '-w /lib/modules/ -p wa -k kernel_modules'
+            ]
+            
+            resultados_reglas = []
+            for regla in reglas_auditoria:
+                try:
+                    # Aplicar regla con auditctl
+                    cmd = ['auditctl'] + regla.split()[1:]  # Omitir el '-' inicial
+                    result = subprocess.run(cmd, capture_output=True, text=True, timeout=10)
+                    
+                    resultados_reglas.append({
+                        'regla': regla,
+                        'aplicada': result.returncode == 0,
+                        'error': result.stderr if result.returncode != 0 else None
+                    })
+                    
+                except Exception as e:
+                    resultados_reglas.append({
+                        'regla': regla,
+                        'aplicada': False,
+                        'error': str(e)
+                    })
+            
+            # Verificar estado del servicio auditd
+            try:
+                status_result = subprocess.run(['systemctl', 'status', 'auditd'], 
+                                             capture_output=True, text=True, timeout=5)
+                servicio_activo = 'active (running)' in status_result.stdout
+            except:
+                servicio_activo = False
+            
+            reglas_aplicadas = sum(1 for r in resultados_reglas if r['aplicada'])
+            
+            return {
+                'exito': reglas_aplicadas > 0,
+                'reglas_aplicadas': reglas_aplicadas,
+                'total_reglas': len(reglas_auditoria),
+                'servicio_activo': servicio_activo,
+                'detalles_reglas': resultados_reglas,
+                'herramienta': 'auditd'
+            }
+            
+        except Exception as e:
+            self.logger.error(f"Error configurando auditd: {e}")
+            return {
+                'exito': False,
+                'error': str(e),
+                'herramienta': 'auditd'
+            }
+    
+    def monitorear_con_osquery(self) -> Dict[str, Any]:
+        """
+        Monitorear sistema usando osquery para queries de seguridad avanzadas.
+        KALI OPTIMIZATION: Queries específicas para análisis de seguridad en pentesting.
+        """
+        try:
+            self.logger.info("🔍 Ejecutando monitoreo con osquery...")
+            
+            # Verificar si osquery está disponible
+            result_check = subprocess.run(['which', 'osqueryi'], capture_output=True, text=True, timeout=5)
+            if result_check.returncode != 0:
+                return {
+                    'exito': False,
+                    'error': 'osquery no está instalado',
+                    'recomendacion': 'sudo apt install osquery'
+                }
+            
+            # Queries de seguridad específicas para Kali Linux
+            queries_seguridad = {
+                'procesos_sospechosos': """
+                    SELECT pid, name, cmdline, path, start_time 
+                    FROM processes 
+                    WHERE name LIKE '%ncat%' OR name LIKE '%nc%' OR name LIKE '%netcat%' 
+                       OR name LIKE '%meterpreter%' OR cmdline LIKE '%/bin/sh%'
+                       OR cmdline LIKE '%bash -i%' OR cmdline LIKE '%python -c%'
+                    ORDER BY start_time DESC;
+                """,
+                
+                'conexiones_red_sospechosas': """
+                    SELECT DISTINCT local_address, local_port, remote_address, remote_port, 
+                           family, protocol, state
+                    FROM process_open_sockets 
+                    WHERE remote_address NOT IN ('127.0.0.1', '0.0.0.0', '::1', '')
+                    AND remote_port NOT IN (80, 443, 53, 22)
+                    ORDER BY remote_address;
+                """,
+                
+                'archivos_modificados_recientes': """
+                    SELECT path, filename, mtime, size, md5, sha256
+                    FROM file 
+                    WHERE path LIKE '/etc/%' OR path LIKE '/bin/%' OR path LIKE '/sbin/%'
+                    AND mtime > (strftime('%s', 'now') - 3600)
+                    ORDER BY mtime DESC;
+                """,
+                
+                'usuarios_con_shell': """
+                    SELECT uid, gid, username, description, directory, shell
+                    FROM users 
+                    WHERE shell NOT IN ('/bin/false', '/usr/sbin/nologin', '/bin/sync')
+                    ORDER BY uid;
+                """,
+                
+                'servicios_escuchando': """
+                    SELECT DISTINCT process.name, listening_ports.port, listening_ports.protocol,
+                           process.cmdline, process.path
+                    FROM listening_ports
+                    LEFT JOIN process USING (pid)
+                    WHERE listening_ports.address = '0.0.0.0'
+                    ORDER BY listening_ports.port;
+                """,
+                
+                'logs_autenticacion': """
+                    SELECT time, host, ident, message
+                    FROM syslog 
+                    WHERE facility = 'auth' OR facility = 'authpriv'
+                    AND time > (strftime('%s', 'now') - 1800)
+                    ORDER BY time DESC 
+                    LIMIT 50;
+                """
+            }
+            
+            resultados_queries = {}
+            
+            for nombre_query, sql_query in queries_seguridad.items():
+                try:
+                    # Ejecutar query con osqueryi
+                    cmd = ['osqueryi', '--json', sql_query.strip()]
+                    result = subprocess.run(cmd, capture_output=True, text=True, timeout=30)
+                    
+                    if result.returncode == 0:
+                        try:
+                            import json
+                            datos = json.loads(result.stdout)
+                            resultados_queries[nombre_query] = {
+                                'exito': True,
+                                'total_resultados': len(datos),
+                                'datos': datos[:10],  # Limitar a 10 resultados por query
+                                'datos_completos': len(datos) > 10
+                            }
+                        except json.JSONDecodeError:
+                            resultados_queries[nombre_query] = {
+                                'exito': False,
+                                'error': 'Error parseando JSON de osquery'
+                            }
+                    else:
+                        resultados_queries[nombre_query] = {
+                            'exito': False,
+                            'error': result.stderr
+                        }
+                        
+                except subprocess.TimeoutExpired:
+                    resultados_queries[nombre_query] = {
+                        'exito': False,
+                        'error': 'Timeout en query osquery'
+                    }
+                except Exception as e:
+                    resultados_queries[nombre_query] = {
+                        'exito': False,
+                        'error': str(e)
+                    }
+            
+            queries_exitosas = sum(1 for r in resultados_queries.values() if r.get('exito', False))
+            
+            return {
+                'exito': queries_exitosas > 0,
+                'queries_ejecutadas': len(queries_seguridad),
+                'queries_exitosas': queries_exitosas,
+                'resultados': resultados_queries,
+                'herramienta': 'osquery'
+            }
+            
+        except Exception as e:
+            self.logger.error(f"Error en monitoreo osquery: {e}")
+            return {
+                'exito': False,
+                'error': str(e),
+                'herramienta': 'osquery'
+            }
+    
+    def configurar_rsyslog_avanzado(self) -> Dict[str, Any]:
+        """
+        Configurar rsyslog para logging avanzado y centralizado en Kali Linux.
+        KALI OPTIMIZATION: Configuración específica para captura de logs de seguridad.
+        """
+        try:
+            self.logger.info("📋 Configurando rsyslog avanzado...")
+            
+            # Verificar si rsyslog está disponible
+            result_check = subprocess.run(['which', 'rsyslogd'], capture_output=True, text=True, timeout=5)
+            if result_check.returncode != 0:
+                return {
+                    'exito': False,
+                    'error': 'rsyslog no está instalado',
+                    'recomendacion': 'sudo apt install rsyslog'
+                }
+            
+            # Configuración avanzada de rsyslog para SIEM
+            configuracion_rsyslog = """
+# Configuración SIEM ARESITOS para Kali Linux
+# Logging avanzado para detección de amenazas
+
+# Módulos adicionales
+$ModLoad imuxsock # provides support for local system logging
+$ModLoad imklog   # provides kernel logging support
+$ModLoad imfile   # provides file monitoring
+
+# Templates para logs estructurados
+$template SIEMFormat,"<%PRI%>%TIMESTAMP% %HOSTNAME% %syslogtag% %msg%\\n"
+$template DynAuthFile,"/var/log/ares-aegis/auth-%$YEAR%-%$MONTH%-%$DAY%.log"
+$template DynSecurityFile,"/var/log/ares-aegis/security-%$YEAR%-%$MONTH%-%$DAY%.log"
+
+# Reglas de filtrado específicas para SIEM
+# Eventos de autenticación críticos
+:msg, regex, "Failed password|Invalid user|authentication failure" ?DynAuthFile;SIEMFormat
+& stop
+
+# Eventos de seguridad del kernel
+:facility, isequal, "kern" /var/log/ares-aegis/kernel-security.log;SIEMFormat
+& stop
+
+# Eventos de firewall/iptables
+:msg, regex, "iptables.*DROP|iptables.*REJECT" /var/log/ares-aegis/firewall.log;SIEMFormat
+& stop
+
+# Eventos de sudo/privilegios
+:programname, isequal, "sudo" /var/log/ares-aegis/sudo.log;SIEMFormat
+& stop
+
+# SSH events específicos
+:programname, isequal, "sshd" /var/log/ares-aegis/ssh.log;SIEMFormat
+& stop
+
+# Logs por defecto
+*.info;mail.none;authpriv.none;cron.none    /var/log/messages
+"""
+            
+            # Crear directorio de logs de ARESITOS
+            log_dir = '/var/log/ares-aegis'
+            try:
+                import os
+                if not os.path.exists(log_dir):
+                    # Intentar crear directorio (requiere sudo)
+                    result_mkdir = subprocess.run(['mkdir', '-p', log_dir], 
+                                                capture_output=True, text=True, timeout=5)
+                    if result_mkdir.returncode == 0:
+                        # Establecer permisos
+                        subprocess.run(['chmod', '755', log_dir], timeout=5)
+                    else:
+                        self.logger.warning(f"No se pudo crear directorio {log_dir}")
+                
+                directorio_creado = os.path.exists(log_dir)
+            except Exception as e:
+                self.logger.warning(f"Error creando directorio de logs: {e}")
+                directorio_creado = False
+            
+            # Verificar configuración actual de rsyslog
+            try:
+                config_result = subprocess.run(['rsyslogd', '-N1'], 
+                                             capture_output=True, text=True, timeout=10)
+                configuracion_valida = config_result.returncode == 0
+                errores_config = config_result.stderr if config_result.returncode != 0 else None
+            except Exception as e:
+                configuracion_valida = False
+                errores_config = str(e)
+            
+            # Verificar estado del servicio
+            try:
+                status_result = subprocess.run(['systemctl', 'status', 'rsyslog'], 
+                                             capture_output=True, text=True, timeout=5)
+                servicio_activo = 'active (running)' in status_result.stdout
+            except:
+                servicio_activo = False
+            
+            return {
+                'exito': directorio_creado and configuracion_valida,
+                'directorio_logs_creado': directorio_creado,
+                'directorio_logs': log_dir,
+                'configuracion_valida': configuracion_valida,
+                'errores_configuracion': errores_config,
+                'servicio_activo': servicio_activo,
+                'configuracion_sugerida': configuracion_rsyslog,
+                'herramienta': 'rsyslog',
+                'instrucciones': [
+                    f"1. Crear directorio: sudo mkdir -p {log_dir}",
+                    f"2. Permisos: sudo chmod 755 {log_dir}",
+                    "3. Editar: sudo nano /etc/rsyslog.conf",
+                    "4. Reiniciar: sudo systemctl restart rsyslog"
+                ]
+            }
+            
+        except Exception as e:
+            self.logger.error(f"Error configurando rsyslog: {e}")
+            return {
+                'exito': False,
+                'error': str(e),
+                'herramienta': 'rsyslog'
+            }
+    
+    def analizar_con_journalctl(self) -> Dict[str, Any]:
+        """
+        Analizar logs del sistema usando journalctl para eventos de seguridad.
+        KALI OPTIMIZATION: Análisis específico de systemd journal para detección de amenazas.
+        """
+        try:
+            self.logger.info("📊 Analizando logs con journalctl...")
+            
+            # Verificar si journalctl está disponible
+            result_check = subprocess.run(['which', 'journalctl'], capture_output=True, text=True, timeout=5)
+            if result_check.returncode != 0:
+                return {
+                    'exito': False,
+                    'error': 'journalctl no está disponible',
+                    'recomendacion': 'Instalar systemd'
+                }
+            
+            # Análisis específicos con journalctl
+            analisis_journal = {
+                'errores_criticos': {
+                    'comando': ['journalctl', '-p', 'err', '--since', '1 hour ago', '--no-pager', '-q'],
+                    'descripcion': 'Errores críticos en la última hora'
+                },
+                
+                'eventos_autenticacion': {
+                    'comando': ['journalctl', '_SYSTEMD_UNIT=ssh.service', '--since', '2 hours ago', '--no-pager', '-q'],
+                    'descripcion': 'Eventos SSH recientes'
+                },
+                
+                'cambios_servicios': {
+                    'comando': ['journalctl', '--since', '1 hour ago', '--grep', 'Started|Stopped|Failed', '--no-pager', '-q'],
+                    'descripcion': 'Cambios en servicios del sistema'
+                },
+                
+                'eventos_kernel': {
+                    'comando': ['journalctl', '-k', '--since', '30 minutes ago', '--no-pager', '-q'],
+                    'descripcion': 'Eventos del kernel recientes'
+                },
+                
+                'fallos_servicios': {
+                    'comando': ['journalctl', '--failed', '--no-pager', '-q'],
+                    'descripcion': 'Servicios que han fallado'
+                },
+                
+                'audit_events': {
+                    'comando': ['journalctl', '_TRANSPORT=audit', '--since', '1 hour ago', '--no-pager', '-q'],
+                    'descripcion': 'Eventos de auditoría del sistema'
+                }
+            }
+            
+            resultados_analisis = {}
+            
+            for nombre_analisis, config in analisis_journal.items():
+                try:
+                    result = subprocess.run(config['comando'], 
+                                          capture_output=True, text=True, timeout=20)
+                    
+                    if result.returncode == 0:
+                        lineas = result.stdout.strip().split('\\n')
+                        lineas_filtradas = [l for l in lineas if l.strip()]
+                        
+                        resultados_analisis[nombre_analisis] = {
+                            'exito': True,
+                            'descripcion': config['descripcion'],
+                            'total_lineas': len(lineas_filtradas),
+                            'lineas': lineas_filtradas[:15],  # Limitar a 15 líneas
+                            'mas_resultados': len(lineas_filtradas) > 15
+                        }
+                    else:
+                        resultados_analisis[nombre_analisis] = {
+                            'exito': False,
+                            'descripcion': config['descripcion'],
+                            'error': result.stderr
+                        }
+                        
+                except subprocess.TimeoutExpired:
+                    resultados_analisis[nombre_analisis] = {
+                        'exito': False,
+                        'descripcion': config['descripcion'],
+                        'error': 'Timeout en análisis journalctl'
+                    }
+                except Exception as e:
+                    resultados_analisis[nombre_analisis] = {
+                        'exito': False,
+                        'descripcion': config['descripcion'],
+                        'error': str(e)
+                    }
+            
+            # Estadísticas de journalctl
+            try:
+                stats_result = subprocess.run(['journalctl', '--disk-usage', '--no-pager'], 
+                                            capture_output=True, text=True, timeout=10)
+                estadisticas_disco = stats_result.stdout.strip() if stats_result.returncode == 0 else None
+            except:
+                estadisticas_disco = None
+            
+            analisis_exitosos = sum(1 for r in resultados_analisis.values() if r.get('exito', False))
+            
+            return {
+                'exito': analisis_exitosos > 0,
+                'analisis_ejecutados': len(analisis_journal),
+                'analisis_exitosos': analisis_exitosos,
+                'resultados': resultados_analisis,
+                'estadisticas_disco': estadisticas_disco,
+                'herramienta': 'journalctl'
+            }
+            
+        except Exception as e:
+            self.logger.error(f"Error en análisis journalctl: {e}")
+            return {
+                'exito': False,
+                'error': str(e),
+                'herramienta': 'journalctl'
+            }
+    
+    def ejecutar_siem_avanzado_kali(self) -> Dict[str, Any]:
+        """
+        Ejecutar análisis SIEM completo usando todas las herramientas avanzadas de Kali Linux.
+        FASE 3: Función principal que integra auditd, osquery, rsyslog y journalctl.
+        """
+        try:
+            self.logger.info("🚀 Ejecutando SIEM avanzado con herramientas de Kali Linux...")
+            tiempo_inicio = time.time()
+            
+            resultados_completos = {
+                'timestamp': datetime.now().isoformat(),
+                'herramientas_utilizadas': [],
+                'resumen_detecciones': {},
+                'alertas_generadas': [],
+                'analisis_detallado': {}
+            }
+            
+            # 1. Configurar y analizar con auditd
+            self.logger.info("1/4 Configurando auditd...")
+            resultado_auditd = self.configurar_auditd()
+            resultados_completos['analisis_detallado']['auditd'] = resultado_auditd
+            if resultado_auditd['exito']:
+                resultados_completos['herramientas_utilizadas'].append('auditd')
+                resultados_completos['resumen_detecciones']['reglas_auditoria'] = resultado_auditd['reglas_aplicadas']
+            
+            # 2. Monitorear con osquery
+            self.logger.info("2/4 Ejecutando queries osquery...")
+            resultado_osquery = self.monitorear_con_osquery()
+            resultados_completos['analisis_detallado']['osquery'] = resultado_osquery
+            if resultado_osquery['exito']:
+                resultados_completos['herramientas_utilizadas'].append('osquery')
+                
+                # Procesar resultados de osquery para alertas
+                for query_name, query_result in resultado_osquery.get('resultados', {}).items():
+                    if query_result.get('exito') and query_result.get('total_resultados', 0) > 0:
+                        if 'sospechosos' in query_name:
+                            resultados_completos['alertas_generadas'].append({
+                                'tipo': 'osquery_detection',
+                                'descripcion': f"Query {query_name} detectó {query_result['total_resultados']} elementos",
+                                'severidad': 'MEDIA',
+                                'datos': query_result['datos'][:3]  # Solo 3 ejemplos
+                            })
+            
+            # 3. Configurar rsyslog
+            self.logger.info("3/4 Configurando rsyslog...")
+            resultado_rsyslog = self.configurar_rsyslog_avanzado()
+            resultados_completos['analisis_detallado']['rsyslog'] = resultado_rsyslog
+            if resultado_rsyslog['exito']:
+                resultados_completos['herramientas_utilizadas'].append('rsyslog')
+            
+            # 4. Analizar con journalctl
+            self.logger.info("4/4 Analizando logs con journalctl...")
+            resultado_journalctl = self.analizar_con_journalctl()
+            resultados_completos['analisis_detallado']['journalctl'] = resultado_journalctl
+            if resultado_journalctl['exito']:
+                resultados_completos['herramientas_utilizadas'].append('journalctl')
+                
+                # Procesar resultados de journalctl para alertas
+                for analisis_name, analisis_result in resultado_journalctl.get('resultados', {}).items():
+                    if analisis_result.get('exito') and analisis_result.get('total_lineas', 0) > 0:
+                        if 'errores' in analisis_name or 'fallos' in analisis_name:
+                            resultados_completos['alertas_generadas'].append({
+                                'tipo': 'journalctl_alert',
+                                'descripcion': f"{analisis_result['descripcion']}: {analisis_result['total_lineas']} eventos",
+                                'severidad': 'ALTA' if 'criticos' in analisis_name else 'MEDIA',
+                                'ejemplos': analisis_result['lineas'][:2]
+                            })
+            
+            # 5. Correlación y análisis final
+            tiempo_total = time.time() - tiempo_inicio
+            
+            # Generar resumen
+            herramientas_exitosas = len(resultados_completos['herramientas_utilizadas'])
+            total_alertas = len(resultados_completos['alertas_generadas'])
+            
+            resultados_completos['resumen_detecciones'].update({
+                'herramientas_exitosas': herramientas_exitosas,
+                'total_alertas_generadas': total_alertas,
+                'tiempo_ejecucion_segundos': round(tiempo_total, 2),
+                'cobertura_siem': f"{herramientas_exitosas}/4 herramientas"
+            })
+            
+            # Registrar evento SIEM
+            self._registrar_evento_siem(
+                "SIEM_AVANZADO_KALI",
+                f"Análisis SIEM completo: {herramientas_exitosas}/4 herramientas, {total_alertas} alertas",
+                "info" if total_alertas == 0 else "warning"
+            )
+            
+            self.logger.info(f"✅ SIEM avanzado completado en {tiempo_total:.2f}s - {herramientas_exitosas}/4 herramientas exitosas")
+            
+            return {
+                'exito': herramientas_exitosas > 0,
+                'resultados': resultados_completos,
+                'recomendaciones': self._generar_recomendaciones_siem(resultados_completos)
+            }
+            
+        except Exception as e:
+            self.logger.error(f"Error en SIEM avanzado Kali: {e}")
+            return {
+                'exito': False,
+                'error': str(e),
+                'herramientas_utilizadas': resultados_completos.get('herramientas_utilizadas', [])
+            }
+    
+    def _generar_recomendaciones_siem(self, resultados: Dict[str, Any]) -> List[str]:
+        """Generar recomendaciones basadas en los resultados del SIEM avanzado."""
+        recomendaciones = []
+        
+        try:
+            analisis = resultados.get('analisis_detallado', {})
+            
+            # Recomendaciones de auditd
+            if 'auditd' in analisis and not analisis['auditd'].get('exito', False):
+                recomendaciones.append("Instalar y configurar auditd: sudo apt install auditd")
+            
+            # Recomendaciones de osquery
+            if 'osquery' in analisis and not analisis['osquery'].get('exito', False):
+                recomendaciones.append("Instalar osquery: sudo apt install osquery")
+            
+            # Recomendaciones de rsyslog
+            if 'rsyslog' in analisis and not analisis['rsyslog'].get('exito', False):
+                recomendaciones.append("Configurar rsyslog para logging centralizado")
+            
+            # Recomendaciones de journalctl
+            if 'journalctl' in analisis and not analisis['journalctl'].get('exito', False):
+                recomendaciones.append("Verificar funcionamiento de systemd journal")
+            
+            # Recomendaciones basadas en alertas
+            alertas = resultados.get('alertas_generadas', [])
+            alertas_criticas = [a for a in alertas if a.get('severidad') == 'ALTA']
+            
+            if alertas_criticas:
+                recomendaciones.append(f"Investigar {len(alertas_criticas)} alertas críticas detectadas")
+            
+            if len(alertas) > 10:
+                recomendaciones.append("Considerar ajustar umbrales de alertas - alto volumen detectado")
+            
+            # Recomendaciones generales
+            herramientas_exitosas = len(resultados.get('herramientas_utilizadas', []))
+            if herramientas_exitosas < 2:
+                recomendaciones.append("Instalar herramientas SIEM faltantes para mejor cobertura")
+            
+            return recomendaciones
+            
+        except Exception as e:
+            self.logger.error(f"Error generando recomendaciones SIEM: {e}")
+            return ["Error generando recomendaciones"]
 
 
 # RESUMEN TÉCNICO: Controlador SIEM avanzado para gestión de eventos de seguridad en Kali Linux.

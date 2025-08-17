@@ -84,8 +84,44 @@ class ControladorCuarentena:
                 'version_escaneador': amenaza_info.get('version_escaneador', '3.0.0')
             })
             
-            # Si hay un archivo asociado, ponerlo en cuarentena
+            # Si hay un archivo asociado, ponerlo en cuarentena usando comandos nativos
             if archivo and os.path.exists(archivo):
+                # Verificar si el archivo está en uso con lsof
+                import subprocess
+                archivo_en_uso = False
+                try:
+                    lsof_result = subprocess.run(['lsof', archivo], 
+                                               capture_output=True, text=True, timeout=10)
+                    if lsof_result.returncode == 0 and lsof_result.stdout.strip():
+                        archivo_en_uso = True
+                        self.logger.warning(f"Archivo {archivo} está siendo usado por proceso: {lsof_result.stdout.strip()[:100]}")
+                except:
+                    pass  # lsof no disponible o error, continuar
+                
+                # Obtener información detallada con stat
+                try:
+                    stat_result = subprocess.run(['stat', '-c', '%a:%U:%G:%s', archivo],
+                                               capture_output=True, text=True, timeout=5)
+                    if stat_result.returncode == 0:
+                        stat_info = stat_result.stdout.strip().split(':')
+                        metadatos.update({
+                            'permisos_originales': stat_info[0] if len(stat_info) > 0 else '000',
+                            'owner_original': stat_info[1] if len(stat_info) > 1 else 'unknown',
+                            'group_original': stat_info[2] if len(stat_info) > 2 else 'unknown',
+                            'size_bytes': stat_info[3] if len(stat_info) > 3 else '0'
+                        })
+                except:
+                    pass
+                
+                # Calcular hash con sha256sum
+                try:
+                    hash_result = subprocess.run(['sha256sum', archivo],
+                                               capture_output=True, text=True, timeout=30)
+                    if hash_result.returncode == 0:
+                        metadatos['hash_sha256'] = hash_result.stdout.split()[0]
+                except:
+                    pass
+                
                 resultado = self.cuarentena.poner_en_cuarentena(
                     archivo_path=archivo,
                     motivo=descripcion,

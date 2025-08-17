@@ -19,6 +19,7 @@ class VistaSIEM(tk.Frame):
         self.controlador = None
         self.proceso_siem_activo = False
         self.thread_siem = None
+        self.monitoreo_activo = False  # Para control del monitoreo en tiempo real
         
         if BURP_THEME_AVAILABLE:
             self.theme = burp_theme
@@ -345,7 +346,13 @@ class VistaSIEM(tk.Frame):
                 ("🗂️ Sleuth Kit", self.usar_sleuthkit),
                 ("🔗 Binwalk", self.usar_binwalk),
                 ("📁 Foremost", self.usar_foremost),
-                ("🧬 Strings", self.usar_strings)
+                ("🧬 Strings", self.usar_strings),
+                ("💽 DD/DCFLDD", self.usar_dd),
+                ("📄 Head/Tail", self.usar_head_tail),
+                ("🔧 Check Kali Tools", self.verificar_herramientas_kali),
+                ("🔄 Monitor Real-time", self.monitorear_tiempo_real_kali),
+                ("🛑 Stop Monitor", self.parar_monitoreo),
+                ("🔍 OSQuery Analysis", self.integrar_osquery_kali)
             ]
             
             for i, (text, command) in enumerate(tools_forenses):
@@ -359,7 +366,16 @@ class VistaSIEM(tk.Frame):
             tools_forenses = [
                 ("🔍 Volatility", self.usar_volatility),
                 ("💾 Autopsy", self.usar_autopsy),
-                ("🗂️ Sleuth Kit", self.usar_sleuthkit)
+                ("🗂️ Sleuth Kit", self.usar_sleuthkit),
+                ("🔗 Binwalk", self.usar_binwalk),
+                ("📁 Foremost", self.usar_foremost),
+                ("🧬 Strings", self.usar_strings),
+                ("💽 DD/DCFLDD", self.usar_dd),
+                ("📄 Head/Tail", self.usar_head_tail),
+                ("🔧 Check Kali Tools", self.verificar_herramientas_kali),
+                ("🔄 Monitor Real-time", self.monitorear_tiempo_real_kali),
+                ("🛑 Stop Monitor", self.parar_monitoreo),
+                ("🔍 OSQuery Analysis", self.integrar_osquery_kali)
             ]
             
             for i, (text, command) in enumerate(tools_forenses):
@@ -916,3 +932,376 @@ class VistaSIEM(tk.Frame):
             self.siem_monitoreo_text.config(state=tk.NORMAL)
             self.siem_monitoreo_text.insert(tk.END, f" ❌ Error durante verificación: {str(e)}\n")
             self.siem_monitoreo_text.config(state=tk.DISABLED)
+    
+    def usar_dd(self):
+        """Usar herramientas dd y dcfldd para forense digital."""
+        def ejecutar_dd():
+            try:
+                self._actualizar_texto_forense("🔧 Iniciando análisis con DD/DCFLDD...\n\n")
+                import subprocess
+                
+                # Verificar disponibilidad de herramientas
+                herramientas = {'dd': False, 'dcfldd': False}
+                for herramienta in herramientas:
+                    try:
+                        resultado = subprocess.run(['which', herramienta], capture_output=True, text=True)
+                        herramientas[herramienta] = resultado.returncode == 0
+                    except:
+                        pass
+                
+                if herramientas['dd']:
+                    self._actualizar_texto_forense("✅ DD disponible\n")
+                    # Mostrar información de discos
+                    try:
+                        resultado = subprocess.run(['lsblk', '-o', 'NAME,SIZE,TYPE,MOUNTPOINT'], 
+                                                 capture_output=True, text=True, timeout=10)
+                        if resultado.returncode == 0:
+                            self._actualizar_texto_forense("💾 Dispositivos disponibles:\n")
+                            for linea in resultado.stdout.split('\n')[:10]:
+                                if linea.strip():
+                                    self._actualizar_texto_forense(f"  {linea}\n")
+                    except:
+                        pass
+                else:
+                    self._actualizar_texto_forense("❌ DD no encontrado\n")
+                
+                if herramientas['dcfldd']:
+                    self._actualizar_texto_forense("✅ DCFLDD disponible (forense avanzado)\n")
+                else:
+                    self._actualizar_texto_forense("❌ DCFLDD no encontrado. Instalar: apt install dcfldd\n")
+                
+                self._actualizar_texto_forense("\n📋 Comandos útiles para forense:\n")
+                self._actualizar_texto_forense("🔹 Copia básica:\n")
+                self._actualizar_texto_forense("  dd if=/dev/sdX of=imagen.dd bs=4096 status=progress\n")
+                self._actualizar_texto_forense("🔹 Copia con verificación:\n")
+                self._actualizar_texto_forense("  dcfldd if=/dev/sdX of=imagen.dd hash=sha256 bs=4096\n")
+                self._actualizar_texto_forense("🔹 Análisis de memoria:\n")
+                self._actualizar_texto_forense("  dd if=/proc/kcore of=memoria.dump bs=1M count=100\n")
+                self._actualizar_texto_forense("🔹 Borrado seguro:\n")
+                self._actualizar_texto_forense("  dd if=/dev/urandom of=/dev/sdX bs=4096\n\n")
+                
+                # Verificar espacio en disco para forense
+                try:
+                    resultado = subprocess.run(['df', '-h', '/'], capture_output=True, text=True)
+                    if resultado.returncode == 0:
+                        lineas = resultado.stdout.split('\n')
+                        if len(lineas) > 1:
+                            self._actualizar_texto_forense("💽 Espacio disponible para imágenes:\n")
+                            self._actualizar_texto_forense(f"  {lineas[1]}\n")
+                except:
+                    pass
+                    
+            except Exception as e:
+                self._actualizar_texto_forense(f"❌ Error en análisis DD: {str(e)}\n")
+        
+        threading.Thread(target=ejecutar_dd, daemon=True).start()
+    
+    def verificar_herramientas_kali(self):
+        """Verificar herramientas SIEM específicas de Kali Linux."""
+        def ejecutar_verificacion():
+            try:
+                self._actualizar_texto_forense("🔧 Verificando herramientas SIEM en Kali Linux...\n\n")
+                import subprocess
+                
+                # Herramientas SIEM críticas en Kali
+                herramientas_siem_kali = {
+                    'journalctl': 'systemd journal logs',
+                    'dmesg': 'kernel messages', 
+                    'ausearch': 'audit log search',
+                    'grep': 'pattern matching',
+                    'awk': 'text processing',
+                    'sed': 'stream editor',
+                    'head': 'file head display',
+                    'tail': 'file tail display',
+                    'wc': 'word count',
+                    'dd': 'data duplicator',
+                    'dcfldd': 'forensic dd',
+                    'strings': 'extract strings',
+                    'lsof': 'list open files',
+                    'netstat': 'network statistics',
+                    'ss': 'socket statistics'
+                }
+                
+                disponibles = 0
+                faltantes = []
+                
+                for herramienta, descripcion in herramientas_siem_kali.items():
+                    try:
+                        resultado = subprocess.run(['which', herramienta], 
+                                                 capture_output=True, text=True, timeout=5)
+                        if resultado.returncode == 0:
+                            self._actualizar_texto_forense(f"✅ {herramienta} - {descripcion}\n")
+                            disponibles += 1
+                        else:
+                            self._actualizar_texto_forense(f"❌ {herramienta} - {descripcion} (FALTANTE)\n")
+                            faltantes.append(herramienta)
+                    except:
+                        self._actualizar_texto_forense(f"⚠️ {herramienta} - Error verificando\n")
+                        faltantes.append(herramienta)
+                
+                self._actualizar_texto_forense(f"\n📊 Resumen: {disponibles}/{len(herramientas_siem_kali)} herramientas disponibles\n")
+                
+                # Recomendaciones específicas para Kali
+                if faltantes:
+                    self._actualizar_texto_forense("\n🔧 Instalar herramientas faltantes:\n")
+                    if 'dcfldd' in faltantes:
+                        self._actualizar_texto_forense("  sudo apt install dcfldd\n")
+                    if 'ausearch' in faltantes:
+                        self._actualizar_texto_forense("  sudo apt install auditd\n")
+                
+                # Verificar si es Kali Linux
+                try:
+                    with open('/etc/os-release', 'r') as f:
+                        os_info = f.read()
+                        if 'kali' in os_info.lower():
+                            self._actualizar_texto_forense("\n✅ Sistema Kali Linux detectado correctamente\n")
+                        else:
+                            self._actualizar_texto_forense("\n⚠️ Sistema no detectado como Kali Linux\n")
+                except:
+                    self._actualizar_texto_forense("\n❓ No se pudo verificar tipo de sistema\n")
+                    
+            except Exception as e:
+                self._actualizar_texto_forense(f"❌ Error verificando herramientas: {str(e)}\n")
+        
+        threading.Thread(target=ejecutar_verificacion, daemon=True).start()
+    
+    def usar_head_tail(self):
+        """Análisis rápido de logs usando head/tail nativos de Kali Linux."""
+        def ejecutar_analisis():
+            try:
+                self._actualizar_texto_forense("� Análisis rápido de logs con herramientas nativas Kali...\n\n")
+                import subprocess
+                
+                # Logs críticos en Kali Linux
+                logs_criticos = [
+                    '/var/log/auth.log',
+                    '/var/log/syslog', 
+                    '/var/log/kern.log',
+                    '/var/log/daemon.log',
+                    '/var/log/fail2ban.log',
+                    '/var/log/apache2/access.log',
+                    '/var/log/apache2/error.log'
+                ]
+                
+                for log_path in logs_criticos:
+                    try:
+                        # Verificar si existe el archivo
+                        import os
+                        if not os.path.exists(log_path):
+                            continue
+                            
+                        self._actualizar_texto_forense(f"� Analizando: {log_path}\n")
+                        
+                        # Obtener tamaño del archivo
+                        size_cmd = f"wc -l {log_path}"
+                        size_result = subprocess.run(size_cmd, shell=True, capture_output=True, text=True, timeout=10)
+                        if size_result.returncode == 0:
+                            lineas = size_result.stdout.strip().split()[0]
+                            self._actualizar_texto_forense(f"  📏 Total líneas: {lineas}\n")
+                        
+                        # Últimas 10 líneas (tail)
+                        tail_cmd = f"tail -n 10 {log_path}"
+                        tail_result = subprocess.run(tail_cmd, shell=True, capture_output=True, text=True, timeout=10)
+                        if tail_result.returncode == 0:
+                            self._actualizar_texto_forense("  � Últimas 10 líneas:\n")
+                            for i, linea in enumerate(tail_result.stdout.strip().split('\n')[-10:], 1):
+                                if linea.strip():
+                                    self._actualizar_texto_forense(f"    {i:2d}: {linea[:100]}...\n")
+                        
+                        # Búsqueda de patrones críticos con grep
+                        patrones_criticos = ['FAILED', 'ERROR', 'CRITICAL', 'WARNING', 'ATTACK', 'INVALID']
+                        for patron in patrones_criticos:
+                            grep_cmd = f"grep -i '{patron}' {log_path} | tail -n 3"
+                            grep_result = subprocess.run(grep_cmd, shell=True, capture_output=True, text=True, timeout=10)
+                            if grep_result.returncode == 0 and grep_result.stdout.strip():
+                                self._actualizar_texto_forense(f"  ⚠️ Patrón '{patron}' encontrado:\n")
+                                for linea in grep_result.stdout.strip().split('\n')[:3]:
+                                    if linea.strip():
+                                        self._actualizar_texto_forense(f"    └─ {linea[:80]}...\n")
+                        
+                        self._actualizar_texto_forense("\n")
+                        
+                    except subprocess.TimeoutExpired:
+                        self._actualizar_texto_forense(f"  ⏱️ Timeout analizando {log_path}\n")
+                    except Exception as e:
+                        self._actualizar_texto_forense(f"  ❌ Error analizando {log_path}: {str(e)}\n")
+                
+                # Análisis de journalctl (systemd logs)
+                try:
+                    self._actualizar_texto_forense("� Analizando logs de systemd (journalctl)...\n")
+                    
+                    # Últimos errores críticos
+                    journal_cmd = "journalctl -p err -n 5 --no-pager"
+                    journal_result = subprocess.run(journal_cmd, shell=True, capture_output=True, text=True, timeout=15)
+                    if journal_result.returncode == 0:
+                        self._actualizar_texto_forense("  🚨 Últimos 5 errores del sistema:\n")
+                        for linea in journal_result.stdout.strip().split('\n'):
+                            if linea.strip():
+                                self._actualizar_texto_forense(f"    └─ {linea[:100]}...\n")
+                    
+                    # Últimos logins
+                    login_cmd = "journalctl _COMM=sshd -n 5 --no-pager"
+                    login_result = subprocess.run(login_cmd, shell=True, capture_output=True, text=True, timeout=15)
+                    if login_result.returncode == 0 and login_result.stdout.strip():
+                        self._actualizar_texto_forense("  🔐 Últimas conexiones SSH:\n")
+                        for linea in login_result.stdout.strip().split('\n'):
+                            if linea.strip():
+                                self._actualizar_texto_forense(f"    └─ {linea[:100]}...\n")
+                                
+                except Exception as e:
+                    self._actualizar_texto_forense(f"❌ Error con journalctl: {str(e)}\n")
+                
+                self._actualizar_texto_forense("\n✅ Análisis rápido completado\n")
+                
+            except Exception as e:
+                self._actualizar_texto_forense(f"❌ Error en análisis head/tail: {str(e)}\n")
+        
+        threading.Thread(target=ejecutar_analisis, daemon=True).start()
+
+    def monitorear_tiempo_real_kali(self):
+        """Monitoreo en tiempo real usando herramientas nativas de Kali."""
+        def ejecutar_monitoreo():
+            try:
+                self._actualizar_texto_forense("🔄 Iniciando monitoreo en tiempo real (Kali Linux)...\n\n")
+                self._actualizar_texto_forense("📡 Presiona 'Parar Monitoreo' para detener\n\n")
+                
+                import subprocess
+                import time
+                
+                self.monitoreo_activo = True
+                contador = 0
+                
+                while self.monitoreo_activo and contador < 100:  # Límite de 100 iteraciones
+                    try:
+                        # Monitoreo de conexiones de red (cada 10 segundos)
+                        if contador % 10 == 0:
+                            self._actualizar_texto_forense(f"🌐 Conexiones activas [{time.strftime('%H:%M:%S')}]:\n")
+                            ss_cmd = "ss -tuln | head -n 10"
+                            ss_result = subprocess.run(ss_cmd, shell=True, capture_output=True, text=True, timeout=5)
+                            if ss_result.returncode == 0:
+                                for linea in ss_result.stdout.strip().split('\n')[1:6]:  # Top 5
+                                    if linea.strip():
+                                        self._actualizar_texto_forense(f"  └─ {linea}\n")
+                        
+                        # Monitoreo de procesos críticos (cada 15 segundos)
+                        if contador % 15 == 0:
+                            self._actualizar_texto_forense(f"⚡ Procesos críticos [{time.strftime('%H:%M:%S')}]:\n")
+                            ps_cmd = "ps aux | grep -E '(ssh|apache|mysql|postgres)' | grep -v grep | head -n 5"
+                            ps_result = subprocess.run(ps_cmd, shell=True, capture_output=True, text=True, timeout=5)
+                            if ps_result.returncode == 0 and ps_result.stdout.strip():
+                                for linea in ps_result.stdout.strip().split('\n'):
+                                    if linea.strip():
+                                        campos = linea.split()
+                                        if len(campos) >= 11:
+                                            self._actualizar_texto_forense(f"  └─ PID:{campos[1]} CPU:{campos[2]}% {campos[10]}\n")
+                        
+                        # Monitoreo de logs críticos (cada 20 segundos)
+                        if contador % 20 == 0:
+                            self._actualizar_texto_forense(f"📋 Nuevos eventos [{time.strftime('%H:%M:%S')}]:\n")
+                            tail_cmd = "tail -n 3 /var/log/auth.log"
+                            tail_result = subprocess.run(tail_cmd, shell=True, capture_output=True, text=True, timeout=5)
+                            if tail_result.returncode == 0:
+                                for linea in tail_result.stdout.strip().split('\n'):
+                                    if linea.strip():
+                                        # Extraer timestamp y evento principal
+                                        partes = linea.split(' ')
+                                        if len(partes) >= 3:
+                                            timestamp = ' '.join(partes[:3])
+                                            evento = ' '.join(partes[4:8]) if len(partes) > 7 else linea[50:]
+                                            self._actualizar_texto_forense(f"  └─ {timestamp}: {evento}\n")
+                        
+                        time.sleep(1)
+                        contador += 1
+                        
+                    except subprocess.TimeoutExpired:
+                        self._actualizar_texto_forense("⏱️ Timeout en monitoreo\n")
+                    except Exception as e:
+                        self._actualizar_texto_forense(f"⚠️ Error en ciclo de monitoreo: {str(e)}\n")
+                        break
+                
+                self._actualizar_texto_forense("\n🔴 Monitoreo detenido\n")
+                self.monitoreo_activo = False
+                
+            except Exception as e:
+                self._actualizar_texto_forense(f"❌ Error en monitoreo tiempo real: {str(e)}\n")
+                self.monitoreo_activo = False
+        
+        threading.Thread(target=ejecutar_monitoreo, daemon=True).start()
+
+    def parar_monitoreo(self):
+        """Detener el monitoreo en tiempo real."""
+        self.monitoreo_activo = False
+        self._actualizar_texto_forense("🛑 Deteniendo monitoreo...\n")
+
+    def integrar_osquery_kali(self):
+        """Integración avanzada con osquery para monitoreo en Kali Linux."""
+        def ejecutar_osquery():
+            try:
+                self._actualizar_texto_forense("🔍 Ejecutando consultas osquery específicas para Kali...\n\n")
+                import subprocess
+                
+                # Verificar si osquery está disponible
+                verificacion = subprocess.run(['which', 'osqueryi'], capture_output=True, text=True, timeout=5)
+                if verificacion.returncode != 0:
+                    self._actualizar_texto_forense("❌ osquery no está instalado en este sistema\n")
+                    self._actualizar_texto_forense("💡 Instalar con: sudo apt install osquery\n")
+                    return
+                
+                # Consultas de seguridad específicas para Kali
+                consultas_seguridad = [
+                    {
+                        'nombre': 'Procesos con privilegios root',
+                        'consulta': 'SELECT name,pid,uid,cmdline FROM processes WHERE uid=0 LIMIT 10;'
+                    },
+                    {
+                        'nombre': 'Conexiones de red activas',
+                        'consulta': 'SELECT DISTINCT local_address,local_port,remote_address,remote_port,state FROM process_open_sockets WHERE state="ESTABLISHED" LIMIT 10;'
+                    },
+                    {
+                        'nombre': 'Archivos modificados recientemente',
+                        'consulta': 'SELECT path,size,mtime,atime FROM file WHERE path LIKE "/etc/%" AND mtime > strftime("%s", "now", "-1 hour") LIMIT 10;'
+                    },
+                    {
+                        'nombre': 'Usuarios con sesiones activas',
+                        'consulta': 'SELECT user,tty,host,time FROM logged_in_users LIMIT 10;'
+                    }
+                ]
+                
+                for consulta_info in consultas_seguridad:
+                    try:
+                        self._actualizar_texto_forense(f"📊 {consulta_info['nombre']}:\n")
+                        
+                        # Ejecutar consulta osquery
+                        cmd = ['osqueryi', '--json', consulta_info['consulta']]
+                        resultado = subprocess.run(cmd, capture_output=True, text=True, timeout=15)
+                        
+                        if resultado.returncode == 0:
+                            import json
+                            try:
+                                datos = json.loads(resultado.stdout)
+                                if datos:
+                                    for i, registro in enumerate(datos[:5], 1):  # Limitar a 5 resultados
+                                        self._actualizar_texto_forense(f"  {i}. ")
+                                        for clave, valor in registro.items():
+                                            self._actualizar_texto_forense(f"{clave}:{valor} ")
+                                        self._actualizar_texto_forense("\n")
+                                else:
+                                    self._actualizar_texto_forense("  (Sin resultados)\n")
+                            except json.JSONDecodeError:
+                                self._actualizar_texto_forense("  ❌ Error parseando respuesta JSON\n")
+                        else:
+                            self._actualizar_texto_forense(f"  ❌ Error ejecutando consulta: {resultado.stderr}\n")
+                        
+                        self._actualizar_texto_forense("\n")
+                        
+                    except subprocess.TimeoutExpired:
+                        self._actualizar_texto_forense(f"  ⏱️ Timeout en consulta: {consulta_info['nombre']}\n")
+                    except Exception as e:
+                        self._actualizar_texto_forense(f"  ❌ Error en {consulta_info['nombre']}: {str(e)}\n")
+                
+                self._actualizar_texto_forense("✅ Análisis osquery completado\n")
+                
+            except Exception as e:
+                self._actualizar_texto_forense(f"❌ Error en integración osquery: {str(e)}\n")
+        
+        threading.Thread(target=ejecutar_osquery, daemon=True).start()

@@ -12,11 +12,25 @@ except ImportError:
     burp_theme = None
 
 class VistaAuditoria(tk.Frame):
+    """
+    Vista especializada para auditorías de seguridad del sistema.
+    
+    Enfoque específico:
+    - Auditorías generales del sistema (Lynis, OpenVAS, Nessus)
+    - Análisis de configuraciones de seguridad
+    - Verificación de permisos y políticas
+    - Detección de rootkits y malware
+    
+    Nota: Las funciones de SIEM, FIM y Escaneo están en sus respectivas pestañas especializadas.
+    """
     
     def __init__(self, parent):
         super().__init__(parent)
         self.controlador = None
+        
+        # Estados únicos de auditoría
         self.proceso_auditoria_activo = False
+        self.proceso_rootkits_activo = False
         self.thread_auditoria = None
         
         if BURP_THEME_AVAILABLE:
@@ -31,24 +45,27 @@ class VistaAuditoria(tk.Frame):
         self.controlador = controlador
     
     def crear_interfaz(self):
+        """Crear interfaz especializada para auditorías de seguridad."""
         if self.theme:
             titulo_frame = tk.Frame(self, bg='#2b2b2b')
         else:
             titulo_frame = tk.Frame(self)
         titulo_frame.pack(fill=tk.X, pady=(0, 10))
         
-        titulo = tk.Label(titulo_frame, text="Auditoria y Analisis de Seguridad",
+        titulo = tk.Label(titulo_frame, text="Auditoria de Seguridad del Sistema",
                          font=('Arial', 16, 'bold'),
                          bg='#2b2b2b' if self.theme else 'white',
                          fg='#ff6633' if self.theme else 'black')
         titulo.pack()
         
+        # Frame principal con división izquierda-derecha
         if self.theme:
             main_frame = tk.Frame(self, bg='#2b2b2b')
         else:
             main_frame = tk.Frame(self)
         main_frame.pack(fill=tk.BOTH, expand=True, padx=20, pady=10)
         
+        # Panel izquierdo - Resultados
         if self.theme:
             left_frame = tk.Frame(main_frame, bg='#2b2b2b')
             label_results = tk.Label(left_frame, text="Resultados de Auditoria", 
@@ -58,13 +75,14 @@ class VistaAuditoria(tk.Frame):
             left_frame = ttk.LabelFrame(main_frame, text="Resultados de Auditoria", padding=10)
         left_frame.pack(side=tk.LEFT, fill=tk.BOTH, expand=True, padx=(0, 10))
         
-        self.auditoria_text = scrolledtext.ScrolledText(left_frame, height=20, width=60,
+        self.auditoria_text = scrolledtext.ScrolledText(left_frame, height=25, width=65,
                                                        bg='#1e1e1e' if self.theme else 'white',
                                                        fg='white' if self.theme else 'black',
                                                        insertbackground='white' if self.theme else 'black',
                                                        font=('Consolas', 10))
         self.auditoria_text.pack(fill=tk.BOTH, expand=True)
         
+        # Panel derecho - Herramientas de Auditoría
         if self.theme:
             right_frame = tk.Frame(main_frame, bg='#2b2b2b')
             label_tools = tk.Label(right_frame, text="Herramientas de Auditoria", 
@@ -74,86 +92,124 @@ class VistaAuditoria(tk.Frame):
             right_frame = ttk.LabelFrame(main_frame, text="Herramientas de Auditoria", padding=10)
         right_frame.pack(side=tk.RIGHT, fill=tk.Y)
         
+        # Crear secciones organizadas
+        self._crear_seccion_auditoria_sistema(right_frame)
+        self._crear_seccion_deteccion_malware(right_frame)
+        self._crear_seccion_configuraciones(right_frame)
+        self._crear_seccion_utilidades(right_frame)
+    
+    def _crear_seccion_auditoria_sistema(self, parent):
+        """Crear sección de auditorías generales del sistema."""
         if self.theme:
-            buttons = [
-                ("Ejecutar Lynis", self.ejecutar_lynis, '#ff6633'),
-                ("Cancelar Lynis", self.cancelar_auditoria, '#cc0000'),
-                ("Verificar Kali", self.verificar_kali, '#337ab7'),
-                ("FIM - Monitoreo Archivos", self.iniciar_fim, '#00cc44'),
-                ("Detener FIM", self.detener_fim, '#cc0000'),
-                ("SIEM - Análisis Eventos", self.iniciar_siem, '#0066cc'),
-                ("Detener SIEM", self.detener_siem, '#cc0000'),
-                ("Detectar Rootkits", self.detectar_rootkits, '#404040'),
-                ("Cancelar Rootkits", self.cancelar_rootkits, '#cc0000'),
-                ("Auditoria OpenVAS", self.ejecutar_openvas, '#404040'),
-                ("Cancelar OpenVAS", self.cancelar_openvas, '#cc0000'),
-                ("Nessus Scan", self.ejecutar_nessus, '#404040'),
-                ("Nikto Web Scan", self.ejecutar_nikto, '#404040'),
-                ("Cancelar Nikto", self.cancelar_nikto, '#cc0000'),
-                ("SSL/TLS Test", self.verificar_ssl, '#404040'),
-                ("Analizar Servicios", self.analizar_servicios, '#404040'),
-                ("Verificar Permisos", self.verificar_permisos, '#404040'),
-                ("Info Hardware", self.obtener_info_hardware, '#404040'),
-                ("Analisis SUID/SGID", self.analizar_suid_sgid, '#404040'),
-                ("Puertos Abiertos", self.escanear_puertos, '#404040'),
-                ("Cancelar Puertos", self.cancelar_puertos, '#cc0000'),
-                ("Configuracion SSH", self.auditar_ssh, '#404040'),
-                ("Politicas Password", self.verificar_password_policy, '#404040'),
-                ("Guardar Resultados", self.guardar_auditoria, '#404040'),
-                ("Limpiar Pantalla", self.limpiar_auditoria, '#404040')
-            ]
-            
-            # Variables para los botones de cancelar
-            self.proceso_rootkits_activo = False
-            self.proceso_openvas_activo = False
-            self.proceso_nikto_activo = False
-            self.proceso_puertos_activo = False
-            self.proceso_fim_activo = False
-            self.proceso_siem_activo = False
-            self.proceso_puertos_activo = False
-            
-            for i, (text, command, bg_color) in enumerate(buttons):
-                btn = tk.Button(right_frame, text=text, command=command,
-                              bg=bg_color, fg='white', font=('Arial', 9))
+            section_frame = tk.Frame(parent, bg='#2b2b2b')
+            tk.Label(section_frame, text="🔍 Auditorías del Sistema", 
+                    bg='#2b2b2b', fg='#ffffff', font=('Arial', 10, 'bold')).pack(anchor=tk.W, pady=(5, 5))
+        else:
+            section_frame = ttk.LabelFrame(parent, text="🔍 Auditorías del Sistema", padding=5)
+        section_frame.pack(fill=tk.X, pady=5)
+        
+        buttons = [
+            ("Ejecutar Lynis", self.ejecutar_lynis, '#ff6633'),
+            ("Cancelar Lynis", self.cancelar_auditoria, '#cc0000'),
+            ("Verificar Kali", self.verificar_kali, '#337ab7'),
+        ]
+        
+        for text, command, color in buttons:
+            if self.theme:
+                btn = tk.Button(section_frame, text=text, command=command,
+                              bg=color, fg='white', font=('Arial', 9))
                 if "Cancelar" in text:
                     btn.config(state="disabled")
-                    if "Lynis" in text:
-                        self.btn_cancelar_auditoria = btn
-                    elif "Rootkits" in text:
-                        self.btn_cancelar_rootkits = btn
-                    elif "OpenVAS" in text:
-                        self.btn_cancelar_openvas = btn
-                    elif "Nikto" in text:
-                        self.btn_cancelar_nikto = btn
-                    elif "Puertos" in text:
-                        self.btn_cancelar_puertos = btn
-                btn.pack(fill=tk.X, pady=2)
+                    self.btn_cancelar_auditoria = btn
+            else:
+                btn = ttk.Button(section_frame, text=text, command=command)
+                if "Cancelar" in text:
+                    btn.config(state="disabled")
+                    self.btn_cancelar_auditoria = btn
+            btn.pack(fill=tk.X, pady=2)
+    
+    def _crear_seccion_deteccion_malware(self, parent):
+        """Crear sección de detección de malware y rootkits."""
+        if self.theme:
+            section_frame = tk.Frame(parent, bg='#2b2b2b')
+            tk.Label(section_frame, text="🛡️ Detección de Malware", 
+                    bg='#2b2b2b', fg='#ffffff', font=('Arial', 10, 'bold')).pack(anchor=tk.W, pady=(5, 5))
         else:
-            # Crear botones individuales para mejor control
-            self.btn_lynis = ttk.Button(right_frame, text="Ejecutar Lynis", 
-                                       command=self.ejecutar_lynis)
-            self.btn_lynis.pack(fill=tk.X, pady=5)
-            
-            self.btn_cancelar_auditoria = ttk.Button(right_frame, text=" Cancelar", 
-                                                    command=self.cancelar_auditoria,
-                                                    state="disabled")
-            self.btn_cancelar_auditoria.pack(fill=tk.X, pady=5)
-            
-            ttk.Button(right_frame, text="🔧 Verificar Kali", 
-                      command=self.verificar_kali).pack(fill=tk.X, pady=5)
-            ttk.Button(right_frame, text="Detectar Rootkits", 
-                      command=self.detectar_rootkits).pack(fill=tk.X, pady=5)
-            ttk.Button(right_frame, text="Analizar Servicios", 
-                      command=self.analizar_servicios).pack(fill=tk.X, pady=5)
-            ttk.Button(right_frame, text="Verificar Permisos", 
-                      command=self.verificar_permisos).pack(fill=tk.X, pady=5)
-            ttk.Button(right_frame, text="Informacion Hardware", 
-                      command=self.obtener_info_hardware).pack(fill=tk.X, pady=5)
-            ttk.Separator(right_frame, orient=tk.HORIZONTAL).pack(fill=tk.X, pady=10)
-            ttk.Button(right_frame, text="Guardar Resultados", 
-                      command=self.guardar_auditoria).pack(fill=tk.X, pady=5)
-            ttk.Button(right_frame, text="Limpiar Pantalla", 
-                      command=self.limpiar_auditoria).pack(fill=tk.X, pady=5)
+            section_frame = ttk.LabelFrame(parent, text="🛡️ Detección de Malware", padding=5)
+        section_frame.pack(fill=tk.X, pady=5)
+        
+        buttons = [
+            ("Detectar Rootkits", self.detectar_rootkits, '#ff9900'),
+            ("Cancelar Rootkits", self.cancelar_rootkits, '#cc0000'),
+            ("Auditoria OpenVAS", self.ejecutar_openvas, '#6600cc'),
+            ("Scan Nessus", self.ejecutar_nessus, '#cc6600'),
+        ]
+        
+        for text, command, color in buttons:
+            if self.theme:
+                btn = tk.Button(section_frame, text=text, command=command,
+                              bg=color, fg='white', font=('Arial', 9))
+                if "Cancelar" in text:
+                    btn.config(state="disabled")
+                    if "Rootkits" in text:
+                        self.btn_cancelar_rootkits = btn
+            else:
+                btn = ttk.Button(section_frame, text=text, command=command)
+                if "Cancelar" in text:
+                    btn.config(state="disabled")
+                    if "Rootkits" in text:
+                        self.btn_cancelar_rootkits = btn
+            btn.pack(fill=tk.X, pady=2)
+    
+    def _crear_seccion_configuraciones(self, parent):
+        """Crear sección de análisis de configuraciones."""
+        if self.theme:
+            section_frame = tk.Frame(parent, bg='#2b2b2b')
+            tk.Label(section_frame, text="⚙️ Configuraciones", 
+                    bg='#2b2b2b', fg='#ffffff', font=('Arial', 10, 'bold')).pack(anchor=tk.W, pady=(5, 5))
+        else:
+            section_frame = ttk.LabelFrame(parent, text="⚙️ Configuraciones", padding=5)
+        section_frame.pack(fill=tk.X, pady=5)
+        
+        buttons = [
+            ("Analizar Servicios", self.analizar_servicios, '#0066cc'),
+            ("Verificar Permisos", self.verificar_permisos, '#009900'),
+            ("Configuración SSH", self.auditar_ssh, '#ff6600'),
+            ("Políticas Password", self.verificar_password_policy, '#cc3300'),
+            ("Análisis SUID/SGID", self.analizar_suid_sgid, '#9900cc'),
+        ]
+        
+        for text, command, color in buttons:
+            if self.theme:
+                btn = tk.Button(section_frame, text=text, command=command,
+                              bg=color, fg='white', font=('Arial', 9))
+            else:
+                btn = ttk.Button(section_frame, text=text, command=command)
+            btn.pack(fill=tk.X, pady=2)
+    
+    def _crear_seccion_utilidades(self, parent):
+        """Crear sección de utilidades generales."""
+        if self.theme:
+            section_frame = tk.Frame(parent, bg='#2b2b2b')
+            tk.Label(section_frame, text="🔧 Utilidades", 
+                    bg='#2b2b2b', fg='#ffffff', font=('Arial', 10, 'bold')).pack(anchor=tk.W, pady=(5, 5))
+        else:
+            section_frame = ttk.LabelFrame(parent, text="🔧 Utilidades", padding=5)
+        section_frame.pack(fill=tk.X, pady=5)
+        
+        buttons = [
+            ("Info Hardware", self.obtener_info_hardware, '#666666'),
+            ("Guardar Resultados", self.guardar_auditoria, '#336699'),
+            ("Limpiar Pantalla", self.limpiar_auditoria, '#999999'),
+        ]
+        
+        for text, command, color in buttons:
+            if self.theme:
+                btn = tk.Button(section_frame, text=text, command=command,
+                              bg=color, fg='white', font=('Arial', 9))
+            else:
+                btn = ttk.Button(section_frame, text=text, command=command)
+            btn.pack(fill=tk.X, pady=2)
     
     def ejecutar_lynis(self):
         if self.proceso_auditoria_activo:
@@ -448,8 +504,6 @@ class VistaAuditoria(tk.Frame):
         self.auditoria_text.delete(1.0, tk.END)
         self.auditoria_text.config(state=tk.DISABLED)
     
-    # ===== NUEVOS MÉTODOS DE AUDITORÍA AVANZADA =====
-    
     def cancelar_rootkits(self):
         """Cancelar detección de rootkits."""
         if hasattr(self, 'proceso_rootkits_activo'):
@@ -460,10 +514,6 @@ class VistaAuditoria(tk.Frame):
         """Ejecutar auditoría con OpenVAS."""
         def ejecutar():
             try:
-                self.proceso_openvas_activo = True
-                if hasattr(self, 'btn_cancelar_openvas'):
-                    self.btn_cancelar_openvas.config(state="normal")
-                
                 self._actualizar_texto_auditoria("🔐 Iniciando auditoría OpenVAS...\n")
                 import subprocess
                 
@@ -484,18 +534,8 @@ class VistaAuditoria(tk.Frame):
                 self._actualizar_texto_auditoria("✅ Auditoría OpenVAS completada\n\n")
             except Exception as e:
                 self._actualizar_texto_auditoria(f"❌ Error en OpenVAS: {str(e)}\n")
-            finally:
-                self.proceso_openvas_activo = False
-                if hasattr(self, 'btn_cancelar_openvas'):
-                    self.btn_cancelar_openvas.config(state="disabled")
         
         threading.Thread(target=ejecutar, daemon=True).start()
-    
-    def cancelar_openvas(self):
-        """Cancelar auditoría OpenVAS."""
-        if hasattr(self, 'proceso_openvas_activo'):
-            self.proceso_openvas_activo = False
-            self._actualizar_texto_auditoria("⏹️ Auditoría OpenVAS cancelada\n")
     
     def ejecutar_nessus(self):
         """Ejecutar scan con Nessus."""
@@ -520,82 +560,6 @@ class VistaAuditoria(tk.Frame):
                 self._actualizar_texto_auditoria("✅ Verificación Nessus completada\n\n")
             except Exception as e:
                 self._actualizar_texto_auditoria(f"❌ Error en Nessus: {str(e)}\n")
-        
-        threading.Thread(target=ejecutar, daemon=True).start()
-    
-    def ejecutar_nikto(self):
-        """Ejecutar scan web con Nikto."""
-        def ejecutar():
-            try:
-                self.proceso_nikto_activo = True
-                if hasattr(self, 'btn_cancelar_nikto'):
-                    self.btn_cancelar_nikto.config(state="normal")
-                
-                self._actualizar_texto_auditoria("🔧 Iniciando scan web Nikto...\n")
-                import subprocess
-                
-                try:
-                    # Verificar si Nikto está instalado
-                    resultado = subprocess.run(['which', 'nikto'], capture_output=True, text=True)
-                    if resultado.returncode == 0:
-                        self._actualizar_texto_auditoria("✅ Nikto encontrado\n")
-                        self._actualizar_texto_auditoria("📋 Ejemplos de uso Nikto:\n")
-                        self._actualizar_texto_auditoria("  • nikto -h http://target.com\n")
-                        self._actualizar_texto_auditoria("  • nikto -h https://target.com -ssl\n")
-                        self._actualizar_texto_auditoria("  • nikto -h target.com -p 80,443,8080\n")
-                    else:
-                        self._actualizar_texto_auditoria("❌ Nikto no encontrado. Instalar con: apt install nikto\n")
-                except Exception as e:
-                    self._actualizar_texto_auditoria(f"❌ Error verificando Nikto: {str(e)}\n")
-                
-                self._actualizar_texto_auditoria("✅ Verificación Nikto completada\n\n")
-            except Exception as e:
-                self._actualizar_texto_auditoria(f"❌ Error en Nikto: {str(e)}\n")
-            finally:
-                self.proceso_nikto_activo = False
-                if hasattr(self, 'btn_cancelar_nikto'):
-                    self.btn_cancelar_nikto.config(state="disabled")
-        
-        threading.Thread(target=ejecutar, daemon=True).start()
-    
-    def cancelar_nikto(self):
-        """Cancelar scan Nikto."""
-        if hasattr(self, 'proceso_nikto_activo'):
-            self.proceso_nikto_activo = False
-            self._actualizar_texto_auditoria("⏹️ Scan Nikto cancelado\n")
-    
-    def verificar_ssl(self):
-        """Verificar configuración SSL/TLS."""
-        def ejecutar():
-            try:
-                self._actualizar_texto_auditoria("🌐 Verificando configuración SSL/TLS...\n")
-                import subprocess
-                
-                try:
-                    # Verificar si sslscan está instalado
-                    resultado = subprocess.run(['which', 'sslscan'], capture_output=True, text=True)
-                    if resultado.returncode == 0:
-                        self._actualizar_texto_auditoria("✅ SSLScan encontrado\n")
-                        self._actualizar_texto_auditoria("📋 Comandos SSL útiles:\n")
-                        self._actualizar_texto_auditoria("  • sslscan target.com:443\n")
-                        self._actualizar_texto_auditoria("  • testssl.sh target.com\n")
-                        self._actualizar_texto_auditoria("  • openssl s_client -connect target.com:443\n")
-                    else:
-                        self._actualizar_texto_auditoria("❌ SSLScan no encontrado. Instalar con: apt install sslscan\n")
-                    
-                    # Verificar testssl
-                    resultado = subprocess.run(['which', 'testssl.sh'], capture_output=True, text=True)
-                    if resultado.returncode == 0:
-                        self._actualizar_texto_auditoria("✅ TestSSL encontrado\n")
-                    else:
-                        self._actualizar_texto_auditoria("❌ TestSSL no encontrado. Instalar con: apt install testssl.sh\n")
-                        
-                except Exception as e:
-                    self._actualizar_texto_auditoria(f"❌ Error verificando herramientas SSL: {str(e)}\n")
-                
-                self._actualizar_texto_auditoria("✅ Verificación SSL/TLS completada\n\n")
-            except Exception as e:
-                self._actualizar_texto_auditoria(f"❌ Error en verificación SSL: {str(e)}\n")
         
         threading.Thread(target=ejecutar, daemon=True).start()
     
@@ -639,59 +603,6 @@ class VistaAuditoria(tk.Frame):
                 self._actualizar_texto_auditoria(f"❌ Error en análisis SUID/SGID: {str(e)}\n")
         
         threading.Thread(target=ejecutar, daemon=True).start()
-    
-    def escanear_puertos(self):
-        """Escanear puertos abiertos."""
-        def ejecutar():
-            try:
-                self.proceso_puertos_activo = True
-                if hasattr(self, 'btn_cancelar_puertos'):
-                    self.btn_cancelar_puertos.config(state="normal")
-                
-                self._actualizar_texto_auditoria("🌐 Escaneando puertos abiertos...\n")
-                import subprocess
-                
-                try:
-                    # Usar netstat para puertos locales
-                    self._actualizar_texto_auditoria("📡 Puertos TCP abiertos localmente:\n")
-                    resultado = subprocess.run(['netstat', '-tlnp'], capture_output=True, text=True, timeout=15)
-                    if resultado.stdout:
-                        lineas = resultado.stdout.split('\n')[2:12]  # Primeras 10 líneas
-                        for linea in lineas:
-                            if linea.strip() and 'LISTEN' in linea:
-                                self._actualizar_texto_auditoria(f"  {linea}\n")
-                    
-                    # Verificar si nmap está disponible
-                    resultado_nmap = subprocess.run(['which', 'nmap'], capture_output=True, text=True)
-                    if resultado_nmap.returncode == 0:
-                        self._actualizar_texto_auditoria("✅ Nmap disponible para escaneos externos\n")
-                        self._actualizar_texto_auditoria("📋 Comandos Nmap útiles:\n")
-                        self._actualizar_texto_auditoria("  • nmap -sT localhost\n")
-                        self._actualizar_texto_auditoria("  • nmap -sS target.com\n")
-                        self._actualizar_texto_auditoria("  • nmap -sV -sC target.com\n")
-                    else:
-                        self._actualizar_texto_auditoria("❌ Nmap no encontrado. Instalar con: apt install nmap\n")
-                
-                except subprocess.TimeoutExpired:
-                    self._actualizar_texto_auditoria("⏱️ Timeout en escaneo de puertos\n")
-                except Exception as e:
-                    self._actualizar_texto_auditoria(f"❌ Error escaneando puertos: {str(e)}\n")
-                
-                self._actualizar_texto_auditoria("✅ Escaneo de puertos completado\n\n")
-            except Exception as e:
-                self._actualizar_texto_auditoria(f"❌ Error en escaneo de puertos: {str(e)}\n")
-            finally:
-                self.proceso_puertos_activo = False
-                if hasattr(self, 'btn_cancelar_puertos'):
-                    self.btn_cancelar_puertos.config(state="disabled")
-        
-        threading.Thread(target=ejecutar, daemon=True).start()
-    
-    def cancelar_puertos(self):
-        """Cancelar escaneo de puertos."""
-        if hasattr(self, 'proceso_puertos_activo'):
-            self.proceso_puertos_activo = False
-            self._actualizar_texto_auditoria("⏹️ Escaneo de puertos cancelado\n")
     
     def auditar_ssh(self):
         """Auditar configuración SSH."""
@@ -846,140 +757,3 @@ class VistaAuditoria(tk.Frame):
             self.auditoria_text.config(state=tk.NORMAL)
             self.auditoria_text.insert(tk.END, f" ❌ Error durante verificación: {str(e)}\n")
             self.auditoria_text.config(state=tk.DISABLED)
-
-    def iniciar_fim(self):
-        """Iniciar monitoreo FIM (File Integrity Monitoring)"""
-        if not self.controlador:
-            messagebox.showerror("Error", "No hay controlador de auditoría configurado")
-            return
-            
-        if self.proceso_fim_activo:
-            self._actualizar_texto_auditoria("FIM ya está en ejecución\n")
-            return
-        
-        try:
-            self._actualizar_texto_auditoria("=== INICIANDO MONITOREO FIM ===\n")
-            self.proceso_fim_activo = True
-            
-            # Obtener controlador FIM del controlador principal
-            if hasattr(self.controlador, '_controladores') and 'fim' in self.controlador._controladores:
-                controlador_fim = self.controlador._controladores['fim']
-                
-                def ejecutar_fim():
-                    try:
-                        self._actualizar_texto_auditoria("Iniciando monitoreo de integridad de archivos...\n")
-                        resultado = controlador_fim.iniciar_monitoreo()
-                        
-                        if resultado.get('exito'):
-                            self._actualizar_texto_auditoria("FIM iniciado correctamente\n")
-                            self._actualizar_texto_auditoria(f"Directorios monitoreados: {len(resultado.get('directorios', []))}\n")
-                            self._actualizar_texto_auditoria(f"Archivos en baseline: {resultado.get('archivos_baseline', 0)}\n")
-                        else:
-                            self._actualizar_texto_auditoria(f"Error iniciando FIM: {resultado.get('error', 'Error desconocido')}\n")
-                            self.proceso_fim_activo = False
-                            
-                    except Exception as e:
-                        self._actualizar_texto_auditoria(f"Error en FIM: {str(e)}\n")
-                        self.proceso_fim_activo = False
-                
-                threading.Thread(target=ejecutar_fim, daemon=True).start()
-            else:
-                self._actualizar_texto_auditoria("Error: Controlador FIM no disponible\n")
-                self.proceso_fim_activo = False
-                
-        except Exception as e:
-            self._actualizar_texto_auditoria(f"Error iniciando FIM: {str(e)}\n")
-            self.proceso_fim_activo = False
-
-    def detener_fim(self):
-        """Detener monitoreo FIM"""
-        if not self.proceso_fim_activo:
-            self._actualizar_texto_auditoria("FIM no está en ejecución\n")
-            return
-            
-        try:
-            if hasattr(self.controlador, '_controladores') and 'fim' in self.controlador._controladores:
-                controlador_fim = self.controlador._controladores['fim']
-                resultado = controlador_fim.detener_monitoreo()
-                
-                if resultado.get('exito'):
-                    self._actualizar_texto_auditoria("FIM detenido correctamente\n")
-                    self._actualizar_texto_auditoria(f"Cambios detectados: {resultado.get('cambios_detectados', 0)}\n")
-                else:
-                    self._actualizar_texto_auditoria(f"Error deteniendo FIM: {resultado.get('error', 'Error desconocido')}\n")
-                    
-                self.proceso_fim_activo = False
-            else:
-                self._actualizar_texto_auditoria("Error: Controlador FIM no disponible\n")
-                
-        except Exception as e:
-            self._actualizar_texto_auditoria(f"Error deteniendo FIM: {str(e)}\n")
-
-    def iniciar_siem(self):
-        """Iniciar análisis SIEM (Security Information & Event Management)"""
-        if not self.controlador:
-            messagebox.showerror("Error", "No hay controlador de auditoría configurado")
-            return
-            
-        if self.proceso_siem_activo:
-            self._actualizar_texto_auditoria("SIEM ya está en ejecución\n")
-            return
-        
-        try:
-            self._actualizar_texto_auditoria("=== INICIANDO ANÁLISIS SIEM ===\n")
-            self.proceso_siem_activo = True
-            
-            # Obtener controlador SIEM del controlador principal
-            if hasattr(self.controlador, '_controladores') and 'siem' in self.controlador._controladores:
-                controlador_siem = self.controlador._controladores['siem']
-                
-                def ejecutar_siem():
-                    try:
-                        self._actualizar_texto_auditoria("Iniciando análisis de eventos de seguridad...\n")
-                        resultado = controlador_siem.iniciar_analisis()
-                        
-                        if resultado.get('exito'):
-                            self._actualizar_texto_auditoria("SIEM iniciado correctamente\n")
-                            self._actualizar_texto_auditoria(f"Fuentes de eventos: {len(resultado.get('fuentes', []))}\n")
-                            self._actualizar_texto_auditoria(f"Reglas de correlación: {resultado.get('reglas_activas', 0)}\n")
-                        else:
-                            self._actualizar_texto_auditoria(f"Error iniciando SIEM: {resultado.get('error', 'Error desconocido')}\n")
-                            self.proceso_siem_activo = False
-                            
-                    except Exception as e:
-                        self._actualizar_texto_auditoria(f"Error en SIEM: {str(e)}\n")
-                        self.proceso_siem_activo = False
-                
-                threading.Thread(target=ejecutar_siem, daemon=True).start()
-            else:
-                self._actualizar_texto_auditoria("Error: Controlador SIEM no disponible\n")
-                self.proceso_siem_activo = False
-                
-        except Exception as e:
-            self._actualizar_texto_auditoria(f"Error iniciando SIEM: {str(e)}\n")
-            self.proceso_siem_activo = False
-
-    def detener_siem(self):
-        """Detener análisis SIEM"""
-        if not self.proceso_siem_activo:
-            self._actualizar_texto_auditoria("SIEM no está en ejecución\n")
-            return
-            
-        try:
-            if hasattr(self.controlador, '_controladores') and 'siem' in self.controlador._controladores:
-                controlador_siem = self.controlador._controladores['siem']
-                resultado = controlador_siem.detener_analisis()
-                
-                if resultado.get('exito'):
-                    self._actualizar_texto_auditoria("SIEM detenido correctamente\n")
-                    self._actualizar_texto_auditoria(f"Eventos analizados: {resultado.get('eventos_analizados', 0)}\n")
-                    self._actualizar_texto_auditoria(f"Alertas generadas: {resultado.get('alertas_generadas', 0)}\n")
-                else:
-                    self._actualizar_texto_auditoria(f"Error deteniendo SIEM: {resultado.get('error', 'Error desconocido')}\n")
-                    
-                self.proceso_siem_activo = False
-            else:
-                self._actualizar_texto_auditoria("Error: Controlador SIEM no disponible\n")
-                
-        except Exception as e:
-            self._actualizar_texto_auditoria(f"Error deteniendo SIEM: {str(e)}\n")

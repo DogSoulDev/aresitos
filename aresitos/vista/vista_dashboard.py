@@ -359,6 +359,10 @@ class VistaDashboard(tk.Frame):
                 bg=self.colors['bg_secondary'], fg=self.colors['fg_primary'],
                 font=("Arial", 10, "bold")).pack(anchor="w", padx=5, pady=(10,2))
         
+        # Frame específico para el grid de botones (soluciona el error de geometría)
+        botones_grid_frame = tk.Frame(comandos_frame, bg=self.colors['bg_secondary'])
+        botones_grid_frame.pack(fill="both", expand=True, padx=5, pady=5)
+        
         # Botones de comandos rápidos mejorados para Kali
         comandos_rapidos = [
             ("netstat -tuln", "Conexiones de red"),
@@ -372,12 +376,12 @@ class VistaDashboard(tk.Frame):
             ("ss -tuln", "Sockets de red")
         ]
         
-        # Crear grid de botones
+        # Crear grid de botones en el sub-frame
         for i, (comando, descripcion) in enumerate(comandos_rapidos):
             row = i // 3
             col = i % 3
             btn = tk.Button(
-                comandos_frame,
+                botones_grid_frame,
                 text=f"{descripcion}\n{comando}",
                 command=lambda cmd=comando: self.ejecutar_comando_rapido(cmd),
                 bg=self.colors['button_bg'],
@@ -390,7 +394,7 @@ class VistaDashboard(tk.Frame):
         
         # Configurar columnas para que se expandan
         for i in range(3):
-            comandos_frame.grid_columnconfigure(i, weight=1)
+            botones_grid_frame.grid_columnconfigure(i, weight=1)
         
         # Frame para entrada de comandos
         entrada_frame = tk.Frame(terminal_frame, bg=self.colors['bg_secondary'])
