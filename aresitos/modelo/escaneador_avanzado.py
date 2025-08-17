@@ -8,12 +8,12 @@ Escaneador de seguridad REAL que integra herramientas nativas de Kali Linux
 para realizar análisis completo de vulnerabilidades del sistema.
 
 FUNCIONALIDADES IMPLEMENTADAS:
-- ✅ Escaneo completo de vulnerabilidades del sistema
-- ✅ Detección de malware y rootkits  
-- ✅ Análisis de puertos y servicios vulnerables
-- ✅ Escaneo de archivos sospechosos
-- ✅ Detección de configuraciones inseguras
-- ✅ Integración real con herramientas de Kali
+- OK Escaneo completo de vulnerabilidades del sistema
+- OK Detección de malware y rootkits  
+- OK Análisis de puertos y servicios vulnerables
+- OK Escaneo de archivos sospechosos
+- OK Detección de configuraciones inseguras
+- OK Integración real con herramientas de Kali
 
 Autor: Ares Aegis Security Suite
 Fecha: 2024
@@ -151,9 +151,9 @@ class EscaneadorAvanzadoReal:
             self.cuarentena = CuarentenaReal()
             self.cuarentena_activa = CUARENTENA_DISPONIBLE
             if self.cuarentena_activa:
-                self.logger.info("🛡️ Sistema de cuarentena automática activado")
+                self.logger.info(" Sistema de cuarentena automática activado")
             else:
-                self.logger.warning("⚠️ Sistema de cuarentena no disponible")
+                self.logger.warning("WARNING Sistema de cuarentena no disponible")
         except Exception as e:
             self.logger.error(f"Error inicializando cuarentena: {e}")
             self.cuarentena = None
@@ -181,8 +181,8 @@ class EscaneadorAvanzadoReal:
         # Verificar herramientas disponibles
         self.herramientas = self._verificar_herramientas_kali()
         
-        self.logger.info("🔍 Escaneador Avanzado Real Ares Aegis inicializado")
-        self.logger.info(f"📋 Herramientas disponibles: {sum(self.herramientas.values())}/{len(self.herramientas)}")
+        self.logger.info(" Escaneador Avanzado Real Ares Aegis inicializado")
+        self.logger.info(f" Herramientas disponibles: {sum(self.herramientas.values())}/{len(self.herramientas)}")
 
     def _procesar_amenaza_con_cuarentena(self, vulnerabilidad: VulnerabilidadEncontrada) -> bool:
         """
@@ -227,7 +227,7 @@ class EscaneadorAvanzadoReal:
             resultado = self.cuarentena.procesar_amenaza_detectada(amenaza_info)
             
             if resultado:
-                self.logger.info(f"🔒 Amenaza procesada en cuarentena: {vulnerabilidad.tipo}")
+                self.logger.info(f" Amenaza procesada en cuarentena: {vulnerabilidad.tipo}")
             
             return resultado
             
@@ -309,12 +309,12 @@ class EscaneadorAvanzadoReal:
                 )
                 disponibles[herramienta] = resultado.returncode == 0
                 if disponibles[herramienta]:
-                    self.logger.debug(f"✅ {herramienta} disponible")
+                    self.logger.debug(f"OK {herramienta} disponible")
                 else:
-                    self.logger.debug(f"❌ {herramienta} no disponible")
+                    self.logger.debug(f"ERROR {herramienta} no disponible")
             except Exception:
                 disponibles[herramienta] = False
-                self.logger.debug(f"❌ {herramienta} no encontrada")
+                self.logger.debug(f"ERROR {herramienta} no encontrada")
         
         return disponibles
 
@@ -334,7 +334,7 @@ class EscaneadorAvanzadoReal:
             self.escaneando = True
 
         try:
-            self.logger.info("🔍 Iniciando escaneo completo de vulnerabilidades del sistema...")
+            self.logger.info(" Iniciando escaneo completo de vulnerabilidades del sistema...")
             
             resultado = ResultadoEscaneo(
                 tipo_escaneo=TipoEscaneo.VULNERABILIDADES_SISTEMA,
@@ -368,11 +368,11 @@ class EscaneadorAvanzadoReal:
             resultado.timestamp_fin = datetime.now()
             resultado.exito = True
             
-            self.logger.info(f"✅ Escaneo completado: {len(resultado.vulnerabilidades)} vulnerabilidades encontradas")
+            self.logger.info(f"OK Escaneo completado: {len(resultado.vulnerabilidades)} vulnerabilidades encontradas")
             return resultado
 
         except Exception as e:
-            self.logger.error(f"❌ Error durante escaneo de vulnerabilidades: {e}")
+            self.logger.error(f"ERROR Error durante escaneo de vulnerabilidades: {e}")
             resultado.exito = False
             if resultado.errores is None:
                 resultado.errores = []
@@ -386,7 +386,7 @@ class EscaneadorAvanzadoReal:
         vulnerabilidades = []
         
         try:
-            self.logger.info("🔍 Ejecutando Lynis para auditoría del sistema...")
+            self.logger.info(" Ejecutando Lynis para auditoría del sistema...")
             
             comando = ['lynis', 'audit', 'system', '--quiet', '--no-colors']
             
@@ -483,7 +483,7 @@ class EscaneadorAvanzadoReal:
                     )
                     vulnerabilidades.append(vulnerabilidad)
                     
-                    # 🔒 CUARENTENA AUTOMÁTICA para configuraciones críticas
+                    #  CUARENTENA AUTOMÁTICA para configuraciones críticas
                     self._procesar_amenaza_con_cuarentena(vulnerabilidad)
                 
                 if 'PasswordAuthentication yes' in contenido:
@@ -695,11 +695,11 @@ class EscaneadorAvanzadoReal:
             resultado.timestamp_fin = datetime.now()
             resultado.exito = True
             
-            self.logger.info(f"✅ Detección de malware completada: {len(resultado.vulnerabilidades)} amenazas encontradas")
+            self.logger.info(f"OK Detección de malware completada: {len(resultado.vulnerabilidades)} amenazas encontradas")
             return resultado
 
         except Exception as e:
-            self.logger.error(f"❌ Error durante detección de malware: {e}")
+            self.logger.error(f"ERROR Error durante detección de malware: {e}")
             resultado.exito = False
             if resultado.errores is None:
                 resultado.errores = []
@@ -736,7 +736,7 @@ class EscaneadorAvanzadoReal:
                         )
                         vulnerabilidades.append(vulnerabilidad)
                         
-                        # 🔒 CUARENTENA AUTOMÁTICA para rootkits
+                        #  CUARENTENA AUTOMÁTICA para rootkits
                         self._procesar_amenaza_con_cuarentena(vulnerabilidad)
                         
         except Exception as e:
@@ -772,7 +772,7 @@ class EscaneadorAvanzadoReal:
                         )
                         vulnerabilidades.append(vulnerabilidad)
                         
-                        # 🔒 CUARENTENA AUTOMÁTICA para infecciones críticas
+                        #  CUARENTENA AUTOMÁTICA para infecciones críticas
                         self._procesar_amenaza_con_cuarentena(vulnerabilidad)
                         
         except Exception as e:
@@ -816,7 +816,7 @@ class EscaneadorAvanzadoReal:
                                 )
                                 vulnerabilidades.append(vulnerabilidad)
                                 
-                                # 🔒 CUARENTENA AUTOMÁTICA para malware crítico
+                                #  CUARENTENA AUTOMÁTICA para malware crítico
                                 self._procesar_amenaza_con_cuarentena(vulnerabilidad)
                                 
         except Exception as e:
@@ -830,7 +830,7 @@ class EscaneadorAvanzadoReal:
         
         Combina todos los tipos de escaneo para un análisis integral.
         """
-        self.logger.info("🚀 Iniciando escaneo completo del sistema...")
+        self.logger.info(" Iniciando escaneo completo del sistema...")
         
         resultado_completo = ResultadoEscaneo(
             tipo_escaneo=TipoEscaneo.ESCANEO_COMPLETO,
@@ -857,22 +857,22 @@ class EscaneadorAvanzadoReal:
             resultado_completo.timestamp_fin = datetime.now()
             resultado_completo.exito = True
             
-            self.logger.info(f"✅ Escaneo completo terminado:")
-            self.logger.info(f"   📊 Total vulnerabilidades: {total_vulnerabilidades}")
+            self.logger.info(f"OK Escaneo completo terminado:")
+            self.logger.info(f"    Total vulnerabilidades: {total_vulnerabilidades}")
             self.logger.info(f"   🔴 Críticas: {criticas}")
             self.logger.info(f"   🟠 Altas: {altas}")
             
-            # 📋 Resumen de cuarentena
+            #  Resumen de cuarentena
             if self.cuarentena_activa and self.cuarentena:
                 try:
                     if hasattr(self.cuarentena, 'obtener_resumen_cuarentena'):
                         resumen_cuarentena = self.cuarentena.obtener_resumen_cuarentena()
                         if 'total_archivos' in resumen_cuarentena:
-                            self.logger.info(f"   🔒 Archivos en cuarentena: {resumen_cuarentena['total_archivos']}")
+                            self.logger.info(f"    Archivos en cuarentena: {resumen_cuarentena['total_archivos']}")
                             if resumen_cuarentena.get('amenazas_criticas', 0) > 0:
-                                self.logger.warning(f"   ⚠️ Amenazas críticas en cuarentena: {resumen_cuarentena['amenazas_criticas']}")
+                                self.logger.warning(f"   WARNING Amenazas críticas en cuarentena: {resumen_cuarentena['amenazas_criticas']}")
                     else:
-                        self.logger.info("   🔒 Sistema de cuarentena activo")
+                        self.logger.info("    Sistema de cuarentena activo")
                 except Exception as e:
                     self.logger.debug(f"Error obteniendo resumen de cuarentena: {e}")
             

@@ -25,10 +25,10 @@ class ConfiguradorAresAegis:
         self.es_kali = self.detectar_kali()
         self.directorio_base = Path(__file__).parent
         
-        print("🛡️ Configurador Automático de Ares Aegis")
+        print(" Configurador Automático de Ares Aegis")
         print("=" * 50)
         print(f"Sistema: {self.sistema}")
-        print(f"Kali Linux: {'✅ Sí' if self.es_kali else '❌ No'}")
+        print(f"Kali Linux: {'OK Sí' if self.es_kali else 'ERROR No'}")
         print(f"Directorio: {self.directorio_base}")
         print()
     
@@ -48,15 +48,15 @@ class ConfiguradorAresAegis:
         
         version = sys.version_info
         if version.major < 3 or (version.major == 3 and version.minor < 6):
-            print("❌ Se requiere Python 3.6 o superior")
+            print("ERROR Se requiere Python 3.6 o superior")
             return False
         
-        print(f"✅ Python {version.major}.{version.minor}.{version.micro}")
+        print(f"OK Python {version.major}.{version.minor}.{version.micro}")
         return True
     
     def verificar_permisos(self):
         """Verificar permisos de administrador"""
-        print("🔐 Verificando permisos...")
+        print(" Verificando permisos...")
         
         try:
             if self.sistema == "Windows":
@@ -81,46 +81,46 @@ class ConfiguradorAresAegis:
                                               capture_output=True, timeout=2)
                         sudo_disponible = result.returncode == 0
                         if sudo_disponible:
-                            print("✅ Sudo disponible")
+                            print("OK Sudo disponible")
                             return True
                     except:
                         pass
             
             if es_admin:
-                print("✅ Permisos de administrador confirmados")
+                print("OK Permisos de administrador confirmados")
                 return True
             else:
-                print("⚠️ Sin permisos de administrador")
-                print("💡 Ejecute con: sudo python configurar.py")
+                print("WARNING Sin permisos de administrador")
+                print(" Ejecute con: sudo python configurar.py")
                 return False
                 
         except Exception as e:
-            print(f"❌ Error verificando permisos: {e}")
+            print(f"ERROR Error verificando permisos: {e}")
             return False
     
     def instalar_dependencias_python(self):
         """Instalar dependencias de Python"""
-        print("📦 Instalando dependencias de Python...")
+        print(" Instalando dependencias de Python...")
         
         dependencias = ['tkinter']  # tkinter suele venir incluido
         
         for dep in dependencias:
             try:
                 __import__(dep)
-                print(f"✅ {dep} disponible")
+                print(f"OK {dep} disponible")
             except ImportError:
-                print(f"❌ {dep} no encontrado")
+                print(f"ERROR {dep} no encontrado")
                 
                 if dep == 'tkinter':
                     if self.sistema == "Linux":
-                        print("🔧 Instalando python3-tk...")
+                        print(" Instalando python3-tk...")
                         self.ejecutar_comando(['apt-get', 'install', '-y', 'python3-tk'])
                     else:
-                        print("⚠️ Instale tkinter manualmente")
+                        print("WARNING Instale tkinter manualmente")
     
     def verificar_herramientas_sistema(self):
         """Verificar herramientas del sistema"""
-        print("🔧 Verificando herramientas del sistema...")
+        print(" Verificando herramientas del sistema...")
         
         herramientas_criticas = [
             'nmap', 'curl', 'wget', 'git', 'python3'
@@ -129,21 +129,21 @@ class ConfiguradorAresAegis:
         disponibles = 0
         for herramienta in herramientas_criticas:
             if shutil.which(herramienta):
-                print(f"✅ {herramienta}")
+                print(f"OK {herramienta}")
                 disponibles += 1
             else:
-                print(f"❌ {herramienta}")
+                print(f"ERROR {herramienta}")
         
-        print(f"📊 Herramientas: {disponibles}/{len(herramientas_criticas)}")
+        print(f" Herramientas: {disponibles}/{len(herramientas_criticas)}")
         return disponibles >= len(herramientas_criticas) // 2
     
     def instalar_herramientas_kali(self):
         """Instalar herramientas específicas de Kali"""
         if not self.es_kali:
-            print("⚠️ No es Kali Linux - saltando instalación específica")
+            print("WARNING No es Kali Linux - saltando instalación específica")
             return True
         
-        print("🛠️ Instalando herramientas de Kali Linux...")
+        print(" Instalando herramientas de Kali Linux...")
         
         # Lista de herramientas esenciales para instalar
         herramientas_esenciales = [
@@ -153,13 +153,13 @@ class ConfiguradorAresAegis:
         ]
         
         # Actualizar repositorios
-        print("🔄 Actualizando repositorios...")
+        print(" Actualizando repositorios...")
         if self.ejecutar_comando(['apt-get', 'update']):
-            print("✅ Repositorios actualizados")
+            print("OK Repositorios actualizados")
         
         # Instalar herramientas
         for herramienta in herramientas_esenciales[:10]:  # Limitar a 10
-            print(f"📦 Instalando {herramienta}...")
+            print(f" Instalando {herramienta}...")
             self.ejecutar_comando(['apt-get', 'install', '-y', herramienta])
         
         return True
@@ -179,17 +179,17 @@ class ConfiguradorAresAegis:
             ruta = self.directorio_base / directorio
             try:
                 ruta.mkdir(parents=True, exist_ok=True)
-                print(f"✅ {directorio}")
+                print(f"OK {directorio}")
             except Exception as e:
-                print(f"❌ Error creando {directorio}: {e}")
+                print(f"ERROR Error creando {directorio}: {e}")
     
     def configurar_permisos_archivos(self):
         """Configurar permisos de archivos"""
         if self.sistema == "Windows":
-            print("⚠️ Windows - saltando configuración de permisos Unix")
+            print("WARNING Windows - saltando configuración de permisos Unix")
             return True
         
-        print("🔒 Configurando permisos de archivos...")
+        print(" Configurando permisos de archivos...")
         
         # Archivos ejecutables
         ejecutables = [
@@ -204,19 +204,19 @@ class ConfiguradorAresAegis:
             if ruta.exists():
                 try:
                     os.chmod(ruta, 0o755)
-                    print(f"✅ {archivo} (755)")
+                    print(f"OK {archivo} (755)")
                 except Exception as e:
-                    print(f"❌ Error en {archivo}: {e}")
+                    print(f"ERROR Error en {archivo}: {e}")
         
         return True
     
     def crear_alias_sistema(self):
         """Crear alias para fácil acceso"""
         if self.sistema == "Windows":
-            print("⚠️ Windows - crear acceso directo manualmente")
+            print("WARNING Windows - crear acceso directo manualmente")
             return True
         
-        print("🔗 Configurando alias del sistema...")
+        print(" Configurando alias del sistema...")
         
         # Crear script de inicio
         script_inicio = f"""#!/bin/bash
@@ -231,11 +231,11 @@ python3 login_gui.py "$@"
                 with open(ruta_launcher, 'w') as f:
                     f.write(script_inicio)
                 os.chmod(ruta_launcher, 0o755)
-                print("✅ Alias 'ares-aegis' creado")
+                print("OK Alias 'ares-aegis' creado")
             else:
-                print("⚠️ Sin permisos para crear alias global")
+                print("WARNING Sin permisos para crear alias global")
         except Exception as e:
-            print(f"❌ Error creando alias: {e}")
+            print(f"ERROR Error creando alias: {e}")
         
         return True
     
@@ -255,15 +255,15 @@ python3 login_gui.py "$@"
             return resultado.returncode == 0
             
         except subprocess.TimeoutExpired:
-            print(f"❌ Timeout ejecutando: {' '.join(comando)}")
+            print(f"ERROR Timeout ejecutando: {' '.join(comando)}")
             return False
         except Exception as e:
-            print(f"❌ Error ejecutando comando: {e}")
+            print(f"ERROR Error ejecutando comando: {e}")
             return False
     
     def verificar_configuracion(self):
         """Verificar que todo esté configurado correctamente"""
-        print("🔍 Verificando configuración final...")
+        print(" Verificando configuración final...")
         
         verificaciones = [
             ("Python", self.verificar_python()),
@@ -275,17 +275,17 @@ python3 login_gui.py "$@"
         exitoso = 0
         for nombre, resultado in verificaciones:
             if resultado:
-                print(f"✅ {nombre}")
+                print(f"OK {nombre}")
                 exitoso += 1
             else:
-                print(f"❌ {nombre}")
+                print(f"ERROR {nombre}")
         
-        print(f"📊 Configuración: {exitoso}/{len(verificaciones)} completada")
+        print(f" Configuración: {exitoso}/{len(verificaciones)} completada")
         return exitoso == len(verificaciones)
     
     def ejecutar_configuracion_completa(self):
         """Ejecutar configuración completa del sistema"""
-        print("🚀 Iniciando configuración automática de Ares Aegis...")
+        print(" Iniciando configuración automática de Ares Aegis...")
         print()
         
         pasos = [
@@ -304,31 +304,31 @@ python3 login_gui.py "$@"
         
         exitosos = 0
         for i, (nombre, funcion) in enumerate(pasos, 1):
-            print(f"\n📋 Paso {i}/{len(pasos)}: {nombre}")
+            print(f"\n Paso {i}/{len(pasos)}: {nombre}")
             print("-" * 40)
             
             try:
                 if funcion():
                     exitosos += 1
-                    print(f"✅ {nombre} completado")
+                    print(f"OK {nombre} completado")
                 else:
-                    print(f"⚠️ {nombre} con advertencias")
+                    print(f"WARNING {nombre} con advertencias")
             except Exception as e:
-                print(f"❌ Error en {nombre}: {e}")
+                print(f"ERROR Error en {nombre}: {e}")
         
         print("\n" + "=" * 50)
-        print("🎯 RESUMEN DE CONFIGURACIÓN")
+        print(" RESUMEN DE CONFIGURACIÓN")
         print("=" * 50)
-        print(f"📊 Pasos completados: {exitosos}/{len(pasos)}")
+        print(f" Pasos completados: {exitosos}/{len(pasos)}")
         
         if exitosos >= len(pasos) * 0.8:
-            print("✅ Configuración exitosa - Ares Aegis listo para usar")
-            print("\n🚀 Para iniciar ejecute: python login_gui.py")
+            print("OK Configuración exitosa - Ares Aegis listo para usar")
+            print("\n Para iniciar ejecute: python login_gui.py")
             if self.sistema != "Windows" and shutil.which('ares-aegis'):
-                print("🚀 O simplemente: ares-aegis")
+                print(" O simplemente: ares-aegis")
             return True
         else:
-            print("⚠️ Configuración incompleta - revise los errores anteriores")
+            print("WARNING Configuración incompleta - revise los errores anteriores")
             return False
 
 def main():
@@ -343,7 +343,7 @@ def main():
         print("\n\n👋 Configuración cancelada por el usuario")
         sys.exit(1)
     except Exception as e:
-        print(f"\n❌ Error crítico en configuración: {e}")
+        print(f"\nERROR Error crítico en configuración: {e}")
         sys.exit(1)
 
 if __name__ == "__main__":

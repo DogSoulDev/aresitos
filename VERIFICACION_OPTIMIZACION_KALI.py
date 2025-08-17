@@ -24,20 +24,20 @@ class VerificadorOptimizacionKali:
         self.exitosos = []
         
     def log_error(self, mensaje):
-        self.errores.append(f"❌ ERROR: {mensaje}")
-        print(f"❌ ERROR: {mensaje}")
+        self.errores.append(f"ERROR ERROR: {mensaje}")
+        print(f"ERROR ERROR: {mensaje}")
     
     def log_warning(self, mensaje):
-        self.warnings.append(f"⚠️ WARNING: {mensaje}")
-        print(f"⚠️ WARNING: {mensaje}")
+        self.warnings.append(f"WARNING WARNING: {mensaje}")
+        print(f"WARNING WARNING: {mensaje}")
     
     def log_success(self, mensaje):
-        self.exitosos.append(f"✅ SUCCESS: {mensaje}")
-        print(f"✅ SUCCESS: {mensaje}")
+        self.exitosos.append(f"OK SUCCESS: {mensaje}")
+        print(f"OK SUCCESS: {mensaje}")
         
     def verificar_sistema_kali(self):
         """Verificar que estamos ejecutando en Kali Linux"""
-        print("\n🔍 VERIFICANDO SISTEMA KALI LINUX...")
+        print("\n VERIFICANDO SISTEMA KALI LINUX...")
         
         try:
             # Verificar /etc/os-release
@@ -60,7 +60,7 @@ class VerificadorOptimizacionKali:
     
     def verificar_herramientas_kali_nativas(self):
         """Verificar que las herramientas nativas de Kali estén disponibles"""
-        print("\n🔧 VERIFICANDO HERRAMIENTAS NATIVAS DE KALI...")
+        print("\n VERIFICANDO HERRAMIENTAS NATIVAS DE KALI...")
         
         herramientas_criticas = {
             # Herramientas básicas del sistema
@@ -116,7 +116,7 @@ class VerificadorOptimizacionKali:
         total = len(herramientas_criticas)
         porcentaje = (disponibles / total) * 100
         
-        print(f"\n📊 RESUMEN HERRAMIENTAS: {disponibles}/{total} disponibles ({porcentaje:.1f}%)")
+        print(f"\n RESUMEN HERRAMIENTAS: {disponibles}/{total} disponibles ({porcentaje:.1f}%)")
         
         if porcentaje >= 90:
             self.log_success(f"Excelente cobertura de herramientas ({porcentaje:.1f}%)")
@@ -126,7 +126,7 @@ class VerificadorOptimizacionKali:
             self.log_error(f"Cobertura insuficiente de herramientas ({porcentaje:.1f}%)")
         
         if faltantes:
-            print("💡 RECOMENDACIONES DE INSTALACIÓN:")
+            print(" RECOMENDACIONES DE INSTALACIÓN:")
             for herramienta in faltantes[:5]:  # Solo las 5 primeras
                 if herramienta == 'dcfldd':
                     print("  sudo apt install dcfldd")
@@ -141,7 +141,7 @@ class VerificadorOptimizacionKali:
     
     def verificar_modulos_aresitos(self):
         """Verificar que los módulos principales de ARESITOS están presentes y compilables"""
-        print("\n📦 VERIFICANDO MÓDULOS ARESITOS...")
+        print("\n VERIFICANDO MÓDULOS ARESITOS...")
         
         modulos_criticos = [
             'aresitos/controlador/controlador_fim.py',
@@ -174,7 +174,7 @@ class VerificadorOptimizacionKali:
     
     def verificar_optimizaciones_especificas(self):
         """Verificar que las optimizaciones específicas para Kali estén implementadas"""
-        print("\n🚀 VERIFICANDO OPTIMIZACIONES ESPECÍFICAS DE KALI...")
+        print("\n VERIFICANDO OPTIMIZACIONES ESPECÍFICAS DE KALI...")
         
         # Verificar FIM con monitoreo PAM
         try:
@@ -239,7 +239,7 @@ class VerificadorOptimizacionKali:
     
     def verificar_configuraciones_kali(self):
         """Verificar configuraciones específicas de Kali"""
-        print("\n⚙️ VERIFICANDO CONFIGURACIONES KALI...")
+        print("\n VERIFICANDO CONFIGURACIONES KALI...")
         
         # Verificar configuración Kali
         config_kali = self.base_dir / 'configuracion/ares_aegis_config_kali.json'
@@ -273,7 +273,7 @@ class VerificadorOptimizacionKali:
     
     def ejecutar_verificacion_completa(self):
         """Ejecutar verificación completa del sistema"""
-        print("🔥 ARESITOS - VERIFICACIÓN OPTIMIZACIÓN KALI LINUX 🔥")
+        print("ARESITOS ARESITOS - VERIFICACIÓN OPTIMIZACIÓN KALI LINUX ARESITOS")
         print("=" * 60)
         
         # Ejecutar todas las verificaciones
@@ -285,20 +285,20 @@ class VerificadorOptimizacionKali:
         
         # Generar resumen final
         print("\n" + "=" * 60)
-        print("📊 RESUMEN FINAL DE VERIFICACIÓN")
+        print(" RESUMEN FINAL DE VERIFICACIÓN")
         print("=" * 60)
         
-        print(f"\n✅ ÉXITOS: {len(self.exitosos)}")
+        print(f"\nOK ÉXITOS: {len(self.exitosos)}")
         for exito in self.exitosos[-5:]:  # Últimos 5
             print(f"  {exito}")
         
         if self.warnings:
-            print(f"\n⚠️ ADVERTENCIAS: {len(self.warnings)}")
+            print(f"\nWARNING ADVERTENCIAS: {len(self.warnings)}")
             for warning in self.warnings[:5]:  # Primeras 5
                 print(f"  {warning}")
         
         if self.errores:
-            print(f"\n❌ ERRORES: {len(self.errores)}")
+            print(f"\nERROR ERRORES: {len(self.errores)}")
             for error in self.errores[:5]:  # Primeros 5
                 print(f"  {error}")
         
@@ -306,19 +306,19 @@ class VerificadorOptimizacionKali:
         total_checks = len(self.exitosos) + len(self.warnings) + len(self.errores)
         success_rate = (len(self.exitosos) / total_checks * 100) if total_checks > 0 else 0
         
-        print(f"\n🎯 TASA DE ÉXITO: {success_rate:.1f}%")
+        print(f"\n TASA DE ÉXITO: {success_rate:.1f}%")
         
         if success_rate >= 90:
-            print("🏆 ESTADO: EXCELENTE - Sistema totalmente optimizado para Kali Linux")
+            print(" ESTADO: EXCELENTE - Sistema totalmente optimizado para Kali Linux")
             return True
         elif success_rate >= 75:
             print("👍 ESTADO: BUENO - Sistema bien optimizado, algunas mejoras menores")
             return True
         elif success_rate >= 60:
-            print("⚠️ ESTADO: ACEPTABLE - Optimización parcial, requiere atención")
+            print("WARNING ESTADO: ACEPTABLE - Optimización parcial, requiere atención")
             return False
         else:
-            print("❌ ESTADO: CRÍTICO - Optimización insuficiente, requiere revisión completa")
+            print("ERROR ESTADO: CRÍTICO - Optimización insuficiente, requiere revisión completa")
             return False
 
 def main():
@@ -329,20 +329,20 @@ def main():
         
         print("\n" + "=" * 60)
         if resultado:
-            print("🎉 VERIFICACIÓN COMPLETADA EXITOSAMENTE")
-            print("🚀 ARESITOS está listo para uso en Kali Linux!")
+            print(" VERIFICACIÓN COMPLETADA EXITOSAMENTE")
+            print(" ARESITOS está listo para uso en Kali Linux!")
         else:
-            print("⚠️ VERIFICACIÓN COMPLETADA CON OBSERVACIONES")
-            print("🔧 Revisar las advertencias y errores reportados")
+            print("WARNING VERIFICACIÓN COMPLETADA CON OBSERVACIONES")
+            print(" Revisar las advertencias y errores reportados")
         print("=" * 60)
         
         return 0 if resultado else 1
         
     except KeyboardInterrupt:
-        print("\n⚠️ Verificación cancelada por el usuario")
+        print("\nWARNING Verificación cancelada por el usuario")
         return 2
     except Exception as e:
-        print(f"\n❌ Error crítico en verificación: {str(e)}")
+        print(f"\nERROR Error crítico en verificación: {str(e)}")
         return 3
 
 if __name__ == "__main__":

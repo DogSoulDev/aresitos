@@ -127,7 +127,7 @@ class GestorPermisosSeguro:
         
         self.logger.info(f"GestorPermisosSeguro inicializado para usuario: {self.usuario_actual}")
         if self.es_root:
-            self.logger.warning("⚠️ Ejecutándose como ROOT - permisos elevados activos")
+            self.logger.warning("WARNING Ejecutándose como ROOT - permisos elevados activos")
     
     def _crear_logger(self) -> logging.Logger:
         """Crea un logger específico para el gestor de permisos."""
@@ -159,14 +159,14 @@ class GestorPermisosSeguro:
             disponible = resultado.returncode == 0
             
             if disponible:
-                self.logger.info("✅ sudo disponible y configurado")
+                self.logger.info("OK sudo disponible y configurado")
             else:
-                self.logger.warning("⚠️ sudo no disponible o requiere contraseña")
+                self.logger.warning("WARNING sudo no disponible o requiere contraseña")
                 
             return disponible
             
         except (subprocess.TimeoutExpired, FileNotFoundError) as e:
-            self.logger.error(f"❌ Error verificando sudo: {e}")
+            self.logger.error(f"ERROR Error verificando sudo: {e}")
             return False
     
     def _validar_comando(self, herramienta: str, argumentos: List[str]) -> Tuple[bool, str]:
@@ -208,7 +208,7 @@ class GestorPermisosSeguro:
         rutas_sospechosas = ['/etc/passwd', '/etc/shadow', '../', '~/', '/root/']
         for ruta in rutas_sospechosas:
             if ruta in args_str:
-                self.logger.warning(f"⚠️ Ruta potencialmente sensible en argumentos: {ruta}")
+                self.logger.warning(f"WARNING Ruta potencialmente sensible en argumentos: {ruta}")
         
         return True, "Comando validado correctamente"
     
@@ -230,7 +230,7 @@ class GestorPermisosSeguro:
         # Validar el comando
         es_valido, mensaje_validacion = self._validar_comando(herramienta, argumentos)
         if not es_valido:
-            self.logger.error(f"❌ Validación fallida: {mensaje_validacion}")
+            self.logger.error(f"ERROR Validación fallida: {mensaje_validacion}")
             return False, "", f"Error de validación: {mensaje_validacion}"
         
         # Construir comando seguro
@@ -245,7 +245,7 @@ class GestorPermisosSeguro:
         
         # Log de la operación
         comando_log = ' '.join(shlex.quote(arg) for arg in comando_final)
-        self.logger.info(f"🔧 Ejecutando: {comando_log}")
+        self.logger.info(f" Ejecutando: {comando_log}")
         
         try:
             proceso = subprocess.run(
@@ -259,20 +259,20 @@ class GestorPermisosSeguro:
             exito = proceso.returncode == 0
             
             if exito:
-                self.logger.info(f"✅ Comando ejecutado exitosamente: {herramienta}")
+                self.logger.info(f"OK Comando ejecutado exitosamente: {herramienta}")
             else:
-                self.logger.warning(f"⚠️ Comando falló con código {proceso.returncode}: {herramienta}")
+                self.logger.warning(f"WARNING Comando falló con código {proceso.returncode}: {herramienta}")
             
             return exito, proceso.stdout, proceso.stderr
             
         except subprocess.TimeoutExpired:
             error_msg = f"Timeout ({timeout_efectivo}s) ejecutando {herramienta}"
-            self.logger.error(f"❌ {error_msg}")
+            self.logger.error(f"ERROR {error_msg}")
             return False, "", error_msg
             
         except Exception as e:
             error_msg = f"Error ejecutando {herramienta}: {str(e)}"
-            self.logger.error(f"❌ {error_msg}")
+            self.logger.error(f"ERROR {error_msg}")
             return False, "", error_msg
     
     def leer_archivo_sistema(self, ruta_archivo: str) -> Tuple[bool, str]:
@@ -287,14 +287,14 @@ class GestorPermisosSeguro:
         """
         # Verificar que la ruta está en la lista de rutas permitidas
         if ruta_archivo not in self.RUTAS_SISTEMA_CRITICAS:
-            self.logger.warning(f"⚠️ Intento de leer archivo no autorizado: {ruta_archivo}")
+            self.logger.warning(f"WARNING Intento de leer archivo no autorizado: {ruta_archivo}")
         
         try:
             if self.es_root:
                 # Si ya somos root, leer directamente
                 with open(ruta_archivo, 'r') as f:
                     contenido = f.read()
-                self.logger.info(f"✅ Archivo leído exitosamente: {ruta_archivo}")
+                self.logger.info(f"OK Archivo leído exitosamente: {ruta_archivo}")
                 return True, contenido
             else:
                 # Usar sudo cat para leer el archivo
@@ -306,7 +306,7 @@ class GestorPermisosSeguro:
                     
         except Exception as e:
             error_msg = f"Error leyendo archivo {ruta_archivo}: {str(e)}"
-            self.logger.error(f"❌ {error_msg}")
+            self.logger.error(f"ERROR {error_msg}")
             return False, error_msg
     
     def verificar_permisos_herramienta(self, herramienta: str) -> Dict[str, Any]:

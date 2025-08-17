@@ -98,7 +98,7 @@ class VistaHerramientasKali(tk.Toplevel):
     def _definir_herramientas_kali(self):
         """Definir todas las herramientas necesarias categorizadas"""
         self.herramientas_kali = {
-            "🔍 Escaneo y Reconocimiento": {
+            " Escaneo y Reconocimiento": {
                 "nmap": {
                     "descripcion": "Network exploration tool and security/port scanner",
                     "paquete": "nmap",
@@ -160,7 +160,7 @@ class VistaHerramientasKali(tk.Toplevel):
                     "uso_aresitos": "Enumeración DNS avanzada"
                 }
             },
-            "⚔️ Explotación": {
+            " Explotación": {
                 "metasploit-framework": {
                     "descripcion": "Penetration testing framework",
                     "paquete": "metasploit-framework",
@@ -204,7 +204,7 @@ class VistaHerramientasKali(tk.Toplevel):
                     "uso_aresitos": "Auditoría WiFi"
                 }
             },
-            "🛡️ Post-Explotación": {
+            " Post-Explotación": {
                 "netcat": {
                     "descripcion": "TCP/IP swiss army knife",
                     "paquete": "netcat-traditional",
@@ -250,7 +250,7 @@ class VistaHerramientasKali(tk.Toplevel):
                     "uso_aresitos": "Análisis de sistemas de archivos"
                 }
             },
-            "📊 SIEM y Monitoreo": {
+            " SIEM y Monitoreo": {
                 "auditd": {
                     "descripcion": "Linux Audit Framework",
                     "paquete": "auditd",
@@ -308,7 +308,7 @@ class VistaHerramientasKali(tk.Toplevel):
                     "uso_aresitos": "Búsqueda de rootkits y backdoors"
                 }
             },
-            "🔧 Herramientas del Sistema": {
+            " Herramientas del Sistema": {
                 "curl": {
                     "descripcion": "Command line tool for transferring data",
                     "paquete": "curl",
@@ -355,7 +355,7 @@ class VistaHerramientasKali(tk.Toplevel):
         
         titulo_label = tk.Label(
             titulo_frame,
-            text="🛠️ HERRAMIENTAS DE KALI LINUX 2025 PARA ARESITOS",
+            text=" HERRAMIENTAS DE KALI LINUX 2025 PARA ARESITOS",
             bg=self.bg_primary,
             fg=self.accent_orange,
             font=("Arial", 16, "bold")
@@ -381,7 +381,7 @@ class VistaHerramientasKali(tk.Toplevel):
         
         self.btn_verificar = tk.Button(
             btn_frame,
-            text="🔍 Verificar Todas",
+            text=" Verificar Todas",
             command=self._verificar_todas_herramientas,
             bg=self.accent_blue,
             fg='white',
@@ -392,7 +392,7 @@ class VistaHerramientasKali(tk.Toplevel):
         
         self.btn_seleccionar_esenciales = tk.Button(
             btn_frame,
-            text="⭐ Seleccionar Esenciales",
+            text=" Seleccionar Esenciales",
             command=self._seleccionar_esenciales,
             bg=self.accent_orange,
             fg='white',
@@ -403,7 +403,7 @@ class VistaHerramientasKali(tk.Toplevel):
         
         self.btn_instalar_seleccionadas = tk.Button(
             btn_frame,
-            text="📦 Instalar Seleccionadas",
+            text=" Instalar Seleccionadas",
             command=self._instalar_seleccionadas,
             bg=self.accent_green,
             fg='white',
@@ -453,7 +453,7 @@ class VistaHerramientasKali(tk.Toplevel):
         
         tk.Label(
             log_frame,
-            text="📋 Log de Instalación:",
+            text=" Log de Instalación:",
             bg=self.bg_secondary,
             fg=self.fg_primary,
             font=("Arial", 10, "bold")
@@ -506,10 +506,10 @@ class VistaHerramientasKali(tk.Toplevel):
         
         # Poblar treeview
         for nombre, info in herramientas.items():
-            esencial_text = "⭐ " if info["esencial"] else "   "
+            esencial_text = " " if info["esencial"] else "   "
             tree.insert("", tk.END, iid=f"{categoria}_{nombre}", 
                        text=esencial_text,
-                       values=("🔍 Verificando...", nombre, info["descripcion"], info["uso_aresitos"]))
+                       values=(" Verificando...", nombre, info["descripcion"], info["uso_aresitos"]))
         
         # Bind para selección
         tree.bind("<Button-1>", lambda e, cat=categoria: self._on_tree_click(e, cat))
@@ -540,7 +540,7 @@ class VistaHerramientasKali(tk.Toplevel):
     
     def _verificar_herramientas_iniciales(self):
         """Verificar todas las herramientas al abrir la ventana"""
-        self._escribir_log("🔍 Verificando herramientas instaladas...")
+        self._escribir_log(" Verificando herramientas instaladas...")
         
         def verificar_async():
             for categoria, herramientas in self.herramientas_kali.items():
@@ -549,12 +549,12 @@ class VistaHerramientasKali(tk.Toplevel):
                     item_id = f"{categoria}_{nombre}"
                     
                     if estado:
-                        self.after(0, lambda i=item_id: self._actualizar_estado_herramienta(i, "✅ Instalado"))
+                        self.after(0, lambda i=item_id: self._actualizar_estado_herramienta(i, "OK Instalado"))
                     else:
-                        self.after(0, lambda i=item_id: self._actualizar_estado_herramienta(i, "❌ No instalado"))
+                        self.after(0, lambda i=item_id: self._actualizar_estado_herramienta(i, "ERROR No instalado"))
             
             self.after(0, self._actualizar_estadisticas)
-            self.after(0, lambda: self._escribir_log("✅ Verificación completada"))
+            self.after(0, lambda: self._escribir_log("OK Verificación completada"))
         
         thread = threading.Thread(target=verificar_async, daemon=True)
         thread.start()
@@ -603,7 +603,7 @@ class VistaHerramientasKali(tk.Toplevel):
                 item_id = f"{categoria}_{nombre}"
                 try:
                     estado = tree.set(item_id, "Estado")
-                    if "✅" in estado:
+                    if "OK" in estado:
                         instaladas += 1
                         if info["esencial"]:
                             esenciales_instaladas += 1
@@ -648,7 +648,7 @@ class VistaHerramientasKali(tk.Toplevel):
                 else:
                     tree.set(item_id, "Estado", "⚪ No seleccionado")
         
-        self._escribir_log(f"✅ Seleccionadas {len(self.herramientas_seleccionadas)} herramientas esenciales")
+        self._escribir_log(f"OK Seleccionadas {len(self.herramientas_seleccionadas)} herramientas esenciales")
     
     def _instalar_seleccionadas(self):
         """Instalar herramientas seleccionadas"""
@@ -675,15 +675,15 @@ class VistaHerramientasKali(tk.Toplevel):
     def _proceso_instalacion_masiva(self):
         """Proceso de instalación masiva en background"""
         try:
-            self.after(0, lambda: self._escribir_log("🚀 Iniciando instalación masiva..."))
+            self.after(0, lambda: self._escribir_log(" Iniciando instalación masiva..."))
             
             # Actualizar lista de paquetes
-            self.after(0, lambda: self._escribir_log("📦 Actualizando lista de paquetes..."))
+            self.after(0, lambda: self._escribir_log(" Actualizando lista de paquetes..."))
             result = subprocess.run(['sudo', 'apt', 'update'], 
                                   capture_output=True, text=True, timeout=120)
             
             if result.returncode != 0:
-                self.after(0, lambda: self._escribir_log("❌ Error actualizando lista de paquetes"))
+                self.after(0, lambda: self._escribir_log("ERROR Error actualizando lista de paquetes"))
                 return
             
             # Instalar cada herramienta seleccionada
@@ -693,24 +693,24 @@ class VistaHerramientasKali(tk.Toplevel):
                 paquete = self.herramientas_kali[categoria][nombre]["paquete"]
                 
                 self.after(0, lambda p=paquete, n=i, t=total: 
-                          self._escribir_log(f"📦 [{n}/{t}] Instalando {p}..."))
+                          self._escribir_log(f" [{n}/{t}] Instalando {p}..."))
                 
                 # Instalar paquete
                 result = subprocess.run(['sudo', 'apt', 'install', '-y', paquete], 
                                       capture_output=True, text=True, timeout=300)
                 
                 if result.returncode == 0:
-                    self.after(0, lambda i=item_id: self._actualizar_estado_herramienta(i, "✅ Instalado"))
-                    self.after(0, lambda p=paquete: self._escribir_log(f"✅ {p} instalado correctamente"))
+                    self.after(0, lambda i=item_id: self._actualizar_estado_herramienta(i, "OK Instalado"))
+                    self.after(0, lambda p=paquete: self._escribir_log(f"OK {p} instalado correctamente"))
                 else:
-                    self.after(0, lambda i=item_id: self._actualizar_estado_herramienta(i, "❌ Error"))
-                    self.after(0, lambda p=paquete: self._escribir_log(f"❌ Error instalando {p}"))
+                    self.after(0, lambda i=item_id: self._actualizar_estado_herramienta(i, "ERROR Error"))
+                    self.after(0, lambda p=paquete: self._escribir_log(f"ERROR Error instalando {p}"))
             
-            self.after(0, lambda: self._escribir_log("🎉 Instalación masiva completada"))
+            self.after(0, lambda: self._escribir_log(" Instalación masiva completada"))
             self.after(0, self._actualizar_estadisticas)
             
         except Exception as e:
-            self.after(0, lambda: self._escribir_log(f"❌ Error durante instalación: {str(e)}"))
+            self.after(0, lambda: self._escribir_log(f"ERROR Error durante instalación: {str(e)}"))
         finally:
             self.instalando = False
             self.after(0, lambda: self.btn_instalar_seleccionadas.config(state=tk.NORMAL))
@@ -725,23 +725,23 @@ class VistaHerramientasKali(tk.Toplevel):
         
         def instalar_async():
             try:
-                self.after(0, lambda: self._escribir_log(f"📦 Instalando {paquete}..."))
+                self.after(0, lambda: self._escribir_log(f" Instalando {paquete}..."))
                 
                 result = subprocess.run(['sudo', 'apt', 'install', '-y', paquete], 
                                       capture_output=True, text=True, timeout=300)
                 
                 item_id = f"{categoria}_{nombre}"
                 if result.returncode == 0:
-                    self.after(0, lambda: self._actualizar_estado_herramienta(item_id, "✅ Instalado"))
-                    self.after(0, lambda: self._escribir_log(f"✅ {paquete} instalado correctamente"))
+                    self.after(0, lambda: self._actualizar_estado_herramienta(item_id, "OK Instalado"))
+                    self.after(0, lambda: self._escribir_log(f"OK {paquete} instalado correctamente"))
                 else:
-                    self.after(0, lambda: self._actualizar_estado_herramienta(item_id, "❌ Error"))
-                    self.after(0, lambda: self._escribir_log(f"❌ Error instalando {paquete}"))
+                    self.after(0, lambda: self._actualizar_estado_herramienta(item_id, "ERROR Error"))
+                    self.after(0, lambda: self._escribir_log(f"ERROR Error instalando {paquete}"))
                 
                 self.after(0, self._actualizar_estadisticas)
                 
             except Exception as e:
-                self.after(0, lambda: self._escribir_log(f"❌ Error: {str(e)}"))
+                self.after(0, lambda: self._escribir_log(f"ERROR Error: {str(e)}"))
         
         thread = threading.Thread(target=instalar_async, daemon=True)
         thread.start()
@@ -764,7 +764,7 @@ class VistaHerramientasKali(tk.Toplevel):
                     item_id = f"{categoria}_{nombre}"
                     try:
                         estado = tree.set(item_id, "Estado")
-                        if "❌" in estado:
+                        if "ERROR" in estado:
                             esenciales_faltantes.append(nombre)
                     except:
                         esenciales_faltantes.append(nombre)

@@ -410,7 +410,7 @@ class ControladorSIEM(ControladorBase):
             self._hilo_analisis.start()
             
             self._registrar_evento_siem("INICIO_MONITOREO_SIEM", "Monitoreo de eventos SIEM iniciado", "info")
-            self.logger.info("✅ Monitoreo de eventos SIEM iniciado correctamente")
+            self.logger.info("OK Monitoreo de eventos SIEM iniciado correctamente")
             
             return {
                 'exito': True,
@@ -1381,7 +1381,7 @@ class ControladorSIEM(ControladorBase):
                 if herramientas_ok < 4:
                     resultado['recomendaciones'].append("Instalar herramientas SIEM: sudo apt install procps net-tools systemd")
             
-            self.logger.info(f"Verificación SIEM Kali completada - Funcionalidad: {'✅' if resultado['funcionalidad_completa'] else '❌'}")
+            self.logger.info(f"Verificación SIEM Kali completada - Funcionalidad: {'OK' if resultado['funcionalidad_completa'] else 'ERROR'}")
             
         except Exception as e:
             self.logger.error(f"Error en verificación SIEM Kali: {e}")
@@ -1397,7 +1397,7 @@ class ControladorSIEM(ControladorBase):
         KALI OPTIMIZATION: Configuración específica de auditd para pentesting profesional.
         """
         try:
-            self.logger.info("🔧 Configurando auditd para auditoría avanzada...")
+            self.logger.info(" Configurando auditd para auditoría avanzada...")
             
             # Verificar si auditd está disponible
             result_check = subprocess.run(['which', 'auditctl'], capture_output=True, text=True, timeout=5)
@@ -1489,7 +1489,7 @@ class ControladorSIEM(ControladorBase):
         KALI OPTIMIZATION: Queries específicas para análisis de seguridad en pentesting.
         """
         try:
-            self.logger.info("🔍 Ejecutando monitoreo con osquery...")
+            self.logger.info(" Ejecutando monitoreo con osquery...")
             
             # Verificar si osquery está disponible
             result_check = subprocess.run(['which', 'osqueryi'], capture_output=True, text=True, timeout=5)
@@ -1618,7 +1618,7 @@ class ControladorSIEM(ControladorBase):
         KALI OPTIMIZATION: Configuración específica para captura de logs de seguridad.
         """
         try:
-            self.logger.info("📋 Configurando rsyslog avanzado...")
+            self.logger.info(" Configurando rsyslog avanzado...")
             
             # Verificar si rsyslog está disponible
             result_check = subprocess.run(['which', 'rsyslogd'], capture_output=True, text=True, timeout=5)
@@ -1737,7 +1737,7 @@ $template DynSecurityFile,"/var/log/ares-aegis/security-%$YEAR%-%$MONTH%-%$DAY%.
         KALI OPTIMIZATION: Análisis específico de systemd journal para detección de amenazas.
         """
         try:
-            self.logger.info("📊 Analizando logs con journalctl...")
+            self.logger.info(" Analizando logs con journalctl...")
             
             # Verificar si journalctl está disponible
             result_check = subprocess.run(['which', 'journalctl'], capture_output=True, text=True, timeout=5)
@@ -1852,7 +1852,7 @@ $template DynSecurityFile,"/var/log/ares-aegis/security-%$YEAR%-%$MONTH%-%$DAY%.
         FASE 3: Función principal que integra auditd, osquery, rsyslog y journalctl.
         """
         try:
-            self.logger.info("🚀 Ejecutando SIEM avanzado con herramientas de Kali Linux...")
+            self.logger.info(" Ejecutando SIEM avanzado con herramientas de Kali Linux...")
             tiempo_inicio = time.time()
             
             resultados_completos = {
@@ -1935,7 +1935,7 @@ $template DynSecurityFile,"/var/log/ares-aegis/security-%$YEAR%-%$MONTH%-%$DAY%.
                 "info" if total_alertas == 0 else "warning"
             )
             
-            self.logger.info(f"✅ SIEM avanzado completado en {tiempo_total:.2f}s - {herramientas_exitosas}/4 herramientas exitosas")
+            self.logger.info(f"OK SIEM avanzado completado en {tiempo_total:.2f}s - {herramientas_exitosas}/4 herramientas exitosas")
             
             return {
                 'exito': herramientas_exitosas > 0,

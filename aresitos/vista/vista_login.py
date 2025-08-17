@@ -764,7 +764,7 @@ class LoginAresitos:
                 self.skip_btn.config(state=tk.DISABLED)
                 
                 # INSTALACIÓN AUTOMÁTICA DE HERRAMIENTAS KALI
-                self.escribir_log("🔧 Configurando herramientas de Kali Linux...")
+                self.escribir_log(" Configurando herramientas de Kali Linux...")
                 self.instalar_herramientas_kali_automatico(password)
                 
                 # Si ya completo verificacion, habilitar continuar
@@ -805,7 +805,7 @@ class LoginAresitos:
     def instalar_herramientas_kali_automatico(self, password):
         """Instalar automáticamente herramientas faltantes de Kali Linux"""
         try:
-            self.escribir_log("🚀 Iniciando instalación automática de herramientas...")
+            self.escribir_log(" Iniciando instalación automática de herramientas...")
             
             # Lista de herramientas críticas para Kali
             herramientas_criticas = [
@@ -820,10 +820,10 @@ class LoginAresitos:
                     herramientas_a_instalar.append(herramienta)
             
             if not herramientas_a_instalar:
-                self.escribir_log("✅ Todas las herramientas críticas ya están instaladas")
+                self.escribir_log("OK Todas las herramientas críticas ya están instaladas")
                 return
             
-            self.escribir_log(f"📦 Instalando {len(herramientas_a_instalar)} herramientas faltantes...")
+            self.escribir_log(f" Instalando {len(herramientas_a_instalar)} herramientas faltantes...")
             
             # Ejecutar instalación en background
             import threading
@@ -835,7 +835,7 @@ class LoginAresitos:
             thread.start()
             
         except Exception as e:
-            self.escribir_log(f"❌ Error en instalación automática: {e}")
+            self.escribir_log(f"ERROR Error en instalación automática: {e}")
     
     def _ejecutar_instalacion_herramientas(self, herramientas, password):
         """Ejecutar instalación de herramientas en thread separado"""
@@ -853,13 +853,13 @@ class LoginAresitos:
             )
             
             if result.returncode == 0:
-                self.escribir_log("✅ Repositorios actualizados")
+                self.escribir_log("OK Repositorios actualizados")
             else:
-                self.escribir_log("⚠️ Warning al actualizar repositorios")
+                self.escribir_log("WARNING Warning al actualizar repositorios")
             
             # Instalar herramientas una por una
             for herramienta in herramientas[:5]:  # Limitamos a 5 para no sobrecargar
-                self.escribir_log(f"🔧 Instalando {herramienta}...")
+                self.escribir_log(f" Instalando {herramienta}...")
                 
                 cmd_install = f"echo '{password}' | sudo -S apt install -y {herramienta}"
                 
@@ -872,20 +872,20 @@ class LoginAresitos:
                 )
                 
                 if result.returncode == 0:
-                    self.escribir_log(f"✅ {herramienta} instalado correctamente")
+                    self.escribir_log(f"OK {herramienta} instalado correctamente")
                     # Remover de la lista de faltantes
                     if herramienta in self.herramientas_faltantes:
                         self.herramientas_faltantes.remove(herramienta)
                 else:
-                    self.escribir_log(f"❌ Error instalando {herramienta}")
+                    self.escribir_log(f"ERROR Error instalando {herramienta}")
             
-            self.escribir_log("🎯 Instalación automática completada")
+            self.escribir_log(" Instalación automática completada")
             
             # Limpiar password de memoria
             self.utils_seguridad.limpiar_memoria_string(password)
             
         except Exception as e:
-            self.escribir_log(f"❌ Error en instalación: {e}")
+            self.escribir_log(f"ERROR Error en instalación: {e}")
 
     def continuar_sin_root(self):
         """Continuar sin permisos de root"""
@@ -907,7 +907,7 @@ class LoginAresitos:
             messagebox.showwarning("Advertencia", "Complete la verificacion del sistema primero")
             return
         
-        self.escribir_log("🔧 Abriendo ventana de herramientas de Kali Linux...")
+        self.escribir_log(" Abriendo ventana de herramientas de Kali Linux...")
         
         try:
             # Mostrar vista de herramientas de Kali antes de la aplicación principal
@@ -919,13 +919,13 @@ class LoginAresitos:
             vista_herramientas = VistaHerramientasKali(self.root, callback_herramientas_completadas)
             
         except Exception as e:
-            self.escribir_log(f"❌ Error mostrando vista de herramientas: {str(e)}")
+            self.escribir_log(f"ERROR Error mostrando vista de herramientas: {str(e)}")
             # Si falla, continuar directamente a la aplicación principal
             self._iniciar_aplicacion_principal()
     
     def _iniciar_aplicacion_principal(self):
         """Iniciar la aplicación principal después de configurar herramientas"""
-        self.escribir_log("🚀 Iniciando ARESITOS...")
+        self.escribir_log(" Iniciando ARESITOS...")
         
         try:
             # Importar módulos principales
@@ -977,16 +977,16 @@ class LoginAresitos:
                 icon_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), "recursos", "Aresitos.ico")
                 if os.path.exists(icon_path):
                     root_app.iconbitmap(icon_path)
-                    self.escribir_log("✅ Ícono de aplicación configurado correctamente")
+                    self.escribir_log("OK Ícono de aplicación configurado correctamente")
                 else:
-                    self.escribir_log("⚠️ Archivo de ícono no encontrado en: " + icon_path)
+                    self.escribir_log("WARNING Archivo de ícono no encontrado en: " + icon_path)
             except Exception as e:
-                self.escribir_log(f"⚠️ Error configurando ícono: {str(e)}")
+                self.escribir_log(f"WARNING Error configurando ícono: {str(e)}")
             
             # Forzar actualización de la ventana
             root_app.update()
             
-            self.escribir_log("🎉 Aplicación principal configurada. Iniciando interfaz...")
+            self.escribir_log(" Aplicación principal configurada. Iniciando interfaz...")
             
             # Mostrar ventana y comenzar loop principal
             root_app.deiconify()  # Asegurar que la ventana esté visible

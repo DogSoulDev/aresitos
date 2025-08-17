@@ -67,21 +67,21 @@ class ControladorEscaneadorCuarentena:
         try:
             from ..modelo.escaneador_avanzado import EscaneadorAvanzadoReal
             self.escaneador = EscaneadorAvanzadoReal()
-            self.logger.info("✅ Escaneador avanzado inicializado")
+            self.logger.info("OK Escaneador avanzado inicializado")
         except Exception as e:
             self.logger.error(f"Error inicializando escaneador: {e}")
             self.escaneador = MockEscaneador()
-            self.logger.warning("⚠️ Usando escaneador mock")
+            self.logger.warning("WARNING Usando escaneador mock")
         
         # Inicializar cuarentena
         try:
             from .controlador_cuarentena import ControladorCuarentena
             self.cuarentena = ControladorCuarentena()
-            self.logger.info("✅ Sistema de cuarentena inicializado")
+            self.logger.info("OK Sistema de cuarentena inicializado")
         except Exception as e:
             self.logger.error(f"Error inicializando cuarentena: {e}")
             self.cuarentena = MockCuarentena()
-            self.logger.warning("⚠️ Usando cuarentena mock")
+            self.logger.warning("WARNING Usando cuarentena mock")
     
     def ejecutar_escaneo_con_cuarentena(self, tipo_escaneo: str = 'completo') -> Dict[str, Any]:
         """
@@ -93,7 +93,7 @@ class ControladorEscaneadorCuarentena:
         Returns:
             Dict con resultados del escaneo y cuarentena
         """
-        self.logger.info(f"🚀 Iniciando escaneo {tipo_escaneo} con cuarentena automática")
+        self.logger.info(f" Iniciando escaneo {tipo_escaneo} con cuarentena automática")
         
         resultado = {
             'timestamp_inicio': datetime.now().isoformat(),
@@ -135,7 +135,7 @@ class ControladorEscaneadorCuarentena:
                 if self._debe_ir_a_cuarentena(vuln):
                     if self._procesar_amenaza_cuarentena(vuln):
                         amenazas_cuarentena.append(vuln_info)
-                        self.logger.warning(f"🔒 Amenaza enviada a cuarentena: {vuln.tipo}")
+                        self.logger.warning(f" Amenaza enviada a cuarentena: {vuln.tipo}")
             
             # 4. Obtener resumen de cuarentena
             resumen_cuarentena = self._obtener_resumen_cuarentena()
@@ -227,16 +227,16 @@ class ControladorEscaneadorCuarentena:
         stats = resultado.get('estadisticas', {})
         
         self.logger.info("=" * 60)
-        self.logger.info("📊 RESUMEN DE ESCANEO CON CUARENTENA")
+        self.logger.info(" RESUMEN DE ESCANEO CON CUARENTENA")
         self.logger.info("=" * 60)
-        self.logger.info(f"🔍 Tipo de escaneo: {resultado.get('tipo_escaneo', 'N/A')}")
-        self.logger.info(f"📈 Total vulnerabilidades: {stats.get('total_vulnerabilidades', 0)}")
+        self.logger.info(f" Tipo de escaneo: {resultado.get('tipo_escaneo', 'N/A')}")
+        self.logger.info(f" Total vulnerabilidades: {stats.get('total_vulnerabilidades', 0)}")
         self.logger.info(f"🔴 Críticas: {stats.get('criticas', 0)}")
         self.logger.info(f"🟠 Altas: {stats.get('altas', 0)}")
-        self.logger.info(f"🔒 En cuarentena: {stats.get('en_cuarentena', 0)}")
+        self.logger.info(f" En cuarentena: {stats.get('en_cuarentena', 0)}")
         
         if stats.get('en_cuarentena', 0) > 0:
-            self.logger.warning(f"⚠️ {stats['en_cuarentena']} amenazas fueron puestas en cuarentena automáticamente")
+            self.logger.warning(f"WARNING {stats['en_cuarentena']} amenazas fueron puestas en cuarentena automáticamente")
         
         self.logger.info("=" * 60)
     
@@ -267,9 +267,9 @@ class ControladorEscaneadorCuarentena:
             if hasattr(self.cuarentena, 'restaurar_archivo'):
                 resultado = self.cuarentena.restaurar_archivo(ruta_archivo)
                 if resultado:
-                    self.logger.info(f"✅ Archivo restaurado: {ruta_archivo}")
+                    self.logger.info(f"OK Archivo restaurado: {ruta_archivo}")
                 else:
-                    self.logger.warning(f"❌ No se pudo restaurar: {ruta_archivo}")
+                    self.logger.warning(f"ERROR No se pudo restaurar: {ruta_archivo}")
                 return resultado
             else:
                 self.logger.error("Método de restauración no disponible")
@@ -283,7 +283,7 @@ class ControladorEscaneadorCuarentena:
         """Actualiza la configuración de cuarentena."""
         try:
             self.configuracion.update(nueva_config)
-            self.logger.info("✅ Configuración de cuarentena actualizada")
+            self.logger.info("OK Configuración de cuarentena actualizada")
             return True
         except Exception as e:
             self.logger.error(f"Error actualizando configuración: {e}")
@@ -293,7 +293,7 @@ class ControladorEscaneadorCuarentena:
     
     def ejecutar_escaneo_basico(self) -> Dict[str, Any]:
         """Ejecuta un escaneo básico del sistema."""
-        self.logger.info("🔍 Iniciando escaneo básico del sistema")
+        self.logger.info(" Iniciando escaneo básico del sistema")
         
         try:
             import psutil
@@ -332,16 +332,16 @@ class ControladorEscaneadorCuarentena:
             resultado['procesos'] = procesos_importantes[:15]  # Limitar a 15
             
             # 3. Análisis básico
-            resultado['analisis'].append(f"✅ Escaneo completado - {len(puertos_encontrados)} puertos encontrados")
-            resultado['analisis'].append(f"📊 {len(procesos_importantes)} procesos de interés detectados")
+            resultado['analisis'].append(f"OK Escaneo completado - {len(puertos_encontrados)} puertos encontrados")
+            resultado['analisis'].append(f" {len(procesos_importantes)} procesos de interés detectados")
             
             # Recomendaciones básicas
             if 22 in puertos_encontrados:
-                resultado['analisis'].append("⚠️ SSH activo - verificar configuración de seguridad")
+                resultado['analisis'].append("WARNING SSH activo - verificar configuración de seguridad")
             if 80 in puertos_encontrados or 443 in puertos_encontrados:
-                resultado['analisis'].append("🌐 Servidor web detectado - revisar configuración")
+                resultado['analisis'].append(" Servidor web detectado - revisar configuración")
             
-            self.logger.info("✅ Escaneo básico completado exitosamente")
+            self.logger.info("OK Escaneo básico completado exitosamente")
             return resultado
             
         except Exception as e:
@@ -349,7 +349,7 @@ class ControladorEscaneadorCuarentena:
             return {
                 'puertos': [f"Error: {str(e)}"],
                 'procesos': [],
-                'analisis': [f"❌ Error durante el escaneo: {str(e)}"],
+                'analisis': [f"ERROR Error durante el escaneo: {str(e)}"],
                 'timestamp': datetime.now().isoformat()
             }
     
@@ -455,7 +455,7 @@ class ControladorEscaneadorCuarentena:
                 herramientas_ok
             )
             
-            self.logger.info(f"✅ Verificación Kali completada - Funcional: {resultado['funcionalidad_completa']}")
+            self.logger.info(f"OK Verificación Kali completada - Funcional: {resultado['funcionalidad_completa']}")
             return resultado
             
         except Exception as e:
@@ -469,9 +469,9 @@ class ControladorEscaneadorCuarentena:
         try:
             logs = [
                 f"[{datetime.now().strftime('%H:%M:%S')}] Sistema de escaneo iniciado",
-                f"[{datetime.now().strftime('%H:%M:%S')}] Controlador integrado con cuarentena: {'✅' if self.cuarentena else '❌'}",
-                f"[{datetime.now().strftime('%H:%M:%S')}] Escaneador avanzado: {'✅' if hasattr(self.escaneador, 'escanear_completo') else '❌'}",
-                f"[{datetime.now().strftime('%H:%M:%S')}] Cuarentena automática: {'✅' if self.configuracion['cuarentena_automatica'] else '❌'}",
+                f"[{datetime.now().strftime('%H:%M:%S')}] Controlador integrado con cuarentena: {'OK' if self.cuarentena else 'ERROR'}",
+                f"[{datetime.now().strftime('%H:%M:%S')}] Escaneador avanzado: {'OK' if hasattr(self.escaneador, 'escanear_completo') else 'ERROR'}",
+                f"[{datetime.now().strftime('%H:%M:%S')}] Cuarentena automática: {'OK' if self.configuracion['cuarentena_automatica'] else 'ERROR'}",
                 f"[{datetime.now().strftime('%H:%M:%S')}] Sistema listo para operaciones"
             ]
             return logs
@@ -596,9 +596,9 @@ class ControladorEscaneadorCuarentena:
             
             # Logging de validación
             if resultado['valido']:
-                self.logger.info(f"✅ Objetivo {objetivo} validado para escaneo")
+                self.logger.info(f"OK Objetivo {objetivo} validado para escaneo")
             else:
-                self.logger.warning(f"❌ Objetivo {objetivo} rechazado: {', '.join(resultado['errores'])}")
+                self.logger.warning(f"ERROR Objetivo {objetivo} rechazado: {', '.join(resultado['errores'])}")
                 
         except Exception as e:
             resultado['errores'].append(f"Error validando objetivo: {str(e)}")
@@ -615,7 +615,7 @@ class ControladorEscaneadorCuarentena:
             Dict con resultados del escaneo avanzado
         """
         try:
-            self.logger.info("🔍 Iniciando escaneo completo del sistema con herramientas de Kali Linux")
+            self.logger.info(" Iniciando escaneo completo del sistema con herramientas de Kali Linux")
             
             # Escaneo básico con herramientas nativas
             resultado_puertos = self._escanear_puertos_locales()
@@ -666,7 +666,7 @@ class ControladorEscaneadorCuarentena:
             # Estadísticas finales
             total_vulnerabilidades = len(resultado_final['vulnerabilidades'])
             self.logger.info(
-                f"✅ Escaneo avanzado completado: {resultado_final['total_puertos']} puertos, "
+                f"OK Escaneo avanzado completado: {resultado_final['total_puertos']} puertos, "
                 f"{resultado_final['total_procesos']} procesos, {total_vulnerabilidades} vulnerabilidades"
             )
             
@@ -831,7 +831,7 @@ class ControladorEscaneadorCuarentena:
                 resultado['sudo_disponible'] = False
                 resultado['recomendaciones'].append("Configurar permisos sudo necesarios")
                 
-            self.logger.info(f"✅ Verificación de Kali completada: {resultado['distribucion']}")
+            self.logger.info(f"OK Verificación de Kali completada: {resultado['distribucion']}")
             return resultado
             
         except Exception as e:
@@ -848,7 +848,7 @@ class ControladorEscaneadorCuarentena:
         """Escanear puertos locales con nmap (herramienta de Kali)"""
         try:
             import subprocess
-            self.logger.info("🎯 Ejecutando escaneo con Nmap...")
+            self.logger.info(" Ejecutando escaneo con Nmap...")
             
             # Escanear localhost con nmap
             cmd = ['nmap', '-sT', '-O', '--top-ports', '1000', 'localhost']
@@ -915,7 +915,7 @@ class ControladorEscaneadorCuarentena:
         """Escanear puertos con masscan (herramienta de Kali para escaneos rápidos)"""
         try:
             import subprocess
-            self.logger.info("⚡ Ejecutando escaneo rápido con Masscan...")
+            self.logger.info(" Ejecutando escaneo rápido con Masscan...")
             
             # Escanear rango local con masscan
             cmd = ['masscan', '127.0.0.1', '-p1-1000', '--rate=1000']
@@ -977,7 +977,7 @@ class ControladorEscaneadorCuarentena:
         """Escanear vulnerabilidades web con nikto (herramienta de Kali)"""
         try:
             import subprocess
-            self.logger.info("🌐 Ejecutando análisis web con Nikto...")
+            self.logger.info(" Ejecutando análisis web con Nikto...")
             
             # Verificar si hay servicios web en puertos comunes
             puertos_web = [80, 443, 8080, 8443, 3000, 5000]
@@ -1109,7 +1109,7 @@ class ControladorEscaneadorCuarentena:
         """Detectar rootkits con chkrootkit (herramienta de Kali)"""
         try:
             import subprocess
-            self.logger.info("🔍 Ejecutando detección de rootkits con chkrootkit...")
+            self.logger.info(" Ejecutando detección de rootkits con chkrootkit...")
             
             cmd = ['chkrootkit', '-q']  # Modo silencioso
             result = subprocess.run(cmd, capture_output=True, text=True, timeout=120)
@@ -1150,7 +1150,7 @@ class ControladorEscaneadorCuarentena:
         """Detectar rootkits con rkhunter (herramienta de Kali)"""
         try:
             import subprocess
-            self.logger.info("🛡️ Ejecutando detección de rootkits con rkhunter...")
+            self.logger.info(" Ejecutando detección de rootkits con rkhunter...")
             
             cmd = ['rkhunter', '--check', '--skip-keypress', '--report-warnings-only']
             result = subprocess.run(cmd, capture_output=True, text=True, timeout=180)

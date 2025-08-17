@@ -229,23 +229,23 @@ class VistaEscaneo(tk.Frame):
             funcionalidad_ok = resultado.get('funcionalidad_completa', False)
             
             if funcionalidad_ok:
-                self.text_resultados.insert(tk.END, " ✅ VERIFICACIÓN EXITOSA\n\n")
+                self.text_resultados.insert(tk.END, " OK VERIFICACIÓN EXITOSA\n\n")
                 self.text_resultados.insert(tk.END, f"Sistema Operativo: {resultado.get('sistema_operativo', 'Desconocido')}\n")
-                self.text_resultados.insert(tk.END, f"Gestor de Permisos: {'✅' if resultado.get('gestor_permisos') else '❌'}\n")
-                self.text_resultados.insert(tk.END, f"Permisos Sudo: {'✅' if resultado.get('permisos_sudo') else '❌'}\n\n")
+                self.text_resultados.insert(tk.END, f"Gestor de Permisos: {'OK' if resultado.get('gestor_permisos') else 'ERROR'}\n")
+                self.text_resultados.insert(tk.END, f"Permisos Sudo: {'OK' if resultado.get('permisos_sudo') else 'ERROR'}\n\n")
                 
                 self.text_resultados.insert(tk.END, "=== HERRAMIENTAS DISPONIBLES ===\n")
                 for herramienta, estado in resultado.get('herramientas_disponibles', {}).items():
                     disponible = estado.get('disponible', False)
                     permisos = estado.get('permisos_ok', False)
-                    icono = "✅" if disponible and permisos else "❌"
+                    icono = "OK" if disponible and permisos else "ERROR"
                     self.text_resultados.insert(tk.END, f"  {icono} {herramienta}\n")
                     
             else:
-                self.text_resultados.insert(tk.END, " ❌ VERIFICACIÓN FALLÓ\n\n")
+                self.text_resultados.insert(tk.END, " ERROR VERIFICACIÓN FALLÓ\n\n")
                 self.text_resultados.insert(tk.END, f"Sistema Operativo: {resultado.get('sistema_operativo', 'Desconocido')}\n")
-                self.text_resultados.insert(tk.END, f"Gestor de Permisos: {'✅' if resultado.get('gestor_permisos') else '❌'}\n")
-                self.text_resultados.insert(tk.END, f"Permisos Sudo: {'✅' if resultado.get('permisos_sudo') else '❌'}\n\n")
+                self.text_resultados.insert(tk.END, f"Gestor de Permisos: {'OK' if resultado.get('gestor_permisos') else 'ERROR'}\n")
+                self.text_resultados.insert(tk.END, f"Permisos Sudo: {'OK' if resultado.get('permisos_sudo') else 'ERROR'}\n\n")
                 
                 if resultado.get('recomendaciones'):
                     self.text_resultados.insert(tk.END, "=== RECOMENDACIONES ===\n")
@@ -253,10 +253,10 @@ class VistaEscaneo(tk.Frame):
                         self.text_resultados.insert(tk.END, f"  • {recomendacion}\n")
                 
             if resultado.get('error'):
-                self.text_resultados.insert(tk.END, f"\n⚠️ Error: {resultado['error']}\n")
+                self.text_resultados.insert(tk.END, f"\nWARNING Error: {resultado['error']}\n")
                 
         except Exception as e:
-            self.text_resultados.insert(tk.END, f" ❌ Error durante verificación: {str(e)}\n")
+            self.text_resultados.insert(tk.END, f" ERROR Error durante verificación: {str(e)}\n")
         finally:
             # Rehabilitar botón
             self.btn_verificar.config(state="normal")

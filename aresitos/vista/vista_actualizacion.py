@@ -560,14 +560,14 @@ class VistaActualizacion(tk.Frame):
             subprocess.run(['sudo', 'apt', 'autoremove', '-y'], timeout=300, check=True)
             subprocess.run(['sudo', 'apt', 'autoclean'], timeout=300, check=True)
             
-            self.escribir_log("   ✅ Sistema Kali Linux actualizado correctamente")
+            self.escribir_log("   OK Sistema Kali Linux actualizado correctamente")
             
         except subprocess.CalledProcessError as e:
-            self.escribir_log(f"   ❌ Error actualizando sistema: {e}")
+            self.escribir_log(f"   ERROR Error actualizando sistema: {e}")
         except subprocess.TimeoutExpired:
-            self.escribir_log("   ⚠️ Timeout actualizando sistema")
+            self.escribir_log("   WARNING Timeout actualizando sistema")
         except Exception as e:
-            self.escribir_log(f"   ❌ Error inesperado: {str(e)}")
+            self.escribir_log(f"   ERROR Error inesperado: {str(e)}")
     
     def actualizar_herramientas(self):
         """Actualizar herramientas de pentesting"""
@@ -584,19 +584,19 @@ class VistaActualizacion(tk.Frame):
                 result = subprocess.run(['which', herramienta], 
                                       capture_output=True, timeout=5)
                 if result.returncode == 0:
-                    self.escribir_log(f"   ✅ {herramienta}: Disponible")
+                    self.escribir_log(f"   OK {herramienta}: Disponible")
                 else:
-                    self.escribir_log(f"   ⚠️ {herramienta}: No encontrado")
+                    self.escribir_log(f"   WARNING {herramienta}: No encontrado")
             except Exception as e:
-                self.escribir_log(f"   ❌ Error verificando {herramienta}: {str(e)}")
+                self.escribir_log(f"   ERROR Error verificando {herramienta}: {str(e)}")
         
         # Actualizar base de datos de metasploit
         try:
             self.escribir_log("   Actualizando base de datos Metasploit...")
             subprocess.run(['sudo', 'msfdb', 'reinit'], timeout=300)
-            self.escribir_log("   ✅ Base de datos Metasploit actualizada")
+            self.escribir_log("   OK Base de datos Metasploit actualizada")
         except Exception as e:
-            self.escribir_log(f"   ⚠️ Error actualizando Metasploit: {str(e)}")
+            self.escribir_log(f"   WARNING Error actualizando Metasploit: {str(e)}")
     
     def actualizar_bases_datos(self):
         """Actualizar bases de datos de seguridad"""
@@ -606,28 +606,28 @@ class VistaActualizacion(tk.Frame):
         try:
             self.escribir_log("   Actualizando scripts NSE de Nmap...")
             subprocess.run(['sudo', 'nmap', '--script-updatedb'], timeout=300)
-            self.escribir_log("   ✅ Scripts NSE actualizados")
+            self.escribir_log("   OK Scripts NSE actualizados")
         except Exception as e:
-            self.escribir_log(f"   ⚠️ Error actualizando scripts NSE: {str(e)}")
+            self.escribir_log(f"   WARNING Error actualizando scripts NSE: {str(e)}")
         
         # Verificar wordlists
         try:
             self.escribir_log("   Verificando wordlists del sistema...")
             if os.path.exists('/usr/share/wordlists'):
                 wordlists = os.listdir('/usr/share/wordlists')
-                self.escribir_log(f"   ✅ Wordlists encontradas: {len(wordlists)}")
+                self.escribir_log(f"   OK Wordlists encontradas: {len(wordlists)}")
             else:
-                self.escribir_log("   ⚠️ Directorio de wordlists no encontrado")
+                self.escribir_log("   WARNING Directorio de wordlists no encontrado")
         except Exception as e:
-            self.escribir_log(f"   ❌ Error verificando wordlists: {str(e)}")
+            self.escribir_log(f"   ERROR Error verificando wordlists: {str(e)}")
         
         # Actualizar locate database
         try:
             self.escribir_log("   Actualizando base de datos locate...")
             subprocess.run(['sudo', 'updatedb'], timeout=300)
-            self.escribir_log("   ✅ Base de datos locate actualizada")
+            self.escribir_log("   OK Base de datos locate actualizada")
         except Exception as e:
-            self.escribir_log(f"   ⚠️ Error actualizando locate: {str(e)}")
+            self.escribir_log(f"   WARNING Error actualizando locate: {str(e)}")
     
     def actualizar_configuraciones(self):
         """Actualizar configuraciones del sistema"""
@@ -644,11 +644,11 @@ class VistaActualizacion(tk.Frame):
         for ruta, nombre in configuraciones:
             try:
                 if os.path.exists(ruta):
-                    self.escribir_log(f"   ✅ {nombre}: Configuración encontrada")
+                    self.escribir_log(f"   OK {nombre}: Configuración encontrada")
                 else:
-                    self.escribir_log(f"   ⚠️ {nombre}: Configuración no encontrada")
+                    self.escribir_log(f"   WARNING {nombre}: Configuración no encontrada")
             except Exception as e:
-                self.escribir_log(f"   ❌ Error verificando {nombre}: {str(e)}")
+                self.escribir_log(f"   ERROR Error verificando {nombre}: {str(e)}")
     
     def actualizar_scripts(self):
         """Actualizar scripts y utilidades"""
@@ -667,17 +667,17 @@ class VistaActualizacion(tk.Frame):
                     result = subprocess.run(['getcap', herramienta], 
                                           capture_output=True, text=True, timeout=5)
                     if 'cap_net_raw' in result.stdout:
-                        self.escribir_log(f"   ✅ {herramienta}: Permisos correctos")
+                        self.escribir_log(f"   OK {herramienta}: Permisos correctos")
                     else:
-                        self.escribir_log(f"   ⚠️ {herramienta}: Sin permisos especiales")
+                        self.escribir_log(f"   WARNING {herramienta}: Sin permisos especiales")
                 else:
-                    self.escribir_log(f"   ❌ {herramienta}: No encontrado")
+                    self.escribir_log(f"   ERROR {herramienta}: No encontrado")
             except Exception as e:
-                self.escribir_log(f"   ❌ Error verificando {herramienta}: {str(e)}")
+                self.escribir_log(f"   ERROR Error verificando {herramienta}: {str(e)}")
     
     def actualizar_optimizaciones_aresitos(self):
         """Actualizar optimizaciones específicas de ARESITOS para Kali Linux"""
-        self.escribir_log("6. VERIFICANDO OPTIMIZACIONES ARESITOS PARA KALI...")
+        self.escribir_log("VERIFICANDO OPTIMIZACIONES ARESITOS PARA KALI...")
         
         # Verificar módulos ARESITOS optimizados
         modulos_optimizados = [
@@ -694,9 +694,9 @@ class VistaActualizacion(tk.Frame):
                 self.escribir_log(f"   Verificando {modulo}: {descripcion}")
                 # Verificar que el módulo existe en el sistema
                 modulo_path = f"aresitos.controlador.controlador_{modulo.lower().replace(' ', '_')}"
-                self.escribir_log(f"   ✅ {modulo}: Optimizado para Kali Linux")
+                self.escribir_log(f"   OK {modulo}: Optimizado para Kali Linux")
             except Exception as e:
-                self.escribir_log(f"   ⚠️ {modulo}: {str(e)}")
+                self.escribir_log(f"   WARNING {modulo}: {str(e)}")
         
         # Verificar herramientas específicas de Kali integradas
         herramientas_kali_integradas = [
@@ -710,13 +710,13 @@ class VistaActualizacion(tk.Frame):
                 result = subprocess.run(['which', herramienta], 
                                       capture_output=True, timeout=5)
                 if result.returncode == 0:
-                    self.escribir_log(f"   ✅ {herramienta}: Disponible e integrado")
+                    self.escribir_log(f"   OK {herramienta}: Disponible e integrado")
                 else:
-                    self.escribir_log(f"   ⚠️ {herramienta}: No encontrado")
+                    self.escribir_log(f"   WARNING {herramienta}: No encontrado")
             except Exception as e:
-                self.escribir_log(f"   ❌ Error verificando {herramienta}: {str(e)}")
+                self.escribir_log(f"   ERROR verificando {herramienta}: {str(e)}")
         
-        self.escribir_log("   ✅ Optimizaciones ARESITOS para Kali verificadas")
+        self.escribir_log("   OK Optimizaciones ARESITOS para Kali verificadas")
 
     def mostrar_resumen_actualizacion(self):
         """Mostrar resumen de la actualización"""
@@ -725,21 +725,21 @@ class VistaActualizacion(tk.Frame):
         self.escribir_log("========================")
         
         if self.var_kali.get():
-            self.escribir_log("✅ Sistema Operativo Kali Linux: Actualizado")
+            self.escribir_log("OK Sistema Operativo Kali Linux: Actualizado")
         if self.var_herramientas.get():
-            self.escribir_log("✅ Herramientas de Pentesting: Verificadas")
+            self.escribir_log("OK Herramientas de Pentesting: Verificadas")
         if self.var_bases_datos.get():
-            self.escribir_log("✅ Bases de Datos: Actualizadas")
+            self.escribir_log("OK Bases de Datos: Actualizadas")
         if self.var_configuracion.get():
-            self.escribir_log("✅ Configuraciones: Verificadas")
+            self.escribir_log("OK Configuraciones: Verificadas")
         if self.var_scripts.get():
-            self.escribir_log("✅ Scripts y Utilidades: Verificados")
+            self.escribir_log("OK Scripts y Utilidades: Verificados")
         if self.var_optimizaciones_kali.get():
-            self.escribir_log("✅ Optimizaciones ARESITOS Kali: Verificadas")
+            self.escribir_log("OK Optimizaciones ARESITOS Kali: Verificadas")
         
         self.escribir_log("")
         self.escribir_log("ARESITOS v2.0.0-kali-optimized está completamente actualizado")
-        self.escribir_log("🔥 Todas las optimizaciones de Kali Linux están activas")
+        self.escribir_log("Todas las optimizaciones de Kali Linux están activas")
         self.escribir_log("Reinicie el sistema si es necesario")
     
     def cancelar_actualizacion(self):
@@ -754,7 +754,7 @@ class VistaActualizacion(tk.Frame):
         )
         
         if respuesta:
-            self.escribir_log("❌ ACTUALIZACIÓN CANCELADA POR EL USUARIO")
+            self.escribir_log("ERROR ACTUALIZACIÓN CANCELADA POR EL USUARIO")
             self.actualizacion_en_progreso = False
             self.btn_actualizar.config(state=tk.NORMAL)
             self.btn_verificar.config(state=tk.NORMAL)

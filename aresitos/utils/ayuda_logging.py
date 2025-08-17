@@ -117,8 +117,8 @@ def _configurar_logging_global():
             format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
             datefmt='%Y-%m-%d %H:%M:%S'
         )
-        print(f"⚠️ Advertencia: Error configurando logging avanzado: {e}")
-        print("📝 Usando configuración básica de logging")
+        print(f"WARNING Advertencia: Error configurando logging avanzado: {e}")
+        print(" Usando configuración básica de logging")
 
 def configurar_logger_modulo(
     nombre: str, 
@@ -187,7 +187,7 @@ def log_evento_seguridad(
     logger = obtener_logger("aresitos.seguridad")
     nivel_obj = getattr(logging, nivel.upper(), logging.WARNING)
     
-    mensaje = f"🛡️ EVENTO SEGURIDAD: {evento}"
+    mensaje = f" EVENTO SEGURIDAD: {evento}"
     if datos_adicionales:
         mensaje += f" | Datos: {datos_adicionales}"
     
@@ -208,7 +208,7 @@ def log_operacion_sistema(
     """
     logger = obtener_logger("aresitos.sistema")
     
-    mensaje = f"⚙️ {operacion}: {resultado}"
+    mensaje = f" {operacion}: {resultado}"
     if tiempo_ms is not None:
         mensaje += f" ({tiempo_ms:.2f}ms)"
     
@@ -262,5 +262,5 @@ if __name__ != "__main__":
 else:
     # Test básico si se ejecuta directamente
     logger = obtener_logger(__name__)
-    logger.info("✅ Sistema de logging de Ares Aegis iniciado correctamente")
-    print("📊 Estadísticas:", obtener_estadisticas_logging())
+    logger.info("OK Sistema de logging de Ares Aegis iniciado correctamente")
+    print(" Estadísticas:", obtener_estadisticas_logging())

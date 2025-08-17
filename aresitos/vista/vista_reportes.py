@@ -159,7 +159,7 @@ class VistaReportes(tk.Frame):
             info_frame = tk.Frame(right_frame, bg='#2b2b2b')
             info_frame.pack(fill=tk.X, pady=(20, 0))
             
-            info_title = tk.Label(info_frame, text="ℹ Información",
+            info_title = tk.Label(info_frame, text="INFO Información",
                                  font=('Arial', 10, 'bold'),
                                  bg='#2b2b2b', fg='#ff6633')
             info_title.pack(anchor=tk.W)
@@ -170,7 +170,7 @@ class VistaReportes(tk.Frame):
                                  bg='#2b2b2b', fg='white', font=('Arial', 9))
             info_label.pack(anchor=tk.W, pady=(5, 0))
         else:
-            info_frame = ttk.LabelFrame(right_frame, text="ℹ Información", padding=5)
+            info_frame = ttk.LabelFrame(right_frame, text="INFO Información", padding=5)
             info_frame.pack(fill=tk.X, pady=(20, 0))
             
             info_text = "Genera reportes completos del sistema con datos de escaneo, monitoreo, FIM, SIEM, cuarentena y utilidades optimizadas para Kali Linux."

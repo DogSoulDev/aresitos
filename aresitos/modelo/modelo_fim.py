@@ -227,10 +227,10 @@ class FIMAvanzado:
         # Inicializar gestor de permisos
         if GESTOR_PERMISOS_DISPONIBLE and obtener_gestor_permisos is not None:
             self.gestor_permisos = obtener_gestor_permisos()
-            self.logger.info("✅ FIM: Gestor de permisos inicializado")
+            self.logger.info("OK FIM: Gestor de permisos inicializado")
         else:
             self.gestor_permisos = None
-            self.logger.warning("⚠️ FIM: Gestor de permisos no disponible - monitoreo limitado")
+            self.logger.warning("WARNING FIM: Gestor de permisos no disponible - monitoreo limitado")
         
         # Configuración
         self.archivo_base_datos = self._determinar_ruta_base_datos()
@@ -259,7 +259,7 @@ class FIMAvanzado:
         # Establecer como instancia global
         FIMAvanzado._instancia_global = self
         
-        self.logger.info("🛡️ FIM Avanzado inicializado correctamente")
+        self.logger.info(" FIM Avanzado inicializado correctamente")
     
     def _configurar_logger(self) -> logging.Logger:
         """Configurar logger específico para FIM."""

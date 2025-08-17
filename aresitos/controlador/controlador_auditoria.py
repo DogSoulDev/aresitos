@@ -145,7 +145,7 @@ class ControladorAuditoria:
         
         # Ejecutar rkhunter
         try:
-            print("🔍 Ejecutando rkhunter...")
+            print(" Ejecutando rkhunter...")
             cmd_rkhunter = ['sudo', 'rkhunter', '--check', '--skip-keypress', '--report-warnings-only']
             
             proceso = subprocess.run(
@@ -167,7 +167,7 @@ class ControladorAuditoria:
         
         # Ejecutar chkrootkit
         try:
-            print("🔍 Ejecutando chkrootkit...")
+            print(" Ejecutando chkrootkit...")
             cmd_chkrootkit = ['sudo', 'chkrootkit']
             
             proceso = subprocess.run(
@@ -411,11 +411,11 @@ class ControladorAuditoria:
             'auditorias_individuales': {}
         }
         
-        print("🔍 Iniciando auditoría completa del sistema...")
+        print(" Iniciando auditoría completa del sistema...")
         
         try:
             # 1. Auditoría Lynis
-            print("📋 Ejecutando auditoría Lynis...")
+            print(" Ejecutando auditoría Lynis...")
             resultado_completo['auditorias_individuales']['lynis'] = self.ejecutar_auditoria_lynis()
             
             # 2. Detección de rootkits
@@ -423,11 +423,11 @@ class ControladorAuditoria:
             resultado_completo['auditorias_individuales']['rootkits'] = self.ejecutar_deteccion_rootkits()
             
             # 3. Verificación de permisos
-            print("🔐 Verificando permisos críticos...")
+            print(" Verificando permisos críticos...")
             resultado_completo['auditorias_individuales']['permisos'] = self.verificar_permisos_criticos()
             
             # 4. Análisis de servicios
-            print("⚙️ Analizando servicios del sistema...")
+            print(" Analizando servicios del sistema...")
             resultado_completo['auditorias_individuales']['servicios'] = self.analizar_servicios_sistema()
             
             resultado_completo['timestamp_fin'] = datetime.now().isoformat()
@@ -438,7 +438,7 @@ class ControladorAuditoria:
                 resultado_completo['auditorias_individuales']
             )
             
-            print("✅ Auditoría completa finalizada")
+            print("OK Auditoría completa finalizada")
             
         except Exception as e:
             resultado_completo['error'] = str(e)

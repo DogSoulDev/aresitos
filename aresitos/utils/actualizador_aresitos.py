@@ -103,7 +103,7 @@ class ActualizadorAresitos:
     
     def solicitar_confirmacion_usuario(self) -> bool:
         """Solicitar confirmación del usuario para actualizar"""
-        print("🔄 SISTEMA DE ACTUALIZACIÓN INTEGRAL - ARESITOS")
+        print(" SISTEMA DE ACTUALIZACIÓN INTEGRAL - ARESITOS")
         print("=" * 60)
         print()
         print("Se actualizarán los siguientes componentes:")
@@ -112,7 +112,7 @@ class ActualizadorAresitos:
         print("  • Bases de datos de seguridad (CVE, exploits, etc.)")
         print("  • Configuraciones del sistema")
         print()
-        print("⚠️  ADVERTENCIA:")
+        print("WARNING  ADVERTENCIA:")
         print("  - Este proceso puede tomar 15-30 minutos")
         print("  - Se requiere conexión a internet estable")
         print("  - Se requieren permisos de administrador")
@@ -155,10 +155,10 @@ class ActualizadorAresitos:
         
         if es_error:
             self.errores_actualizacion.append(linea)
-            print(f"❌ {linea}")
+            print(f"ERROR {linea}")
         else:
             self.log_actualizacion.append(linea)
-            print(f"✅ {linea}")
+            print(f"OK {linea}")
     
     def actualizar_sistema_kali(self) -> bool:
         """Actualizar sistema operativo Kali Linux"""
@@ -395,20 +395,20 @@ class ActualizadorAresitos:
     
     def ejecutar_actualizacion_completa(self) -> bool:
         """Ejecutar actualización completa del sistema"""
-        print("\n🚀 INICIANDO ACTUALIZACIÓN COMPLETA DE ARESITOS")
+        print("\n INICIANDO ACTUALIZACIÓN COMPLETA DE ARESITOS")
         print("=" * 60)
         
         # Verificaciones previas
         if not self.verificar_kali_linux():
-            print("❌ Error: Este sistema no es Kali Linux")
+            print("ERROR Error: Este sistema no es Kali Linux")
             return False
         
         if not self.verificar_conexion_internet():
-            print("❌ Error: No hay conexión a internet")
+            print("ERROR Error: No hay conexión a internet")
             return False
         
         if not self.verificar_permisos_sudo():
-            print("❌ Error: Se requieren permisos sudo")
+            print("ERROR Error: Se requieren permisos sudo")
             print("   Ejecute: sudo python3 actualizador.py")
             return False
         
@@ -416,30 +416,30 @@ class ActualizadorAresitos:
         if not self.solicitar_confirmacion_usuario():
             return False
         
-        print("\n🔄 Iniciando proceso de actualización...")
-        print("⏱️  Este proceso puede tomar 15-30 minutos\n")
+        print("\n Iniciando proceso de actualización...")
+        print("TIMEOUT  Este proceso puede tomar 15-30 minutos\n")
         
         inicio = time.time()
         
         # 1. Actualizar sistema Kali Linux
-        print("📦 FASE 1: Actualizando sistema operativo...")
+        print(" FASE 1: Actualizando sistema operativo...")
         if not self.actualizar_sistema_kali():
-            print("⚠️  Advertencia: Error actualizando sistema")
+            print("WARNING  Advertencia: Error actualizando sistema")
         
         # 2. Actualizar herramientas
-        print("\n🛠️  FASE 2: Verificando herramientas...")
+        print("\n  FASE 2: Verificando herramientas...")
         if not self.actualizar_herramientas_kali():
-            print("⚠️  Advertencia: Error verificando herramientas")
+            print("WARNING  Advertencia: Error verificando herramientas")
         
         # 3. Actualizar bases de datos
-        print("\n📊 FASE 3: Actualizando bases de datos...")
+        print("\n FASE 3: Actualizando bases de datos...")
         if not self.actualizar_bases_datos():
-            print("⚠️  Advertencia: Error actualizando bases de datos")
+            print("WARNING  Advertencia: Error actualizando bases de datos")
         
         # 4. Actualizar configuraciones
-        print("\n⚙️  FASE 4: Actualizando configuraciones...")
+        print("\n  FASE 4: Actualizando configuraciones...")
         if not self.actualizar_configuraciones_sistema():
-            print("⚠️  Advertencia: Error actualizando configuraciones")
+            print("WARNING  Advertencia: Error actualizando configuraciones")
         
         fin = time.time()
         duracion = int(fin - inicio)
@@ -447,16 +447,16 @@ class ActualizadorAresitos:
         # Generar reporte
         archivo_reporte = self.generar_reporte_actualizacion()
         
-        print(f"\n🎉 ACTUALIZACIÓN COMPLETADA")
+        print(f"\n ACTUALIZACIÓN COMPLETADA")
         print("=" * 30)
-        print(f"⏱️  Tiempo total: {duracion // 60}m {duracion % 60}s")
-        print(f"✅ Operaciones exitosas: {len(self.log_actualizacion)}")
+        print(f"TIMEOUT  Tiempo total: {duracion // 60}m {duracion % 60}s")
+        print(f"OK Operaciones exitosas: {len(self.log_actualizacion)}")
         if self.errores_actualizacion:
-            print(f"⚠️  Errores encontrados: {len(self.errores_actualizacion)}")
+            print(f"WARNING  Errores encontrados: {len(self.errores_actualizacion)}")
         if archivo_reporte:
             print(f"📄 Reporte guardado en: {archivo_reporte}")
         
-        print("\n💡 RECOMENDACIONES POST-ACTUALIZACIÓN:")
+        print("\n RECOMENDACIONES POST-ACTUALIZACIÓN:")
         print("   • Reiniciar el sistema si se actualizó el kernel")
         print("   • Verificar que ARESITOS funciona correctamente")
         print("   • Revisar el reporte de actualización")
@@ -476,10 +476,10 @@ def main():
             actualizador.ejecutar_actualizacion_completa()
     
     except KeyboardInterrupt:
-        print("\n\n⚠️  Actualización cancelada por el usuario")
+        print("\n\nWARNING  Actualización cancelada por el usuario")
         sys.exit(1)
     except Exception as e:
-        print(f"\n❌ Error fatal en actualización: {str(e)}")
+        print(f"\nERROR Error fatal en actualización: {str(e)}")
         sys.exit(1)
 
 if __name__ == "__main__":

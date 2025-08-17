@@ -1,6 +1,6 @@
-# 🔥 PLAN DE OPTIMIZACIÓN ARESITOS PARA KALI LINUX 2025
+# PLAN DE OPTIMIZACIÓN ARESITOS PARA KALI LINUX 2025
 
-## 📊 ANÁLISIS ACTUAL DEL PROYECTO
+## ANÁLISIS ACTUAL DEL PROYECTO
 
 ### 🗂️ ESTRUCTURA VERIFICADA
 ```
@@ -34,15 +34,15 @@ ares-aegis/
 └── main.py                   # Punto de entrada
 ```
 
-## 🎯 OBJETIVOS PRINCIPALES
+## OBJETIVOS PRINCIPALES
 
-### 1. 🔧 VENTANA DE HERRAMIENTAS POST-LOGIN
+### 1. VENTANA DE HERRAMIENTAS POST-LOGIN
 - Crear `vista_herramientas_kali.py`
 - Mostrar TODAS las herramientas necesarias
 - Permitir instalación selectiva o masiva
 - Verificación en tiempo real
 
-### 2. 🛠️ HERRAMIENTAS KALI LINUX 2025 PREDETERMINADAS
+### 2. HERRAMIENTAS KALI LINUX 2025 PREDETERMINADAS
 **Escaneado y Reconocimiento:**
 - nmap, masscan, zmap
 - gobuster, dirb, dirbuster
@@ -74,13 +74,13 @@ ares-aegis/
 - sysdig
 - fail2ban
 
-### 3. 🔍 MEJORAS EN ESCANEADOR
+### 3. MEJORAS EN ESCANEADOR
 - Integración nativa con nmap
 - Uso de masscan para escaneos rápidos
 - Gobuster para directorios web
 - Nikto para vulnerabilidades web
 
-### 4. 🛡️ MEJORAS EN SIEM
+### 4. MEJORAS EN SIEM
 - Integración con auditd
 - Monitoreo con osquery
 - Análisis de logs con rsyslog
@@ -91,35 +91,35 @@ ares-aegis/
 - Integración con auditd
 - Checksums con herramientas del sistema
 
-## 📋 LISTA DE TAREAS ORDENADAS
+## LISTA DE TAREAS ORDENADAS
 
 ### FASE 1: VENTANA DE HERRAMIENTAS KALI
-1. ✅ Crear `vista_herramientas_kali.py`
-2. ✅ Integrar en el flujo post-login
-3. ✅ Lista completa de herramientas Kali 2025
-4. ✅ Sistema de instalación masiva
+1. OK Crear `vista_herramientas_kali.py`
+2. OK Integrar en el flujo post-login
+3. OK Lista completa de herramientas Kali 2025
+4. OK Sistema de instalación masiva
 
 ### FASE 2: OPTIMIZACIÓN DEL ESCANEADOR
-1. ✅ Integrar nmap nativo
-2. ✅ Agregar masscan para escaneos rápidos
-3. ✅ Gobuster para enumeración web
-4. ✅ Nikto para análisis de vulnerabilidades
+1. OK Integrar nmap nativo
+2. OK Agregar masscan para escaneos rápidos
+3. OK Gobuster para enumeración web
+4. OK Nikto para análisis de vulnerabilidades
 
 ### FASE 3: OPTIMIZACIÓN DEL SIEM
-1. ✅ Integrar auditd
-2. ✅ Configurar osquery
-3. ✅ Monitoreo de logs del sistema
-4. ✅ Alertas inteligentes
+1. OK Integrar auditd
+2. OK Configurar osquery
+3. OK Monitoreo de logs del sistema
+4. OK Alertas inteligentes
 
 ### FASE 4: OPTIMIZACIÓN DEL FIM
-1. ✅ Implementar inotify
-2. ✅ Integración con auditd
-3. ✅ Checksums avanzados
-4. ✅ Monitoreo en tiempo real
+1. OK Implementar inotify
+2. OK Integración con auditd
+3. OK Checksums avanzados
+4. OK Monitoreo en tiempo real
 
 ### FASE 5: VALIDACIÓN Y TESTING
-1. ✅ Testing en Kali Linux 2025
-2. ✅ Verificación de integración
-3. ✅ Documentación actualizada
+1. OK Testing en Kali Linux 2025
+2. OK Verificación de integración
+3. OK Documentación actualizada
 
-## 🚀 INICIANDO IMPLEMENTACIÓN...
+## INICIANDO IMPLEMENTACIÓN...

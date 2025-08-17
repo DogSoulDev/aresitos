@@ -670,7 +670,7 @@ class ControladorActualizacion(ControladorBase):
         Método principal llamado por la interfaz para actualizar el sistema completo.
         Compatible con la vista de actualización.
         """
-        self.logger.info("🚀 Iniciando actualización completa del sistema ARESITOS")
+        self.logger.info(" Iniciando actualización completa del sistema ARESITOS")
         
         if self.actualizacion_en_progreso:
             return {
@@ -700,9 +700,9 @@ class ControladorActualizacion(ControladorBase):
             
             if notificar_progreso:
                 if resultado['exito']:
-                    notificar_progreso("✅ Actualización completada exitosamente")
+                    notificar_progreso("OK Actualización completada exitosamente")
                 else:
-                    notificar_progreso("❌ Actualización completada con errores")
+                    notificar_progreso("ERROR Actualización completada con errores")
             
             return resultado
             
@@ -711,7 +711,7 @@ class ControladorActualizacion(ControladorBase):
             self.logger.error(error_msg)
             
             if notificar_progreso:
-                notificar_progreso(f"❌ Error: {error_msg}")
+                notificar_progreso(f"ERROR Error: {error_msg}")
             
             return {
                 'exito': False,
@@ -756,14 +756,14 @@ class ControladorActualizacion(ControladorBase):
                 logs.append(f"[{self.ultima_verificacion.strftime('%H:%M:%S')}] Última verificación realizada")
             
             if self.actualizacion_en_progreso:
-                logs.append(f"[{timestamp}] ⏳ Actualización en progreso...")
+                logs.append(f"[{timestamp}]  Actualización en progreso...")
             else:
-                logs.append(f"[{timestamp}] ✅ Sistema listo para actualizaciones")
+                logs.append(f"[{timestamp}] OK Sistema listo para actualizaciones")
             
             # Agregar información de estado
             estado = self.obtener_estado_actualizacion()
             if estado['actualizaciones_pendientes']:
-                logs.append(f"[{timestamp}] 📋 Actualizaciones pendientes disponibles")
+                logs.append(f"[{timestamp}]  Actualizaciones pendientes disponibles")
             
             return logs[:limite]
             
@@ -786,12 +786,12 @@ class ControladorActualizacion(ControladorBase):
             try:
                 result = subprocess.run(['dpkg', '-l'], capture_output=True, text=True, timeout=30)
                 if 'ii' in result.stdout:  # Paquetes instalados correctamente
-                    resultado['verificaciones']['paquetes'] = '✅ Paquetes integros'
+                    resultado['verificaciones']['paquetes'] = 'OK Paquetes integros'
                 else:
-                    resultado['verificaciones']['paquetes'] = '⚠️ Verificar paquetes'
+                    resultado['verificaciones']['paquetes'] = 'WARNING Verificar paquetes'
                     resultado['problemas_encontrados'].append('Posibles paquetes con problemas')
             except Exception as e:
-                resultado['verificaciones']['paquetes'] = f'❌ Error: {str(e)}'
+                resultado['verificaciones']['paquetes'] = f'ERROR Error: {str(e)}'
             
             # 2. Verificar servicios críticos
             servicios_criticos = ['ssh', 'networking']
@@ -806,7 +806,7 @@ class ControladorActualizacion(ControladorBase):
                 except:
                     pass
             
-            resultado['verificaciones']['servicios'] = f'✅ {servicios_ok}/{len(servicios_criticos)} servicios activos'
+            resultado['verificaciones']['servicios'] = f'OK {servicios_ok}/{len(servicios_criticos)} servicios activos'
             
             # 3. Verificar espacio en disco
             try:
@@ -818,12 +818,12 @@ class ControladorActualizacion(ControladorBase):
                         if len(campos) >= 5:
                             uso = campos[4].replace('%', '')
                             if int(uso) < 85:
-                                resultado['verificaciones']['espacio'] = f'✅ Espacio disponible ({uso}% usado)'
+                                resultado['verificaciones']['espacio'] = f'OK Espacio disponible ({uso}% usado)'
                             else:
-                                resultado['verificaciones']['espacio'] = f'⚠️ Poco espacio ({uso}% usado)'
+                                resultado['verificaciones']['espacio'] = f'WARNING Poco espacio ({uso}% usado)'
                                 resultado['problemas_encontrados'].append('Poco espacio en disco')
             except:
-                resultado['verificaciones']['espacio'] = '❌ Error verificando espacio'
+                resultado['verificaciones']['espacio'] = 'ERROR Error verificando espacio'
             
             # Generar recomendaciones
             if resultado['problemas_encontrados']:
@@ -848,7 +848,7 @@ class ControladorActualizacion(ControladorBase):
             Dict con resultados de la actualización completa
         """
         try:
-            self.logger.info("🔄 Iniciando actualización integral de ARESITOS")
+            self.logger.info(" Iniciando actualización integral de ARESITOS")
             
             if self.actualizacion_en_progreso:
                 return {
@@ -902,10 +902,10 @@ class ControladorActualizacion(ControladorBase):
             if resultado_integral['errores']:
                 resultado_integral['exito'] = False
                 resultado_integral['estado'] = 'completado_con_errores'
-                self.logger.warning(f"⚠️ Actualización completada con {len(resultado_integral['errores'])} errores")
+                self.logger.warning(f"WARNING Actualización completada con {len(resultado_integral['errores'])} errores")
             else:
                 resultado_integral['estado'] = 'completado_exitosamente'
-                self.logger.info("✅ Actualización integral completada exitosamente")
+                self.logger.info("OK Actualización integral completada exitosamente")
             
             # Actualizar timestamp de última actualización
             self.ultima_verificacion = datetime.now()

@@ -377,18 +377,18 @@ class ControladorFIM(ControladorBase):
                 self.logger.info("Verificando baseline FIM...")
                 resultado_baseline = self.fim.crear_baseline()
                 if resultado_baseline:
-                    self.logger.info("✅ Baseline FIM creado/verificado correctamente")
+                    self.logger.info("OK Baseline FIM creado/verificado correctamente")
                 else:
-                    self.logger.warning("⚠️ Baseline FIM no disponible, usando monitoreo básico")
+                    self.logger.warning("WARNING Baseline FIM no disponible, usando monitoreo básico")
             except Exception as e:
-                self.logger.warning(f"⚠️ Error con baseline FIM: {e}, continuando con monitoreo básico")
+                self.logger.warning(f"WARNING Error con baseline FIM: {e}, continuando con monitoreo básico")
             
             # Iniciar hilo de monitoreo
             self._hilo_monitoreo = threading.Thread(target=self._bucle_monitoreo_continuo, daemon=True)
             self._hilo_monitoreo.start()
             
             self._registrar_evento_siem("INICIO_MONITOREO_FIM", "Monitoreo continuo FIM iniciado", "info")
-            self.logger.info("✅ Monitoreo continuo FIM iniciado correctamente")
+            self.logger.info("OK Monitoreo continuo FIM iniciado correctamente")
             
             return {
                 'exito': True,
@@ -836,7 +836,7 @@ class ControladorFIM(ControladorBase):
                 if herramientas_ok < 3:
                     resultado['recomendaciones'].append("Instalar herramientas FIM: sudo apt install findutils coreutils inotify-tools")
             
-            self.logger.info(f"Verificación FIM Kali completada - Funcionalidad: {'✅' if resultado['funcionalidad_completa'] else '❌'}")
+            self.logger.info(f"Verificación FIM Kali completada - Funcionalidad: {'OK' if resultado['funcionalidad_completa'] else 'ERROR'}")
             
         except Exception as e:
             self.logger.error(f"Error en verificación FIM Kali: {e}")
@@ -1067,7 +1067,7 @@ class ControladorFIM(ControladorBase):
         KALI OPTIMIZATION: Configuración específica de inotify para FIM profesional.
         """
         try:
-            self.logger.info("🔧 Configurando inotify-tools para monitoreo en tiempo real...")
+            self.logger.info(" Configurando inotify-tools para monitoreo en tiempo real...")
             
             # Verificar si inotify-tools está disponible
             result_check = subprocess.run(['which', 'inotifywait'], capture_output=True, text=True, timeout=5)
@@ -1180,7 +1180,7 @@ class ControladorFIM(ControladorBase):
         KALI OPTIMIZATION: Configuración específica de AIDE para detección de intrusiones.
         """
         try:
-            self.logger.info("🛡️ Configurando AIDE para detección avanzada de intrusiones...")
+            self.logger.info(" Configurando AIDE para detección avanzada de intrusiones...")
             
             # Verificar si AIDE está disponible
             result_check = subprocess.run(['which', 'aide'], capture_output=True, text=True, timeout=5)
@@ -1329,7 +1329,7 @@ report_url=stdout
         KALI OPTIMIZATION: Análisis completo de integridad del sistema.
         """
         try:
-            self.logger.info("🔍 Ejecutando verificación de integridad con AIDE...")
+            self.logger.info(" Ejecutando verificación de integridad con AIDE...")
             
             # Verificar si AIDE está disponible y configurado
             result_check = subprocess.run(['which', 'aide'], capture_output=True, text=True, timeout=5)
@@ -1445,7 +1445,7 @@ report_url=stdout
         KALI OPTIMIZATION: Integración de auditd con FIM para detección completa.
         """
         try:
-            self.logger.info("📋 Configurando monitoreo FIM con auditd...")
+            self.logger.info(" Configurando monitoreo FIM con auditd...")
             
             # Verificar si auditd está disponible
             result_check = subprocess.run(['which', 'auditctl'], capture_output=True, text=True, timeout=5)
@@ -1554,7 +1554,7 @@ report_url=stdout
         KALI OPTIMIZATION: Análisis específico de logs para detección de cambios.
         """
         try:
-            self.logger.info("📊 Analizando logs del sistema para eventos FIM...")
+            self.logger.info(" Analizando logs del sistema para eventos FIM...")
             
             # Logs a analizar para eventos FIM
             logs_fim = [
@@ -1680,7 +1680,7 @@ report_url=stdout
         FASE 4: Función principal que integra inotify, AIDE, auditd y análisis de logs.
         """
         try:
-            self.logger.info("🚀 Ejecutando FIM completo con herramientas avanzadas de Kali Linux...")
+            self.logger.info(" Ejecutando FIM completo con herramientas avanzadas de Kali Linux...")
             tiempo_inicio = time.time()
             
             resultados_completos = {
@@ -1783,7 +1783,7 @@ report_url=stdout
                 severidad_evento
             )
             
-            self.logger.info(f"✅ FIM completo ejecutado en {tiempo_total:.2f}s - {herramientas_exitosas}/4 herramientas exitosas")
+            self.logger.info(f"OK FIM completo ejecutado en {tiempo_total:.2f}s - {herramientas_exitosas}/4 herramientas exitosas")
             
             return {
                 'exito': herramientas_exitosas > 0,
@@ -2093,7 +2093,7 @@ report_url=stdout
             
             # Generar recomendaciones específicas para Kali
             if not resultado['es_kali']:
-                resultado['recomendaciones'].append("⚠️ Sistema no detectado como Kali Linux")
+                resultado['recomendaciones'].append("WARNING Sistema no detectado como Kali Linux")
             
             if 'inotifywait' in resultado['herramientas_faltantes']:
                 resultado['recomendaciones'].append("Instalar inotify-tools: sudo apt install inotify-tools")

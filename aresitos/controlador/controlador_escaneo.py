@@ -35,12 +35,12 @@ class ControladorEscaneo(ControladorBase):
             
             # Verificar que el escaneador tenga gestor de permisos
             if hasattr(self.escaneador, 'gestor_permisos') and self.escaneador.gestor_permisos:
-                self.logger.info("✅ Escaneador inicializado con gestor de permisos")
+                self.logger.info("OK Escaneador inicializado con gestor de permisos")
             else:
-                self.logger.warning("⚠️  Escaneador sin gestor de permisos - funcionalidad limitada")
+                self.logger.warning("WARNING  Escaneador sin gestor de permisos - funcionalidad limitada")
                 
         except Exception as e:
-            self.logger.error(f"❌ Error inicializando componentes: {e}")
+            self.logger.error(f"ERROR Error inicializando componentes: {e}")
             self.escaneador = None
             self.siem = None
         
@@ -133,7 +133,7 @@ class ControladorEscaneo(ControladorBase):
                 if herramientas_ok < 2:
                     resultado['recomendaciones'].append("Instalar herramientas: sudo apt install nmap netstat-nat net-tools")
             
-            self.logger.info(f"Verificación Kali completada - Funcionalidad: {'✅' if resultado['funcionalidad_completa'] else '❌'}")
+            self.logger.info(f"Verificación Kali completada - Funcionalidad: {'OK' if resultado['funcionalidad_completa'] else 'ERROR'}")
             
         except Exception as e:
             self.logger.error(f"Error en verificación Kali: {e}")
@@ -353,7 +353,7 @@ class ControladorEscaneo(ControladorBase):
             }
         
         objetivo_seguro = validacion['objetivo_sanitizado']
-        self.logger.info(f"🔍 Iniciando escaneo básico validado de {objetivo_seguro}")
+        self.logger.info(f" Iniciando escaneo básico validado de {objetivo_seguro}")
         
         if not self.escaneador or not self.siem:
             return {'exito': False, 'error': 'Componentes no inicializados correctamente'}
@@ -361,9 +361,9 @@ class ControladorEscaneo(ControladorBase):
         # Verificar funcionalidad en Kali Linux antes del escaneo
         verificacion_kali = self.verificar_funcionalidad_kali()
         if not verificacion_kali['funcionalidad_completa']:
-            self.logger.warning("⚠️  Funcionalidad limitada detectada en Kali Linux")
+            self.logger.warning("WARNING  Funcionalidad limitada detectada en Kali Linux")
             for rec in verificacion_kali['recomendaciones']:
-                self.logger.warning(f"💡 {rec}")
+                self.logger.warning(f" {rec}")
         
         with self._lock_escaneo:
             self._estado_escaneo['escaneo_en_progreso'] = True
@@ -374,7 +374,7 @@ class ControladorEscaneo(ControladorBase):
             
             # SECURITY: Usar objetivo validado en todas las operaciones
             # Escaneo de puertos con objetivo seguro
-            self.logger.info(f"🔧 Ejecutando escaneo de puertos para {objetivo_seguro}")
+            self.logger.info(f" Ejecutando escaneo de puertos para {objetivo_seguro}")
             puertos_resultado = self.escaneador.escanear_puertos_basico(objetivo_seguro)
             
             # Obtener conexiones activas

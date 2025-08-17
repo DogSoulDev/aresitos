@@ -343,7 +343,7 @@ class VistaDashboard(tk.Frame):
         
         btn_terminal_kali = tk.Button(
             terminal_kali_frame,
-            text="🖥️ ABRIR TERMINAL REAL DE KALI LINUX",
+            text=" ABRIR TERMINAL REAL DE KALI LINUX",
             command=self.abrir_terminal_kali,
             bg='#00ff00',  # Verde brillante
             fg='black',
@@ -869,7 +869,7 @@ nmap -oG scan.grep target.com     # Grepable output
 nmap -oA scan target.com          # All formats
 """,
             
-            "🔐 Metasploit Framework": """
+            " Metasploit Framework": """
 # METASPLOIT FRAMEWORK CHEATSHEET
 
 ## Comandos Básicos
@@ -1087,7 +1087,7 @@ socat file:`tty`,raw,echo=0 tcp-listen:4242  # Socat listener
 rlwrap nc -lvnp 4242              # Con readline
 """,
             
-            "🔍 OSINT": """
+            " OSINT": """
 # OSINT (Open Source Intelligence) CHEATSHEET
 
 ## Búsqueda de Dominios
@@ -1392,7 +1392,7 @@ journalctl -u ssh                # Logs de servicio específico
                             creationflags=subprocess.CREATE_NEW_PROCESS_GROUP
                         )
                     
-                    print(f"✅ Terminal {terminal_cmd} abierto exitosamente")
+                    print(f"OK Terminal {terminal_cmd} abierto exitosamente")
                     self.mostrar_notificacion(f"Terminal {terminal_cmd} iniciado", "info")
                     
                 else:
@@ -1402,7 +1402,7 @@ journalctl -u ssh                # Logs de servicio específico
                         stdout=subprocess.DEVNULL,
                         stderr=subprocess.DEVNULL
                     )
-                    print("✅ Terminal xterm abierto como fallback")
+                    print("OK Terminal xterm abierto como fallback")
                     self.mostrar_notificacion("Terminal xterm iniciado", "info")
                     
             elif platform.system() == "Windows":
@@ -1415,7 +1415,7 @@ journalctl -u ssh                # Logs de servicio específico
                         stdout=subprocess.DEVNULL,
                         stderr=subprocess.DEVNULL
                     )
-                    print("✅ WSL Kali Linux abierto")
+                    print("OK WSL Kali Linux abierto")
                     self.mostrar_notificacion("WSL Kali Linux iniciado", "info")
                 except:
                     # Fallback a PowerShell
@@ -1425,7 +1425,7 @@ journalctl -u ssh                # Logs de servicio específico
                         stdout=subprocess.DEVNULL,
                         stderr=subprocess.DEVNULL
                     )
-                    print("✅ PowerShell abierto (Kali no detectado en WSL)")
+                    print("OK PowerShell abierto (Kali no detectado en WSL)")
                     self.mostrar_notificacion("PowerShell iniciado - Kali no detectado", "warning")
                     
             else:
@@ -1435,11 +1435,11 @@ journalctl -u ssh                # Logs de servicio específico
                     stdout=subprocess.DEVNULL,
                     stderr=subprocess.DEVNULL
                 )
-                print("✅ Terminal del sistema abierto")
+                print("OK Terminal del sistema abierto")
                 self.mostrar_notificacion("Terminal del sistema iniciado", "info")
                 
         except Exception as e:
-            print(f"❌ Error abriendo terminal: {e}")
+            print(f"ERROR Error abriendo terminal: {e}")
             self.mostrar_notificacion(f"Error: {str(e)}", "error")
     
     def mostrar_notificacion(self, mensaje, tipo="info"):

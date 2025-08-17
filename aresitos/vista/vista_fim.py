@@ -149,17 +149,17 @@ class VistaFIM(tk.Frame):
         # Botones principales de FIM
         if self.theme:
             buttons = [
-                ("🛡️ Crear Baseline", self.crear_baseline, '#ff6633'),
+                (" Crear Baseline", self.crear_baseline, '#ff6633'),
                 ("▶️ Iniciar Monitoreo", self.iniciar_monitoreo, '#5cb85c'),
                 ("⏹️ Detener Monitoreo", self.detener_monitoreo, '#d9534f'),
                 ("� Verificar Kali", self.verificar_kali, '#337ab7'),
-                ("�🔍 Verificar Integridad", self.verificar_integridad, '#404040'),
-                ("📊 Escaneo Manual", self.escaneo_manual, '#404040'),
-                ("🔧 Usar AIDE (Kali)", self.usar_aide, '#404040'),
-                ("🔧 Usar Tripwire", self.usar_tripwire, '#404040'),
+                ("� Verificar Integridad", self.verificar_integridad, '#404040'),
+                (" Escaneo Manual", self.escaneo_manual, '#404040'),
+                (" Usar AIDE (Kali)", self.usar_aide, '#404040'),
+                (" Usar Tripwire", self.usar_tripwire, '#404040'),
                 ("📁 Ver Baseline", self.ver_baseline, '#404040'),
-                ("💾 Guardar Reporte", self.guardar_reporte, '#404040'),
-                ("🗑️ Limpiar Pantalla", self.limpiar_pantalla, '#404040')
+                (" Guardar Reporte", self.guardar_reporte, '#404040'),
+                (" Limpiar Pantalla", self.limpiar_pantalla, '#404040')
             ]
             
             for i, (text, command, bg_color) in enumerate(buttons):
@@ -171,7 +171,7 @@ class VistaFIM(tk.Frame):
                 btn.pack(fill=tk.X, pady=2)
         else:
             # Crear botones individuales para mejor control
-            self.btn_crear_baseline = ttk.Button(right_frame, text="🛡️ Crear Baseline", 
+            self.btn_crear_baseline = ttk.Button(right_frame, text=" Crear Baseline", 
                                                command=self.crear_baseline)
             self.btn_crear_baseline.pack(fill=tk.X, pady=2)
             
@@ -186,27 +186,27 @@ class VistaFIM(tk.Frame):
             
             ttk.Button(right_frame, text="� Verificar Kali", 
                       command=self.verificar_kali).pack(fill=tk.X, pady=2)
-            ttk.Button(right_frame, text="�🔍 Verificar Integridad", 
+            ttk.Button(right_frame, text="� Verificar Integridad", 
                       command=self.verificar_integridad).pack(fill=tk.X, pady=2)
-            ttk.Button(right_frame, text="📊 Escaneo Manual", 
+            ttk.Button(right_frame, text=" Escaneo Manual", 
                       command=self.escaneo_manual).pack(fill=tk.X, pady=2)
-            ttk.Button(right_frame, text="🔧 Usar AIDE (Kali)", 
+            ttk.Button(right_frame, text=" Usar AIDE (Kali)", 
                       command=self.usar_aide).pack(fill=tk.X, pady=2)
-            ttk.Button(right_frame, text="🔧 Usar Tripwire", 
+            ttk.Button(right_frame, text=" Usar Tripwire", 
                       command=self.usar_tripwire).pack(fill=tk.X, pady=2)
             ttk.Separator(right_frame, orient=tk.HORIZONTAL).pack(fill=tk.X, pady=5)
             ttk.Button(right_frame, text="📁 Ver Baseline", 
                       command=self.ver_baseline).pack(fill=tk.X, pady=2)
-            ttk.Button(right_frame, text="💾 Guardar Reporte", 
+            ttk.Button(right_frame, text=" Guardar Reporte", 
                       command=self.guardar_reporte).pack(fill=tk.X, pady=2)
-            ttk.Button(right_frame, text="🗑️ Limpiar Pantalla", 
+            ttk.Button(right_frame, text=" Limpiar Pantalla", 
                       command=self.limpiar_pantalla).pack(fill=tk.X, pady=2)
         
         # Mensaje inicial
-        self._actualizar_texto_fim("🛡️ Sistema FIM de Aresitos para Kali Linux iniciado\n")
+        self._actualizar_texto_fim(" Sistema FIM de Aresitos para Kali Linux iniciado\n")
         self._actualizar_texto_fim("📁 Rutas críticas pre-configuradas: /etc, /boot, /usr/bin, /root\n")
-        self._actualizar_texto_fim("🔧 Herramientas disponibles: AIDE, Tripwire, inotify-tools\n")
-        self._actualizar_texto_fim("⚡ Listo para crear baseline y monitorear integridad de archivos\n\n")
+        self._actualizar_texto_fim(" Herramientas disponibles: AIDE, Tripwire, inotify-tools\n")
+        self._actualizar_texto_fim(" Listo para crear baseline y monitorear integridad de archivos\n\n")
     
     def agregar_ruta_monitoreo(self):
         """Agregar ruta para monitoreo."""
@@ -239,18 +239,18 @@ class VistaFIM(tk.Frame):
         """Crear baseline de integridad de archivos."""
         def ejecutar():
             try:
-                self.after(0, self._actualizar_texto_fim, "🛡️ Creando baseline de integridad...\n")
+                self.after(0, self._actualizar_texto_fim, " Creando baseline de integridad...\n")
                 
                 if self.controlador:
                     resultado = self.controlador.crear_baseline()
                     if resultado.get('exito'):
                         archivos = resultado.get('archivos_procesados', 0)
                         tiempo = resultado.get('tiempo_ejecucion', 0)
-                        self.after(0, self._actualizar_texto_fim, f"✅ Baseline creado correctamente\n")
-                        self.after(0, self._actualizar_texto_fim, f"📊 Archivos procesados: {archivos}\n")
-                        self.after(0, self._actualizar_texto_fim, f"⏱️ Tiempo: {tiempo}s\n")
+                        self.after(0, self._actualizar_texto_fim, f"OK Baseline creado correctamente\n")
+                        self.after(0, self._actualizar_texto_fim, f" Archivos procesados: {archivos}\n")
+                        self.after(0, self._actualizar_texto_fim, f"TIMEOUT Tiempo: {tiempo}s\n")
                     else:
-                        self.after(0, self._actualizar_texto_fim, f"❌ Error creando baseline: {resultado.get('error', 'Error desconocido')}\n")
+                        self.after(0, self._actualizar_texto_fim, f"ERROR Error creando baseline: {resultado.get('error', 'Error desconocido')}\n")
                 else:
                     # Simulación si no hay controlador
                     import time
@@ -258,10 +258,10 @@ class VistaFIM(tk.Frame):
                     for ruta in rutas:
                         self.after(0, self._actualizar_texto_fim, f"📁 Procesando {ruta}...\n")
                         time.sleep(0.5)
-                    self.after(0, self._actualizar_texto_fim, "✅ Baseline completado para todas las rutas\n")
+                    self.after(0, self._actualizar_texto_fim, "OK Baseline completado para todas las rutas\n")
                 
             except Exception as e:
-                self.after(0, self._actualizar_texto_fim, f"❌ Error creando baseline: {str(e)}\n")
+                self.after(0, self._actualizar_texto_fim, f"ERROR Error creando baseline: {str(e)}\n")
         
         threading.Thread(target=ejecutar, daemon=True).start()
     
@@ -286,18 +286,18 @@ class VistaFIM(tk.Frame):
             if self.controlador:
                 resultado = self.controlador.iniciar_monitoreo_continuo()
                 if resultado.get('exito'):
-                    self.after(0, self._actualizar_texto_fim, "✅ FIM iniciado correctamente\n")
+                    self.after(0, self._actualizar_texto_fim, "OK FIM iniciado correctamente\n")
                     self.after(0, self._actualizar_texto_fim, f"📁 Rutas monitoreadas: {resultado.get('rutas_monitoreadas', 0)}\n")
-                    self.after(0, self._actualizar_texto_fim, f"⏰ Intervalo: {resultado.get('intervalo_segundos', 'N/A')}s\n")
+                    self.after(0, self._actualizar_texto_fim, f" Intervalo: {resultado.get('intervalo_segundos', 'N/A')}s\n")
                     
                     # Continuar con simulación de monitoreo visual
                     import time
                     eventos_demo = [
-                        "🔍 Verificando integridad de archivos...",
-                        "📊 Analizando cambios detectados...",
-                        "🔐 Validando checksums MD5/SHA256...",
+                        " Verificando integridad de archivos...",
+                        " Analizando cambios detectados...",
+                        " Validando checksums MD5/SHA256...",
                         "📁 Escaneando directorios críticos...",
-                        "⚡ Procesando eventos en tiempo real..."
+                        " Procesando eventos en tiempo real..."
                     ]
                     
                     while self.proceso_monitoreo_activo:
@@ -307,15 +307,15 @@ class VistaFIM(tk.Frame):
                             self.after(0, self._actualizar_texto_fim, f"{evento}\n")
                             time.sleep(3)
                 else:
-                    self.after(0, self._actualizar_texto_fim, f"❌ Error iniciando FIM: {resultado.get('error', 'Error desconocido')}\n")
+                    self.after(0, self._actualizar_texto_fim, f"ERROR Error iniciando FIM: {resultado.get('error', 'Error desconocido')}\n")
             else:
                 # Simulación si no hay controlador
                 import time
                 while self.proceso_monitoreo_activo:
-                    self.after(0, self._actualizar_texto_fim, "🔍 Verificando integridad...\n")
+                    self.after(0, self._actualizar_texto_fim, " Verificando integridad...\n")
                     time.sleep(5)  # Verificar cada 5 segundos
         except Exception as e:
-            self.after(0, self._actualizar_texto_fim, f"❌ Error en monitoreo: {str(e)}\n")
+            self.after(0, self._actualizar_texto_fim, f"ERROR Error en monitoreo: {str(e)}\n")
         finally:
             self.after(0, self._finalizar_monitoreo)
     
@@ -328,9 +328,9 @@ class VistaFIM(tk.Frame):
             if self.controlador:
                 resultado = self.controlador.detener_monitoreo_continuo()
                 if resultado.get('exito'):
-                    self._actualizar_texto_fim("✅ Monitoreo detenido correctamente\n")
+                    self._actualizar_texto_fim("OK Monitoreo detenido correctamente\n")
                 else:
-                    self._actualizar_texto_fim(f"❌ Error deteniendo monitoreo: {resultado.get('error', 'Error desconocido')}\n")
+                    self._actualizar_texto_fim(f"ERROR Error deteniendo monitoreo: {resultado.get('error', 'Error desconocido')}\n")
     
     def _finalizar_monitoreo(self):
         """Finalizar proceso de monitoreo."""
@@ -349,22 +349,22 @@ class VistaFIM(tk.Frame):
         """Verificar integridad manual."""
         def ejecutar():
             try:
-                self._actualizar_texto_fim("🔍 Verificando integridad de archivos...\n")
+                self._actualizar_texto_fim(" Verificando integridad de archivos...\n")
                 
                 if self.controlador:
                     resultado = self.controlador.verificar_integridad()
-                    self.after(0, self._actualizar_texto_fim, f"📊 Resultado: {resultado}\n")
+                    self.after(0, self._actualizar_texto_fim, f" Resultado: {resultado}\n")
                 else:
                     # Simulación
                     import time
                     rutas = [self.rutas_listbox.get(i) for i in range(self.rutas_listbox.size())]
                     for ruta in rutas:
-                        self.after(0, self._actualizar_texto_fim, f"✅ {ruta}: Integridad verificada\n")
+                        self.after(0, self._actualizar_texto_fim, f"OK {ruta}: Integridad verificada\n")
                         time.sleep(0.3)
                 
-                self.after(0, self._actualizar_texto_fim, "✅ Verificación completada\n\n")
+                self.after(0, self._actualizar_texto_fim, "OK Verificación completada\n\n")
             except Exception as e:
-                self.after(0, self._actualizar_texto_fim, f"❌ Error en verificación: {str(e)}\n")
+                self.after(0, self._actualizar_texto_fim, f"ERROR Error en verificación: {str(e)}\n")
         
         threading.Thread(target=ejecutar, daemon=True).start()
     
@@ -372,7 +372,7 @@ class VistaFIM(tk.Frame):
         """Ejecutar escaneo manual."""
         def ejecutar():
             try:
-                self._actualizar_texto_fim("📊 Ejecutando escaneo manual...\n")
+                self._actualizar_texto_fim(" Ejecutando escaneo manual...\n")
                 
                 if self.controlador:
                     self.controlador.ejecutar_escaneo_manual()
@@ -380,7 +380,7 @@ class VistaFIM(tk.Frame):
                     # Simulación usando herramientas de Kali
                     import subprocess
                     try:
-                        self.after(0, self._actualizar_texto_fim, "🔧 Usando find para detectar cambios...\n")
+                        self.after(0, self._actualizar_texto_fim, " Usando find para detectar cambios...\n")
                         resultado = subprocess.run(['find', '/etc', '-type', 'f', '-mtime', '-1'], 
                                                  capture_output=True, text=True, timeout=30)
                         if resultado.stdout:
@@ -389,13 +389,13 @@ class VistaFIM(tk.Frame):
                             for archivo in archivos[:10]:  # Mostrar solo los primeros 10
                                 self.after(0, self._actualizar_texto_fim, f"  {archivo}\n")
                         else:
-                            self.after(0, self._actualizar_texto_fim, "✅ No se detectaron cambios recientes\n")
+                            self.after(0, self._actualizar_texto_fim, "OK No se detectaron cambios recientes\n")
                     except Exception as e:
-                        self.after(0, self._actualizar_texto_fim, f"❌ Error ejecutando find: {str(e)}\n")
+                        self.after(0, self._actualizar_texto_fim, f"ERROR Error ejecutando find: {str(e)}\n")
                 
-                self.after(0, self._actualizar_texto_fim, "✅ Escaneo manual completado\n\n")
+                self.after(0, self._actualizar_texto_fim, "OK Escaneo manual completado\n\n")
             except Exception as e:
-                self.after(0, self._actualizar_texto_fim, f"❌ Error en escaneo: {str(e)}\n")
+                self.after(0, self._actualizar_texto_fim, f"ERROR Error en escaneo: {str(e)}\n")
         
         threading.Thread(target=ejecutar, daemon=True).start()
     
@@ -403,28 +403,28 @@ class VistaFIM(tk.Frame):
         """Usar AIDE (Advanced Intrusion Detection Environment) de Kali Linux."""
         def ejecutar():
             try:
-                self._actualizar_texto_fim("🔧 Ejecutando AIDE (Advanced Intrusion Detection Environment)...\n")
+                self._actualizar_texto_fim(" Ejecutando AIDE (Advanced Intrusion Detection Environment)...\n")
                 
                 import subprocess
                 try:
                     # Verificar si AIDE está instalado
                     resultado = subprocess.run(['which', 'aide'], capture_output=True, text=True)
                     if resultado.returncode != 0:
-                        self.after(0, self._actualizar_texto_fim, "❌ AIDE no encontrado. Instalar con: apt install aide\n")
+                        self.after(0, self._actualizar_texto_fim, "ERROR AIDE no encontrado. Instalar con: apt install aide\n")
                         return
                     
-                    self.after(0, self._actualizar_texto_fim, "🔧 Inicializando base de datos AIDE...\n")
+                    self.after(0, self._actualizar_texto_fim, " Inicializando base de datos AIDE...\n")
                     # Nota: En un entorno real, esto requeriría privilegios root
-                    self.after(0, self._actualizar_texto_fim, "📝 Comando a ejecutar: aide --init\n")
-                    self.after(0, self._actualizar_texto_fim, "📝 Comando de verificación: aide --check\n")
-                    self.after(0, self._actualizar_texto_fim, "⚠️  Nota: Requiere privilegios root para ejecutar\n")
+                    self.after(0, self._actualizar_texto_fim, " Comando a ejecutar: aide --init\n")
+                    self.after(0, self._actualizar_texto_fim, " Comando de verificación: aide --check\n")
+                    self.after(0, self._actualizar_texto_fim, "WARNING  Nota: Requiere privilegios root para ejecutar\n")
                     
                 except Exception as e:
-                    self.after(0, self._actualizar_texto_fim, f"❌ Error con AIDE: {str(e)}\n")
+                    self.after(0, self._actualizar_texto_fim, f"ERROR Error con AIDE: {str(e)}\n")
                 
-                self.after(0, self._actualizar_texto_fim, "✅ Configuración AIDE completada\n\n")
+                self.after(0, self._actualizar_texto_fim, "OK Configuración AIDE completada\n\n")
             except Exception as e:
-                self.after(0, self._actualizar_texto_fim, f"❌ Error usando AIDE: {str(e)}\n")
+                self.after(0, self._actualizar_texto_fim, f"ERROR Error usando AIDE: {str(e)}\n")
         
         threading.Thread(target=ejecutar, daemon=True).start()
     
@@ -432,29 +432,29 @@ class VistaFIM(tk.Frame):
         """Usar Tripwire para monitoreo de integridad."""
         def ejecutar():
             try:
-                self._actualizar_texto_fim("🔧 Configurando Tripwire para monitoreo de integridad...\n")
+                self._actualizar_texto_fim(" Configurando Tripwire para monitoreo de integridad...\n")
                 
                 import subprocess
                 try:
                     # Verificar si Tripwire está disponible
                     resultado = subprocess.run(['which', 'tripwire'], capture_output=True, text=True)
                     if resultado.returncode != 0:
-                        self.after(0, self._actualizar_texto_fim, "❌ Tripwire no encontrado. Instalar con: apt install tripwire\n")
+                        self.after(0, self._actualizar_texto_fim, "ERROR Tripwire no encontrado. Instalar con: apt install tripwire\n")
                         return
                     
-                    self.after(0, self._actualizar_texto_fim, "🔧 Configurando Tripwire...\n")
-                    self.after(0, self._actualizar_texto_fim, "📝 Pasos de configuración:\n")
+                    self.after(0, self._actualizar_texto_fim, " Configurando Tripwire...\n")
+                    self.after(0, self._actualizar_texto_fim, " Pasos de configuración:\n")
                     self.after(0, self._actualizar_texto_fim, "  1. tripwire --init\n")
                     self.after(0, self._actualizar_texto_fim, "  2. tripwire --check\n")
                     self.after(0, self._actualizar_texto_fim, "  3. tripwire --update\n")
-                    self.after(0, self._actualizar_texto_fim, "⚠️  Nota: Requiere configuración inicial y privilegios root\n")
+                    self.after(0, self._actualizar_texto_fim, "WARNING  Nota: Requiere configuración inicial y privilegios root\n")
                     
                 except Exception as e:
-                    self.after(0, self._actualizar_texto_fim, f"❌ Error con Tripwire: {str(e)}\n")
+                    self.after(0, self._actualizar_texto_fim, f"ERROR Error con Tripwire: {str(e)}\n")
                 
-                self.after(0, self._actualizar_texto_fim, "✅ Información Tripwire mostrada\n\n")
+                self.after(0, self._actualizar_texto_fim, "OK Información Tripwire mostrada\n\n")
             except Exception as e:
-                self.after(0, self._actualizar_texto_fim, f"❌ Error usando Tripwire: {str(e)}\n")
+                self.after(0, self._actualizar_texto_fim, f"ERROR Error usando Tripwire: {str(e)}\n")
         
         threading.Thread(target=ejecutar, daemon=True).start()
     
@@ -467,11 +467,11 @@ class VistaFIM(tk.Frame):
                 self._actualizar_texto_fim(str(baseline_info) + "\n\n")
             else:
                 self._actualizar_texto_fim("📁 Baseline actual:\n")
-                self._actualizar_texto_fim("🗓️ Fecha de creación: Pendiente\n")
-                self._actualizar_texto_fim("📊 Archivos monitoreados: Pendiente\n")
-                self._actualizar_texto_fim("🔍 Estado: No creado\n\n")
+                self._actualizar_texto_fim(" Fecha de creación: Pendiente\n")
+                self._actualizar_texto_fim(" Archivos monitoreados: Pendiente\n")
+                self._actualizar_texto_fim(" Estado: No creado\n\n")
         except Exception as e:
-            self._actualizar_texto_fim(f"❌ Error obteniendo baseline: {str(e)}\n")
+            self._actualizar_texto_fim(f"ERROR Error obteniendo baseline: {str(e)}\n")
     
     def guardar_reporte(self):
         """Guardar reporte de FIM."""
@@ -501,7 +501,7 @@ class VistaFIM(tk.Frame):
         """Limpiar pantalla de resultados."""
         self.fim_text.config(state=tk.NORMAL)
         self.fim_text.delete(1.0, tk.END)
-        self._actualizar_texto_fim("🛡️ Sistema FIM de Aresitos - Pantalla limpiada\n\n")
+        self._actualizar_texto_fim(" Sistema FIM de Aresitos - Pantalla limpiada\n\n")
         self.fim_text.config(state=tk.DISABLED)
     
     def _actualizar_texto_fim(self, texto):
@@ -530,23 +530,23 @@ class VistaFIM(tk.Frame):
             funcionalidad_ok = resultado.get('funcionalidad_completa', False)
             
             if funcionalidad_ok:
-                self.fim_text.insert(tk.END, " ✅ VERIFICACIÓN FIM EXITOSA\n\n")
+                self.fim_text.insert(tk.END, " OK VERIFICACIÓN FIM EXITOSA\n\n")
                 self.fim_text.insert(tk.END, f"Sistema Operativo: {resultado.get('sistema_operativo', 'Desconocido')}\n")
-                self.fim_text.insert(tk.END, f"Gestor de Permisos: {'✅' if resultado.get('gestor_permisos') else '❌'}\n")
-                self.fim_text.insert(tk.END, f"Permisos Sudo: {'✅' if resultado.get('permisos_sudo') else '❌'}\n\n")
+                self.fim_text.insert(tk.END, f"Gestor de Permisos: {'OK' if resultado.get('gestor_permisos') else 'ERROR'}\n")
+                self.fim_text.insert(tk.END, f"Permisos Sudo: {'OK' if resultado.get('permisos_sudo') else 'ERROR'}\n\n")
                 
                 self.fim_text.insert(tk.END, "=== HERRAMIENTAS FIM DISPONIBLES ===\n")
                 for herramienta, estado in resultado.get('herramientas_disponibles', {}).items():
                     disponible = estado.get('disponible', False)
                     permisos = estado.get('permisos_ok', False)
-                    icono = "✅" if disponible and permisos else "❌"
+                    icono = "OK" if disponible and permisos else "ERROR"
                     self.fim_text.insert(tk.END, f"  {icono} {herramienta}\n")
                     
             else:
-                self.fim_text.insert(tk.END, " ❌ VERIFICACIÓN FIM FALLÓ\n\n")
+                self.fim_text.insert(tk.END, " ERROR VERIFICACIÓN FIM FALLÓ\n\n")
                 self.fim_text.insert(tk.END, f"Sistema Operativo: {resultado.get('sistema_operativo', 'Desconocido')}\n")
-                self.fim_text.insert(tk.END, f"Gestor de Permisos: {'✅' if resultado.get('gestor_permisos') else '❌'}\n")
-                self.fim_text.insert(tk.END, f"Permisos Sudo: {'✅' if resultado.get('permisos_sudo') else '❌'}\n\n")
+                self.fim_text.insert(tk.END, f"Gestor de Permisos: {'OK' if resultado.get('gestor_permisos') else 'ERROR'}\n")
+                self.fim_text.insert(tk.END, f"Permisos Sudo: {'OK' if resultado.get('permisos_sudo') else 'ERROR'}\n\n")
                 
                 if resultado.get('recomendaciones'):
                     self.fim_text.insert(tk.END, "=== RECOMENDACIONES ===\n")
@@ -554,11 +554,11 @@ class VistaFIM(tk.Frame):
                         self.fim_text.insert(tk.END, f"  • {recomendacion}\n")
                 
             if resultado.get('error'):
-                self.fim_text.insert(tk.END, f"\n⚠️ Error: {resultado['error']}\n")
+                self.fim_text.insert(tk.END, f"\nWARNING Error: {resultado['error']}\n")
                 
             self.fim_text.config(state=tk.DISABLED)
                 
         except Exception as e:
             self.fim_text.config(state=tk.NORMAL)
-            self.fim_text.insert(tk.END, f" ❌ Error durante verificación: {str(e)}\n")
+            self.fim_text.insert(tk.END, f" ERROR Error durante verificación: {str(e)}\n")
             self.fim_text.config(state=tk.DISABLED)

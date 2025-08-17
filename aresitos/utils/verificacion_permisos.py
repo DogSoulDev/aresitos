@@ -53,10 +53,10 @@ def verificar_gestor_permisos():
         print("="*60)
         
         print(f"\n[USER] Usuario actual: {reporte['usuario']}")
-        print(f"🔑 Es root: {'SÍ' if reporte['es_root'] else 'NO'}")
-        print(f"⚡ Sudo disponible: {'SÍ' if reporte['sudo_disponible'] else 'NO'}")
+        print(f" Es root: {'SÍ' if reporte['es_root'] else 'NO'}")
+        print(f" Sudo disponible: {'SÍ' if reporte['sudo_disponible'] else 'NO'}")
         
-        print(f"\n🔧 HERRAMIENTAS DE SEGURIDAD:")
+        print(f"\n HERRAMIENTAS DE SEGURIDAD:")
         print("-" * 40)
         
         for herramienta, info in reporte['herramientas'].items():
@@ -69,7 +69,7 @@ def verificar_gestor_permisos():
                 print(f"    📂 Ruta: {info['path']}")
         
         if reporte['recomendaciones']:
-            print(f"\n💡 RECOMENDACIONES:")
+            print(f"\n RECOMENDACIONES:")
             print("-" * 40)
             for i, rec in enumerate(reporte['recomendaciones'], 1):
                 print(f"{i}. {rec}")
@@ -89,7 +89,7 @@ def verificar_gestor_permisos():
                 print(f"    [INFO] {version_line}")
             else:
                 print("[ERROR] Error ejecutando nmap")
-                print(f"    📋 Error: {stderr}")
+                print(f"     Error: {stderr}")
         
         # Prueba 2: Verificar netstat/ss
         herramientas_red = ['ss', 'netstat']
@@ -99,10 +99,10 @@ def verificar_gestor_permisos():
                 exito, stdout, stderr = gestor.ejecutar_con_permisos(herramienta, ['--help'])
                 
                 if exito:
-                    print(f"✅ {herramienta} ejecutado correctamente")
+                    print(f"OK {herramienta} ejecutado correctamente")
                 else:
-                    print(f"❌ Error ejecutando {herramienta}")
-                    print(f"    📋 Error: {stderr}")
+                    print(f"ERROR Error ejecutando {herramienta}")
+                    print(f"     Error: {stderr}")
                 break
         
         # Prueba 3: Verificar lectura de archivos del sistema
@@ -114,13 +114,13 @@ def verificar_gestor_permisos():
                 
                 if exito:
                     lineas = len(contenido.split('\n'))
-                    print(f"✅ {archivo} leído correctamente ({lineas} líneas)")
+                    print(f"OK {archivo} leído correctamente ({lineas} líneas)")
                 else:
-                    print(f"❌ Error leyendo {archivo}")
-                    print(f"    📋 Error: {contenido}")
+                    print(f"ERROR Error leyendo {archivo}")
+                    print(f"     Error: {contenido}")
                 break
         
-        print(f"\n🎯 ESTADO GENERAL:")
+        print(f"\n ESTADO GENERAL:")
         print("-" * 40)
         
         herramientas_ok = sum(1 for info in reporte['herramientas'].values() 
@@ -134,39 +134,39 @@ def verificar_gestor_permisos():
         else:
             print("🔴 ATENCIÓN: Muchas herramientas no están disponibles")
         
-        print(f"📊 Funcionalidad: {herramientas_ok}/{total_herramientas} herramientas OK")
+        print(f" Funcionalidad: {herramientas_ok}/{total_herramientas} herramientas OK")
         
         # Sugerencias finales
         print(f"\n💬 SUGERENCIAS:")
         print("-" * 40)
         
         if not reporte['es_root'] and not reporte['sudo_disponible']:
-            print("🔧 Para funcionamiento completo, ejecute:")
+            print(" Para funcionamiento completo, ejecute:")
             print("   sudo python verificacion_permisos.py")
             print("   o configure sudo para su usuario")
         
         if herramientas_ok < total_herramientas:
-            print("🔧 Para instalar herramientas faltantes:")
+            print(" Para instalar herramientas faltantes:")
             print("   sudo apt update && sudo apt install nmap netstat-nat net-tools")
         
-        print(f"\n✅ Verificación completada")
-        logger.info("✅ Verificación de permisos completada exitosamente")
+        print(f"\nOK Verificación completada")
+        logger.info("OK Verificación de permisos completada exitosamente")
         
         return True
         
     except ImportError as e:
-        logger.error(f"❌ Error importando gestor de permisos: {e}")
-        print("❌ Error: No se pudo importar el gestor de permisos")
+        logger.error(f"ERROR Error importando gestor de permisos: {e}")
+        print("ERROR Error: No se pudo importar el gestor de permisos")
         print("   Asegúrese de que el módulo esté correctamente instalado")
         return False
         
     except Exception as e:
-        logger.error(f"❌ Error inesperado: {e}")
-        print(f"❌ Error inesperado: {e}")
+        logger.error(f"ERROR Error inesperado: {e}")
+        print(f"ERROR Error inesperado: {e}")
         return False
 
 if __name__ == "__main__":
-    print("🛡️ Ares Aegis - Verificación de Permisos")
+    print(" Ares Aegis - Verificación de Permisos")
     print("=" * 50)
     
     exito = verificar_gestor_permisos()
