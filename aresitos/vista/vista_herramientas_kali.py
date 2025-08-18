@@ -1,7 +1,20 @@
 # -*- coding: utf-8 -*-
 """
 ARESITOS - Vista de Herramientas Kali Linux
-==========================================
+==================================            "nmap": {
+                "descripcion": "Escáner de red y puertos",
+                "paquete": "nmap",
+                "comando": "nmap",
+                "uso": "nmap -sS target",
+                "esencial": True
+            },
+            "masscan": {
+                "descripcion": "Escáner de puertos ultra-rápido",
+                "paquete": "masscan",
+                "comando": "masscan",
+                "uso": "masscan -p80,443 192.168.1.0/24",
+                "esencial": True
+            },==
 
 Ventana especializada para mostrar, verificar e instalar todas las herramientas
 de Kali Linux y otras herramientas del sistema necesarias para ARESITOS.
@@ -145,6 +158,12 @@ class VistaHerramientasKali(tk.Toplevel):
                     "paquete": "whatweb",
                     "esencial": False,
                     "uso_aresitos": "Identificación de tecnologías web"
+                },
+                "nuclei": {
+                    "descripcion": "Fast and customizable vulnerability scanner",
+                    "paquete": "nuclei",
+                    "esencial": True,
+                    "uso_aresitos": "Detección automatizada de vulnerabilidades"
                 },
                 "sublist3r": {
                     "descripcion": "Fast subdomains enumeration tool",
@@ -311,6 +330,18 @@ class VistaHerramientasKali(tk.Toplevel):
                     "paquete": "rkhunter",
                     "esencial": True,
                     "uso_aresitos": "Búsqueda de rootkits y backdoors"
+                },
+                "clamav": {
+                    "descripcion": "Antivirus scanner for Unix",
+                    "paquete": "clamav clamav-daemon",
+                    "esencial": True,
+                    "uso_aresitos": "Detección de malware y virus"
+                },
+                "lynis": {
+                    "descripcion": "Security auditing tool for Linux/Unix systems",
+                    "paquete": "lynis",
+                    "esencial": True,
+                    "uso_aresitos": "Auditoría completa de seguridad del sistema"
                 }
             },
             " Herramientas del Sistema": {
@@ -721,9 +752,10 @@ class VistaHerramientasKali(tk.Toplevel):
                 self.after(0, lambda p=paquete, n=i, t=total: 
                           self._escribir_log(f" [{n}/{t}] Instalando {p}..."))
                 
-                # Instalar paquete
-                result = subprocess.run(['sudo', 'apt', 'install', '-y', paquete], 
-                                      capture_output=True, text=True, timeout=300)
+                # Instalar paquete (puede ser múltiples paquetes separados por espacios)
+                paquetes_lista = paquete.split()
+                cmd = ['sudo', 'apt', 'install', '-y'] + paquetes_lista
+                result = subprocess.run(cmd, capture_output=True, text=True, timeout=300)
                 
                 if result.returncode == 0:
                     self.after(0, lambda i=item_id: self._actualizar_estado_herramienta(i, "OK Instalado"))
@@ -754,8 +786,10 @@ class VistaHerramientasKali(tk.Toplevel):
             try:
                 self.after(0, lambda: self._escribir_log(f" Instalando {paquete}..."))
                 
-                result = subprocess.run(['sudo', 'apt', 'install', '-y', paquete], 
-                                      capture_output=True, text=True, timeout=300)
+                # Instalar paquete (puede ser múltiples paquetes separados por espacios)
+                paquetes_lista = paquete.split()
+                cmd = ['sudo', 'apt', 'install', '-y'] + paquetes_lista
+                result = subprocess.run(cmd, capture_output=True, text=True, timeout=300)
                 
                 item_id = f"{categoria}_{nombre}"
                 if result.returncode == 0:

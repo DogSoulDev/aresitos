@@ -201,6 +201,7 @@ MIT License - Ver archivo LICENSE para detalles completos.
 
 ---
 En Memoria de Ares
+
 Este programa se comparte gratuitamente con la comunidad de ciberseguridad en honor a mi hijo, compañero y perro, Ares - 25/04/2013 a 5/08/2025 DEP.
 
 Hasta que volvamos a vernos,
