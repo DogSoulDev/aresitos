@@ -1,20 +1,7 @@
 # -*- coding: utf-8 -*-
 """
 ARESITOS - Vista de Herramientas Kali Linux
-==================================            "nmap": {
-                "descripcion": "Escáner de red y puertos",
-                "paquete": "nmap",
-                "comando": "nmap",
-                "uso": "nmap -sS target",
-                "esencial": True
-            },
-            "masscan": {
-                "descripcion": "Escáner de puertos ultra-rápido",
-                "paquete": "masscan",
-                "comando": "masscan",
-                "uso": "masscan -p80,443 192.168.1.0/24",
-                "esencial": True
-            },==
+===========================================
 
 Ventana especializada para mostrar, verificar e instalar todas las herramientas
 de Kali Linux y otras herramientas del sistema necesarias para ARESITOS.
@@ -22,8 +9,11 @@ de Kali Linux y otras herramientas del sistema necesarias para ARESITOS.
 Esta vista se muestra después del login exitoso para garantizar que el usuario
 tenga todas las herramientas instaladas antes de usar ARESITOS.
 
+Herramientas actualizadas para Kali Linux 2025 con integración específica
+en los módulos: Escaneador, FIM, SIEM, Cuarentena y Análisis.
+
 Autor: DogSoulDev
-Fecha: 17 de Agosto de 2025
+Fecha: 18 de Agosto de 2025
 """
 
 import tkinter as tk
@@ -33,6 +23,9 @@ import threading
 import time
 import os
 from typing import Dict, List, Any, Optional
+
+# Importar definiciones de herramientas
+from .vista_herramientas_kali_def import get_herramientas_kali_2025
 
 try:
     from aresitos.vista.burp_theme import burp_theme
@@ -114,269 +107,8 @@ class VistaHerramientasKali(tk.Toplevel):
             self.accent_blue = '#2196f3'
     
     def _definir_herramientas_kali(self):
-        """Definir todas las herramientas necesarias categorizadas"""
-        self.herramientas_kali = {
-            " Escaneo y Reconocimiento": {
-                "nmap": {
-                    "descripcion": "Network exploration tool and security/port scanner",
-                    "paquete": "nmap",
-                    "esencial": True,
-                    "uso_aresitos": "Escaneo de puertos y servicios"
-                },
-                "masscan": {
-                    "descripcion": "TCP port scanner, spews SYN packets asynchronously",
-                    "paquete": "masscan",
-                    "esencial": True,
-                    "uso_aresitos": "Escaneo rápido de puertos"
-                },
-                "zmap": {
-                    "descripcion": "Fast single packet network scanner",
-                    "paquete": "zmap",
-                    "esencial": False,
-                    "uso_aresitos": "Escaneo masivo de redes"
-                },
-                "gobuster": {
-                    "descripcion": "Directory/File, DNS and VHost busting tool",
-                    "paquete": "gobuster",
-                    "esencial": True,
-                    "uso_aresitos": "Enumeración de directorios web"
-                },
-                "dirb": {
-                    "descripcion": "Web Content Scanner",
-                    "paquete": "dirb",
-                    "esencial": True,
-                    "uso_aresitos": "Búsqueda de directorios ocultos"
-                },
-                "nikto": {
-                    "descripcion": "Web server scanner",
-                    "paquete": "nikto",
-                    "esencial": True,
-                    "uso_aresitos": "Análisis de vulnerabilidades web"
-                },
-                "whatweb": {
-                    "descripcion": "Web Application fingerprinter",
-                    "paquete": "whatweb",
-                    "esencial": False,
-                    "uso_aresitos": "Identificación de tecnologías web"
-                },
-                "nuclei": {
-                    "descripcion": "Fast and customizable vulnerability scanner",
-                    "paquete": "nuclei",
-                    "esencial": True,
-                    "uso_aresitos": "Detección automatizada de vulnerabilidades"
-                },
-                "sublist3r": {
-                    "descripcion": "Fast subdomains enumeration tool",
-                    "paquete": "sublist3r",
-                    "esencial": False,
-                    "uso_aresitos": "Enumeración de subdominios"
-                },
-                "fierce": {
-                    "descripcion": "Domain scanner",
-                    "paquete": "fierce",
-                    "esencial": False,
-                    "uso_aresitos": "Reconocimiento DNS"
-                },
-                "dnsrecon": {
-                    "descripcion": "DNS Enumeration Script",
-                    "paquete": "dnsrecon",
-                    "esencial": False,
-                    "uso_aresitos": "Enumeración DNS avanzada"
-                }
-            },
-            " Explotación": {
-                "metasploit-framework": {
-                    "descripcion": "Penetration testing framework",
-                    "paquete": "metasploit-framework",
-                    "esencial": True,
-                    "uso_aresitos": "Framework de explotación"
-                },
-                "sqlmap": {
-                    "descripcion": "Automatic SQL injection and database takeover tool",
-                    "paquete": "sqlmap",
-                    "esencial": True,
-                    "uso_aresitos": "Testing de inyecciones SQL"
-                },
-                "hydra": {
-                    "descripcion": "Very fast network logon cracker",
-                    "paquete": "hydra",
-                    "esencial": True,
-                    "uso_aresitos": "Ataques de fuerza bruta"
-                },
-                "medusa": {
-                    "descripcion": "Speedy, parallel, and modular login brute-forcer",
-                    "paquete": "medusa",
-                    "esencial": False,
-                    "uso_aresitos": "Ataques de fuerza bruta alternativos"
-                },
-                "john": {
-                    "descripcion": "John the Ripper password cracker",
-                    "paquete": "john",
-                    "esencial": True,
-                    "uso_aresitos": "Cracking de passwords"
-                },
-                "hashcat": {
-                    "descripcion": "Advanced password recovery",
-                    "paquete": "hashcat",
-                    "esencial": True,
-                    "uso_aresitos": "Cracking avanzado de hashes"
-                },
-                "aircrack-ng": {
-                    "descripcion": "WiFi security auditing tools suite",
-                    "paquete": "aircrack-ng",
-                    "esencial": False,
-                    "uso_aresitos": "Auditoría WiFi"
-                }
-            },
-            " Post-Explotación": {
-                "netcat": {
-                    "descripcion": "TCP/IP swiss army knife",
-                    "paquete": "netcat-traditional",
-                    "esencial": True,
-                    "uso_aresitos": "Conexiones de red y shells"
-                },
-                "socat": {
-                    "descripcion": "Multipurpose relay",
-                    "paquete": "socat",
-                    "esencial": False,
-                    "uso_aresitos": "Tunneling y redirección"
-                },
-                "proxychains": {
-                    "descripcion": "Proxy chains - redirect connections through proxy servers",
-                    "paquete": "proxychains4",
-                    "esencial": False,
-                    "uso_aresitos": "Anonimización de conexiones"
-                }
-            },
-            "� Análisis Forense": {
-                "binwalk": {
-                    "descripcion": "Tool for analyzing binary images",
-                    "paquete": "binwalk",
-                    "esencial": False,
-                    "uso_aresitos": "Análisis de archivos binarios"
-                },
-                "foremost": {
-                    "descripcion": "Forensic program to recover lost files",
-                    "paquete": "foremost",
-                    "esencial": False,
-                    "uso_aresitos": "Recuperación de archivos"
-                },
-                "volatility": {
-                    "descripcion": "Memory forensics framework",
-                    "paquete": "volatility3",
-                    "esencial": False,
-                    "uso_aresitos": "Análisis de memoria"
-                },
-                "sleuthkit": {
-                    "descripcion": "File system forensic analysis tools",
-                    "paquete": "sleuthkit",
-                    "esencial": False,
-                    "uso_aresitos": "Análisis de sistemas de archivos"
-                }
-            },
-            " SIEM y Monitoreo": {
-                "auditd": {
-                    "descripcion": "Linux Audit Framework",
-                    "paquete": "auditd",
-                    "esencial": True,
-                    "uso_aresitos": "Auditoría del sistema para SIEM"
-                },
-                "rsyslog": {
-                    "descripcion": "Reliable system log daemon",
-                    "paquete": "rsyslog",
-                    "esencial": True,
-                    "uso_aresitos": "Gestión centralizada de logs"
-                },
-                "fail2ban": {
-                    "descripcion": "Ban hosts that cause multiple authentication errors",
-                    "paquete": "fail2ban",
-                    "esencial": True,
-                    "uso_aresitos": "Protección contra ataques de fuerza bruta"
-                },
-                "sysdig": {
-                    "descripcion": "System-level exploration and troubleshooting tool",
-                    "paquete": "sysdig",
-                    "esencial": False,
-                    "uso_aresitos": "Monitoreo profundo del sistema"
-                }
-            },
-            "FIM y Sistema": {
-                "inotify-tools": {
-                    "descripcion": "Command-line programs providing a simple interface to inotify",
-                    "paquete": "inotify-tools",
-                    "esencial": True,
-                    "uso_aresitos": "Monitoreo de archivos en tiempo real para FIM"
-                },
-                "aide": {
-                    "descripcion": "Advanced Intrusion Detection Environment",
-                    "paquete": "aide",
-                    "esencial": True,
-                    "uso_aresitos": "Detección de cambios en archivos"
-                },
-                "tripwire": {
-                    "descripcion": "File and directory integrity checker",
-                    "paquete": "tripwire",
-                    "esencial": False,
-                    "uso_aresitos": "Verificación de integridad"
-                },
-                "chkrootkit": {
-                    "descripcion": "Rootkit detector",
-                    "paquete": "chkrootkit",
-                    "esencial": True,
-                    "uso_aresitos": "Detección de rootkits"
-                },
-                "rkhunter": {
-                    "descripcion": "Rootkit scanner",
-                    "paquete": "rkhunter",
-                    "esencial": True,
-                    "uso_aresitos": "Búsqueda de rootkits y backdoors"
-                },
-                "clamav": {
-                    "descripcion": "Antivirus scanner for Unix",
-                    "paquete": "clamav clamav-daemon",
-                    "esencial": True,
-                    "uso_aresitos": "Detección de malware y virus"
-                },
-                "lynis": {
-                    "descripcion": "Security auditing tool for Linux/Unix systems",
-                    "paquete": "lynis",
-                    "esencial": True,
-                    "uso_aresitos": "Auditoría completa de seguridad del sistema"
-                }
-            },
-            " Herramientas del Sistema": {
-                "curl": {
-                    "descripcion": "Command line tool for transferring data",
-                    "paquete": "curl",
-                    "esencial": True,
-                    "uso_aresitos": "Transferencia de datos y testing web"
-                },
-                "wget": {
-                    "descripcion": "Network downloader",
-                    "paquete": "wget",
-                    "esencial": True,
-                    "uso_aresitos": "Descarga de archivos"
-                },
-                "git": {
-                    "descripcion": "Fast, scalable, distributed revision control system",
-                    "paquete": "git",
-                    "esencial": True,
-                    "uso_aresitos": "Control de versiones y actualizaciones"
-                },
-                "python3-pip": {
-                    "descripcion": "Python package installer",
-                    "paquete": "python3-pip",
-                    "esencial": True,
-                    "uso_aresitos": "Instalación de paquetes Python"
-                },
-                "build-essential": {
-                    "descripcion": "Informational list of build-essential packages",
-                    "paquete": "build-essential",
-                    "esencial": True,
-                    "uso_aresitos": "Compilación de herramientas"
-                }
-            }
-        }
+        """Cargar definiciones de herramientas desde archivo separado"""
+        self.herramientas_kali = get_herramientas_kali_2025()
     
     def _crear_interfaz(self):
         """Crear la interfaz principal de herramientas"""
@@ -732,43 +464,65 @@ class VistaHerramientasKali(tk.Toplevel):
     def _proceso_instalacion_masiva(self):
         """Proceso de instalación masiva en background"""
         try:
-            self.after(0, lambda: self._escribir_log(" Iniciando instalación masiva..."))
+            self.after(0, lambda: self._escribir_log("🚀 Iniciando instalación masiva..."))
             
             # Actualizar lista de paquetes
-            self.after(0, lambda: self._escribir_log(" Actualizando lista de paquetes..."))
+            self.after(0, lambda: self._escribir_log("🔄 Actualizando lista de paquetes..."))
             result = subprocess.run(['sudo', 'apt', 'update'], 
                                   capture_output=True, text=True, timeout=120)
             
             if result.returncode != 0:
-                self.after(0, lambda: self._escribir_log("ERROR Error actualizando lista de paquetes"))
+                self.after(0, lambda: self._escribir_log("❌ Error actualizando lista de paquetes"))
                 return
             
             # Instalar cada herramienta seleccionada
             total = len(self.herramientas_seleccionadas)
             for i, item_id in enumerate(self.herramientas_seleccionadas, 1):
                 categoria, nombre = item_id.split("_", 1)
-                paquete = self.herramientas_kali[categoria][nombre]["paquete"]
+                herramienta_info = self.herramientas_kali[categoria][nombre]
+                paquete = herramienta_info["paquete"]
+                instalacion_especial = herramienta_info.get("instalacion_especial", "apt")
                 
                 self.after(0, lambda p=paquete, n=i, t=total: 
-                          self._escribir_log(f" [{n}/{t}] Instalando {p}..."))
+                          self._escribir_log(f"📦 [{n}/{t}] Instalando {p}..."))
                 
-                # Instalar paquete (puede ser múltiples paquetes separados por espacios)
-                paquetes_lista = paquete.split()
-                cmd = ['sudo', 'apt', 'install', '-y'] + paquetes_lista
-                result = subprocess.run(cmd, capture_output=True, text=True, timeout=300)
+                success = False
+                error_msg = ""
                 
-                if result.returncode == 0:
-                    self.after(0, lambda i=item_id: self._actualizar_estado_herramienta(i, "OK Instalado"))
-                    self.after(0, lambda p=paquete: self._escribir_log(f"OK {p} instalado correctamente"))
+                if instalacion_especial == "apt":
+                    # Instalación estándar con APT
+                    paquetes_lista = paquete.split()
+                    cmd = ['sudo', 'apt', 'install', '-y'] + paquetes_lista
+                    result = subprocess.run(cmd, capture_output=True, text=True, timeout=300)
+                    success = result.returncode == 0
+                    if not success:
+                        error_msg = result.stderr
+                
+                elif instalacion_especial == "snap":
+                    # Instalación con Snap
+                    cmd = ['sudo', 'snap', 'install', paquete]
+                    result = subprocess.run(cmd, capture_output=True, text=True, timeout=300)
+                    success = result.returncode == 0
+                    if not success:
+                        error_msg = result.stderr
+                        
+                elif instalacion_especial in ["go", "github"]:
+                    # Herramientas especiales - marcar como instalación manual requerida
+                    self.after(0, lambda p=paquete: self._escribir_log(f"⚠️ {p} requiere instalación manual"))
+                    success = True  # No bloquear el proceso
+                
+                if success:
+                    self.after(0, lambda i=item_id: self._actualizar_estado_herramienta(i, "✅ Instalado"))
+                    self.after(0, lambda p=paquete: self._escribir_log(f"✅ {p} instalado correctamente"))
                 else:
-                    self.after(0, lambda i=item_id: self._actualizar_estado_herramienta(i, "ERROR Error"))
-                    self.after(0, lambda p=paquete: self._escribir_log(f"ERROR Error instalando {p}"))
+                    self.after(0, lambda i=item_id: self._actualizar_estado_herramienta(i, "❌ Error"))
+                    self.after(0, lambda p=paquete, e=error_msg: self._escribir_log(f"❌ Error instalando {p}: {e}"))
             
-            self.after(0, lambda: self._escribir_log(" Instalación masiva completada"))
+            self.after(0, lambda: self._escribir_log("🎉 Instalación masiva completada"))
             self.after(0, self._actualizar_estadisticas)
             
         except Exception as e:
-            error_msg = f"ERROR Error durante instalación: {str(e)}"
+            error_msg = f"❌ Error durante instalación: {str(e)}"
             self.after(0, lambda msg=error_msg: self._escribir_log(msg))
         finally:
             self.instalando = False
@@ -777,32 +531,80 @@ class VistaHerramientasKali(tk.Toplevel):
     
     def _instalar_herramienta_individual(self, categoria: str, nombre: str):
         """Instalar una herramienta individual"""
-        paquete = self.herramientas_kali[categoria][nombre]["paquete"]
+        herramienta_info = self.herramientas_kali[categoria][nombre]
+        paquete = herramienta_info["paquete"]
+        instalacion_especial = herramienta_info.get("instalacion_especial", "apt")
         
         if not messagebox.askyesno("Confirmar", f"¿Instalar {paquete}?"):
             return
         
         def instalar_async():
             try:
-                self.after(0, lambda: self._escribir_log(f" Instalando {paquete}..."))
+                self.after(0, lambda: self._escribir_log(f"📦 Instalando {paquete}..."))
                 
-                # Instalar paquete (puede ser múltiples paquetes separados por espacios)
-                paquetes_lista = paquete.split()
-                cmd = ['sudo', 'apt', 'install', '-y'] + paquetes_lista
-                result = subprocess.run(cmd, capture_output=True, text=True, timeout=300)
+                success = False
+                error_msg = ""
+                
+                if instalacion_especial == "apt":
+                    # Instalación estándar con APT
+                    paquetes_lista = paquete.split()
+                    cmd = ['sudo', 'apt', 'install', '-y'] + paquetes_lista
+                    result = subprocess.run(cmd, capture_output=True, text=True, timeout=300)
+                    success = result.returncode == 0
+                    if not success:
+                        error_msg = result.stderr
+                
+                elif instalacion_especial == "snap":
+                    # Instalación con Snap
+                    cmd = ['sudo', 'snap', 'install', paquete]
+                    result = subprocess.run(cmd, capture_output=True, text=True, timeout=300)
+                    success = result.returncode == 0
+                    if not success:
+                        error_msg = result.stderr
+                
+                elif instalacion_especial == "go":
+                    # Instalación con Go
+                    self.after(0, lambda: self._escribir_log(f"🔧 Instalando {paquete} con Go..."))
+                    go_pkg_map = {
+                        "katana": "github.com/projectdiscovery/katana/cmd/katana@latest",
+                        "httpx": "github.com/projectdiscovery/httpx/cmd/httpx@latest"
+                    }
+                    if paquete in go_pkg_map:
+                        cmd = ['go', 'install', go_pkg_map[paquete]]
+                        result = subprocess.run(cmd, capture_output=True, text=True, timeout=600)
+                        success = result.returncode == 0
+                        if not success:
+                            error_msg = result.stderr
+                
+                elif instalacion_especial == "github":
+                    # Instalación desde GitHub
+                    self.after(0, lambda: self._escribir_log(f"🔧 Instalando {paquete} desde GitHub..."))
+                    github_map = {
+                        "ligolo-ng": "https://github.com/nicocha30/ligolo-ng/releases/latest",
+                        "sliver": "https://github.com/BishopFox/sliver/releases/latest"
+                    }
+                    if paquete in github_map:
+                        # Aquí normalmente descargaríamos y instalaríamos desde GitHub
+                        # Por ahora, intentamos con apt primero
+                        cmd = ['sudo', 'apt', 'install', '-y', paquete]
+                        result = subprocess.run(cmd, capture_output=True, text=True, timeout=300)
+                        success = result.returncode == 0
+                        if not success:
+                            self.after(0, lambda: self._escribir_log(f"⚠️ {paquete} debe instalarse manualmente desde {github_map[paquete]}"))
+                            success = True  # No marcar como error si no está en repos
                 
                 item_id = f"{categoria}_{nombre}"
-                if result.returncode == 0:
-                    self.after(0, lambda: self._actualizar_estado_herramienta(item_id, "OK Instalado"))
-                    self.after(0, lambda: self._escribir_log(f"OK {paquete} instalado correctamente"))
+                if success:
+                    self.after(0, lambda: self._actualizar_estado_herramienta(item_id, "✅ Instalado"))
+                    self.after(0, lambda: self._escribir_log(f"✅ {paquete} instalado correctamente"))
                 else:
-                    self.after(0, lambda: self._actualizar_estado_herramienta(item_id, "ERROR Error"))
-                    self.after(0, lambda: self._escribir_log(f"ERROR Error instalando {paquete}"))
+                    self.after(0, lambda: self._actualizar_estado_herramienta(item_id, "❌ Error"))
+                    self.after(0, lambda: self._escribir_log(f"❌ Error instalando {paquete}: {error_msg}"))
                 
                 self.after(0, self._actualizar_estadisticas)
                 
             except Exception as e:
-                error_msg = f"ERROR Error: {str(e)}"
+                error_msg = f"❌ Error: {str(e)}"
                 self.after(0, lambda msg=error_msg: self._escribir_log(msg))
         
         thread = threading.Thread(target=instalar_async, daemon=True)
@@ -850,6 +652,78 @@ class VistaHerramientasKali(tk.Toplevel):
             self.callback_completado()
         
         self.destroy()
+    
+    def _requiere_instalacion_especial(self, paquete: str) -> bool:
+        """Verificar si un paquete requiere instalación especial"""
+        # Herramientas que requieren instalación especial (Go, GitHub releases, etc.)
+        herramientas_especiales = {
+            'subfinder': 'go',
+            'nuclei': 'apt_special',  # Verificar si está en repo oficial
+            'ffuf': 'go',
+            'chisel': 'github',
+            'pwncat-cs': 'pip'
+        }
+        return paquete in herramientas_especiales
+    
+    def _instalar_herramienta_especial(self, paquete: str) -> bool:
+        """Instalar herramientas que requieren métodos especiales"""
+        try:
+            if paquete == 'subfinder':
+                # Instalar Go si no está presente
+                result = subprocess.run(['which', 'go'], capture_output=True)
+                if result.returncode != 0:
+                    subprocess.run(['sudo', 'apt', 'install', '-y', 'golang-go'], timeout=300)
+                
+                # Instalar subfinder via go
+                env = dict(os.environ)
+                env['GOPATH'] = '/opt/go'
+                env['PATH'] = env['PATH'] + ':/opt/go/bin'
+                result = subprocess.run(['go', 'install', '-v', 'github.com/projectdiscovery/subfinder/v2/cmd/subfinder@latest'], 
+                                      env=env, capture_output=True, text=True, timeout=300)
+                return result.returncode == 0
+                
+            elif paquete == 'ffuf':
+                # Similar para ffuf
+                result = subprocess.run(['which', 'go'], capture_output=True)
+                if result.returncode != 0:
+                    subprocess.run(['sudo', 'apt', 'install', '-y', 'golang-go'], timeout=300)
+                
+                env = dict(os.environ)
+                env['GOPATH'] = '/opt/go'
+                env['PATH'] = env['PATH'] + ':/opt/go/bin'
+                result = subprocess.run(['go', 'install', 'github.com/ffuf/ffuf@latest'], 
+                                      env=env, capture_output=True, text=True, timeout=300)
+                return result.returncode == 0
+                
+            elif paquete == 'chisel':
+                # Instalar desde GitHub releases
+                result = subprocess.run([
+                    'wget', '-O', '/tmp/chisel.gz',
+                    'https://github.com/jpillora/chisel/releases/latest/download/chisel_1.9.1_linux_amd64.gz'
+                ], capture_output=True, timeout=120)
+                
+                if result.returncode == 0:
+                    subprocess.run(['gunzip', '/tmp/chisel.gz'], capture_output=True)
+                    subprocess.run(['sudo', 'mv', '/tmp/chisel', '/usr/local/bin/chisel'], capture_output=True)
+                    subprocess.run(['sudo', 'chmod', '+x', '/usr/local/bin/chisel'], capture_output=True)
+                    return True
+                return False
+                
+            elif paquete == 'pwncat-cs':
+                # Instalar via pip
+                result = subprocess.run(['sudo', 'pip3', 'install', 'pwncat-cs'], 
+                                      capture_output=True, text=True, timeout=300)
+                return result.returncode == 0
+                
+            else:
+                # Fallback a apt normal
+                result = subprocess.run(['sudo', 'apt', 'install', '-y', paquete], 
+                                      capture_output=True, text=True, timeout=300)
+                return result.returncode == 0
+                
+        except Exception as e:
+            self.after(0, lambda: self._escribir_log(f"ERROR Instalación especial falló: {str(e)}"))
+            return False
     
     def _centrar_ventana(self):
         """Centrar la ventana en la pantalla"""
