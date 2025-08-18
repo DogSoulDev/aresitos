@@ -1,6 +1,6 @@
-# 🔐 CHEATSHEET DE VULNERABILIDADES WEB
+#  CHEATSHEET DE VULNERABILIDADES WEB
 
-## **📋 OWASP TOP 10 2021**
+## ** OWASP TOP 10 2021**
 
 ### **1. Broken Access Control (A01:2021)**
 
@@ -257,7 +257,7 @@ http://169.254.169.254/latest/meta-data/
 http://metadata.google.internal/computeMetadata/v1/
 ```
 
-## **🔍 HERRAMIENTAS DE DETECCIÓN NATIVAS**
+## **� HERRAMIENTAS DE DETECCIÓN NATIVAS**
 
 ### **Curl para Web Testing**
 ```bash
@@ -304,7 +304,7 @@ grep -E "40[1-4]|50[0-5]" access.log
 awk '{print $1}' access.log | sort | uniq -c | sort -nr
 ```
 
-## **📊 PATRONES DE DETECCIÓN**
+## ** PATRONES DE DETECCIÓN**
 
 ### **Inyección SQL**
 ```regex
@@ -341,7 +341,7 @@ on\w+\s*=
 ;.*\b(rm|mv|cp)\b
 ```
 
-## **🛡️ CONTRAMEDIDAS BÁSICAS**
+## ** CONTRAMEDIDAS BÁSICAS**
 
 ### **Input Validation**
 ```bash
@@ -391,6 +391,6 @@ check_rate_limit() {
 
 ---
 
-**⚠️ NOTA ÉTICA**: Este cheatsheet es para uso educativo y pruebas de seguridad autorizadas únicamente. Siempre obtén permiso explícito antes de realizar pruebas en sistemas que no sean de tu propiedad.
+** NOTA ÉTICA**: Este cheatsheet es para uso educativo y pruebas de seguridad autorizadas únicamente. Siempre obtén permiso explícito antes de realizar pruebas en sistemas que no sean de tu propiedad.
 
-**🎯 Ares Aegis** - Herramientas para Expertos en Ciberseguridad y Hacking Ético
+** Ares Aegis** - Herramientas para Expertos en Ciberseguridad y Hacking Ético

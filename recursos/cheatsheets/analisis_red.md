@@ -1,8 +1,8 @@
-# 🌐 CHEATSHEET DE ANÁLISIS DE RED
+# CHEATSHEET DE ANÁLISIS DE RED
 
-## **📡 HERRAMIENTAS NATIVAS DE RED**
+## **HERRAMIENTAS NATIVAS DE RED**
 
-### **🔍 DESCUBRIMIENTO DE HOSTS**
+### **DESCUBRIMIENTO DE HOSTS**
 
 #### **Ping Sweep**
 ```bash
@@ -37,7 +37,7 @@ wait
 arp -a | grep -E "([0-9a-f]{2}:){5}[0-9a-f]{2}"
 ```
 
-### **🔌 ESCANEO DE PUERTOS**
+### ** ESCANEO DE PUERTOS**
 
 #### **Netcat Port Scanning**
 ```bash
@@ -87,7 +87,7 @@ echo "EHLO test" | nc 192.168.1.100 25
 echo "" | nc 192.168.1.100 23
 ```
 
-### **📊 ANÁLISIS DE CONEXIONES ACTIVAS**
+### ** ANÁLISIS DE CONEXIONES ACTIVAS**
 
 #### **Comando ss (Socket Statistics)**
 ```bash
@@ -152,7 +152,7 @@ lsof -p 1234 -i
 lsof -u www-data -i
 ```
 
-### **🔒 MONITOREO DE TRÁFICO**
+### ** MONITOREO DE TRÁFICO**
 
 #### **Análisis de Interfaces**
 ```bash
@@ -184,7 +184,7 @@ tcpdump -i eth0 port 80
 watch -n 1 'ss -tuln | wc -l'
 ```
 
-### **🌍 ANÁLISIS DNS**
+### **� ANÁLISIS DNS**
 
 #### **Resolución DNS**
 ```bash
@@ -215,7 +215,7 @@ for sub in www mail ftp admin; do
 done
 ```
 
-### **🔥 DETECCIÓN DE SERVICIOS**
+### ** DETECCIÓN DE SERVICIOS**
 
 #### **Identificación de Servicios**
 ```bash
@@ -248,7 +248,7 @@ echo "" | nc 192.168.1.100 80 2>/dev/null | hexdump -C
 nc 192.168.1.100 22 2>/dev/null | head -1
 ```
 
-### **⚠️ DETECCIÓN DE ANOMALÍAS**
+### ** DETECCIÓN DE ANOMALÍAS**
 
 #### **Conexiones Sospechosas**
 ```bash
@@ -277,7 +277,7 @@ echo "Diferencia de conexiones: $((current_connections - baseline_connections))"
 lsof -i -n | awk '{print $1}' | sort | uniq -c | sort -nr | head -10
 ```
 
-### **🛠️ SCRIPTS DE AUTOMATIZACIÓN**
+### ** SCRIPTS DE AUTOMATIZACIÓN**
 
 #### **Network Discovery Script**
 ```bash
@@ -377,7 +377,7 @@ for port in "${ports[@]}"; do
 done
 ```
 
-### **📈 ANÁLISIS DE RENDIMIENTO**
+### ** ANÁLISIS DE RENDIMIENTO**
 
 #### **Latencia y Conectividad**
 ```bash
@@ -416,7 +416,7 @@ monitor_traffic() {
 }
 ```
 
-### **🔍 TROUBLESHOOTING DE RED**
+### ** TROUBLESHOOTING DE RED**
 
 #### **Diagnóstico de Conectividad**
 ```bash
@@ -453,6 +453,6 @@ test_connectivity() {
 
 ---
 
-**🔒 NOTA DE SEGURIDAD**: Estas herramientas son para diagnóstico de red y pruebas autorizadas únicamente. Siempre obtén permiso antes de escanear redes que no sean de tu propiedad.
+** NOTA DE SEGURIDAD**: Estas herramientas son para diagnóstico de red y pruebas autorizadas únicamente. Siempre obtén permiso antes de escanear redes que no sean de tu propiedad.
 
-**⚔️ Ares Aegis** - Análisis de Red para Profesionales de Ciberseguridad
+** Ares Aegis** - Análisis de Red para Profesionales de Ciberseguridad

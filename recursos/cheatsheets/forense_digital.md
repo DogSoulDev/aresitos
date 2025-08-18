@@ -1,8 +1,8 @@
-# 🛡️ CHEATSHEET DE FORENSE DIGITAL
+#  CHEATSHEET DE FORENSE DIGITAL
 
-## **🔍 ANÁLISIS FORENSE CON HERRAMIENTAS NATIVAS**
+## ** ANÁLISIS FORENSE CON HERRAMIENTAS NATIVAS**
 
-### **📂 PRESERVACIÓN DE EVIDENCIA**
+### **� PRESERVACIÓN DE EVIDENCIA**
 
 #### **Creación de Imágenes Forenses**
 ```bash
@@ -42,7 +42,7 @@ who > /casos/usuarios_conectados.txt
 last > /casos/historial_conexiones.txt
 ```
 
-### **🕵️ ANÁLISIS DE ARCHIVOS**
+### **� ANÁLISIS DE ARCHIVOS**
 
 #### **Búsqueda de Archivos Específicos**
 ```bash
@@ -93,7 +93,7 @@ file video.mp4
 strings video.mp4 | head -50
 ```
 
-### **📅 ANÁLISIS TEMPORAL**
+### **� ANÁLISIS TEMPORAL**
 
 #### **Línea de Tiempo de Archivos**
 ```bash
@@ -126,7 +126,7 @@ detect_timestamp_anomalies() {
 }
 ```
 
-### **💾 ANÁLISIS DE MEMORIA Y PROCESOS**
+### **� ANÁLISIS DE MEMORIA Y PROCESOS**
 
 #### **Información de Memoria**
 ```bash
@@ -168,7 +168,7 @@ for pid in $(ps -eo pid --no-headers | head -20); do
 done
 ```
 
-### **🌐 ANÁLISIS DE RED**
+### ** ANÁLISIS DE RED**
 
 #### **Conexiones y Puertos**
 ```bash
@@ -201,7 +201,7 @@ iptables -L -n > /casos/firewall_rules.txt
 ufw status verbose >> /casos/firewall_rules.txt 2>/dev/null
 ```
 
-### **🔐 ANÁLISIS DE USUARIOS Y AUTENTICACIÓN**
+### ** ANÁLISIS DE USUARIOS Y AUTENTICACIÓN**
 
 #### **Información de Usuarios**
 ```bash
@@ -240,7 +240,7 @@ cat /etc/ssh/sshd_config > /casos/ssh_config.txt
 grep "sshd" /var/log/auth.log > /casos/ssh_logs.txt
 ```
 
-### **📁 ANÁLISIS DE SISTEMA DE ARCHIVOS**
+### ** ANÁLISIS DE SISTEMA DE ARCHIVOS**
 
 #### **Permisos y Propiedades**
 ```bash
@@ -280,7 +280,7 @@ for file in "${config_files[@]}"; do
 done
 ```
 
-### **🔍 BÚSQUEDA DE EVIDENCIA**
+### ** BÚSQUEDA DE EVIDENCIA**
 
 #### **Palabras Clave y Patrones**
 ```bash
@@ -316,7 +316,7 @@ ls -la /var/log/ > /casos/logs_disponibles.txt
 dmesg > /casos/kernel_messages.txt
 ```
 
-### **🛠️ SCRIPTS FORENSES**
+### ** SCRIPTS FORENSES**
 
 #### **Script de Recolección de Evidencia**
 ```bash
@@ -388,7 +388,7 @@ find "$TARGET_DIR" -type f -printf "%A+ %p\n" | sort >> "$OUTPUT_FILE"
 echo "Timeline generado en $OUTPUT_FILE"
 ```
 
-### **📊 ANÁLISIS ESTADÍSTICO**
+### ** ANÁLISIS ESTADÍSTICO**
 
 #### **Estadísticas de Archivos**
 ```bash
@@ -405,7 +405,7 @@ find /mnt/evidencia -type f -printf "%s %p\n" | sort -nr > /casos/tamaños_archi
 find /mnt/evidencia -type f -printf "%u %p\n" | sort | uniq -c > /casos/archivos_por_usuario.txt
 ```
 
-### **🔒 VERIFICACIÓN DE INTEGRIDAD**
+### ** VERIFICACIÓN DE INTEGRIDAD**
 
 #### **Hashes de Verificación**
 ```bash
@@ -438,6 +438,6 @@ verify_integrity() {
 
 ---
 
-**⚖️ NOTA LEGAL**: Este cheatsheet es para uso forense legal y educativo únicamente. Siempre cumple con las leyes locales y obtén las autorizaciones judiciales necesarias antes de realizar análisis forense.
+**⚖ NOTA LEGAL**: Este cheatsheet es para uso forense legal y educativo únicamente. Siempre cumple con las leyes locales y obtén las autorizaciones judiciales necesarias antes de realizar análisis forense.
 
-**🔍 Ares Aegis** - Herramientas Forenses para Investigadores de Ciberseguridad
+** Ares Aegis** - Herramientas Forenses para Investigadores de Ciberseguridad

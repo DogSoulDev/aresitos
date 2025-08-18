@@ -46,6 +46,32 @@ class ControladorPrincipal(ControladorBase):
             'modo_operacion': 'normal'  # normal, mantenimiento, emergencia
         }
         
+        # Inicializar controladores específicos
+        try:
+            from .controlador_escaneo import ControladorEscaneo
+            from .controlador_auditoria import ControladorAuditoria  
+            from .controlador_reportes import ControladorReportes
+            from .controlador_monitoreo import ControladorMonitoreo
+            from .controlador_fim import ControladorFIM
+            from .controlador_siem_nuevo import ControladorSIEM
+            
+            self.controlador_escaneador = ControladorEscaneo(modelo_principal)
+            self.controlador_auditoria = ControladorAuditoria(modelo_principal)
+            self.controlador_reportes = ControladorReportes(modelo_principal)
+            self.controlador_monitoreo = ControladorMonitoreo(modelo_principal)
+            self.controlador_fim = ControladorFIM(modelo_principal)
+            self.controlador_siem = ControladorSIEM(modelo_principal)
+            
+            self.logger.info("Controladores específicos inicializados")
+        except Exception as e:
+            self.logger.error(f"Error inicializando controladores específicos: {e}")
+            self.controlador_escaneador = None
+            self.controlador_auditoria = None
+            self.controlador_reportes = None
+            self.controlador_monitoreo = None
+            self.controlador_fim = None
+            self.controlador_siem = None
+        
         # Lock para thread safety
         self._lock = threading.RLock()
         

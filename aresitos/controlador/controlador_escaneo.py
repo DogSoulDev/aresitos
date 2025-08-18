@@ -459,7 +459,7 @@ class ControladorEscaneo(ControladorBase):
             
             # SECURITY: Usar objetivo validado en todas las operaciones
             # Escaneo completo con objetivo seguro (usa el método principal)
-            self.logger.info(f"🔍 Ejecutando escaneo completo para {objetivo_seguro}")
+            self.logger.info(f" Ejecutando escaneo completo para {objetivo_seguro}")
             resultado_escaneo = self.escáner.escanear_completo(objetivo_seguro)
             
             # Extraer componentes individuales del resultado
@@ -565,7 +565,7 @@ class ControladorEscaneo(ControladorBase):
             escaneo_completo = self._ejecutar_escaneo_basico_impl(objetivo_seguro)
             
             # Realizar escaneo avanzado para obtener más detalles
-            self.logger.info(f"🔍 Ejecutando escaneo avanzado para {objetivo_seguro}")
+            self.logger.info(f" Ejecutando escaneo avanzado para {objetivo_seguro}")
             resultado_avanzado = self.escáner.escanear_completo(objetivo_seguro)
             
             # Extraer información específica del resultado avanzado

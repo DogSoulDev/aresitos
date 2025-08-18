@@ -8,13 +8,13 @@ Escaneador de seguridad que usa ÚNICAMENTE herramientas nativas de Linux
 y comandos estándar de Kali Linux para análisis de vulnerabilidades.
 
 FUNCIONALIDADES IMPLEMENTADAS:
-- ✅ Escaneo de puertos con ss/netstat + nc
-- ✅ Análisis de procesos con ps
-- ✅ Detección de servicios con systemctl
-- ✅ Análisis de archivos con find/file
-- ✅ Verificación de permisos con stat
-- ✅ Detección de configuraciones inseguras
-- ✅ Solo Python estándar + comandos Linux
+-  Escaneo de puertos con ss/netstat + nc
+-  Análisis de procesos con ps
+-  Detección de servicios con systemctl
+-  Análisis de archivos con find/file
+-  Verificación de permisos con stat
+-  Detección de configuraciones inseguras
+-  Solo Python estándar + comandos Linux
 
 Autor: Ares Aegis Security Suite
 Fecha: 2025-08-17

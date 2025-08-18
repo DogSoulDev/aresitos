@@ -112,11 +112,11 @@ class VistaSIEM(tk.Frame):
         if self.theme:
             buttons_monitoreo = [
                 (" Iniciar SIEM", self.iniciar_siem, '#5cb85c'),
-                ("⏹️ Detener SIEM", self.detener_siem, '#d9534f'),
+                (" Detener SIEM", self.detener_siem, '#d9534f'),
                 ("� Verificar Kali", self.verificar_kali, '#337ab7'),
                 ("� Actualizar Dashboard", self.actualizar_dashboard, '#404040'),
                 (" Estadísticas", self.mostrar_estadisticas, '#404040'),
-                ("🔔 Configurar Alertas", self.configurar_alertas, '#404040'),
+                ("� Configurar Alertas", self.configurar_alertas, '#404040'),
                 (" Métricas Sistema", self.metricas_sistema, '#404040'),
                 (" Monitor Red", self.monitor_red, '#404040'),
                 (" Eventos Seguridad", self.eventos_seguridad, '#404040')
@@ -125,7 +125,7 @@ class VistaSIEM(tk.Frame):
             for text, command, bg_color in buttons_monitoreo:
                 btn = tk.Button(right_frame, text=text, command=command,
                               bg=bg_color, fg='white', font=('Arial', 9))
-                if text == "⏹️ Detener SIEM":
+                if text == " Detener SIEM":
                     btn.config(state="disabled")
                     self.btn_detener_siem = btn
                 btn.pack(fill=tk.X, pady=2)
@@ -134,7 +134,7 @@ class VistaSIEM(tk.Frame):
                                              command=self.iniciar_siem)
             self.btn_iniciar_siem.pack(fill=tk.X, pady=2)
             
-            self.btn_detener_siem = ttk.Button(right_frame, text="⏹️ Detener SIEM", 
+            self.btn_detener_siem = ttk.Button(right_frame, text=" Detener SIEM", 
                                              command=self.detener_siem, state="disabled")
             self.btn_detener_siem.pack(fill=tk.X, pady=2)
             
@@ -213,7 +213,7 @@ class VistaSIEM(tk.Frame):
                                    bg='#ff6633', fg='white', font=('Arial', 10))
             btn_analizar.pack(side=tk.LEFT, padx=5)
             
-            btn_buscar = tk.Button(btn_frame, text="🔎 Buscar Patrones", 
+            btn_buscar = tk.Button(btn_frame, text="� Buscar Patrones", 
                                  command=self.buscar_patrones,
                                  bg='#404040', fg='white', font=('Arial', 10))
             btn_buscar.pack(side=tk.LEFT, padx=5)
@@ -223,7 +223,7 @@ class VistaSIEM(tk.Frame):
             
             ttk.Button(btn_frame, text=" Analizar Logs Seleccionados", 
                       command=self.analizar_logs_seleccionados).pack(side=tk.LEFT, padx=5)
-            ttk.Button(btn_frame, text="🔎 Buscar Patrones", 
+            ttk.Button(btn_frame, text="� Buscar Patrones", 
                       command=self.buscar_patrones).pack(side=tk.LEFT, padx=5)
         
         # Panel inferior - Resultados de análisis
@@ -249,7 +249,7 @@ class VistaSIEM(tk.Frame):
             tab_alertas = tk.Frame(self.notebook, bg='#2b2b2b')
         else:
             tab_alertas = tk.Frame(self.notebook)
-        self.notebook.add(tab_alertas, text='🚨 Alertas y Correlación')
+        self.notebook.add(tab_alertas, text=' Alertas y Correlación')
         
         # Frame principal dividido
         if self.theme:
@@ -316,7 +316,7 @@ class VistaSIEM(tk.Frame):
             tab_forense = tk.Frame(self.notebook, bg='#2b2b2b')
         else:
             tab_forense = tk.Frame(self.notebook)
-        self.notebook.add(tab_forense, text='🔬 Forense Digital')
+        self.notebook.add(tab_forense, text='� Forense Digital')
         
         # Frame principal
         if self.theme:
@@ -343,15 +343,15 @@ class VistaSIEM(tk.Frame):
             tools_forenses = [
                 (" Volatility", self.usar_volatility),
                 (" Autopsy", self.usar_autopsy),
-                ("🗂️ Sleuth Kit", self.usar_sleuthkit),
+                (" Sleuth Kit", self.usar_sleuthkit),
                 (" Binwalk", self.usar_binwalk),
-                ("📁 Foremost", self.usar_foremost),
+                (" Foremost", self.usar_foremost),
                 ("🧬 Strings", self.usar_strings),
                 (" DD/DCFLDD", self.usar_dd),
                 (" Head/Tail", self.usar_head_tail),
                 (" Check Kali Tools", self.verificar_herramientas_kali),
                 (" Monitor Real-time", self.monitorear_tiempo_real_kali),
-                ("🛑 Stop Monitor", self.parar_monitoreo),
+                ("� Stop Monitor", self.parar_monitoreo),
                 (" OSQuery Analysis", self.integrar_osquery_kali)
             ]
             
@@ -366,15 +366,15 @@ class VistaSIEM(tk.Frame):
             tools_forenses = [
                 (" Volatility", self.usar_volatility),
                 (" Autopsy", self.usar_autopsy),
-                ("🗂️ Sleuth Kit", self.usar_sleuthkit),
+                (" Sleuth Kit", self.usar_sleuthkit),
                 (" Binwalk", self.usar_binwalk),
-                ("📁 Foremost", self.usar_foremost),
+                (" Foremost", self.usar_foremost),
                 ("🧬 Strings", self.usar_strings),
                 (" DD/DCFLDD", self.usar_dd),
                 (" Head/Tail", self.usar_head_tail),
                 (" Check Kali Tools", self.verificar_herramientas_kali),
                 (" Monitor Real-time", self.monitorear_tiempo_real_kali),
-                ("🛑 Stop Monitor", self.parar_monitoreo),
+                ("� Stop Monitor", self.parar_monitoreo),
                 (" OSQuery Analysis", self.integrar_osquery_kali)
             ]
             
@@ -406,19 +406,19 @@ class VistaSIEM(tk.Frame):
         """Inicializar mensajes en todas las pestañas."""
         # Monitoreo
         self._actualizar_texto_monitoreo(" Sistema SIEM de Aresitos para Kali Linux iniciado\n")
-        self._actualizar_texto_monitoreo("📡 Listo para monitoreo de eventos de seguridad\n")
+        self._actualizar_texto_monitoreo(" Listo para monitoreo de eventos de seguridad\n")
         self._actualizar_texto_monitoreo(" Herramientas disponibles: ELK, Snort, Suricata, OSSEC\n\n")
         
         # Análisis
         self._actualizar_texto_analisis(" Motor de análisis de logs preparado\n")
-        self._actualizar_texto_analisis("📁 Fuentes de logs de Kali configuradas\n\n")
+        self._actualizar_texto_analisis(" Fuentes de logs de Kali configuradas\n\n")
         
         # Alertas
-        self._actualizar_texto_alertas("🚨 Sistema de alertas activo\n")
+        self._actualizar_texto_alertas(" Sistema de alertas activo\n")
         self._actualizar_texto_alertas(" Motor de correlación en standby\n\n")
         
         # Forense
-        self._actualizar_texto_forense("🔬 Herramientas forenses de Kali Linux disponibles\n")
+        self._actualizar_texto_forense("� Herramientas forenses de Kali Linux disponibles\n")
         self._actualizar_texto_forense("🧪 Listo para análisis forense digital\n\n")
     
     # Métodos de la pestaña Monitoreo
@@ -460,9 +460,9 @@ class VistaSIEM(tk.Frame):
                 import time
                 eventos_demo = [
                     " Analizando logs de sistema...",
-                    "📡 Monitoreando tráfico de red...",
+                    " Monitoreando tráfico de red...",
                     " Verificando eventos de autenticación...",
-                    "🚨 Correlacionando eventos de seguridad...",
+                    " Correlacionando eventos de seguridad...",
                     " Generando métricas en tiempo real..."
                 ]
                 
@@ -481,7 +481,7 @@ class VistaSIEM(tk.Frame):
         """Detener sistema SIEM."""
         if self.proceso_siem_activo:
             self.proceso_siem_activo = False
-            self._actualizar_texto_monitoreo("⏹️ Deteniendo sistema SIEM...\n")
+            self._actualizar_texto_monitoreo(" Deteniendo sistema SIEM...\n")
             
             if self.controlador:
                 resultado = self.controlador.detener_monitoreo_eventos()
@@ -495,7 +495,7 @@ class VistaSIEM(tk.Frame):
         self.proceso_siem_activo = False
         self._habilitar_botones_siem(True)
         self.thread_siem = None
-        self._actualizar_texto_monitoreo("⏹️ Sistema SIEM detenido\n\n")
+        self._actualizar_texto_monitoreo(" Sistema SIEM detenido\n\n")
     
     def _habilitar_botones_siem(self, habilitar):
         """Habilitar/deshabilitar botones SIEM."""
@@ -535,7 +535,7 @@ class VistaSIEM(tk.Frame):
                 self.after(0, self._actualizar_texto_analisis, " Analizando logs seleccionados...\n")
                 
                 for log_path in logs_seleccionados:
-                    self.after(0, self._actualizar_texto_analisis, f"📁 Procesando {log_path}...\n")
+                    self.after(0, self._actualizar_texto_analisis, f" Procesando {log_path}...\n")
                     
                     # Verificar si el archivo existe
                     if os.path.exists(log_path):
@@ -561,7 +561,7 @@ class VistaSIEM(tk.Frame):
         """Buscar patrones sospechosos en logs."""
         def ejecutar():
             try:
-                self.after(0, self._actualizar_texto_analisis, "🔎 Buscando patrones sospechosos...\n")
+                self.after(0, self._actualizar_texto_analisis, "� Buscando patrones sospechosos...\n")
                 
                 patrones_sospechosos = [
                     "Failed password",
@@ -588,7 +588,7 @@ class VistaSIEM(tk.Frame):
         """Detectar intentos de intrusión."""
         self._actualizar_texto_alertas(" Detectando intentos de intrusión...\n")
         self._actualizar_texto_alertas(" Activando Snort IDS...\n")
-        self._actualizar_texto_alertas("📡 Monitoreando tráfico de red...\n")
+        self._actualizar_texto_alertas(" Monitoreando tráfico de red...\n")
         self._actualizar_texto_alertas("OK Sistema de detección activo\n\n")
     
     def activar_ids(self):
@@ -678,7 +678,7 @@ class VistaSIEM(tk.Frame):
                         
                         if resultado_suricata.returncode == 0:
                             self.after(0, self._actualizar_texto_alertas, "OK IDS activado correctamente\n")
-                            self.after(0, self._actualizar_texto_alertas, f"📁 Logs disponibles en: {log_dir}\n")
+                            self.after(0, self._actualizar_texto_alertas, f" Logs disponibles en: {log_dir}\n")
                             self.after(0, self._actualizar_texto_alertas, " Monitoreando tráfico en tiempo real\n")
                             self.after(0, self._actualizar_texto_alertas, " Detectando: exploits, malware, escaneos\n")
                         else:
@@ -696,8 +696,8 @@ class VistaSIEM(tk.Frame):
     def monitor_honeypot(self):
         """Monitorear honeypots."""
         self._actualizar_texto_alertas(" Monitoreando honeypots...\n")
-        self._actualizar_texto_alertas("🍯 Verificando trampas de seguridad...\n")
-        self._actualizar_texto_alertas("👁️ Detectando actividad maliciosa...\n")
+        self._actualizar_texto_alertas("� Verificando trampas de seguridad...\n")
+        self._actualizar_texto_alertas(" Detectando actividad maliciosa...\n")
         self._actualizar_texto_alertas("OK Honeypots operativos\n\n")
     
     # Métodos de la pestaña Forense
@@ -732,12 +732,12 @@ class VistaSIEM(tk.Frame):
         """Usar Autopsy para análisis forense."""
         self._actualizar_texto_forense(" Iniciando Autopsy...\n")
         self._actualizar_texto_forense(" Herramienta gráfica para análisis forense\n")
-        self._actualizar_texto_forense("📁 Comando: autopsy\n")
+        self._actualizar_texto_forense(" Comando: autopsy\n")
         self._actualizar_texto_forense(" Interfaz web disponible en localhost:9999\n\n")
     
     def usar_sleuthkit(self):
         """Usar Sleuth Kit para análisis forense."""
-        self._actualizar_texto_forense("🗂️ Sleuth Kit - Herramientas de línea de comandos\n")
+        self._actualizar_texto_forense(" Sleuth Kit - Herramientas de línea de comandos\n")
         self._actualizar_texto_forense(" Comandos disponibles:\n")
         self._actualizar_texto_forense("  • fls: listar archivos\n")
         self._actualizar_texto_forense("  • ils: información de inodos\n")
@@ -751,7 +751,7 @@ class VistaSIEM(tk.Frame):
     
     def usar_foremost(self):
         """Usar Foremost para recuperación de archivos."""
-        self._actualizar_texto_forense("📁 Foremost - Recuperación de archivos\n")
+        self._actualizar_texto_forense(" Foremost - Recuperación de archivos\n")
         self._actualizar_texto_forense(" Recuperando archivos eliminados\n")
         self._actualizar_texto_forense(" Comando: foremost -i disk.img\n\n")
     
@@ -797,7 +797,7 @@ class VistaSIEM(tk.Frame):
     # Métodos adicionales para completar funcionalidad
     def configurar_alertas(self):
         """Configurar sistema de alertas."""
-        self._actualizar_texto_alertas("🔔 Configurando sistema de alertas...\n")
+        self._actualizar_texto_alertas("� Configurando sistema de alertas...\n")
         self._actualizar_texto_alertas(" Estableciendo umbrales de detección...\n")
         self._actualizar_texto_alertas("OK Alertas configuradas correctamente\n\n")
     
@@ -812,7 +812,7 @@ class VistaSIEM(tk.Frame):
     def monitor_red(self):
         """Monitorear actividad de red."""
         self._actualizar_texto_monitoreo(" Monitoreando actividad de red...\n")
-        self._actualizar_texto_monitoreo("📡 Analizando tráfico entrante y saliente...\n")
+        self._actualizar_texto_monitoreo(" Analizando tráfico entrante y saliente...\n")
         self._actualizar_texto_monitoreo(" Detectando anomalías en el tráfico...\n")
         self._actualizar_texto_monitoreo("OK Monitoreo de red activo\n\n")
     
@@ -827,7 +827,7 @@ class VistaSIEM(tk.Frame):
     def eventos_criticos(self):
         """Mostrar eventos críticos."""
         self._actualizar_texto_alertas("WARNING Eventos Críticos:\n")
-        self._actualizar_texto_alertas("  🚨 CRÍTICO: Múltiples intentos de login fallidos\n")
+        self._actualizar_texto_alertas("   CRÍTICO: Múltiples intentos de login fallidos\n")
         self._actualizar_texto_alertas("   ALTO: Tráfico de red anómalo detectado\n")
         self._actualizar_texto_alertas("  WARNING MEDIO: Proceso no autorizado ejecutándose\n\n")
     
@@ -841,8 +841,8 @@ class VistaSIEM(tk.Frame):
     def configurar_notificaciones(self):
         """Configurar notificaciones."""
         self._actualizar_texto_alertas(" Configurando notificaciones...\n")
-        self._actualizar_texto_alertas("📧 Email: Activado\n")
-        self._actualizar_texto_alertas("🔔 Desktop: Activado\n")
+        self._actualizar_texto_alertas("� Email: Activado\n")
+        self._actualizar_texto_alertas("� Desktop: Activado\n")
         self._actualizar_texto_alertas(" SMS: No configurado\n")
         self._actualizar_texto_alertas("OK Notificaciones configuradas\n\n")
     
@@ -971,13 +971,13 @@ class VistaSIEM(tk.Frame):
                     self._actualizar_texto_forense("ERROR DCFLDD no encontrado. Instalar: apt install dcfldd\n")
                 
                 self._actualizar_texto_forense("\n Comandos útiles para forense:\n")
-                self._actualizar_texto_forense("🔹 Copia básica:\n")
+                self._actualizar_texto_forense("� Copia básica:\n")
                 self._actualizar_texto_forense("  dd if=/dev/sdX of=imagen.dd bs=4096 status=progress\n")
-                self._actualizar_texto_forense("🔹 Copia con verificación:\n")
+                self._actualizar_texto_forense("� Copia con verificación:\n")
                 self._actualizar_texto_forense("  dcfldd if=/dev/sdX of=imagen.dd hash=sha256 bs=4096\n")
-                self._actualizar_texto_forense("🔹 Análisis de memoria:\n")
+                self._actualizar_texto_forense("� Análisis de memoria:\n")
                 self._actualizar_texto_forense("  dd if=/proc/kcore of=memoria.dump bs=1M count=100\n")
-                self._actualizar_texto_forense("🔹 Borrado seguro:\n")
+                self._actualizar_texto_forense("� Borrado seguro:\n")
                 self._actualizar_texto_forense("  dd if=/dev/urandom of=/dev/sdX bs=4096\n\n")
                 
                 # Verificar espacio en disco para forense
@@ -1105,7 +1105,7 @@ class VistaSIEM(tk.Frame):
                         try:
                             tail_result = subprocess.run(["tail", "-n", "10", log_path], capture_output=True, text=True, timeout=10)
                             if tail_result.returncode == 0:
-                                self._actualizar_texto_forense("  📄 Últimas 10 líneas:\n")
+                                self._actualizar_texto_forense("  � Últimas 10 líneas:\n")
                                 for i, linea in enumerate(tail_result.stdout.strip().split('\n')[-10:], 1):
                                     if linea.strip():
                                         self._actualizar_texto_forense(f"    {i:2d}: {linea[:100]}...\n")
@@ -1120,7 +1120,7 @@ class VistaSIEM(tk.Frame):
                                 if grep_result.returncode == 0 and grep_result.stdout.strip():
                                     # Limitar a las últimas 3 líneas
                                     lineas_encontradas = grep_result.stdout.strip().split('\n')[-3:]
-                                    self._actualizar_texto_forense(f"  ⚠️ Patrón '{patron}' encontrado:\n")
+                                    self._actualizar_texto_forense(f"  ⚠ Patrón '{patron}' encontrado:\n")
                                     for linea in lineas_encontradas:
                                         if linea.strip():
                                             self._actualizar_texto_forense(f"    └─ {linea[:80]}...\n")
@@ -1136,14 +1136,14 @@ class VistaSIEM(tk.Frame):
                 
                 # Análisis de journalctl (systemd logs)
                 try:
-                    self._actualizar_texto_forense("📊 Analizando logs de systemd (journalctl)...\n")
+                    self._actualizar_texto_forense(" Analizando logs de systemd (journalctl)...\n")
                     
                     # Últimos errores críticos de forma segura
                     try:
                         journal_result = subprocess.run(["journalctl", "-p", "err", "-n", "5", "--no-pager"], 
                                                        capture_output=True, text=True, timeout=15)
                         if journal_result.returncode == 0:
-                            self._actualizar_texto_forense("  🚨 Últimos 5 errores del sistema:\n")
+                            self._actualizar_texto_forense("   Últimos 5 errores del sistema:\n")
                             for linea in journal_result.stdout.strip().split('\n'):
                                 if linea.strip():
                                     self._actualizar_texto_forense(f"    └─ {linea[:100]}...\n")
@@ -1155,7 +1155,7 @@ class VistaSIEM(tk.Frame):
                         login_result = subprocess.run(["journalctl", "_COMM=sshd", "-n", "5", "--no-pager"], 
                                                      capture_output=True, text=True, timeout=15)
                         if login_result.returncode == 0 and login_result.stdout.strip():
-                            self._actualizar_texto_forense("  🔐 Últimas conexiones SSH:\n")
+                            self._actualizar_texto_forense("  � Últimas conexiones SSH:\n")
                             for linea in login_result.stdout.strip().split('\n'):
                                 if linea.strip():
                                     self._actualizar_texto_forense(f"    └─ {linea[:100]}...\n")
@@ -1177,7 +1177,7 @@ class VistaSIEM(tk.Frame):
         def ejecutar_monitoreo():
             try:
                 self._actualizar_texto_forense(" Iniciando monitoreo en tiempo real (Kali Linux)...\n\n")
-                self._actualizar_texto_forense("📡 Presiona 'Parar Monitoreo' para detener\n\n")
+                self._actualizar_texto_forense(" Presiona 'Parar Monitoreo' para detener\n\n")
                 
                 import subprocess
                 import time
@@ -1189,7 +1189,7 @@ class VistaSIEM(tk.Frame):
                     try:
                         # Monitoreo de conexiones de red (cada 10 segundos) - forma segura
                         if contador % 10 == 0:
-                            self._actualizar_texto_forense(f"🌐 Conexiones activas [{time.strftime('%H:%M:%S')}]:\n")
+                            self._actualizar_texto_forense(f" Conexiones activas [{time.strftime('%H:%M:%S')}]:\n")
                             try:
                                 ss_result = subprocess.run(["ss", "-tuln"], capture_output=True, text=True, timeout=5)
                                 if ss_result.returncode == 0:
@@ -1202,7 +1202,7 @@ class VistaSIEM(tk.Frame):
                         
                         # Monitoreo de procesos críticos (cada 15 segundos) - forma segura
                         if contador % 15 == 0:
-                            self._actualizar_texto_forense(f"⚡ Procesos críticos [{time.strftime('%H:%M:%S')}]:\n")
+                            self._actualizar_texto_forense(f" Procesos críticos [{time.strftime('%H:%M:%S')}]:\n")
                             try:
                                 ps_result = subprocess.run(["ps", "aux"], capture_output=True, text=True, timeout=5)
                                 if ps_result.returncode == 0 and ps_result.stdout.strip():
@@ -1221,7 +1221,7 @@ class VistaSIEM(tk.Frame):
                         
                         # Monitoreo de logs críticos (cada 20 segundos) - forma segura
                         if contador % 20 == 0:
-                            self._actualizar_texto_forense(f"📋 Nuevos eventos [{time.strftime('%H:%M:%S')}]:\n")
+                            self._actualizar_texto_forense(f" Nuevos eventos [{time.strftime('%H:%M:%S')}]:\n")
                             try:
                                 tail_result = subprocess.run(["tail", "-n", "3", "/var/log/auth.log"], capture_output=True, text=True, timeout=5)
                                 if tail_result.returncode == 0:
@@ -1245,7 +1245,7 @@ class VistaSIEM(tk.Frame):
                         self._actualizar_texto_forense(f"WARNING Error en ciclo de monitoreo: {str(e)}\n")
                         break
                 
-                self._actualizar_texto_forense("\n🔴 Monitoreo detenido\n")
+                self._actualizar_texto_forense("\n� Monitoreo detenido\n")
                 self.monitoreo_activo = False
                 
             except Exception as e:
@@ -1257,7 +1257,7 @@ class VistaSIEM(tk.Frame):
     def parar_monitoreo(self):
         """Detener el monitoreo en tiempo real."""
         self.monitoreo_activo = False
-        self._actualizar_texto_forense("🛑 Deteniendo monitoreo...\n")
+        self._actualizar_texto_forense("� Deteniendo monitoreo...\n")
 
     def integrar_osquery_kali(self):
         """Integración avanzada con osquery para monitoreo en Kali Linux."""

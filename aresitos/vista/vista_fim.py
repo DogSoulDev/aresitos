@@ -153,14 +153,14 @@ class VistaFIM(tk.Frame):
         if self.theme:
             buttons = [
                 (" Crear Baseline", self.crear_baseline, '#ff6633'),
-                ("▶️ Iniciar Monitoreo", self.iniciar_monitoreo, '#5cb85c'),
-                ("⏹️ Detener Monitoreo", self.detener_monitoreo, '#d9534f'),
+                ("▶ Iniciar Monitoreo", self.iniciar_monitoreo, '#5cb85c'),
+                (" Detener Monitoreo", self.detener_monitoreo, '#d9534f'),
                 ("� Verificar Kali", self.verificar_kali, '#337ab7'),
                 ("� Verificar Integridad", self.verificar_integridad, '#404040'),
                 (" Escaneo Manual", self.escaneo_manual, '#404040'),
                 (" Usar AIDE (Kali)", self.usar_aide, '#404040'),
                 (" Usar Tripwire", self.usar_tripwire, '#404040'),
-                ("📁 Ver Baseline", self.ver_baseline, '#404040'),
+                (" Ver Baseline", self.ver_baseline, '#404040'),
                 (" Guardar Reporte", self.guardar_reporte, '#404040'),
                 (" Limpiar Pantalla", self.limpiar_pantalla, '#404040')
             ]
@@ -168,7 +168,7 @@ class VistaFIM(tk.Frame):
             for i, (text, command, bg_color) in enumerate(buttons):
                 btn = tk.Button(right_frame, text=text, command=command,
                               bg=bg_color, fg='white', font=('Arial', 9))
-                if text == "⏹️ Detener Monitoreo":
+                if text == " Detener Monitoreo":
                     btn.config(state="disabled")
                     self.btn_detener_monitoreo = btn
                 btn.pack(fill=tk.X, pady=2)
@@ -178,11 +178,11 @@ class VistaFIM(tk.Frame):
                                                command=self.crear_baseline)
             self.btn_crear_baseline.pack(fill=tk.X, pady=2)
             
-            self.btn_iniciar_monitoreo = ttk.Button(right_frame, text="▶️ Iniciar Monitoreo", 
+            self.btn_iniciar_monitoreo = ttk.Button(right_frame, text="▶ Iniciar Monitoreo", 
                                                   command=self.iniciar_monitoreo)
             self.btn_iniciar_monitoreo.pack(fill=tk.X, pady=2)
             
-            self.btn_detener_monitoreo = ttk.Button(right_frame, text="⏹️ Detener Monitoreo", 
+            self.btn_detener_monitoreo = ttk.Button(right_frame, text=" Detener Monitoreo", 
                                                   command=self.detener_monitoreo,
                                                   state="disabled")
             self.btn_detener_monitoreo.pack(fill=tk.X, pady=2)
@@ -198,7 +198,7 @@ class VistaFIM(tk.Frame):
             ttk.Button(right_frame, text=" Usar Tripwire", 
                       command=self.usar_tripwire).pack(fill=tk.X, pady=2)
             ttk.Separator(right_frame, orient=tk.HORIZONTAL).pack(fill=tk.X, pady=5)
-            ttk.Button(right_frame, text="📁 Ver Baseline", 
+            ttk.Button(right_frame, text=" Ver Baseline", 
                       command=self.ver_baseline).pack(fill=tk.X, pady=2)
             ttk.Button(right_frame, text=" Guardar Reporte", 
                       command=self.guardar_reporte).pack(fill=tk.X, pady=2)
@@ -207,7 +207,7 @@ class VistaFIM(tk.Frame):
         
         # Mensaje inicial
         self._actualizar_texto_fim(" Sistema FIM de Aresitos para Kali Linux iniciado\n")
-        self._actualizar_texto_fim("📁 Rutas críticas pre-configuradas: /etc, /boot, /usr/bin, /root\n")
+        self._actualizar_texto_fim(" Rutas críticas pre-configuradas: /etc, /boot, /usr/bin, /root\n")
         self._actualizar_texto_fim(" Herramientas disponibles: AIDE, Tripwire, inotify-tools\n")
         self._actualizar_texto_fim(" Listo para crear baseline y monitorear integridad de archivos\n\n")
     
@@ -226,7 +226,7 @@ class VistaFIM(tk.Frame):
         rutas_existentes = [self.rutas_listbox.get(i) for i in range(self.rutas_listbox.size())]
         if ruta not in rutas_existentes:
             self.rutas_listbox.insert(tk.END, ruta)
-            self._actualizar_texto_fim(f"📁 Ruta agregada para monitoreo: {ruta}\n")
+            self._actualizar_texto_fim(f" Ruta agregada para monitoreo: {ruta}\n")
             self.path_entry.delete(0, tk.END)
         else:
             messagebox.showinfo("Información", "La ruta ya está siendo monitoreada")
@@ -259,7 +259,7 @@ class VistaFIM(tk.Frame):
                     import time
                     rutas = [self.rutas_listbox.get(i) for i in range(self.rutas_listbox.size())]
                     for ruta in rutas:
-                        self.after(0, self._actualizar_texto_fim, f"📁 Procesando {ruta}...\n")
+                        self.after(0, self._actualizar_texto_fim, f" Procesando {ruta}...\n")
                         time.sleep(0.5)
                     self.after(0, self._actualizar_texto_fim, "OK Baseline completado para todas las rutas\n")
                 
@@ -276,7 +276,7 @@ class VistaFIM(tk.Frame):
         self.proceso_monitoreo_activo = True
         self._habilitar_botones_monitoreo(False)
         
-        self._actualizar_texto_fim("▶️ Iniciando monitoreo continuo de integridad...\n")
+        self._actualizar_texto_fim("▶ Iniciando monitoreo continuo de integridad...\n")
         
         # Ejecutar en thread separado
         self.thread_monitoreo = threading.Thread(target=self._ejecutar_monitoreo_async)
@@ -290,7 +290,7 @@ class VistaFIM(tk.Frame):
                 resultado = self.controlador.iniciar_monitoreo_continuo()
                 if resultado.get('exito'):
                     self.after(0, self._actualizar_texto_fim, "OK FIM iniciado correctamente\n")
-                    self.after(0, self._actualizar_texto_fim, f"📁 Rutas monitoreadas: {resultado.get('rutas_monitoreadas', 0)}\n")
+                    self.after(0, self._actualizar_texto_fim, f" Rutas monitoreadas: {resultado.get('rutas_monitoreadas', 0)}\n")
                     self.after(0, self._actualizar_texto_fim, f" Intervalo: {resultado.get('intervalo_segundos', 'N/A')}s\n")
                     
                     # Continuar con simulación de monitoreo visual
@@ -299,7 +299,7 @@ class VistaFIM(tk.Frame):
                         " Verificando integridad de archivos...",
                         " Analizando cambios detectados...",
                         " Validando checksums MD5/SHA256...",
-                        "📁 Escaneando directorios críticos...",
+                        " Escaneando directorios críticos...",
                         " Procesando eventos en tiempo real..."
                     ]
                     
@@ -326,7 +326,7 @@ class VistaFIM(tk.Frame):
         """Detener monitoreo continuo."""
         if self.proceso_monitoreo_activo:
             self.proceso_monitoreo_activo = False
-            self._actualizar_texto_fim("⏹️ Deteniendo monitoreo...\n")
+            self._actualizar_texto_fim(" Deteniendo monitoreo...\n")
             
             if self.controlador:
                 resultado = self.controlador.detener_monitoreo_continuo()
@@ -340,7 +340,7 @@ class VistaFIM(tk.Frame):
         self.proceso_monitoreo_activo = False
         self._habilitar_botones_monitoreo(True)
         self.thread_monitoreo = None
-        self._actualizar_texto_fim("⏹️ Monitoreo detenido\n\n")
+        self._actualizar_texto_fim(" Monitoreo detenido\n\n")
     
     def _habilitar_botones_monitoreo(self, habilitar):
         """Habilitar/deshabilitar botones de monitoreo."""
@@ -388,7 +388,7 @@ class VistaFIM(tk.Frame):
                                                  capture_output=True, text=True, timeout=30)
                         if resultado.stdout:
                             archivos = resultado.stdout.strip().split('\n')
-                            self.after(0, self._actualizar_texto_fim, f"📁 Archivos modificados recientemente: {len(archivos)}\n")
+                            self.after(0, self._actualizar_texto_fim, f" Archivos modificados recientemente: {len(archivos)}\n")
                             for archivo in archivos[:10]:  # Mostrar solo los primeros 10
                                 self.after(0, self._actualizar_texto_fim, f"  {archivo}\n")
                         else:
@@ -466,10 +466,10 @@ class VistaFIM(tk.Frame):
         try:
             if self.controlador:
                 baseline_info = self.controlador.obtener_info_baseline()
-                self._actualizar_texto_fim("📁 Información del Baseline:\n")
+                self._actualizar_texto_fim(" Información del Baseline:\n")
                 self._actualizar_texto_fim(str(baseline_info) + "\n\n")
             else:
-                self._actualizar_texto_fim("📁 Baseline actual:\n")
+                self._actualizar_texto_fim(" Baseline actual:\n")
                 self._actualizar_texto_fim(" Fecha de creación: Pendiente\n")
                 self._actualizar_texto_fim(" Archivos monitoreados: Pendiente\n")
                 self._actualizar_texto_fim(" Estado: No creado\n\n")

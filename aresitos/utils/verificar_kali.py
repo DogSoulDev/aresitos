@@ -28,7 +28,7 @@ def verificar_compatibilidad_kali():
     }
     
     # 1. Verificar sistema operativo
-    print("\n1️⃣ VERIFICACIÓN DEL SISTEMA OPERATIVO")
+    print("\n1⃣ VERIFICACIÓN DEL SISTEMA OPERATIVO")
     print("-" * 40)
     
     sistema = platform.system()
@@ -54,7 +54,7 @@ def verificar_compatibilidad_kali():
         print(" Ares Aegis está optimizado para Kali Linux")
     
     # 2. Verificar herramientas de Kali
-    print("\n2️⃣ VERIFICACIÓN DE HERRAMIENTAS KALI")
+    print("\n2⃣ VERIFICACIÓN DE HERRAMIENTAS KALI")
     print("-" * 40)
     
     herramientas_kali = {
@@ -66,7 +66,7 @@ def verificar_compatibilidad_kali():
     }
     
     for categoria, herramientas in herramientas_kali.items():
-        print(f"\n📁 {categoria}:")
+        print(f"\n {categoria}:")
         for herramienta in herramientas:
             try:
                 resultado = subprocess.run(['which', herramienta], 
@@ -84,7 +84,7 @@ def verificar_compatibilidad_kali():
                 resultados['herramientas_faltantes'].append(herramienta)
     
     # 3. Verificar permisos
-    print("\n3️⃣ VERIFICACIÓN DE PERMISOS")
+    print("\n3⃣ VERIFICACIÓN DE PERMISOS")
     print("-" * 40)
     
     # Verificar si es root
@@ -97,7 +97,7 @@ def verificar_compatibilidad_kali():
         
         resultados['es_root'] = es_root
         
-        print(f"👤 Usuario actual: {usuario}")
+        print(f"� Usuario actual: {usuario}")
         print(f" Es root: {'OK Sí' if es_root else 'ERROR No'}")
         
     except:
@@ -117,7 +117,7 @@ def verificar_compatibilidad_kali():
         print("ERROR Sudo no disponible")
     
     # 4. Verificar estructura de proyecto
-    print("\n4️⃣ VERIFICACIÓN ESTRUCTURA PROYECTO")
+    print("\n4⃣ VERIFICACIÓN ESTRUCTURA PROYECTO")
     print("-" * 40)
     
     archivos_criticos = [
@@ -135,7 +135,7 @@ def verificar_compatibilidad_kali():
             print(f"  ERROR {archivo}: Faltante")
     
     # 5. Resumen final
-    print("\n5️⃣ RESUMEN DE COMPATIBILIDAD")
+    print("\n5⃣ RESUMEN DE COMPATIBILIDAD")
     print("-" * 40)
     
     total_herramientas = len(resultados['herramientas_core']) + len(resultados['herramientas_faltantes'])
@@ -157,11 +157,11 @@ def verificar_compatibilidad_kali():
         print(" Se requiere configuración adicional")
     
     # 6. Recomendaciones
-    print("\n6️⃣ RECOMENDACIONES")
+    print("\n6⃣ RECOMENDACIONES")
     print("-" * 40)
     
     if not resultados['sistema_operativo']:
-        print("🐧 Usar Kali Linux o distribución Linux compatible")
+        print("� Usar Kali Linux o distribución Linux compatible")
     
     if not (resultados['es_root'] or resultados['sudo_disponible']):
         print(" Configurar sudo o ejecutar como root")
@@ -184,7 +184,7 @@ def main():
         resultados = verificar_compatibilidad_kali()
         return 0 if resultados['sistema_operativo'] else 1
     except KeyboardInterrupt:
-        print("\n\n👋 Verificación cancelada por el usuario")
+        print("\n\n� Verificación cancelada por el usuario")
         return 1
     except Exception as e:
         print(f"\nERROR Error durante verificación: {e}")

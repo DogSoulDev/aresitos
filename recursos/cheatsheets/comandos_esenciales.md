@@ -1,8 +1,8 @@
-# 🛡️ CHEATSHEET COMPLETO - ARES AEGIS
+#  CHEATSHEET COMPLETO - ARES AEGIS
 
-## **📋 ÍNDICE DE COMANDOS ESENCIALES**
+## ** ÍNDICE DE COMANDOS ESENCIALES**
 
-### **🔍 RECONOCIMIENTO Y ENUMERACIÓN**
+### ** RECONOCIMIENTO Y ENUMERACIÓN**
 
 #### **Escaneo de Red Básico**
 ```bash
@@ -54,7 +54,7 @@ for ext in .bak .old .backup .tmp; do
 done
 ```
 
-### **🚨 DETECCIÓN DE VULNERABILIDADES**
+### ** DETECCIÓN DE VULNERABILIDADES**
 
 #### **Inyección SQL**
 ```bash
@@ -89,7 +89,7 @@ echo "..%2f..%2f..%2fetc%2fpasswd"
 curl "http://target.com/page.php?file=../../../etc/passwd"
 ```
 
-### **🔐 ANÁLISIS DE AUTENTICACIÓN**
+### ** ANÁLISIS DE AUTENTICACIÓN**
 
 #### **Fuerza Bruta SSH**
 ```bash
@@ -122,7 +122,7 @@ check_password() {
 }
 ```
 
-### **🌐 ANÁLISIS DE RED**
+### ** ANÁLISIS DE RED**
 
 #### **Monitoreo de Tráfico**
 ```bash
@@ -150,7 +150,7 @@ ps aux | awk '{print $11}' | sort | uniq -c | sort -nr | head -20
 find /etc /bin /sbin /usr/bin -type f -mtime -1 2>/dev/null
 ```
 
-### **🗂️ MONITOREO DE INTEGRIDAD**
+### ** MONITOREO DE INTEGRIDAD**
 
 #### **Verificación de Archivos Críticos**
 ```bash
@@ -179,7 +179,7 @@ ps aux | wc -l
 ls /proc | grep -E '^[0-9]+$' | wc -l
 ```
 
-### **📊 ANÁLISIS DE LOGS**
+### ** ANÁLISIS DE LOGS**
 
 #### **Análisis de Logs de Sistema**
 ```bash
@@ -205,7 +205,7 @@ awk '{print $9}' /var/log/apache2/access.log | grep -E "^[45]" | sort | uniq -c
 awk '{print $7}' /var/log/apache2/access.log | sort | uniq -c | sort -nr | head -10
 ```
 
-### **🛠️ HERRAMIENTAS NATIVAS LINUX**
+### ** HERRAMIENTAS NATIVAS LINUX**
 
 #### **Comandos de Red**
 ```bash
@@ -232,7 +232,7 @@ grep -r "password" /etc/                # Buscar "password" en /etc
 grep -E "^root|^admin" /etc/passwd      # Usuarios específicos
 ```
 
-### **🔧 SCRIPTS DE AUTOMATIZACIÓN**
+### ** SCRIPTS DE AUTOMATIZACIÓN**
 
 #### **Script de Escaneo Básico**
 ```bash
@@ -283,7 +283,7 @@ who | wc -l
 echo "Sesiones activas: $(who | wc -l)"
 ```
 
-### **📚 REFERENCIAS DE COMANDOS**
+### **� REFERENCIAS DE COMANDOS**
 
 #### **Comandos de Información del Sistema**
 - `uname -a` - Información del kernel
@@ -309,7 +309,7 @@ echo "Sesiones activas: $(who | wc -l)"
 - `file archivo` - Tipo de archivo
 - `which comando` - Ubicación de comando
 
-### **⚠️ INDICADORES DE COMPROMISO**
+### ** INDICADORES DE COMPROMISO**
 
 #### **Señales de Intrusión**
 - Procesos desconocidos en `ps aux`
@@ -333,6 +333,6 @@ echo "Sesiones activas: $(who | wc -l)"
 
 ---
 
-**🔒 NOTA DE SEGURIDAD**: Estos comandos son para uso educativo y pruebas autorizadas únicamente. Siempre obtén permiso explícito antes de realizar pruebas de seguridad en sistemas que no sean de tu propiedad.
+** NOTA DE SEGURIDAD**: Estos comandos son para uso educativo y pruebas autorizadas únicamente. Siempre obtén permiso explícito antes de realizar pruebas de seguridad en sistemas que no sean de tu propiedad.
 
-**📖 Ares Aegis** - Sistema de Auditoría de Seguridad para Expertos en Ciberseguridad y Hacking Ético
+**� Ares Aegis** - Sistema de Auditoría de Seguridad para Expertos en Ciberseguridad y Hacking Ético

@@ -66,7 +66,7 @@ def verificar_gestor_permisos():
             print(f"{status_icon} {herramienta:<12} - {info['mensaje']}{sudo_text}")
             
             if info['disponible'] and info['path']:
-                print(f"    📂 Ruta: {info['path']}")
+                print(f"    � Ruta: {info['path']}")
         
         if reporte['recomendaciones']:
             print(f"\n RECOMENDACIONES:")
@@ -128,16 +128,16 @@ def verificar_gestor_permisos():
         total_herramientas = len(reporte['herramientas'])
         
         if herramientas_ok == total_herramientas:
-            print("🟢 EXCELENTE: Todas las herramientas disponibles y funcionales")
+            print("� EXCELENTE: Todas las herramientas disponibles y funcionales")
         elif herramientas_ok >= total_herramientas * 0.7:
-            print("🟡 BUENO: La mayoría de herramientas están disponibles")
+            print("� BUENO: La mayoría de herramientas están disponibles")
         else:
-            print("🔴 ATENCIÓN: Muchas herramientas no están disponibles")
+            print("� ATENCIÓN: Muchas herramientas no están disponibles")
         
         print(f" Funcionalidad: {herramientas_ok}/{total_herramientas} herramientas OK")
         
         # Sugerencias finales
-        print(f"\n💬 SUGERENCIAS:")
+        print(f"\n� SUGERENCIAS:")
         print("-" * 40)
         
         if not reporte['es_root'] and not reporte['sudo_disponible']:

@@ -229,7 +229,7 @@ class VistaHerramientasKali(tk.Toplevel):
                     "uso_aresitos": "Anonimización de conexiones"
                 }
             },
-            "🔬 Análisis Forense": {
+            "� Análisis Forense": {
                 "binwalk": {
                     "descripcion": "Tool for analyzing binary images",
                     "paquete": "binwalk",
@@ -281,7 +281,7 @@ class VistaHerramientasKali(tk.Toplevel):
                     "uso_aresitos": "Monitoreo profundo del sistema"
                 }
             },
-            "📁 FIM y Sistema": {
+            "FIM y Sistema": {
                 "inotify-tools": {
                     "descripcion": "Command-line programs providing a simple interface to inotify",
                     "paquete": "inotify-tools",
@@ -419,7 +419,7 @@ class VistaHerramientasKali(tk.Toplevel):
         
         self.btn_continuar = tk.Button(
             btn_frame,
-            text="➡️ Continuar a ARESITOS",
+            text="Continuar a ARESITOS",
             command=self._continuar_aresitos,
             bg='#6c757d',
             fg='white',
@@ -533,7 +533,7 @@ class VistaHerramientasKali(tk.Toplevel):
                 tree.set(item, "Estado", "⚪ No seleccionado")
             else:
                 self.herramientas_seleccionadas.add(item)
-                tree.set(item, "Estado", "🔵 Seleccionado")
+                tree.set(item, "Estado", "� Seleccionado")
     
     def _on_tree_double_click(self, event, categoria: str):
         """Manejar doble clic para instalar herramienta individual"""
@@ -649,7 +649,7 @@ class VistaHerramientasKali(tk.Toplevel):
                 item_id = f"{categoria}_{nombre}"
                 if info["esencial"]:
                     self.herramientas_seleccionadas.add(item_id)
-                    tree.set(item_id, "Estado", "🔵 Seleccionado")
+                    tree.set(item_id, "Estado", "� Seleccionado")
                 else:
                     tree.set(item_id, "Estado", "⚪ No seleccionado")
         
@@ -715,7 +715,8 @@ class VistaHerramientasKali(tk.Toplevel):
             self.after(0, self._actualizar_estadisticas)
             
         except Exception as e:
-            self.after(0, lambda: self._escribir_log(f"ERROR Error durante instalación: {str(e)}"))
+            error_msg = f"ERROR Error durante instalación: {str(e)}"
+            self.after(0, lambda msg=error_msg: self._escribir_log(msg))
         finally:
             self.instalando = False
             self.after(0, lambda: self.btn_instalar_seleccionadas.config(state=tk.NORMAL))
@@ -746,7 +747,8 @@ class VistaHerramientasKali(tk.Toplevel):
                 self.after(0, self._actualizar_estadisticas)
                 
             except Exception as e:
-                self.after(0, lambda: self._escribir_log(f"ERROR Error: {str(e)}"))
+                error_msg = f"ERROR Error: {str(e)}"
+                self.after(0, lambda msg=error_msg: self._escribir_log(msg))
         
         thread = threading.Thread(target=instalar_async, daemon=True)
         thread.start()
@@ -786,7 +788,7 @@ class VistaHerramientasKali(tk.Toplevel):
                 return
         
         # Cerrar ventana y continuar
-        self._escribir_log("➡️ Continuando a ARESITOS...")
+        self._escribir_log("Continuando a ARESITOS...")
         self.grab_release()
         
         if self.callback_completado:

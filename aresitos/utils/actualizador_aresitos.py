@@ -463,7 +463,7 @@ class ActualizadorAresitos:
         if self.errores_actualizacion:
             print(f"WARNING  Errores encontrados: {len(self.errores_actualizacion)}")
         if archivo_reporte:
-            print(f"📄 Reporte guardado en: {archivo_reporte}")
+            print(f"� Reporte guardado en: {archivo_reporte}")
         
         print("\n RECOMENDACIONES POST-ACTUALIZACIÓN:")
         print("   • Reiniciar el sistema si se actualizó el kernel")

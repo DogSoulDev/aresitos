@@ -114,7 +114,7 @@ class VistaMonitoreo(tk.Frame):
                                            activebackground='#e55a2b', activeforeground='white')
         self.btn_iniciar_monitor.pack(side="left", padx=(0, 10))
         
-        self.btn_detener_monitor = tk.Button(control_frame, text="⏹ Detener Monitoreo", 
+        self.btn_detener_monitor = tk.Button(control_frame, text=" Detener Monitoreo", 
                                             command=self.detener_monitoreo, state="disabled",
                                             bg='#404040', fg='white',
                                             font=('Arial', 10),

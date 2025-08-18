@@ -511,7 +511,7 @@ class VistaAuditoria(tk.Frame):
         """Cancelar detección de rootkits."""
         if hasattr(self, 'proceso_rootkits_activo'):
             self.proceso_rootkits_activo = False
-            self._actualizar_texto_auditoria("⏹️ Detección de rootkits cancelada\n")
+            self._actualizar_texto_auditoria(" Detección de rootkits cancelada\n")
     
     def ejecutar_openvas(self):
         """Ejecutar auditoría con OpenVAS."""
@@ -580,7 +580,7 @@ class VistaAuditoria(tk.Frame):
                                              capture_output=True, text=True, timeout=30)
                     if resultado.stdout:
                         archivos_suid = resultado.stdout.strip().split('\n')[:20]  # Primeros 20
-                        self._actualizar_texto_auditoria(f"📁 Archivos SUID encontrados ({len(archivos_suid)} de muchos):\n")
+                        self._actualizar_texto_auditoria(f" Archivos SUID encontrados ({len(archivos_suid)} de muchos):\n")
                         for archivo in archivos_suid:
                             if archivo.strip():
                                 self._actualizar_texto_auditoria(f"  {archivo}\n")
@@ -591,7 +591,7 @@ class VistaAuditoria(tk.Frame):
                                              capture_output=True, text=True, timeout=30)
                     if resultado.stdout:
                         archivos_sgid = resultado.stdout.strip().split('\n')[:20]  # Primeros 20
-                        self._actualizar_texto_auditoria(f"📁 Archivos SGID encontrados ({len(archivos_sgid)} de muchos):\n")
+                        self._actualizar_texto_auditoria(f" Archivos SGID encontrados ({len(archivos_sgid)} de muchos):\n")
                         for archivo in archivos_sgid:
                             if archivo.strip():
                                 self._actualizar_texto_auditoria(f"  {archivo}\n")

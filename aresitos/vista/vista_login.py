@@ -860,7 +860,7 @@ class LoginAresitos:
         """Ejecutar instalación de herramientas en thread separado"""
         try:
             # Actualizar repositorios primero
-            self.escribir_log("📥 Actualizando repositorios...")
+            self.escribir_log("� Actualizando repositorios...")
             cmd_update = f"echo '{password}' | sudo -S apt update"
             
             result = subprocess.run(

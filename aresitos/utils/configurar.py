@@ -44,7 +44,7 @@ class ConfiguradorAresAegis:
     
     def verificar_python(self):
         """Verificar instalación de Python"""
-        print("🐍 Verificando Python...")
+        print("� Verificando Python...")
         
         version = sys.version_info
         if version.major < 3 or (version.major == 3 and version.minor < 6):
@@ -166,7 +166,7 @@ class ConfiguradorAresAegis:
     
     def configurar_directorios(self):
         """Configurar estructura de directorios"""
-        print("📁 Configurando directorios...")
+        print(" Configurando directorios...")
         
         directorios = [
             'logs',
@@ -340,7 +340,7 @@ def main():
         sys.exit(0 if resultado else 1)
         
     except KeyboardInterrupt:
-        print("\n\n👋 Configuración cancelada por el usuario")
+        print("\n\n� Configuración cancelada por el usuario")
         sys.exit(1)
     except Exception as e:
         print(f"\nERROR Error crítico en configuración: {e}")

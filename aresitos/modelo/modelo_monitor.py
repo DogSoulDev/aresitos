@@ -8,11 +8,11 @@ Monitor de sistema que usa ÚNICAMENTE herramientas nativas de Linux
 y comandos estándar para análisis de recursos y seguridad.
 
 FUNCIONALIDADES IMPLEMENTADAS:
-- ✅ Monitoreo de recursos con free/ps/df
-- ✅ Análisis de procesos con ps
-- ✅ Monitoreo de red con ss/netstat
-- ✅ Detección de anomalías
-- ✅ Solo Python estándar + comandos Linux
+-  Monitoreo de recursos con free/ps/df
+-  Análisis de procesos con ps
+-  Monitoreo de red con ss/netstat
+-  Detección de anomalías
+-  Solo Python estándar + comandos Linux
 
 Autor: Ares Aegis Security Suite
 Fecha: 2025-08-17
@@ -131,7 +131,7 @@ class MonitorAvanzadoNativo:
         # Verificar herramientas disponibles
         self._herramientas = self._verificar_herramientas()
         
-        self.logger.info("🟢 Monitor Avanzado Nativo Ares Aegis inicializado")
+        self.logger.info("� Monitor Avanzado Nativo Ares Aegis inicializado")
         self.logger.info(f"Herramientas disponibles: {len([h for h in self._herramientas.values() if h])}/8")
 
     def _verificar_herramientas(self) -> Dict[str, bool]:
@@ -182,7 +182,7 @@ class MonitorAvanzadoNativo:
                         detalles={'umbrales': self.umbrales}
                     )
                 
-                self.logger.info("🟢 Monitoreo completo iniciado")
+                self.logger.info("� Monitoreo completo iniciado")
                 
                 return {
                     'exito': True,
@@ -222,7 +222,7 @@ class MonitorAvanzadoNativo:
                         mensaje="Monitoreo del sistema detenido"
                     )
                 
-                self.logger.info("🔴 Monitoreo detenido")
+                self.logger.info("� Monitoreo detenido")
                 
                 return {
                     'exito': True,
@@ -831,26 +831,26 @@ class MonitorAvanzadoNativo:
         procesos_sospechosos = self.obtener_procesos_sospechosos()
         
         reporte = f"""
-# 🔍 REPORTE DE MONITOREO - ARES AEGIS
+#  REPORTE DE MONITOREO - ARES AEGIS
 
-## 💻 ESTADO DEL SISTEMA
+##  ESTADO DEL SISTEMA
 - **CPU**: {datos_sistema.get('cpu_porcentaje', 'N/A'):.1f}%
 - **Memoria Usada**: {datos_sistema.get('porcentaje', 'N/A'):.1f}%
 - **Disco Usado**: {datos_sistema.get('porcentaje', 'N/A'):.1f}%
 
-## 🌐 ESTADO DE RED
+##  ESTADO DE RED
 - **Conexiones Totales**: {datos_red.get('conexiones_totales', 'N/A')}
 - **Conexiones Establecidas**: {datos_red.get('conexiones_establecidas', 'N/A')}
 - **Puertos en Escucha**: {datos_red.get('puertos_escucha', 'N/A')}
 
-## ⚠️ PROCESOS SOSPECHOSOS ({len(procesos_sospechosos)})
+## ⚠ PROCESOS SOSPECHOSOS ({len(procesos_sospechosos)})
 """
         
         if procesos_sospechosos:
             for proceso in procesos_sospechosos[:10]:  # Primeros 10
                 reporte += f"- **{proceso['nombre']}** (PID: {proceso['pid']}) - CPU: {proceso['uso_cpu']:.1f}%, RAM: {proceso['uso_memoria']}MB\n"
         else:
-            reporte += "✅ No se detectaron procesos sospechosos.\n"
+            reporte += " No se detectaron procesos sospechosos.\n"
         
         reporte += f"\n---\n*Generado: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}*"
         

@@ -692,7 +692,7 @@ class VistaDashboard(tk.Frame):
                         if len(parts) >= 2:
                             current_interface = parts[1].split(':')[0]
                             flags = line.split('<')[1].split('>')[0]
-                            estado = "🟢 UP" if "UP" in flags else "⚫ DOWN"
+                            estado = "� UP" if "UP" in flags else "⚫ DOWN"
                             self.interfaces_text.insert(tk.END, f"▶ {current_interface}:\n")
                             self.interfaces_text.insert(tk.END, f"   Estado: {estado}\n")
                     
@@ -776,7 +776,7 @@ class VistaDashboard(tk.Frame):
                 # Verificar si el SIEM está activo
                 if hasattr(self.controlador.modelo, 'siem_avanzado'):
                     siem_activo = self.controlador.modelo.siem_avanzado is not None
-                    self.siem_label.configure(text="🟢 Active" if siem_activo else " Inactive")
+                    self.siem_label.configure(text="� Active" if siem_activo else " Inactive")
                 else:
                     self.siem_label.configure(text=" Inactive")
             else:
@@ -923,7 +923,16 @@ class VistaDashboard(tk.Frame):
                     "John the Ripper",
                     "Burp Suite",
                     "Análisis de Logs",
-                    "OSINT Básico"
+                    "OSINT Básico",
+                    "Hydra - Brute Force",
+                    "SQLMap - SQL Injection",
+                    "Nikto - Web Scanner",
+                    "Gobuster - Directory",
+                    "Hashcat - Password Cracking",
+                    "Aircrack-ng - WiFi Audit",
+                    "Volatility - Memory Forensics",
+                    "Wireshark - Network Analysis",
+                    "Netcat - Networking"
                 ]
                 for categoria in categorias_default:
                     self.categorias_chuletas.insert(tk.END, categoria)
@@ -1316,7 +1325,16 @@ journalctl -u ssh                # Logs de servicio específico
                     "John the Ripper": "john_the_ripper.txt",
                     "Burp Suite": "burp_suite.txt",
                     "Análisis de Logs": "analisis_logs.txt",
-                    "OSINT Básico": "osint_basico.txt"
+                    "OSINT Básico": "osint_basico.txt",
+                    "Hydra - Brute Force": "hydra_bruteforce.txt",
+                    "SQLMap - SQL Injection": "sqlmap_injection.txt",
+                    "Nikto - Web Scanner": "nikto_web_scanner.txt",
+                    "Gobuster - Directory": "gobuster_directory.txt",
+                    "Hashcat - Password Cracking": "hashcat_password_cracking.txt",
+                    "Aircrack-ng - WiFi Audit": "aircrack_wifi_audit.txt",
+                    "Volatility - Memory Forensics": "volatility_memory_forensics.txt",
+                    "Wireshark - Network Analysis": "wireshark_analisis.txt",
+                    "Netcat - Networking": "netcat_networking.txt"
                 }
                 
                 archivo = archivo_map.get(categoria, None)
