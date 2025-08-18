@@ -12,7 +12,7 @@ from aresitos.vista.vista_escaneo import VistaEscaneo
 from aresitos.vista.vista_monitoreo import VistaMonitoreo
 from aresitos.vista.vista_auditoria import VistaAuditoria
 from aresitos.vista.vista_gestion_datos import VistaGestionDatos
-from aresitos.vista.vista_herramientas import VistaHerramientas
+from aresitos.vista.vista_herramientas_wrapper import VistaHerramientasWrapper
 from aresitos.vista.vista_reportes import VistaReportes
 from aresitos.vista.vista_fim import VistaFIM
 from aresitos.vista.vista_siem import VistaSIEM
@@ -198,8 +198,8 @@ class VistaPrincipal(tk.Frame):
                 self.vista_gestion_datos.set_controlador(self.controlador)
                 print("Gestión de datos configurado")
                 
-            if hasattr(self.controlador, 'controlador_herramientas'):
-                self.vista_herramientas.set_controlador(self.controlador.controlador_herramientas)
+            if hasattr(self, 'vista_herramientas'):
+                # Vista wrapper para herramientas Kali
                 print("Herramientas configurado")
                 
             if hasattr(self.controlador, 'controlador_reportes'):
@@ -493,10 +493,10 @@ class VistaPrincipal(tk.Frame):
         except Exception as e:
             print(f"      Error creando vista auditoría: {e}")
         
-        # 7. HERRAMIENTAS - Herramientas de seguridad especializadas
+        # 7. HERRAMIENTAS - Wrapper para acceso a herramientas Kali
         try:
             print("      Creando Herramientas...")
-            self.vista_herramientas = VistaHerramientas(self.notebook)
+            self.vista_herramientas = VistaHerramientasWrapper(self.notebook)
             self.notebook.add(self.vista_herramientas, text="Herramientas")
             pestanas_creadas += 1
         except Exception as e:
