@@ -493,9 +493,26 @@ class VistaDashboard(tk.Frame):
                 errors='replace'
             )
             
-            output = resultado.stdout
+            output = ""
+            if resultado.stdout:
+                output = resultado.stdout
+                # Agregar información adicional para comandos de red
+                if "netstat" in comando or "ss" in comando:
+                    lineas = resultado.stdout.strip().split('\n')
+                    output += f"\n\n=== RESUMEN ===\n"
+                    output += f"Total conexiones encontradas: {len(lineas)-1}\n"
+                    if "LISTEN" in resultado.stdout:
+                        listening = len([l for l in lineas if "LISTEN" in l])
+                        output += f"Puertos en escucha: {listening}\n"
+                    if "ESTABLISHED" in resultado.stdout:
+                        established = len([l for l in lineas if "ESTABLISHED" in l])
+                        output += f"Conexiones establecidas: {established}\n"
+                        
             if resultado.stderr:
                 output += f"\nERROR:\n{resultado.stderr}"
+                
+            if not output.strip():
+                output = f"Comando ejecutado sin salida. Código de retorno: {resultado.returncode}"
             
             # Actualizar UI en el hilo principal
             self.after(0, self._mostrar_output_comando, output)

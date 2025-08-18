@@ -54,6 +54,7 @@ class ControladorPrincipal(ControladorBase):
             from .controlador_monitoreo import ControladorMonitoreo
             from .controlador_fim import ControladorFIM
             from .controlador_siem_nuevo import ControladorSIEM
+            from .controlador_cuarentena import ControladorCuarentena
             
             self.controlador_escaneador = ControladorEscaneo(modelo_principal)
             self.controlador_auditoria = ControladorAuditoria(modelo_principal)
@@ -61,6 +62,7 @@ class ControladorPrincipal(ControladorBase):
             self.controlador_monitoreo = ControladorMonitoreo(modelo_principal)
             self.controlador_fim = ControladorFIM(modelo_principal)
             self.controlador_siem = ControladorSIEM(modelo_principal)
+            self.controlador_cuarentena = ControladorCuarentena()
             
             self.logger.info("Controladores específicos inicializados")
         except Exception as e:
@@ -71,6 +73,7 @@ class ControladorPrincipal(ControladorBase):
             self.controlador_monitoreo = None
             self.controlador_fim = None
             self.controlador_siem = None
+            self.controlador_cuarentena = None
         
         # Lock para thread safety
         self._lock = threading.RLock()

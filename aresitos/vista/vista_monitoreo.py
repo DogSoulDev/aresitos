@@ -335,28 +335,50 @@ class VistaMonitoreo(tk.Frame):
         if not archivo:
             return
             
-        if not self.controlador:
-            return
+        # Crear controlador de cuarentena directamente si no está disponible
+        try:
+            from aresitos.controlador.controlador_cuarentena import ControladorCuarentena
+            controlador_cuarentena = ControladorCuarentena()
+            resultado = controlador_cuarentena.poner_archivo_en_cuarentena(archivo)
             
-        resultado = self.controlador.poner_archivo_en_cuarentena(archivo)
-        
-        if resultado["exito"]:
-            self.text_cuarentena.insert(tk.END, f"Archivo agregado a cuarentena: {archivo}\n")
-            messagebox.showinfo("Success", "File quarantined")
-        else:
-            self.text_cuarentena.insert(tk.END, f"Error: {resultado['error']}\n")
-            messagebox.showerror("Error", resultado["error"])
+            if resultado["exito"]:
+                self.text_cuarentena.insert(tk.END, f"✓ Archivo agregado a cuarentena: {archivo}\n")
+                messagebox.showinfo("Éxito", "Archivo enviado a cuarentena correctamente")
+            else:
+                self.text_cuarentena.insert(tk.END, f"✗ Error: {resultado['error']}\n")
+                messagebox.showerror("Error", resultado["error"])
+                
+        except Exception as e:
+            self.text_cuarentena.insert(tk.END, f"✗ Error del sistema: {str(e)}\n")
+            messagebox.showerror("Error", f"Error del sistema: {str(e)}")
     
     def listar_cuarentena(self):
-        if not self.controlador:
-            return
-            
-        self.text_cuarentena.delete(1.0, tk.END)
         try:
-            archivos = self.controlador.listar_archivos_cuarentena()
-        except AttributeError:
-            archivos = []
-            print("Funcionalidad de cuarentena no disponible")
+            from aresitos.controlador.controlador_cuarentena import ControladorCuarentena
+            controlador_cuarentena = ControladorCuarentena()
+            
+            self.text_cuarentena.delete(1.0, tk.END)
+            self.text_cuarentena.insert(tk.END, "=== ARCHIVOS EN CUARENTENA ===\n\n")
+            
+            archivos = controlador_cuarentena.listar_archivos_cuarentena()
+            
+            if not archivos:
+                self.text_cuarentena.insert(tk.END, "No hay archivos en cuarentena.\n")
+            else:
+                for i, archivo in enumerate(archivos, 1):
+                    self.text_cuarentena.insert(tk.END, f"{i}. {archivo.get('ruta_original', 'Desconocido')}\n")
+                    self.text_cuarentena.insert(tk.END, f"   Fecha: {archivo.get('fecha', 'N/A')}\n")
+                    self.text_cuarentena.insert(tk.END, f"   Razón: {archivo.get('razon', 'N/A')}\n\n")
+                    
+            # Obtener resumen adicional
+            resumen = controlador_cuarentena.obtener_resumen_cuarentena()
+            if resumen:
+                self.text_cuarentena.insert(tk.END, f"\n=== RESUMEN ===\n")
+                self.text_cuarentena.insert(tk.END, f"Total archivos: {resumen.get('total_archivos', 0)}\n")
+                self.text_cuarentena.insert(tk.END, f"Tamaño total: {resumen.get('tamano_total', 0)} bytes\n")
+                
+        except Exception as e:
+            self.text_cuarentena.insert(tk.END, f"Error listando cuarentena: {str(e)}\n")
         
         if not archivos:
             self.text_cuarentena.insert(tk.END, "No hay archivos en cuarentena.\n")

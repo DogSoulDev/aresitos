@@ -405,3 +405,35 @@ class ControladorCuarentena:
         except Exception as e:
             self.logger.error(f"Error generando reporte de cuarentena: {e}")
             return {'error': str(e)}
+    
+    def poner_archivo_en_cuarentena(self, ruta_archivo: str) -> Dict[str, Any]:
+        """
+        Método de compatibilidad para la vista.
+        Envuelve cuarentenar_archivo con manejo de errores simplificado.
+        """
+        try:
+            resultado = self.cuarentenar_archivo(ruta_archivo, "Agregado manualmente desde GUI")
+            return {
+                'exito': resultado.get('exito', False),
+                'error': resultado.get('error', '')
+            }
+        except Exception as e:
+            return {
+                'exito': False,
+                'error': str(e)
+            }
+    
+    def listar_archivos_cuarentena(self) -> List[Dict[str, Any]]:
+        """
+        Método de compatibilidad para la vista.
+        Lista todos los archivos en cuarentena.
+        """
+        try:
+            resumen = self.obtener_resumen_cuarentena()
+            if 'archivos' in resumen:
+                return resumen['archivos']
+            else:
+                return []
+        except Exception as e:
+            self.logger.error(f"Error listando archivos en cuarentena: {e}")
+            return []

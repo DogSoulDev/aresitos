@@ -4,6 +4,7 @@ import tkinter as tk
 from tkinter import ttk, scrolledtext, messagebox, filedialog
 import threading
 import os
+import subprocess
 
 try:
     from aresitos.vista.burp_theme import burp_theme
@@ -456,21 +457,58 @@ class VistaSIEM(tk.Frame):
                 else:
                     self.after(0, self._actualizar_texto_monitoreo, f"ERROR Error iniciando SIEM: {resultado.get('error', 'Error desconocido')}\n")
             else:
-                # Simulación si no hay controlador
+                # Monitoreo real de logs del sistema
+                import os
                 import time
-                eventos_demo = [
-                    " Analizando logs de sistema...",
-                    " Monitoreando tráfico de red...",
-                    " Verificando eventos de autenticación...",
-                    " Correlacionando eventos de seguridad...",
-                    " Generando métricas en tiempo real..."
-                ]
+                import subprocess
                 
+                contador_eventos = 0
                 while self.proceso_siem_activo:
-                    for evento in eventos_demo:
-                        if not self.proceso_siem_activo:
-                            break
-                        self.after(0, self._actualizar_texto_monitoreo, f"{evento}\n")
+                    try:
+                        # Análisis de logs reales
+                        if os.path.exists('/var/log/syslog'):
+                            resultado = subprocess.run(['tail', '-n', '5', '/var/log/syslog'], 
+                                                     capture_output=True, text=True, timeout=5)
+                            if resultado.returncode == 0 and resultado.stdout.strip():
+                                lineas = resultado.stdout.strip().split('\n')
+                                self.after(0, self._actualizar_texto_monitoreo, f" Analizando {len(lineas)} eventos nuevos en syslog\n")
+                                for linea in lineas[-2:]:  # Mostrar últimas 2 líneas
+                                    if linea.strip():
+                                        timestamp = linea.split()[0:3]
+                                        mensaje = ' '.join(linea.split()[4:8])  # Primeras palabras del mensaje
+                                        self.after(0, self._actualizar_texto_monitoreo, f"   {' '.join(timestamp)}: {mensaje}...\n")
+                        
+                        # Verificar conexiones activas
+                        resultado = subprocess.run(['ss', '-tuln'], capture_output=True, text=True, timeout=5)
+                        if resultado.returncode == 0:
+                            lineas_conexiones = len(resultado.stdout.strip().split('\n')) - 1
+                            self.after(0, self._actualizar_texto_monitoreo, f" Monitoreando {lineas_conexiones} conexiones de red activas\n")
+                        
+                        # Verificar procesos sospechosos
+                        resultado = subprocess.run(['ps', 'aux'], capture_output=True, text=True, timeout=5)
+                        if resultado.returncode == 0:
+                            lineas_procesos = len(resultado.stdout.strip().split('\n')) - 1
+                            self.after(0, self._actualizar_texto_monitoreo, f" Analizando {lineas_procesos} procesos del sistema\n")
+                        
+                        # Verificar eventos de autenticación
+                        if os.path.exists('/var/log/auth.log'):
+                            resultado = subprocess.run(['tail', '-n', '3', '/var/log/auth.log'], 
+                                                     capture_output=True, text=True, timeout=5)
+                            if resultado.returncode == 0 and resultado.stdout.strip():
+                                eventos_auth = len(resultado.stdout.strip().split('\n'))
+                                self.after(0, self._actualizar_texto_monitoreo, f" Verificados {eventos_auth} eventos de autenticación recientes\n")
+                        
+                        contador_eventos += 1
+                        if contador_eventos % 10 == 0:
+                            self.after(0, self._actualizar_texto_monitoreo, f" === Ciclo de análisis #{contador_eventos//10} completado ===\n")
+                        
+                        time.sleep(5)  # Intervalo de monitoreo
+                        
+                    except subprocess.TimeoutExpired:
+                        self.after(0, self._actualizar_texto_monitoreo, " WARNING Timeout en análisis de logs\n")
+                        time.sleep(2)
+                    except Exception as e:
+                        self.after(0, self._actualizar_texto_monitoreo, f" ERROR en monitoreo: {str(e)}\n")
                         time.sleep(3)
         except Exception as e:
             self.after(0, self._actualizar_texto_monitoreo, f"ERROR Error en SIEM: {str(e)}\n")
@@ -540,10 +578,51 @@ class VistaSIEM(tk.Frame):
                     # Verificar si el archivo existe
                     if os.path.exists(log_path):
                         try:
-                            with open(log_path, 'r', encoding='utf-8', errors='ignore') as f:
-                                lines = f.readlines()
+                            # Leer últimas líneas del log
+                            import subprocess
+                            resultado = subprocess.run(['tail', '-n', '20', log_path], 
+                                                     capture_output=True, text=True, timeout=10)
+                            if resultado.returncode == 0 and resultado.stdout.strip():
+                                lineas = resultado.stdout.strip().split('\n')
                                 self.after(0, self._actualizar_texto_analisis, 
-                                         f"  OK {len(lines)} líneas analizadas\n")
+                                         f"  OK {len(lineas)} líneas analizadas\n")
+                                self.after(0, self._actualizar_texto_analisis, "  CONTENIDO (últimas 5 líneas):\n")
+                                for linea in lineas[-5:]:
+                                    if linea.strip():
+                                        timestamp = ' '.join(linea.split()[:3])  # Primeras 3 palabras como timestamp
+                                        mensaje = ' '.join(linea.split()[3:10])  # Siguientes palabras del mensaje
+                                        self.after(0, self._actualizar_texto_analisis, f"    {timestamp}: {mensaje}...\n")
+                                
+                                # Buscar patrones sospechosos en las líneas
+                                patrones_sospechosos = ["failed", "error", "denied", "invalid", "attack", "breach"]
+                                alertas_encontradas = 0
+                                for linea in lineas:
+                                    linea_lower = linea.lower()
+                                    for patron in patrones_sospechosos:
+                                        if patron in linea_lower:
+                                            alertas_encontradas += 1
+                                            if alertas_encontradas <= 3:  # Mostrar máximo 3 alertas por archivo
+                                                self.after(0, self._actualizar_texto_analisis, f"    ALERTA: {patron.upper()} encontrado\n")
+                                
+                                if alertas_encontradas > 0:
+                                    self.after(0, self._actualizar_texto_analisis, f"  TOTAL ALERTAS: {alertas_encontradas}\n")
+                                else:
+                                    self.after(0, self._actualizar_texto_analisis, "  Sin patrones sospechosos detectados\n")
+                                    
+                            else:
+                                # Fallback: leer archivo directamente
+                                with open(log_path, 'r', encoding='utf-8', errors='ignore') as f:
+                                    lines = f.readlines()
+                                    self.after(0, self._actualizar_texto_analisis, 
+                                             f"  OK {len(lines)} líneas analizadas\n")
+                                    if lines:
+                                        self.after(0, self._actualizar_texto_analisis, "  ÚLTIMAS LÍNEAS:\n")
+                                        for linea in lines[-3:]:
+                                            if linea.strip():
+                                                self.after(0, self._actualizar_texto_analisis, f"    {linea.strip()[:100]}...\n")
+                        except subprocess.TimeoutExpired:
+                            self.after(0, self._actualizar_texto_analisis, 
+                                     f"  WARNING Timeout leyendo archivo\n")
                         except Exception as e:
                             self.after(0, self._actualizar_texto_analisis, 
                                      f"  ERROR Error leyendo archivo: {str(e)}\n")
@@ -681,6 +760,9 @@ class VistaSIEM(tk.Frame):
                             self.after(0, self._actualizar_texto_alertas, f" Logs disponibles en: {log_dir}\n")
                             self.after(0, self._actualizar_texto_alertas, " Monitoreando tráfico en tiempo real\n")
                             self.after(0, self._actualizar_texto_alertas, " Detectando: exploits, malware, escaneos\n")
+                            
+                            # Iniciar monitoreo de logs de Suricata
+                            self.after(0, self._iniciar_monitoreo_logs_suricata, log_dir)
                         else:
                             self.after(0, self._actualizar_texto_alertas, f"ERROR Error iniciando Suricata: {resultado_suricata.stderr}\n")
                             self.after(0, self._actualizar_texto_alertas, " Verificar permisos sudo y configuración\n")
@@ -692,6 +774,67 @@ class VistaSIEM(tk.Frame):
                 self.after(0, self._actualizar_texto_alertas, f"ERROR Error activando IDS: {str(e)}\n")
         
         threading.Thread(target=ejecutar_ids, daemon=True).start()
+    
+    def _iniciar_monitoreo_logs_suricata(self, log_dir):
+        """Iniciar monitoreo de logs de Suricata en tiempo real"""
+        def monitorear_logs():
+            import time
+            import os
+            
+            archivo_eve = os.path.join(log_dir, 'eve.json')
+            archivo_fast = os.path.join(log_dir, 'fast.log')
+            
+            contador = 0
+            while contador < 20:  # Monitorear por 20 ciclos
+                try:
+                    # Verificar archivo eve.json (alertas detalladas)
+                    if os.path.exists(archivo_eve):
+                        resultado = subprocess.run(['tail', '-n', '3', archivo_eve], 
+                                                 capture_output=True, text=True, timeout=5)
+                        if resultado.returncode == 0 and resultado.stdout.strip():
+                            lineas = resultado.stdout.strip().split('\n')
+                            self.after(0, self._actualizar_texto_alertas, f" EVE.JSON: {len(lineas)} eventos detectados\n")
+                            for linea in lineas:
+                                if '"event_type":' in linea:
+                                    import json
+                                    try:
+                                        evento = json.loads(linea)
+                                        tipo_evento = evento.get('event_type', 'desconocido')
+                                        timestamp = evento.get('timestamp', '')[:19]
+                                        self.after(0, self._actualizar_texto_alertas, f"   {timestamp}: {tipo_evento}\n")
+                                    except:
+                                        self.after(0, self._actualizar_texto_alertas, f"   Evento: {linea[:50]}...\n")
+                    
+                    # Verificar archivo fast.log (alertas rápidas)
+                    if os.path.exists(archivo_fast):
+                        resultado = subprocess.run(['tail', '-n', '2', archivo_fast], 
+                                                 capture_output=True, text=True, timeout=5)
+                        if resultado.returncode == 0 and resultado.stdout.strip():
+                            lineas = resultado.stdout.strip().split('\n')
+                            self.after(0, self._actualizar_texto_alertas, f" FAST.LOG: {len(lineas)} alertas\n")
+                            for linea in lineas:
+                                if linea.strip():
+                                    partes = linea.split('] ')
+                                    if len(partes) > 1:
+                                        alerta = partes[1][:80]
+                                        self.after(0, self._actualizar_texto_alertas, f"   ALERTA: {alerta}...\n")
+                    
+                    # Verificar estadísticas
+                    resultado_stats = subprocess.run(['sudo', 'suricata', '--dump-config'], 
+                                                   capture_output=True, text=True, timeout=10)
+                    if resultado_stats.returncode == 0:
+                        self.after(0, self._actualizar_texto_alertas, f" === Monitoreo activo (ciclo {contador+1}/20) ===\n")
+                    
+                    contador += 1
+                    time.sleep(15)  # Verificar cada 15 segundos
+                    
+                except Exception as e:
+                    self.after(0, self._actualizar_texto_alertas, f" ERROR monitoreo: {str(e)}\n")
+                    time.sleep(5)
+            
+            self.after(0, self._actualizar_texto_alertas, " Monitoreo de logs Suricata completado\n")
+        
+        threading.Thread(target=monitorear_logs, daemon=True).start()
     
     def monitor_honeypot(self):
         """Monitorear honeypots."""

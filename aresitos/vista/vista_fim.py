@@ -293,22 +293,84 @@ class VistaFIM(tk.Frame):
                     self.after(0, self._actualizar_texto_fim, f" Rutas monitoreadas: {resultado.get('rutas_monitoreadas', 0)}\n")
                     self.after(0, self._actualizar_texto_fim, f" Intervalo: {resultado.get('intervalo_segundos', 'N/A')}s\n")
                     
-                    # Continuar con simulación de monitoreo visual
+                    # Monitoreo real de integridad de archivos
                     import time
-                    eventos_demo = [
-                        " Verificando integridad de archivos...",
-                        " Analizando cambios detectados...",
-                        " Validando checksums MD5/SHA256...",
-                        " Escaneando directorios críticos...",
-                        " Procesando eventos en tiempo real..."
-                    ]
+                    import subprocess
+                    import hashlib
+                    
+                    rutas_criticas = ['/etc/passwd', '/etc/shadow', '/etc/hosts', '/etc/sudoers', '/boot']
+                    checksums_anteriores = {}
+                    contador_verificaciones = 0
                     
                     while self.proceso_monitoreo_activo:
-                        for evento in eventos_demo:
-                            if not self.proceso_monitoreo_activo:
-                                break
-                            self.after(0, self._actualizar_texto_fim, f"{evento}\n")
-                            time.sleep(3)
+                        try:
+                            cambios_detectados = 0
+                            archivos_verificados = 0
+                            
+                            for ruta in rutas_criticas:
+                                if not self.proceso_monitoreo_activo:
+                                    break
+                                    
+                                try:
+                                    if os.path.isfile(ruta):
+                                        # Verificar archivo individual
+                                        with open(ruta, 'rb') as f:
+                                            contenido = f.read()
+                                            checksum_actual = hashlib.sha256(contenido).hexdigest()[:16]
+                                        
+                                        if ruta in checksums_anteriores:
+                                            if checksums_anteriores[ruta] != checksum_actual:
+                                                cambios_detectados += 1
+                                                self.after(0, self._actualizar_texto_fim, f" CAMBIO DETECTADO: {ruta} (checksum: {checksum_actual})\n")
+                                            else:
+                                                self.after(0, self._actualizar_texto_fim, f" OK {ruta} sin cambios\n")
+                                        else:
+                                            self.after(0, self._actualizar_texto_fim, f" BASELINE {ruta} (checksum: {checksum_actual})\n")
+                                        
+                                        checksums_anteriores[ruta] = checksum_actual
+                                        archivos_verificados += 1
+                                        
+                                    elif os.path.isdir(ruta):
+                                        # Verificar directorio
+                                        resultado = subprocess.run(['find', ruta, '-type', 'f', '-newer', '/tmp/fim_last_check'], 
+                                                                 capture_output=True, text=True, timeout=10)
+                                        if resultado.stdout.strip():
+                                            archivos_modificados = len(resultado.stdout.strip().split('\n'))
+                                            cambios_detectados += archivos_modificados
+                                            self.after(0, self._actualizar_texto_fim, f" CAMBIOS EN {ruta}: {archivos_modificados} archivos modificados\n")
+                                        else:
+                                            self.after(0, self._actualizar_texto_fim, f" OK {ruta} sin cambios recientes\n")
+                                        archivos_verificados += 1
+                                        
+                                except PermissionError:
+                                    self.after(0, self._actualizar_texto_fim, f" WARNING Sin permisos para {ruta}\n")
+                                except Exception as e:
+                                    self.after(0, self._actualizar_texto_fim, f" ERROR verificando {ruta}: {str(e)}\n")
+                            
+                            # Verificar permisos críticos
+                            archivos_permisos = ['/etc/passwd', '/etc/shadow', '/etc/sudoers']
+                            for archivo in archivos_permisos:
+                                if os.path.exists(archivo):
+                                    stat_info = os.stat(archivo)
+                                    permisos = oct(stat_info.st_mode)[-3:]
+                                    if archivo == '/etc/shadow' and permisos != '640':
+                                        self.after(0, self._actualizar_texto_fim, f" ALERTA: {archivo} permisos {permisos} (esperado 640)\n")
+                                    elif archivo == '/etc/passwd' and permisos != '644':
+                                        self.after(0, self._actualizar_texto_fim, f" ALERTA: {archivo} permisos {permisos} (esperado 644)\n")
+                                    else:
+                                        self.after(0, self._actualizar_texto_fim, f" OK {archivo} permisos {permisos}\n")
+                            
+                            contador_verificaciones += 1
+                            self.after(0, self._actualizar_texto_fim, f" === Verificación #{contador_verificaciones}: {archivos_verificados} archivos, {cambios_detectados} cambios ===\n\n")
+                            
+                            # Actualizar timestamp para find
+                            subprocess.run(['touch', '/tmp/fim_last_check'], capture_output=True)
+                            
+                            time.sleep(10)  # Intervalo de verificación
+                            
+                        except Exception as e:
+                            self.after(0, self._actualizar_texto_fim, f" ERROR en verificación: {str(e)}\n")
+                            time.sleep(5)
                 else:
                     self.after(0, self._actualizar_texto_fim, f"ERROR Error iniciando FIM: {resultado.get('error', 'Error desconocido')}\n")
             else:

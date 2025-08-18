@@ -582,14 +582,35 @@ class VistaHerramientasKali(tk.Toplevel):
             return False
     
     def _actualizar_estado_herramienta(self, item_id: str, estado: str):
-        """Actualizar estado visual de una herramienta"""
+        """Actualizar estado visual de una herramienta con colores"""
         categoria = item_id.split("_", 1)[0]
         if categoria in self.treeviews_categorias:
             tree = self.treeviews_categorias[categoria]
             try:
-                tree.set(item_id, "Estado", estado)
-            except:
-                pass
+                # Configurar colores según el estado
+                if "OK" in estado or "Instalado" in estado:
+                    tree.set(item_id, "Estado", "✓ INSTALADO")
+                    tree.item(item_id, tags=("instalado",))
+                elif "ERROR" in estado or "Error" in estado:
+                    tree.set(item_id, "Estado", "✗ ERROR")
+                    tree.item(item_id, tags=("error",))
+                elif "WARNING" in estado or "Falta" in estado:
+                    tree.set(item_id, "Estado", "! NO INSTALADO")
+                    tree.item(item_id, tags=("no_instalado",))
+                else:
+                    tree.set(item_id, "Estado", estado)
+                    tree.item(item_id, tags=("verificando",))
+                
+                # Configurar colores de tags si no existen
+                if not hasattr(tree, 'tags_configured'):
+                    tree.tag_configure("instalado", background="#d4edda", foreground="#155724")
+                    tree.tag_configure("error", background="#f8d7da", foreground="#721c24")
+                    tree.tag_configure("no_instalado", background="#fff3cd", foreground="#856404")
+                    tree.tag_configure("verificando", background="#e2e3e5", foreground="#383d41")
+                    tree.tags_configured = True
+                    
+            except Exception as e:
+                print(f"Error actualizando estado: {e}")
     
     def _actualizar_estadisticas(self):
         """Actualizar estadísticas de herramientas"""
