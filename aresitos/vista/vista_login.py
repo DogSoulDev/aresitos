@@ -285,9 +285,13 @@ class LoginAresitos:
     def __init__(self):
         # Verificar Kali Linux ANTES de crear ventana
         if not verificar_kali_linux_estricto():
-            print("ERROR: ARESITOS requiere Kali Linux")
-            print("Sistema no compatible detectado")
-            sys.exit(1)
+            # Verificar si estamos en modo desarrollo
+            if '--dev' in sys.argv or '--desarrollo' in sys.argv:
+                print("⚠️  MODO DESARROLLO: LoginApp en entorno no-Kali")
+            else:
+                print("ERROR: ARESITOS requiere Kali Linux")
+                print("Sistema no compatible detectado")
+                sys.exit(1)
         
         # Inicializar rate limiter
         self.rate_limiter = RateLimiter(max_intentos=3, ventana_tiempo=300)
@@ -1033,9 +1037,14 @@ def main():
     """Función principal de la aplicación de login"""
     # Verificar que estamos en Kali Linux antes de continuar
     if not verificar_kali_linux_estricto():
-        print("ERROR: ARESITOS requiere Kali Linux")
-        print("Sistema operativo no compatible")
-        sys.exit(1)
+        # Verificar si estamos en modo desarrollo
+        if '--dev' in sys.argv or '--desarrollo' in sys.argv:
+            print("⚠️  MODO DESARROLLO: Vista de login en entorno no-Kali")
+            print("   Ejecutando con funcionalidades limitadas...")
+        else:
+            print("ERROR: ARESITOS requiere Kali Linux")
+            print("Sistema operativo no compatible")
+            sys.exit(1)
     
     print("ARESITOS - Iniciando login...")
     

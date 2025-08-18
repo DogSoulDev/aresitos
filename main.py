@@ -28,6 +28,13 @@ def verificar_kali_linux():
     except:
         return False
 
+def verificar_modo_desarrollo():
+    """Verificar si estamos en modo desarrollo"""
+    # Permitir desarrollo en Windows si se pasa argumento --dev
+    if '--dev' in sys.argv or '--desarrollo' in sys.argv:
+        return True
+    return False
+
 def configurar_permisos_basicos():
     """Configurar permisos básicos para archivos de configuración"""
     try:
@@ -77,9 +84,14 @@ def main():
     
     # Verificar Kali Linux antes de continuar
     if not verificar_kali_linux():
-        print("ERROR: ARESITOS requiere Kali Linux")
-        print("Sistema operativo no compatible detectado")
-        sys.exit(1)
+        if verificar_modo_desarrollo():
+            print("⚠️  MODO DESARROLLO: Ejecutando en entorno no-Kali")
+            print("   Algunas funcionalidades pueden no estar disponibles")
+        else:
+            print("ERROR: ARESITOS requiere Kali Linux")
+            print("Sistema operativo no compatible detectado")
+            print("💡 Para desarrollo: usar --dev o --desarrollo")
+            sys.exit(1)
     
     # Configurar permisos básicos de archivos antes de continuar
     configurar_permisos_basicos()

@@ -1,0 +1,25 @@
+REPORTE DE VERIFICACIÓN DE HERRAMIENTAS
+==================================================
+
+Sistema operativo: Windows
+Python version: 3.13.3 (tags/v3.13.3:6280bb5, Apr  8 2025, 14:47:33) [MSC v.1943 64 bit (AMD64)]
+
+nmap: INSTALADO - v7.80
+metasploit-framework: NO INSTALADO - vNone
+wireshark: INSTALADO - v3.4.0
+burpsuite: NO INSTALADO - vNone
+john: NO INSTALADO - vNone
+hashcat: NO INSTALADO - vNone
+aircrack-ng: NO INSTALADO - vNone
+sqlmap: NO INSTALADO - vNone
+gobuster: NO INSTALADO - vNone
+hydra: NO INSTALADO - vNone
+nikto: NO INSTALADO - vNone
+netcat: INSTALADO - vWindows built-in
+volatility: NO INSTALADO - vNone
+suricata: NO INSTALADO - vNone
+sysdig: NO INSTALADO - vNone
+
+RESUMEN:
+Instaladas: 3
+No instaladas: 12
