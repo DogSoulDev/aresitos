@@ -1,258 +1,207 @@
-# ARESITOS - Sistema de Ciberseguridad Optimizado para Kali Linux
+# ![Aresitos](aresitos/recursos/Aresitos.ico) ARESITOS v2.0
+**Suite de Ciberseguridad para Kali Linux**
 
-<p align="center">
-  <img src="aresitos/recursos/Aresitos.ico" alt="ARESITOS" width="128" height="128">
-</p>
+ARESITOS es una suite completa de herramientas de ciberseguridad diseñada específicamente para Kali Linux, que integra escaneado de vulnerabilidades, monitoreo de integridad de archivos (FIM) y sistema SIEM en una interfaz unificada.
 
-## Suite de Análisis de Seguridad y Auditoría - VERSIÓN KALI-OPTIMIZADA
+## Autor
+- **Desarrollador**: DogSoulDev  
+- **Email**: dogsouldev@protonmail.com  
+- **Repositorio**: https://github.com/DogSoulDev/Aresitos
 
-**ARESITOS v2.1.0-seguro-kali** es una suite de ciberseguridad desarrollada específicamente para profesionales de seguridad, ethical hackers, administradores de sistemas e investigadores que trabajan en entornos Kali Linux, utilizando **exclusivamente herramientas nativas de Kali** y **Python nativo** sin dependencias externas.
+## Características Principales
 
-## CARACTERÍSTICAS PRINCIPALES - SEGURAS Y OPTIMIZADAS PARA KALI LINUX
+### Escaneador de Vulnerabilidades v2.0
+- Integración nativa con herramientas de Kali Linux (nmap, nikto, gobuster, nuclei)
+- Detección real de malware con ClamAV, chkrootkit y rkhunter
+- Base de datos CVE integrada con scoring CVSS
+- Escaneo de puertos, servicios y vulnerabilidades web
 
-### 🔒 Seguridad Reforzada (NUEVO v2.1.0)
-- **Auditoría de seguridad completa**: 69 vulnerabilidades identificadas y corregidas
-- **Código securizado**: Eliminación de subprocess shell=True y validación de entradas
-- **Permisos seguros**: Corrección de permisos excesivos (777 → 755/644)
-- **Validación de entrada**: Sanitización robusta de datos del usuario
-- **Cumplimiento de estándares**: OWASP Top 10 y NIST Cybersecurity Framework
-- **Documentación de seguridad**: Reporte completo en `documentacion/seguridad_corregida.md`
+### Sistema FIM (File Integrity Monitoring)
+- Monitoreo en tiempo real de archivos críticos del sistema
+- Detección de cambios no autorizados en archivos sensibles
+- Alertas automáticas ante modificaciones sospechosas
+- Base de datos de integridad persistente
 
-### Sistema de Escaneo de Seguridad Avanzado y Seguro
-- **Escaneo de vulnerabilidades** del sistema usando herramientas nativas de Kali Linux
-- **Detección de malware y rootkits** con rkhunter, chkrootkit y lynis integrados
-- **Ejecución segura**: Subprocess sin shell=True para prevenir inyección de comandos
-- **Validación de objetivos**: Verificación robusta de IPs y rangos de red
-- **Análisis de puertos y servicios** usando nmap, masscan, zmap y ncat nativos
-- **Escaneo de archivos sospechosos** con verificación SHA256 y análisis forense
-- **Detección de configuraciones inseguras** con auditoría automática
-- **Integración real** con 50+ herramientas nativas de Kali Linux
+### Sistema SIEM Integrado
+- Análisis de logs del sistema Kali Linux
+- Correlación de eventos de seguridad
+- Detección de patrones de ataque
+- Reportes de seguridad automatizados
 
-### SIEM - Sistema de Monitoreo de Eventos Mejorado y Seguro
-- **Ejecución securizada**: Comandos con argumentos en lista para prevenir inyección
-- **Correlación de eventos** de seguridad del sistema con journalctl nativo
-- **Monitoreo en tiempo real** de logs usando herramientas nativas seguras
-- **Análisis de procesos y conexiones** de red con ps, ss y netstat sin shell=True
-- **Detección de patrones sospechosos** en logs con regex avanzados
-- **Alertas automáticas** basadas en reglas personalizables
-- **Integración forense** con DD/DCFLDD para análisis de discos
+### Sistema de Cuarentena
+- Aislamiento seguro de archivos maliciosos
+- Gestión de amenazas detectadas
+- Restauración controlada de archivos
 
-### FIM (File Integrity Monitoring) Optimizado
-- **Monitoreo de integridad** de archivos críticos del sistema
-- **Detección de modificaciones** usando hashing SHA256 nativo
-- **Alertas de cambios** no autorizados en archivos importantes
-- **Monitoreo PAM específico** de `/etc/pam.d/` con find y stat nativos
-- **Verificación de permisos** detallada con herramientas de sistema
+## Estructura del Proyecto
 
-### Gestión de Wordlists y Diccionarios
-- **Constructor de wordlists** personalizadas con más de 20 categorías
-- **Base de datos** con 16+ categorías especializadas de términos
-- **Wordlists optimizadas** para entornos hispanohablantes
-- **Diccionarios especializados**: MITRE ATT&CK, herramientas de hacking, CVE
-- **Integración completa** con wordlists comunes de Kali Linux
+```
+aresitos/
+├── main.py                    # Punto de entrada principal
+├── configurar_kali.sh         # Script de instalación
+├── requirements.txt           # Dependencias
+├── pyproject.toml            # Configuración del proyecto
+├── aresitos/                 # Código fuente principal
+│   ├── controlador/          # Lógica de control (MVC)
+│   ├── modelo/              # Modelos de datos y lógica
+│   ├── vista/               # Interfaces gráficas
+│   └── utils/               # Utilidades y herramientas
+├── configuracion/           # Archivos de configuración
+├── data/                   # Bases de datos y wordlists
+├── logs/                   # Archivos de registro
+├── recursos/               # Recursos estáticos
+└── documentacion/          # Documentación del proyecto
+```
 
-## INSTALACIÓN RÁPIDA Y SEGURA EN KALI LINUX
+## Requisitos del Sistema
 
-### Requisitos del Sistema
-- **Sistema Operativo**: Kali Linux 2024.x+ (Recomendado y Optimizado)
-- **Versión de Python**: Python 3.8+ (3.10+ recomendado) - Solo librerías nativas
-- **Memoria RAM**: Mínimo 4GB (8GB+ recomendado para forense)
-- **Almacenamiento**: 2GB libres para logs y análisis
-- **Permisos**: Privilegios sudo para integración completa con herramientas Kali
+### Sistema Operativo
+- **Kali Linux** (recomendado)
+- Distribuciones Linux compatibles con herramientas de pentesting
 
-### Instalación Paso a Paso
+### Dependencias
+- Python 3.8 o superior
+- Herramientas de Kali Linux: nmap, nikto, gobuster, nuclei, clamav
+- Interfaz gráfica X11 (para GUI)
 
+### Dependencias Python
+```
+psutil>=5.9.0          # Monitoreo del sistema
+tkinter                # Interfaz gráfica
+json                   # Configuración
+subprocess             # Ejecución de herramientas
+logging                # Sistema de logs
+pathlib                # Manejo de rutas
+datetime               # Timestamps
+```
+
+## Instalación
+
+### Instalación Automática
 ```bash
-# 1. Clonar el repositorio seguro
+# Clonar el repositorio
 git clone https://github.com/DogSoulDev/Aresitos.git
 cd Aresitos
 
-# 2. Crear entorno virtual (OBLIGATORIO en Kali 2024+)
-python3 -m venv venv_aresitos
-source venv_aresitos/bin/activate
-
-# 3. Instalar dependencias mínimas (Solo psutil)
-pip install -r requirements.txt
-
-# 4. Verificar seguridad y optimizaciones Kali (RECOMENDADO)
-python3 verificacion_seguridad.py
-
-# 5. Ejecutar ARESITOS seguro y optimizado
-python3 main.py
+# Ejecutar script de instalación
+chmod +x configurar_kali.sh
+sudo ./configurar_kali.sh
 ```
 
-### Dependencias Python Mínimas
+### Instalación Manual
 ```bash
-# ÚNICA dependencia externa crítica para monitoreo del sistema
-psutil>=5.9.0              # Información del sistema y procesos
+# Actualizar sistema
+sudo apt update && sudo apt upgrade -y
 
-# Bibliotecas Python NATIVAS incluidas (NO requieren instalación):
-# - tkinter (interfaz gráfica)
-# - subprocess (ejecución de comandos del sistema)
-# - hashlib (hashing MD5/SHA256 para integridad)
-# - json (persistencia de configuración)
-# - threading (operaciones concurrentes)
-# - datetime (timestamps y fechas)
-# - logging (sistema de logs)
+# Instalar dependencias del sistema
+sudo apt install -y python3 python3-pip python3-tk
+sudo apt install -y nmap nikto gobuster nuclei clamav clamav-daemon
+sudo apt install -y chkrootkit rkhunter lynis
+
+# Instalar dependencias Python
+pip3 install -r requirements.txt
+
+# Configurar permisos
+sudo chmod +x main.py
 ```
 
-## HERRAMIENTAS NATIVAS DE KALI LINUX INTEGRADAS (50+ VERIFICADAS)
+## Uso
 
-### Reconocimiento y Mapeo de Red
-- **nmap, masscan, zmap**: Exploración de red y puertos
-- **nikto, dirb, gobuster**: Escáner de vulnerabilidades web
-- **netdiscover, arping**: Descubrimiento de hosts
-
-### Análisis de Sistema y Archivos
-- **find, stat, lsof**: Búsqueda y análisis de archivos
-- **md5sum, sha256sum**: Checksums y verificación de integridad
-- **head, tail, grep, awk**: Análisis de logs y texto
-
-### Auditoría de Seguridad y Forense
-- **lynis**: Auditoría completa de sistema
-- **rkhunter, chkrootkit**: Detección de rootkits y malware
-- **dd, dcfldd**: Herramientas forenses de disco
-
-### Herramientas de Pentesting
-- **john, hashcat**: Cracking de passwords
-- **hydra, medusa**: Ataques de fuerza bruta
-- **sqlmap**: Inyección SQL
-- **metasploit-framework**: Framework de explotación
-
-## ARQUITECTURA DEL SISTEMA OPTIMIZADA Y SEGURA
-
-### Patrón MVC (Modelo-Vista-Controlador) con Optimizaciones Kali
-```
-aresitos/                          # Núcleo Principal Optimizado
-├── controlador/                   # Controladores con Herramientas Nativas
-│   ├── controlador_principal.py      # Orquestador central del sistema
-│   ├── controlador_escaneador.py     # Motor con nmap, masscan, zmap
-│   ├── controlador_fim.py            # FIM con monitoreo PAM específico
-│   ├── controlador_siem.py           # SIEM con journalctl, ss, ps nativos
-│   ├── controlador_auditoria.py      # Auditoría con lynis/rkhunter
-│   └── gestor_configuracion.py       # Gestión configs específicas Kali
-├── modelo/                        # Modelos con Integración Nativa
-│   ├── escaneador_avanzado.py        # Motor escaneo con herramientas Kali
-│   ├── siem_avanzado.py              # SIEM con análisis logs nativos
-│   ├── modelo_fim.py                 # FIM con SHA256 y find nativo
-│   └── constructor_wordlists.py      # Constructor con listas Kali
-├── vista/                         # Interfaces Optimizadas para Kali
-│   ├── vista_principal.py            # Vista principal con diagnósticos Kali
-│   ├── vista_login.py                # Login con permisos automáticos
-│   ├── vista_escaneo.py              # Escaneo con herramientas integradas
-│   └── vista_siem.py                 # SIEM con forense DD/DCFLDD
-└── utils/                         # Utilidades Optimizadas
-    ├── verificacion_permisos.py      # Verificación permisos robusta
-    └── configurar.py                 # Configurador con herramientas nativas
-```
-
-## GUÍA DE USO OPTIMIZADA
-
-### Primera Ejecución Segura en Kali Linux
+### Ejecución Básica
 ```bash
-# 1. Activar entorno virtual (OBLIGATORIO)
-source venv_aresitos/bin/activate
-
-# 2. Verificar seguridad y optimizaciones
-python3 verificacion_seguridad.py
-
-# 3. Lanzar ARESITOS con login automático
+# Ejecutar ARESITOS
 python3 main.py
 
-# 4. Ingresar contraseña root cuando se solicite
-# 5. Disfrutar de las 50+ herramientas integradas de forma segura
+# Modo desarrollo (opcional)
+python3 main.py --dev
 ```
 
-### Workflows Principales
+### Login y Autenticación
+1. Ejecutar main.py
+2. Ingresar contraseña root del sistema
+3. El sistema verificará automáticamente la compatibilidad con Kali Linux
 
-#### Escaneo de Seguridad Avanzado
-1. **Login**: Ingresar contraseña root para configuración automática
-2. **Dashboard**: Acceder al módulo "Escaneo" desde la interfaz principal
-3. **Configuración**: Configurar objetivo (IP, rango de red, archivo de hosts)
-4. **Ejecución**: Ejecutar escaneo y revisar resultados en tiempo real
-5. **Reportes**: Revisar reporte generado con hallazgos y metadatos
+### Módulos Principales
 
-#### Monitoreo de Integridad (FIM)
-1. **Acceso**: Acceder al módulo "FIM" desde la interfaz
-2. **Configuración**: Configurar rutas críticas incluyendo monitoreo PAM
-3. **Baseline**: Establecer baseline de integridad con verificaciones
-4. **Monitoreo**: Iniciar monitoreo continuo con alertas inmediatas
-5. **Alertas**: Recibir notificaciones cuando se detecten modificaciones
+#### Escaneador de Vulnerabilidades
+1. Acceder al módulo "Escaneador"
+2. Configurar objetivo (IP, rango de red, archivo de hosts)
+3. Seleccionar tipo de escaneo (rápido, completo, personalizado)
+4. Revisar reportes generados en data/reportes/
 
-#### Análisis de Eventos (SIEM)
-1. **Configuración**: Acceder al módulo "SIEM" con herramientas verificadas
-2. **Fuentes**: Configurar análisis de journalctl, logs, procesos y red
-3. **Monitoreo**: Iniciar correlación con ss, ps, grep, tail nativos
-4. **Análisis**: Utilizar DD/DCFLDD para análisis de discos
-5. **Reportes**: Generar documentación completa de incidentes
+#### Monitoreo FIM
+1. Acceder al módulo "FIM"
+2. Configurar rutas críticas a monitorear
+3. Iniciar monitoreo en tiempo real
+4. Revisar alertas en el dashboard
 
-## SOLUCIÓN DE PROBLEMAS
+#### Sistema SIEM
+1. Acceder al módulo "SIEM"
+2. Seleccionar fuentes de logs a analizar
+3. Configurar reglas de correlación
+4. Revisar eventos de seguridad
 
-### Verificación Automática de Seguridad y Sistema
+## Configuración
+
+### Archivos de Configuración
+- `configuracion/aresitos_config.json`: Configuración principal
+- `configuracion/aresitos_config_kali.json`: Configuración específica de Kali
+- `configuracion/textos_castellano_corregido.json`: Textos de la interfaz
+
+### Logs del Sistema
+- `logs/aresitos.log`: Log principal del sistema
+- `logs/aresitos_errors.log`: Log de errores
+- `logs/verificacion_permisos.log`: Log de verificación de permisos
+
+## Verificación del Sistema
+
 ```bash
-# Ejecutar verificación completa de seguridad
+# Verificar instalación y configuración
 python3 verificacion_seguridad.py
 
-# El script verificará automáticamente:
-# - Estado de seguridad del código (vulnerabilidades corregidas)
-# - 50+ herramientas nativas de Kali Linux
-# - Configuraciones específicas de Kali
-# - Permisos de archivos seguros
+# El script verificará:
+# - Estructura de archivos del proyecto
+# - Herramientas de Kali Linux disponibles
+# - Permisos y configuraciones
+# - Integridad del sistema MVC
 ```
 
-### Error: "externally-managed-environment" en Kali Linux
-```bash
-# Verificar que el entorno virtual esté activo
-source venv_aresitos/bin/activate
-pip install psutil
+## Seguridad
 
-# Verificar instalación
-python3 -c "import psutil; print('psutil OK')"
-```
+ARESITOS implementa múltiples capas de seguridad:
 
-### Error: "No module named 'tkinter'"
-```bash
-# Instalar tkinter del sistema
-sudo apt update && sudo apt install -y python3-tk python3-dev
+- **Gestión segura de permisos**: Control de operaciones privilegiadas
+- **Validación de entrada**: Sanitización de todos los inputs del usuario
+- **Ejecución segura**: Prevención de inyección de comandos
+- **Logging seguro**: Ocultación automática de credenciales en logs
+- **Cuarentena de amenazas**: Aislamiento seguro de archivos maliciosos
 
-# Verificar instalación
-python3 -c "import tkinter; print('tkinter OK')"
-```
+## Soporte y Documentación
 
-## CONSIDERACIONES LEGALES Y ÉTICAS
+### Documentación
+- Manual completo: `documentacion/guias/GUIA_COMPLETA.md`
+- Auditorías de seguridad: `documentacion/auditoria/`
+- Documentación técnica: `documentacion/desarrollo/`
 
-### Uso Responsable y Autorizado
-- **AUTORIZACIÓN OBLIGATORIA**: Usar ÚNICAMENTE en sistemas propios o con autorización explícita por escrito
-- **CUMPLIMIENTO LEGAL**: Respetar todas las leyes locales e internacionales de ciberseguridad
-- **PROPÓSITO EDUCATIVO**: Herramienta diseñada para aprendizaje y mejora de seguridad
-- **ENTORNOS CONTROLADOS**: Usar preferiblemente en laboratorios, VMs y entornos de prueba autorizados
+### Reportes de Problemas
+- GitHub Issues: https://github.com/DogSoulDev/Aresitos/issues
 
-### Limitaciones de Responsabilidad
-- **USO BAJO PROPIA RESPONSABILIDAD**: El autor no se hace responsable del mal uso de la herramienta
-- **HERRAMIENTA EDUCATIVA**: Diseñada exclusivamente para aprendizaje de ciberseguridad
-- **VERIFICAR LEGALIDAD**: Verificar leyes locales y regulaciones antes de usar
+### Contribuciones
+Las contribuciones son bienvenidas. Por favor, seguir las guías de contribución del proyecto.
 
-## INFORMACIÓN DEL PROYECTO
+## Licencia
 
-### Autor y Desarrollo
-- **Autor**: **DogSoulDev** (Desarrollador Senior de Ciberseguridad)
-- **Repositorio oficial**: [https://github.com/DogSoulDev/Aresitos](https://github.com/DogSoulDev/Aresitos)
-- **Licencia**: MIT License con atribución requerida
-- **Tipo**: Software libre educativo para ciberseguridad
+MIT License - Ver archivo LICENSE para detalles completos.
 
-### Soporte y Comunidad
-- **GitHub Issues**: [https://github.com/DogSoulDev/Aresitos/issues](https://github.com/DogSoulDev/Aresitos/issues)
-- **Documentación completa**: README.md actualizado con guías paso a paso
-- **Código abierto**: Contribuciones y mejoras bienvenidas de la comunidad
+## Versión
+
+**ARESITOS v2.0** - Suite de Ciberseguridad Profesional para Kali Linux  
+**Fecha de lanzamiento**: Agosto 2025  
+**Estado**: Producción estable
 
 ---
+En Memoria de Ares
+Este programa se comparte gratuitamente con la comunidad de ciberseguridad en honor a mi hijo, compañero y perro, Ares - 25/04/2013 a 5/08/2025 DEP.
 
-## En Memoria de Ares
-
-*Este programa se comparte gratuitamente con la comunidad de ciberseguridad en honor a mi hijo, compañero y perro, **Ares** - 25/04/2013 a 5/08/2025 DEP.*
-
-*Hasta que volvamos a vernos,*  
-**DogSoulDev**
----
-
-*© 2025 ARESITOS Project. Desarrollado por DogSoulDev con 💙 para la comunidad de ciberseguridad*
+Hasta que volvamos a vernos,
+DogSoulDev

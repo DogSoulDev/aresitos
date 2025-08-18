@@ -9,6 +9,9 @@ import json
 import logging
 import threading
 import time
+import subprocess
+import pwd
+import grp
 from datetime import datetime
 from typing import Dict, Any, List, Optional
 from collections import defaultdict, deque
@@ -546,5 +549,157 @@ class ControladorSIEM(ControladorBase):
             
         except Exception as e:
             error_msg = f"Error iniciando monitoreo SIEM: {str(e)}"
+            self.logger.error(error_msg)
+            return {'exito': False, 'error': error_msg}
+
+    def detener_monitoreo_eventos(self) -> Dict[str, Any]:
+        """
+        Detener monitoreo de eventos de seguridad.
+        KALI OPTIMIZATION: Detiene procesos específicos de Kali Linux.
+        """
+        try:
+            self.logger.info("Deteniendo monitoreo de eventos SIEM")
+            
+            # Generar evento de detención
+            self.generar_evento(
+                tipo_evento="SIEM_SHUTDOWN",
+                descripcion="Sistema SIEM detenido correctamente",
+                severidad="info"
+            )
+            
+            # Si hay modelo SIEM disponible, finalizarlo
+            if self.siem:
+                try:
+                    # Guardar estadísticas finales
+                    stats = self.obtener_estadisticas()
+                    if stats.get('exito'):
+                        self.generar_evento(
+                            tipo_evento="SIEM_STATS",
+                            descripcion=f"Estadísticas finales: {stats.get('total_eventos', 0)} eventos procesados",
+                            severidad="info"
+                        )
+                except Exception as e:
+                    self.logger.warning(f"Error obteniendo estadísticas finales: {e}")
+            
+            return {
+                'exito': True,
+                'mensaje': 'Monitoreo de eventos SIEM detenido',
+                'timestamp': datetime.now().isoformat()
+            }
+            
+        except Exception as e:
+            error_msg = f"Error deteniendo monitoreo SIEM: {str(e)}"
+            self.logger.error(error_msg)
+            return {'exito': False, 'error': error_msg}
+
+    def verificar_funcionalidad_kali(self) -> Dict[str, Any]:
+        """
+        Verificar funcionalidad específica de Kali Linux.
+        KALI OPTIMIZATION: Validación de herramientas nativas de Kali.
+        """
+        try:
+            self.logger.info("Verificando funcionalidad SIEM en Kali Linux")
+            
+            verificaciones = {
+                'sistema_archivos': False,
+                'herramientas_siem': False,
+                'logs_sistema': False,
+                'permisos': False
+            }
+            
+            detalles = []
+            
+            # Verificar sistema de archivos
+            try:
+                import os
+                directorio_logs = getattr(self, 'directorio_logs', '/tmp/ares_siem_logs')
+                if os.path.exists(directorio_logs) and os.access(directorio_logs, os.W_OK):
+                    verificaciones['sistema_archivos'] = True
+                    detalles.append("✅ Sistema de archivos: OK")
+                else:
+                    detalles.append("❌ Sistema de archivos: Sin permisos de escritura")
+            except Exception as e:
+                detalles.append(f"❌ Sistema de archivos: Error - {str(e)}")
+            
+            # Verificar herramientas SIEM
+            try:
+                herramientas_kali = ['rsyslog', 'systemctl', 'journalctl', 'netstat']
+                herramientas_disponibles = 0
+                
+                for herramienta in herramientas_kali:
+                    result = subprocess.run(['which', herramienta], 
+                                          capture_output=True, text=True)
+                    if result.returncode == 0:
+                        herramientas_disponibles += 1
+                
+                if herramientas_disponibles >= len(herramientas_kali) * 0.75:
+                    verificaciones['herramientas_siem'] = True
+                    detalles.append(f"✅ Herramientas SIEM: {herramientas_disponibles}/{len(herramientas_kali)} disponibles")
+                else:
+                    detalles.append(f"⚠️ Herramientas SIEM: Solo {herramientas_disponibles}/{len(herramientas_kali)} disponibles")
+                    
+            except Exception as e:
+                detalles.append(f"❌ Herramientas SIEM: Error - {str(e)}")
+            
+            # Verificar logs del sistema
+            try:
+                logs_sistema = ['/var/log/syslog', '/var/log/auth.log', '/var/log/kern.log']
+                logs_encontrados = 0
+                
+                for log_file in logs_sistema:
+                    if os.path.exists(log_file) and os.access(log_file, os.R_OK):
+                        logs_encontrados += 1
+                
+                if logs_encontrados >= len(logs_sistema) * 0.67:
+                    verificaciones['logs_sistema'] = True
+                    detalles.append(f"✅ Logs del sistema: {logs_encontrados}/{len(logs_sistema)} accesibles")
+                else:
+                    detalles.append(f"⚠️ Logs del sistema: Solo {logs_encontrados}/{len(logs_sistema)} accesibles")
+                    
+            except Exception as e:
+                detalles.append(f"❌ Logs del sistema: Error - {str(e)}")
+            
+            # Verificar permisos
+            try:
+                usuario_actual = os.getenv('USER', 'unknown')
+                if usuario_actual == 'root':
+                    verificaciones['permisos'] = True
+                    detalles.append("✅ Permisos: Usuario root detectado")
+                else:
+                    # Verificar si puede ejecutar sudo
+                    try:
+                        result = subprocess.run(['sudo', '-n', 'true'], 
+                                              capture_output=True, text=True, timeout=5)
+                        if result.returncode == 0:
+                            verificaciones['permisos'] = True
+                            detalles.append("✅ Permisos: Usuario con acceso sudo")
+                        else:
+                            detalles.append("⚠️ Permisos: Usuario sin privilegios administrativos")
+                    except:
+                        detalles.append("⚠️ Permisos: No se pudo verificar acceso sudo")
+            except Exception as e:
+                detalles.append(f"❌ Permisos: Error verificando - {str(e)}")
+            
+            # Calcular puntuación general
+            puntuacion = sum(verificaciones.values()) / len(verificaciones) * 100
+            
+            # Generar evento de verificación
+            self.generar_evento(
+                tipo_evento="KALI_VERIFICATION",
+                descripcion=f"Verificación de funcionalidad Kali completada: {puntuacion:.1f}%",
+                severidad="info" if puntuacion >= 75 else "warning"
+            )
+            
+            return {
+                'exito': True,
+                'puntuacion': puntuacion,
+                'verificaciones': verificaciones,
+                'detalles': detalles,
+                'recomendacion': 'Sistema SIEM funcional' if puntuacion >= 75 else 'Revisar configuración del sistema',
+                'timestamp': datetime.now().isoformat()
+            }
+            
+        except Exception as e:
+            error_msg = f"Error verificando funcionalidad Kali: {str(e)}"
             self.logger.error(error_msg)
             return {'exito': False, 'error': error_msg}

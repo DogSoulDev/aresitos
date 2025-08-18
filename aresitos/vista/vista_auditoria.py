@@ -33,14 +33,37 @@ class VistaAuditoria(tk.Frame):
         self.proceso_rootkits_activo = False
         self.thread_auditoria = None
         
+        # Configuración del tema Burp Suite
         if BURP_THEME_AVAILABLE and burp_theme:
             self.theme = burp_theme
-            self.configure(bg=burp_theme.get_color('bg_primary'))
+            # Diccionario de colores consistente con otras vistas
+            self.colors = {
+                'bg_primary': burp_theme.get_color('bg_primary'),      # #2b2b2b
+                'bg_secondary': burp_theme.get_color('bg_secondary'),  # #1e1e1e  
+                'fg_primary': burp_theme.get_color('fg_primary'),      # #ffffff
+                'fg_accent': burp_theme.get_color('fg_accent'),        # #ff6633
+                'success': burp_theme.get_color('success'),            # #00ff88
+                'warning': burp_theme.get_color('warning'),            # #ffcc00
+                'danger': burp_theme.get_color('danger'),              # #ff4444
+                'info': burp_theme.get_color('info')                   # #44aaff
+            }
+            self.configure(bg=self.colors['bg_primary'])
             # Configurar estilos TTK
             style = ttk.Style()
             burp_theme.configure_ttk_style(style)
         else:
             self.theme = None
+            # Colores por defecto para compatibilidad
+            self.colors = {
+                'bg_primary': '#f0f0f0',
+                'bg_secondary': '#ffffff',
+                'fg_primary': '#000000',
+                'fg_accent': '#0066cc',
+                'success': '#008800',
+                'warning': '#ff8800',
+                'danger': '#cc0000',
+                'info': '#0066cc'
+            }
         
         self.crear_interfaz()
     
@@ -49,51 +72,44 @@ class VistaAuditoria(tk.Frame):
     
     def crear_interfaz(self):
         """Crear interfaz especializada para auditorías de seguridad."""
-        if self.theme:
-            titulo_frame = tk.Frame(self, bg='#2b2b2b')
-        else:
-            titulo_frame = tk.Frame(self)
+        # Frame del título con tema Burp Suite
+        titulo_frame = tk.Frame(self, bg=self.colors['bg_primary'])
         titulo_frame.pack(fill=tk.X, pady=(0, 10))
         
-        titulo = tk.Label(titulo_frame, text="Auditoria de Seguridad del Sistema",
+        titulo = tk.Label(titulo_frame, text="🔍 Auditoría de Seguridad del Sistema",
                          font=('Arial', 16, 'bold'),
-                         bg='#2b2b2b' if self.theme else 'white',
-                         fg='#ff6633' if self.theme else 'black')
-        titulo.pack()
+                         bg=self.colors['bg_primary'], fg=self.colors['fg_accent'])
+        titulo.pack(pady=10)
         
-        # Frame principal con división izquierda-derecha
-        if self.theme:
-            main_frame = tk.Frame(self, bg='#2b2b2b')
-        else:
-            main_frame = tk.Frame(self)
+        # Frame principal con tema
+        main_frame = tk.Frame(self, bg=self.colors['bg_primary'])
         main_frame.pack(fill=tk.BOTH, expand=True, padx=20, pady=10)
         
-        # Panel izquierdo - Resultados
-        if self.theme:
-            left_frame = tk.Frame(main_frame, bg='#2b2b2b')
-            label_results = tk.Label(left_frame, text="Resultados de Auditoria", 
-                                   bg='#2b2b2b', fg='#ff6633', font=('Arial', 12, 'bold'))
-            label_results.pack(anchor=tk.W, pady=(0, 5))
-        else:
-            left_frame = ttk.LabelFrame(main_frame, text="Resultados de Auditoria", padding=10)
+        # Panel izquierdo - Resultados con tema Burp Suite
+        left_frame = tk.Frame(main_frame, bg=self.colors['bg_secondary'])
         left_frame.pack(side=tk.LEFT, fill=tk.BOTH, expand=True, padx=(0, 10))
         
+        label_results = tk.Label(left_frame, text="📋 Resultados de Auditoría", 
+                               bg=self.colors['bg_secondary'], fg=self.colors['fg_accent'],
+                               font=('Arial', 12, 'bold'))
+        label_results.pack(anchor=tk.W, pady=(0, 5))
+        
         self.auditoria_text = scrolledtext.ScrolledText(left_frame, height=25, width=65,
-                                                       bg='#1e1e1e' if self.theme else 'white',
-                                                       fg='white' if self.theme else 'black',
-                                                       insertbackground='white' if self.theme else 'black',
-                                                       font=('Consolas', 10))
+                                                       bg=self.colors['bg_primary'],
+                                                       fg=self.colors['fg_primary'],
+                                                       insertbackground=self.colors['fg_accent'],
+                                                       font=('Consolas', 10),
+                                                       relief='flat', bd=1)
         self.auditoria_text.pack(fill=tk.BOTH, expand=True)
         
-        # Panel derecho - Herramientas de Auditoría
-        if self.theme:
-            right_frame = tk.Frame(main_frame, bg='#2b2b2b')
-            label_tools = tk.Label(right_frame, text="Herramientas de Auditoria", 
-                                 bg='#2b2b2b', fg='#ff6633', font=('Arial', 12, 'bold'))
-            label_tools.pack(anchor=tk.W, pady=(0, 10))
-        else:
-            right_frame = ttk.LabelFrame(main_frame, text="Herramientas de Auditoria", padding=10)
+        # Panel derecho - Herramientas de Auditoría con tema Burp Suite
+        right_frame = tk.Frame(main_frame, bg=self.colors['bg_secondary'])
         right_frame.pack(side=tk.RIGHT, fill=tk.Y)
+        
+        label_tools = tk.Label(right_frame, text="🛠️ Herramientas de Auditoría", 
+                             bg=self.colors['bg_secondary'], fg=self.colors['fg_accent'],
+                             font=('Arial', 12, 'bold'))
+        label_tools.pack(anchor=tk.W, pady=(0, 10))
         
         # Crear secciones organizadas
         self._crear_seccion_auditoria_sistema(right_frame)
@@ -103,115 +119,108 @@ class VistaAuditoria(tk.Frame):
     
     def _crear_seccion_auditoria_sistema(self, parent):
         """Crear sección de auditorías generales del sistema."""
-        if self.theme:
-            section_frame = tk.Frame(parent, bg='#2b2b2b')
-            tk.Label(section_frame, text=" Auditorías del Sistema", 
-                    bg='#2b2b2b', fg='#ffffff', font=('Arial', 10, 'bold')).pack(anchor=tk.W, pady=(5, 5))
-        else:
-            section_frame = ttk.LabelFrame(parent, text=" Auditorías del Sistema", padding=5)
+        # Sección de auditorías del sistema con tema Burp Suite
+        section_frame = tk.Frame(parent, bg=self.colors['bg_secondary'])
         section_frame.pack(fill=tk.X, pady=5)
         
+        tk.Label(section_frame, text="🔍 Auditorías del Sistema", 
+                bg=self.colors['bg_secondary'], fg=self.colors['fg_primary'],
+                font=('Arial', 10, 'bold')).pack(anchor=tk.W, pady=(5, 5))
+        
         buttons = [
-            ("Ejecutar Lynis", self.ejecutar_lynis, '#ff6633'),
-            ("Cancelar Lynis", self.cancelar_auditoria, '#cc0000'),
-            ("Verificar Kali", self.verificar_kali, '#337ab7'),
+            ("🔍 Ejecutar Lynis", self.ejecutar_lynis, self.colors['fg_accent']),
+            ("❌ Cancelar Lynis", self.cancelar_auditoria, self.colors['danger']),
+            ("🐧 Verificar Kali", self.verificar_kali, self.colors['info']),
         ]
         
         for text, command, color in buttons:
-            if self.theme:
-                btn = tk.Button(section_frame, text=text, command=command,
-                              bg=color, fg='white', font=('Arial', 9))
-                if "Cancelar" in text:
-                    btn.config(state="disabled")
-                    self.btn_cancelar_auditoria = btn
-            else:
-                btn = ttk.Button(section_frame, text=text, command=command)
-                if "Cancelar" in text:
-                    btn.config(state="disabled")
-                    self.btn_cancelar_auditoria = btn
+            btn = tk.Button(section_frame, text=text, command=command,
+                           bg=color, fg=self.colors['bg_primary'],
+                           font=('Arial', 9, 'bold'), relief='flat',
+                           padx=10, pady=5)
             btn.pack(fill=tk.X, pady=2)
+            
+            # Configuración especial para botón cancelar
+            if "Cancelar" in text:
+                btn.config(state="disabled")
+                self.btn_cancelar_auditoria = btn
     
     def _crear_seccion_deteccion_malware(self, parent):
         """Crear sección de detección de malware y rootkits."""
-        if self.theme:
-            section_frame = tk.Frame(parent, bg='#2b2b2b')
-            tk.Label(section_frame, text=" Detección de Malware", 
-                    bg='#2b2b2b', fg='#ffffff', font=('Arial', 10, 'bold')).pack(anchor=tk.W, pady=(5, 5))
-        else:
-            section_frame = ttk.LabelFrame(parent, text=" Detección de Malware", padding=5)
+        # Sección de detección de malware con tema Burp Suite
+        section_frame = tk.Frame(parent, bg=self.colors['bg_secondary'])
         section_frame.pack(fill=tk.X, pady=5)
         
+        tk.Label(section_frame, text="🦠 Detección de Malware", 
+                bg=self.colors['bg_secondary'], fg=self.colors['fg_primary'],
+                font=('Arial', 10, 'bold')).pack(anchor=tk.W, pady=(5, 5))
+        
         buttons = [
-            ("Detectar Rootkits", self.detectar_rootkits, '#ff9900'),
-            ("Cancelar Rootkits", self.cancelar_rootkits, '#cc0000'),
-            ("Auditoria OpenVAS", self.ejecutar_openvas, '#6600cc'),
-            ("Scan Nessus", self.ejecutar_nessus, '#cc6600'),
+            ("🔍 Detectar Rootkits", self.detectar_rootkits, self.colors['warning']),
+            ("❌ Cancelar Rootkits", self.cancelar_rootkits, self.colors['danger']),
+            ("🛡️ Auditoría OpenVAS", self.ejecutar_openvas, self.colors['info']),
+            ("📊 Scan Nessus", self.ejecutar_nessus, self.colors['fg_accent']),
         ]
         
         for text, command, color in buttons:
-            if self.theme:
-                btn = tk.Button(section_frame, text=text, command=command,
-                              bg=color, fg='white', font=('Arial', 9))
-                if "Cancelar" in text:
-                    btn.config(state="disabled")
-                    if "Rootkits" in text:
-                        self.btn_cancelar_rootkits = btn
-            else:
-                btn = ttk.Button(section_frame, text=text, command=command)
-                if "Cancelar" in text:
-                    btn.config(state="disabled")
-                    if "Rootkits" in text:
-                        self.btn_cancelar_rootkits = btn
+            btn = tk.Button(section_frame, text=text, command=command,
+                           bg=color, fg=self.colors['bg_primary'],
+                           font=('Arial', 9, 'bold'), relief='flat',
+                           padx=10, pady=5)
             btn.pack(fill=tk.X, pady=2)
+            
+            # Configuración especial para botones cancelar
+            if "Cancelar" in text:
+                btn.config(state="disabled")
+                if "Rootkits" in text:
+                    self.btn_cancelar_rootkits = btn
     
     def _crear_seccion_configuraciones(self, parent):
         """Crear sección de análisis de configuraciones."""
-        if self.theme:
-            section_frame = tk.Frame(parent, bg='#2b2b2b')
-            tk.Label(section_frame, text=" Configuraciones", 
-                    bg='#2b2b2b', fg='#ffffff', font=('Arial', 10, 'bold')).pack(anchor=tk.W, pady=(5, 5))
-        else:
-            section_frame = ttk.LabelFrame(parent, text=" Configuraciones", padding=5)
+        # Sección de configuraciones con tema Burp Suite
+        section_frame = tk.Frame(parent, bg=self.colors['bg_secondary'])
         section_frame.pack(fill=tk.X, pady=5)
         
+        tk.Label(section_frame, text="⚙️ Configuraciones", 
+                bg=self.colors['bg_secondary'], fg=self.colors['fg_primary'],
+                font=('Arial', 10, 'bold')).pack(anchor=tk.W, pady=(5, 5))
+        
         buttons = [
-            ("Analizar Servicios", self.analizar_servicios, '#0066cc'),
-            ("Verificar Permisos", self.verificar_permisos, '#009900'),
-            ("Configuración SSH", self.auditar_ssh, '#ff6600'),
-            ("Políticas Password", self.verificar_password_policy, '#cc3300'),
-            ("Análisis SUID/SGID", self.analizar_suid_sgid, '#9900cc'),
+            ("🔧 Analizar Servicios", self.analizar_servicios, self.colors['info']),
+            ("🔒 Verificar Permisos", self.verificar_permisos, self.colors['success']),
+            ("🔑 Configuración SSH", self.auditar_ssh, self.colors['fg_accent']),
+            ("🛡️ Políticas Password", self.verificar_password_policy, self.colors['danger']),
+            ("⚠️ Análisis SUID/SGID", self.analizar_suid_sgid, self.colors['warning']),
         ]
         
         for text, command, color in buttons:
-            if self.theme:
-                btn = tk.Button(section_frame, text=text, command=command,
-                              bg=color, fg='white', font=('Arial', 9))
-            else:
-                btn = ttk.Button(section_frame, text=text, command=command)
+            btn = tk.Button(section_frame, text=text, command=command,
+                           bg=color, fg=self.colors['bg_primary'],
+                           font=('Arial', 9, 'bold'), relief='flat',
+                           padx=10, pady=5)
             btn.pack(fill=tk.X, pady=2)
     
     def _crear_seccion_utilidades(self, parent):
         """Crear sección de utilidades generales."""
-        if self.theme:
-            section_frame = tk.Frame(parent, bg='#2b2b2b')
-            tk.Label(section_frame, text=" Utilidades", 
-                    bg='#2b2b2b', fg='#ffffff', font=('Arial', 10, 'bold')).pack(anchor=tk.W, pady=(5, 5))
-        else:
-            section_frame = ttk.LabelFrame(parent, text=" Utilidades", padding=5)
+        # Sección de utilidades con tema Burp Suite
+        section_frame = tk.Frame(parent, bg=self.colors['bg_secondary'])
         section_frame.pack(fill=tk.X, pady=5)
         
+        tk.Label(section_frame, text="🛠️ Utilidades", 
+                bg=self.colors['bg_secondary'], fg=self.colors['fg_primary'],
+                font=('Arial', 10, 'bold')).pack(anchor=tk.W, pady=(5, 5))
+        
         buttons = [
-            ("Info Hardware", self.obtener_info_hardware, '#666666'),
-            ("Guardar Resultados", self.guardar_auditoria, '#336699'),
-            ("Limpiar Pantalla", self.limpiar_auditoria, '#999999'),
+            ("💻 Info Hardware", self.obtener_info_hardware, self.colors['bg_primary']),
+            ("💾 Guardar Resultados", self.guardar_auditoria, self.colors['info']),
+            ("🗑️ Limpiar Pantalla", self.limpiar_auditoria, self.colors['warning']),
         ]
         
         for text, command, color in buttons:
-            if self.theme:
-                btn = tk.Button(section_frame, text=text, command=command,
-                              bg=color, fg='white', font=('Arial', 9))
-            else:
-                btn = ttk.Button(section_frame, text=text, command=command)
+            btn = tk.Button(section_frame, text=text, command=command,
+                           bg=color, fg=self.colors['fg_primary'],
+                           font=('Arial', 9, 'bold'), relief='flat',
+                           padx=10, pady=5)
             btn.pack(fill=tk.X, pady=2)
     
     def ejecutar_lynis(self):
@@ -316,17 +325,19 @@ class VistaAuditoria(tk.Frame):
         def ejecutar():
             try:
                 if self.controlador:
-                    resultado = self.controlador.detectar_rootkits()
+                    resultado = self.controlador.ejecutar_deteccion_rootkits()
                     if resultado.get('exito'):
-                        self.after(0, self._actualizar_texto_auditoria, "OK Detección de rootkits completada\n")
+                        self.after(0, self._actualizar_texto_auditoria, "✅ OK Detección de rootkits completada\n")
                         if 'rootkits_detectados' in resultado:
                             count = resultado['rootkits_detectados']
                             if count > 0:
-                                self.after(0, self._actualizar_texto_auditoria, f"WARNING {count} posibles rootkits detectados\n")
+                                self.after(0, self._actualizar_texto_auditoria, f"⚠️ WARNING {count} posibles rootkits detectados\n")
                             else:
-                                self.after(0, self._actualizar_texto_auditoria, "OK No se detectaron rootkits\n")
+                                self.after(0, self._actualizar_texto_auditoria, "✅ OK No se detectaron rootkits\n")
+                        if 'salida' in resultado:
+                            self.after(0, self._actualizar_texto_auditoria, f"\n📋 DETALLES:\n{resultado['salida']}\n")
                     else:
-                        self.after(0, self._actualizar_texto_auditoria, f"ERROR Error: {resultado.get('error', 'Error desconocido')}\n")
+                        self.after(0, self._actualizar_texto_auditoria, f"❌ ERROR Error: {resultado.get('error', 'Error desconocido')}\n")
                 else:
                     # Fallback manual
                     self.after(0, self._actualizar_texto_auditoria, " Detectando rootkits con rkhunter y chkrootkit...\n")
@@ -400,42 +411,56 @@ class VistaAuditoria(tk.Frame):
         threading.Thread(target=ejecutar, daemon=True).start()
     
     def verificar_permisos(self):
+        """Verificar permisos críticos del sistema usando controlador."""
         def ejecutar():
             try:
-                self.auditoria_text.config(state=tk.NORMAL)
-                self.auditoria_text.insert(tk.END, "Verificando permisos criticos del sistema...\n")
-                self.auditoria_text.update()
-                
-                import subprocess
-                import os
-                
-                rutas_criticas = [
-                    '/etc/passwd', '/etc/shadow', '/etc/group', '/etc/sudoers',
-                    '/boot', '/usr/bin/passwd', '/usr/bin/sudo', '/etc/ssh'
-                ]
-                
-                for ruta in rutas_criticas:
-                    try:
-                        if os.path.exists(ruta):
-                            stat_result = os.stat(ruta)
-                            permisos = oct(stat_result.st_mode)[-3:]
-                            uid = stat_result.st_uid
-                            gid = stat_result.st_gid
-                            
-                            self.auditoria_text.insert(tk.END, 
-                                f"{ruta}: {permisos} (uid:{uid}, gid:{gid})\n")
-                            
-                            if ruta in ['/etc/shadow', '/etc/sudoers'] and permisos != '640':
-                                self.auditoria_text.insert(tk.END, "   Permisos inusuales\n")
-                        else:
-                            self.auditoria_text.insert(tk.END, f"{ruta}: No existe\n")
-                    except Exception as e:
-                        self.auditoria_text.insert(tk.END, f"{ruta}: Error - {str(e)}\n")
-                
-                self.auditoria_text.insert(tk.END, "\n")
-                self.auditoria_text.config(state=tk.DISABLED)
+                if self.controlador:
+                    resultado = self.controlador.verificar_permisos_criticos()
+                    if resultado.get('exito'):
+                        self.after(0, self._actualizar_texto_auditoria, "✅ OK Verificación de permisos completada\n")
+                        if 'permisos_incorrectos' in resultado:
+                            count = resultado['permisos_incorrectos']
+                            if count > 0:
+                                self.after(0, self._actualizar_texto_auditoria, f"⚠️ WARNING {count} permisos incorrectos detectados\n")
+                            else:
+                                self.after(0, self._actualizar_texto_auditoria, "✅ OK Todos los permisos están correctos\n")
+                        if 'detalles' in resultado:
+                            self.after(0, self._actualizar_texto_auditoria, f"\n📋 DETALLES:\n{resultado['detalles']}\n")
+                    else:
+                        self.after(0, self._actualizar_texto_auditoria, f"❌ ERROR Error: {resultado.get('error', 'Error desconocido')}\n")
+                else:
+                    # Fallback manual
+                    self.after(0, self._actualizar_texto_auditoria, "🔍 Verificando permisos críticos del sistema...\n")
+                    
+                    import subprocess
+                    import os
+                    
+                    rutas_criticas = [
+                        '/etc/passwd', '/etc/shadow', '/etc/group', '/etc/sudoers',
+                        '/boot', '/usr/bin/passwd', '/usr/bin/sudo', '/etc/ssh'
+                    ]
+                    
+                    for ruta in rutas_criticas:
+                        try:
+                            if os.path.exists(ruta):
+                                stat_result = os.stat(ruta)
+                                permisos = oct(stat_result.st_mode)[-3:]
+                                uid = stat_result.st_uid
+                                gid = stat_result.st_gid
+                                
+                                self.after(0, self._actualizar_texto_auditoria, 
+                                    f"📁 {ruta}: {permisos} (uid:{uid}, gid:{gid})\n")
+                                
+                                if ruta in ['/etc/shadow', '/etc/sudoers'] and permisos != '640':
+                                    self.after(0, self._actualizar_texto_auditoria, "⚠️ Permisos inusuales detectados\n")
+                            else:
+                                self.after(0, self._actualizar_texto_auditoria, f"❌ {ruta}: No existe\n")
+                        except Exception as e:
+                            self.after(0, self._actualizar_texto_auditoria, f"❌ {ruta}: Error - {str(e)}\n")
+                    
+                    self.after(0, self._actualizar_texto_auditoria, "\n✅ Verificación de permisos completada\n")
             except Exception as e:
-                messagebox.showerror("Error", f"Error verificando permisos: {str(e)}")
+                self.after(0, self._actualizar_texto_auditoria, f"❌ ERROR verificando permisos: {str(e)}\n")
         
         threading.Thread(target=ejecutar, daemon=True).start()
     

@@ -1,40 +1,113 @@
-# Auto detect text files and perform LF normalization
+# ===================================================================
+# ARESITOS v2.0 - CONFIGURACIÓN GIT ATTRIBUTES
+# Suite de Ciberseguridad para Kali Linux
+# ===================================================================
+
+# === NORMALIZACIÓN AUTOMÁTICA ===
 * text=auto
 
-# Python files
-*.py text eol=lf
-*.pyx text eol=lf
-*.pxd text eol=lf
-*.pxi text eol=lf
+# === ARCHIVOS PYTHON ===
+*.py text eol=lf encoding=utf-8
+*.pyx text eol=lf encoding=utf-8
+*.pxd text eol=lf encoding=utf-8
+*.pxi text eol=lf encoding=utf-8
+*.pyi text eol=lf encoding=utf-8
 
-# Configuration files
-*.json text eol=lf
-*.yaml text eol=lf
-*.yml text eol=lf
-*.toml text eol=lf
-*.ini text eol=lf
-*.cfg text eol=lf
+# === ARCHIVOS DE CONFIGURACIÓN ===
+*.json text eol=lf encoding=utf-8
+*.yaml text eol=lf encoding=utf-8
+*.yml text eol=lf encoding=utf-8
+*.toml text eol=lf encoding=utf-8
+*.ini text eol=lf encoding=utf-8
+*.cfg text eol=lf encoding=utf-8
+*.conf text eol=lf encoding=utf-8
+.gitignore text eol=lf encoding=utf-8
+.gitattributes text eol=lf encoding=utf-8
 
-# Documentation
-*.md text eol=lf
-*.txt text eol=lf
-*.rst text eol=lf
+# === DOCUMENTACIÓN ===
+*.md text eol=lf encoding=utf-8
+*.txt text eol=lf encoding=utf-8
+*.rst text eol=lf encoding=utf-8
+README* text eol=lf encoding=utf-8
+LICENSE* text eol=lf encoding=utf-8
 
-# Shell scripts
-*.sh text eol=lf
+# === SCRIPTS DE SHELL ===
+*.sh text eol=lf encoding=utf-8
+*.bash text eol=lf encoding=utf-8
+*.zsh text eol=lf encoding=utf-8
+configurar_kali.sh text eol=lf encoding=utf-8
 
-# Batch files
-*.bat text eol=crlf
-*.cmd text eol=crlf
+# === ARCHIVOS TEMPORALES ELIMINADOS ===
+# (Sección Windows removida - ARESITOS es exclusivo para Kali Linux)
 
-# Binary files
+# === ARCHIVOS WEB ===
+*.html text eol=lf encoding=utf-8
+*.css text eol=lf encoding=utf-8
+*.js text eol=lf encoding=utf-8
+*.xml text eol=lf encoding=utf-8
+
+# === ARCHIVOS DE DATOS ===
+*.csv text eol=lf encoding=utf-8
+*.sql text eol=lf encoding=utf-8
+*.log text eol=lf encoding=utf-8
+
+# === ARCHIVOS BINARIOS ===
+# Imágenes
 *.png binary
 *.jpg binary
 *.jpeg binary
 *.gif binary
+*.bmp binary
+*.tiff binary
+*.tif binary
 *.ico binary
+*.svg text eol=lf encoding=utf-8
+
+# Documentos
 *.pdf binary
-*.exe binary
-*.dll binary
+
+# Archivos ejecutables (Linux)
 *.so binary
 *.dylib binary
+*.app binary
+
+# Archivos comprimidos
+*.zip binary
+*.tar binary
+*.tar.gz binary
+*.tar.bz2 binary
+*.tar.xz binary
+*.rar binary
+*.7z binary
+*.gz binary
+*.bz2 binary
+
+# Archivos de base de datos
+*.db binary
+*.sqlite binary
+*.sqlite3 binary
+
+# === ARCHIVOS ESPECÍFICOS ARESITOS ===
+# Wordlists (pueden ser grandes)
+data/wordlists/*.txt text eol=lf encoding=utf-8
+data/diccionarios/*.txt text eol=lf encoding=utf-8
+
+# Cheatsheets
+recursos/cheatsheets/*.md text eol=lf encoding=utf-8
+data/cheatsheets/*.txt text eol=lf encoding=utf-8
+
+# Configuración específica
+configuracion/*.json text eol=lf encoding=utf-8
+aresitos_config*.json text eol=lf encoding=utf-8
+
+# === PREVENCIÓN DE CONFLICTOS ===
+# Archivos que no deben ser mergeados automáticamente
+*.db merge=ours
+*.sqlite merge=ours
+logs/*.log merge=ours
+data/fim_database.json merge=ours
+
+# === FILTROS DE LIMPIEZA ===
+# Remover metadatos sensibles de archivos de imagen
+*.jpg filter=lfs diff=lfs merge=lfs -text
+*.png filter=lfs diff=lfs merge=lfs -text

@@ -1,38 +1,164 @@
 # ===================================================================
-# ARESITOS - DEPENDENCIAS MÍNIMAS
+# ARESITOS v2.0 - DEPENDENCIAS DEL PROYECTO
+# Suite Profesional de Ciberseguridad para Kali Linux
 # ===================================================================
-# Instalación:
+# 
+# INSTALACIÓN:
 # 1. python3 -m venv venv_aresitos
 # 2. source venv_aresitos/bin/activate  
 # 3. pip install -r requirements.txt
+# 4. sudo ./configurar_kali.sh  # Para configurar permisos en Kali
+#
+# VERIFICACIÓN:
+# python3 verificacion_seguridad.py
 # ===================================================================
 
-# Información del sistema y procesos (crítico para monitoreo)
+# === DEPENDENCIAS PRINCIPALES ===
+
+# Monitoreo del sistema y procesos (CRÍTICO para FIM y SIEM)
 psutil>=5.9.0
 
 # ===================================================================
-# BIBLIOTECAS PYTHON NATIVAS INCLUIDAS:
-# - tkinter (interfaz gráfica)
-# - subprocess (ejecución de comandos del sistema)
-# - hashlib (hashing MD5/SHA256 para integridad)
-# - json (persistencia de configuración)
+# BIBLIOTECAS PYTHON NATIVAS INCLUIDAS (NO REQUIEREN INSTALACIÓN):
+# ===================================================================
+# 
+# INTERFAZ GRÁFICA:
+# - tkinter (GUI principal)
+# - tkinter.ttk (widgets modernos)
+# 
+# SISTEMA Y PROCESOS:
+# - subprocess (ejecución comandos sistema)
+# - os/pathlib (manejo archivos y rutas)
+# - sys (información del sistema)
+# - platform (detección del SO)
+# 
+# SEGURIDAD Y HASHING:
+# - hashlib (MD5/SHA256 para integridad FIM)
+# - secrets (generación segura de tokens)
+# - ssl (conexiones seguras)
+# 
+# DATOS Y PERSISTENCIA:
+# - json (configuración y reportes)
+# - sqlite3 (base de datos local)
+# - pickle (serialización objetos)
+# 
+# CONCURRENCIA Y TIEMPO:
 # - threading (operaciones concurrentes)
+# - asyncio (programación asíncrona)
 # - datetime (timestamps y fechas)
-# - logging (sistema de logs)
+# - time (delays y timeouts)
+# 
+# NETWORKING:
 # - socket (networking básico)
-# - os/pathlib (manejo de archivos y rutas)
+# - urllib (HTTP requests)
+# - ipaddress (manejo de IPs)
+# 
+# PROCESAMIENTO:
 # - re (expresiones regulares)
-# - tempfile (archivos temporales)
+# - logging (sistema de logs centralizado)
+# - tempfile (archivos temporales seguros)
+# - shutil (operaciones de archivos)
+# - zipfile (compresión de reportes)
+# 
+# MATEMÁTICAS Y ESTRUCTURAS:
+# - collections (estructuras de datos)
+# - itertools (herramientas de iteración)
+# - functools (programación funcional)
 # ===================================================================
 
+# === HERRAMIENTAS KALI LINUX REQUERIDAS ===
 # ===================================================================
-# HERRAMIENTAS KALI LINUX REQUERIDAS:
-# - nmap (escaneo de puertos y red)
-# - lynis (auditoría de seguridad del sistema)  
-# - rkhunter (detección de rootkits)
-# - chkrootkit (detección de rootkits adicional)
-# - clamav (escaneado antivirus)
-# - netstat/ss (monitoreo de conexiones)
+# ESTAS HERRAMIENTAS DEBEN ESTAR INSTALADAS EN KALI LINUX:
+# 
+# ESCANEO DE RED Y VULNERABILIDADES:
+# - nmap (escaneo de puertos SYN, detección OS/servicios)
+# - masscan (escaneo masivo alta velocidad)
+# - nikto (análisis vulnerabilidades web)
+# - gobuster (fuzzing directorios/archivos)
+# - whatweb (fingerprinting tecnologías web)
+# - nuclei (detección vulnerabilidades con templates)
+# 
+# DETECCIÓN DE MALWARE Y ROOTKITS:
+# - clamav (antivirus/detección malware)
+# - chkrootkit (detección rootkits conocidos)
+# - rkhunter (hunter avanzado rootkits/backdoors)
+# 
+# AUDITORÍA DEL SISTEMA:
+# - lynis (auditoría completa seguridad sistema)
+# - systemctl (gestión servicios)
+# - ps/pgrep (análisis procesos)
+# 
+# MONITOREO DE RED:
+# - netstat/ss (monitoreo conexiones TCP/UDP)
 # - lsof (archivos y procesos abiertos)
-# - systemctl (gestión de servicios)
+# - tcpdump (captura de paquetes)
+# - iftop (monitoreo tráfico red)
+# 
+# ANÁLISIS DE LOGS:
+# - tail/head (lectura logs en tiempo real)
+# - grep/awk/sed (procesamiento texto)
+# - find (búsqueda archivos)
+# 
+# INSTALACIÓN DE HERRAMIENTAS KALI:
+# sudo apt update
+# sudo apt install nmap masscan nikto gobuster clamav chkrootkit rkhunter lynis
+# sudo freshclam  # Actualizar base de datos ClamAV
+# ===================================================================
+
+# === DEPENDENCIAS OPCIONALES DE DESARROLLO ===
+# ===================================================================
+# Descomente estas líneas para desarrollo:
+# 
+# # Formateo de código
+# black>=23.0.0
+# isort>=5.12.0
+# 
+# # Análisis de código
+# pylint>=2.17.0
+# mypy>=1.4.0
+# flake8>=6.0.0
+# 
+# # Testing
+# pytest>=7.4.0
+# pytest-cov>=4.1.0
+# pytest-mock>=3.11.0
+# 
+# # Documentación
+# sphinx>=6.0.0
+# sphinx-rtd-theme>=1.3.0
+# ===================================================================
+
+# === INFORMACIÓN DE COMPATIBILIDAD ===
+# ===================================================================
+# SISTEMAS OPERATIVOS SOPORTADOS:
+# - Kali Linux 2024.x (RECOMENDADO - funcionalidad completa)
+# - Debian 12+ (funcionalidad básica)
+# - Ubuntu 22.04+ (funcionalidad básica)
+# 
+# VERSIONES PYTHON SOPORTADAS:
+# - Python 3.8+ (mínimo)
+# - Python 3.9+ (recomendado)
+# - Python 3.10+ (óptimo)
+# - Python 3.11+ (totalmente soportado)
+# - Python 3.12+ (probado)
+# 
+# ARQUITECTURAS SOPORTADAS:
+# - x86_64 (amd64) - Principal
+# - ARM64 (aarch64) - Experimental
+# ===================================================================
+
+# === NOTAS DE SEGURIDAD ===
+# ===================================================================
+# IMPORTANTE:
+# 1. Ejecute SIEMPRE en entorno virtual para aislamiento
+# 2. Configure permisos con configurar_kali.sh en Kali Linux
+# 3. Verifique integridad con verificacion_seguridad.py
+# 4. Los logs se almacenan en ./logs/ (revise periódicamente)
+# 5. Las bases de datos se crean en ./data/ (backup regular)
+# 
+# PERMISOS REQUERIDOS:
+# - sudo para herramientas de red (nmap, tcpdump)
+# - lectura /var/log/ para análisis SIEM
+# - escritura ./logs/ para logging
+# - escritura ./data/ para bases de datos
 # ===================================================================

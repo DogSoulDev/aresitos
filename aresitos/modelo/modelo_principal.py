@@ -43,7 +43,7 @@ class ModeloPrincipal:
             
             # Inicializar componentes avanzados
             try:
-                from aresitos.modelo.escaneador_avanzado import EscaneadorAvanzadoReal
+                from aresitos.modelo.modelo_escaneador_avanzado_real import EscaneadorAvanzadoReal
                 self.escaneador_avanzado = EscaneadorAvanzadoReal()
                 print("Escaneador Avanzado inicializado")
             except Exception as e:

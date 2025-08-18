@@ -6,6 +6,7 @@ Gestiona el escáner con cuarentena automática para amenazas detectadas
 
 import logging
 import os
+import ipaddress
 from typing import Dict, List, Any, Optional, Union
 from datetime import datetime
 
@@ -65,7 +66,7 @@ class ControladorEscaneadorCuarentena:
         """Inicializa el escáner y el sistema de cuarentena."""
         # Inicializar escáner
         try:
-            from ..modelo.escaneador_avanzado import EscaneadorAvanzadoReal
+            from ..modelo.modelo_escaneador_avanzado_real import EscaneadorAvanzadoReal
             self.escáner = EscaneadorAvanzadoReal()
             self.logger.info("OK Escaneador avanzado inicializado")
         except Exception as e:

@@ -17,7 +17,7 @@ from .modelo_escaneador_base import EscaneadorBase, SecurityError
 
 # Importar la clase real completa para compatibilidad
 try:
-    from .escaneador_avanzado import EscaneadorAvanzadoReal
+    from .modelo_escaneador_avanzado_real import EscaneadorAvanzadoReal
     ESCANEADOR_REAL_DISPONIBLE = True
 except ImportError:
     EscaneadorAvanzadoReal = None

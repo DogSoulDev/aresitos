@@ -20,14 +20,41 @@ class VistaFIM(tk.Frame):
         self.proceso_monitoreo_activo = False
         self.thread_monitoreo = None
         
+        # Configurar tema y colores de manera consistente
         if BURP_THEME_AVAILABLE and burp_theme:
             self.theme = burp_theme
             self.configure(bg=burp_theme.get_color('bg_primary'))
             # Configurar estilos TTK
             style = ttk.Style()
             burp_theme.configure_ttk_style(style)
+            self.colors = {
+                'bg_primary': burp_theme.get_color('bg_primary'),
+                'bg_secondary': burp_theme.get_color('bg_secondary'), 
+                'fg_primary': burp_theme.get_color('fg_primary'),
+                'fg_secondary': burp_theme.get_color('fg_secondary'),
+                'fg_accent': burp_theme.get_color('fg_accent'),
+                'button_bg': burp_theme.get_color('button_bg'),
+                'button_fg': burp_theme.get_color('button_fg'),
+                'success': burp_theme.get_color('success'),
+                'warning': burp_theme.get_color('warning'),
+                'danger': burp_theme.get_color('danger'),
+                'info': burp_theme.get_color('info')
+            }
         else:
             self.theme = None
+            self.colors = {
+                'bg_primary': 'white',
+                'bg_secondary': '#f0f0f0', 
+                'fg_primary': 'black',
+                'fg_secondary': 'gray',
+                'fg_accent': 'black',
+                'button_bg': 'lightgray',
+                'button_fg': 'black',
+                'success': 'green',
+                'warning': 'orange',
+                'danger': 'red',
+                'info': 'blue'
+            }
         
         self.crear_interfaz()
     
@@ -35,106 +62,101 @@ class VistaFIM(tk.Frame):
         self.controlador = controlador
     
     def crear_interfaz(self):
-        if self.theme:
-            titulo_frame = tk.Frame(self, bg='#2b2b2b')
-        else:
-            titulo_frame = tk.Frame(self)
+        # Frame título con tema
+        titulo_frame = tk.Frame(self, bg=self.colors['bg_primary'])
         titulo_frame.pack(fill=tk.X, pady=(0, 10))
         
+        # Título con tema Burp Suite
         titulo = tk.Label(titulo_frame, text="File Integrity Monitoring (FIM) - Kali Linux",
                          font=('Arial', 16, 'bold'),
-                         bg='#2b2b2b' if self.theme else 'white',
-                         fg='#ff6633' if self.theme else 'black')
+                         bg=self.colors['bg_primary'], fg=self.colors['fg_accent'])
         titulo.pack()
         
-        # Frame principal dividido en dos secciones
-        if self.theme:
-            main_frame = tk.Frame(self, bg='#2b2b2b')
-        else:
-            main_frame = tk.Frame(self)
+        # Frame principal con tema
+        main_frame = tk.Frame(self, bg=self.colors['bg_primary'])
         main_frame.pack(fill=tk.BOTH, expand=True, padx=20, pady=10)
         
-        # Panel izquierdo - Resultados y monitoreo
-        if self.theme:
-            left_frame = tk.Frame(main_frame, bg='#2b2b2b')
-            label_results = tk.Label(left_frame, text="Monitoreo de Integridad en Tiempo Real", 
-                                   bg='#2b2b2b', fg='#ff6633', font=('Arial', 12, 'bold'))
-            label_results.pack(anchor=tk.W, pady=(0, 5))
-        else:
-            left_frame = ttk.LabelFrame(main_frame, text="Monitoreo de Integridad en Tiempo Real", padding=10)
+        # Panel izquierdo - Resultados y monitoreo con tema
+        left_frame = tk.Frame(main_frame, bg=self.colors['bg_secondary'])
         left_frame.pack(side=tk.LEFT, fill=tk.BOTH, expand=True, padx=(0, 10))
         
+        # Label de resultados con tema
+        label_results = tk.Label(left_frame, text="Monitoreo de Integridad en Tiempo Real", 
+                               bg=self.colors['bg_secondary'], fg=self.colors['fg_accent'], 
+                               font=('Arial', 12, 'bold'))
+        label_results.pack(anchor=tk.W, pady=(0, 5))
+        
+        # Text widget con tema Burp Suite
         self.fim_text = scrolledtext.ScrolledText(left_frame, height=25, width=70,
-                                                 bg='#1e1e1e' if self.theme else 'white',
-                                                 fg='white' if self.theme else 'black',
-                                                 insertbackground='white' if self.theme else 'black',
-                                                 font=('Consolas', 9))
+                                                 bg=self.colors['bg_secondary'],
+                                                 fg=self.colors['fg_primary'],
+                                                 insertbackground=self.colors['fg_accent'],
+                                                 font=('Consolas', 9),
+                                                 relief='flat', bd=1)
         self.fim_text.pack(fill=tk.BOTH, expand=True)
         
-        # Panel derecho - Controles
-        if self.theme:
-            right_frame = tk.Frame(main_frame, bg='#2b2b2b')
-            label_controls = tk.Label(right_frame, text="Controles FIM", 
-                                    bg='#2b2b2b', fg='#ff6633', font=('Arial', 12, 'bold'))
-            label_controls.pack(anchor=tk.W, pady=(0, 10))
-        else:
-            right_frame = ttk.LabelFrame(main_frame, text="Controles FIM", padding=10)
+        # Panel derecho - Controles con tema
+        right_frame = tk.Frame(main_frame, bg=self.colors['bg_secondary'])
         right_frame.pack(side=tk.RIGHT, fill=tk.Y)
         
-        # Sección de configuración de rutas
-        if self.theme:
-            config_frame = tk.Frame(right_frame, bg='#2b2b2b')
-            config_label = tk.Label(config_frame, text="Configurar Rutas a Monitorear",
-                                  bg='#2b2b2b', fg='#cccccc', font=('Arial', 10, 'bold'))
-            config_label.pack(anchor=tk.W, pady=(0, 5))
-        else:
-            config_frame = ttk.LabelFrame(right_frame, text="Configurar Rutas", padding=5)
+        # Label de controles con tema
+        label_controls = tk.Label(right_frame, text="Controles FIM", 
+                                bg=self.colors['bg_secondary'], fg=self.colors['fg_accent'], 
+                                font=('Arial', 12, 'bold'))
+        label_controls.pack(anchor=tk.W, pady=(0, 10))
+        
+        # Sección de configuración de rutas con tema
+        config_frame = tk.Frame(right_frame, bg=self.colors['bg_secondary'])
         config_frame.pack(fill=tk.X, pady=(0, 10))
         
-        # Entry para rutas
-        if self.theme:
-            path_label = tk.Label(config_frame, text="Ruta:", bg='#2b2b2b', fg='#cccccc')
-            path_label.pack(anchor=tk.W)
-            self.path_entry = tk.Entry(config_frame, bg='#4a4a4a', fg='white', 
-                                     insertbackground='white', width=25)
-        else:
-            path_label = ttk.Label(config_frame, text="Ruta:")
-            path_label.pack(anchor=tk.W)
-            self.path_entry = ttk.Entry(config_frame, width=25)
+        config_label = tk.Label(config_frame, text="Configurar Rutas a Monitorear",
+                              bg=self.colors['bg_secondary'], fg=self.colors['fg_secondary'], 
+                              font=('Arial', 10, 'bold'))
+        config_label.pack(anchor=tk.W, pady=(0, 5))
+        
+        # Entry para rutas con tema
+        path_label = tk.Label(config_frame, text="Ruta:", 
+                             bg=self.colors['bg_secondary'], fg=self.colors['fg_secondary'])
+        path_label.pack(anchor=tk.W)
+        
+        self.path_entry = tk.Entry(config_frame, bg=self.colors['bg_secondary'], 
+                                 fg=self.colors['fg_primary'], 
+                                 insertbackground=self.colors['fg_accent'], 
+                                 width=25, relief='flat', bd=1)
         self.path_entry.pack(fill=tk.X, pady=2)
         self.path_entry.insert(0, "/etc")  # Ruta por defecto
         
-        # Botones de configuración
-        if self.theme:
-            btn_add_path = tk.Button(config_frame, text="Agregar Ruta", 
-                                   command=self.agregar_ruta_monitoreo,
-                                   bg='#404040', fg='white', font=('Arial', 9))
-            btn_add_path.pack(fill=tk.X, pady=2)
-            
-            btn_browse = tk.Button(config_frame, text="Examinar...", 
-                                 command=self.examinar_ruta,
-                                 bg='#404040', fg='white', font=('Arial', 9))
-            btn_browse.pack(fill=tk.X, pady=2)
-        else:
-            btn_add_path = ttk.Button(config_frame, text="Agregar Ruta", 
-                                    command=self.agregar_ruta_monitoreo)
-            btn_add_path.pack(fill=tk.X, pady=2)
-            
-            btn_browse = ttk.Button(config_frame, text="Examinar...", 
-                                  command=self.examinar_ruta)
-            btn_browse.pack(fill=tk.X, pady=2)
+        # Botones de configuración con tema Burp Suite
+        btn_add_path = tk.Button(config_frame, text="Agregar Ruta", 
+                               command=self.agregar_ruta_monitoreo,
+                               bg=self.colors['button_bg'], fg=self.colors['button_fg'], 
+                               font=('Arial', 9),
+                               relief='flat', padx=10, pady=5,
+                               activebackground=self.colors['fg_accent'],
+                               activeforeground='white')
+        btn_add_path.pack(fill=tk.X, pady=2)
         
-        # Lista de rutas monitoreadas
-        if self.theme:
-            list_label = tk.Label(config_frame, text="Rutas Monitoreadas:",
-                                bg='#2b2b2b', fg='#cccccc', font=('Arial', 9))
-            list_label.pack(anchor=tk.W, pady=(10, 2))
+        btn_browse = tk.Button(config_frame, text="Examinar...", 
+                             command=self.examinar_ruta,
+                             bg=self.colors['button_bg'], fg=self.colors['button_fg'], 
+                             font=('Arial', 9),
+                             relief='flat', padx=10, pady=5,
+                             activebackground=self.colors['fg_accent'],
+                             activeforeground='white')
+        btn_browse.pack(fill=tk.X, pady=2)
+        
+        # Lista de rutas monitoreadas con tema
+        list_label = tk.Label(config_frame, text="Rutas Monitoreadas:",
+                            bg=self.colors['bg_secondary'], fg=self.colors['fg_secondary'], 
+                            font=('Arial', 9))
+        list_label.pack(anchor=tk.W, pady=(10, 2))
         
         self.rutas_listbox = tk.Listbox(config_frame, height=4,
-                                       bg='#4a4a4a' if self.theme else 'white',
-                                       fg='white' if self.theme else 'black',
-                                       selectbackground='#ff6633' if self.theme else 'blue',
-                                       font=('Consolas', 8))
+                                       bg=self.colors['bg_secondary'],
+                                       fg=self.colors['fg_primary'],
+                                       selectbackground=self.colors['fg_accent'],
+                                       font=('Consolas', 8),
+                                       relief='flat', bd=1)
         self.rutas_listbox.pack(fill=tk.X, pady=2)
         
         # Agregar rutas por defecto críticas de Kali Linux
@@ -142,74 +164,41 @@ class VistaFIM(tk.Frame):
         for ruta in rutas_criticas:
             self.rutas_listbox.insert(tk.END, ruta)
         
-        # Separador
-        if self.theme:
-            sep_frame = tk.Frame(right_frame, bg='#555555', height=2)
-            sep_frame.pack(fill=tk.X, pady=10)
-        else:
-            ttk.Separator(right_frame, orient=tk.HORIZONTAL).pack(fill=tk.X, pady=10)
+        # Separador con tema
+        sep_frame = tk.Frame(right_frame, bg=self.colors['fg_accent'], height=2)
+        sep_frame.pack(fill=tk.X, pady=10)
         
-        # Botones principales de FIM
-        if self.theme:
-            buttons = [
-                (" Crear Baseline", self.crear_baseline, '#ff6633'),
-                ("▶ Iniciar Monitoreo", self.iniciar_monitoreo, '#5cb85c'),
-                (" Detener Monitoreo", self.detener_monitoreo, '#d9534f'),
-                ("� Verificar Kali", self.verificar_kali, '#337ab7'),
-                ("� Verificar Integridad", self.verificar_integridad, '#404040'),
-                (" Escaneo Manual", self.escaneo_manual, '#404040'),
-                (" Usar AIDE (Kali)", self.usar_aide, '#404040'),
-                (" Usar Tripwire", self.usar_tripwire, '#404040'),
-                (" Ver Baseline", self.ver_baseline, '#404040'),
-                (" Guardar Reporte", self.guardar_reporte, '#404040'),
-                (" Limpiar Pantalla", self.limpiar_pantalla, '#404040')
-            ]
-            
-            for i, (text, command, bg_color) in enumerate(buttons):
-                btn = tk.Button(right_frame, text=text, command=command,
-                              bg=bg_color, fg='white', font=('Arial', 9))
-                if text == " Detener Monitoreo":
-                    btn.config(state="disabled")
-                    self.btn_detener_monitoreo = btn
-                btn.pack(fill=tk.X, pady=2)
-        else:
-            # Crear botones individuales para mejor control
-            self.btn_crear_baseline = ttk.Button(right_frame, text=" Crear Baseline", 
-                                               command=self.crear_baseline)
-            self.btn_crear_baseline.pack(fill=tk.X, pady=2)
-            
-            self.btn_iniciar_monitoreo = ttk.Button(right_frame, text="▶ Iniciar Monitoreo", 
-                                                  command=self.iniciar_monitoreo)
-            self.btn_iniciar_monitoreo.pack(fill=tk.X, pady=2)
-            
-            self.btn_detener_monitoreo = ttk.Button(right_frame, text=" Detener Monitoreo", 
-                                                  command=self.detener_monitoreo,
-                                                  state="disabled")
-            self.btn_detener_monitoreo.pack(fill=tk.X, pady=2)
-            
-            ttk.Button(right_frame, text="� Verificar Kali", 
-                      command=self.verificar_kali).pack(fill=tk.X, pady=2)
-            ttk.Button(right_frame, text="� Verificar Integridad", 
-                      command=self.verificar_integridad).pack(fill=tk.X, pady=2)
-            ttk.Button(right_frame, text=" Escaneo Manual", 
-                      command=self.escaneo_manual).pack(fill=tk.X, pady=2)
-            ttk.Button(right_frame, text=" Usar AIDE (Kali)", 
-                      command=self.usar_aide).pack(fill=tk.X, pady=2)
-            ttk.Button(right_frame, text=" Usar Tripwire", 
-                      command=self.usar_tripwire).pack(fill=tk.X, pady=2)
-            ttk.Separator(right_frame, orient=tk.HORIZONTAL).pack(fill=tk.X, pady=5)
-            ttk.Button(right_frame, text=" Ver Baseline", 
-                      command=self.ver_baseline).pack(fill=tk.X, pady=2)
-            ttk.Button(right_frame, text=" Guardar Reporte", 
-                      command=self.guardar_reporte).pack(fill=tk.X, pady=2)
-            ttk.Button(right_frame, text=" Limpiar Pantalla", 
-                      command=self.limpiar_pantalla).pack(fill=tk.X, pady=2)
+        # Botones principales de FIM con tema Burp Suite
+        buttons = [
+            (" Crear Baseline", self.crear_baseline, self.colors['fg_accent']),
+            ("▶ Iniciar Monitoreo", self.iniciar_monitoreo, self.colors['success']),
+            (" Detener Monitoreo", self.detener_monitoreo, self.colors['danger']),
+            ("⚡ Verificar Kali", self.verificar_kali, self.colors['info']),
+            ("🔍 Verificar Integridad", self.verificar_integridad, self.colors['button_bg']),
+            ("📋 Escaneo Manual", self.escaneo_manual, self.colors['button_bg']),
+            ("🛡️ Usar AIDE (Kali)", self.usar_aide, self.colors['button_bg']),
+            ("🔒 Usar Tripwire", self.usar_tripwire, self.colors['button_bg']),
+            ("📊 Ver Baseline", self.ver_baseline, self.colors['button_bg']),
+            ("💾 Guardar Reporte", self.guardar_reporte, self.colors['button_bg']),
+            ("🧹 Limpiar Pantalla", self.limpiar_pantalla, self.colors['button_bg'])
+        ]
+        
+        for i, (text, command, bg_color) in enumerate(buttons):
+            btn = tk.Button(right_frame, text=text, command=command,
+                          bg=bg_color, fg='white', font=('Arial', 9),
+                          relief='flat', padx=10, pady=5,
+                          activebackground=self.colors['fg_accent'],
+                          activeforeground='white')
+            if text == " Detener Monitoreo":
+                btn.config(state="disabled")
+                self.btn_detener_monitoreo = btn
+            btn.pack(fill=tk.X, pady=2)
         
         # Mensaje inicial
-        self._actualizar_texto_fim(" Sistema FIM de Aresitos para Kali Linux iniciado\n")
-        self._actualizar_texto_fim(" Rutas críticas pre-configuradas: /etc, /boot, /usr/bin, /root\n")
-        self._actualizar_texto_fim(" Herramientas disponibles: AIDE, Tripwire, inotify-tools\n")
-        self._actualizar_texto_fim(" Listo para crear baseline y monitorear integridad de archivos\n\n")
+        self._actualizar_texto_fim("💻 Sistema FIM de Aresitos para Kali Linux iniciado\n")
+        self._actualizar_texto_fim("📁 Rutas críticas pre-configuradas: /etc, /boot, /usr/bin, /root\n")
+        self._actualizar_texto_fim("🔧 Herramientas disponibles: AIDE, Tripwire, inotify-tools\n")
+        self._actualizar_texto_fim("✅ Listo para crear baseline y monitorear integridad de archivos\n\n")
     
     def agregar_ruta_monitoreo(self):
         """Agregar ruta para monitoreo."""

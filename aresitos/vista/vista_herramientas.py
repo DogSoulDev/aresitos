@@ -24,14 +24,41 @@ class VistaHerramientas(tk.Frame):
         self.thread_verificacion = None
         self.thread_limpieza = None
         
+        # Configurar tema y colores de manera consistente
         if BURP_THEME_AVAILABLE and burp_theme:
             self.theme = burp_theme
             self.configure(bg=burp_theme.get_color('bg_primary'))
             # Configurar estilos TTK
             style = ttk.Style()
             burp_theme.configure_ttk_style(style)
+            self.colors = {
+                'bg_primary': burp_theme.get_color('bg_primary'),
+                'bg_secondary': burp_theme.get_color('bg_secondary'), 
+                'fg_primary': burp_theme.get_color('fg_primary'),
+                'fg_secondary': burp_theme.get_color('fg_secondary'),
+                'fg_accent': burp_theme.get_color('fg_accent'),
+                'button_bg': burp_theme.get_color('button_bg'),
+                'button_fg': burp_theme.get_color('button_fg'),
+                'success': burp_theme.get_color('success'),
+                'warning': burp_theme.get_color('warning'),
+                'danger': burp_theme.get_color('danger'),
+                'info': burp_theme.get_color('info')
+            }
         else:
             self.theme = None
+            self.colors = {
+                'bg_primary': 'white',
+                'bg_secondary': '#f0f0f0', 
+                'fg_primary': 'black',
+                'fg_secondary': 'gray',
+                'fg_accent': 'black',
+                'button_bg': 'lightgray',
+                'button_fg': 'black',
+                'success': 'green',
+                'warning': 'orange',
+                'danger': 'red',
+                'info': 'blue'
+            }
         
         self.crear_interfaz()
     
@@ -39,95 +66,99 @@ class VistaHerramientas(tk.Frame):
         self.controlador = controlador
     
     def crear_interfaz(self):
-        if self.theme:
-            titulo_frame = tk.Frame(self, bg='#2b2b2b')
-        else:
-            titulo_frame = tk.Frame(self)
+        # Frame título con tema
+        titulo_frame = tk.Frame(self, bg=self.colors['bg_primary'])
         titulo_frame.pack(fill=tk.X, pady=(0, 10))
         
+        # Título con tema Burp Suite
         titulo = tk.Label(titulo_frame, text="Verificacion de Herramientas del Sistema",
                          font=('Arial', 16, 'bold'),
-                         bg='#2b2b2b' if self.theme else 'white',
-                         fg='#ff6633' if self.theme else 'black')
+                         bg=self.colors['bg_primary'], fg=self.colors['fg_accent'])
         titulo.pack()
         
-        if self.theme:
-            main_frame = tk.Frame(self, bg='#2b2b2b')
-        else:
-            main_frame = tk.Frame(self)
+        # Frame principal con tema
+        main_frame = tk.Frame(self, bg=self.colors['bg_primary'])
         main_frame.pack(fill=tk.BOTH, expand=True, padx=20, pady=10)
         
-        if self.theme:
-            left_frame = tk.Frame(main_frame, bg='#2b2b2b')
-            label_tools = tk.Label(left_frame, text="Herramientas Disponibles", 
-                                 bg='#2b2b2b', fg='#ff6633', font=('Arial', 12, 'bold'))
-            label_tools.pack(anchor=tk.W, pady=(0, 5))
-        else:
-            left_frame = ttk.LabelFrame(main_frame, text="Herramientas Disponibles", padding=10)
+        # Frame izquierdo para herramientas con tema
+        left_frame = tk.Frame(main_frame, bg=self.colors['bg_secondary'])
         left_frame.pack(side=tk.LEFT, fill=tk.BOTH, expand=True, padx=(0, 10))
         
+        # Label de herramientas con tema
+        label_tools = tk.Label(left_frame, text="Herramientas Disponibles", 
+                             bg=self.colors['bg_secondary'], fg=self.colors['fg_accent'], 
+                             font=('Arial', 12, 'bold'))
+        label_tools.pack(anchor=tk.W, pady=(0, 5))
+        
+        # Text widget con tema Burp Suite
         self.herramientas_text = scrolledtext.ScrolledText(left_frame, height=20, width=50,
-                                                          bg='#1e1e1e' if self.theme else 'white',
-                                                          fg='white' if self.theme else 'black',
-                                                          insertbackground='white' if self.theme else 'black',
-                                                          font=('Consolas', 10))
+                                                          bg=self.colors['bg_secondary'],
+                                                          fg=self.colors['fg_primary'],
+                                                          insertbackground=self.colors['fg_accent'],
+                                                          font=('Consolas', 10),
+                                                          relief='flat', bd=1)
         self.herramientas_text.pack(fill=tk.BOTH, expand=True)
         
-        if self.theme:
-            right_frame = tk.Frame(main_frame, bg='#2b2b2b')
-            label_actions = tk.Label(right_frame, text="Acciones", 
-                                   bg='#2b2b2b', fg='#ff6633', font=('Arial', 12, 'bold'))
-            label_actions.pack(anchor=tk.W, pady=(0, 10))
-        else:
-            right_frame = ttk.LabelFrame(main_frame, text="Acciones", padding=10)
+        # Frame derecho para acciones con tema
+        right_frame = tk.Frame(main_frame, bg=self.colors['bg_secondary'])
         right_frame.pack(side=tk.RIGHT, fill=tk.Y)
         
-        if self.theme:
-            btn_verificar = tk.Button(right_frame, text="Verificar Herramientas", 
-                                    command=self.verificar_herramientas,
-                                    bg='#ff6633', fg='white', font=('Arial', 10, 'bold'))
-            btn_verificar.pack(fill=tk.X, pady=5)
-            
-            self.btn_cancelar_verificacion = tk.Button(right_frame, text=" Cancelar", 
-                                                      command=self.cancelar_verificacion,
-                                                      bg='#cc3333', fg='white', font=('Arial', 10),
-                                                      state='disabled')
-            self.btn_cancelar_verificacion.pack(fill=tk.X, pady=5)
-            
-            btn_limpiar = tk.Button(right_frame, text="Limpiar Sistema", 
-                                  command=self.limpiar_sistema,
-                                  bg='#404040', fg='white', font=('Arial', 10))
-            btn_limpiar.pack(fill=tk.X, pady=5)
-            
-            self.btn_cancelar_limpieza = tk.Button(right_frame, text=" Cancelar", 
-                                                  command=self.cancelar_limpieza,
-                                                  bg='#cc3333', fg='white', font=('Arial', 10),
-                                                  state='disabled')
-            self.btn_cancelar_limpieza.pack(fill=tk.X, pady=5)
-            
-            btn_exportar = tk.Button(right_frame, text="Exportar Lista", 
-                                   command=self.exportar_herramientas,
-                                   bg='#404040', fg='white', font=('Arial', 10))
-            btn_exportar.pack(fill=tk.X, pady=5)
-        else:
-            ttk.Button(right_frame, text="Verificar Herramientas", 
-                      command=self.verificar_herramientas).pack(fill=tk.X, pady=5)
-            
-            self.btn_cancelar_verificacion = ttk.Button(right_frame, text=" Cancelar", 
-                                                       command=self.cancelar_verificacion,
-                                                       state='disabled')
-            self.btn_cancelar_verificacion.pack(fill=tk.X, pady=5)
-            
-            ttk.Button(right_frame, text="Limpiar Sistema", 
-                      command=self.limpiar_sistema).pack(fill=tk.X, pady=5)
-            
-            self.btn_cancelar_limpieza = ttk.Button(right_frame, text=" Cancelar", 
-                                                   command=self.cancelar_limpieza,
-                                                   state='disabled')
-            self.btn_cancelar_limpieza.pack(fill=tk.X, pady=5)
-            
-            ttk.Button(right_frame, text="Exportar Lista", 
-                      command=self.exportar_herramientas).pack(fill=tk.X, pady=5)
+        # Label de acciones con tema
+        label_actions = tk.Label(right_frame, text="Acciones", 
+                               bg=self.colors['bg_secondary'], fg=self.colors['fg_accent'], 
+                               font=('Arial', 12, 'bold'))
+        label_actions.pack(anchor=tk.W, pady=(0, 10))
+        
+        # Botones con tema Burp Suite
+        btn_verificar = tk.Button(right_frame, text="Verificar Herramientas", 
+                                command=self.verificar_herramientas,
+                                bg=self.colors['fg_accent'], fg=self.colors['fg_primary'], 
+                                font=('Arial', 10, 'bold'),
+                                relief='flat', padx=10, pady=5,
+                                activebackground=self.colors['danger'],
+                                activeforeground='white')
+        btn_verificar.pack(fill=tk.X, pady=5)
+        
+        self.btn_cancelar_verificacion = tk.Button(right_frame, text=" Cancelar", 
+                                                  command=self.cancelar_verificacion,
+                                                  bg=self.colors['danger'], fg=self.colors['fg_primary'], 
+                                                  font=('Arial', 10),
+                                                  relief='flat', padx=10, pady=5,
+                                                  state='disabled',
+                                                  activebackground=self.colors['fg_accent'],
+                                                  activeforeground='white')
+        self.btn_cancelar_verificacion.pack(fill=tk.X, pady=5)
+        
+        # Botón limpiar sistema con tema
+        btn_limpiar = tk.Button(right_frame, text="Limpiar Sistema", 
+                              command=self.limpiar_sistema,
+                              bg=self.colors['bg_secondary'], fg=self.colors['fg_primary'], 
+                              font=('Arial', 10),
+                              relief='flat', padx=10, pady=5,
+                              activebackground=self.colors['fg_accent'],
+                              activeforeground='white')
+        btn_limpiar.pack(fill=tk.X, pady=5)
+        
+        # Botón cancelar limpieza con tema
+        self.btn_cancelar_limpieza = tk.Button(right_frame, text=" Cancelar", 
+                                              command=self.cancelar_limpieza,
+                                              bg=self.colors['danger'], fg=self.colors['fg_primary'], 
+                                              font=('Arial', 10),
+                                              relief='flat', padx=10, pady=5,
+                                              state='disabled',
+                                              activebackground=self.colors['fg_accent'],
+                                              activeforeground='white')
+        self.btn_cancelar_limpieza.pack(fill=tk.X, pady=5)
+        
+        # Botón exportar con tema
+        btn_exportar = tk.Button(right_frame, text="Exportar Lista", 
+                               command=self.exportar_herramientas,
+                               bg=self.colors['bg_secondary'], fg=self.colors['fg_primary'], 
+                               font=('Arial', 10),
+                               relief='flat', padx=10, pady=5,
+                               activebackground=self.colors['fg_accent'],
+                               activeforeground='white')
+        btn_exportar.pack(fill=tk.X, pady=5)
     
     def verificar_herramientas(self):
         """Verificar herramientas del sistema."""

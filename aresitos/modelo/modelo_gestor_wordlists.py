@@ -13,7 +13,7 @@ class ModeloGestorWordlists:
         
         # Inicializar constructor de wordlists
         try:
-            from aresitos.modelo.constructor_wordlists import ConstructorWordlists
+            from aresitos.modelo.modelo_constructor_wordlists import ConstructorWordlists
             self.constructor_wordlists = ConstructorWordlists(self.directorio_wordlists)
         except ImportError as e:
             print(f"Warning: Constructor de wordlists no disponible: {e}")

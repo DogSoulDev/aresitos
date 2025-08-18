@@ -337,6 +337,116 @@ class ControladorFIM(ControladorBase):
         """Crear baseline inicial de archivos monitoreados."""
         return self.ejecutar_operacion_segura(self._ejecutar_escaneo_inicial)
 
+    def obtener_info_baseline(self) -> Dict[str, Any]:
+        """Obtener información del baseline actual."""
+        try:
+            with self._lock_fim:
+                if not self.fim or not hasattr(self.fim, 'base_datos'):
+                    return {
+                        'exito': True,
+                        'baseline_creado': False,
+                        'mensaje': 'No hay baseline creado',
+                        'total_archivos': 0,
+                        'fecha_creacion': None
+                    }
+                
+                total_archivos = len(self.fim.base_datos)
+                fecha_creacion = self._estado_fim.get('fecha_baseline', 'Desconocida')
+                
+                return {
+                    'exito': True,
+                    'baseline_creado': True,
+                    'total_archivos': total_archivos,
+                    'fecha_creacion': fecha_creacion,
+                    'rutas_monitoreadas': len(self._estado_fim['rutas_monitoreadas']),
+                    'monitoreo_activo': self._estado_fim['monitoreo_activo']
+                }
+        except Exception as e:
+            self.logger.error(f"Error obteniendo info baseline: {e}")
+            return {
+                'exito': False,
+                'error': f'Error obteniendo información del baseline: {str(e)}'
+            }
+
+    def verificar_integridad(self) -> Dict[str, Any]:
+        """Verificar integridad de archivos contra baseline."""
+        if not self.fim or not hasattr(self.fim, 'base_datos') or not self.fim.base_datos:
+            return {
+                'exito': False,
+                'error': 'No hay baseline creado. Crear baseline primero.'
+            }
+        
+        return self.ejecutar_operacion_segura(self._verificar_integridad_impl)
+
+    def _verificar_integridad_impl(self) -> Dict[str, Any]:
+        """Implementación de verificación de integridad."""
+        try:
+            archivos_modificados = []
+            archivos_nuevos = []
+            archivos_eliminados = []
+            
+            # Verificar si el FIM está disponible y tiene base de datos
+            if not self.fim or not hasattr(self.fim, 'base_datos'):
+                return {
+                    'exito': False,
+                    'error': 'Componente FIM no disponible o sin base de datos'
+                }
+            
+            # Verificar archivos en el baseline
+            for archivo_path, baseline_info in self.fim.base_datos.items():
+                if os.path.exists(archivo_path):
+                    # Archivo existe, verificar integridad usando método seguro
+                    try:
+                        # Crear hash actual del archivo
+                        import hashlib
+                        with open(archivo_path, 'rb') as f:
+                            hash_actual = hashlib.sha256(f.read()).hexdigest()
+                        
+                        # Comparar con el hash del baseline si está disponible
+                        hash_baseline = baseline_info.get('hash', '') if isinstance(baseline_info, dict) else ''
+                        if hash_baseline and hash_actual != hash_baseline:
+                            archivos_modificados.append(archivo_path)
+                    except Exception as e:
+                        self.logger.warning(f"Error verificando {archivo_path}: {e}")
+                        archivos_modificados.append(archivo_path)
+                else:
+                    # Archivo eliminado
+                    archivos_eliminados.append(archivo_path)
+            
+            # Buscar archivos nuevos en rutas monitoreadas
+            for ruta in self._estado_fim['rutas_monitoreadas']:
+                if os.path.exists(ruta):
+                    try:
+                        for root, dirs, files in os.walk(ruta):
+                            for file in files:
+                                archivo_path = os.path.join(root, file)
+                                if archivo_path not in self.fim.base_datos:
+                                    archivos_nuevos.append(archivo_path)
+                    except Exception as e:
+                        self.logger.warning(f"Error escaneando {ruta}: {e}")
+            
+            total_cambios = len(archivos_modificados) + len(archivos_nuevos) + len(archivos_eliminados)
+            
+            return {
+                'exito': True,
+                'total_cambios': total_cambios,
+                'archivos_modificados': len(archivos_modificados),
+                'archivos_nuevos': len(archivos_nuevos),
+                'archivos_eliminados': len(archivos_eliminados),
+                'detalles': {
+                    'modificados': archivos_modificados[:10],  # Limitar para no saturar
+                    'nuevos': archivos_nuevos[:10],
+                    'eliminados': archivos_eliminados[:10]
+                }
+            }
+            
+        except Exception as e:
+            self.logger.error(f"Error verificando integridad: {e}")
+            return {
+                'exito': False,
+                'error': f'Error verificando integridad: {str(e)}'
+            }
+
     def iniciar_monitoreo_continuo(self) -> Dict[str, Any]:
         """Iniciar monitoreo continuo de archivos."""
         return self.ejecutar_operacion_segura(self._iniciar_monitoreo_continuo_impl)

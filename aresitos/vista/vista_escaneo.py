@@ -18,15 +18,41 @@ class VistaEscaneo(tk.Frame):
         self.proceso_activo = False
         self.thread_escaneo = None
         
-        # Aplicar tema Burp Suite si está disponible
+        # Configurar tema y colores de manera consistente
         if BURP_THEME_AVAILABLE and burp_theme:
             self.theme = burp_theme
             self.configure(bg=burp_theme.get_color('bg_primary'))
             # Configurar estilos TTK
             style = ttk.Style()
             burp_theme.configure_ttk_style(style)
+            self.colors = {
+                'bg_primary': burp_theme.get_color('bg_primary'),
+                'bg_secondary': burp_theme.get_color('bg_secondary'), 
+                'fg_primary': burp_theme.get_color('fg_primary'),
+                'fg_secondary': burp_theme.get_color('fg_secondary'),
+                'fg_accent': burp_theme.get_color('fg_accent'),
+                'button_bg': burp_theme.get_color('button_bg'),
+                'button_fg': burp_theme.get_color('button_fg'),
+                'success': burp_theme.get_color('success'),
+                'warning': burp_theme.get_color('warning'),
+                'danger': burp_theme.get_color('danger'),
+                'info': burp_theme.get_color('info')
+            }
         else:
             self.theme = None
+            self.colors = {
+                'bg_primary': 'white',
+                'bg_secondary': '#f0f0f0', 
+                'fg_primary': 'black',
+                'fg_secondary': 'gray',
+                'fg_accent': 'black',
+                'button_bg': 'lightgray',
+                'button_fg': 'black',
+                'success': 'green',
+                'warning': 'orange',
+                'danger': 'red',
+                'info': 'blue'
+            }
             
         self.crear_widgets()
     
@@ -35,100 +61,78 @@ class VistaEscaneo(tk.Frame):
     
     def crear_widgets(self):
         # Frame principal con tema
-        if self.theme:
-            main_frame = tk.Frame(self, bg='#2b2b2b')
-            
-            # Título
-            titulo_frame = tk.Frame(main_frame, bg='#2b2b2b')
-            titulo_frame.pack(fill="x", pady=(0, 15))
-            
-            titulo_label = tk.Label(titulo_frame, text=" ESCANEADOR DE VULNERABILIDADES", 
-                                  font=('Arial', 14, 'bold'),
-                                  bg='#2b2b2b', fg='#ff6633')
-            titulo_label.pack()
-            
-            # Frame de botones con tema
-            btn_frame = tk.Frame(main_frame, bg='#2b2b2b')
-        else:
-            main_frame = ttk.Frame(self)
-            btn_frame = ttk.Frame(main_frame)
+        main_frame = tk.Frame(self, bg=self.colors['bg_primary'])
+        
+        # Título con tema Burp Suite
+        titulo_frame = tk.Frame(main_frame, bg=self.colors['bg_primary'])
+        titulo_frame.pack(fill="x", pady=(0, 15))
+        
+        titulo_label = tk.Label(titulo_frame, text="🔍 ESCANEADOR DE VULNERABILIDADES", 
+                              font=('Arial', 14, 'bold'),
+                              bg=self.colors['bg_primary'], fg=self.colors['fg_accent'])
+        titulo_label.pack()
+        
+        # Frame de botones con tema
+        btn_frame = tk.Frame(main_frame, bg=self.colors['bg_primary'])
             
         main_frame.pack(fill="both", expand=True, padx=10, pady=10)
         btn_frame.pack(fill="x", pady=(0, 10))
         
         # Botones con tema Burp Suite
-        if self.theme:
-            self.btn_escanear = tk.Button(btn_frame, text=" Escanear Sistema", 
-                                        command=self.ejecutar_escaneo,
-                                        bg='#ff6633', fg='white', 
-                                        font=('Arial', 10, 'bold'),
-                                        relief='flat', bd=0, padx=15, pady=8,
-                                        activebackground='#e55a2b', activeforeground='white')
-            self.btn_escanear.pack(side="left", padx=(0, 10))
+        self.btn_escanear = tk.Button(btn_frame, text="🔍 Escanear Sistema", 
+                                    command=self.ejecutar_escaneo,
+                                    bg=self.colors['fg_accent'], fg='white', 
+                                    font=('Arial', 10, 'bold'),
+                                    relief='flat', padx=15, pady=8,
+                                    activebackground=self.colors['danger'],
+                                    activeforeground='white')
+        self.btn_escanear.pack(side="left", padx=(0, 10))
+        
+        self.btn_verificar = tk.Button(btn_frame, text="⚡ Verificar Kali", 
+                                     command=self.verificar_kali,
+                                     bg=self.colors['info'], fg='white', 
+                                     font=('Arial', 10, 'bold'),
+                                     relief='flat', padx=15, pady=8,
+                                     activebackground=self.colors['fg_accent'],
+                                     activeforeground='white')
+        self.btn_verificar.pack(side="left", padx=(0, 10))
             
-            self.btn_verificar = tk.Button(btn_frame, text=" Verificar Kali", 
-                                         command=self.verificar_kali,
-                                         bg='#6633ff', fg='white', 
-                                         font=('Arial', 10, 'bold'),
-                                         relief='flat', bd=0, padx=15, pady=8,
-                                         activebackground='#5a2be5', activeforeground='white')
-            self.btn_verificar.pack(side="left", padx=(0, 10))
-            
-            self.btn_cancelar_escaneo = tk.Button(btn_frame, text=" Cancelar", 
-                                                command=self.cancelar_escaneo,
-                                                state="disabled",
-                                                bg='#404040', fg='white',
-                                                font=('Arial', 10),
-                                                relief='flat', bd=0, padx=15, pady=8,
-                                                activebackground='#505050', activeforeground='white')
-            self.btn_cancelar_escaneo.pack(side="left", padx=(0, 15))
-            
-            self.btn_logs = tk.Button(btn_frame, text=" Ver Logs", 
-                                    command=self.ver_logs,
-                                    bg='#404040', fg='white',
-                                    font=('Arial', 10),
-                                    relief='flat', bd=0, padx=15, pady=8,
-                                    activebackground='#505050', activeforeground='white')
-            self.btn_logs.pack(side="left", padx=(0, 10))
-            
-            self.btn_eventos = tk.Button(btn_frame, text=" Eventos SIEM", 
-                                       command=self.ver_eventos,
-                                       bg='#404040', fg='white',
-                                       font=('Arial', 10),
-                                       relief='flat', bd=0, padx=15, pady=8,
-                                       activebackground='#505050', activeforeground='white')
-            self.btn_eventos.pack(side="left")
-            
-            # Área de resultados con tema
-            self.text_resultados = scrolledtext.ScrolledText(main_frame, height=25,
-                                                           bg='#1e1e1e', fg='#ffffff',
-                                                           font=('Consolas', 10),
-                                                           insertbackground='#ff6633',
-                                                           selectbackground='#404040')
-        else:
-            # Botones estándar sin tema
-            self.btn_escanear = ttk.Button(btn_frame, text="Escanear Sistema", 
-                                          command=self.ejecutar_escaneo)
-            self.btn_escanear.pack(side="left", padx=(0, 5))
-            
-            self.btn_verificar = ttk.Button(btn_frame, text="Verificar Kali", 
-                                          command=self.verificar_kali)
-            self.btn_verificar.pack(side="left", padx=(0, 5))
-            
-            self.btn_cancelar_escaneo = ttk.Button(btn_frame, text=" Cancelar", 
-                                                  command=self.cancelar_escaneo,
-                                                  state="disabled")
-            self.btn_cancelar_escaneo.pack(side="left", padx=(0, 15))
-            
-            self.btn_logs = ttk.Button(btn_frame, text="Ver Logs", 
-                                      command=self.ver_logs)
-            self.btn_logs.pack(side="left", padx=(0, 5))
-            
-            self.btn_eventos = ttk.Button(btn_frame, text="Eventos SIEM", 
-                                         command=self.ver_eventos)
-            self.btn_eventos.pack(side="left")
-            
-            self.text_resultados = scrolledtext.ScrolledText(main_frame, height=28)
+        self.btn_cancelar_escaneo = tk.Button(btn_frame, text="⏹️ Cancelar", 
+                                            command=self.cancelar_escaneo,
+                                            state="disabled",
+                                            bg=self.colors['button_bg'], fg='white',
+                                            font=('Arial', 10),
+                                            relief='flat', padx=15, pady=8,
+                                            activebackground=self.colors['danger'],
+                                            activeforeground='white')
+        self.btn_cancelar_escaneo.pack(side="left", padx=(0, 15))
+        
+        self.btn_logs = tk.Button(btn_frame, text="📋 Ver Logs", 
+                                command=self.ver_logs,
+                                bg=self.colors['button_bg'], fg='white',
+                                font=('Arial', 10),
+                                relief='flat', padx=15, pady=8,
+                                activebackground=self.colors['fg_accent'],
+                                activeforeground='white')
+        self.btn_logs.pack(side="left", padx=(0, 10))
+        
+        self.btn_eventos = tk.Button(btn_frame, text="🔒 Eventos SIEM", 
+                                   command=self.ver_eventos,
+                                   bg=self.colors['button_bg'], fg='white',
+                                   font=('Arial', 10),
+                                   relief='flat', padx=15, pady=8,
+                                   activebackground=self.colors['fg_accent'],
+                                   activeforeground='white')
+        self.btn_eventos.pack(side="left")
+        
+        # Área de resultados con tema Burp Suite
+        self.text_resultados = scrolledtext.ScrolledText(main_frame, height=25,
+                                                       bg=self.colors['bg_secondary'], 
+                                                       fg=self.colors['fg_primary'],
+                                                       font=('Consolas', 10),
+                                                       insertbackground=self.colors['fg_accent'],
+                                                       selectbackground=self.colors['fg_accent'],
+                                                       relief='flat', bd=1)
         
         self.text_resultados.pack(fill="both", expand=True)
     

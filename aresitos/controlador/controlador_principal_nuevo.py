@@ -11,8 +11,8 @@ from datetime import datetime
 from typing import Dict, Any, Optional, List
 
 from aresitos.controlador.controlador_base import ControladorBase
-from aresitos.controlador.gestor_configuracion import GestorConfiguracion
-from aresitos.controlador.gestor_componentes import GestorComponentes
+from aresitos.controlador.controlador_gestor_configuracion import GestorConfiguracion
+from aresitos.controlador.controlador_gestor_componentes import GestorComponentes
 
 class ControladorPrincipal(ControladorBase):
     """

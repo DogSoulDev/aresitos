@@ -27,7 +27,6 @@ import platform
 from pathlib import Path
 from datetime import datetime
 
-
 class VerificacionSeguridad:
     """Sistema de verificación completa para ARESITOS v2.0"""
     
@@ -114,7 +113,7 @@ class VerificacionSeguridad:
             self.info.append("Estructura de archivos completa")
         
         return archivos_faltantes == 0
-        
+                
     def verificar_herramientas_kali(self):
         """Verificar herramientas de Kali Linux disponibles para ARESITOS v2.0"""
         print("\n🛠️ Verificando herramientas de Kali Linux...")
@@ -237,31 +236,46 @@ class VerificacionSeguridad:
             self.warnings.append("No se ejecuta en Kali Linux - algunas funciones pueden no estar disponibles")
         
         return es_kali
-    
+        
+        instaladas = 0
+        for herramienta in herramientas:
+            try:
+                result = subprocess.run(['which', herramienta], 
+                                      capture_output=True, text=True, timeout=5)
+                if result.returncode == 0:
+                    print(f"✓ {herramienta}")
+                    instaladas += 1
+                else:
+                    print(f"✗ {herramienta} (no instalada)")
+                    self.warnings.append(f"Herramienta no encontrada: {herramienta}")
+            except Exception as e:
+                print(f"? {herramienta} (error verificando)")
+                
+        print(f"\nHerramientas encontradas: {instaladas}/{len(herramientas)}")
+        
     def verificar_permisos(self):
         """Verificar permisos de archivos y directorios"""
-        print("\n🔐 Verificando permisos...")
+        print("\nVerificando permisos...")
         
-        directorios = ["data", "configuracion", "logs", "documentacion"]
+        directorios = ["data", "configuracion", "logs"]
         for directorio in directorios:
             ruta = self.directorio_base / directorio
             if ruta.exists():
                 if os.access(ruta, os.R_OK | os.W_OK):
-                    print(f"  ✅ {directorio} (lectura/escritura)")
+                    print(f"✓ {directorio} (lectura/escritura)")
                 else:
-                    print(f"  ❌ {directorio} (sin permisos)")
+                    print(f"✗ {directorio} (sin permisos)")
                     self.errores.append(f"Permisos insuficientes: {directorio}")
             else:
-                print(f"  ⚠️  {directorio} (no existe)")
+                print(f"? {directorio} (no existe)")
                 
     def verificar_configuracion(self):
         """Verificar archivos de configuración"""
-        print("\n⚙️ Verificando configuración...")
+        print("\nVerificando configuración...")
         
         config_files = [
             "configuracion/aresitos_config.json",
-            "configuracion/aresitos_config_kali.json",
-            "configuracion/textos_castellano_corregido.json"
+            "configuracion/aresitos_config_kali.json"
         ]
         
         for config_file in config_files:
@@ -270,17 +284,17 @@ class VerificacionSeguridad:
                 try:
                     with open(ruta, 'r', encoding='utf-8') as f:
                         json.load(f)
-                    print(f"  ✅ {config_file} (válido)")
+                    print(f"✓ {config_file} (válido)")
                 except json.JSONDecodeError:
-                    print(f"  ❌ {config_file} (JSON inválido)")
+                    print(f"✗ {config_file} (JSON inválido)")
                     self.errores.append(f"JSON inválido: {config_file}")
             else:
-                print(f"  ❌ {config_file} (no encontrado)")
+                print(f"✗ {config_file} (no encontrado)")
                 self.warnings.append(f"Configuración faltante: {config_file}")
                 
     def verificar_python_imports(self):
         """Verificar que se puedan importar los módulos necesarios"""
-        print("\n🐍 Verificando imports de Python...")
+        print("\nVerificando imports de Python...")
         
         imports = [
             ("tkinter", "Interfaz gráfica"),
@@ -288,55 +302,51 @@ class VerificacionSeguridad:
             ("subprocess", "Ejecución de comandos"),
             ("threading", "Concurrencia"),
             ("json", "Configuración"),
-            ("pathlib", "Rutas de archivos"),
-            ("hashlib", "Integridad de archivos"),
-            ("logging", "Sistema de logs"),
-            ("datetime", "Timestamps")
+            ("pathlib", "Rutas de archivos")
         ]
         
         for modulo, descripcion in imports:
             try:
                 __import__(modulo)
-                print(f"  ✅ {modulo:<12} - {descripcion}")
+                print(f"✓ {modulo} ({descripcion})")
             except ImportError:
-                print(f"  ❌ {modulo:<12} - NO DISPONIBLE - {descripcion}")
+                print(f"✗ {modulo} ({descripcion})")
                 self.errores.append(f"Módulo faltante: {modulo}")
                 
     def verificar_seguridad_codigo(self):
         """Verificar que no haya vulnerabilidades de seguridad conocidas"""
-        print("\n🛡️ Verificando seguridad del código...")
-        
-        vulnerabilidades_encontradas = 0
+        print("\nVerificando seguridad del código...")
         
         # Buscar subprocess con shell=True (vulnerabilidad)
         try:
             result = subprocess.run(['grep', '-r', 'shell=True', 'aresitos/'], 
                                   capture_output=True, text=True, cwd=self.directorio_base)
             if result.returncode == 0:
-                print("  ❌ Encontradas vulnerabilidades subprocess shell=True")
+                print("✗ Encontradas vulnerabilidades subprocess shell=True")
                 self.errores.append("Vulnerabilidades subprocess encontradas")
-                vulnerabilidades_encontradas += 1
             else:
-                print("  ✅ Sin vulnerabilidades subprocess shell=True")
+                print("✓ Sin vulnerabilidades subprocess shell=True")
         except:
-            print("  ⚠️  No se pudo verificar vulnerabilidades subprocess")
+            print("? No se pudo verificar vulnerabilidades subprocess")
             
         # Buscar permisos 777 (inseguro)
         try:
             result = subprocess.run(['grep', '-r', '777', 'aresitos/'], 
                                   capture_output=True, text=True, cwd=self.directorio_base)
             if result.returncode == 0:
-                print("  ❌ Encontrados permisos inseguros 777")
+                print("✗ Encontrados permisos inseguros 777")
                 self.errores.append("Permisos inseguros 777 encontrados")
-                vulnerabilidades_encontradas += 1
             else:
-                print("  ✅ Sin permisos inseguros 777")
+                print("✓ Sin permisos inseguros 777")
         except:
-            print("  ⚠️  No se pudo verificar permisos inseguros")
-        
-        if vulnerabilidades_encontradas == 0:
-            self.info.append("Código fuente seguro - sin vulnerabilidades conocidas")
+            print("? No se pudo verificar permisos inseguros")
             
+    def generar_reporte(self):
+        """Generar reporte final"""
+        print("\n" + "="*60)
+        print("REPORTE DE VERIFICACIÓN DE SEGURIDAD")
+        print("="*60)
+        
     def generar_reporte(self):
         """Generar reporte final de verificación"""
         print("\n" + "="*70)
@@ -439,6 +449,47 @@ def main():
         print(f"\n\n❌ Error inesperado durante la verificación: {e}")
         sys.exit(1)
 
+
+if __name__ == "__main__":
+    main()
+            print("✅ SISTEMA VERIFICADO CORRECTAMENTE")
+            print("Aresitos está listo para usar en Kali Linux")
+        else:
+            if self.errores:
+                print(f"\n❌ ERRORES CRÍTICOS ({len(self.errores)}):")
+                for error in self.errores:
+                    print(f"  • {error}")
+                    
+            if self.warnings:
+                print(f"\n⚠️  ADVERTENCIAS ({len(self.warnings)}):")
+                for warning in self.warnings:
+                    print(f"  • {warning}")
+                    
+        print("\n" + "="*60)
+        
+        # Código de salida
+        if self.errores:
+            return 1
+        elif self.warnings:
+            return 2  
+        else:
+            return 0
+
+def main():
+    print("ARESITOS - Verificación de Seguridad y Sistema")
+    print("="*60)
+    
+    verificador = VerificacionSeguridad()
+    
+    verificador.verificar_estructura_archivos()
+    verificador.verificar_herramientas_kali()
+    verificador.verificar_permisos()
+    verificador.verificar_configuracion()
+    verificador.verificar_python_imports()
+    verificador.verificar_seguridad_codigo()
+    
+    codigo_salida = verificador.generar_reporte()
+    sys.exit(codigo_salida)
 
 if __name__ == "__main__":
     main()

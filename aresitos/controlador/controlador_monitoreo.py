@@ -6,9 +6,10 @@ Integra funcionalidad avanzada de detección de anomalías y procesos sospechoso
 """
 
 import os
+import time
 import subprocess
 from typing import Dict, Any, List, Optional
-from aresitos.modelo.modelo_monitor import MonitorAvanzado, Monitor
+from aresitos.modelo.modelo_monitor import Monitor
 from aresitos.modelo.modelo_siem import SIEM
 
 class ControladorMonitoreo:
@@ -64,11 +65,17 @@ class ControladorMonitoreo:
         }
         
         # Agregar métricas avanzadas si están disponibles
-        if hasattr(self.monitor, 'obtener_metricas_resumen'):
-            try:
-                estado_base["metricas_avanzadas"] = self.monitor.obtener_metricas_resumen()
-            except:
-                pass
+        # Obtener métricas avanzadas si está disponible
+        try:
+            # Intentar diferentes formas de obtener métricas
+            for metodo in ['obtener_metricas_resumen', 'obtener_estadisticas', 'get_stats']:
+                if hasattr(self.monitor, metodo):
+                    estado_base["metricas_avanzadas"] = getattr(self.monitor, metodo)()
+                    break
+            else:
+                estado_base["metricas_avanzadas"] = {"disponible": False}
+        except:
+            estado_base["metricas_avanzadas"] = {"error": "No disponible"}
         
         return estado_base
     
@@ -78,7 +85,25 @@ class ControladorMonitoreo:
     
     def monitorear_red(self) -> List[Dict[str, Any]]:
         """Obtener datos de monitoreo de red."""
-        return self.monitor.obtener_datos_red_recientes(10)
+        return self._obtener_datos_red_seguros(10)
+    
+    def _obtener_datos_red_seguros(self, limite: int = 1) -> List[Dict[str, Any]]:
+        """Método auxiliar para obtener datos de red de forma segura."""
+        try:
+            # Intentar diferentes métodos disponibles
+            for metodo in ['obtener_datos_red_recientes', 'obtener_datos_red', 'get_network_data']:
+                if hasattr(self.monitor, metodo):
+                    return getattr(self.monitor, metodo)(limite)
+            
+            # Fallback: datos básicos de red
+            return [{
+                'timestamp': time.time(),
+                'conexiones': 0,
+                'trafico': {'entrada': 0, 'salida': 0},
+                'estado': 'monitoreo_basico'
+            }]
+        except:
+            return []
     
     def obtener_procesos_activos(self) -> List[Dict[str, Any]]:
         """Obtener información de procesos activos."""
@@ -97,12 +122,12 @@ class ControladorMonitoreo:
     
     def obtener_conexiones_red(self) -> List[Dict[str, Any]]:
         """Obtener información de conexiones de red."""
-        return self.monitor.obtener_datos_red_recientes(1)
+        return self._obtener_datos_red_seguros(1)
     
     def obtener_estadisticas_sistema(self) -> Dict[str, Any]:
         """Obtener estadísticas completas del sistema."""
         datos_sistema = self.monitor.obtener_datos_sistema_recientes(1)
-        datos_red = self.monitor.obtener_datos_red_recientes(1)
+        datos_red = self._obtener_datos_red_seguros(1)
         
         estadisticas = {
             'sistema': datos_sistema,
@@ -111,11 +136,13 @@ class ControladorMonitoreo:
         }
         
         # Agregar métricas avanzadas si están disponibles
-        if hasattr(self.monitor, 'obtener_metricas_resumen'):
-            try:
-                estadisticas['metricas_avanzadas'] = self.monitor.obtener_metricas_resumen()
-            except:
-                pass
+        try:
+            for metodo in ['obtener_metricas_resumen', 'obtener_estadisticas', 'get_stats']:
+                if hasattr(self.monitor, metodo):
+                    estadisticas['metricas_avanzadas'] = getattr(self.monitor, metodo)()
+                    break
+        except:
+            estadisticas['metricas_avanzadas'] = {"error": "No disponible"}
         
         return estadisticas
     
@@ -159,7 +186,7 @@ class ControladorMonitoreo:
         
         # Reporte básico si no hay funcionalidad avanzada
         datos_sistema = self.monitor.obtener_datos_sistema_recientes(1)
-        datos_red = self.monitor.obtener_datos_red_recientes(1)
+        datos_red = self._obtener_datos_red_seguros(1)
         
         reporte = "#  REPORTE DE MONITOREO - ARES AEGIS\n\n"
         
@@ -230,6 +257,72 @@ class ControladorMonitoreo:
             
         except Exception as e:
             return []
+    
+    def limpiar_cuarentena_completa(self) -> Dict[str, Any]:
+        """
+        Limpiar completamente la cuarentena de archivos.
+        
+        Returns:
+            Dict con resultado de la operación
+        """
+        try:
+            directorio_cuarentena = "/var/quarantine"
+            
+            if not os.path.exists(directorio_cuarentena):
+                return {
+                    'exito': True,
+                    'mensaje': 'Directorio de cuarentena no existe',
+                    'archivos_eliminados': 0
+                }
+            
+            # Contar archivos antes de eliminar
+            archivos_eliminados = 0
+            errores = []
+            
+            # Eliminar todos los archivos en cuarentena
+            for archivo in os.listdir(directorio_cuarentena):
+                ruta_archivo = os.path.join(directorio_cuarentena, archivo)
+                try:
+                    if os.path.isfile(ruta_archivo):
+                        os.remove(ruta_archivo)
+                        archivos_eliminados += 1
+                    elif os.path.isdir(ruta_archivo):
+                        import shutil
+                        shutil.rmtree(ruta_archivo)
+                        archivos_eliminados += 1
+                except Exception as e:
+                    errores.append(f"Error eliminando {archivo}: {str(e)}")
+            
+            # Registrar evento en SIEM si está disponible
+            try:
+                if hasattr(self, 'monitor') and hasattr(self.monitor, 'siem') and self.monitor.siem:
+                    self.monitor.siem.registrar_evento({
+                        'tipo': 'CUARENTENA',
+                        'severidad': 'INFO',
+                        'mensaje': f'Cuarentena limpiada: {archivos_eliminados} archivos eliminados',
+                        'origen': 'ControladorMonitoreo',
+                        'detalles': {
+                            'archivos_eliminados': archivos_eliminados,
+                            'errores': len(errores)
+                        }
+                    })
+            except Exception as e:
+                # Registro fallido del evento, pero no debe afectar la operación principal
+                pass
+            
+            return {
+                'exito': True,
+                'mensaje': f'Cuarentena limpiada exitosamente',
+                'archivos_eliminados': archivos_eliminados,
+                'errores': errores if errores else None
+            }
+            
+        except Exception as e:
+            return {
+                'exito': False,
+                'error': f'Error limpiando cuarentena: {str(e)}',
+                'archivos_eliminados': 0
+            }
     
     def _calcular_hash_archivo(self, ruta_archivo: str) -> str:
         """Calcular hash SHA256 de un archivo."""

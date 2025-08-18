@@ -7,7 +7,7 @@ Gestiona las operaciones de cuarentena integradas con el sistema de escaneo
 import logging
 import os
 from typing import Dict, List, Any, Optional
-from ..modelo.cuarentena import Cuarentena, ArchivoEnCuarentena
+from ..modelo.modelo_cuarentena import Cuarentena, ArchivoEnCuarentena
 
 class ControladorCuarentena:
     """

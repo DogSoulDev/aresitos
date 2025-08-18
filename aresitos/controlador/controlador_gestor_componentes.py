@@ -196,7 +196,7 @@ class GestorComponentes(ControladorPrincipalBase):
     def _inicializar_escaneador(self) -> Dict[str, Any]:
         """Inicializar componente Escaneador."""
         try:
-            from aresitos.modelo.modelo_escaneador import EscaneadorAvanzado
+            from aresitos.modelo.modelo_escaneador_avanzado import EscaneadorAvanzado
             
             # Obtener instancia SIEM si está disponible
             siem_instance = self._componentes_estado['siem']['instancia']
@@ -227,21 +227,18 @@ class GestorComponentes(ControladorPrincipalBase):
         try:
             # Importar el sistema de cuarentena
             try:
-                from aresitos.modelos.gestor_cuarentena import GestorCuarentena
+                from aresitos.modelo.modelo_cuarentena import Cuarentena as GestorCuarentena
             except ImportError:
-                try:
-                    from aresitos.modelo.cuarentena import Cuarentena as GestorCuarentena
-                except ImportError:
-                    self.logger.warning("Sistema de cuarentena no encontrado - usando mock")
-                    # Crear clase mock básica
-                    class MockGestorCuarentena:
+                self.logger.warning("Sistema de cuarentena no encontrado - usando mock")
+                # Crear clase mock básica
+                class MockGestorCuarentena:
                         def obtener_estadisticas(self):
                             return {"total_archivos": 0, "estado": "no_disponible"}
                         
                         def procesar_amenaza(self, amenaza):
                             return False
-                    
-                    GestorCuarentena = MockGestorCuarentena
+                
+                GestorCuarentena = MockGestorCuarentena
             
             # Crear instancia Cuarentena
             cuarentena_instance = GestorCuarentena()

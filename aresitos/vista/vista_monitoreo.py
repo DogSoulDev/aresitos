@@ -20,15 +20,41 @@ class VistaMonitoreo(tk.Frame):
         self.monitor_red_activo = False
         self.thread_red = None
         
-        # Aplicar tema Burp Suite si está disponible
+        # Configurar tema y colores de manera consistente
         if BURP_THEME_AVAILABLE and burp_theme:
             self.theme = burp_theme
             self.configure(bg=burp_theme.get_color('bg_primary'))
             # Configurar estilos TTK
             style = ttk.Style()
             burp_theme.configure_ttk_style(style)
+            self.colors = {
+                'bg_primary': burp_theme.get_color('bg_primary'),
+                'bg_secondary': burp_theme.get_color('bg_secondary'), 
+                'fg_primary': burp_theme.get_color('fg_primary'),
+                'fg_secondary': burp_theme.get_color('fg_secondary'),
+                'fg_accent': burp_theme.get_color('fg_accent'),
+                'button_bg': burp_theme.get_color('button_bg'),
+                'button_fg': burp_theme.get_color('button_fg'),
+                'success': burp_theme.get_color('success'),
+                'warning': burp_theme.get_color('warning'),
+                'danger': burp_theme.get_color('danger'),
+                'info': burp_theme.get_color('info')
+            }
         else:
             self.theme = None
+            self.colors = {
+                'bg_primary': 'white',
+                'bg_secondary': '#f0f0f0', 
+                'fg_primary': 'black',
+                'fg_secondary': 'gray',
+                'fg_accent': 'black',
+                'button_bg': 'lightgray',
+                'button_fg': 'black',
+                'success': 'green',
+                'warning': 'orange',
+                'danger': 'red',
+                'info': 'blue'
+            }
             
         self.crear_widgets()
         self.actualizar_estado()
@@ -38,7 +64,7 @@ class VistaMonitoreo(tk.Frame):
     
     def crear_widgets(self):
         # Frame principal con tema Burp Suite
-        self.notebook = tk.Frame(self, bg='#2b2b2b')
+        self.notebook = tk.Frame(self, bg=self.colors['bg_primary'])
         self.notebook.pack(fill="both", expand=True, padx=10, pady=10)
         
         # Crear pestañas como frames separados con navegación por botones

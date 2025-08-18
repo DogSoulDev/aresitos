@@ -19,14 +19,41 @@ class VistaReportes(tk.Frame):
         self.controlador = None
         self.reporte_actual = None
         
+        # Configurar tema y colores de manera consistente
         if BURP_THEME_AVAILABLE and burp_theme:
             self.theme = burp_theme
             self.configure(bg=burp_theme.get_color('bg_primary'))
             # Configurar estilos TTK
             style = ttk.Style()
             burp_theme.configure_ttk_style(style)
+            self.colors = {
+                'bg_primary': burp_theme.get_color('bg_primary'),
+                'bg_secondary': burp_theme.get_color('bg_secondary'), 
+                'fg_primary': burp_theme.get_color('fg_primary'),
+                'fg_secondary': burp_theme.get_color('fg_secondary'),
+                'fg_accent': burp_theme.get_color('fg_accent'),
+                'button_bg': burp_theme.get_color('button_bg'),
+                'button_fg': burp_theme.get_color('button_fg'),
+                'success': burp_theme.get_color('success'),
+                'warning': burp_theme.get_color('warning'),
+                'danger': burp_theme.get_color('danger'),
+                'info': burp_theme.get_color('info')
+            }
         else:
             self.theme = None
+            self.colors = {
+                'bg_primary': 'white',
+                'bg_secondary': '#f0f0f0', 
+                'fg_primary': 'black',
+                'fg_secondary': 'gray',
+                'fg_accent': 'black',
+                'button_bg': 'lightgray',
+                'button_fg': 'black',
+                'success': 'green',
+                'warning': 'orange',
+                'danger': 'red',
+                'info': 'blue'
+            }
             
         self.crear_interfaz()
     
@@ -34,66 +61,55 @@ class VistaReportes(tk.Frame):
         self.controlador = controlador
     
     def crear_interfaz(self):
-        if self.theme:
-            titulo_frame = tk.Frame(self, bg='#2b2b2b')
-        else:
-            titulo_frame = tk.Frame(self)
+        # Frame título con tema
+        titulo_frame = tk.Frame(self, bg=self.colors['bg_primary'])
         titulo_frame.pack(fill=tk.X, pady=(0, 10))
         
-        titulo = tk.Label(titulo_frame, text=" Generación y Gestión de Reportes",
+        # Título con tema Burp Suite
+        titulo = tk.Label(titulo_frame, text="📄 Generación y Gestión de Reportes",
                          font=('Arial', 16, 'bold'),
-                         bg='#2b2b2b' if self.theme else 'white',
-                         fg='#ff6633' if self.theme else 'black')
+                         bg=self.colors['bg_primary'], fg=self.colors['fg_accent'])
         titulo.pack()
         
-        if self.theme:
-            main_frame = tk.Frame(self, bg='#2b2b2b')
-        else:
-            main_frame = tk.Frame(self)
+        # Frame principal con tema
+        main_frame = tk.Frame(self, bg=self.colors['bg_primary'])
         main_frame.pack(fill=tk.BOTH, expand=True, padx=20, pady=10)
         
-        if self.theme:
-            left_frame = tk.Frame(main_frame, bg='#2b2b2b')
-            left_frame.pack(side=tk.LEFT, fill=tk.BOTH, expand=True, padx=(0, 10))
-            
-            left_label = tk.Label(left_frame, text=" Contenido del Reporte",
-                                 font=('Arial', 12, 'bold'),
-                                 bg='#2b2b2b', fg='#ff6633')
-            left_label.pack(anchor=tk.W, pady=(0, 5))
-        else:
-            left_frame = ttk.LabelFrame(main_frame, text=" Contenido del Reporte", padding=10)
-            left_frame.pack(side=tk.LEFT, fill=tk.BOTH, expand=True, padx=(0, 10))
+        # Panel izquierdo con tema
+        left_frame = tk.Frame(main_frame, bg=self.colors['bg_secondary'])
+        left_frame.pack(side=tk.LEFT, fill=tk.BOTH, expand=True, padx=(0, 10))
         
+        left_label = tk.Label(left_frame, text="📝 Contenido del Reporte",
+                             font=('Arial', 12, 'bold'),
+                             bg=self.colors['bg_secondary'], fg=self.colors['fg_accent'])
+        left_label.pack(anchor=tk.W, pady=(0, 5))
+        
+        # Área de texto con tema Burp Suite
         self.reporte_text = scrolledtext.ScrolledText(left_frame, height=25, width=70,
-                                                     bg='#1e1e1e' if self.theme else 'white',
-                                                     fg='white' if self.theme else 'black',
-                                                     insertbackground='white' if self.theme else 'black',
-                                                     font=('Consolas', 10))
+                                                     bg=self.colors['bg_secondary'],
+                                                     fg=self.colors['fg_primary'],
+                                                     insertbackground=self.colors['fg_accent'],
+                                                     font=('Consolas', 10),
+                                                     relief='flat', bd=1)
         self.reporte_text.pack(fill=tk.BOTH, expand=True)
         
-        if self.theme:
-            right_frame = tk.Frame(main_frame, bg='#2b2b2b')
-            right_frame.pack(side=tk.RIGHT, fill=tk.Y)
-            
-            right_label = tk.Label(right_frame, text=" Opciones de Reporte",
-                                  font=('Arial', 12, 'bold'),
-                                  bg='#2b2b2b', fg='#ff6633')
-            right_label.pack(anchor=tk.W, pady=(0, 10))
-        else:
-            right_frame = ttk.LabelFrame(main_frame, text=" Opciones de Reporte", padding=10)
-            right_frame.pack(side=tk.RIGHT, fill=tk.Y)
+        # Panel derecho con tema
+        right_frame = tk.Frame(main_frame, bg=self.colors['bg_secondary'])
+        right_frame.pack(side=tk.RIGHT, fill=tk.Y)
         
-        if self.theme:
-            config_frame = tk.Frame(right_frame, bg='#2b2b2b')
-            config_frame.pack(fill=tk.X, pady=(0, 10))
-            
-            config_label = tk.Label(config_frame, text=" Incluir en el Reporte:",
-                                   font=('Arial', 10, 'bold'),
-                                   bg='#2b2b2b', fg='white')
-            config_label.pack(anchor=tk.W)
-        else:
-            config_frame = ttk.LabelFrame(right_frame, text=" Incluir en el Reporte", padding=5)
-            config_frame.pack(fill=tk.X, pady=(0, 10))
+        right_label = tk.Label(right_frame, text="⚙️ Opciones de Reporte",
+                              font=('Arial', 12, 'bold'),
+                              bg=self.colors['bg_secondary'], fg=self.colors['fg_accent'])
+        right_label.pack(anchor=tk.W, pady=(0, 10))
+        
+        # Frame de configuración con tema
+        config_frame = tk.Frame(right_frame, bg=self.colors['bg_secondary'])
+        config_frame.pack(fill=tk.X, pady=(0, 10))
+        
+        config_label = tk.Label(config_frame, text="🔧 Incluir en el Reporte:",
+                               font=('Arial', 10, 'bold'),
+                               bg=self.colors['bg_secondary'], fg=self.colors['fg_primary'])
+        config_label.pack(anchor=tk.W)
         
         self.incluir_escaneo = tk.BooleanVar(value=True)
         self.incluir_monitoreo = tk.BooleanVar(value=True)
@@ -103,83 +119,73 @@ class VistaReportes(tk.Frame):
         self.incluir_cuarentena = tk.BooleanVar(value=True)
         
         opciones = [
-            (" Resultados de Escaneo", self.incluir_escaneo),
-            (" Datos de Monitoreo", self.incluir_monitoreo),
-            (" Datos de FIM (File Integrity)", self.incluir_fim),
-            (" Datos de SIEM", self.incluir_siem),
-            (" Datos de Cuarentena", self.incluir_cuarentena),
-            (" Información de Utilidades", self.incluir_utilidades)
+            ("🔍 Resultados de Escaneo", self.incluir_escaneo),
+            ("📊 Datos de Monitoreo", self.incluir_monitoreo),
+            ("🔒 Datos de FIM (File Integrity)", self.incluir_fim),
+            ("🛡️ Datos de SIEM", self.incluir_siem),
+            ("🔐 Datos de Cuarentena", self.incluir_cuarentena),
+            ("🛠️ Información de Utilidades", self.incluir_utilidades)
         ]
         
         for texto, variable in opciones:
-            if self.theme:
-                cb = tk.Checkbutton(config_frame, text=texto, variable=variable,
-                                   bg='#2b2b2b', fg='white', selectcolor='#404040',
-                                   activebackground='#2b2b2b', activeforeground='white',
-                                   font=('Arial', 9))
-                cb.pack(anchor=tk.W, pady=2)
-            else:
-                ttk.Checkbutton(config_frame, text=texto, variable=variable).pack(anchor=tk.W, pady=2)
+            cb = tk.Checkbutton(config_frame, text=texto, variable=variable,
+                               bg=self.colors['bg_secondary'], fg=self.colors['fg_primary'],
+                               selectcolor=self.colors['bg_primary'],
+                               activebackground=self.colors['bg_secondary'],
+                               activeforeground=self.colors['fg_accent'],
+                               font=('Arial', 9))
+            cb.pack(anchor=tk.W, pady=2)
         
+        # Botones de acción con tema Burp Suite
         botones_generar = [
-            (" Generar Reporte Completo", self.generar_reporte_completo),
-            (" Actualizar Vista", self.actualizar_reporte)
+            ("📋 Generar Reporte Completo", self.generar_reporte_completo),
+            ("🔄 Actualizar Vista", self.actualizar_reporte)
         ]
         
         for texto, comando in botones_generar:
-            if self.theme:
-                btn = tk.Button(right_frame, text=texto, command=comando,
-                               bg='#ff6633', fg='white', font=('Arial', 10, 'bold'),
-                               relief='flat', padx=10, pady=5)
-                btn.pack(fill=tk.X, pady=5)
-            else:
-                ttk.Button(right_frame, text=texto, command=comando).pack(fill=tk.X, pady=5)
+            btn = tk.Button(right_frame, text=texto, command=comando,
+                           bg=self.colors['fg_accent'], fg=self.colors['bg_primary'],
+                           font=('Arial', 10, 'bold'),
+                           relief='flat', padx=10, pady=5,
+                           activebackground=self.colors['warning'])
+            btn.pack(fill=tk.X, pady=5)
         
-        if self.theme:
-            separador = tk.Frame(right_frame, height=2, bg='#404040')
-            separador.pack(fill=tk.X, pady=10)
-        else:
-            ttk.Separator(right_frame, orient=tk.HORIZONTAL).pack(fill=tk.X, pady=10)
+        # Separador con tema
+        separador = tk.Frame(right_frame, height=2, bg=self.colors['bg_primary'])
+        separador.pack(fill=tk.X, pady=10)
         
+        # Botones de gestión con tema Burp Suite
         botones_gestion = [
-            (" Guardar JSON", self.guardar_json),
-            (" Guardar TXT", self.guardar_texto),
-            (" Cargar Reporte", self.cargar_reporte),
-            (" Listar Reportes", self.listar_reportes),
-            (" Limpiar Vista", self.limpiar_reporte)
+            ("💾 Guardar JSON", self.guardar_json),
+            ("📄 Guardar TXT", self.guardar_texto),
+            ("📂 Cargar Reporte", self.cargar_reporte),
+            ("📝 Listar Reportes", self.listar_reportes),
+            ("🗑️ Limpiar Vista", self.limpiar_reporte)
         ]
         
         for texto, comando in botones_gestion:
-            if self.theme:
-                btn = tk.Button(right_frame, text=texto, command=comando,
-                               bg='#404040', fg='white', font=('Arial', 10),
-                               relief='flat', padx=10, pady=5)
-                btn.pack(fill=tk.X, pady=5)
-            else:
-                ttk.Button(right_frame, text=texto, command=comando).pack(fill=tk.X, pady=5)
+            btn = tk.Button(right_frame, text=texto, command=comando,
+                           bg=self.colors['bg_primary'], fg=self.colors['fg_primary'],
+                           font=('Arial', 10),
+                           relief='flat', padx=10, pady=5,
+                           activebackground=self.colors['bg_secondary'])
+            btn.pack(fill=tk.X, pady=5)
         
-        if self.theme:
-            info_frame = tk.Frame(right_frame, bg='#2b2b2b')
-            info_frame.pack(fill=tk.X, pady=(20, 0))
-            
-            info_title = tk.Label(info_frame, text="INFO Información",
-                                 font=('Arial', 10, 'bold'),
-                                 bg='#2b2b2b', fg='#ff6633')
-            info_title.pack(anchor=tk.W)
-            
-            info_text = "Genera reportes completos del sistema con datos de escaneo, monitoreo, FIM, SIEM, cuarentena y utilidades optimizadas para Kali Linux."
-            info_label = tk.Label(info_frame, text=info_text, 
-                                 wraplength=180, justify=tk.LEFT,
-                                 bg='#2b2b2b', fg='white', font=('Arial', 9))
-            info_label.pack(anchor=tk.W, pady=(5, 0))
-        else:
-            info_frame = ttk.LabelFrame(right_frame, text="INFO Información", padding=5)
-            info_frame.pack(fill=tk.X, pady=(20, 0))
-            
-            info_text = "Genera reportes completos del sistema con datos de escaneo, monitoreo, FIM, SIEM, cuarentena y utilidades optimizadas para Kali Linux."
-            info_label = tk.Label(info_frame, text=info_text, 
-                                 wraplength=180, justify=tk.LEFT, font=('Arial', 9))
-            info_label.pack()
+        # Frame de información con tema
+        info_frame = tk.Frame(right_frame, bg=self.colors['bg_secondary'])
+        info_frame.pack(fill=tk.X, pady=(20, 0))
+        
+        info_title = tk.Label(info_frame, text="ℹ️ Información",
+                             font=('Arial', 10, 'bold'),
+                             bg=self.colors['bg_secondary'], fg=self.colors['fg_accent'])
+        info_title.pack(anchor=tk.W)
+        
+        info_text = "Genera reportes completos del sistema con datos de escaneo, monitoreo, FIM, SIEM, cuarentena y utilidades optimizadas para Kali Linux."
+        info_label = tk.Label(info_frame, text=info_text, 
+                             wraplength=180, justify=tk.LEFT,
+                             bg=self.colors['bg_secondary'], fg=self.colors['fg_primary'],
+                             font=('Arial', 9))
+        info_label.pack(anchor=tk.W, pady=(5, 0))
     
     def generar_reporte_completo(self):
         def generar():

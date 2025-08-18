@@ -1,23 +1,26 @@
 #!/bin/bash
 # -*- coding: utf-8 -*-
 """
-Script de Configuración de Permisos para Kali Linux
-===================================================
+ARESITOS v2.0 - Script de Configuración para Kali Linux
+=======================================================
 
-Este script configura automáticamente los permisos necesarios para
-que Ares Aegis funcione correctamente en Kali Linux.
+Script de configuración automática para preparar Kali Linux
+para ejecutar ARESITOS con todas las funcionalidades.
 
-Funciones:
-- Configurar sudo sin contraseña para herramientas específicas
-- Instalar dependencias faltantes
-- Configurar permisos de red para herramientas
-- Verificar funcionamiento
+Funciones principales:
+- Instalar herramientas de ciberseguridad necesarias
+- Configurar permisos sudo para herramientas específicas
+- Configurar permisos de red para escaneo
+- Actualizar bases de datos de vulnerabilidades
+- Verificar funcionamiento completo del sistema
 
 Autor: DogSoulDev
-Fecha: 15 de Agosto de 2025
-Versión: 1.0
+Fecha: 18 de Agosto de 2025
+Versión: 2.0
+Proyecto: ARESITOS - Suite de Ciberseguridad
 
 IMPORTANTE: Este script debe ejecutarse como root o con sudo
+sudo ./configurar_kali.sh
 """
 
 # Colores para output
@@ -87,18 +90,57 @@ update_repositories() {
 
 # Instalar herramientas necesarias
 install_tools() {
-    print_header "🛠️ Instalando herramientas de seguridad..."
+    print_header "🛠️ Instalando herramientas de ciberseguridad ARESITOS v2.0..."
     
-    # Lista de herramientas necesarias
+    # Lista completa de herramientas necesarias para ARESITOS v2.0
     TOOLS=(
-        "nmap"
-        "netstat-nat"
-        "net-tools"
-        "masscan"
-        "tcpdump"
+        # Herramientas básicas del sistema
         "python3-dev"
         "python3-pip"
+        "python3-tk"
+        "curl"
+        "wget"
+        "git"
+        
+        # Herramientas de red y monitoreo
+        "nmap"
+        "masscan"
+        "netstat-nat"
+        "net-tools"
+        "tcpdump"
+        "iftop"
+        "nethogs"
+        "ss"
+        
+        # Herramientas de escaneo web
+        "nikto"
+        "gobuster" 
+        "whatweb"
+        "dirb"
+        
+        # Herramientas de seguridad y análisis
+        "lynis"
+        "chkrootkit"
+        "rkhunter"
+        "clamav"
+        "clamav-daemon"
+        "clamav-freshclam"
+        
+        # Herramientas de análisis forense
+        "volatility3"
+        "foremost"
+        "binwalk"
+        
+        # Utilidades del sistema
+        "htop"
+        "lsof"
+        "strace"
+        "ltrace"
+        "psmisc"
     )
+    
+    print_info "Actualizando lista de paquetes..."
+    apt update -qq
     
     for tool in "${TOOLS[@]}"; do
         print_info "Verificando $tool..."
@@ -107,7 +149,7 @@ install_tools() {
             print_success "$tool ya está instalado"
         else
             print_info "Instalando $tool..."
-            apt install -y "$tool"
+            DEBIAN_FRONTEND=noninteractive apt install -y "$tool" >/dev/null 2>&1
             
             if [[ $? -eq 0 ]]; then
                 print_success "$tool instalado correctamente"
@@ -116,6 +158,23 @@ install_tools() {
             fi
         fi
     done
+    
+    # Instalar nuclei manualmente si no está disponible
+    print_info "Verificando nuclei..."
+    if ! command -v nuclei >/dev/null 2>&1; then
+        print_info "Instalando nuclei desde GitHub..."
+        go install -v github.com/projectdiscovery/nuclei/v2/cmd/nuclei@latest >/dev/null 2>&1 || {
+            print_warning "No se pudo instalar nuclei (requiere Go)"
+        }
+    else
+        print_success "nuclei ya está instalado"
+    fi
+    
+    # Actualizar base de datos de ClamAV
+    print_info "Actualizando base de datos de ClamAV..."
+    sudo -u clamav freshclam >/dev/null 2>&1 || {
+        print_warning "Error actualizando ClamAV (continuando)"
+    }
 }
 
 # Configurar permisos especiales para herramientas de red
@@ -164,29 +223,66 @@ configure_network_permissions() {
 
 # Configurar sudo sin contraseña para herramientas específicas
 configure_sudo() {
-    print_header "⚡ Configurando sudo para Ares Aegis..."
+    print_header "⚡ Configurando sudo para ARESITOS v2.0..."
     
-    SUDO_FILE="/etc/sudoers.d/ares-aegis"
+    SUDO_FILE="/etc/sudoers.d/aresitos-v2"
     
-    # Crear archivo de configuración sudo
+    # Crear archivo de configuración sudo actualizado
     cat > "$SUDO_FILE" << EOF
-# Configuración sudo para Ares Aegis
-# Permite al usuario ejecutar herramientas de seguridad sin contraseña
+# Configuración sudo para ARESITOS v2.0
+# Suite de Ciberseguridad para Kali Linux
+# Permite ejecutar herramientas de seguridad sin contraseña
 # Generado automáticamente el $(date)
 
 # Usuario: $REAL_USER
+# === HERRAMIENTAS DE ESCANEO ===
 $REAL_USER ALL=(ALL) NOPASSWD: /usr/bin/nmap
+$REAL_USER ALL=(ALL) NOPASSWD: /usr/bin/masscan
+$REAL_USER ALL=(ALL) NOPASSWD: /usr/bin/nikto
+$REAL_USER ALL=(ALL) NOPASSWD: /usr/bin/gobuster
+$REAL_USER ALL=(ALL) NOPASSWD: /usr/bin/whatweb
+$REAL_USER ALL=(ALL) NOPASSWD: /usr/bin/nuclei
+
+# === HERRAMIENTAS DE MONITOREO ===
 $REAL_USER ALL=(ALL) NOPASSWD: /bin/netstat
 $REAL_USER ALL=(ALL) NOPASSWD: /usr/bin/ss
-$REAL_USER ALL=(ALL) NOPASSWD: /usr/bin/masscan
+$REAL_USER ALL=(ALL) NOPASSWD: /usr/bin/lsof
 $REAL_USER ALL=(ALL) NOPASSWD: /usr/bin/tcpdump
+$REAL_USER ALL=(ALL) NOPASSWD: /bin/ps
+$REAL_USER ALL=(ALL) NOPASSWD: /usr/bin/pgrep
+
+# === HERRAMIENTAS DE SEGURIDAD ===
+$REAL_USER ALL=(ALL) NOPASSWD: /usr/bin/lynis
+$REAL_USER ALL=(ALL) NOPASSWD: /usr/bin/chkrootkit
+$REAL_USER ALL=(ALL) NOPASSWD: /usr/bin/rkhunter
+$REAL_USER ALL=(ALL) NOPASSWD: /usr/bin/clamscan
+$REAL_USER ALL=(ALL) NOPASSWD: /usr/bin/clamdscan
+
+# === ACCESO A LOGS DEL SISTEMA ===
+$REAL_USER ALL=(ALL) NOPASSWD: /bin/cat /var/log/auth.log*
+$REAL_USER ALL=(ALL) NOPASSWD: /bin/cat /var/log/syslog*
+$REAL_USER ALL=(ALL) NOPASSWD: /bin/cat /var/log/kern.log*
+$REAL_USER ALL=(ALL) NOPASSWD: /bin/cat /var/log/daemon.log*
+$REAL_USER ALL=(ALL) NOPASSWD: /bin/cat /var/log/mail.log*
+$REAL_USER ALL=(ALL) NOPASSWD: /bin/tail /var/log/*
+$REAL_USER ALL=(ALL) NOPASSWD: /usr/bin/head /var/log/*
+
+# === ACCESO A CONFIGURACIONES DEL SISTEMA ===
 $REAL_USER ALL=(ALL) NOPASSWD: /bin/cat /etc/passwd
+$REAL_USER ALL=(ALL) NOPASSWD: /bin/cat /etc/shadow
+$REAL_USER ALL=(ALL) NOPASSWD: /bin/cat /etc/group
 $REAL_USER ALL=(ALL) NOPASSWD: /bin/cat /etc/hosts
 $REAL_USER ALL=(ALL) NOPASSWD: /bin/cat /etc/ssh/sshd_config
-$REAL_USER ALL=(ALL) NOPASSWD: /bin/cat /var/log/auth.log
-$REAL_USER ALL=(ALL) NOPASSWD: /bin/cat /var/log/syslog
+$REAL_USER ALL=(ALL) NOPASSWD: /bin/cat /etc/crontab
 $REAL_USER ALL=(ALL) NOPASSWD: /bin/ls /etc/
 $REAL_USER ALL=(ALL) NOPASSWD: /bin/ls /var/log/
+$REAL_USER ALL=(ALL) NOPASSWD: /bin/ls /var/spool/cron/
+
+# === GESTIÓN DE SERVICIOS ===
+$REAL_USER ALL=(ALL) NOPASSWD: /bin/systemctl status *
+$REAL_USER ALL=(ALL) NOPASSWD: /bin/systemctl list-units
+$REAL_USER ALL=(ALL) NOPASSWD: /bin/systemctl is-active *
+$REAL_USER ALL=(ALL) NOPASSWD: /bin/systemctl is-enabled *
 
 EOF
 

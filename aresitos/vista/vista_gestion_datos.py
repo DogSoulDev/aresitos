@@ -22,15 +22,37 @@ class VistaGestionDatos(tk.Frame):
         super().__init__(parent)
         self.controlador = None
         
-        # Configurar tema
+        # Configuración del tema Burp Suite
         if BURP_THEME_AVAILABLE and burp_theme:
             self.theme = burp_theme
-            self.configure(bg=burp_theme.get_color('bg_primary'))
+            # Diccionario de colores consistente con otras vistas
+            self.colors = {
+                'bg_primary': burp_theme.get_color('bg_primary'),      # #2b2b2b
+                'bg_secondary': burp_theme.get_color('bg_secondary'),  # #1e1e1e  
+                'fg_primary': burp_theme.get_color('fg_primary'),      # #ffffff
+                'fg_accent': burp_theme.get_color('fg_accent'),        # #ff6633
+                'success': burp_theme.get_color('success'),            # #00ff88
+                'warning': burp_theme.get_color('warning'),            # #ffcc00
+                'danger': burp_theme.get_color('danger'),              # #ff4444
+                'info': burp_theme.get_color('info')                   # #44aaff
+            }
+            self.configure(bg=self.colors['bg_primary'])
             # Configurar estilos TTK
             style = ttk.Style()
             burp_theme.configure_ttk_style(style)
         else:
             self.theme = None
+            # Colores por defecto para compatibilidad
+            self.colors = {
+                'bg_primary': '#f0f0f0',
+                'bg_secondary': '#ffffff',
+                'fg_primary': '#000000',
+                'fg_accent': '#0066cc',
+                'success': '#008800',
+                'warning': '#ff8800',
+                'danger': '#cc0000',
+                'info': '#0066cc'
+            }
         
         # Rutas de datos
         self.ruta_wordlists = Path("data/wordlists")

@@ -12,7 +12,7 @@ from datetime import datetime
 from typing import Dict, Any, List, Optional
 
 from aresitos.controlador.controlador_base import ControladorBase
-from aresitos.modelo.escaneador_avanzado import EscaneadorAvanzadoReal, TipoEscaneo, NivelRiesgo
+from aresitos.modelo.modelo_escaneador_avanzado_real import EscaneadorAvanzadoReal, TipoEscaneo, NivelRiesgo
 from aresitos.modelo.modelo_siem import SIEMAvanzadoNativo, TipoEvento, SeveridadEvento
 
 class UtilsIP:
@@ -916,6 +916,68 @@ class ControladorEscaneo(ControladorBase):
         """Obtener logs recientes de escaneo."""
         return self.obtener_eventos_siem(limite)
     
+    def obtener_eventos_siem(self, limite: int = 20) -> List[Dict[str, Any]]:
+        """
+        Obtener eventos SIEM relacionados con escaneos.
+        
+        Args:
+            limite: Número máximo de eventos a retornar
+            
+        Returns:
+            Lista de eventos SIEM
+        """
+        try:
+            # Intentar obtener eventos de diferentes formas
+            eventos = []
+            
+            if self.siem:
+                # Probar varios métodos disponibles en el SIEM
+                for metodo in ['obtener_eventos', 'obtener_eventos_recientes', 'get_eventos']:
+                    if hasattr(self.siem, metodo):
+                        try:
+                            eventos = getattr(self.siem, metodo)(limite) if limite else getattr(self.siem, metodo)()
+                            break
+                        except:
+                            continue
+            
+            # Si no hay eventos o SIEM no disponible, generar evento de estado
+            if not eventos:
+                return [{
+                    'timestamp': datetime.now().isoformat(),
+                    'tipo': 'SISTEMA',
+                    'severidad': 'INFO',
+                    'mensaje': 'No hay eventos SIEM disponibles',
+                    'origen': 'ControladorEscaneo',
+                    'detalles': {'estado': 'sin_eventos_disponibles'}
+                }]
+            
+            # Formatear eventos obtenidos
+            eventos_formateados = []
+            for evento in eventos:
+                if isinstance(evento, dict):
+                    evento_formato = {
+                        'timestamp': evento.get('timestamp', datetime.now().isoformat()),
+                        'tipo': evento.get('tipo', 'ESCANEO'),
+                        'severidad': evento.get('severidad', 'INFO'),
+                        'mensaje': evento.get('mensaje', 'Sin descripción'),
+                        'origen': evento.get('origen', 'Sistema'),
+                        'detalles': evento.get('detalles', {})
+                    }
+                    eventos_formateados.append(evento_formato)
+            
+            return eventos_formateados[:limite] if limite else eventos_formateados
+                
+        except Exception as e:
+            self.logger.error(f"Error obteniendo eventos SIEM: {e}")
+            return [{
+                'timestamp': datetime.now().isoformat(),
+                'tipo': 'ERROR',
+                'severidad': 'ERROR',
+                'mensaje': f'Error accediendo a eventos SIEM: {str(e)}',
+                'origen': 'ControladorEscaneo',
+                'detalles': {'error': str(e)}
+            }]
+
     def generar_reporte_escaneo(self, resultados_escaneo: Dict[str, Any]) -> Dict[str, Any]:
         """
         Generar reporte detallado de escaneo.

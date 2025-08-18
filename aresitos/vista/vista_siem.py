@@ -22,11 +22,41 @@ class VistaSIEM(tk.Frame):
         self.thread_siem = None
         self.monitoreo_activo = False  # Para control del monitoreo en tiempo real
         
-        if BURP_THEME_AVAILABLE:
+        # Configurar tema y colores de manera consistente
+        if BURP_THEME_AVAILABLE and burp_theme:
             self.theme = burp_theme
-            self.configure(bg='#2b2b2b')
+            self.configure(bg=burp_theme.get_color('bg_primary'))
+            # Configurar estilos TTK
+            style = ttk.Style()
+            burp_theme.configure_ttk_style(style)
+            self.colors = {
+                'bg_primary': burp_theme.get_color('bg_primary'),
+                'bg_secondary': burp_theme.get_color('bg_secondary'), 
+                'fg_primary': burp_theme.get_color('fg_primary'),
+                'fg_secondary': burp_theme.get_color('fg_secondary'),
+                'fg_accent': burp_theme.get_color('fg_accent'),
+                'button_bg': burp_theme.get_color('button_bg'),
+                'button_fg': burp_theme.get_color('button_fg'),
+                'success': burp_theme.get_color('success'),
+                'warning': burp_theme.get_color('warning'),
+                'danger': burp_theme.get_color('danger'),
+                'info': burp_theme.get_color('info')
+            }
         else:
             self.theme = None
+            self.colors = {
+                'bg_primary': 'white',
+                'bg_secondary': '#f0f0f0', 
+                'fg_primary': 'black',
+                'fg_secondary': 'gray',
+                'fg_accent': 'black',
+                'button_bg': 'lightgray',
+                'button_fg': 'black',
+                'success': 'green',
+                'warning': 'orange',
+                'danger': 'red',
+                'info': 'blue'
+            }
         
         self.crear_interfaz()
     
@@ -34,19 +64,17 @@ class VistaSIEM(tk.Frame):
         self.controlador = controlador
     
     def crear_interfaz(self):
-        if self.theme:
-            titulo_frame = tk.Frame(self, bg='#2b2b2b')
-        else:
-            titulo_frame = tk.Frame(self)
+        # Frame título con tema
+        titulo_frame = tk.Frame(self, bg=self.colors['bg_primary'])
         titulo_frame.pack(fill=tk.X, pady=(0, 10))
         
+        # Título con tema Burp Suite
         titulo = tk.Label(titulo_frame, text="SIEM - Security Information & Event Management",
                          font=('Arial', 16, 'bold'),
-                         bg='#2b2b2b' if self.theme else 'white',
-                         fg='#ff6633' if self.theme else 'black')
+                         bg=self.colors['bg_primary'], fg=self.colors['fg_accent'])
         titulo.pack()
         
-        # Notebook para múltiples pestañas
+        # Notebook para múltiples pestañas con tema
         if self.theme:
             style = ttk.Style()
             self.theme.configure_ttk_style(style)
@@ -69,82 +97,62 @@ class VistaSIEM(tk.Frame):
     
     def crear_tab_monitoreo(self):
         """Crear pestaña de monitoreo en tiempo real."""
-        if self.theme:
-            tab_monitoreo = tk.Frame(self.notebook, bg='#2b2b2b')
-        else:
-            tab_monitoreo = tk.Frame(self.notebook)
-        self.notebook.add(tab_monitoreo, text=' Monitoreo Tiempo Real')
+        tab_monitoreo = tk.Frame(self.notebook, bg=self.colors['bg_primary'])
+        self.notebook.add(tab_monitoreo, text='🔍 Monitoreo Tiempo Real')
         
-        # Frame principal dividido
-        if self.theme:
-            main_frame = tk.Frame(tab_monitoreo, bg='#2b2b2b')
-        else:
-            main_frame = tk.Frame(tab_monitoreo)
+        # Frame principal dividido con tema
+        main_frame = tk.Frame(tab_monitoreo, bg=self.colors['bg_primary'])
         main_frame.pack(fill=tk.BOTH, expand=True, padx=10, pady=10)
         
-        # Panel izquierdo - Dashboard de eventos
-        if self.theme:
-            left_frame = tk.Frame(main_frame, bg='#2b2b2b')
-            label_dashboard = tk.Label(left_frame, text="Dashboard de Eventos en Tiempo Real", 
-                                     bg='#2b2b2b', fg='#ff6633', font=('Arial', 12, 'bold'))
-            label_dashboard.pack(anchor=tk.W, pady=(0, 5))
-        else:
-            left_frame = ttk.LabelFrame(main_frame, text="Dashboard de Eventos", padding=10)
+        # Panel izquierdo - Dashboard de eventos con tema
+        left_frame = tk.Frame(main_frame, bg=self.colors['bg_secondary'])
         left_frame.pack(side=tk.LEFT, fill=tk.BOTH, expand=True, padx=(0, 10))
         
+        label_dashboard = tk.Label(left_frame, text="Dashboard de Eventos en Tiempo Real", 
+                                 bg=self.colors['bg_secondary'], fg=self.colors['fg_accent'], 
+                                 font=('Arial', 12, 'bold'))
+        label_dashboard.pack(anchor=tk.W, pady=(0, 5))
+        
         self.siem_monitoreo_text = scrolledtext.ScrolledText(left_frame, height=20, width=80,
-                                                           bg='#1e1e1e' if self.theme else 'white',
-                                                           fg='white' if self.theme else 'black',
-                                                           insertbackground='white' if self.theme else 'black',
-                                                           font=('Consolas', 9))
+                                                           bg=self.colors['bg_secondary'],
+                                                           fg=self.colors['fg_primary'],
+                                                           insertbackground=self.colors['fg_accent'],
+                                                           font=('Consolas', 9),
+                                                           relief='flat', bd=1)
         self.siem_monitoreo_text.pack(fill=tk.BOTH, expand=True)
         
-        # Panel derecho - Controles
-        if self.theme:
-            right_frame = tk.Frame(main_frame, bg='#2b2b2b')
-            label_controls = tk.Label(right_frame, text="Controles SIEM", 
-                                    bg='#2b2b2b', fg='#ff6633', font=('Arial', 12, 'bold'))
-            label_controls.pack(anchor=tk.W, pady=(0, 10))
-        else:
-            right_frame = ttk.LabelFrame(main_frame, text="Controles SIEM", padding=10)
+        # Panel derecho - Controles con tema
+        right_frame = tk.Frame(main_frame, bg=self.colors['bg_secondary'])
         right_frame.pack(side=tk.RIGHT, fill=tk.Y)
         
-        # Botones de monitoreo
-        if self.theme:
-            buttons_monitoreo = [
-                (" Iniciar SIEM", self.iniciar_siem, '#5cb85c'),
-                (" Detener SIEM", self.detener_siem, '#d9534f'),
-                ("� Verificar Kali", self.verificar_kali, '#337ab7'),
-                ("� Actualizar Dashboard", self.actualizar_dashboard, '#404040'),
-                (" Estadísticas", self.mostrar_estadisticas, '#404040'),
-                ("� Configurar Alertas", self.configurar_alertas, '#404040'),
-                (" Métricas Sistema", self.metricas_sistema, '#404040'),
-                (" Monitor Red", self.monitor_red, '#404040'),
-                (" Eventos Seguridad", self.eventos_seguridad, '#404040')
-            ]
-            
-            for text, command, bg_color in buttons_monitoreo:
-                btn = tk.Button(right_frame, text=text, command=command,
-                              bg=bg_color, fg='white', font=('Arial', 9))
-                if text == " Detener SIEM":
-                    btn.config(state="disabled")
-                    self.btn_detener_siem = btn
-                btn.pack(fill=tk.X, pady=2)
-        else:
-            self.btn_iniciar_siem = ttk.Button(right_frame, text=" Iniciar SIEM", 
-                                             command=self.iniciar_siem)
-            self.btn_iniciar_siem.pack(fill=tk.X, pady=2)
-            
-            self.btn_detener_siem = ttk.Button(right_frame, text=" Detener SIEM", 
-                                             command=self.detener_siem, state="disabled")
-            self.btn_detener_siem.pack(fill=tk.X, pady=2)
-            
-            ttk.Button(right_frame, text="� Verificar Kali", 
-                      command=self.verificar_kali).pack(fill=tk.X, pady=2)
-            ttk.Button(right_frame, text="� Actualizar Dashboard", 
-                      command=self.actualizar_dashboard).pack(fill=tk.X, pady=2)
-            ttk.Button(right_frame, text=" Estadísticas", 
-                      command=self.mostrar_estadisticas).pack(fill=tk.X, pady=2)
+        label_controls = tk.Label(right_frame, text="Controles SIEM", 
+                                bg=self.colors['bg_secondary'], fg=self.colors['fg_accent'], 
+                                font=('Arial', 12, 'bold'))
+        label_controls.pack(anchor=tk.W, pady=(0, 10))
+        
+        # Botones de monitoreo con tema Burp Suite
+        buttons_monitoreo = [
+            ("🚀 Iniciar SIEM", self.iniciar_siem, self.colors['success']),
+            ("⏹️ Detener SIEM", self.detener_siem, self.colors['danger']),
+            ("⚡ Verificar Kali", self.verificar_kali, self.colors['info']),
+            ("🔄 Actualizar Dashboard", self.actualizar_dashboard, self.colors['button_bg']),
+            ("📊 Estadísticas", self.mostrar_estadisticas, self.colors['button_bg']),
+            ("⚙️ Configurar Alertas", self.configurar_alertas, self.colors['button_bg']),
+            ("📈 Métricas Sistema", self.metricas_sistema, self.colors['button_bg']),
+            ("🌐 Monitor Red", self.monitor_red, self.colors['button_bg']),
+            ("🔒 Eventos Seguridad", self.eventos_seguridad, self.colors['button_bg'])
+        ]
+        
+        for text, command, bg_color in buttons_monitoreo:
+            btn = tk.Button(right_frame, text=text, command=command,
+                          bg=bg_color, fg='white', font=('Arial', 9),
+                          relief='flat', padx=10, pady=5,
+                          activebackground=self.colors['fg_accent'],
+                          activeforeground='white')
+            if text == "⏹️ Detener SIEM":
+                btn.config(state="disabled")
+                self.btn_detener_siem = btn
+            btn.pack(fill=tk.X, pady=2)
     
     def crear_tab_analisis(self):
         """Crear pestaña de análisis de logs."""

@@ -30,7 +30,7 @@ def verificar_kali_linux():
 
 def verificar_modo_desarrollo():
     """Verificar si estamos en modo desarrollo"""
-    # Permitir desarrollo en Windows si se pasa argumento --dev
+    # Permitir modo desarrollo si se pasa argumento --dev
     if '--dev' in sys.argv or '--desarrollo' in sys.argv:
         return True
     return False
