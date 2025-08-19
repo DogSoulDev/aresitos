@@ -1,4 +1,4 @@
-![Aresitos](Aresitos.ico)
+![Aresitos](aresitos/recursos/Aresitos.ico)
 
 # ARESITOS v2.0
 **Suite Profesional de Ciberseguridad para Kali Linux**
