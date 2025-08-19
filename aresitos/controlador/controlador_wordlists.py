@@ -55,7 +55,7 @@ class ControladorWordlists(ControladorBase):
                 return False
                 
             return True
-        except:
+        except (ValueError, TypeError, AttributeError):
             return False
             
     def _validar_regex_segura(self, patron):

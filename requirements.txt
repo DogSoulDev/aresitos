@@ -1,164 +1,191 @@
 # ===================================================================
-# ARESITOS v2.0 - DEPENDENCIAS DEL PROYECTO
-# Suite Profesional de Ciberseguridad para Kali Linux
+# ARESITOS v2.0 - ARQUITECTURA NATIVA PARA KALI LINUX
+# Suite Profesional de Ciberseguridad - ZERO DEPENDENCIAS EXTERNAS
 # ===================================================================
 # 
-# INSTALACIÓN:
-# 1. python3 -m venv venv_aresitos
-# 2. source venv_aresitos/bin/activate  
-# 3. pip install -r requirements.txt
-# 4. sudo ./configurar_kali.sh  # Para configurar permisos en Kali
+# INSTALACION DIRECTA - SIN REQUIREMENTS EXTERNOS:
+# 1. git clone <repositorio>
+# 2. cd Ares-Aegis
+# 3. sudo ./configurar_kali.sh  # Configurar herramientas Kali
+# 4. python3 main.py           # Ejecutar directamente
 #
-# VERIFICACIÓN:
-# python3 verificacion_seguridad.py
+# VERIFICACION:
+# python3 verificacion_final_arquitectura.py
 # ===================================================================
 
-# === DEPENDENCIAS PRINCIPALES ===
-
-# Monitoreo del sistema y procesos (CRÍTICO para FIM y SIEM)
-psutil>=5.9.0
-
+# === ARQUITECTURA NATIVA - CERO DEPENDENCIAS EXTERNAS ===
 # ===================================================================
-# BIBLIOTECAS PYTHON NATIVAS INCLUIDAS (NO REQUIEREN INSTALACIÓN):
+# ARESITOS v2.0 utiliza EXCLUSIVAMENTE Python stdlib + Kali tools
+# NO requiere pip install - funciona directamente en Kali Linux
+# ===================================================================
+
+# === BIBLIOTECAS PYTHON NATIVAS INCLUIDAS (STDLIB) ===
 # ===================================================================
 # 
-# INTERFAZ GRÁFICA:
+# INTERFAZ GRAFICA:
 # - tkinter (GUI principal)
 # - tkinter.ttk (widgets modernos)
 # 
 # SISTEMA Y PROCESOS:
-# - subprocess (ejecución comandos sistema)
-# - os/pathlib (manejo archivos y rutas)
-# - sys (información del sistema)
-# - platform (detección del SO)
+# - subprocess (comandos Linux via subprocess)
+# - os/pathlib (manejo archivos rutas)
+# - sys (informacion sistema)
+# - platform (deteccion SO)
 # 
 # SEGURIDAD Y HASHING:
-# - hashlib (MD5/SHA256 para integridad FIM)
-# - secrets (generación segura de tokens)
+# - hashlib (MD5/SHA256 integridad FIM)
+# - secrets (generacion tokens seguros)
 # - ssl (conexiones seguras)
 # 
 # DATOS Y PERSISTENCIA:
-# - json (configuración y reportes)
-# - sqlite3 (base de datos local)
-# - pickle (serialización objetos)
+# - json (configuracion reportes)
+# - sqlite3 (base datos local)
+# - pickle (serializacion objetos)
 # 
 # CONCURRENCIA Y TIEMPO:
 # - threading (operaciones concurrentes)
-# - asyncio (programación asíncrona)
-# - datetime (timestamps y fechas)
-# - time (delays y timeouts)
+# - datetime (timestamps fechas)
+# - time (delays timeouts)
 # 
 # NETWORKING:
-# - socket (networking básico)
-# - urllib (HTTP requests)
-# - ipaddress (manejo de IPs)
+# - socket (networking basico)
+# - ipaddress (manejo IPs)
 # 
 # PROCESAMIENTO:
 # - re (expresiones regulares)
-# - logging (sistema de logs centralizado)
+# - logging (sistema logs centralizado)
 # - tempfile (archivos temporales seguros)
-# - shutil (operaciones de archivos)
-# - zipfile (compresión de reportes)
+# - shutil (operaciones archivos)
+# - zipfile (compresion reportes)
 # 
-# MATEMÁTICAS Y ESTRUCTURAS:
-# - collections (estructuras de datos)
-# - itertools (herramientas de iteración)
-# - functools (programación funcional)
+# MATEMATICAS Y ESTRUCTURAS:
+# - collections (estructuras datos)
+# - itertools (herramientas iteracion)
+# - functools (programacion funcional)
 # ===================================================================
 
-# === HERRAMIENTAS KALI LINUX REQUERIDAS ===
+# === HERRAMIENTAS KALI LINUX INTEGRADAS ===
 # ===================================================================
-# ESTAS HERRAMIENTAS DEBEN ESTAR INSTALADAS EN KALI LINUX:
+# ARESITOS ejecuta herramientas Kali via subprocess.run()
 # 
-# ESCANEO DE RED Y VULNERABILIDADES:
-# - nmap (escaneo de puertos SYN, detección OS/servicios)
+# ESCANEO RED Y VULNERABILIDADES:
+# - nmap (escaneo puertos SYN, deteccion OS/servicios)
 # - masscan (escaneo masivo alta velocidad)
-# - nikto (análisis vulnerabilidades web)
+# - nikto (analisis vulnerabilidades web)
 # - gobuster (fuzzing directorios/archivos)
-# - whatweb (fingerprinting tecnologías web)
-# - nuclei (detección vulnerabilidades con templates)
+# - nuclei (deteccion vulnerabilidades templates)
+# - sqlmap (inyeccion SQL automatizada)
 # 
-# DETECCIÓN DE MALWARE Y ROOTKITS:
-# - clamav (antivirus/detección malware)
-# - chkrootkit (detección rootkits conocidos)
+# DETECCION MALWARE Y ROOTKITS:
+# - clamscan (antivirus/deteccion malware)
+# - chkrootkit (deteccion rootkits conocidos)
 # - rkhunter (hunter avanzado rootkits/backdoors)
+# - yara (deteccion patrones malware)
 # 
-# AUDITORÍA DEL SISTEMA:
-# - lynis (auditoría completa seguridad sistema)
-# - systemctl (gestión servicios)
-# - ps/pgrep (análisis procesos)
+# AUDITORIA SISTEMA:
+# - lynis (auditoria completa seguridad)
+# - aide (deteccion cambios archivos)
+# - tiger (auditoria seguridad sistema)
+# - systemctl (gestion servicios)
 # 
-# MONITOREO DE RED:
-# - netstat/ss (monitoreo conexiones TCP/UDP)
-# - lsof (archivos y procesos abiertos)
-# - tcpdump (captura de paquetes)
-# - iftop (monitoreo tráfico red)
+# MONITOREO RED:
+# - ss/netstat (conexiones TCP/UDP)
+# - lsof (archivos procesos abiertos)
+# - tcpdump (captura paquetes)
+# - iftop (monitoreo trafico red)
 # 
-# ANÁLISIS DE LOGS:
-# - tail/head (lectura logs en tiempo real)
+# ANALISIS LOGS:
+# - tail/head (lectura logs tiempo real)
 # - grep/awk/sed (procesamiento texto)
-# - find (búsqueda archivos)
+# - find (busqueda archivos)
 # 
-# INSTALACIÓN DE HERRAMIENTAS KALI:
-# sudo apt update
-# sudo apt install nmap masscan nikto gobuster clamav chkrootkit rkhunter lynis
-# sudo freshclam  # Actualizar base de datos ClamAV
+# COMANDOS LINUX SISTEMA:
+# - ps/top/htop (monitoreo procesos)
+# - free (memoria sistema)
+# - df/du (espacio disco)
+# - curl/wget (descargas HTTP)
+# - ping/traceroute (conectividad red)
 # ===================================================================
 
-# === DEPENDENCIAS OPCIONALES DE DESARROLLO ===
+# === INSTALACION HERRAMIENTAS KALI ===
 # ===================================================================
-# Descomente estas líneas para desarrollo:
+# Comando unico para instalar todas las herramientas:
 # 
-# # Formateo de código
-# black>=23.0.0
-# isort>=5.12.0
+# sudo apt update && sudo apt install -y \
+#   nmap masscan nikto gobuster nuclei sqlmap \
+#   clamav clamav-daemon chkrootkit rkhunter \
+#   aide tiger yara lynis inotify-tools \
+#   tcpdump iftop htop curl wget
 # 
-# # Análisis de código
-# pylint>=2.17.0
-# mypy>=1.4.0
-# flake8>=6.0.0
+# Actualizar base datos antivirus:
+# sudo freshclam
 # 
-# # Testing
-# pytest>=7.4.0
-# pytest-cov>=4.1.0
-# pytest-mock>=3.11.0
-# 
-# # Documentación
-# sphinx>=6.0.0
-# sphinx-rtd-theme>=1.3.0
+# Configurar AIDE (deteccion intrusos):
+# sudo aide --init
+# sudo cp /var/lib/aide/aide.db.new /var/lib/aide/aide.db
 # ===================================================================
 
-# === INFORMACIÓN DE COMPATIBILIDAD ===
+# === METRICAS SISTEMA - COMANDOS LINUX NATIVOS ===
 # ===================================================================
-# SISTEMAS OPERATIVOS SOPORTADOS:
-# - Kali Linux 2024.x (RECOMENDADO - funcionalidad completa)
-# - Debian 12+ (funcionalidad básica)
-# - Ubuntu 22.04+ (funcionalidad básica)
+# ARESITOS obtiene metricas sistema via comandos Linux puros:
 # 
-# VERSIONES PYTHON SOPORTADAS:
-# - Python 3.8+ (mínimo)
+# CPU: /proc/stat, nproc, /proc/loadavg
+# MEMORIA: /proc/meminfo  
+# DISCO: df -h
+# RED: /proc/net/dev, ss -tuln
+# PROCESOS: ps aux, /proc/*/stat
+# UPTIME: /proc/uptime
+# 
+# NO requiere psutil ni otras bibliotecas externas
+# ===================================================================
+
+# === SISTEMAS OPERATIVOS SOPORTADOS ===
+# ===================================================================
+# PRIMARIO (funcionalidad completa):
+# - Kali Linux 2024.x+ (RECOMENDADO)
+# - Parrot Security OS 5.x+
+# 
+# SECUNDARIO (funcionalidad basica):
+# - Debian 12+ 
+# - Ubuntu 22.04+
+# - BlackArch Linux
+# 
+# VERSIONES PYTHON:
+# - Python 3.8+ (minimo)
 # - Python 3.9+ (recomendado)
-# - Python 3.10+ (óptimo)
-# - Python 3.11+ (totalmente soportado)
-# - Python 3.12+ (probado)
-# 
-# ARQUITECTURAS SOPORTADAS:
-# - x86_64 (amd64) - Principal
-# - ARM64 (aarch64) - Experimental
+# - Python 3.10+ (optimo)
+# - Python 3.11+ (probado)
+# - Python 3.12+ (soportado)
 # ===================================================================
 
-# === NOTAS DE SEGURIDAD ===
+# === ARQUITECTURA CERO DEPENDENCIAS ===
+# ===================================================================
+# VENTAJAS:
+# 1. Instalacion inmediata - sin pip install
+# 2. Menor superficie ataque - solo stdlib
+# 3. Mayor estabilidad - sin dependencias externas
+# 4. Compatibilidad garantizada - funciona en cualquier Kali
+# 5. Auditoria simplificada - codigo completamente auditable
+# 
+# PRINCIPIOS:
+# - Python nativo UNICAMENTE
+# - Comandos Linux via subprocess
+# - Herramientas Kali integradas
+# - CERO bibliotecas externas
+# ===================================================================
+
+# === NOTAS SEGURIDAD ===
 # ===================================================================
 # IMPORTANTE:
-# 1. Ejecute SIEMPRE en entorno virtual para aislamiento
-# 2. Configure permisos con configurar_kali.sh en Kali Linux
-# 3. Verifique integridad con verificacion_seguridad.py
-# 4. Los logs se almacenan en ./logs/ (revise periódicamente)
-# 5. Las bases de datos se crean en ./data/ (backup regular)
+# 1. Ejecutar SOLO en Kali Linux para funcionalidad completa
+# 2. Configurar permisos: sudo ./configurar_kali.sh
+# 3. Verificar integridad: python3 verificacion_final_arquitectura.py
+# 4. Logs almacenados en ./logs/ (revisar periodicamente)
+# 5. Bases datos en ./data/ (backup regular)
 # 
 # PERMISOS REQUERIDOS:
-# - sudo para herramientas de red (nmap, tcpdump)
-# - lectura /var/log/ para análisis SIEM
+# - sudo para herramientas red (nmap, tcpdump)
+# - lectura /var/log/ para analisis SIEM
 # - escritura ./logs/ para logging
-# - escritura ./data/ para bases de datos
+# - escritura ./data/ para bases datos
 # ===================================================================

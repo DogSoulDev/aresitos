@@ -2,6 +2,7 @@
 
 import tkinter as tk
 from tkinter import ttk, scrolledtext, messagebox
+import logging
 
 try:
     from aresitos.vista.burp_theme import burp_theme
@@ -17,6 +18,9 @@ class VistaEscaneo(tk.Frame):
         self.controlador = None
         self.proceso_activo = False
         self.thread_escaneo = None
+        
+        # Configurar logging
+        self.logger = logging.getLogger(__name__)
         
         # Configurar tema y colores de manera consistente
         if BURP_THEME_AVAILABLE and burp_theme:
@@ -67,7 +71,7 @@ class VistaEscaneo(tk.Frame):
         titulo_frame = tk.Frame(main_frame, bg=self.colors['bg_primary'])
         titulo_frame.pack(fill="x", pady=(0, 15))
         
-        titulo_label = tk.Label(titulo_frame, text="🔍 ESCANEADOR DE VULNERABILIDADES", 
+        titulo_label = tk.Label(titulo_frame, text="[SCAN] ESCANEADOR DE VULNERABILIDADES", 
                               font=('Arial', 14, 'bold'),
                               bg=self.colors['bg_primary'], fg=self.colors['fg_accent'])
         titulo_label.pack()
@@ -79,7 +83,7 @@ class VistaEscaneo(tk.Frame):
         btn_frame.pack(fill="x", pady=(0, 10))
         
         # Botones con tema Burp Suite
-        self.btn_escanear = tk.Button(btn_frame, text="🔍 Escanear Sistema", 
+        self.btn_escanear = tk.Button(btn_frame, text="[SCAN] Escanear Sistema", 
                                     command=self.ejecutar_escaneo,
                                     bg=self.colors['fg_accent'], fg='white', 
                                     font=('Arial', 10, 'bold'),
@@ -88,7 +92,7 @@ class VistaEscaneo(tk.Frame):
                                     activeforeground='white')
         self.btn_escanear.pack(side="left", padx=(0, 10))
         
-        self.btn_verificar = tk.Button(btn_frame, text="⚡ Verificar Kali", 
+        self.btn_verificar = tk.Button(btn_frame, text="[EMOJI] Verificar Kali", 
                                      command=self.verificar_kali,
                                      bg=self.colors['info'], fg='white', 
                                      font=('Arial', 10, 'bold'),
@@ -97,7 +101,7 @@ class VistaEscaneo(tk.Frame):
                                      activeforeground='white')
         self.btn_verificar.pack(side="left", padx=(0, 10))
             
-        self.btn_cancelar_escaneo = tk.Button(btn_frame, text="⏹️ Cancelar", 
+        self.btn_cancelar_escaneo = tk.Button(btn_frame, text="[STOP] Cancelar", 
                                             command=self.cancelar_escaneo,
                                             state="disabled",
                                             bg=self.colors['button_bg'], fg='white',
@@ -107,7 +111,7 @@ class VistaEscaneo(tk.Frame):
                                             activeforeground='white')
         self.btn_cancelar_escaneo.pack(side="left", padx=(0, 15))
         
-        self.btn_logs = tk.Button(btn_frame, text="📋 Ver Logs", 
+        self.btn_logs = tk.Button(btn_frame, text="[METADATA] Ver Logs", 
                                 command=self.ver_logs,
                                 bg=self.colors['button_bg'], fg='white',
                                 font=('Arial', 10),
@@ -116,7 +120,7 @@ class VistaEscaneo(tk.Frame):
                                 activeforeground='white')
         self.btn_logs.pack(side="left", padx=(0, 10))
         
-        self.btn_eventos = tk.Button(btn_frame, text="🔒 Eventos SIEM", 
+        self.btn_eventos = tk.Button(btn_frame, text="[SECURE] Eventos SIEM", 
                                    command=self.ver_eventos,
                                    bg=self.colors['button_bg'], fg='white',
                                    font=('Arial', 10),

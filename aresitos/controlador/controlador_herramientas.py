@@ -172,7 +172,7 @@ class ControladorHerramientas:
                                           capture_output=True, timeout=2)
                     if result.returncode == 0:
                         herramientas_instaladas.append(herramienta)
-                except:
+                except (subprocess.TimeoutExpired, subprocess.CalledProcessError, FileNotFoundError):
                     pass
             
             info['herramientas_core_disponibles'] = herramientas_instaladas
@@ -254,7 +254,7 @@ class ControladorHerramientas:
                 comando_instalacion = ['sudo', 'apt-get', 'install', '-y', nombre_herramienta]
             else:
                 comando_instalacion = ['apt-get', 'install', '-y', nombre_herramienta]
-        except Exception:
+        except (subprocess.TimeoutExpired, subprocess.CalledProcessError, FileNotFoundError):
             # Fallback seguro para Kali: asumir que tenemos sudo disponible
             comando_instalacion = ['sudo', 'apt-get', 'install', '-y', nombre_herramienta]
             
@@ -362,7 +362,7 @@ class ControladorHerramientas:
                                          capture_output=True, text=True, timeout=5)
                 if resultado.returncode == 0 and resultado.stdout:
                     return resultado.stdout.split('\n')[0]
-            except:
+            except (subprocess.TimeoutExpired, subprocess.CalledProcessError, FileNotFoundError):
                 continue
         
         return 'Versión no disponible'

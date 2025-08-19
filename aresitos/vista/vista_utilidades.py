@@ -2,6 +2,7 @@
 
 import tkinter as tk
 from tkinter import ttk
+import logging
 
 from aresitos.vista.vista_herramientas import VistaHerramientas
 from aresitos.vista.vista_auditoria import VistaAuditoria
@@ -21,6 +22,9 @@ class VistaUtilidades(tk.Frame):
         super().__init__(parent)
         self.controlador = None
         
+        # Configurar logging
+        self.logger = logging.getLogger(__name__)
+        
         if BURP_THEME_AVAILABLE and burp_theme:
             self.theme = burp_theme
             self.configure(bg=burp_theme.get_color('bg_primary'))
@@ -34,6 +38,7 @@ class VistaUtilidades(tk.Frame):
     
     def set_controlador(self, controlador):
         self.controlador = controlador
+        self.logger.info("Controlador establecido en VistaUtilidades")
         
         if hasattr(self, 'vista_herramientas'):
             self.vista_herramientas.set_controlador(controlador)
@@ -88,6 +93,48 @@ class VistaUtilidades(tk.Frame):
         self.notebook.add(self.vista_reportes, text=" Reportes")
         
         self.vista_gestion_datos = VistaGestionDatos(self.notebook)
+        self.notebook.add(self.vista_gestion_datos, text=" Gestión de Datos")
+    
+    def actualizar_vista(self):
+        """Actualizar todas las vistas con datos del controlador"""
+        if not self.controlador:
+            self.logger.warning("No hay controlador configurado para actualizar vista")
+            return
+        
+        try:
+            # Actualizar estado de herramientas si el controlador lo soporta
+            if hasattr(self.controlador, 'obtener_estado_herramientas'):
+                estado = self.controlador.obtener_estado_herramientas()
+                self.logger.info(f"Estado de herramientas actualizado: {estado}")
+            
+            # Notificar a las vistas hijas
+            if hasattr(self, 'vista_herramientas') and hasattr(self.vista_herramientas, 'actualizar_vista'):
+                self.vista_herramientas.actualizar_vista()
+            
+            # Verificar disponibilidad de vista de auditoría (funcionalidad futura)
+            if hasattr(self, 'vista_auditoria'):
+                self.logger.debug("Vista de auditoría disponible para futuras actualizaciones")
+                
+        except Exception as e:
+            self.logger.error(f"Error actualizando vista de utilidades: {e}")
+    
+    def verificar_estado_sistema(self):
+        """Verificar estado general del sistema a través del controlador"""
+        if not self.controlador:
+            self.logger.warning("No hay controlador para verificar estado del sistema")
+            return
+        
+        try:
+            if hasattr(self.controlador, 'verificar_estado_sistema'):
+                estado = self.controlador.verificar_estado_sistema()
+                self.logger.info(f"Estado del sistema verificado: {estado}")
+                return estado
+            else:
+                self.logger.warning("Controlador no soporta verificación de estado")
+                
+        except Exception as e:
+            self.logger.error(f"Error verificando estado del sistema: {e}")
+            return None
         self.notebook.add(self.vista_gestion_datos, text=" Gestión de Datos")
         
         if self.controlador:

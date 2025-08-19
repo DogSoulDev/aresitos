@@ -75,12 +75,12 @@ def verificar_gestor_permisos():
                 print(f"{i}. {rec}")
         
         # Realizar pruebas específicas
-        print(f"\n🧪 PRUEBAS DE FUNCIONALIDAD:")
+        print(f"\n[FORENSIC] PRUEBAS DE FUNCIONALIDAD:")
         print("-" * 40)
         
         # Prueba 1: Verificar nmap
         if 'nmap' in reporte['herramientas'] and reporte['herramientas']['nmap']['disponible']:
-            logger.info("🧪 Probando ejecución de nmap...")
+            logger.info("[FORENSIC] Probando ejecución de nmap...")
             exito, stdout, stderr = gestor.ejecutar_con_permisos('nmap', ['--version'])
             
             if exito:
@@ -95,7 +95,7 @@ def verificar_gestor_permisos():
         herramientas_red = ['ss', 'netstat']
         for herramienta in herramientas_red:
             if herramienta in reporte['herramientas'] and reporte['herramientas'][herramienta]['disponible']:
-                logger.info(f"🧪 Probando ejecución de {herramienta}...")
+                logger.info(f"[FORENSIC] Probando ejecución de {herramienta}...")
                 exito, stdout, stderr = gestor.ejecutar_con_permisos(herramienta, ['--help'])
                 
                 if exito:
@@ -109,7 +109,7 @@ def verificar_gestor_permisos():
         archivos_sistema = ['/etc/passwd', '/etc/hosts']
         for archivo in archivos_sistema:
             if os.path.exists(archivo):
-                logger.info(f"🧪 Probando lectura de {archivo}...")
+                logger.info(f"[FORENSIC] Probando lectura de {archivo}...")
                 exito, contenido = gestor.leer_archivo_sistema(archivo)
                 
                 if exito:

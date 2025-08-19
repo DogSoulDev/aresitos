@@ -3,6 +3,7 @@
 import tkinter as tk
 from tkinter import ttk, scrolledtext, messagebox, filedialog
 import threading
+import logging
 
 try:
     from aresitos.vista.burp_theme import burp_theme
@@ -27,6 +28,7 @@ class VistaAuditoria(tk.Frame):
     def __init__(self, parent):
         super().__init__(parent)
         self.controlador = None
+        self.logger = logging.getLogger(__name__)
         
         # Estados únicos de auditoría
         self.proceso_auditoria_activo = False
@@ -76,7 +78,7 @@ class VistaAuditoria(tk.Frame):
         titulo_frame = tk.Frame(self, bg=self.colors['bg_primary'])
         titulo_frame.pack(fill=tk.X, pady=(0, 10))
         
-        titulo = tk.Label(titulo_frame, text="🔍 Auditoría de Seguridad del Sistema",
+        titulo = tk.Label(titulo_frame, text="[SCAN] Auditoría de Seguridad del Sistema",
                          font=('Arial', 16, 'bold'),
                          bg=self.colors['bg_primary'], fg=self.colors['fg_accent'])
         titulo.pack(pady=10)
@@ -89,7 +91,7 @@ class VistaAuditoria(tk.Frame):
         left_frame = tk.Frame(main_frame, bg=self.colors['bg_secondary'])
         left_frame.pack(side=tk.LEFT, fill=tk.BOTH, expand=True, padx=(0, 10))
         
-        label_results = tk.Label(left_frame, text="📋 Resultados de Auditoría", 
+        label_results = tk.Label(left_frame, text="[METADATA] Resultados de Auditoría", 
                                bg=self.colors['bg_secondary'], fg=self.colors['fg_accent'],
                                font=('Arial', 12, 'bold'))
         label_results.pack(anchor=tk.W, pady=(0, 5))
@@ -106,7 +108,7 @@ class VistaAuditoria(tk.Frame):
         right_frame = tk.Frame(main_frame, bg=self.colors['bg_secondary'])
         right_frame.pack(side=tk.RIGHT, fill=tk.Y)
         
-        label_tools = tk.Label(right_frame, text="🛠️ Herramientas de Auditoría", 
+        label_tools = tk.Label(right_frame, text="[UTILS] Herramientas de Auditoría", 
                              bg=self.colors['bg_secondary'], fg=self.colors['fg_accent'],
                              font=('Arial', 12, 'bold'))
         label_tools.pack(anchor=tk.W, pady=(0, 10))
@@ -123,14 +125,14 @@ class VistaAuditoria(tk.Frame):
         section_frame = tk.Frame(parent, bg=self.colors['bg_secondary'])
         section_frame.pack(fill=tk.X, pady=5)
         
-        tk.Label(section_frame, text="🔍 Auditorías del Sistema", 
+        tk.Label(section_frame, text="[SCAN] Auditorías del Sistema", 
                 bg=self.colors['bg_secondary'], fg=self.colors['fg_primary'],
                 font=('Arial', 10, 'bold')).pack(anchor=tk.W, pady=(5, 5))
         
         buttons = [
-            ("🔍 Ejecutar Lynis", self.ejecutar_lynis, self.colors['fg_accent']),
-            ("❌ Cancelar Lynis", self.cancelar_auditoria, self.colors['danger']),
-            ("🐧 Verificar Kali", self.verificar_kali, self.colors['info']),
+            ("[SCAN] Ejecutar Lynis", self.ejecutar_lynis, self.colors['fg_accent']),
+            ("[EMOJI] Cancelar Lynis", self.cancelar_auditoria, self.colors['danger']),
+            ("[EMOJI] Verificar Kali", self.verificar_kali, self.colors['info']),
         ]
         
         for text, command, color in buttons:
@@ -151,15 +153,15 @@ class VistaAuditoria(tk.Frame):
         section_frame = tk.Frame(parent, bg=self.colors['bg_secondary'])
         section_frame.pack(fill=tk.X, pady=5)
         
-        tk.Label(section_frame, text="🦠 Detección de Malware", 
+        tk.Label(section_frame, text="[EMOJI] Detección de Malware", 
                 bg=self.colors['bg_secondary'], fg=self.colors['fg_primary'],
                 font=('Arial', 10, 'bold')).pack(anchor=tk.W, pady=(5, 5))
         
         buttons = [
-            ("🔍 Detectar Rootkits", self.detectar_rootkits, self.colors['warning']),
-            ("❌ Cancelar Rootkits", self.cancelar_rootkits, self.colors['danger']),
-            ("🛡️ Auditoría OpenVAS", self.ejecutar_openvas, self.colors['info']),
-            ("📊 Scan Nessus", self.ejecutar_nessus, self.colors['fg_accent']),
+            ("[SCAN] Detectar Rootkits", self.detectar_rootkits, self.colors['warning']),
+            ("[EMOJI] Cancelar Rootkits", self.cancelar_rootkits, self.colors['danger']),
+            ("[SECURITY] Auditoría OpenVAS", self.ejecutar_openvas, self.colors['info']),
+            ("[STATS] Scan Nessus", self.ejecutar_nessus, self.colors['fg_accent']),
         ]
         
         for text, command, color in buttons:
@@ -181,16 +183,16 @@ class VistaAuditoria(tk.Frame):
         section_frame = tk.Frame(parent, bg=self.colors['bg_secondary'])
         section_frame.pack(fill=tk.X, pady=5)
         
-        tk.Label(section_frame, text="⚙️ Configuraciones", 
+        tk.Label(section_frame, text="[SETTINGS] Configuraciones", 
                 bg=self.colors['bg_secondary'], fg=self.colors['fg_primary'],
                 font=('Arial', 10, 'bold')).pack(anchor=tk.W, pady=(5, 5))
         
         buttons = [
-            ("🔧 Analizar Servicios", self.analizar_servicios, self.colors['info']),
-            ("🔒 Verificar Permisos", self.verificar_permisos, self.colors['success']),
-            ("🔑 Configuración SSH", self.auditar_ssh, self.colors['fg_accent']),
-            ("🛡️ Políticas Password", self.verificar_password_policy, self.colors['danger']),
-            ("⚠️ Análisis SUID/SGID", self.analizar_suid_sgid, self.colors['warning']),
+            ("[CONFIG] Analizar Servicios", self.analizar_servicios, self.colors['info']),
+            ("[SECURE] Verificar Permisos", self.verificar_permisos, self.colors['success']),
+            ("[EMOJI] Configuración SSH", self.auditar_ssh, self.colors['fg_accent']),
+            ("[SECURITY] Políticas Password", self.verificar_password_policy, self.colors['danger']),
+            ("[WARNING] Análisis SUID/SGID", self.analizar_suid_sgid, self.colors['warning']),
         ]
         
         for text, command, color in buttons:
@@ -206,14 +208,14 @@ class VistaAuditoria(tk.Frame):
         section_frame = tk.Frame(parent, bg=self.colors['bg_secondary'])
         section_frame.pack(fill=tk.X, pady=5)
         
-        tk.Label(section_frame, text="🛠️ Utilidades", 
+        tk.Label(section_frame, text="[UTILS] Utilidades", 
                 bg=self.colors['bg_secondary'], fg=self.colors['fg_primary'],
                 font=('Arial', 10, 'bold')).pack(anchor=tk.W, pady=(5, 5))
         
         buttons = [
-            ("💻 Info Hardware", self.obtener_info_hardware, self.colors['bg_primary']),
-            ("💾 Guardar Resultados", self.guardar_auditoria, self.colors['info']),
-            ("🗑️ Limpiar Pantalla", self.limpiar_auditoria, self.colors['warning']),
+            ("[SYSTEM] Info Hardware", self.obtener_info_hardware, self.colors['bg_primary']),
+            ("[SAVE] Guardar Resultados", self.guardar_auditoria, self.colors['info']),
+            ("[CLEAN] Limpiar Pantalla", self.limpiar_auditoria, self.colors['warning']),
         ]
         
         for text, command, color in buttons:
@@ -327,17 +329,17 @@ class VistaAuditoria(tk.Frame):
                 if self.controlador:
                     resultado = self.controlador.ejecutar_deteccion_rootkits()
                     if resultado.get('exito'):
-                        self.after(0, self._actualizar_texto_auditoria, "✅ OK Detección de rootkits completada\n")
+                        self.after(0, self._actualizar_texto_auditoria, "[EMOJI] OK Detección de rootkits completada\n")
                         if 'rootkits_detectados' in resultado:
                             count = resultado['rootkits_detectados']
                             if count > 0:
-                                self.after(0, self._actualizar_texto_auditoria, f"⚠️ WARNING {count} posibles rootkits detectados\n")
+                                self.after(0, self._actualizar_texto_auditoria, f"[WARNING] WARNING {count} posibles rootkits detectados\n")
                             else:
-                                self.after(0, self._actualizar_texto_auditoria, "✅ OK No se detectaron rootkits\n")
+                                self.after(0, self._actualizar_texto_auditoria, "[EMOJI] OK No se detectaron rootkits\n")
                         if 'salida' in resultado:
-                            self.after(0, self._actualizar_texto_auditoria, f"\n📋 DETALLES:\n{resultado['salida']}\n")
+                            self.after(0, self._actualizar_texto_auditoria, f"\n[METADATA] DETALLES:\n{resultado['salida']}\n")
                     else:
-                        self.after(0, self._actualizar_texto_auditoria, f"❌ ERROR Error: {resultado.get('error', 'Error desconocido')}\n")
+                        self.after(0, self._actualizar_texto_auditoria, f"[EMOJI] ERROR Error: {resultado.get('error', 'Error desconocido')}\n")
                 else:
                     # Fallback manual
                     self.after(0, self._actualizar_texto_auditoria, " Detectando rootkits con rkhunter y chkrootkit...\n")
@@ -417,20 +419,20 @@ class VistaAuditoria(tk.Frame):
                 if self.controlador:
                     resultado = self.controlador.verificar_permisos_criticos()
                     if resultado.get('exito'):
-                        self.after(0, self._actualizar_texto_auditoria, "✅ OK Verificación de permisos completada\n")
+                        self.after(0, self._actualizar_texto_auditoria, "[EMOJI] OK Verificación de permisos completada\n")
                         if 'permisos_incorrectos' in resultado:
                             count = resultado['permisos_incorrectos']
                             if count > 0:
-                                self.after(0, self._actualizar_texto_auditoria, f"⚠️ WARNING {count} permisos incorrectos detectados\n")
+                                self.after(0, self._actualizar_texto_auditoria, f"[WARNING] WARNING {count} permisos incorrectos detectados\n")
                             else:
-                                self.after(0, self._actualizar_texto_auditoria, "✅ OK Todos los permisos están correctos\n")
+                                self.after(0, self._actualizar_texto_auditoria, "[EMOJI] OK Todos los permisos están correctos\n")
                         if 'detalles' in resultado:
-                            self.after(0, self._actualizar_texto_auditoria, f"\n📋 DETALLES:\n{resultado['detalles']}\n")
+                            self.after(0, self._actualizar_texto_auditoria, f"\n[METADATA] DETALLES:\n{resultado['detalles']}\n")
                     else:
-                        self.after(0, self._actualizar_texto_auditoria, f"❌ ERROR Error: {resultado.get('error', 'Error desconocido')}\n")
+                        self.after(0, self._actualizar_texto_auditoria, f"[EMOJI] ERROR Error: {resultado.get('error', 'Error desconocido')}\n")
                 else:
                     # Fallback manual
-                    self.after(0, self._actualizar_texto_auditoria, "🔍 Verificando permisos críticos del sistema...\n")
+                    self.after(0, self._actualizar_texto_auditoria, "[SCAN] Verificando permisos críticos del sistema...\n")
                     
                     import subprocess
                     import os
@@ -449,18 +451,18 @@ class VistaAuditoria(tk.Frame):
                                 gid = stat_result.st_gid
                                 
                                 self.after(0, self._actualizar_texto_auditoria, 
-                                    f"📁 {ruta}: {permisos} (uid:{uid}, gid:{gid})\n")
+                                    f"[EMOJI] {ruta}: {permisos} (uid:{uid}, gid:{gid})\n")
                                 
                                 if ruta in ['/etc/shadow', '/etc/sudoers'] and permisos != '640':
-                                    self.after(0, self._actualizar_texto_auditoria, "⚠️ Permisos inusuales detectados\n")
+                                    self.after(0, self._actualizar_texto_auditoria, "[WARNING] Permisos inusuales detectados\n")
                             else:
-                                self.after(0, self._actualizar_texto_auditoria, f"❌ {ruta}: No existe\n")
+                                self.after(0, self._actualizar_texto_auditoria, f"[EMOJI] {ruta}: No existe\n")
                         except Exception as e:
-                            self.after(0, self._actualizar_texto_auditoria, f"❌ {ruta}: Error - {str(e)}\n")
+                            self.after(0, self._actualizar_texto_auditoria, f"[EMOJI] {ruta}: Error - {str(e)}\n")
                     
-                    self.after(0, self._actualizar_texto_auditoria, "\n✅ Verificación de permisos completada\n")
+                    self.after(0, self._actualizar_texto_auditoria, "\n[EMOJI] Verificación de permisos completada\n")
             except Exception as e:
-                self.after(0, self._actualizar_texto_auditoria, f"❌ ERROR verificando permisos: {str(e)}\n")
+                self.after(0, self._actualizar_texto_auditoria, f"[EMOJI] ERROR verificando permisos: {str(e)}\n")
         
         threading.Thread(target=ejecutar, daemon=True).start()
     

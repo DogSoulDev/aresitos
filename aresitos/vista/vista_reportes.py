@@ -4,6 +4,7 @@ import tkinter as tk
 from tkinter import ttk, scrolledtext, messagebox, filedialog
 import threading
 import json
+import logging
 
 try:
     from aresitos.vista.burp_theme import burp_theme
@@ -17,6 +18,7 @@ class VistaReportes(tk.Frame):
     def __init__(self, parent):
         super().__init__(parent)
         self.controlador = None
+        self.logger = logging.getLogger(__name__)
         self.reporte_actual = None
         
         # Configurar tema y colores de manera consistente
@@ -66,7 +68,7 @@ class VistaReportes(tk.Frame):
         titulo_frame.pack(fill=tk.X, pady=(0, 10))
         
         # Título con tema Burp Suite
-        titulo = tk.Label(titulo_frame, text="📄 Generación y Gestión de Reportes",
+        titulo = tk.Label(titulo_frame, text="[FILE] Generación y Gestión de Reportes",
                          font=('Arial', 16, 'bold'),
                          bg=self.colors['bg_primary'], fg=self.colors['fg_accent'])
         titulo.pack()
@@ -79,7 +81,7 @@ class VistaReportes(tk.Frame):
         left_frame = tk.Frame(main_frame, bg=self.colors['bg_secondary'])
         left_frame.pack(side=tk.LEFT, fill=tk.BOTH, expand=True, padx=(0, 10))
         
-        left_label = tk.Label(left_frame, text="📝 Contenido del Reporte",
+        left_label = tk.Label(left_frame, text="[LOG] Contenido del Reporte",
                              font=('Arial', 12, 'bold'),
                              bg=self.colors['bg_secondary'], fg=self.colors['fg_accent'])
         left_label.pack(anchor=tk.W, pady=(0, 5))
@@ -97,7 +99,7 @@ class VistaReportes(tk.Frame):
         right_frame = tk.Frame(main_frame, bg=self.colors['bg_secondary'])
         right_frame.pack(side=tk.RIGHT, fill=tk.Y)
         
-        right_label = tk.Label(right_frame, text="⚙️ Opciones de Reporte",
+        right_label = tk.Label(right_frame, text="[SETTINGS] Opciones de Reporte",
                               font=('Arial', 12, 'bold'),
                               bg=self.colors['bg_secondary'], fg=self.colors['fg_accent'])
         right_label.pack(anchor=tk.W, pady=(0, 10))
@@ -106,7 +108,7 @@ class VistaReportes(tk.Frame):
         config_frame = tk.Frame(right_frame, bg=self.colors['bg_secondary'])
         config_frame.pack(fill=tk.X, pady=(0, 10))
         
-        config_label = tk.Label(config_frame, text="🔧 Incluir en el Reporte:",
+        config_label = tk.Label(config_frame, text="[CONFIG] Incluir en el Reporte:",
                                font=('Arial', 10, 'bold'),
                                bg=self.colors['bg_secondary'], fg=self.colors['fg_primary'])
         config_label.pack(anchor=tk.W)
@@ -119,12 +121,12 @@ class VistaReportes(tk.Frame):
         self.incluir_cuarentena = tk.BooleanVar(value=True)
         
         opciones = [
-            ("🔍 Resultados de Escaneo", self.incluir_escaneo),
-            ("📊 Datos de Monitoreo", self.incluir_monitoreo),
-            ("🔒 Datos de FIM (File Integrity)", self.incluir_fim),
-            ("🛡️ Datos de SIEM", self.incluir_siem),
-            ("🔐 Datos de Cuarentena", self.incluir_cuarentena),
-            ("🛠️ Información de Utilidades", self.incluir_utilidades)
+            ("[SCAN] Resultados de Escaneo", self.incluir_escaneo),
+            ("[STATS] Datos de Monitoreo", self.incluir_monitoreo),
+            ("[SECURE] Datos de FIM (File Integrity)", self.incluir_fim),
+            ("[SECURITY] Datos de SIEM", self.incluir_siem),
+            ("[QUARANTINE] Datos de Cuarentena", self.incluir_cuarentena),
+            ("[UTILS] Información de Utilidades", self.incluir_utilidades)
         ]
         
         for texto, variable in opciones:
@@ -138,8 +140,8 @@ class VistaReportes(tk.Frame):
         
         # Botones de acción con tema Burp Suite
         botones_generar = [
-            ("📋 Generar Reporte Completo", self.generar_reporte_completo),
-            ("🔄 Actualizar Vista", self.actualizar_reporte)
+            ("[METADATA] Generar Reporte Completo", self.generar_reporte_completo),
+            ("[UPDATE] Actualizar Vista", self.actualizar_reporte)
         ]
         
         for texto, comando in botones_generar:
@@ -156,11 +158,11 @@ class VistaReportes(tk.Frame):
         
         # Botones de gestión con tema Burp Suite
         botones_gestion = [
-            ("💾 Guardar JSON", self.guardar_json),
-            ("📄 Guardar TXT", self.guardar_texto),
-            ("📂 Cargar Reporte", self.cargar_reporte),
-            ("📝 Listar Reportes", self.listar_reportes),
-            ("🗑️ Limpiar Vista", self.limpiar_reporte)
+            ("[SAVE] Guardar JSON", self.guardar_json),
+            ("[FILE] Guardar TXT", self.guardar_texto),
+            ("[LOAD] Cargar Reporte", self.cargar_reporte),
+            ("[LOG] Listar Reportes", self.listar_reportes),
+            ("[CLEAN] Limpiar Vista", self.limpiar_reporte)
         ]
         
         for texto, comando in botones_gestion:
@@ -175,7 +177,7 @@ class VistaReportes(tk.Frame):
         info_frame = tk.Frame(right_frame, bg=self.colors['bg_secondary'])
         info_frame.pack(fill=tk.X, pady=(20, 0))
         
-        info_title = tk.Label(info_frame, text="ℹ️ Información",
+        info_title = tk.Label(info_frame, text="[INFO] Información",
                              font=('Arial', 10, 'bold'),
                              bg=self.colors['bg_secondary'], fg=self.colors['fg_accent'])
         info_title.pack(anchor=tk.W)

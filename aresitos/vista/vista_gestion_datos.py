@@ -4,6 +4,7 @@ import tkinter as tk
 from tkinter import ttk, scrolledtext, filedialog, messagebox
 import json
 import os
+import logging
 from pathlib import Path
 
 try:
@@ -21,6 +22,9 @@ class VistaGestionDatos(tk.Frame):
     def __init__(self, parent):
         super().__init__(parent)
         self.controlador = None
+        
+        # Configurar logging
+        self.logger = logging.getLogger(__name__)
         
         # Configuración del tema Burp Suite
         if BURP_THEME_AVAILABLE and burp_theme:
@@ -68,6 +72,10 @@ class VistaGestionDatos(tk.Frame):
     
     def set_controlador(self, controlador):
         self.controlador = controlador
+        self.logger.info("Controlador establecido en VistaGestionDatos")
+        
+        # Cargar datos desde el controlador si está disponible
+        self.actualizar_desde_controlador()
     
     def crear_interfaz(self):
         """Crear interfaz principal con estilo Burp Suite."""
@@ -225,23 +233,40 @@ class VistaGestionDatos(tk.Frame):
     
     def cambiar_tipo(self, nuevo_tipo):
         """Cambiar entre wordlists y diccionarios."""
-        self.tipo_actual = nuevo_tipo
-        
-        # Actualizar botones
-        if self.theme:
-            if nuevo_tipo == "wordlists":
-                self.btn_wordlists['bg'] = '#ff6633'
-                self.btn_diccionarios['bg'] = '#404040'
-            else:
-                self.btn_wordlists['bg'] = '#404040'
-                self.btn_diccionarios['bg'] = '#ff6633'
-        
-        # Limpiar selección y contenido
-        self.archivo_seleccionado = None
-        self.text_contenido.delete(1.0, tk.END)
-        
-        # Recargar archivos
-        self.cargar_archivos()
+        try:
+            self.logger.info(f"Cambiando tipo de gestión de datos a: {nuevo_tipo}")
+            self.tipo_actual = nuevo_tipo
+            
+            # Actualizar botones
+            if self.theme:
+                if nuevo_tipo == "wordlists":
+                    self.btn_wordlists['bg'] = '#ff6633'
+                    self.btn_diccionarios['bg'] = '#404040'
+                else:
+                    self.btn_wordlists['bg'] = '#404040'
+                    self.btn_diccionarios['bg'] = '#ff6633'
+            
+            # Limpiar selección y contenido
+            self.archivo_seleccionado = None
+            self.text_contenido.delete(1.0, tk.END)
+            
+            # Llamar al controlador para obtener datos específicos del tipo
+            if self.controlador:
+                if nuevo_tipo == "wordlists":
+                    wordlists_data = self.controlador.obtener_wordlists_disponibles()
+                    self.logger.info(f"Wordlists disponibles: {len(wordlists_data) if wordlists_data else 0}")
+                else:
+                    diccionarios_data = self.controlador.obtener_diccionarios_disponibles()
+                    self.logger.info(f"Diccionarios disponibles: {len(diccionarios_data) if diccionarios_data else 0}")
+                    
+                # Actualizar estadísticas en la vista
+                self.actualizar_desde_controlador()
+            
+            # Recargar archivos
+            self.cargar_archivos()
+            
+        except Exception as e:
+            self.logger.error(f"Error cambiando tipo de gestión: {e}")
     
     def cargar_archivos(self):
         """Cargar lista de archivos según el tipo seleccionado."""
@@ -499,3 +524,40 @@ class VistaGestionDatos(tk.Frame):
                 
             except Exception as e:
                 messagebox.showerror("Error", f"Error al exportar archivo: {str(e)}")
+    
+    def actualizar_desde_controlador(self):
+        """Actualizar datos desde el controlador si está disponible"""
+        if not self.controlador:
+            return
+        
+        try:
+            # Si el controlador tiene gestores de wordlists/diccionarios, usarlos
+            if hasattr(self.controlador, 'modelo_principal'):
+                modelo = self.controlador.modelo_principal
+                
+                if hasattr(modelo, 'gestor_wordlists') and modelo.gestor_wordlists:
+                    self.logger.info("Datos de wordlists disponibles desde controlador")
+                    
+                if hasattr(modelo, 'gestor_diccionarios') and modelo.gestor_diccionarios:
+                    self.logger.info("Datos de diccionarios disponibles desde controlador")
+                    
+        except Exception as e:
+            self.logger.error(f"Error actualizando desde controlador: {e}")
+    
+    def obtener_estadisticas_datos(self):
+        """Obtener estadísticas de datos a través del controlador"""
+        if not self.controlador:
+            return {}
+        
+        try:
+            if hasattr(self.controlador, 'modelo_principal'):
+                modelo = self.controlador.modelo_principal
+                if hasattr(modelo, 'obtener_estadisticas_generales'):
+                    estadisticas = modelo.obtener_estadisticas_generales()
+                    self.logger.info(f"Estadísticas obtenidas: {estadisticas}")
+                    return estadisticas
+                    
+        except Exception as e:
+            self.logger.error(f"Error obteniendo estadísticas: {e}")
+            
+        return {}

@@ -6,8 +6,16 @@ Gestiona las operaciones de cuarentena integradas con el sistema de escaneo
 
 import logging
 import os
+from datetime import datetime
 from typing import Dict, List, Any, Optional
 from ..modelo.modelo_cuarentena import Cuarentena, ArchivoEnCuarentena
+
+# Importar nuevo modelo Kali 2025
+try:
+    from ..modelo.modelo_cuarentena_kali2025 import CuarentenaKali2025
+    KALI2025_CUARENTENA_DISPONIBLE = True
+except ImportError:
+    KALI2025_CUARENTENA_DISPONIBLE = False
 
 class ControladorCuarentena:
     """
@@ -29,6 +37,18 @@ class ControladorCuarentena:
             directorio_cuarentena = os.path.join(tempfile.gettempdir(), "aresitos_quarantine")
         
         self.cuarentena = Cuarentena(directorio_cuarentena)
+        
+        # Inicializar Cuarentena Kali 2025 si está disponible
+        if KALI2025_CUARENTENA_DISPONIBLE:
+            try:
+                self.cuarentena_kali2025 = CuarentenaKali2025()
+                self.logger.info("CuarentenaKali2025 inicializada correctamente")
+            except Exception as e:
+                self.logger.warning(f"Error inicializando CuarentenaKali2025: {e}")
+                self.cuarentena_kali2025 = None
+        else:
+            self.cuarentena_kali2025 = None
+            self.logger.warning("CuarentenaKali2025 no disponible")
         
         # Configuración de tipos de amenaza y sus severidades
         self.tipos_amenaza = {
@@ -95,7 +115,7 @@ class ControladorCuarentena:
                     if lsof_result.returncode == 0 and lsof_result.stdout.strip():
                         archivo_en_uso = True
                         self.logger.warning(f"Archivo {archivo} está siendo usado por proceso: {lsof_result.stdout.strip()[:100]}")
-                except:
+                except (subprocess.TimeoutExpired, subprocess.CalledProcessError, FileNotFoundError):
                     pass  # lsof no disponible o error, continuar
                 
                 # Obtener información detallada con stat
@@ -110,7 +130,7 @@ class ControladorCuarentena:
                             'group_original': stat_info[2] if len(stat_info) > 2 else 'unknown',
                             'size_bytes': stat_info[3] if len(stat_info) > 3 else '0'
                         })
-                except:
+                except (subprocess.TimeoutExpired, subprocess.CalledProcessError, FileNotFoundError):
                     pass
                 
                 # Calcular hash con sha256sum
@@ -119,7 +139,7 @@ class ControladorCuarentena:
                                                capture_output=True, text=True, timeout=30)
                     if hash_result.returncode == 0:
                         metadatos['hash_sha256'] = hash_result.stdout.split()[0]
-                except:
+                except (subprocess.TimeoutExpired, subprocess.CalledProcessError, FileNotFoundError):
                     pass
                 
                 resultado = self.cuarentena.poner_en_cuarentena(
@@ -420,8 +440,34 @@ class ControladorCuarentena:
         except Exception as e:
             return {
                 'exito': False,
-                'error': str(e)
+                'error': f"Error en cuarentena: {str(e)}"
             }
+
+    # ================================
+    # NUEVAS FUNCIONES KALI 2025
+    # ================================
+    
+    def cuarentena_completa_kali2025(self, ruta_archivo: str, motivo: str = "Análisis completo") -> Dict[str, Any]:
+        """
+        Cuarentena completa con análisis usando herramientas Kali 2025
+        """
+        if not self.cuarentena_kali2025:
+            return {"error": "CuarentenaKali2025 no disponible"}
+        
+        self.logger.info(f"[START] Cuarentena completa Kali 2025: {ruta_archivo}")
+        
+        try:
+            resultado = self.cuarentena_kali2025.analisis_completo_cuarentena_kali2025(ruta_archivo)
+            
+            if resultado.get("exito"):
+                self.logger.info("[EMOJI] Cuarentena y análisis Kali 2025 completado")
+            
+            return resultado
+            
+        except Exception as e:
+            error_msg = f"Error en cuarentena completa Kali 2025: {e}"
+            self.logger.error(error_msg)
+            return {"error": error_msg}
     
     def listar_archivos_cuarentena(self) -> List[Dict[str, Any]]:
         """
@@ -437,3 +483,31 @@ class ControladorCuarentena:
         except Exception as e:
             self.logger.error(f"Error listando archivos en cuarentena: {e}")
             return []
+    
+    # MÉTODOS DE CONECTIVIDAD ENTRE CONTROLADORES
+    
+    def notificar_desde_siem(self, evento_siem: Dict[str, Any]) -> Dict[str, Any]:
+        """
+        Procesar notificación desde el SIEM.
+        
+        Args:
+            evento_siem: Información del evento SIEM
+            
+        Returns:
+            Dict con resultado del procesamiento
+        """
+        try:
+            if 'archivo' in evento_siem and evento_siem.get('severidad') == 'critica':
+                # Usar el método cuarentenar_archivo que ya existe
+                resultado = self.cuarentenar_archivo(
+                    evento_siem['archivo'], 
+                    f"Evento crítico SIEM: {evento_siem.get('descripcion', 'Unknown')}"
+                )
+                return resultado
+            else:
+                return {'exito': True, 'mensaje': 'Evento no requiere cuarentena'}
+                
+        except Exception as e:
+            error_msg = f"Error procesando notificación SIEM: {e}"
+            self.logger.error(error_msg)
+            return {'exito': False, 'error': error_msg}

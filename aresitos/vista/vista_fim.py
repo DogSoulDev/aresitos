@@ -4,6 +4,7 @@ import tkinter as tk
 from tkinter import ttk, scrolledtext, messagebox, filedialog
 import threading
 import os
+import logging
 
 try:
     from aresitos.vista.burp_theme import burp_theme
@@ -19,6 +20,9 @@ class VistaFIM(tk.Frame):
         self.controlador = None
         self.proceso_monitoreo_activo = False
         self.thread_monitoreo = None
+        
+        # Configurar logging
+        self.logger = logging.getLogger(__name__)
         
         # Configurar tema y colores de manera consistente
         if BURP_THEME_AVAILABLE and burp_theme:
@@ -173,14 +177,14 @@ class VistaFIM(tk.Frame):
             (" Crear Baseline", self.crear_baseline, self.colors['fg_accent']),
             ("▶ Iniciar Monitoreo", self.iniciar_monitoreo, self.colors['success']),
             (" Detener Monitoreo", self.detener_monitoreo, self.colors['danger']),
-            ("⚡ Verificar Kali", self.verificar_kali, self.colors['info']),
-            ("🔍 Verificar Integridad", self.verificar_integridad, self.colors['button_bg']),
-            ("📋 Escaneo Manual", self.escaneo_manual, self.colors['button_bg']),
-            ("🛡️ Usar AIDE (Kali)", self.usar_aide, self.colors['button_bg']),
-            ("🔒 Usar Tripwire", self.usar_tripwire, self.colors['button_bg']),
-            ("📊 Ver Baseline", self.ver_baseline, self.colors['button_bg']),
-            ("💾 Guardar Reporte", self.guardar_reporte, self.colors['button_bg']),
-            ("🧹 Limpiar Pantalla", self.limpiar_pantalla, self.colors['button_bg'])
+            ("[EMOJI] Verificar Kali", self.verificar_kali, self.colors['info']),
+            ("[SCAN] Verificar Integridad", self.verificar_integridad, self.colors['button_bg']),
+            ("[METADATA] Escaneo Manual", self.escaneo_manual, self.colors['button_bg']),
+            ("[SECURITY] Usar AIDE (Kali)", self.usar_aide, self.colors['button_bg']),
+            ("[SECURE] Usar Tripwire", self.usar_tripwire, self.colors['button_bg']),
+            ("[STATS] Ver Baseline", self.ver_baseline, self.colors['button_bg']),
+            ("[SAVE] Guardar Reporte", self.guardar_reporte, self.colors['button_bg']),
+            ("[CLEAR] Limpiar Pantalla", self.limpiar_pantalla, self.colors['button_bg'])
         ]
         
         for i, (text, command, bg_color) in enumerate(buttons):
@@ -195,10 +199,10 @@ class VistaFIM(tk.Frame):
             btn.pack(fill=tk.X, pady=2)
         
         # Mensaje inicial
-        self._actualizar_texto_fim("💻 Sistema FIM de Aresitos para Kali Linux iniciado\n")
-        self._actualizar_texto_fim("📁 Rutas críticas pre-configuradas: /etc, /boot, /usr/bin, /root\n")
-        self._actualizar_texto_fim("🔧 Herramientas disponibles: AIDE, Tripwire, inotify-tools\n")
-        self._actualizar_texto_fim("✅ Listo para crear baseline y monitorear integridad de archivos\n\n")
+        self._actualizar_texto_fim("[SYSTEM] Sistema FIM de Aresitos para Kali Linux iniciado\n")
+        self._actualizar_texto_fim("[EMOJI] Rutas críticas pre-configuradas: /etc, /boot, /usr/bin, /root\n")
+        self._actualizar_texto_fim("[CONFIG] Herramientas disponibles: AIDE, Tripwire, inotify-tools\n")
+        self._actualizar_texto_fim("[EMOJI] Listo para crear baseline y monitorear integridad de archivos\n\n")
     
     def agregar_ruta_monitoreo(self):
         """Agregar ruta para monitoreo."""

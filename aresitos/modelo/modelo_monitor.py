@@ -349,7 +349,7 @@ class MonitorAvanzadoNativo:
                     
                     if total_time > 0:
                         return ((total_time - idle_time) / total_time) * 100.0
-            except:
+            except (IOError, OSError, PermissionError, FileNotFoundError):
                 pass
                 
         except Exception as e:
@@ -404,7 +404,7 @@ class MonitorAvanzadoNativo:
                         'disponible_mb': available_kb // 1024,
                         'porcentaje': porcentaje
                     }
-            except:
+            except (ValueError, TypeError, AttributeError):
                 pass
                 
         except Exception as e:
@@ -522,7 +522,7 @@ class MonitorAvanzadoNativo:
                     
                     if result.returncode == 0:
                         conexiones_info = self._parsear_salida_ss(result.stdout)
-                except:
+                except (subprocess.TimeoutExpired, subprocess.CalledProcessError, FileNotFoundError):
                     pass
             
             # Fallback con netstat
@@ -533,7 +533,7 @@ class MonitorAvanzadoNativo:
                     
                     if result.returncode == 0:
                         conexiones_info = self._parsear_salida_netstat(result.stdout)
-                except:
+                except (subprocess.TimeoutExpired, subprocess.CalledProcessError, FileNotFoundError):
                     pass
             
             # Procesar conexiones
@@ -632,7 +632,7 @@ class MonitorAvanzadoNativo:
             
             return False
             
-        except Exception:
+        except (ValueError, TypeError, AttributeError):
             return False
 
     def _determinar_estado_cpu(self, cpu_percent: float) -> EstadoAlerta:
@@ -843,7 +843,7 @@ class MonitorAvanzadoNativo:
 - **Conexiones Establecidas**: {datos_red.get('conexiones_establecidas', 'N/A')}
 - **Puertos en Escucha**: {datos_red.get('puertos_escucha', 'N/A')}
 
-## ⚠ PROCESOS SOSPECHOSOS ({len(procesos_sospechosos)})
+## [EMOJI] PROCESOS SOSPECHOSOS ({len(procesos_sospechosos)})
 """
         
         if procesos_sospechosos:

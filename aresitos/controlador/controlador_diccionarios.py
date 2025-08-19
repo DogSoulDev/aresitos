@@ -55,7 +55,7 @@ class ControladorDiccionarios(ControladorBase):
                 return False
                 
             return True
-        except:
+        except (IOError, OSError, PermissionError, FileNotFoundError):
             return False
             
     def _validar_categoria_segura(self, categoria):
@@ -423,9 +423,9 @@ class ControladorDiccionarios(ControladorBase):
                 numero += int(parte) << (8 * (3 - i))
             
             return numero
-        except Exception:
+        except (ValueError, TypeError, AttributeError):
             return 0
-        except:
+        except (ValueError, TypeError, AttributeError):
             return False
     
     def actualizar_diccionario_cve(self) -> bool:

@@ -25,7 +25,7 @@ def verificar_kali_linux():
                 content = f.read().lower()
                 return 'kali' in content
         return False
-    except:
+    except (IOError, OSError, PermissionError):
         return False
 
 def verificar_modo_desarrollo():
@@ -49,7 +49,7 @@ def configurar_permisos_basicos():
             for config_file in config_dir.glob('*.json'):
                 try:
                     os.chmod(config_file, 0o644)
-                except:
+                except (OSError, PermissionError):
                     pass
         
         # Asegurar permisos en data
@@ -68,7 +68,7 @@ def verificar_tkinter():
         test_root = tk.Tk()
         test_root.withdraw()  # Ocultar inmediatamente
         test_root.destroy()
-        print("✓ Tkinter disponible y funcional")
+        print("[EMOJI] Tkinter disponible y funcional")
     except ImportError:
         raise ImportError("tkinter no está instalado. Ejecute: sudo apt install python3-tk")
     except Exception as e:
@@ -85,12 +85,12 @@ def main():
     # Verificar Kali Linux antes de continuar
     if not verificar_kali_linux():
         if verificar_modo_desarrollo():
-            print("⚠️  MODO DESARROLLO: Ejecutando en entorno no-Kali")
+            print("[WARNING]  MODO DESARROLLO: Ejecutando en entorno no-Kali")
             print("   Algunas funcionalidades pueden no estar disponibles")
         else:
             print("ERROR: ARESITOS requiere Kali Linux")
             print("Sistema operativo no compatible detectado")
-            print("💡 Para desarrollo: usar --dev o --desarrollo")
+            print("[EMOJI] Para desarrollo: usar --dev o --desarrollo")
             sys.exit(1)
     
     # Configurar permisos básicos de archivos antes de continuar
@@ -184,7 +184,7 @@ def verificar_permisos_inicio():
                 print("sudo requiere contraseña - use el login GUI")
                 print("Ejecute: python -m aresitos.vista.vista_login")
                 
-        except Exception:
+        except (subprocess.TimeoutExpired, subprocess.CalledProcessError, FileNotFoundError):
             pass  # No mostrar errores si no se puede verificar
 
 if __name__ == "__main__":

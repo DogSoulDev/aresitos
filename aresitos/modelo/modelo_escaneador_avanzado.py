@@ -137,7 +137,7 @@ class EscaneadorAvanzado(EscaneadorBase):
                 if not 0 <= int(parte) <= 255:
                     return False
             return True
-        except:
+        except (ValueError, TypeError, AttributeError):
             return False
 
     def _registrar_alerta(self, tipo: str, descripcion: str):
@@ -592,7 +592,7 @@ class EscaneadorAvanzado(EscaneadorBase):
                             idle = float(match.group(1))
                             return {'porcentaje_uso': 100.0 - idle}
             return {'porcentaje_uso': 0.0}
-        except:
+        except (ValueError, TypeError, AttributeError):
             return {'porcentaje_uso': 0.0}
     
     def _obtener_memoria_nativo(self) -> Dict[str, Any]:
@@ -615,7 +615,7 @@ class EscaneadorAvanzado(EscaneadorBase):
                                 'porcentaje_uso': (usado / total) * 100.0
                             }
             return {'total_mb': 0, 'usado_mb': 0, 'disponible_mb': 0, 'porcentaje_uso': 0.0}
-        except:
+        except (ValueError, TypeError, AttributeError):
             return {'total_mb': 0, 'usado_mb': 0, 'disponible_mb': 0, 'porcentaje_uso': 0.0}
     
     def _obtener_disco_nativo(self) -> Dict[str, Any]:
@@ -634,7 +634,7 @@ class EscaneadorAvanzado(EscaneadorBase):
                             'porcentaje_uso': float(parts[4].rstrip('%'))
                         }
             return {'total': '0G', 'usado': '0G', 'disponible': '0G', 'porcentaje_uso': 0.0}
-        except:
+        except (ValueError, TypeError, AttributeError):
             return {'total': '0G', 'usado': '0G', 'disponible': '0G', 'porcentaje_uso': 0.0}
     
     def _obtener_red_nativo(self) -> Dict[str, Any]:
@@ -651,7 +651,7 @@ class EscaneadorAvanzado(EscaneadorBase):
                             total_conexiones = int(match.group(1))
                 return {'conexiones_tcp': total_conexiones}
             return {'conexiones_tcp': 0}
-        except:
+        except (ValueError, TypeError, AttributeError):
             return {'conexiones_tcp': 0}
         
         return estadisticas
@@ -713,5 +713,5 @@ class EscaneadorAvanzado(EscaneadorBase):
         """Destructor para limpieza automática."""
         try:
             self._limpiar_recursos()
-        except:
+        except (ValueError, TypeError, AttributeError):
             pass

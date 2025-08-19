@@ -102,7 +102,7 @@ class ControladorPrincipalBase(ControladorBase):
                 delta = datetime.now() - tiempo_inicio
                 return delta.total_seconds()
             return 0.0
-        except Exception:
+        except (ValueError, TypeError, AttributeError):
             return 0.0
     
     def obtener_configuracion_sistema(self) -> Dict[str, Any]:
@@ -151,14 +151,14 @@ class ControladorPrincipalBase(ControladorBase):
             try:
                 if os.access('/etc', os.R_OK):
                     resultados['acceso_etc'] = True
-            except:
+            except (ValueError, TypeError, AttributeError):
                 pass
             
             # Verificar acceso a /proc
             try:
                 if os.access('/proc', os.R_OK):
                     resultados['acceso_proc'] = True
-            except:
+            except (subprocess.TimeoutExpired, subprocess.CalledProcessError, FileNotFoundError):
                 pass
             
             # Verificar comando ps
@@ -167,7 +167,7 @@ class ControladorPrincipalBase(ControladorBase):
                                       capture_output=True, text=True, timeout=5)
                 if result.returncode == 0:
                     resultados['comando_ps'] = True
-            except:
+            except (subprocess.TimeoutExpired, subprocess.CalledProcessError, FileNotFoundError):
                 pass
             
             # Verificar comando ss
@@ -176,7 +176,7 @@ class ControladorPrincipalBase(ControladorBase):
                                       capture_output=True, text=True, timeout=5)
                 if result.returncode == 0:
                     resultados['comando_ss'] = True
-            except:
+            except (subprocess.TimeoutExpired, subprocess.CalledProcessError, FileNotFoundError):
                 pass
             
             # Evaluar permisos generales
@@ -220,7 +220,7 @@ class ControladorPrincipalBase(ControladorBase):
                         distribucion = "debian"
                     elif 'ubuntu' in contenido:
                         distribucion = "ubuntu"
-            except:
+            except (ValueError, TypeError, AttributeError):
                 pass
             
             # Verificar indicadores específicos de Kali
@@ -238,7 +238,7 @@ class ControladorPrincipalBase(ControladorBase):
                 try:
                     with open('/etc/kali_version', 'r') as f:
                         version_kali = f.read().strip()
-                except:
+                except (IOError, OSError, PermissionError, FileNotFoundError):
                     pass
             
             # Verificar herramientas típicas de Kali
@@ -252,7 +252,7 @@ class ControladorPrincipalBase(ControladorBase):
                                           capture_output=True, text=True, timeout=5)
                     if result.returncode == 0:
                         herramientas_encontradas.append(herramienta)
-                except:
+                except (subprocess.TimeoutExpired, subprocess.CalledProcessError, FileNotFoundError):
                     pass
             
             # Si tiene varias herramientas de Kali, probablemente es Kali

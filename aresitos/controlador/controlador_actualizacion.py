@@ -83,7 +83,7 @@ class ControladorActualizacion(ControladorBase):
                                              capture_output=True, timeout=5)
                     if resultado.returncode != 0:
                         herramientas_faltantes.append(herramienta)
-                except Exception:
+                except (subprocess.TimeoutExpired, subprocess.CalledProcessError, FileNotFoundError):
                     herramientas_faltantes.append(herramienta)
             
             if herramientas_faltantes:
@@ -222,7 +222,7 @@ class ControladorActualizacion(ControladorBase):
             try:
                 stat_info = os.stat('/var/lib/apt/periodic/update-success-stamp')
                 sistema['ultima_actualizacion'] = datetime.fromtimestamp(stat_info.st_mtime).isoformat()
-            except:
+            except (OSError, FileNotFoundError):
                 sistema['ultima_actualizacion'] = "Desconocida"
                 
         except subprocess.TimeoutExpired:
@@ -297,7 +297,7 @@ class ControladorActualizacion(ControladorBase):
                 if result.returncode == 0:
                     # Extraer primera línea que generalmente contiene la versión
                     return result.stdout.split('\n')[0][:100]  # Limitar longitud
-        except:
+        except (subprocess.TimeoutExpired, subprocess.CalledProcessError, KeyError):
             pass
         
         return "Versión no disponible"
@@ -350,7 +350,7 @@ class ControladorActualizacion(ControladorBase):
                         try:
                             tamaño_total += os.path.getsize(ruta_completa)
                             archivos.append(file)
-                        except:
+                        except (OSError, IOError):
                             pass
                 
                 wordlists_info['archivos'] = len(archivos)
@@ -431,7 +431,13 @@ class ControladorActualizacion(ControladorBase):
     
     def _verificar_config_ssh(self) -> Dict[str, Any]:
         """Verificar configuración SSH"""
-        ssh_config = {'puerto': 22, 'root_login': 'unknown', 'password_auth': 'unknown'}
+        # Inicializar configuración por defecto sin valores sensibles
+        ssh_config = {
+            'puerto': None, 
+            'root_login': 'not_checked', 
+            'password_auth': 'not_checked',
+            'estado': 'verificando'
+        }
         
         try:
             with open('/etc/ssh/sshd_config', 'r') as f:
@@ -604,14 +610,14 @@ class ControladorActualizacion(ControladorBase):
             try:
                 subprocess.run(['sudo', 'msfdb', 'reinit'], timeout=300, check=True)
                 resultado['detalles'].append("Base de datos Metasploit actualizada")
-            except:
+            except (subprocess.TimeoutExpired, subprocess.CalledProcessError, FileNotFoundError):
                 resultado['detalles'].append("Error actualizando Metasploit")
             
             # Actualizar scripts NSE
             try:
                 subprocess.run(['sudo', 'nmap', '--script-updatedb'], timeout=300, check=True)
                 resultado['detalles'].append("Scripts NSE actualizados")
-            except:
+            except (subprocess.TimeoutExpired, subprocess.CalledProcessError, FileNotFoundError):
                 resultado['detalles'].append("Error actualizando scripts NSE")
             
             resultado['exito'] = True
@@ -630,7 +636,7 @@ class ControladorActualizacion(ControladorBase):
             try:
                 subprocess.run(['sudo', 'updatedb'], timeout=300, check=True)
                 resultado['detalles'].append("Base de datos locate actualizada")
-            except:
+            except (subprocess.TimeoutExpired, subprocess.CalledProcessError, FileNotFoundError):
                 resultado['detalles'].append("Error actualizando locate")
             
             resultado['exito'] = True
@@ -644,7 +650,7 @@ class ControladorActualizacion(ControladorBase):
         """Verificar si se requiere reinicio del sistema"""
         try:
             return os.path.exists('/var/run/reboot-required')
-        except:
+        except (OSError, IOError):
             return False
     
     def cancelar_actualizacion(self) -> Dict[str, Any]:
@@ -803,7 +809,7 @@ class ControladorActualizacion(ControladorBase):
                                           capture_output=True, text=True, timeout=10)
                     if result.returncode == 0:
                         servicios_ok += 1
-                except:
+                except (subprocess.TimeoutExpired, subprocess.CalledProcessError, FileNotFoundError):
                     pass
             
             resultado['verificaciones']['servicios'] = f'OK {servicios_ok}/{len(servicios_criticos)} servicios activos'
@@ -822,7 +828,7 @@ class ControladorActualizacion(ControladorBase):
                             else:
                                 resultado['verificaciones']['espacio'] = f'WARNING Poco espacio ({uso}% usado)'
                                 resultado['problemas_encontrados'].append('Poco espacio en disco')
-            except:
+            except (ValueError, TypeError, AttributeError):
                 resultado['verificaciones']['espacio'] = 'ERROR Error verificando espacio'
             
             # Generar recomendaciones

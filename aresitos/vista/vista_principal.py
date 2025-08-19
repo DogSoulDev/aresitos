@@ -2,6 +2,7 @@
 
 import tkinter as tk
 from tkinter import ttk
+import logging
 
 # Importar todas las vistas disponibles
 from aresitos.vista.vista_dashboard import VistaDashboard
@@ -9,7 +10,7 @@ from aresitos.vista.vista_escaneo import VistaEscaneo
 from aresitos.vista.vista_monitoreo import VistaMonitoreo
 from aresitos.vista.vista_auditoria import VistaAuditoria
 from aresitos.vista.vista_gestion_datos import VistaGestionDatos
-from aresitos.vista.vista_herramientas import VistaHerramientas
+from aresitos.vista.vista_utilidades import VistaUtilidades
 from aresitos.vista.vista_reportes import VistaReportes
 from aresitos.vista.vista_fim import VistaFIM
 from aresitos.vista.vista_siem import VistaSIEM
@@ -25,6 +26,9 @@ class VistaPrincipal(tk.Frame):
     def __init__(self, parent):
         super().__init__(parent)
         self.controlador = None
+        
+        # Configurar logging
+        self.logger = logging.getLogger(__name__)
         
         # Solo aplicar tema si está disponible
         if BURP_THEME_AVAILABLE:
@@ -50,12 +54,13 @@ class VistaPrincipal(tk.Frame):
 
     def set_controlador(self, controlador):
         self.controlador = controlador
+        self.logger.info("Controlador principal establecido en VistaPrincipal")
         
         # Configurar controladores para todas las vistas
         if hasattr(self, 'vista_dashboard'):
             self.vista_dashboard.set_controlador(controlador)
-        if hasattr(self.controlador, 'controlador_escaneo'):
-            self.vista_escaneo.set_controlador(self.controlador.controlador_escaneo)
+        if hasattr(self.controlador, 'controlador_escaneador'):
+            self.vista_escaneo.set_controlador(self.controlador.controlador_escaneador)
         if hasattr(self.controlador, 'controlador_monitoreo'):
             self.vista_monitoreo.set_controlador(self.controlador.controlador_monitoreo)
         if hasattr(self.controlador, 'controlador_auditoria'):
@@ -64,13 +69,17 @@ class VistaPrincipal(tk.Frame):
             # Vista unificada para wordlists y diccionarios
             self.vista_gestion_datos.set_controlador(self.controlador)
         if hasattr(self.controlador, 'controlador_herramientas'):
-            self.vista_herramientas.set_controlador(self.controlador.controlador_herramientas)
+            self.vista_utilidades.set_controlador(self.controlador.controlador_herramientas)
         if hasattr(self.controlador, 'controlador_reportes'):
             self.vista_reportes.set_controlador(self.controlador.controlador_reportes)
-        if hasattr(self.controlador, '_controladores') and 'fim' in self.controlador._controladores:
-            self.vista_fim.set_controlador(self.controlador._controladores['fim'])
-        if hasattr(self.controlador, '_controladores') and 'siem' in self.controlador._controladores:
-            self.vista_siem.set_controlador(self.controlador._controladores['siem'])
+        # Conectar FIM y SIEM correctamente
+        if hasattr(self.controlador, 'controlador_fim'):
+            self.vista_fim.set_controlador(self.controlador.controlador_fim)
+        if hasattr(self.controlador, 'controlador_siem'):
+            self.vista_siem.set_controlador(self.controlador.controlador_siem)
+        
+        # Inicializar vista con datos del controlador
+        self.actualizar_vista_principal()
 
     def crear_widgets(self):
         # Barra de título estilo Burp Suite
@@ -185,12 +194,12 @@ class VistaPrincipal(tk.Frame):
         except Exception as e:
             print(f"Error creando vista gestión de datos: {e}")
         
-        # 6. HERRAMIENTAS - Herramientas adicionales de seguridad
+        # 6. UTILIDADES - Herramientas adicionales de seguridad
         try:
-            self.vista_herramientas = VistaHerramientas(self.notebook)
-            self.notebook.add(self.vista_herramientas, text="Herramientas")
+            self.vista_utilidades = VistaUtilidades(self.notebook)
+            self.notebook.add(self.vista_utilidades, text="Utilidades")
         except Exception as e:
-            print(f"Error creando vista herramientas: {e}")
+            print(f"Error creando vista utilidades: {e}")
         
         # 7. REPORTES - Generación y visualización de reportes
         try:
@@ -226,7 +235,7 @@ class VistaPrincipal(tk.Frame):
         if self.theme:
             self.status_label = tk.Label(
                 status_frame,
-                text="🟢 Aresitos Ready - All systems operational",
+                text="[READY] Aresitos Ready - All systems operational",
                 font=("Arial", 8),
                 fg=self.theme.get_color('fg_primary'),
                 bg=self.theme.get_color('bg_secondary')
@@ -234,7 +243,7 @@ class VistaPrincipal(tk.Frame):
         else:
             self.status_label = tk.Label(
                 status_frame,
-                text="🟢 Aresitos Ready - All systems operational",
+                text="[READY] Aresitos Ready - All systems operational",
                 font=("Arial", 8),
                 fg='#000000',
                 bg='#f0f0f0'
@@ -259,6 +268,38 @@ class VistaPrincipal(tk.Frame):
                 bg='#f0f0f0'
             )
         tech_label.pack(side="right", padx=10, pady=3)
+    
+    def actualizar_vista_principal(self):
+        """Actualiza la vista principal con datos del controlador"""
+        try:
+            if self.controlador:
+                self.logger.info("Actualizando vista principal con datos del controlador")
+                # Actualizar estado general
+                self.actualizar_estado("Sistema inicializado - ARESITOS v2.0")
+                
+                # Verificar y actualizar sub-vistas que tienen el método actualizar_desde_controlador
+                if hasattr(self, 'vista_gestion_datos') and hasattr(self.vista_gestion_datos, 'actualizar_desde_controlador'):
+                    self.vista_gestion_datos.actualizar_desde_controlador()
+                    
+                # Actualizar vista principal después de un breve delay para permitir que los controladores se inicialicen
+                self.after(100, self._actualizar_estado_componentes)
+            else:
+                self.logger.warning("No hay controlador disponible para actualizar vista principal")
+                
+        except Exception as e:
+            self.logger.error(f"Error actualizando vista principal: {e}")
+            self.actualizar_estado("Error en inicialización del sistema")
+    
+    def _actualizar_estado_componentes(self):
+        """Método auxiliar para actualizar el estado de los componentes"""
+        try:
+            # Verificar estado de conexiones y componentes
+            if self.controlador and hasattr(self.controlador, 'modelo'):
+                estado_sistema = "Sistema operativo - Todos los módulos cargados"
+                self.actualizar_estado(estado_sistema)
+                self.logger.info("Estado de componentes actualizado correctamente")
+        except Exception as e:
+            self.logger.error(f"Error actualizando estado de componentes: {e}")
     
     def actualizar_estado(self, mensaje):
         """Actualiza el mensaje de la barra de estado"""

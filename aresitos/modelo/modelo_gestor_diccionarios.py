@@ -133,7 +133,7 @@ class ModeloGestorDiccionarios:
         try:
             os.makedirs(directorio, exist_ok=True)
             return directorio
-        except Exception:
+        except (IOError, OSError, PermissionError, FileNotFoundError):
             import tempfile
             directorio = os.path.join(tempfile.gettempdir(), "aresitos_diccionarios")
             os.makedirs(directorio, exist_ok=True)
@@ -214,7 +214,7 @@ class ModeloGestorDiccionarios:
                 try:
                     with open(ruta_archivo, 'w', encoding='utf-8') as f:
                         json.dump(contenido, f, indent=2, ensure_ascii=False)
-                except Exception:
+                except (IOError, OSError, PermissionError, FileNotFoundError):
                     pass
     
     def listar_diccionarios(self) -> List[Dict[str, Any]]:
@@ -233,7 +233,7 @@ class ModeloGestorDiccionarios:
                         with open(ruta_completa, 'r', encoding='utf-8') as f:
                             contenido = json.load(f)
                             entradas = len(contenido) if isinstance(contenido, dict) else 0
-                    except:
+                    except (IOError, OSError, PermissionError, FileNotFoundError):
                         entradas = 0
                     
                     diccionarios.append({
@@ -244,7 +244,7 @@ class ModeloGestorDiccionarios:
                         'entradas': entradas,
                         'modificado': datetime.datetime.fromtimestamp(stat_info.st_mtime).strftime("%Y-%m-%d %H:%M:%S")
                     })
-        except Exception:
+        except (ValueError, TypeError, AttributeError):
             pass
         
         return sorted(diccionarios, key=lambda x: x['nombre'])
@@ -266,10 +266,10 @@ class ModeloGestorDiccionarios:
                         with open(ruta_completa, 'r', encoding='utf-8') as f:
                             contenido = json.load(f)
                             diccionarios_completos[nombre_diccionario] = contenido
-                    except Exception:
+                    except (IOError, OSError, PermissionError, FileNotFoundError):
                         continue
                         
-        except Exception:
+        except (IOError, OSError, PermissionError, FileNotFoundError):
             pass
         
         return diccionarios_completos

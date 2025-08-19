@@ -10,20 +10,30 @@ import threading
 from typing import Dict, Any, Optional, List
 from pathlib import Path
 
+# Importar modelo base para mantener patrón MVC
+try:
+    from ..modelo.modelo_principal import ModeloPrincipal
+    MODELO_DISPONIBLE = True
+except ImportError:
+    # Fallback para mantener funcionalidad
+    MODELO_DISPONIBLE = False
+
 class GestorConfiguracion:
     """
     Gestor centralizado de configuración para Ares Aegis.
     Maneja carga, guardado y validación de configuraciones.
     """
     
-    def __init__(self, directorio_config: Optional[str] = None):
+    def __init__(self, directorio_config: Optional[str] = None, modelo_principal=None):
         """
         Inicializar gestor de configuración.
         
         Args:
             directorio_config: Directorio donde se almacenan las configuraciones
+            modelo_principal: Modelo principal para patrón MVC
         """
         self.directorio_config = directorio_config or self._obtener_directorio_config()
+        self.modelo_principal = modelo_principal  # Mantener patrón MVC
         self._configuraciones = {}
         self._lock = threading.Lock()
         self._configuracion_por_defecto = self._obtener_configuracion_por_defecto()
@@ -197,7 +207,7 @@ class GestorConfiguracion:
                 
                 return valor
                 
-            except Exception:
+            except (ValueError, TypeError, AttributeError):
                 return valor_defecto
     
     def establecer(self, clave: str, valor: Any) -> bool:
@@ -226,7 +236,7 @@ class GestorConfiguracion:
                 config_ref[partes[-1]] = valor
                 return True
                 
-            except Exception:
+            except (ValueError, TypeError, AttributeError):
                 return False
     
     def obtener_seccion(self, seccion: str) -> Dict[str, Any]:
@@ -257,7 +267,7 @@ class GestorConfiguracion:
             try:
                 self._configuraciones[seccion] = configuración.copy()
                 return True
-            except Exception:
+            except (ValueError, TypeError, AttributeError):
                 return False
     
     def guardar_configuracion(self, nombre_archivo: str = "aresitos_config.json") -> bool:
@@ -353,7 +363,7 @@ class GestorConfiguracion:
                 if not ruta_reportes.exists():
                     try:
                         ruta_reportes.mkdir(parents=True, exist_ok=True)
-                    except Exception:
+                    except (ValueError, TypeError, AttributeError):
                         errores.append(f"No se puede crear directorio de reportes: {directorio_reportes}")
             
         except Exception as e:
@@ -391,7 +401,7 @@ class GestorConfiguracion:
             
             return sorted(archivos)
             
-        except Exception:
+        except (ValueError, TypeError, AttributeError):
             return []
     
     def crear_backup_configuracion(self) -> str:
@@ -456,7 +466,7 @@ class GestorConfiguracion:
             for clave, valor in perfiles[perfil].items():
                 self.establecer(clave, valor)
             return True
-        except Exception:
+        except (ValueError, TypeError, AttributeError):
             return False
 
 # RESUMEN TÉCNICO: Gestor centralizado de configuración para Ares Aegis con soporte para

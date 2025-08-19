@@ -47,7 +47,7 @@ def verificar_compatibilidad_kali():
                         print(" Kali Linux detectado específicamente")
                     else:
                         print(" Linux genérico (compatible)")
-        except:
+        except (IOError, OSError, PermissionError, FileNotFoundError):
             pass
     else:
         print("WARNING  No es un sistema Linux")
@@ -61,7 +61,7 @@ def verificar_compatibilidad_kali():
         'Escaneo': ['nmap', 'masscan', 'nikto'],
         'Análisis': ['netstat', 'ss', 'tcpdump'],
         'Auditoría': ['lynis', 'rkhunter', 'chkrootkit'],
-        'Sistema': ['find', 'stat', 'md5sum', 'grep', 'tail'],
+        'Sistema': ['find', 'stat', 'sha256sum', 'grep', 'tail'],  # Solo SHA256 - seguro
         'Básicas': ['cat', 'ls', 'ps', 'which']
     }
     
@@ -79,7 +79,7 @@ def verificar_compatibilidad_kali():
                 else:
                     print(f"  ERROR {herramienta}: No encontrado")
                     resultados['herramientas_faltantes'].append(herramienta)
-            except:
+            except (ValueError, TypeError, AttributeError):
                 print(f"  ERROR {herramienta}: Error verificando")
                 resultados['herramientas_faltantes'].append(herramienta)
     
@@ -100,7 +100,7 @@ def verificar_compatibilidad_kali():
         print(f"� Usuario actual: {usuario}")
         print(f" Es root: {'OK Sí' if es_root else 'ERROR No'}")
         
-    except:
+    except (subprocess.TimeoutExpired, subprocess.CalledProcessError, FileNotFoundError):
         print("ERROR Error verificando usuario")
     
     # Verificar sudo
@@ -113,7 +113,7 @@ def verificar_compatibilidad_kali():
         
         print(f" Sudo disponible: {'OK Sí' if sudo_ok else 'ERROR No'}")
         
-    except:
+    except (subprocess.TimeoutExpired, subprocess.CalledProcessError, FileNotFoundError):
         print("ERROR Sudo no disponible")
     
     # 4. Verificar estructura de proyecto

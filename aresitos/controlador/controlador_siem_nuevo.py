@@ -10,8 +10,14 @@ import logging
 import threading
 import time
 import subprocess
-import pwd
-import grp
+try:
+    import pwd
+    import grp
+    PWD_AVAILABLE = True
+except ImportError:
+    PWD_AVAILABLE = False
+    pwd = None
+    grp = None
 from datetime import datetime
 from typing import Dict, Any, List, Optional
 from collections import defaultdict, deque
@@ -382,7 +388,7 @@ class ControladorSIEM(ControladorBase):
                             eventos_nuevos.append(evento)
                         else:
                             eventos_eliminados += 1
-                    except:
+                    except (ValueError, TypeError, AttributeError):
                         eventos_nuevos.append(evento)  # Conservar si hay error de parsing
                 
                 self._eventos_buffer = eventos_nuevos
@@ -396,7 +402,7 @@ class ControladorSIEM(ControladorBase):
                             alertas_nuevas.append(alerta)
                         else:
                             alertas_eliminadas += 1
-                    except:
+                    except (ValueError, TypeError, AttributeError):
                         alertas_nuevas.append(alerta)  # Conservar si hay error de parsing
                 
                 self._alertas_buffer = alertas_nuevas
@@ -431,7 +437,7 @@ class ControladorSIEM(ControladorBase):
                         timestamp_evento = datetime.fromisoformat(evento['timestamp']).timestamp()
                         if timestamp_evento > limite_tiempo:
                             eventos_dia.append(evento)
-                    except:
+                    except (ValueError, TypeError, AttributeError):
                         pass
                 
                 for alerta in self._alertas_buffer:
@@ -439,7 +445,7 @@ class ControladorSIEM(ControladorBase):
                         timestamp_alerta = datetime.fromisoformat(alerta['timestamp']).timestamp()
                         if timestamp_alerta > limite_tiempo:
                             alertas_dia.append(alerta)
-                    except:
+                    except (ValueError, TypeError, AttributeError):
                         pass
             
             # Generar estadísticas del día
@@ -491,7 +497,7 @@ class ControladorSIEM(ControladorBase):
             # Generar reporte final
             try:
                 self.generar_reporte_diario()
-            except:
+            except (ValueError, TypeError, AttributeError):
                 pass
             
             # Registrar evento de finalización
@@ -615,11 +621,11 @@ class ControladorSIEM(ControladorBase):
                 directorio_logs = getattr(self, 'directorio_logs', '/tmp/ares_siem_logs')
                 if os.path.exists(directorio_logs) and os.access(directorio_logs, os.W_OK):
                     verificaciones['sistema_archivos'] = True
-                    detalles.append("✅ Sistema de archivos: OK")
+                    detalles.append("[EMOJI] Sistema de archivos: OK")
                 else:
-                    detalles.append("❌ Sistema de archivos: Sin permisos de escritura")
+                    detalles.append("[EMOJI] Sistema de archivos: Sin permisos de escritura")
             except Exception as e:
-                detalles.append(f"❌ Sistema de archivos: Error - {str(e)}")
+                detalles.append(f"[EMOJI] Sistema de archivos: Error - {str(e)}")
             
             # Verificar herramientas SIEM
             try:
@@ -634,12 +640,12 @@ class ControladorSIEM(ControladorBase):
                 
                 if herramientas_disponibles >= len(herramientas_kali) * 0.75:
                     verificaciones['herramientas_siem'] = True
-                    detalles.append(f"✅ Herramientas SIEM: {herramientas_disponibles}/{len(herramientas_kali)} disponibles")
+                    detalles.append(f"[EMOJI] Herramientas SIEM: {herramientas_disponibles}/{len(herramientas_kali)} disponibles")
                 else:
-                    detalles.append(f"⚠️ Herramientas SIEM: Solo {herramientas_disponibles}/{len(herramientas_kali)} disponibles")
+                    detalles.append(f"[WARNING] Herramientas SIEM: Solo {herramientas_disponibles}/{len(herramientas_kali)} disponibles")
                     
             except Exception as e:
-                detalles.append(f"❌ Herramientas SIEM: Error - {str(e)}")
+                detalles.append(f"[EMOJI] Herramientas SIEM: Error - {str(e)}")
             
             # Verificar logs del sistema
             try:
@@ -652,19 +658,19 @@ class ControladorSIEM(ControladorBase):
                 
                 if logs_encontrados >= len(logs_sistema) * 0.67:
                     verificaciones['logs_sistema'] = True
-                    detalles.append(f"✅ Logs del sistema: {logs_encontrados}/{len(logs_sistema)} accesibles")
+                    detalles.append(f"[EMOJI] Logs del sistema: {logs_encontrados}/{len(logs_sistema)} accesibles")
                 else:
-                    detalles.append(f"⚠️ Logs del sistema: Solo {logs_encontrados}/{len(logs_sistema)} accesibles")
+                    detalles.append(f"[WARNING] Logs del sistema: Solo {logs_encontrados}/{len(logs_sistema)} accesibles")
                     
             except Exception as e:
-                detalles.append(f"❌ Logs del sistema: Error - {str(e)}")
+                detalles.append(f"[EMOJI] Logs del sistema: Error - {str(e)}")
             
             # Verificar permisos
             try:
                 usuario_actual = os.getenv('USER', 'unknown')
                 if usuario_actual == 'root':
                     verificaciones['permisos'] = True
-                    detalles.append("✅ Permisos: Usuario root detectado")
+                    detalles.append("[EMOJI] Permisos: Usuario root detectado")
                 else:
                     # Verificar si puede ejecutar sudo
                     try:
@@ -672,13 +678,13 @@ class ControladorSIEM(ControladorBase):
                                               capture_output=True, text=True, timeout=5)
                         if result.returncode == 0:
                             verificaciones['permisos'] = True
-                            detalles.append("✅ Permisos: Usuario con acceso sudo")
+                            detalles.append("[EMOJI] Permisos: Usuario con acceso sudo")
                         else:
-                            detalles.append("⚠️ Permisos: Usuario sin privilegios administrativos")
-                    except:
-                        detalles.append("⚠️ Permisos: No se pudo verificar acceso sudo")
+                            detalles.append("[WARNING] Permisos: Usuario sin privilegios administrativos")
+                    except (subprocess.TimeoutExpired, subprocess.CalledProcessError, FileNotFoundError):
+                        detalles.append("[WARNING] Permisos: No se pudo verificar acceso sudo")
             except Exception as e:
-                detalles.append(f"❌ Permisos: Error verificando - {str(e)}")
+                detalles.append(f"[EMOJI] Permisos: Error verificando - {str(e)}")
             
             # Calcular puntuación general
             puntuacion = sum(verificaciones.values()) / len(verificaciones) * 100
@@ -700,6 +706,73 @@ class ControladorSIEM(ControladorBase):
             }
             
         except Exception as e:
-            error_msg = f"Error verificando funcionalidad Kali: {str(e)}"
+            error_msg = f"Error en verificación de funcionalidad Kali: {str(e)}"
             self.logger.error(error_msg)
-            return {'exito': False, 'error': error_msg}
+            return {
+                'exito': False,
+                'error': error_msg,
+                'puntuacion': 0,
+                'timestamp': datetime.now().isoformat()
+            }
+    
+    # MÉTODOS DE CONECTIVIDAD ENTRE CONTROLADORES
+    
+    def configurar_referencias_controladores(self, controlador_cuarentena=None, controlador_fim=None):
+        """Configurar referencias a otros controladores para integración."""
+        try:
+            self.controlador_cuarentena = controlador_cuarentena
+            self.controlador_fim = controlador_fim
+            
+            if controlador_cuarentena:
+                self.logger.info("[EMOJI] Referencia a Controlador Cuarentena configurada")
+            if controlador_fim:
+                self.logger.info("[EMOJI] Referencia a Controlador FIM configurada")
+                
+        except Exception as e:
+            self.logger.error(f"Error configurando referencias de controladores: {e}")
+    
+    def _obtener_controlador_cuarentena(self):
+        """Obtener referencia al controlador de cuarentena."""
+        return getattr(self, 'controlador_cuarentena', None)
+    
+    def _obtener_controlador_fim(self):
+        """Obtener referencia al controlador FIM."""
+        return getattr(self, 'controlador_fim', None)
+    
+    def _notificar_respuesta_automatica(self, evento, accion_tomada):
+        """Notificar a otros controladores sobre respuestas automáticas."""
+        try:
+            if evento.get('severidad') == 'critica':
+                # Notificar a FIM para verificación de integridad
+                controlador_fim = self._obtener_controlador_fim()
+                if controlador_fim:
+                    try:
+                        resultado_fim = controlador_fim.verificar_integridad_archivos()
+                        if resultado_fim.get('cambios_detectados'):
+                            self.generar_alerta(
+                                "INTEGRIDAD_COMPROMETIDA",
+                                f"FIM detectó cambios tras evento crítico: {evento.get('descripcion')}",
+                                "critica"
+                            )
+                    except Exception as e:
+                        self.logger.error(f"Error notificando a FIM: {e}")
+                        
+                # Activar cuarentena si es necesario
+                controlador_cuarentena = self._obtener_controlador_cuarentena()
+                if controlador_cuarentena and 'archivo' in evento:
+                    try:
+                        resultado_cuarentena = controlador_cuarentena.cuarentenar_archivo(evento['archivo'])
+                        if resultado_cuarentena.get('exito'):
+                            self.generar_alerta(
+                                "ARCHIVO_CUARENTENADO",
+                                f"Archivo {evento['archivo']} movido a cuarentena por evento crítico",
+                                "warning"
+                            )
+                    except Exception as e:
+                        self.logger.error(f"Error notificando a Cuarentena: {e}")
+                        
+        except Exception as e:
+            self.logger.error(f"Error en notificación de respuesta automática: {e}")
+
+
+# RESUMEN TÉCNICO: Controlador SIEM simplificado para gestión centralizada de eventos

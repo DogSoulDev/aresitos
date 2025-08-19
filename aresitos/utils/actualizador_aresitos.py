@@ -22,8 +22,6 @@ import sys
 import subprocess
 import time
 import json
-import urllib.request
-import urllib.error
 import hashlib
 from datetime import datetime
 from pathlib import Path
@@ -98,7 +96,7 @@ class ActualizadorAresitos:
                     content = f.read().lower()
                     return 'kali' in content
             return False
-        except:
+        except (IOError, OSError, PermissionError, FileNotFoundError):
             return False
     
     def solicitar_confirmacion_usuario(self) -> bool:
@@ -145,7 +143,7 @@ class ActualizadorAresitos:
             subprocess.run(['ping', '-c', '1', '8.8.8.8'], 
                          capture_output=True, timeout=5, check=True)
             return True
-        except:
+        except (subprocess.TimeoutExpired, subprocess.CalledProcessError, FileNotFoundError):
             return False
     
     def verificar_permisos_sudo(self) -> bool:
@@ -154,7 +152,7 @@ class ActualizadorAresitos:
             result = subprocess.run(['sudo', '-n', 'true'], 
                                   capture_output=True, timeout=5)
             return result.returncode == 0
-        except:
+        except (subprocess.TimeoutExpired, subprocess.CalledProcessError, FileNotFoundError):
             return False
     
     def log_mensaje(self, mensaje: str, es_error: bool = False):
@@ -226,7 +224,7 @@ class ActualizadorAresitos:
                 subprocess.run(['sudo', 'msfupdate'], 
                              capture_output=True, timeout=600)
                 self.log_mensaje("Metasploit actualizado")
-            except:
+            except (subprocess.TimeoutExpired, subprocess.CalledProcessError, FileNotFoundError):
                 self.log_mensaje("Error actualizando Metasploit", True)
             
             # Verificar y reportar versiones de herramientas críticas
@@ -244,9 +242,9 @@ class ActualizadorAresitos:
                             if version_result.returncode == 0:
                                 version = version_result.stdout.split('\n')[0][:50]
                                 self.log_mensaje(f"{herramienta}: {version}")
-                        except:
+                        except (subprocess.TimeoutExpired, subprocess.CalledProcessError, FileNotFoundError):
                             self.log_mensaje(f"{herramienta}: instalado")
-                except:
+                except (subprocess.TimeoutExpired, subprocess.CalledProcessError, FileNotFoundError):
                     self.log_mensaje(f"{herramienta}: no encontrado", True)
             
             self.log_mensaje(f"Herramientas verificadas: {herramientas_verificadas}/{len(self.herramientas_kali)}")
@@ -264,32 +262,30 @@ class ActualizadorAresitos:
             # Crear directorio si no existe
             Path(archivo_destino).parent.mkdir(parents=True, exist_ok=True)
             
-            # Descargar con urllib (nativo de Python)
-            request = urllib.request.Request(url)
-            request.add_header('User-Agent', 'ARESITOS/1.0 (Kali Linux)')
+            # Descargar con curl (comando nativo Linux)
+            resultado = subprocess.run([
+                'curl', '-L', '-s', '--fail', '--max-time', '30',
+                '-H', 'User-Agent: ARESITOS/1.0 (Kali Linux)',
+                '-o', archivo_destino,
+                url
+            ], capture_output=True, text=True, timeout=35)
             
-            with urllib.request.urlopen(request, timeout=30) as response:
-                if response.status == 200:
-                    content = response.read()
-                    
-                    # Escribir archivo
-                    with open(archivo_destino, 'wb') as f:
-                        f.write(content)
-                    
-                    # Verificar que el archivo se escribió correctamente
-                    if os.path.exists(archivo_destino) and os.path.getsize(archivo_destino) > 0:
-                        size = os.path.getsize(archivo_destino)
-                        self.log_mensaje(f"{descripcion} descargado ({size} bytes)")
-                        return True
-                    else:
-                        self.log_mensaje(f"Error: archivo {descripcion} vacío", True)
-                        return False
+            if resultado.returncode == 0:
+                # Verificar que el archivo se escribió correctamente
+                if os.path.exists(archivo_destino) and os.path.getsize(archivo_destino) > 0:
+                    size = os.path.getsize(archivo_destino)
+                    self.log_mensaje(f"{descripcion} descargado ({size} bytes)")
+                    return True
                 else:
-                    self.log_mensaje(f"Error HTTP {response.status} descargando {descripcion}", True)
+                    self.log_mensaje(f"Error: archivo {descripcion} vacío", True)
                     return False
+            else:
+                error_msg = resultado.stderr.strip() if resultado.stderr else "Error desconocido"
+                self.log_mensaje(f"Error curl descargando {descripcion}: {error_msg}", True)
+                return False
                     
-        except urllib.error.URLError as e:
-            self.log_mensaje(f"Error de conexión descargando {descripcion}: {str(e)}", True)
+        except subprocess.TimeoutExpired:
+            self.log_mensaje(f"Timeout descargando {descripcion}", True)
             return False
         except Exception as e:
             self.log_mensaje(f"Error descargando {descripcion}: {str(e)}", True)
@@ -335,7 +331,7 @@ class ActualizadorAresitos:
                 subprocess.run(['sudo', 'updatedb'], 
                              capture_output=True, timeout=300)
                 self.log_mensaje("Base de datos locate actualizada")
-            except:
+            except (subprocess.TimeoutExpired, subprocess.CalledProcessError, FileNotFoundError):
                 self.log_mensaje("Error actualizando locate database", True)
             
             # Actualizar man pages
@@ -343,7 +339,7 @@ class ActualizadorAresitos:
                 subprocess.run(['sudo', 'mandb'], 
                              capture_output=True, timeout=300)
                 self.log_mensaje("Man pages actualizadas")
-            except:
+            except (subprocess.TimeoutExpired, subprocess.CalledProcessError, FileNotFoundError):
                 self.log_mensaje("Error actualizando man pages", True)
             
             # Verificar y corregir permisos críticos
@@ -357,7 +353,7 @@ class ActualizadorAresitos:
                         # Verificar que los archivos críticos existen
                         stat = os.stat(archivo)
                         self.log_mensaje(f"Archivo crítico {archivo}: OK")
-                    except:
+                    except (IOError, OSError, PermissionError, FileNotFoundError):
                         self.log_mensaje(f"Advertencia: problema con {archivo}", True)
             
             return True

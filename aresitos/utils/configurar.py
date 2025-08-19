@@ -39,7 +39,7 @@ class ConfiguradorAresAegis:
                 with open('/etc/os-release', 'r') as f:
                     return 'kali' in f.read().lower()
             return False
-        except:
+        except (IOError, OSError, PermissionError, FileNotFoundError):
             return False
     
     def verificar_python(self):
@@ -71,7 +71,7 @@ class ConfiguradorAresAegis:
                         es_admin = uid == 0
                     else:
                         es_admin = False
-                except:
+                except (subprocess.TimeoutExpired, subprocess.CalledProcessError, FileNotFoundError):
                     es_admin = False
                 
                 # Verificar sudo como alternativa
@@ -83,7 +83,7 @@ class ConfiguradorAresAegis:
                         if sudo_disponible:
                             print("OK Sudo disponible")
                             return True
-                    except:
+                    except (subprocess.TimeoutExpired, subprocess.CalledProcessError, FileNotFoundError):
                         pass
             
             if es_admin:
@@ -106,7 +106,8 @@ class ConfiguradorAresAegis:
         
         for dep in dependencias:
             try:
-                __import__(dep)
+                import importlib
+                importlib.import_module(dep)
                 print(f"OK {dep} disponible")
             except ImportError:
                 print(f"ERROR {dep} no encontrado")

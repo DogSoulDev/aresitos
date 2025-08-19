@@ -424,7 +424,7 @@ class ControladorEscaneadorCuarentena:
                 try:
                     current_user = os.environ.get('USER', os.environ.get('USERNAME', ''))
                     resultado['gestor_permisos'] = current_user == 'root'
-                except Exception:
+                except (ImportError, ModuleNotFoundError):
                     resultado['gestor_permisos'] = False
             else:
                 # En Windows, asumimos permisos administrativos si podemos escribir en system32
@@ -435,7 +435,7 @@ class ControladorEscaneadorCuarentena:
                         f.write('test')
                     os.remove(test_file)
                     resultado['gestor_permisos'] = True
-                except:
+                except (subprocess.TimeoutExpired, subprocess.CalledProcessError, FileNotFoundError):
                     resultado['gestor_permisos'] = False
             
             # 3. Verificar sudo
@@ -443,7 +443,7 @@ class ControladorEscaneadorCuarentena:
                 proc = subprocess.run(['sudo', '-n', 'true'], 
                                     capture_output=True, timeout=5)
                 resultado['permisos_sudo'] = proc.returncode == 0
-            except:
+            except (subprocess.TimeoutExpired, subprocess.CalledProcessError, FileNotFoundError):
                 resultado['permisos_sudo'] = False
             
             # 4. Verificar herramientas de Kali
@@ -463,7 +463,7 @@ class ControladorEscaneadorCuarentena:
                         'disponible': disponible,
                         'permisos_ok': disponible
                     }
-                except:
+                except (subprocess.TimeoutExpired, subprocess.CalledProcessError, FileNotFoundError):
                     resultado['herramientas_disponibles'][nombre] = {
                         'disponible': False,
                         'permisos_ok': False
@@ -777,7 +777,7 @@ class ControladorEscaneadorCuarentena:
                                 })
                             
                             archivos_verificados += 1
-                    except:
+                    except (ValueError, TypeError, AttributeError):
                         pass
                 
                 if archivos_verificados > 0:

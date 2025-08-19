@@ -15,6 +15,13 @@ from aresitos.controlador.controlador_base import ControladorBase
 from aresitos.modelo.modelo_escaneador_avanzado_real import EscaneadorAvanzadoReal, TipoEscaneo, NivelRiesgo
 from aresitos.modelo.modelo_siem import SIEMAvanzadoNativo, TipoEvento, SeveridadEvento
 
+# Importar nuevos modelos Kali 2025
+try:
+    from aresitos.modelo.modelo_escaneador_kali2025 import EscaneadorKali2025
+    KALI2025_DISPONIBLE = True
+except ImportError:
+    KALI2025_DISPONIBLE = False
+
 class UtilsIP:
     """Utilidades para manejo de IPs sin dependencias externas."""
     
@@ -29,7 +36,7 @@ class UtilsIP:
                 if not 0 <= int(parte) <= 255:
                     return None
             return ip_str
-        except:
+        except (ValueError, TypeError, AttributeError):
             return None
     
     @staticmethod
@@ -40,7 +47,7 @@ class UtilsIP:
                 return {'red': red_str, 'prefijo': 32}
             ip, prefijo = red_str.split('/')
             return {'red': ip, 'prefijo': int(prefijo)}
-        except:
+        except (ValueError, TypeError, AttributeError):
             return None
     
     @staticmethod
@@ -56,7 +63,7 @@ class UtilsIP:
             
             mascara = (0xFFFFFFFF << (32 - prefijo)) & 0xFFFFFFFF
             return (ip_num & mascara) == (red_num & mascara)
-        except:
+        except (ValueError, TypeError, AttributeError):
             return False
     
     @staticmethod
@@ -68,7 +75,7 @@ class UtilsIP:
             for i, parte in enumerate(partes):
                 numero += int(parte) << (8 * (3 - i))
             return numero
-        except:
+        except (ValueError, TypeError, AttributeError):
             return 0
 
 class ControladorEscaneo(ControladorBase):
@@ -87,6 +94,18 @@ class ControladorEscaneo(ControladorBase):
             self.siem = SIEMAvanzadoNativo()  # Usar clase correcta
             self.escáner = EscaneadorAvanzadoReal()  # Usar clase correcta
             
+            # Inicializar escáner Kali 2025 si está disponible
+            if KALI2025_DISPONIBLE:
+                try:
+                    self.escaner_kali2025 = EscaneadorKali2025()
+                    self.logger.info("[EMOJI] EscaneadorKali2025 inicializado correctamente")
+                except Exception as e:
+                    self.logger.warning(f"[EMOJI] Error inicializando EscaneadorKali2025: {e}")
+                    self.escaner_kali2025 = None
+            else:
+                self.escaner_kali2025 = None
+                self.logger.warning("[EMOJI] EscaneadorKali2025 no disponible")
+            
             # Verificar que el escáner esté funcionando
             if self.escáner:
                 self.logger.info("OK Escaneador inicializado correctamente")
@@ -97,6 +116,7 @@ class ControladorEscaneo(ControladorBase):
             self.logger.error(f"ERROR Error inicializando componentes: {e}")
             self.escáner = None
             self.siem = None
+            self.escaner_kali2025 = None
         
         # Estado específico del escaneo
         self._estado_escaneo = {
@@ -161,7 +181,7 @@ class ControladorEscaneo(ControladorBase):
                     import subprocess
                     check_sudo = subprocess.run(['sudo', '-n', 'true'], capture_output=True, timeout=3)
                     resultado['permisos_sudo'] = (check_sudo.returncode == 0)
-                except:
+                except (subprocess.TimeoutExpired, subprocess.CalledProcessError, FileNotFoundError):
                     resultado['permisos_sudo'] = False
                 
                 # Verificar herramientas básicas
@@ -174,7 +194,7 @@ class ControladorEscaneo(ControladorBase):
                             'disponible': disponible,
                             'permisos_ok': disponible  # Simplificado
                         }
-                    except:
+                    except (subprocess.TimeoutExpired, subprocess.CalledProcessError, FileNotFoundError):
                         resultado['herramientas_disponibles'][herramienta] = {
                             'disponible': False,
                             'permisos_ok': False
@@ -396,7 +416,7 @@ class ControladorEscaneo(ControladorBase):
                         herramientas_disponibles.append(herramienta)
                     else:
                         herramientas_faltantes.append(herramienta)
-                except Exception:
+                except (subprocess.TimeoutExpired, subprocess.CalledProcessError, FileNotFoundError):
                     herramientas_faltantes.append(herramienta)
             
             return {
@@ -475,7 +495,7 @@ class ControladorEscaneo(ControladorBase):
                     'total_eventos': len(eventos_recientes),
                     'alertas': []
                 }
-            except:
+            except (ValueError, TypeError, AttributeError):
                 analisis_logs = {'eventos': [], 'alertas': [], 'error': 'SIEM no disponible'}
             
             tiempo_total = time.time() - tiempo_inicio
@@ -516,7 +536,7 @@ class ControladorEscaneo(ControladorBase):
             try:
                 if self.siem:
                     self.siem.registrar_evento("ERROR_ESCANEO_BASICO", error_msg)
-            except:
+            except (ValueError, TypeError, AttributeError):
                 pass  # No fallar si SIEM no está disponible
             raise e
     
@@ -632,7 +652,7 @@ class ControladorEscaneo(ControladorBase):
             try:
                 if self.siem:
                     self.siem.registrar_evento("ERROR_ESCANEO_COMPLETO", error_msg)
-            except:
+            except (ValueError, TypeError, AttributeError):
                 pass  # No fallar si SIEM no está disponible
             raise e
     
@@ -698,7 +718,7 @@ class ControladorEscaneo(ControladorBase):
                                 'red_permitida': red_permitida,
                                 'total_hosts': num_hosts
                             }
-                except Exception:
+                except (ValueError, TypeError, AttributeError):
                     continue
             
             return {
@@ -741,7 +761,7 @@ class ControladorEscaneo(ControladorBase):
                                 break
                     except subprocess.TimeoutExpired:
                         continue
-                    except Exception:
+                    except (subprocess.TimeoutExpired, subprocess.CalledProcessError, FileNotFoundError):
                         continue
             else:
                 # Para redes grandes, devolver solo algunas IPs comunes
@@ -827,7 +847,7 @@ class ControladorEscaneo(ControladorBase):
             try:
                 if self.siem:
                     self.siem.registrar_evento("ERROR_ESCANEO_RED", error_msg)
-            except:
+            except (ValueError, TypeError, AttributeError):
                 pass  # No fallar si SIEM no está disponible
             raise e
     
@@ -904,7 +924,7 @@ class ControladorEscaneo(ControladorBase):
                     try:
                         if self.siem:
                             self.siem.registrar_evento("ESCANEO_DETENIDO", "Escaneo detenido manualmente")
-                    except:
+                    except (ValueError, TypeError, AttributeError):
                         pass  # No fallar si SIEM no está disponible
                     return {'exito': True, 'mensaje': 'Escaneo detenido'}
                 else:
@@ -937,7 +957,7 @@ class ControladorEscaneo(ControladorBase):
                         try:
                             eventos = getattr(self.siem, metodo)(limite) if limite else getattr(self.siem, metodo)()
                             break
-                        except:
+                        except (ValueError, TypeError, AttributeError):
                             continue
             
             # Si no hay eventos o SIEM no disponible, generar evento de estado
@@ -1098,6 +1118,130 @@ class ControladorEscaneo(ControladorBase):
             recomendaciones.append("Error generando recomendaciones específicas")
         
         return recomendaciones
+
+    # ================================
+    # NUEVAS FUNCIONES KALI 2025
+    # ================================
+    
+    def escaneo_completo_kali2025(self, objetivo: str, tipo_escaneo: str = "completo") -> Dict[str, Any]:
+        """
+        Realizar escaneo completo usando herramientas Kali Linux 2025
+        """
+        if not self.escaner_kali2025:
+            return {
+                "error": "EscaneadorKali2025 no disponible",
+                "usar_escaner_clasico": True
+            }
+        
+        self.logger.info(f"[START] Iniciando escaneo Kali 2025: {objetivo}")
+        
+        try:
+            with self._lock_escaneo:
+                self._estado_escaneo['escaneo_en_progreso'] = True
+                self._estado_escaneo['ultimo_objetivo'] = objetivo
+                
+                # Ejecutar escaneo con Kali 2025
+                resultado = self.escaner_kali2025.escaneo_completo_kali2025(objetivo)
+                
+                self._estado_escaneo['escaneo_en_progreso'] = False
+                self._estado_escaneo['ultimos_resultados'] = resultado
+                self._estado_escaneo['total_escaneos_realizados'] += 1
+                
+                # Registrar en SIEM si está disponible
+                if self.siem and resultado.get("exito"):
+                    try:
+                        if hasattr(self.siem, 'registrar_evento'):
+                            self.siem.registrar_evento(
+                                "ESCANEO_COMPLETADO",
+                                f"Escaneo Kali2025 completado: {objetivo}"
+                            )
+                    except Exception as e:
+                        self.logger.warning(f"Error registrando en SIEM: {e}")
+                
+                self.logger.info("[EMOJI] Escaneo Kali 2025 completado")
+                return resultado
+                
+        except Exception as e:
+            self._estado_escaneo['escaneo_en_progreso'] = False
+            error_msg = f"Error en escaneo Kali 2025: {e}"
+            self.logger.error(error_msg)
+            return {"error": error_msg}
+    
+    def escaneo_rapido_kali2025(self, objetivo: str) -> Dict[str, Any]:
+        """
+        Escaneo rápido con herramientas Kali 2025 (nmap básico)
+        """
+        if not self.escaner_kali2025:
+            return {"error": "EscaneadorKali2025 no disponible"}
+        
+        self.logger.info(f"[EMOJI] Escaneo rápido Kali 2025: {objetivo}")
+        
+        try:
+            # Usar el método general que sí existe
+            resultado = self.escaner_kali2025.escaneo_completo_kali2025(objetivo)
+            
+            return {
+                "exito": True,
+                "tipo": "escaneo_rapido_kali2025",
+                "objetivo": objetivo,
+                "resultado": resultado,
+                "timestamp": datetime.now().isoformat()
+            }
+                
+        except Exception as e:
+            error_msg = f"Error en escaneo rápido Kali 2025: {e}"
+            self.logger.error(error_msg)
+            return {"error": error_msg}
+    
+    def escaneo_vulnerabilidades_kali2025(self, objetivo: str) -> Dict[str, Any]:
+        """
+        Escaneo de vulnerabilidades con herramientas Kali 2025
+        """
+        if not self.escaner_kali2025:
+            return {"error": "EscaneadorKali2025 no disponible"}
+        
+        self.logger.info(f"[TARGET] Escaneo vulnerabilidades Kali 2025: {objetivo}")
+        
+        try:
+            # Usar el método general que sí existe
+            resultado = self.escaner_kali2025.escaneo_completo_kali2025(objetivo)
+            
+            # Registrar en SIEM si está disponible
+            if self.siem and resultado.get("exito"):
+                try:
+                    if hasattr(self.siem, 'registrar_evento'):
+                        self.siem.registrar_evento(
+                            "VULNERABILIDAD_DETECTADA",
+                            f"Escaneo de vulnerabilidades completado: {objetivo}"
+                        )
+                except Exception as e:
+                    self.logger.warning(f"Error registrando en SIEM: {e}")
+            
+            return resultado
+            
+        except Exception as e:
+            error_msg = f"Error en escaneo vulnerabilidades Kali 2025: {e}"
+            self.logger.error(error_msg)
+            return {"error": error_msg}
+    
+    def obtener_herramientas_kali2025_disponibles(self) -> Dict[str, Any]:
+        """
+        Obtener lista de herramientas Kali 2025 disponibles
+        """
+        if not self.escaner_kali2025:
+            return {"error": "EscaneadorKali2025 no disponible"}
+        
+        try:
+            herramientas = self.escaner_kali2025.verificar_herramientas()
+            total_herramientas = len(herramientas) if herramientas else 0
+            return {
+                "exito": True,
+                "herramientas_disponibles": herramientas,
+                "total_herramientas": total_herramientas,
+                "timestamp": datetime.now().isoformat()
+            }
+        except Exception as e:
+            return {"error": f"Error obteniendo herramientas: {e}"}
 
 # RESUMEN TÉCNICO: Controlador de Escaneo avanzado para Ares Aegis con arquitectura asíncrona,
 # herencia de ControladorBase, operaciones thread-safe, análisis de criticidad automático,

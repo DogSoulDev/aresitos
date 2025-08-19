@@ -105,7 +105,7 @@ class ModeloGestorWordlists:
         try:
             os.makedirs(directorio, exist_ok=True)
             return directorio
-        except Exception:
+        except (IOError, OSError, PermissionError, FileNotFoundError):
             import tempfile
             directorio = os.path.join(tempfile.gettempdir(), "aresitos_wordlists")
             os.makedirs(directorio, exist_ok=True)
@@ -158,7 +158,7 @@ class ModeloGestorWordlists:
                 try:
                     with open(ruta_archivo, 'w', encoding='utf-8') as f:
                         f.write('\n'.join(contenido))
-                except Exception:
+                except (IOError, OSError, PermissionError, FileNotFoundError):
                     pass
     
     def listar_wordlists(self) -> List[Dict[str, Any]]:
@@ -176,7 +176,7 @@ class ModeloGestorWordlists:
                     try:
                         with open(ruta_completa, 'r', encoding='utf-8') as f:
                             lineas = sum(1 for _ in f)
-                    except:
+                    except (IOError, OSError, PermissionError, FileNotFoundError):
                         lineas = 0
                     
                     wordlists.append({
@@ -187,7 +187,7 @@ class ModeloGestorWordlists:
                         'lineas': lineas,
                         'modificado': datetime.datetime.fromtimestamp(stat_info.st_mtime).strftime("%Y-%m-%d %H:%M:%S")
                     })
-        except Exception:
+        except (ValueError, TypeError, AttributeError):
             pass
         
         return sorted(wordlists, key=lambda x: x['nombre'])

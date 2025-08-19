@@ -419,7 +419,7 @@ class ControladorAuditoria:
             resultado_completo['auditorias_individuales']['lynis'] = self.ejecutar_auditoria_lynis()
             
             # 2. Detección de rootkits
-            print("🦠 Ejecutando detección de rootkits...")
+            print("[EMOJI] Ejecutando detección de rootkits...")
             resultado_completo['auditorias_individuales']['rootkits'] = self.ejecutar_deteccion_rootkits()
             
             # 3. Verificación de permisos

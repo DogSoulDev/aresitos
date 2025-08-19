@@ -99,7 +99,7 @@ class SeguridadUtils:
             longitud = len(variable)
             variable = 'x' * longitud
             del variable
-        except:
+        except (ValueError, TypeError, AttributeError):
             pass
     
     @staticmethod
@@ -164,7 +164,7 @@ def verificar_kali_linux_criptografico() -> bool:
         # Requerir al menos 2 verificaciones exitosas
         return len(verificaciones) >= 2
         
-    except Exception:
+    except (IOError, OSError, PermissionError, FileNotFoundError):
         return False
 
 # Herramientas requeridas para Aresitos (Kali Linux especializado)
@@ -272,7 +272,7 @@ def verificar_permisos_admin_seguro():
         # Método 3: Verificar variable de entorno como último recurso
         return os.environ.get('USER') == 'root'
         
-    except Exception:
+    except (subprocess.TimeoutExpired, subprocess.CalledProcessError, FileNotFoundError):
         return False
 
 class LoginAresitos:
@@ -287,7 +287,7 @@ class LoginAresitos:
         if not verificar_kali_linux_estricto():
             # Verificar si estamos en modo desarrollo
             if '--dev' in sys.argv or '--desarrollo' in sys.argv:
-                print("⚠️  MODO DESARROLLO: LoginApp en entorno no-Kali")
+                print("[WARNING]  MODO DESARROLLO: LoginApp en entorno no-Kali")
             else:
                 print("ERROR: ARESITOS requiere Kali Linux")
                 print("Sistema no compatible detectado")
@@ -723,7 +723,7 @@ class LoginAresitos:
             else:
                 self.escribir_log("Archivo de configuración no accesible")
                 
-        except Exception:
+        except (IOError, OSError, PermissionError, FileNotFoundError):
             pass
             
         self.escribir_log("Configuración de permisos completada")
@@ -973,7 +973,7 @@ class LoginAresitos:
                 icon_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), "recursos", "Aresitos.ico")
                 if os.path.exists(icon_path):
                     root_app.iconbitmap(icon_path)
-            except:
+            except (IOError, OSError, PermissionError, FileNotFoundError):
                 pass
             
             self.escribir_log("Inicializando modelo de datos...")
@@ -1039,7 +1039,7 @@ def main():
     if not verificar_kali_linux_estricto():
         # Verificar si estamos en modo desarrollo
         if '--dev' in sys.argv or '--desarrollo' in sys.argv:
-            print("⚠️  MODO DESARROLLO: Vista de login en entorno no-Kali")
+            print("[WARNING]  MODO DESARROLLO: Vista de login en entorno no-Kali")
             print("   Ejecutando con funcionalidades limitadas...")
         else:
             print("ERROR: ARESITOS requiere Kali Linux")
@@ -1051,7 +1051,7 @@ def main():
     # Verificar tkinter disponible
     try:
         import tkinter as tk
-        print("✓ Tkinter importado correctamente")
+        print("[EMOJI] Tkinter importado correctamente")
     except ImportError as e:
         print(f"ERROR: tkinter no disponible: {e}")
         print("Instale con: sudo apt install python3-tk")
@@ -1061,7 +1061,7 @@ def main():
     try:
         print("Creando aplicación de login...")
         app = LoginAresitos()
-        print("✓ Aplicación de login creada")
+        print("[EMOJI] Aplicación de login creada")
         
         print("Iniciando interfaz gráfica...")
         app.root.mainloop()

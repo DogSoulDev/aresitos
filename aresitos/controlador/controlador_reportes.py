@@ -154,7 +154,7 @@ class ControladorReportes:
         except OSError:
             logging.error("Error de sistema al calcular espacio")
             return "Error de sistema"
-        except Exception:
+        except (IOError, OSError, PermissionError, FileNotFoundError):
             logging.error("Error no específico al calcular espacio")
             return "No disponible"
 

@@ -18,6 +18,13 @@ from aresitos.controlador.controlador_base import ControladorBase
 from aresitos.modelo.modelo_fim import FIMAvanzado, TipoArchivoFIM, TipoCambioFIM, MetadatosArchivo
 from aresitos.modelo.modelo_siem import SIEM, TipoEvento, SeveridadEvento
 
+# Importar nuevos modelos Kali 2025
+try:
+    from aresitos.modelo.modelo_fim_kali2025 import FIMKali2025
+    KALI2025_FIM_DISPONIBLE = True
+except ImportError:
+    KALI2025_FIM_DISPONIBLE = False
+
 class ControladorFIM(ControladorBase):
     """
     Controlador especializado en File Integrity Monitoring.
@@ -39,6 +46,18 @@ class ControladorFIM(ControladorBase):
             except Exception as e:
                 self.logger.error(f"Error inicializando FIM: {e}")
                 self.fim = None
+        
+        # Inicializar FIM Kali 2025 si está disponible
+        if KALI2025_FIM_DISPONIBLE:
+            try:
+                self.fim_kali2025 = FIMKali2025()
+                self.logger.info("[EMOJI] FIMKali2025 inicializado correctamente")
+            except Exception as e:
+                self.logger.warning(f"[EMOJI] Error inicializando FIMKali2025: {e}")
+                self.fim_kali2025 = None
+        else:
+            self.fim_kali2025 = None
+            self.logger.warning("[EMOJI] FIMKali2025 no disponible")
         
         if hasattr(modelo_principal, 'siem_avanzado') and modelo_principal.siem_avanzado:
             self.siem = modelo_principal.siem_avanzado
@@ -162,7 +181,7 @@ class ControladorFIM(ControladorBase):
         # Normalizar ruta para prevenir path traversal
         try:
             ruta_normalizada = os.path.normpath(os.path.abspath(ruta))
-        except Exception:
+        except (IOError, OSError, PermissionError, FileNotFoundError):
             return {'valido': False, 'error': 'Error normalizando ruta'}
         
         # SECURITY: Verificar que no esté en rutas prohibidas
@@ -242,10 +261,8 @@ class ControladorFIM(ControladorBase):
         """Verificar herramientas de Kali necesarias para FIM."""
         herramientas = {
             'find': '/usr/bin/find',
-            'stat': '/usr/bin/stat', 
-            'md5sum': '/usr/bin/md5sum',
-            'sha1sum': '/usr/bin/sha1sum',
-            'sha256sum': '/usr/bin/sha256sum',
+            'stat': '/usr/bin/stat',
+            'sha256sum': '/usr/bin/sha256sum',  # Solo SHA256 - algoritmo seguro
             'inotifywait': '/usr/bin/inotifywait',
             'auditctl': '/sbin/auditctl'
         }
@@ -915,11 +932,11 @@ class ControladorFIM(ControladorBase):
                     # Verificar permisos sudo si está disponible
                     try:
                         resultado['permisos_sudo'] = self.fim.gestor_permisos.verificar_sudo_disponible()
-                    except Exception:
+                    except (ValueError, TypeError, AttributeError):
                         resultado['permisos_sudo'] = False
                     
                     # Verificar herramientas específicas de FIM
-                    herramientas = ['find', 'stat', 'md5sum', 'inotifywait']
+                    herramientas = ['find', 'stat', 'sha256sum', 'inotifywait']  # Solo SHA256 - seguro
                     for herramienta in herramientas:
                         estado = self.fim.gestor_permisos.verificar_permisos_herramienta(herramienta)
                         resultado['herramientas_disponibles'][herramienta] = estado
@@ -931,7 +948,7 @@ class ControladorFIM(ControladorBase):
             resultado['funcionalidad_completa'] = (
                 resultado['gestor_permisos'] and 
                 resultado['permisos_sudo'] and 
-                herramientas_ok >= 3  # Al menos find, stat, md5sum
+                herramientas_ok >= 3  # Al menos find, stat, sha256sum
             )
             
             # Generar recomendaciones
@@ -1634,7 +1651,7 @@ report_url=stdout
                 status_result = subprocess.run(['systemctl', 'status', 'auditd'], 
                                              capture_output=True, text=True, timeout=5)
                 servicio_activo = 'active (running)' in status_result.stdout
-            except:
+            except (subprocess.TimeoutExpired, subprocess.CalledProcessError, FileNotFoundError):
                 servicio_activo = False
             
             return {
@@ -1780,7 +1797,7 @@ report_url=stdout
             
             return None
             
-        except Exception:
+        except (ValueError, TypeError, AttributeError):
             return None
     
     def ejecutar_fim_completo_kali(self) -> Dict[str, Any]:
@@ -2130,7 +2147,7 @@ report_url=stdout
                                         'patron_detectado': patron,
                                         'severidad': 'CRITICA'
                                     })
-            except:
+            except (ValueError, TypeError, AttributeError):
                 pass  # No crítico para el resultado principal
             
             # Marcar como exitoso si se procesaron archivos
@@ -2169,7 +2186,7 @@ report_url=stdout
                     os_info = f.read()
                     if 'kali' in os_info.lower() or 'debian' in os_info.lower():
                         resultado['es_kali'] = True
-            except:
+            except (IOError, OSError, PermissionError, FileNotFoundError):
                 # Fallback: verificar otros indicadores de Kali
                 if os.path.exists('/usr/share/kali-themes') or os.path.exists('/etc/kali_version'):
                     resultado['es_kali'] = True
@@ -2221,19 +2238,83 @@ report_url=stdout
                 else:
                     resultado['herramientas_faltantes'].append('pam_access')
                     resultado['recomendaciones'].append("Ejecutar con permisos sudo para monitorear PAM")
-            except:
+            except (ValueError, TypeError, AttributeError):
                 pass
             
             return resultado
             
         except Exception as e:
-            self.logger.error(f"Error verificando compatibilidad Kali: {e}")
+            self.logger.error(f"Error verificando funcionalidad Kali: {e}")
             return {
-                'es_kali': False,
                 'error': str(e),
-                'herramientas_disponibles': {},
-                'herramientas_faltantes': []
+                'timestamp': datetime.now().isoformat()
             }
+
+    # ================================
+    # NUEVAS FUNCIONES KALI 2025
+    # ================================
+    
+    def iniciar_monitoreo_kali2025(self, directorios: Optional[List[str]] = None) -> Dict[str, Any]:
+        """
+        Iniciar monitoreo FIM con herramientas Kali 2025
+        """
+        if not self.fim_kali2025:
+            return {"error": "FIMKali2025 no disponible"}
+        
+        self.logger.info("[START] Iniciando monitoreo FIM Kali 2025")
+        
+        try:
+            if not directorios:
+                directorios = ["/etc", "/home", "/var/log", "/usr/bin", "/usr/sbin"]
+            
+            resultado = self.fim_kali2025.iniciar_monitoreo_tiempo_real(directorios)
+            
+            if resultado.get("exito"):
+                self.logger.info("[EMOJI] Monitoreo FIM Kali 2025 iniciado")
+            
+            return resultado
+            
+        except Exception as e:
+            error_msg = f"Error iniciando monitoreo Kali 2025: {e}"
+            self.logger.error(error_msg)
+            return {"error": error_msg}
+    
+    def escaneo_rootkit_kali2025(self) -> Dict[str, Any]:
+        """
+        Realizar escaneo de rootkits con herramientas Kali 2025
+        """
+        if not self.fim_kali2025:
+            return {"error": "FIMKali2025 no disponible"}
+        
+        self.logger.info("[SCAN] Iniciando escaneo rootkit Kali 2025")
+        
+        try:
+            # Usar métodos que sí existen en el modelo
+            rutas_default = ["/etc", "/home", "/var/log", "/usr/bin", "/usr/sbin"]
+            resultado = self.fim_kali2025.analisis_completo_fim_kali2025(rutas_default)
+            
+            if resultado.get("exito"):
+                amenazas = resultado.get("amenazas_detectadas", [])
+                self.logger.info(f"[EMOJI] Análisis FIM completado: {len(amenazas)} elementos detectados")
+                
+                # Registrar amenazas en SIEM si están disponibles
+                if self.siem and amenazas:
+                    for amenaza in amenazas:
+                        try:
+                            if hasattr(self.siem, 'registrar_evento'):
+                                self.siem.registrar_evento(
+                                    "ROOTKIT_DETECTADO",
+                                    f"Rootkit detectado: {amenaza.get('nombre', 'Unknown')}"
+                                )
+                        except Exception as e:
+                            self.logger.warning(f"Error registrando amenaza en SIEM: {e}")
+            
+            return resultado
+            
+        except Exception as e:
+            error_msg = f"Error en análisis FIM Kali 2025: {e}"
+            self.logger.error(error_msg)
+            return {"error": error_msg}
 
 
 # RESUMEN TÉCNICO: Controlador FIM avanzado para monitoreo de integridad de archivos en Kali Linux.

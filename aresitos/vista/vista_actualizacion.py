@@ -510,21 +510,21 @@ class VistaActualizacion(tk.Frame):
                         if componentes:
                             self.escribir_log("Componentes actualizados:")
                             for componente in componentes:
-                                self.escribir_log(f"  ✓ {componente}")
+                                self.escribir_log(f"  [EMOJI] {componente}")
                         
                         # Mostrar errores si los hay
                         errores = resultado.get('errores', [])
                         if errores:
                             self.escribir_log("Errores encontrados:")
                             for error in errores:
-                                self.escribir_log(f"  ✗ {error}")
+                                self.escribir_log(f"  [EMOJI] {error}")
                         
                         # Verificar si se requiere reinicio
                         reinicios = resultado.get('reinicios_requeridos', [])
                         if reinicios:
                             self.escribir_log("ATENCIÓN: Se requiere reinicio:")
                             for reinicio in reinicios:
-                                self.escribir_log(f"  ⚠ {reinicio}")
+                                self.escribir_log(f"  [EMOJI] {reinicio}")
                         
                     else:
                         error = resultado.get('error', 'Error desconocido')

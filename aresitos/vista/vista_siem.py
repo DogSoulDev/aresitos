@@ -5,6 +5,7 @@ from tkinter import ttk, scrolledtext, messagebox, filedialog
 import threading
 import os
 import subprocess
+import logging
 
 try:
     from aresitos.vista.burp_theme import burp_theme
@@ -18,6 +19,7 @@ class VistaSIEM(tk.Frame):
     def __init__(self, parent):
         super().__init__(parent)
         self.controlador = None
+        self.logger = logging.getLogger(__name__)
         self.proceso_siem_activo = False
         self.thread_siem = None
         self.monitoreo_activo = False  # Para control del monitoreo en tiempo real
@@ -98,7 +100,7 @@ class VistaSIEM(tk.Frame):
     def crear_tab_monitoreo(self):
         """Crear pestaña de monitoreo en tiempo real."""
         tab_monitoreo = tk.Frame(self.notebook, bg=self.colors['bg_primary'])
-        self.notebook.add(tab_monitoreo, text='🔍 Monitoreo Tiempo Real')
+        self.notebook.add(tab_monitoreo, text='[SCAN] Monitoreo Tiempo Real')
         
         # Frame principal dividido con tema
         main_frame = tk.Frame(tab_monitoreo, bg=self.colors['bg_primary'])
@@ -132,15 +134,15 @@ class VistaSIEM(tk.Frame):
         
         # Botones de monitoreo con tema Burp Suite
         buttons_monitoreo = [
-            ("🚀 Iniciar SIEM", self.iniciar_siem, self.colors['success']),
-            ("⏹️ Detener SIEM", self.detener_siem, self.colors['danger']),
-            ("⚡ Verificar Kali", self.verificar_kali, self.colors['info']),
-            ("🔄 Actualizar Dashboard", self.actualizar_dashboard, self.colors['button_bg']),
-            ("📊 Estadísticas", self.mostrar_estadisticas, self.colors['button_bg']),
-            ("⚙️ Configurar Alertas", self.configurar_alertas, self.colors['button_bg']),
-            ("📈 Métricas Sistema", self.metricas_sistema, self.colors['button_bg']),
+            ("[START] Iniciar SIEM", self.iniciar_siem, self.colors['success']),
+            ("[STOP] Detener SIEM", self.detener_siem, self.colors['danger']),
+            ("[EMOJI] Verificar Kali", self.verificar_kali, self.colors['info']),
+            ("[UPDATE] Actualizar Dashboard", self.actualizar_dashboard, self.colors['button_bg']),
+            ("[STATS] Estadísticas", self.mostrar_estadisticas, self.colors['button_bg']),
+            ("[SETTINGS] Configurar Alertas", self.configurar_alertas, self.colors['button_bg']),
+            ("[METRICS] Métricas Sistema", self.metricas_sistema, self.colors['button_bg']),
             ("🌐 Monitor Red", self.monitor_red, self.colors['button_bg']),
-            ("🔒 Eventos Seguridad", self.eventos_seguridad, self.colors['button_bg'])
+            ("[SECURE] Eventos Seguridad", self.eventos_seguridad, self.colors['button_bg'])
         ]
         
         for text, command, bg_color in buttons_monitoreo:
@@ -149,7 +151,7 @@ class VistaSIEM(tk.Frame):
                           relief='flat', padx=10, pady=5,
                           activebackground=self.colors['fg_accent'],
                           activeforeground='white')
-            if text == "⏹️ Detener SIEM":
+            if text == "[STOP] Detener SIEM":
                 btn.config(state="disabled")
                 self.btn_detener_siem = btn
             btn.pack(fill=tk.X, pady=2)
@@ -355,7 +357,7 @@ class VistaSIEM(tk.Frame):
                 (" Sleuth Kit", self.usar_sleuthkit),
                 (" Binwalk", self.usar_binwalk),
                 (" Foremost", self.usar_foremost),
-                ("🧬 Strings", self.usar_strings),
+                ("[STRINGS] Strings", self.usar_strings),
                 (" DD/DCFLDD", self.usar_dd),
                 (" Head/Tail", self.usar_head_tail),
                 (" Check Kali Tools", self.verificar_herramientas_kali),
@@ -378,7 +380,7 @@ class VistaSIEM(tk.Frame):
                 (" Sleuth Kit", self.usar_sleuthkit),
                 (" Binwalk", self.usar_binwalk),
                 (" Foremost", self.usar_foremost),
-                ("🧬 Strings", self.usar_strings),
+                ("[STRINGS] Strings", self.usar_strings),
                 (" DD/DCFLDD", self.usar_dd),
                 (" Head/Tail", self.usar_head_tail),
                 (" Check Kali Tools", self.verificar_herramientas_kali),
@@ -428,7 +430,7 @@ class VistaSIEM(tk.Frame):
         
         # Forense
         self._actualizar_texto_forense("� Herramientas forenses de Kali Linux disponibles\n")
-        self._actualizar_texto_forense("🧪 Listo para análisis forense digital\n\n")
+        self._actualizar_texto_forense("[FORENSIC] Listo para análisis forense digital\n\n")
     
     # Métodos de la pestaña Monitoreo
     def iniciar_siem(self):
@@ -810,7 +812,7 @@ class VistaSIEM(tk.Frame):
                                         tipo_evento = evento.get('event_type', 'desconocido')
                                         timestamp = evento.get('timestamp', '')[:19]
                                         self.after(0, self._actualizar_texto_alertas, f"   {timestamp}: {tipo_evento}\n")
-                                    except:
+                                    except (subprocess.TimeoutExpired, subprocess.CalledProcessError, FileNotFoundError):
                                         self.after(0, self._actualizar_texto_alertas, f"   Evento: {linea[:50]}...\n")
                     
                     # Verificar archivo fast.log (alertas rápidas)
@@ -908,7 +910,7 @@ class VistaSIEM(tk.Frame):
     
     def usar_strings(self):
         """Usar strings para análisis de texto."""
-        self._actualizar_texto_forense("🧬 Strings - Extracción de cadenas de texto\n")
+        self._actualizar_texto_forense("[STRINGS] Strings - Extracción de cadenas de texto\n")
         self._actualizar_texto_forense(" Extrayendo strings legibles de archivos binarios\n")
         self._actualizar_texto_forense(" Comando: strings archivo.bin\n\n")
     
@@ -1097,7 +1099,7 @@ class VistaSIEM(tk.Frame):
                     try:
                         resultado = subprocess.run(['which', herramienta], capture_output=True, text=True)
                         herramientas[herramienta] = resultado.returncode == 0
-                    except:
+                    except (subprocess.TimeoutExpired, subprocess.CalledProcessError, FileNotFoundError):
                         pass
                 
                 if herramientas['dd']:
@@ -1111,7 +1113,7 @@ class VistaSIEM(tk.Frame):
                             for linea in resultado.stdout.split('\n')[:10]:
                                 if linea.strip():
                                     self._actualizar_texto_forense(f"  {linea}\n")
-                    except:
+                    except (subprocess.TimeoutExpired, subprocess.CalledProcessError, FileNotFoundError):
                         pass
                 else:
                     self._actualizar_texto_forense("ERROR DD no encontrado\n")
@@ -1139,7 +1141,7 @@ class VistaSIEM(tk.Frame):
                         if len(lineas) > 1:
                             self._actualizar_texto_forense(" Espacio disponible para imágenes:\n")
                             self._actualizar_texto_forense(f"  {lineas[1]}\n")
-                except:
+                except (subprocess.TimeoutExpired, subprocess.CalledProcessError, FileNotFoundError):
                     pass
                     
             except Exception as e:
@@ -1186,7 +1188,7 @@ class VistaSIEM(tk.Frame):
                         else:
                             self._actualizar_texto_forense(f"ERROR {herramienta} - {descripcion} (FALTANTE)\n")
                             faltantes.append(herramienta)
-                    except:
+                    except (subprocess.TimeoutExpired, subprocess.CalledProcessError, FileNotFoundError):
                         self._actualizar_texto_forense(f"WARNING {herramienta} - Error verificando\n")
                         faltantes.append(herramienta)
                 
@@ -1208,8 +1210,8 @@ class VistaSIEM(tk.Frame):
                             self._actualizar_texto_forense("\nOK Sistema Kali Linux detectado correctamente\n")
                         else:
                             self._actualizar_texto_forense("\nWARNING Sistema no detectado como Kali Linux\n")
-                except:
-                    self._actualizar_texto_forense("\n❓ No se pudo verificar tipo de sistema\n")
+                except (IOError, OSError, PermissionError, FileNotFoundError):
+                    self._actualizar_texto_forense("\n[EMOJI] No se pudo verificar tipo de sistema\n")
                     
             except Exception as e:
                 self._actualizar_texto_forense(f"ERROR Error verificando herramientas: {str(e)}\n")
@@ -1271,7 +1273,7 @@ class VistaSIEM(tk.Frame):
                                 if grep_result.returncode == 0 and grep_result.stdout.strip():
                                     # Limitar a las últimas 3 líneas
                                     lineas_encontradas = grep_result.stdout.strip().split('\n')[-3:]
-                                    self._actualizar_texto_forense(f"  ⚠ Patrón '{patron}' encontrado:\n")
+                                    self._actualizar_texto_forense(f"  [EMOJI] Patrón '{patron}' encontrado:\n")
                                     for linea in lineas_encontradas:
                                         if linea.strip():
                                             self._actualizar_texto_forense(f"    └─ {linea[:80]}...\n")

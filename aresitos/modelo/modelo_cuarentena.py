@@ -121,30 +121,28 @@ class Cuarentena:
         except Exception as e:
             self.logger.error(f"Error guardando índice de cuarentena: {e}")
     
-    def _calcular_hash(self, archivo_path: str) -> tuple:
+    def _calcular_hash(self, archivo_path: str) -> str:
         """
-        Calcula los hashes MD5 y SHA256 de un archivo.
+        Calcula el hash SHA256 de un archivo (SEGURO - sin MD5 débil).
         
         Args:
             archivo_path: Ruta del archivo
             
         Returns:
-            tuple: (md5, sha256)
+            str: SHA256 hash
         """
         try:
-            md5_hash = hashlib.md5()
             sha256_hash = hashlib.sha256()
             
             with open(archivo_path, 'rb') as f:
                 for chunk in iter(lambda: f.read(4096), b""):
-                    md5_hash.update(chunk)
                     sha256_hash.update(chunk)
             
-            return md5_hash.hexdigest(), sha256_hash.hexdigest()
+            return sha256_hash.hexdigest()
             
         except Exception as e:
             self.logger.error(f"Error calculando hash de {archivo_path}: {e}")
-            return "", ""
+            return ""
     
     def poner_en_cuarentena(self, archivo_path: str, motivo: str = "Amenaza detectada", 
                            tipo_amenaza: str = "Desconocido", severidad: str = "Media",
@@ -174,22 +172,22 @@ class Cuarentena:
                     self.logger.warning(f"Archivo ya está en cuarentena: {archivo_path}")
                     return False
             
-            # Calcular hashes
-            md5_hash, sha256_hash = self._calcular_hash(archivo_path)
+            # Calcular hash SHA256 (seguro)
+            sha256_hash = self._calcular_hash(archivo_path)
             
             # Crear nombre único para el archivo en cuarentena
             timestamp = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
-            nombre_archivo = f"{timestamp}_{os.path.basename(archivo_path)}_{md5_hash[:8]}"
+            nombre_archivo = f"{timestamp}_{os.path.basename(archivo_path)}_{sha256_hash[:8]}"
             ruta_cuarentena = os.path.join(self.directorio_cuarentena, nombre_archivo)
             
             # Copiar archivo a cuarentena
             shutil.copy2(archivo_path, ruta_cuarentena)
             
-            # Crear registro
+            # Crear registro (solo SHA256 - más seguro)
             archivo_en_cuarentena = ArchivoEnCuarentena(
                 ruta_original=archivo_path,
                 ruta_cuarentena=ruta_cuarentena,
-                hash_md5=md5_hash,
+                hash_md5="",  # Ya no usamos MD5 por seguridad
                 hash_sha256=sha256_hash,
                 fecha_cuarentena=datetime.datetime.now(),
                 motivo=motivo,
@@ -390,14 +388,12 @@ class Cuarentena:
                     archivos_faltantes.append(archivo.ruta_original)
                     continue
                 
-                # Verificar hash
-                md5_actual, sha256_actual = self._calcular_hash(archivo.ruta_cuarentena)
+                # Verificar hash SHA256 (seguro)
+                sha256_actual = self._calcular_hash(archivo.ruta_cuarentena)
                 
-                if md5_actual != archivo.hash_md5 or sha256_actual != archivo.hash_sha256:
+                if sha256_actual != archivo.hash_sha256:
                     archivos_corruptos.append({
                         'archivo': archivo.ruta_original,
-                        'hash_esperado_md5': archivo.hash_md5,
-                        'hash_actual_md5': md5_actual,
                         'hash_esperado_sha256': archivo.hash_sha256,
                         'hash_actual_sha256': sha256_actual
                     })

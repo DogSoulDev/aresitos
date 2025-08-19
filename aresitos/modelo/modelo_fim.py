@@ -54,8 +54,6 @@ class MetadatosArchivo:
     extension: str
     tipo_archivo: TipoArchivoFIM
     tamaño_bytes: int
-    hash_md5: str
-    hash_sha1: str
     hash_sha256: str
     permisos_octal: str
     permisos_texto: str
@@ -75,8 +73,8 @@ class MetadatosArchivo:
             ruta_path = Path(ruta_archivo)
             stat_info = ruta_path.stat()
             
-            # Calcular hashes
-            hash_md5, hash_sha1, hash_sha256 = cls._calcular_hashes(ruta_archivo)
+            # Calcular hash SHA256 seguro
+            hash_sha256 = cls._calcular_hash_sha256(ruta_archivo)
             
             # Obtener información de propietario
             propietario_nombre = "desconocido"
@@ -107,7 +105,7 @@ class MetadatosArchivo:
                 else:
                     propietario_nombre = "usuario_windows"
                     grupo_nombre = "grupo_windows"
-            except Exception:
+            except (ValueError, TypeError, AttributeError):
                 pass  # Mantener valores por defecto
             
             # Determinar tipo de archivo
@@ -119,8 +117,6 @@ class MetadatosArchivo:
                 extension=ruta_path.suffix.lower(),
                 tipo_archivo=tipo_archivo,
                 tamaño_bytes=stat_info.st_size,
-                hash_md5=hash_md5,
-                hash_sha1=hash_sha1,
                 hash_sha256=hash_sha256,
                 permisos_octal=oct(stat_info.st_mode)[-3:],
                 permisos_texto=stat.filemode(stat_info.st_mode),
@@ -137,27 +133,19 @@ class MetadatosArchivo:
             raise Exception(f"Error creando metadatos para {ruta_archivo}: {str(e)}")
     
     @staticmethod
-    def _calcular_hashes(ruta_archivo: str) -> tuple:
-        """Calcular hashes MD5, SHA1 y SHA256 de un archivo."""
+    def _calcular_hash_sha256(ruta_archivo: str) -> str:
+        """Calcular hash SHA256 seguro."""
         try:
-            md5_hash = hashlib.md5()
-            sha1_hash = hashlib.sha1()
             sha256_hash = hashlib.sha256()
             
             with open(ruta_archivo, 'rb') as archivo:
                 # Leer en chunks para archivos grandes
                 for chunk in iter(lambda: archivo.read(8192), b""):
-                    md5_hash.update(chunk)
-                    sha1_hash.update(chunk)
                     sha256_hash.update(chunk)
             
-            return (
-                md5_hash.hexdigest(),
-                sha1_hash.hexdigest(),
-                sha256_hash.hexdigest()
-            )
-        except Exception:
-            return ("", "", "")
+            return sha256_hash.hexdigest()
+        except (IOError, OSError, PermissionError, FileNotFoundError):
+            return ""
     
     @staticmethod
     def _determinar_tipo_archivo(ruta_path: Path) -> TipoArchivoFIM:
@@ -282,7 +270,7 @@ class FIMAvanzado:
             directorio_data = directorio_actual / "data"
             directorio_data.mkdir(exist_ok=True)
             return str(directorio_data / "fim_database.json")
-        except Exception:
+        except (IOError, OSError, PermissionError, FileNotFoundError):
             # Fallback a directorio temporal
             import tempfile
             return os.path.join(tempfile.gettempdir(), "ares_fim_database.json")
@@ -357,7 +345,7 @@ class FIMAvanzado:
                                 try:
                                     setattr(metadatos, campo_fecha, 
                                            datetime.fromisoformat(getattr(metadatos, campo_fecha)))
-                                except Exception:
+                                except (ValueError, TypeError, AttributeError):
                                     setattr(metadatos, campo_fecha, datetime.now())
                         
                         # Convertir enum
@@ -568,9 +556,8 @@ class FIMAvanzado:
         """Comparar metadatos y detectar cambios."""
         cambios = []
         
-        # Verificar contenido (hashes)
-        if (original.hash_md5 != actual.hash_md5 or 
-            original.hash_sha256 != actual.hash_sha256):
+        # Verificar contenido (hash SHA256)
+        if original.hash_sha256 != actual.hash_sha256:
             cambios.append(TipoCambioFIM.CONTENIDO_MODIFICADO)
         
         # Verificar permisos

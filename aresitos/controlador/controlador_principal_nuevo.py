@@ -52,6 +52,7 @@ class ControladorPrincipal(ControladorBase):
             from .controlador_auditoria import ControladorAuditoria  
             from .controlador_reportes import ControladorReportes
             from .controlador_monitoreo import ControladorMonitoreo
+            from .controlador_herramientas import ControladorHerramientas
             from .controlador_fim import ControladorFIM
             from .controlador_siem_nuevo import ControladorSIEM
             from .controlador_cuarentena import ControladorCuarentena
@@ -60,6 +61,7 @@ class ControladorPrincipal(ControladorBase):
             self.controlador_auditoria = ControladorAuditoria(modelo_principal)
             self.controlador_reportes = ControladorReportes(modelo_principal)
             self.controlador_monitoreo = ControladorMonitoreo(modelo_principal)
+            self.controlador_herramientas = ControladorHerramientas(modelo_principal)
             self.controlador_fim = ControladorFIM(modelo_principal)
             self.controlador_siem = ControladorSIEM(modelo_principal)
             self.controlador_cuarentena = ControladorCuarentena()
@@ -71,6 +73,7 @@ class ControladorPrincipal(ControladorBase):
             self.controlador_auditoria = None
             self.controlador_reportes = None
             self.controlador_monitoreo = None
+            self.controlador_herramientas = None
             self.controlador_fim = None
             self.controlador_siem = None
             self.controlador_cuarentena = None
@@ -122,11 +125,15 @@ class ControladorPrincipal(ControladorBase):
                     estado_componentes = self.gestor_componentes.obtener_estado_componentes()
                     self._estado_sistema['componentes_activos'] = estado_componentes.get('resumen', {}).get('componentes_iniciados', 0)
             
+            # 4. Configurar conexiones entre controladores
+            resultado_conexiones = self.configurar_conexiones_controladores()
+            
             resultado_final = {
                 'exito': True,
                 'mensaje': 'Controlador principal inicializado correctamente',
                 'timestamp': datetime.now().isoformat(),
-                'componentes_activos': self._estado_sistema['componentes_activos']
+                'componentes_activos': self._estado_sistema['componentes_activos'],
+                'conexiones_configuradas': resultado_conexiones.get('conexiones_configuradas', 0)
             }
             
             if self.gestor_componentes:
@@ -299,20 +306,65 @@ class ControladorPrincipal(ControladorBase):
             # Finalizar componentes
             if self.gestor_componentes:
                 resultado_finalizacion = self.gestor_componentes.finalizar_componentes()
-                self.logger.info("Componentes finalizados")
+                self.logger.info(f"Componentes finalizados: {resultado_finalizacion}")
             
             # Actualizar estado
             with self._lock:
                 self._estado_sistema['iniciado'] = False
+                self._estado_sistema['tiempo_inicio'] = None
                 self._operaciones_activas.clear()
             
+            self.logger.info("Controlador principal finalizado")
             return {
                 'exito': True,
-                'mensaje': 'Controlador principal finalizado correctamente'
+                'mensaje': 'Controlador principal finalizado correctamente',
+                'timestamp': datetime.now().isoformat()
             }
             
         except Exception as e:
             error_msg = f"Error finalizando controlador principal: {str(e)}"
+            self.logger.error(error_msg)
+            return {'exito': False, 'error': error_msg}
+    
+    def configurar_conexiones_controladores(self):
+        """Configurar conexiones entre controladores para integración."""
+        try:
+            self.logger.info("[POST-EXPLOIT] Configurando conexiones entre controladores...")
+            
+            conexiones_exitosas = 0
+            
+            # Configurar conexión SIEM → Cuarentena + FIM
+            if self.controlador_siem and self.controlador_cuarentena and self.controlador_fim:
+                try:
+                    self.controlador_siem.configurar_referencias_controladores(
+                        controlador_cuarentena=self.controlador_cuarentena,
+                        controlador_fim=self.controlador_fim
+                    )
+                    conexiones_exitosas += 1
+                    self.logger.info("[EMOJI] SIEM → Cuarentena + FIM configurado")
+                except Exception as e:
+                    self.logger.error(f"Error configurando SIEM → Cuarentena + FIM: {e}")
+            
+            # Configurar conexión FIM → SIEM
+            if self.controlador_fim and self.controlador_siem:
+                try:
+                    self.controlador_fim.configurar_notificacion_siem(self.controlador_siem)
+                    conexiones_exitosas += 1
+                    self.logger.info("[EMOJI] FIM → SIEM configurado")
+                except Exception as e:
+                    self.logger.error(f"Error configurando FIM → SIEM: {e}")
+            
+            # Verificar integraciones activas
+            self.logger.info(f"[POST-EXPLOIT] Conexiones configuradas exitosamente: {conexiones_exitosas}")
+            
+            return {
+                'exito': True,
+                'conexiones_configuradas': conexiones_exitosas,
+                'timestamp': datetime.now().isoformat()
+            }
+            
+        except Exception as e:
+            error_msg = f"Error configurando conexiones entre controladores: {e}"
             self.logger.error(error_msg)
             return {'exito': False, 'error': error_msg}
 

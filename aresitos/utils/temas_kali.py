@@ -223,7 +223,7 @@ def configurar_ventana_principal(ventana):
         # Intentar configurar icono si existe
         try:
             ventana.iconbitmap("aresitos/recursos/Aresitos.ico")
-        except:
+        except (ValueError, TypeError, AttributeError):
             pass  # Ignorar si no existe el icono
         
         return True

@@ -39,7 +39,7 @@ class ControladorMonitoreo:
         if hasattr(self.monitor, 'siem') and self.monitor.siem:
             try:
                 self.monitor.siem.iniciar_procesamiento()
-            except:
+            except (ValueError, TypeError, AttributeError):
                 pass
         
         return resultado
@@ -52,7 +52,7 @@ class ControladorMonitoreo:
         if hasattr(self.monitor, 'siem') and self.monitor.siem:
             try:
                 self.monitor.siem.detener_procesamiento()
-            except:
+            except (ValueError, TypeError, AttributeError):
                 pass
         
         return resultado
@@ -74,7 +74,7 @@ class ControladorMonitoreo:
                     break
             else:
                 estado_base["metricas_avanzadas"] = {"disponible": False}
-        except:
+        except (ValueError, TypeError, AttributeError):
             estado_base["metricas_avanzadas"] = {"error": "No disponible"}
         
         return estado_base
@@ -102,7 +102,7 @@ class ControladorMonitoreo:
                 'trafico': {'entrada': 0, 'salida': 0},
                 'estado': 'monitoreo_basico'
             }]
-        except:
+        except (ValueError, TypeError, AttributeError):
             return []
     
     def obtener_procesos_activos(self) -> List[Dict[str, Any]]:
@@ -115,7 +115,7 @@ class ControladorMonitoreo:
                 procesos_sospechosos = self.monitor.obtener_procesos_sospechosos()
                 if datos:
                     datos[0]['procesos_sospechosos'] = procesos_sospechosos
-            except:
+            except (ValueError, TypeError, AttributeError):
                 pass
         
         return datos
@@ -141,7 +141,7 @@ class ControladorMonitoreo:
                 if hasattr(self.monitor, metodo):
                     estadisticas['metricas_avanzadas'] = getattr(self.monitor, metodo)()
                     break
-        except:
+        except (ValueError, TypeError, AttributeError):
             estadisticas['metricas_avanzadas'] = {"error": "No disponible"}
         
         return estadisticas
@@ -151,7 +151,7 @@ class ControladorMonitoreo:
         if hasattr(self.monitor, 'obtener_procesos_sospechosos'):
             try:
                 return self.monitor.obtener_procesos_sospechosos()
-            except:
+            except (ValueError, TypeError, AttributeError):
                 pass
         return []
     
@@ -171,7 +171,7 @@ class ControladorMonitoreo:
                         'timestamp': alerta.timestamp.isoformat(),
                         'estado': alerta.estado
                     })
-            except:
+            except (ValueError, TypeError, AttributeError):
                 pass
         
         return alertas
@@ -181,7 +181,7 @@ class ControladorMonitoreo:
         if hasattr(self.monitor, 'generar_reporte_monitor'):
             try:
                 return self.monitor.generar_reporte_monitor()
-            except:
+            except (ValueError, TypeError, AttributeError):
                 pass
         
         # Reporte básico si no hay funcionalidad avanzada
@@ -215,7 +215,7 @@ class ControladorMonitoreo:
                     'mensaje': 'Umbrales actualizados correctamente',
                     'umbrales': self.monitor.umbrales
                 }
-            except:
+            except (ValueError, TypeError, AttributeError):
                 pass
         
         return {
@@ -330,7 +330,7 @@ class ControladorMonitoreo:
             import hashlib
             with open(ruta_archivo, 'rb') as f:
                 return hashlib.sha256(f.read()).hexdigest()
-        except:
+        except (IOError, OSError, PermissionError, FileNotFoundError):
             return "hash_no_disponible"
 
 # RESUMEN TÉCNICO: Controlador de monitoreo avanzado que integra detección de anomalías,

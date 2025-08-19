@@ -135,7 +135,7 @@ class ModeloUtilidadesSistema:
                 try:
                     with open(reporte_path, 'r', encoding='utf-8') as f:
                         salida_completa = f.read()
-                except:
+                except (IOError, OSError, PermissionError, FileNotFoundError):
                     salida_completa = resultado.stdout
             else:
                 salida_completa = resultado.stdout
@@ -144,7 +144,7 @@ class ModeloUtilidadesSistema:
             try:
                 os.remove(reporte_path)
                 os.rmdir(temp_dir)
-            except:
+            except (ValueError, TypeError, AttributeError):
                 pass
             
             if resultado.returncode == 0:
@@ -220,7 +220,7 @@ class ModeloUtilidadesSistema:
                 if resultado_systemctl.returncode == 0:
                     servicios_systemctl = self._parsear_servicios_systemctl(resultado_systemctl.stdout)
                     servicios_encontrados.extend(servicios_systemctl)
-            except:
+            except (subprocess.TimeoutExpired, subprocess.CalledProcessError, FileNotFoundError):
                 pass
             
             # Usar ps para procesos adicionales
@@ -235,7 +235,7 @@ class ModeloUtilidadesSistema:
                 if resultado_ps.returncode == 0:
                     procesos_ps = self._parsear_procesos_ps(resultado_ps.stdout)
                     servicios_encontrados.extend(procesos_ps)
-            except:
+            except (ValueError, TypeError, AttributeError):
                 pass
             
             # Verificar puertos abiertos
@@ -330,7 +330,7 @@ class ModeloUtilidadesSistema:
                 )
                 if resultado.returncode == 0 and resultado.stdout:
                     return resultado.stdout.split('\n')[0][:100]
-            except:
+            except (subprocess.TimeoutExpired, subprocess.CalledProcessError, FileNotFoundError):
                 continue
         
         return 'Versión no disponible'
@@ -342,7 +342,7 @@ class ModeloUtilidadesSistema:
                 for linea in f:
                     if linea.startswith('PRETTY_NAME='):
                         return linea.split('=')[1].strip().strip('"')
-        except:
+        except (IOError, OSError, PermissionError, FileNotFoundError):
             return platform.system() + ' ' + platform.release()
         
         return 'Distribución desconocida'
@@ -365,7 +365,7 @@ class ModeloUtilidadesSistema:
                 try:
                     index = linea.split(':')[1].strip()
                     resumen['hardening_index'] = index
-                except:
+                except (ValueError, TypeError, AttributeError):
                     pass
         
         return resumen
@@ -514,7 +514,7 @@ class ModeloUtilidadesSistema:
                                 'direccion_local': partes[4],
                                 'puerto': partes[4].split(':')[-1] if ':' in partes[4] else ''
                             })
-        except:
+        except (ValueError, TypeError, AttributeError):
             pass
         
         return puertos
@@ -584,7 +584,7 @@ class ModeloUtilidadesSistema:
                     if linea.startswith('model name'):
                         info_cpu['modelo'] = linea.split(':')[1].strip()
                         break
-        except:
+        except (IOError, OSError, PermissionError, FileNotFoundError):
             info_cpu['modelo'] = 'No disponible'
         
         return info_cpu
@@ -600,7 +600,7 @@ class ModeloUtilidadesSistema:
                         total_kb = int(linea.split()[1])
                         info_memoria['total_mb'] = round(total_kb / 1024, 2)
                         break
-        except:
+        except (IOError, OSError, PermissionError, FileNotFoundError):
             info_memoria['total_mb'] = 'No disponible'
         
         return info_memoria
@@ -619,7 +619,7 @@ class ModeloUtilidadesSistema:
             
             if resultado.returncode == 0:
                 info_almacenamiento['df_output'] = resultado.stdout
-        except:
+        except (subprocess.TimeoutExpired, subprocess.CalledProcessError, FileNotFoundError):
             info_almacenamiento['df_output'] = 'No disponible'
         
         return info_almacenamiento
@@ -638,7 +638,7 @@ class ModeloUtilidadesSistema:
             
             if resultado.returncode == 0:
                 info_red['interfaces'] = resultado.stdout
-        except:
+        except (subprocess.TimeoutExpired, subprocess.CalledProcessError, FileNotFoundError):
             info_red['interfaces'] = 'No disponible'
         
         return info_red
