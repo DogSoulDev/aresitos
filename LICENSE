@@ -1,32 +1,52 @@
-MIT License
+ARESITOS FREE USE LICENSE WITH ATTRIBUTION
 
 Copyright (c) 2025 DogSoulDev
 
+==============================================================================
+TERMS AND CONDITIONS FOR USE, REPRODUCTION, AND DISTRIBUTION
+==============================================================================
+
+GRANT OF RIGHTS:
 Permission is hereby granted, free of charge, to any person obtaining a copy
-of this software and associated documentation files (the "Software"), to deal
-in the Software without restriction, including without limitation the rights
-to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-copies of the Software, and to permit persons to whom the Software is
-furnished to do so, subject to the following conditions:
+of this software and associated documentation files (ARESITOS), to deal in the
+Software without restriction, including without limitation the rights to use,
+copy, modify, merge, publish, distribute, sublicense, and/or sell copies of
+the Software, and to permit persons to whom the Software is furnished to do so.
 
-The above copyright notice and this permission notice shall be included in all
-copies or substantial portions of the Software.
+ATTRIBUTION REQUIREMENT (MANDATORY):
+The ONLY condition for using ARESITOS is that proper attribution MUST be given
+to the original creator and repository in ALL instances of use, modification,
+or distribution. This attribution requirement includes:
 
-ATTRIBUTION REQUIREMENTS:
-- Any use, modification, or distribution of this software must include clear
-  attribution to the original creator: DogSoulDev
-- Reference to the original repository must be maintained: 
-  https://github.com/DogSoulDev/Aresitos
-- When used in Kali Linux or any other operating system, credit must be given
-  to DogSoulDev as the original developer of Aresitos
+1. CREATOR ATTRIBUTION:
+   - Name: DogSoulDev
+   - Contact: dogsouldev@protonmail.com
 
-ETHICAL USE CLAUSE:
-This software is intended for educational purposes, authorized security testing,
-and legitimate cybersecurity research only. Users are responsible for ensuring
-compliance with all applicable laws and regulations. The use of this software
-for illegal activities, unauthorized access, or malicious purposes is strictly
-prohibited.
+2. REPOSITORY REFERENCE:
+   - Original Repository: https://github.com/DogSoulDev/Aresitos
 
+3. DISPLAY REQUIREMENTS:
+   - The creator name "DogSoulDev" must be clearly visible in any interface,
+     documentation, or distribution of ARESITOS
+   - The repository URL must be accessible and referenced
+   - Attribution cannot be removed, hidden, or modified
+
+SCOPE OF USE:
+This software may be used for any purpose including but not limited to:
+- Personal cybersecurity education and learning
+- Professional penetration testing and security assessments
+- Commercial security consulting and services
+- Educational institutions and training programs
+- Research and development projects
+- Integration into other security tools and platforms
+
+ETHICAL USE STATEMENT:
+While this license grants broad usage rights, users are encouraged to employ
+ARESITOS responsibly and in accordance with applicable laws and regulations.
+The creator advocates for ethical cybersecurity practices and authorized
+security testing only.
+
+DISCLAIMER:
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
 IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
 FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -35,14 +55,12 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 
----
-
-ARESITOS 7.0 BETA - CYBERSECURITY SUITE
+==============================================================================
+ARESITOS v2.0 - CYBERSECURITY PROFESSIONAL SUITE
 Creator: DogSoulDev
 Repository: https://github.com/DogSoulDev/Aresitos
 Contact: dogsouldev@protonmail.com
+License: Free Use with Attribution
 
-This license grants users worldwide the freedom to use, modify, and distribute
-Aresitos in their Kali Linux systems and other operating systems, with the
-simple requirement of maintaining attribution to the original creator and
-repository.
+"Use freely, attribute faithfully" - The philosophy behind ARESITOS
+==============================================================================
