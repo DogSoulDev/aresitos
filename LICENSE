@@ -1,4 +1,4 @@
-ARESITOS FREE USE LICENSE WITH ATTRIBUTION
+ARESITOS OPEN SOURCE LICENSE WITH MANDATORY ATTRIBUTION
 
 Copyright (c) 2025 DogSoulDev
 
@@ -6,17 +6,18 @@ Copyright (c) 2025 DogSoulDev
 TERMS AND CONDITIONS FOR USE, REPRODUCTION, AND DISTRIBUTION
 ==============================================================================
 
-GRANT OF RIGHTS:
-Permission is hereby granted, free of charge, to any person obtaining a copy
-of this software and associated documentation files (ARESITOS), to deal in the
-Software without restriction, including without limitation the rights to use,
-copy, modify, merge, publish, distribute, sublicense, and/or sell copies of
-the Software, and to permit persons to whom the Software is furnished to do so.
+OPEN SOURCE GRANT:
+ARESITOS is released as Open Source Software. Permission is hereby granted, 
+free of charge, to any person obtaining a copy of this software and associated 
+documentation files (ARESITOS), to deal in the Software without restriction, 
+including without limitation the rights to use, copy, modify, merge, publish, 
+distribute, sublicense, and/or sell copies of the Software, and to permit 
+persons to whom the Software is furnished to do so.
 
-ATTRIBUTION REQUIREMENT (MANDATORY):
+MANDATORY ATTRIBUTION REQUIREMENT:
 The ONLY condition for using ARESITOS is that proper attribution MUST be given
 to the original creator and repository in ALL instances of use, modification,
-or distribution. This attribution requirement includes:
+or distribution. This attribution requirement is NON-NEGOTIABLE and includes:
 
 1. CREATOR ATTRIBUTION:
    - Name: DogSoulDev
@@ -26,13 +27,21 @@ or distribution. This attribution requirement includes:
    - Original Repository: https://github.com/DogSoulDev/Aresitos
 
 3. DISPLAY REQUIREMENTS:
-   - The creator name "DogSoulDev" must be clearly visible in any interface,
-     documentation, or distribution of ARESITOS
-   - The repository URL must be accessible and referenced
-   - Attribution cannot be removed, hidden, or modified
+   - The creator name "DogSoulDev" MUST be clearly visible in any interface,
+     documentation, or distribution of ARESITOS or derivative works
+   - The original repository URL MUST be accessible and referenced
+   - Attribution CANNOT be removed, hidden, or modified under any circumstances
+   - Any modified versions MUST clearly indicate they are based on ARESITOS
+     by DogSoulDev and include the original repository reference
+
+OPEN SOURCE COMPLIANCE:
+This license is designed to be compatible with Open Source principles while
+ensuring proper attribution. ARESITOS can be freely integrated into other
+Open Source projects, commercial applications, and derivative works as long
+as attribution requirements are met.
 
 SCOPE OF USE:
-This software may be used for any purpose including but not limited to:
+This Open Source software may be used for any purpose including but not limited to:
 - Personal cybersecurity education and learning
 - Professional penetration testing and security assessments
 - Commercial security consulting and services
@@ -56,11 +65,11 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 
 ==============================================================================
-ARESITOS v2.0 - CYBERSECURITY PROFESSIONAL SUITE
+ARESITOS v2.0 - OPEN SOURCE CYBERSECURITY PROFESSIONAL SUITE
 Creator: DogSoulDev
 Repository: https://github.com/DogSoulDev/Aresitos
 Contact: dogsouldev@protonmail.com
-License: Free Use with Attribution
+License: Open Source with Mandatory Attribution
 
-"Use freely, attribute faithfully" - The philosophy behind ARESITOS
+"Open Source by design, attribution by requirement" - The ARESITOS philosophy
 ==============================================================================

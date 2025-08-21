@@ -89,7 +89,11 @@ Aresitos/
 
 ## ⚖️ **Licencia & Ética**
 
-**MIT License** - Uso libre comercial y personal
+**Open Source License** con atribución obligatoria:
+- ✅ **Uso libre**: Personal, comercial, educativo, investigación
+- ✅ **Modificación permitida**: Fork, personalización, integración  
+- ✅ **Distribución libre**: Compartir, redistribuir, vender
+- ⚠️ **Atribución obligatoria**: Mencionar a **DogSoulDev** y repositorio oficial
 
 **⚠️ USO ÉTICO ÚNICAMENTE**: Sistemas propios, pentesting autorizado, investigación educativa. Prohibido actividades ilegales.
 
