@@ -339,6 +339,69 @@ verify_setup() {
     groups "$REAL_USER" | grep -q wireshark && print_success "Usuario en grupo wireshark" || print_warning "Usuario NO en grupo wireshark"
 }
 
+# Función para configurar permisos de archivos ARESITOS
+configure_aresitos_permissions() {
+    print_header "⚙️ CONFIGURANDO PERMISOS ARESITOS"
+    
+    print_info "Configurando permisos de ejecución para archivos ARESITOS..."
+    
+    # Permisos para scripts principales
+    if [ -f "main.py" ]; then
+        chmod +x main.py
+        print_success "Permisos configurados para main.py"
+    fi
+    
+    if [ -f "verificacion_final.py" ]; then
+        chmod +x verificacion_final.py
+        print_success "Permisos configurados para verificacion_final.py"
+    fi
+    
+    if [ -f "configurar_kali.sh" ]; then
+        chmod +x configurar_kali.sh
+        print_success "Permisos configurados para configurar_kali.sh"
+    fi
+    
+    # Permisos para todos los archivos Python
+    print_info "Configurando permisos para archivos Python..."
+    find . -name "*.py" -exec chmod +x {} \; 2>/dev/null
+    print_success "Permisos configurados para archivos Python"
+    
+    # Permisos para directorios de datos
+    print_info "Configurando permisos para directorios de datos..."
+    
+    # Crear directorios si no existen
+    mkdir -p data/ logs/ configuración/
+    
+    # Configurar permisos
+    chmod -R 755 data/ 2>/dev/null
+    chmod -R 755 logs/ 2>/dev/null
+    chmod -R 755 configuración/ 2>/dev/null
+    
+    if [ -d "aresitos/" ]; then
+        chmod -R 755 aresitos/ 2>/dev/null
+        print_success "Permisos configurados para directorio aresitos/"
+    fi
+    
+    # Permisos específicos para bases de datos
+    if [ -f "data/cuarentena_kali2025.db" ]; then
+        chmod 664 data/cuarentena_kali2025.db
+        print_success "Permisos configurados para base de datos cuarentena"
+    fi
+    
+    if [ -f "data/fim_kali2025.db" ]; then
+        chmod 664 data/fim_kali2025.db
+        print_success "Permisos configurados para base de datos FIM"
+    fi
+    
+    # Configurar propietario para el usuario no-root
+    if [ "$DETECTED_USER" != "root" ]; then
+        chown -R "$DETECTED_USER":"$DETECTED_USER" . 2>/dev/null
+        print_success "Propietario configurado para usuario $DETECTED_USER"
+    fi
+    
+    print_success "Permisos ARESITOS configurados correctamente"
+}
+
 # Crear script de prueba
 create_test_script() {
     print_header "📝 Creando script de prueba..."
@@ -433,6 +496,7 @@ main() {
     install_tools
     configure_network_permissions
     configure_sudo
+    configure_aresitos_permissions
     install_python_deps
     verify_setup
     create_test_script

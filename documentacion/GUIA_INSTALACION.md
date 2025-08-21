@@ -14,10 +14,15 @@
 git clone https://github.com/DogSoulDev/Aresitos.git
 cd Aresitos
 
-# 2. Configurar automáticamente
+# 2. Configurar permisos necesarios
+chmod +x configurar_kali.sh
+chmod +x verificacion_final.py
+find . -name "*.py" -exec chmod +x {} \;
+
+# 3. Configurar automáticamente
 sudo ./configurar_kali.sh
 
-# 3. Ejecutar inmediatamente
+# 4. Ejecutar inmediatamente
 python3 main.py
 ```
 
@@ -114,6 +119,19 @@ python3 main.py
 
 ### **Configuración Permisos**
 ```bash
+# Permisos básicos necesarios
+chmod +x configurar_kali.sh
+chmod +x verificacion_final.py
+chmod +x main.py
+
+# Permisos para todos los archivos Python
+find . -name "*.py" -exec chmod +x {} \;
+
+# Permisos para directorios de datos
+chmod -R 755 data/
+chmod -R 755 logs/
+chmod -R 755 configuración/
+
 # El script configurar_kali.sh configura automáticamente:
 # - Permisos sudo para herramientas específicas
 # - Grupos usuario para acceso herramientas

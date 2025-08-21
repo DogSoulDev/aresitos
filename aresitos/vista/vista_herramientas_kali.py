@@ -206,10 +206,23 @@ class VistaHerramientasKali(tk.Frame):
             
             # Lista de herramientas esenciales modernizadas para Kali 2025
             herramientas = [
-                'nmap', 'netcat', 'masscan', 'rustscan', 'nikto', 'gobuster',
-                'hashcat', 'john', 'hydra', 'sqlmap', 'nuclei', 'httpx',
-                'clamav', 'chkrootkit', 'rkhunter', 'linpeas', 'pspy',
-                'binwalk', 'strings', 'file', 'exiftool', 'yara', 'feroxbuster'
+                # Escaneadores de red
+                'nmap', 'masscan', 'rustscan', 'gobuster', 'feroxbuster', 'nikto', 'nuclei', 'httpx',
+                # Análisis de servicios
+                'netcat', 'netcat-traditional', 'whatweb', 'wfuzz', 'ffuf', 'dirb',
+                # Cracking y fuerza bruta
+                'hashcat', 'john', 'hydra', 'medusa', 'patator',
+                # Bases de datos y SQL
+                'sqlmap', 'sqlninja',
+                # Cuarentena y análisis de malware
+                'clamav', 'clamscan', 'yara', 'binwalk', 'strings', 'file', 'exiftool',
+                'volatility3', 'vol', 'hexdump', 'foremost', 'sleuthkit',
+                # FIM y monitoreo
+                'inotifywait', 'pspy', 'pspy64', 'linpeas', 'chkrootkit', 'rkhunter',
+                # SIEM y auditoría
+                'auditd', 'ausearch', 'logger', 'fail2ban-client', 'lynis',
+                # Herramientas base del sistema
+                'which', 'ps', 'netstat', 'ss', 'lsof', 'find'
             ]
             
             herramientas_faltantes = []
@@ -303,17 +316,31 @@ class VistaHerramientasKali(tk.Frame):
             
             # Lista de paquetes disponibles en repositorios APT de Kali
             paquetes = [
-                'nmap', 'netcat-traditional', 'masscan', 'nikto', 'gobuster',
-                'hashcat', 'john', 'hydra', 'sqlmap', 'nuclei', 'feroxbuster',
-                'clamav', 'clamav-daemon', 'chkrootkit', 'rkhunter', 
-                'binwalk', 'exiftool', 'yara', 'whatweb', 'wfuzz'
+                # Escaneadores básicos
+                'nmap', 'masscan', 'nikto', 'gobuster', 'feroxbuster', 'dirb',
+                # Servicios de red 
+                'netcat-traditional', 'whatweb', 'wfuzz', 'ffuf',
+                # Cracking y passwords
+                'hashcat', 'john', 'hydra', 'medusa', 'patator',
+                # Análisis SQL
+                'sqlmap', 'sqlninja',
+                # Cuarentena y malware
+                'clamav', 'clamav-daemon', 'yara', 'binwalk', 'exiftool',
+                'volatility3', 'foremost', 'sleuthkit',
+                # FIM y monitoreo sistema
+                'inotify-tools', 'chkrootkit', 'rkhunter', 'auditd',
+                # SIEM y auditoría
+                'fail2ban', 'lynis', 'aide'
             ]
             
-            # Nota: rustscan, httpx, linpeas, pspy64 requieren instalación manual:
-            # - rustscan: cargo install rustscan
-            # - httpx: go install github.com/projectdiscovery/httpx/cmd/httpx@latest  
-            # - linpeas: wget https://github.com/carlospolop/PEASS-ng/releases/latest/download/linpeas.sh
-            # - pspy64: wget https://github.com/DominicBreuker/pspy/releases/latest/download/pspy64
+            # Herramientas que requieren instalación manual (se informará al usuario):
+            herramientas_manuales = [
+                'rustscan: cargo install rustscan',
+                'httpx: go install github.com/projectdiscovery/httpx/cmd/httpx@latest',
+                'nuclei: go install github.com/projectdiscovery/nuclei/v2/cmd/nuclei@latest',
+                'linpeas: wget https://github.com/carlospolop/PEASS-ng/releases/latest/download/linpeas.sh',
+                'pspy64: wget https://github.com/DominicBreuker/pspy/releases/latest/download/pspy64'
+            ]
             
             # Actualizar repositorios
             self.after(0, self._actualizar_texto, "Actualizando repositorios...\n")
@@ -342,6 +369,16 @@ class VistaHerramientasKali(tk.Frame):
             
             if process.returncode == 0:
                 self.after(0, self._actualizar_texto, "\n✓ Instalación completada exitosamente\n")
+                
+                # Mostrar información sobre herramientas de instalación manual
+                self.after(0, self._actualizar_texto, "\n" + "="*50 + "\n")
+                self.after(0, self._actualizar_texto, "HERRAMIENTAS DE INSTALACIÓN MANUAL\n")
+                self.after(0, self._actualizar_texto, "="*50 + "\n")
+                for herramienta in herramientas_manuales:
+                    self.after(0, self._actualizar_texto, f"📦 {herramienta}\n")
+                self.after(0, self._actualizar_texto, "\nEstas herramientas se pueden instalar manualmente\n")
+                self.after(0, self._actualizar_texto, "si se necesitan funcionalidades específicas.\n")
+                
                 self.after(0, self._habilitar_continuar)
             else:
                 self.after(0, self._actualizar_texto, "\n✗ Error durante la instalación\n")

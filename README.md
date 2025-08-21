@@ -34,9 +34,17 @@ Suite integral de ciberseguridad con **arquitectura 100% Python stdlib** sin dep
 ## ⚡ **Instalación Zero-Config**
 
 ```bash
-# Clona, configura y ejecuta - Sin dependencias pip
+# Clona, configura permisos y ejecuta - Sin dependencias pip
 git clone https://github.com/DogSoulDev/Aresitos.git
-cd Aresitos && sudo ./configurar_kali.sh && python3 main.py
+cd Aresitos
+
+# Dar permisos de ejecución a scripts críticos
+chmod +x configurar_kali.sh
+chmod +x verificacion_final.py
+find . -name "*.py" -exec chmod +x {} \;
+
+# Configurar y ejecutar automáticamente
+sudo ./configurar_kali.sh && python3 main.py
 ```
 
 **Compatibilidad**: Kali 2024.x+, Parrot Security, BlackArch, Ubuntu 22.04+

@@ -1000,12 +1000,24 @@ class LoginAresitos:
             
             self.escribir_log("Ventana principal configurada con tema Burp Suite")
             
-            # Configurar ícono si está disponible
+            # Configurar ícono si está disponible (solo en Windows)
             try:
-                icon_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), "recursos", "Aresitos.ico")
-                if os.path.exists(icon_path):
-                    root_app.iconbitmap(icon_path)
-            except (IOError, OSError, PermissionError, FileNotFoundError):
+                import platform
+                if platform.system() == "Windows":
+                    icon_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), "recursos", "Aresitos.ico")
+                    if os.path.exists(icon_path):
+                        root_app.iconbitmap(icon_path)
+                else:
+                    # En Linux, usar una imagen PNG convertida
+                    icon_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), "recursos", "Aresitos.ico")
+                    if os.path.exists(icon_path):
+                        # Tkinter en Linux puede manejar archivos ico si PIL está disponible
+                        try:
+                            root_app.iconbitmap(icon_path)
+                        except tk.TclError:
+                            # Si falla, solo ignorar el icono en Linux
+                            pass
+            except (IOError, OSError, PermissionError, FileNotFoundError, tk.TclError):
                 pass
             
             self.escribir_log("Inicializando modelo de datos...")
@@ -1029,16 +1041,29 @@ class LoginAresitos:
             y = (root_app.winfo_screenheight() // 2) - (800 // 2)
             root_app.geometry(f"1200x800+{x}+{y}")
             
-            # Configurar ícono para la ventana principal también
+            # Configurar ícono para la ventana principal también (solo en Windows)
             try:
-                icon_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), "recursos", "Aresitos.ico")
-                if os.path.exists(icon_path):
-                    root_app.iconbitmap(icon_path)
-                    self.escribir_log("OK Ícono de aplicación configurado correctamente")
+                import platform
+                if platform.system() == "Windows":
+                    icon_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), "recursos", "Aresitos.ico")
+                    if os.path.exists(icon_path):
+                        root_app.iconbitmap(icon_path)
+                        self.escribir_log("✓ Ícono de aplicación configurado correctamente")
+                    else:
+                        self.escribir_log("WARNING Archivo de ícono no encontrado en: " + icon_path)
                 else:
-                    self.escribir_log("WARNING Archivo de ícono no encontrado en: " + icon_path)
+                    # En Linux, intentar configurar icono pero sin fallar si no funciona
+                    icon_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), "recursos", "Aresitos.ico")
+                    if os.path.exists(icon_path):
+                        try:
+                            root_app.iconbitmap(icon_path)
+                            self.escribir_log("✓ Ícono de aplicación configurado correctamente (Linux)")
+                        except tk.TclError:
+                            self.escribir_log("INFO Ícono no compatible en Linux - continuando sin icono")
+                    else:
+                        self.escribir_log("INFO Archivo de ícono no encontrado - continuando sin icono")
             except Exception as e:
-                self.escribir_log(f"WARNING Error configurando ícono: {str(e)}")
+                self.escribir_log(f"INFO Error configurando ícono (no crítico): {str(e)}")
             
             # Forzar actualización de la ventana
             root_app.update()
