@@ -131,7 +131,7 @@ class GestorPermisosSeguro:
     
     def _crear_logger(self) -> logging.Logger:
         """Crea un logger específico para el gestor de permisos."""
-        logger = logging.getLogger('AresAegis.GestorPermisos')
+        logger = logging.getLogger('AresAegis.GestorPermisosSeguro')
         if not logger.handlers:
             handler = logging.StreamHandler()
             formatter = logging.Formatter(
