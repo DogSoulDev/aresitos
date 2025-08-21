@@ -1,44 +1,197 @@
-# ARESITOS v2.0 - Guía de Instalación y Verificación
+# ARESITOS v2.0 - Guía de Instalación
 
-## 🚀 INSTALACIÓN RÁPIDA
+## 🚀 **Instalación Rápida**
 
-### Requisitos
-- **SO**: Kali Linux 2025 (EXCLUSIVO)
-- **Python**: 3.9+ (incluido en Kali)
+### **Requisitos Sistema**
+- **SO**: Kali Linux 2024.x+ (recomendado)
+- **Python**: 3.8+ (incluido en Kali)
 - **RAM**: 4GB mínimo, 8GB recomendado
-- **Disco**: 20GB libres
+- **Disco**: 10GB libres
 
-### Instalación Automática
+### **Instalación Zero-Config**
 ```bash
 # 1. Clonar repositorio
-git clone https://github.com/usuario/Ares-Aegis.git
-cd Ares-Aegis
+git clone https://github.com/DogSoulDev/Aresitos.git
+cd Aresitos
 
-# 2. Configurar Kali (ejecutar como root)
-chmod +x configurar_kali.sh
+# 2. Configurar automáticamente
 sudo ./configurar_kali.sh
 
-# 3. Verificar instalación
-python verificacion_final.py
-
-# 4. Ejecutar ARESITOS
-python main.py
+# 3. Ejecutar inmediatamente
+python3 main.py
 ```
 
-## 🔧 CONFIGURACIÓN INICIAL
+## ⚙️ **Configuración Automática**
 
-### Herramientas Kali Verificadas
-El script `configurar_kali.sh` instala y verifica:
+### **Script configurar_kali.sh**
+El script de configuración instala y verifica automáticamente:
 
-#### Escaneadores
-- `nmap` - Network mapper
-- `masscan` - High-speed port scanner
-- `gobuster` - Directory/file brute-forcer
-- `nuclei` - Vulnerability scanner
-- `ffuf` - Web fuzzer
+#### **Escaneadores Red**
+- `nmap` - Network mapper avanzado
+- `masscan` - Scanner puertos alta velocidad
+- `gobuster` - Brute-force directorios/archivos
+- `nuclei` - Scanner vulnerabilidades
+- `ffuf` - Web fuzzer moderno
 
-#### Forense
-- `volatility3` - Memory analysis
+#### **Monitoreo Sistema**
+- `inotifywait` - Monitoreo archivos tiempo real
+- `auditd` - Auditoría sistema Linux
+- `pspy` - Monitor procesos sin root
+
+#### **Análisis Forense**
+- `volatility3` - Análisis memoria
+- `binwalk` - Análisis firmware
+- `strings` - Extracción strings
+- `file` - Identificación tipos archivo
+- `exiftool` - Metadatos archivos
+
+#### **Seguridad Malware**
+- `clamscan` - Antivirus ClamAV
+- `yara` - Detección patrones malware
+- `chkrootkit` - Detector rootkits
+- `rkhunter` - Hunter rootkits
+
+## 🔧 **Modos de Ejecución**
+
+### **Producción (Kali Linux)**
+```bash
+# Ejecución estándar con todas las funcionalidades
+python3 main.py
+```
+
+### **Desarrollo (Windows/otros SO)**
+```bash
+# Modo desarrollo para testing y desarrollo
+python3 main.py --dev
+```
+
+## � **Estructura Post-Instalación**
+```
+Aresitos/
+├── main.py                     # Punto entrada
+├── configurar_kali.sh          # Setup automático
+├── aresitos/                   # Core aplicación
+│   ├── controlador/            # 15 controladores
+│   ├── modelo/                 # 19 modelos datos
+│   ├── vista/                  # 12 vistas GUI
+│   └── utils/                  # 4 utilidades
+├── data/                       # Bases datos + recursos
+│   ├── *.db                    # SQLite databases
+│   ├── wordlists/              # Diccionarios pentesting
+│   └── cheatsheets/            # Comandos Kali
+├── logs/                       # Logs sistema
+└── documentacion/              # Guías técnicas
+```
+
+## ✅ **Verificación Instalación**
+
+### **Test Automático**
+```bash
+# Verificar todos los componentes
+python3 verificacion_final.py
+
+# Verificar herramientas Kali específicas
+python3 -c "from aresitos.utils.verificar_kali import verificar_herramientas; verificar_herramientas()"
+```
+
+### **Test Manual Interface**
+```bash
+# Iniciar aplicación
+python3 main.py
+
+# Verificar pestañas disponibles:
+# 1. Dashboard - Métricas sistema
+# 2. Escaneo - Análisis vulnerabilidades  
+# 3. Monitoreo y Cuarentena - Vigilancia malware
+# 4. Auditoría - Evaluación seguridad
+# 5. Wordlists y Diccionarios - Recursos
+# 6. Reportes - Exportación resultados
+# 7. FIM - Integridad archivos
+# 8. SIEM - Correlación eventos
+```
+
+## 🔒 **Permisos y Seguridad**
+
+### **Configuración Permisos**
+```bash
+# El script configurar_kali.sh configura automáticamente:
+# - Permisos sudo para herramientas específicas
+# - Grupos usuario para acceso herramientas
+# - Configuración paths sistema
+# - Verificación integridad herramientas
+```
+
+### **Gestión Segura**
+- **GestorPermisosSeguro**: Control granular sudo/root
+- **Validación entradas**: Sanitización completa inputs
+- **Logging completo**: Trazabilidad todas operaciones
+- **Subprocess seguro**: Timeouts y validación comandos
+
+## 🐛 **Solución Problemas**
+
+### **Errores Comunes**
+
+#### **"ARESITOS requiere Kali Linux"**
+```bash
+# Usar modo desarrollo en otros SO
+python3 main.py --dev
+```
+
+#### **"Herramienta X no encontrada"**
+```bash
+# Reinstalar herramientas automáticamente
+sudo ./configurar_kali.sh
+```
+
+#### **"Error permisos"**
+```bash
+# Verificar usuario en grupos correctos
+sudo usermod -a -G sudo,adm $USER
+sudo ./configurar_kali.sh
+```
+
+#### **"Base datos no encontrada"**
+```bash
+# Recrear bases datos automáticamente
+python3 -c "from aresitos.modelo.modelo_principal import ModeloPrincipal; ModeloPrincipal()"
+```
+
+## 📊 **Verificación Estado**
+
+### **Comandos Útiles**
+```bash
+# Estado herramientas Kali
+which nmap masscan gobuster nuclei ffuf
+
+# Estado bases datos
+ls -la data/*.db
+
+# Estado logs
+tail -f logs/aresitos.log
+
+# Estado procesos
+ps aux | grep python
+```
+
+### **Indicadores Salud Sistema**
+- ✅ **Todas herramientas**: Disponibles y funcionales
+- ✅ **Bases datos**: Creadas y accesibles
+- ✅ **Permisos**: Configurados correctamente
+- ✅ **Interfaz**: 8 pestañas cargando sin errores
+- ✅ **Logs**: Generándose en directorio logs/
+
+## 🚀 **Primer Uso Recomendado**
+
+### **Flujo Inicial**
+1. **Verificar entorno**: Dashboard → Métricas sistema OK
+2. **Test básico**: Escaneo → IP: 127.0.0.1 → "Escanear Sistema"
+3. **Configurar FIM**: FIM → "Crear Baseline" → "Iniciar Monitoreo"
+4. **Activar SIEM**: SIEM → "Iniciar Monitoreo" → Dashboard eventos
+5. **Explorar**: Wordlists, Reportes, Auditoría según necesidades
+
+---
+
+*Guía instalación ARESITOS v2.0 - DogSoulDev*
 - `binwalk` - Firmware analysis
 - `sleuthkit` - File system analysis
 - `foremost` - File carving

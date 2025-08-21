@@ -1,4 +1,203 @@
-# ARESITOS v2.0 - Documentación Técnica Consolidada
+# ARESITOS v2.0 - Documentación Técnica
+
+## 🏗️ **Arquitectura del Sistema**
+
+### **Patrón MVC Implementado**
+```
+aresitos/
+├── controlador/     # 15 archivos - Lógica de negocio
+├── modelo/          # 19 archivos - Datos y persistencia  
+├── vista/           # 12 archivos - Interfaz gráfica
+└── utils/           # 4 archivos - Utilidades sistema
+```
+
+### **Stack Tecnológico**
+- **Python 3.8+** (stdlib únicamente)
+- **SQLite3** (bases de datos)
+- **Tkinter** (interfaz gráfica)
+- **Subprocess** (integración herramientas Kali)
+
+## 🔒 **Seguridad Implementada**
+
+### **1. Validación de Entrada**
+- **IPs**: Validación RFC 5321 + caracteres peligrosos
+- **Herramientas**: Whitelist nombres seguros
+- **Comandos**: Sanitización completa parámetros
+
+### **2. Funciones de Seguridad Críticas**
+```python
+# controlador_escaneo.py
+def _validar_ip_segura(self, ip: str) -> bool:
+    """Valida IP segura para comandos sistema"""
+    
+# controlador_herramientas.py  
+def _validar_nombre_herramienta(self, nombre: str) -> bool:
+    """Valida nombre herramienta contra whitelist"""
+```
+
+### **3. Permisos y Autenticación**
+- **GestorPermisosSeguro**: Control granular sudo/root
+- **Validación contexto**: Verificación herramientas Kali
+- **Logging completo**: Trazabilidad operaciones
+
+## 🚀 **Módulos Principales**
+
+### **Escaneador Avanzado**
+- **50 puertos críticos**: SSH, RDP, SMB, DB, servicios web
+- **Procesos maliciosos**: Backdoors, rootkits, miners
+- **Análisis DNS**: Túneles y dominios sospechosos
+- **Clasificación**: CRÍTICO/ALTO/MEDIO/BAJO automática
+
+### **FIM (File Integrity Monitoring)**
+- **Monitoreo real-time**: /etc/passwd, /etc/shadow, sudoers
+- **Herramientas**: LinPEAS, chkrootkit, auditd integradas
+- **Base datos**: fim_kali2025.db (SQLite)
+- **Alertas**: Modificaciones no autorizadas inmediatas
+
+### **SIEM (Security Event Management)**
+- **Correlación**: Eventos FIM + Escaneador + Cuarentena
+- **Dashboard**: CPU, RAM, red, amenazas tiempo real
+- **Detección anomalías**: Patrones comportamiento
+- **Logs centralizados**: Rotación automática
+
+### **Cuarentena Automática**
+- **Análisis malware**: ClamAV, YARA, Binwalk
+- **Respuesta**: Aislamiento automático amenazas críticas
+- **Forense**: Preservación evidencia
+- **Base datos**: cuarentena_kali2025.db
+
+## 📊 **Bases de Datos**
+
+### **SQLite Schemas**
+```sql
+-- fim_kali2025.db
+CREATE TABLE archivos_monitoreados (
+    id INTEGER PRIMARY KEY,
+    ruta TEXT UNIQUE,
+    hash_sha256 TEXT,
+    timestamp DATETIME,
+    estado TEXT
+);
+
+-- cuarentena_kali2025.db  
+CREATE TABLE amenazas_cuarentena (
+    id INTEGER PRIMARY KEY,
+    archivo TEXT,
+    tipo_amenaza TEXT,
+    timestamp DATETIME,
+    hash_archivo TEXT,
+    ubicacion_cuarentena TEXT
+);
+```
+
+## ⚙️ **Configuración**
+
+### **Archivos de Configuración**
+- `aresitos_config_kali.json`: Configuración principal Kali
+- `textos_castellano_corregido.json`: Localización español
+- `wordlists_config.json`: Configuración diccionarios
+
+### **Directorios Importantes**
+```
+data/
+├── cuarentena/          # Archivos aislados
+├── wordlists/           # Diccionarios pentesting
+├── cheatsheets/         # Comandos Kali organizados
+└── *.db                 # Bases datos SQLite
+```
+
+## 🔧 **Desarrollo y Mantenimiento**
+
+### **Estándares de Código**
+- **PEP 8**: Estilo Python estándar
+- **Docstrings**: Documentación completa métodos
+- **Type hints**: Tipado estático cuando posible
+- **Error handling**: Try-catch exhaustivo
+
+### **Testing y Verificación**
+```bash
+# Verificación sintaxis todos los archivos
+python -m py_compile aresitos/**/*.py
+
+# Test integración MVC
+python verificacion_final.py
+
+# Modo desarrollo Windows
+python main.py --dev
+```
+
+### **Logging Sistema**
+```python
+# Configuración logging centralizada
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
+    handlers=[
+        logging.FileHandler('logs/aresitos.log'),
+        logging.StreamHandler()
+    ]
+)
+```
+
+## 🎯 **Flujo de Ejecución**
+
+### **Inicialización Sistema**
+1. **Verificación entorno**: SO, permisos, herramientas
+2. **Carga configuración**: JSON configs + bases datos
+3. **Inicialización MVC**: Modelo → Controlador → Vista
+4. **Login**: Autenticación usuario + permisos
+5. **Dashboard**: Interfaz principal + monitoreo activo
+
+### **Operaciones Típicas**
+```python
+# Escaneo sistema
+objetivo = "192.168.1.100"
+resultados = controlador_escaneo.ejecutar_escaneo_basico(objetivo)
+
+# Monitoreo FIM
+controlador_fim.crear_baseline()
+controlador_fim.iniciar_monitoreo_tiempo_real()
+
+# Análisis SIEM
+eventos = controlador_siem.obtener_eventos_correlacionados()
+alertas = controlador_siem.generar_alertas_automaticas()
+```
+
+## 📈 **Métricas y Rendimiento**
+
+### **Optimizaciones Implementadas**
+- **Threading**: Operaciones no bloqueantes
+- **Memoria**: Gestión eficiente objetos grandes
+- **I/O**: Async operations para archivos
+- **Cache**: Resultados herramientas frecuentes
+
+### **Métricas Clave**
+- **Tiempo init**: < 3 segundos entorno Kali
+- **Memoria RAM**: < 100MB uso típico
+- **CPU**: < 5% uso background monitoreo
+- **Almacenamiento**: < 50MB bases datos típicas
+
+## 🎨 **Interfaz Usuario**
+
+### **Pestañas Principales (8)**
+1. **Dashboard** - Métricas sistema tiempo real
+2. **Escaneo** - Análisis puertos y vulnerabilidades
+3. **Monitoreo y Cuarentena** - Vigilancia malware
+4. **Auditoría** - Evaluación seguridad completa
+5. **Wordlists y Diccionarios** - Gestión recursos
+6. **Reportes** - Exportación resultados
+7. **FIM** - Monitoreo integridad archivos
+8. **SIEM** - Correlación eventos seguridad
+
+### **Tema Visual**
+- **Burp Suite**: Esquema colores profesional
+- **Colores**: #2b2b2b (fondo), #ff6633 (acentos)
+- **Tipografía**: Arial optimizada legibilidad
+- **Componentes**: Tkinter personalizado
+
+---
+
+*Documentación actualizada para ARESITOS v2.0 - DogSoulDev*RESITOS v2.0 - Documentación Técnica Consolidada
 
 ## � AUDITORÍA DE SEGURIDAD
 
