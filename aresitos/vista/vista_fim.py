@@ -468,7 +468,7 @@ class VistaFIM(tk.Frame):
                     # Verificar si LinPEAS está instalado
                     resultado = subprocess.run(['which', 'linpeas'], capture_output=True, text=True)
                     if resultado.returncode != 0:
-                        self.after(0, self._actualizar_texto_fim, "ERROR LinPEAS no encontrado. Instalar con: apt install linpeas\n")
+                        self.after(0, self._actualizar_texto_fim, "ERROR LinPEAS no encontrado. Instalar con: wget https://github.com/carlospolop/PEASS-ng/releases/latest/download/linpeas.sh\n")
                         return
                     
                     self.after(0, self._actualizar_texto_fim, " Iniciando escaneo de escalación de privilegios...\n")

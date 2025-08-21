@@ -146,11 +146,11 @@ class ConfiguradorAresAegis:
         
         print(" Instalando herramientas de Kali Linux...")
         
-        # Lista de herramientas esenciales para instalar
+        # Lista de herramientas esenciales para instalar (disponibles en APT)
         herramientas_esenciales = [
             'nmap', 'sqlmap', 'hydra', 'nikto', 'wireshark-common',
             'metasploit-framework', 'john', 'hashcat', 'aircrack-ng',
-            'gobuster', 'feroxbuster', 'wfuzz', 'whatweb', 'nuclei', 'httpx'
+            'gobuster', 'feroxbuster', 'wfuzz', 'whatweb', 'nuclei'
         ]
         
         # Actualizar repositorios

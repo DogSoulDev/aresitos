@@ -301,13 +301,19 @@ class VistaHerramientasKali(tk.Frame):
         try:
             self.after(0, self._actualizar_texto, "Instalando herramientas de Kali Linux...\n\n")
             
-            # Lista de paquetes modernizados para instalar
+            # Lista de paquetes disponibles en repositorios APT de Kali
             paquetes = [
-                'nmap', 'netcat-traditional', 'masscan', 'rustscan', 'nikto', 'gobuster',
-                'hashcat', 'john', 'hydra', 'sqlmap', 'nuclei', 'httpx', 'feroxbuster',
+                'nmap', 'netcat-traditional', 'masscan', 'nikto', 'gobuster',
+                'hashcat', 'john', 'hydra', 'sqlmap', 'nuclei', 'feroxbuster',
                 'clamav', 'clamav-daemon', 'chkrootkit', 'rkhunter', 
-                'linpeas', 'pspy64', 'binwalk', 'exiftool', 'yara'
+                'binwalk', 'exiftool', 'yara', 'whatweb', 'wfuzz'
             ]
+            
+            # Nota: rustscan, httpx, linpeas, pspy64 requieren instalación manual:
+            # - rustscan: cargo install rustscan
+            # - httpx: go install github.com/projectdiscovery/httpx/cmd/httpx@latest  
+            # - linpeas: wget https://github.com/carlospolop/PEASS-ng/releases/latest/download/linpeas.sh
+            # - pspy64: wget https://github.com/DominicBreuker/pspy/releases/latest/download/pspy64
             
             # Actualizar repositorios
             self.after(0, self._actualizar_texto, "Actualizando repositorios...\n")

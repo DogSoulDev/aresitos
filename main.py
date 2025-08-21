@@ -164,12 +164,6 @@ def iniciar_aplicacion_clasica():
         # CRÍTICO: Configurar tema oscuro para la ventana principal
         root.configure(bg='#2b2b2b')
         
-        # Configurar icono si existe
-        try:
-            root.iconbitmap("aresitos/recursos/Aresitos.ico")
-        except:
-            pass
-        
         # Inicializar MVC
         print("Inicializando componentes MVC...")
         modelo = ModeloPrincipal()

@@ -1351,7 +1351,7 @@ class ControladorFIM(ControladorBase):
                 return {
                     'exito': False,
                     'error': 'LinPEAS no está instalado',
-                    'recomendacion': 'sudo apt install linpeas'
+                    'recomendacion': 'wget https://github.com/carlospolop/PEASS-ng/releases/latest/download/linpeas.sh'
                 }
             
             # Configuración de LinPEAS para Kali Linux
@@ -1500,7 +1500,7 @@ report_url=stdout
                 return {
                     'exito': False,
                     'error': 'LinPEAS no está instalado',
-                    'recomendacion': 'sudo apt install linpeas',
+                    'recomendacion': 'wget https://github.com/carlospolop/PEASS-ng/releases/latest/download/linpeas.sh',
                     'herramienta': 'linpeas'
                 }
             
