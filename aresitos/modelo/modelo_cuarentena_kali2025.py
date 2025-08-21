@@ -178,7 +178,7 @@ class CuarentenaKali2025(_CuarentenaAvanzada):  # type: ignore
         """
         Pone un archivo en cuarentena y realiza análisis inicial
         """
-        self.log(f"[SECURE] Poniendo en cuarentena: {ruta_archivo}")
+        self.log(f"🔒 Poniendo en cuarentena: {ruta_archivo}")
         
         try:
             if not os.path.exists(ruta_archivo):
@@ -274,7 +274,7 @@ class CuarentenaKali2025(_CuarentenaAvanzada):  # type: ignore
             if amenazas:
                 self._mover_a_infectados(archivo_id, ruta_archivo)
             
-            self.log(f"[EMOJI] ClamAV completado: {len(amenazas)} amenazas detectadas")
+            self.log(f"✓ ClamAV completado: {len(amenazas)} amenazas detectadas")
             return {
                 "exito": True,
                 "amenazas_detectadas": amenazas,
@@ -282,7 +282,7 @@ class CuarentenaKali2025(_CuarentenaAvanzada):  # type: ignore
             }
             
         except Exception as e:
-            self.log(f"[EMOJI] Error análisis ClamAV: {e}")
+            self.log(f"✓ Error análisis ClamAV: {e}")
             return {"error": str(e)}
     
     def analisis_yara_malware(self, archivo_id: int, ruta_archivo: str, reglas_yara: Optional[str] = None) -> Dict[str, Any]:
@@ -319,7 +319,7 @@ class CuarentenaKali2025(_CuarentenaAvanzada):  # type: ignore
                 'salida_completa': result.stdout
             })
             
-            self.log(f"[EMOJI] YARA completado: {len(detecciones)} patrones detectados")
+            self.log(f"✓ YARA completado: {len(detecciones)} patrones detectados")
             return {
                 "exito": True,
                 "detecciones": detecciones,
@@ -327,14 +327,14 @@ class CuarentenaKali2025(_CuarentenaAvanzada):  # type: ignore
             }
             
         except Exception as e:
-            self.log(f"[EMOJI] Error análisis YARA: {e}")
+            self.log(f"✓ Error análisis YARA: {e}")
             return {"error": str(e)}
     
     def analisis_binario_binwalk(self, archivo_id: int, ruta_archivo: str) -> Dict[str, Any]:
         """
         Análisis de archivo binario con binwalk
         """
-        self.log(f"[SCAN] Análisis binwalk: {ruta_archivo}")
+        self.log(f"🔍 Análisis binwalk: {ruta_archivo}")
         
         if 'binwalk' not in self.herramientas_disponibles:
             return {"error": "binwalk no disponible"}
@@ -366,7 +366,7 @@ class CuarentenaKali2025(_CuarentenaAvanzada):  # type: ignore
                 'salida_completa': result.stdout
             })
             
-            self.log(f"[EMOJI] Binwalk completado: {len(archivos_extraidos)} archivos extraídos")
+            self.log(f"✓ Binwalk completado: {len(archivos_extraidos)} archivos extraídos")
             return {
                 "exito": True,
                 "archivos_extraidos": archivos_extraidos,
@@ -375,7 +375,7 @@ class CuarentenaKali2025(_CuarentenaAvanzada):  # type: ignore
             }
             
         except Exception as e:
-            self.log(f"[EMOJI] Error análisis binwalk: {e}")
+            self.log(f"✓ Error análisis binwalk: {e}")
             return {"error": str(e)}
     
     def analisis_memoria_volatility(self, archivo_dump: str, perfil: str = "auto") -> Dict[str, Any]:
@@ -412,12 +412,12 @@ class CuarentenaKali2025(_CuarentenaAvanzada):  # type: ignore
                     
                     if result.returncode == 0:
                         resultados_analisis[plugin] = result.stdout
-                        self.log(f"[EMOJI] Plugin {plugin} ejecutado")
+                        self.log(f"✓ Plugin {plugin} ejecutado")
                     else:
-                        self.log(f"[EMOJI] Error en plugin {plugin}: {result.stderr}")
+                        self.log(f"✓ Error en plugin {plugin}: {result.stderr}")
                         
                 except Exception as e:
-                    self.log(f"[EMOJI] Error ejecutando plugin {plugin}: {e}")
+                    self.log(f"✓ Error ejecutando plugin {plugin}: {e}")
             
             # Procesar y analizar resultados
             analisis_procesado = self._procesar_resultados_volatility(resultados_analisis)
@@ -425,7 +425,7 @@ class CuarentenaKali2025(_CuarentenaAvanzada):  # type: ignore
             # Guardar en base de datos
             self._guardar_analisis_memoria(archivo_dump, analisis_procesado)
             
-            self.log(f"[EMOJI] Volatility completado: {len(plugins)} plugins ejecutados")
+            self.log(f"✓ Volatility completado: {len(plugins)} plugins ejecutados")
             return {
                 "exito": True,
                 "analisis": analisis_procesado,
@@ -434,14 +434,14 @@ class CuarentenaKali2025(_CuarentenaAvanzada):  # type: ignore
             }
             
         except Exception as e:
-            self.log(f"[EMOJI] Error análisis Volatility: {e}")
+            self.log(f"✓ Error análisis Volatility: {e}")
             return {"error": str(e)}
     
     def analisis_metadatos_exiftool(self, archivo_id: int, ruta_archivo: str) -> Dict[str, Any]:
         """
         Análisis de metadatos con ExifTool
         """
-        self.log(f"[METADATA] Análisis metadatos: {ruta_archivo}")
+        self.log(f"📋 Análisis metadatos: {ruta_archivo}")
         
         if 'exiftool' not in self.herramientas_disponibles:
             return {"error": "exiftool no disponible"}
@@ -469,7 +469,7 @@ class CuarentenaKali2025(_CuarentenaAvanzada):  # type: ignore
                     'metadatos_sospechosos': metadatos_sospechosos
                 })
                 
-                self.log(f"[EMOJI] ExifTool completado: {len(metadatos)} campos de metadatos")
+                self.log(f"✓ ExifTool completado: {len(metadatos)} campos de metadatos")
                 return {
                     "exito": True,
                     "metadatos": metadatos,
@@ -480,14 +480,14 @@ class CuarentenaKali2025(_CuarentenaAvanzada):  # type: ignore
                 return {"error": result.stderr}
                 
         except Exception as e:
-            self.log(f"[EMOJI] Error análisis ExifTool: {e}")
+            self.log(f"✓ Error análisis ExifTool: {e}")
             return {"error": str(e)}
     
     def analisis_strings(self, archivo_id: int, ruta_archivo: str) -> Dict[str, Any]:
         """
         Análisis de strings en archivo
         """
-        self.log(f"[LOG] Análisis strings: {ruta_archivo}")
+        self.log(f"📝 Análisis strings: {ruta_archivo}")
         
         if 'strings' not in self.herramientas_disponibles:
             return {"error": "strings no disponible"}
@@ -512,7 +512,7 @@ class CuarentenaKali2025(_CuarentenaAvanzada):  # type: ignore
                     'total_strings': len(result.stdout.split('\n'))
                 })
                 
-                self.log(f"[EMOJI] Strings completado: {len(strings_sospechosos)} strings sospechosos")
+                self.log(f"✓ Strings completado: {len(strings_sospechosos)} strings sospechosos")
                 return {
                     "exito": True,
                     "strings_sospechosos": strings_sospechosos,
@@ -522,14 +522,14 @@ class CuarentenaKali2025(_CuarentenaAvanzada):  # type: ignore
                 return {"error": result.stderr}
                 
         except Exception as e:
-            self.log(f"[EMOJI] Error análisis strings: {e}")
+            self.log(f"✓ Error análisis strings: {e}")
             return {"error": str(e)}
     
     def analisis_tipo_archivo(self, archivo_id: int, ruta_archivo: str) -> Dict[str, Any]:
         """
         Análisis de tipo de archivo
         """
-        self.log(f"[FILE] Análisis tipo archivo: {ruta_archivo}")
+        self.log(f"📁 Análisis tipo archivo: {ruta_archivo}")
         
         if 'file' not in self.herramientas_disponibles:
             return {"error": "file no disponible"}
@@ -550,7 +550,7 @@ class CuarentenaKali2025(_CuarentenaAvanzada):  # type: ignore
                     'es_sospechoso': tipo_sospechoso
                 })
                 
-                self.log(f"[EMOJI] Tipo archivo: {tipo_archivo}")
+                self.log(f"✓ Tipo archivo: {tipo_archivo}")
                 return {
                     "exito": True,
                     "tipo_archivo": tipo_archivo,
@@ -561,7 +561,7 @@ class CuarentenaKali2025(_CuarentenaAvanzada):  # type: ignore
                 return {"error": result.stderr}
                 
         except Exception as e:
-            self.log(f"[EMOJI] Error análisis tipo archivo: {e}")
+            self.log(f"✓ Error análisis tipo archivo: {e}")
             return {"error": str(e)}
     
     def analisis_completo_cuarentena_kali2025(self, ruta_archivo: str) -> Dict[str, Any]:
@@ -620,7 +620,7 @@ class CuarentenaKali2025(_CuarentenaAvanzada):  # type: ignore
             "riesgo_general": self._calcular_riesgo_general(resultados)
         }
         
-        self.log("[EMOJI] ANÁLISIS COMPLETO CUARENTENA FINALIZADO")
+        self.log("✓ ANÁLISIS COMPLETO CUARENTENA FINALIZADO")
         return resultados
     
     def _obtener_info_archivo(self, ruta_archivo: str) -> Dict[str, Any]:

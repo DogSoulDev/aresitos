@@ -102,8 +102,9 @@ install_tools() {
         "wget"
         "git"
         
-        # Herramientas de red y monitoreo
+        # Herramientas de red y monitoreo (MODERNAS)
         "nmap"
+        "rustscan"
         "masscan"
         "netstat-nat"
         "net-tools"
@@ -112,24 +113,21 @@ install_tools() {
         "nethogs"
         "ss"
         
-        # Herramientas de escaneo web
+        # Herramientas de escaneo web (ACTUALIZADAS)
         "nikto"
         "gobuster" 
+        "feroxbuster"
+        "httpx-toolkit"
         "whatweb"
-        "dirb"
         
-        # Herramientas de seguridad y análisis
+        # Herramientas de seguridad y análisis (SIMPLIFICADAS)
         "lynis"
         "chkrootkit"
-        "rkhunter"
-        "clamav"
-        "clamav-daemon"
-        "clamav-freshclam"
         
-        # Herramientas de análisis forense
-        "volatility3"
+        # Herramientas de análisis forense (ESENCIALES)
         "foremost"
         "binwalk"
+        "exiftool"
         
         # Utilidades del sistema
         "htop"

@@ -12,42 +12,42 @@ class ControladorHerramientas:
         self.utilidades_sistema = ModeloUtilidadesSistema()
         
         # Lista blanca de herramientas de Kali Linux (SECURITY FIX)
-        # KALI OPTIMIZATION: Herramientas oficiales de Kali Linux 2023.x+
+        # KALI OPTIMIZATION: Herramientas modernas de fácil instalación
         self.herramientas_permitidas = {
-            # Reconocimiento y Escaneo
-            'nmap', 'masscan', 'zmap', 'unicornscan', 'hping3',
+            # Reconocimiento y Escaneo (MODERNAS)
+            'nmap', 'rustscan', 'masscan', 'naabu', 'hping3',
             'traceroute', 'ping', 'fping', 'arping', 'nbtscan',
             
-            # Aplicaciones Web
-            'sqlmap', 'gobuster', 'dirb', 'dirbuster', 'nikto',
-            'wpscan', 'whatweb', 'skipfish', 'w3af', 'burpsuite',
-            'zaproxy', 'owasp-zap', 'wapiti', 'commix', 'xsser',
+            # Aplicaciones Web (ACTUALIZADAS)
+            'sqlmap', 'gobuster', 'feroxbuster', 'nikto', 'httpx',
+            'wpscan', 'whatweb', 'nuclei', 'ffuf', 'dirsearch',
+            'zaproxy', 'wapiti', 'ghauri', 'xsser', 'sublist3r',
             
             # Passwords y Hashing
             'hydra', 'medusa', 'patator', 'hashcat', 'john',
-            'ophcrack', 'rainbowcrack', 'crunch', 'cewl', 'rsmangler',
+            'crunch', 'cewl', 'rsmangler', 'maskprocessor',
             
             # Wireless
             'aircrack-ng', 'aireplay-ng', 'airodump-ng', 'airmon-ng',
             'reaver', 'pixiewps', 'wash', 'bully', 'cowpatty',
             
-            # Network Tools
+            # Network Tools (SIMPLIFICADAS)
             'netcat', 'nc', 'socat', 'netdiscover', 'arp-scan',
-            'wireshark', 'tshark', 'tcpdump', 'dsniff', 'ettercap',
+            'tcpdump', 'iftop', 'nload', 'iperf3', 'curl',
             
             # Metasploit Framework
-            'msfconsole', 'msfvenom', 'msfdb', 'metasploit-framework',
+            'msfconsole', 'msfvenom', 'msfdb', 'searchsploit',
             
-            # Forense y Análisis
-            'volatility', 'volatility3', 'binwalk', 'foremost',
-            'autopsy', 'sleuthkit', 'ddrescue', 'dc3dd',
+            # Forense y Análisis (ESENCIALES)
+            'binwalk', 'foremost', 'exiftool', 'strings', 'file',
+            'hexdump', 'xxd', 'grep', 'find', 'locate',
             
             # Exploits y Post-Explotación
-            'searchsploit', 'exploitdb', 'armitage', 'cobalt-strike',
+            'searchsploit', 'exploitdb', 'linpeas', 'pspy',
             
-            # OSINT y Reconocimiento
-            'maltego', 'theharvester', 'recon-ng', 'shodan',
-            'dmitry', 'fierce', 'dnsrecon', 'dnsmap',
+            # OSINT y Reconocimiento (SIMPLES)
+            'theharvester', 'dmitry', 'dnsrecon', 'dnsutils',
+            'whois', 'dig', 'nslookup', 'host', 'amass',
             
             # Utilidades del Sistema Kali
             'apt-get', 'apt', 'dpkg', 'systemctl', 'service',
@@ -162,9 +162,9 @@ class ControladorHerramientas:
             info['kernel'] = platform.release()
             info['arquitectura'] = platform.machine()
             
-            # Herramientas de Kali instaladas
+            # Herramientas de Kali instaladas (MODERNAS)
             herramientas_instaladas = []
-            herramientas_core = ['nmap', 'sqlmap', 'hydra', 'gobuster', 'nikto']
+            herramientas_core = ['nmap', 'rustscan', 'sqlmap', 'gobuster', 'nikto', 'httpx', 'nuclei']
             
             for herramienta in herramientas_core:
                 try:

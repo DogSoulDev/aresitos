@@ -98,13 +98,13 @@ class ControladorEscaneo(ControladorBase):
             if KALI2025_DISPONIBLE:
                 try:
                     self.escaner_kali2025 = EscaneadorKali2025()
-                    self.logger.info("[EMOJI] EscaneadorKali2025 inicializado correctamente")
+                    self.logger.info("✓ EscaneadorKali2025 inicializado correctamente")
                 except Exception as e:
-                    self.logger.warning(f"[EMOJI] Error inicializando EscaneadorKali2025: {e}")
+                    self.logger.warning(f"✓ Error inicializando EscaneadorKali2025: {e}")
                     self.escaner_kali2025 = None
             else:
                 self.escaner_kali2025 = None
-                self.logger.warning("[EMOJI] EscaneadorKali2025 no disponible")
+                self.logger.warning("✓ EscaneadorKali2025 no disponible")
             
             # Verificar que el escáner esté funcionando
             if self.escáner:
@@ -1158,7 +1158,7 @@ class ControladorEscaneo(ControladorBase):
                     except Exception as e:
                         self.logger.warning(f"Error registrando en SIEM: {e}")
                 
-                self.logger.info("[EMOJI] Escaneo Kali 2025 completado")
+                self.logger.info("✓ Escaneo Kali 2025 completado")
                 return resultado
                 
         except Exception as e:
@@ -1174,7 +1174,7 @@ class ControladorEscaneo(ControladorBase):
         if not self.escaner_kali2025:
             return {"error": "EscaneadorKali2025 no disponible"}
         
-        self.logger.info(f"[EMOJI] Escaneo rápido Kali 2025: {objetivo}")
+        self.logger.info(f"✓ Escaneo rápido Kali 2025: {objetivo}")
         
         try:
             # Usar el método general que sí existe

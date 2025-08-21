@@ -97,9 +97,9 @@ class EscaneadorBase:
         self.patron_hostname = re.compile(r'^[a-zA-Z0-9.-]+$')
         self.patron_puertos = re.compile(r'^(\d+(-\d+)?)(,\d+(-\d+)?)*$')
         
-        # Lista de herramientas permitidas
+        # Lista de herramientas permitidas (MODERNIZADAS)
         self.herramientas_permitidas = {
-            'nmap', 'masscan', 'nikto', 'dirb', 'gobuster', 'sqlmap', 'whatweb',
+            'nmap', 'rustscan', 'masscan', 'nikto', 'gobuster', 'feroxbuster', 'sqlmap', 'httpx', 'nuclei', 'whatweb',
             'ss', 'netstat', 'lsof', 'ping', 'dig', 'nslookup', 'host'
         }
         
@@ -285,10 +285,13 @@ class EscaneadorBase:
             'netstat': ['netstat', '--version'],  
             'ss': ['ss', '--version'],
             'lsof': ['lsof', '-v'],
+            'rustscan': ['rustscan', '--version'],
             'masscan': ['masscan', '--version'],
             'nikto': ['nikto', '-Version'],
-            'dirb': ['dirb'],
             'gobuster': ['gobuster', 'version'],
+            'feroxbuster': ['feroxbuster', '--version'],
+            'httpx': ['httpx', '-version'],
+            'nuclei': ['nuclei', '-version'],
             'sqlmap': ['sqlmap', '--version'],
             'whatweb': ['whatweb', '--version']
         }

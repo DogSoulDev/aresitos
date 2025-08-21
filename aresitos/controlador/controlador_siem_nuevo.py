@@ -621,11 +621,11 @@ class ControladorSIEM(ControladorBase):
                 directorio_logs = getattr(self, 'directorio_logs', '/tmp/ares_siem_logs')
                 if os.path.exists(directorio_logs) and os.access(directorio_logs, os.W_OK):
                     verificaciones['sistema_archivos'] = True
-                    detalles.append("[EMOJI] Sistema de archivos: OK")
+                    detalles.append("✓ Sistema de archivos: OK")
                 else:
-                    detalles.append("[EMOJI] Sistema de archivos: Sin permisos de escritura")
+                    detalles.append("❌ Sistema de archivos: Sin permisos de escritura")
             except Exception as e:
-                detalles.append(f"[EMOJI] Sistema de archivos: Error - {str(e)}")
+                detalles.append(f"❌ Sistema de archivos: Error - {str(e)}")
             
             # Verificar herramientas SIEM
             try:
@@ -640,12 +640,12 @@ class ControladorSIEM(ControladorBase):
                 
                 if herramientas_disponibles >= len(herramientas_kali) * 0.75:
                     verificaciones['herramientas_siem'] = True
-                    detalles.append(f"[EMOJI] Herramientas SIEM: {herramientas_disponibles}/{len(herramientas_kali)} disponibles")
+                    detalles.append(f"✓ Herramientas SIEM: {herramientas_disponibles}/{len(herramientas_kali)} disponibles")
                 else:
-                    detalles.append(f"[WARNING] Herramientas SIEM: Solo {herramientas_disponibles}/{len(herramientas_kali)} disponibles")
+                    detalles.append(f"⚠️ Herramientas SIEM: Solo {herramientas_disponibles}/{len(herramientas_kali)} disponibles")
                     
             except Exception as e:
-                detalles.append(f"[EMOJI] Herramientas SIEM: Error - {str(e)}")
+                detalles.append(f"✓ Herramientas SIEM: Error - {str(e)}")
             
             # Verificar logs del sistema
             try:
@@ -658,19 +658,19 @@ class ControladorSIEM(ControladorBase):
                 
                 if logs_encontrados >= len(logs_sistema) * 0.67:
                     verificaciones['logs_sistema'] = True
-                    detalles.append(f"[EMOJI] Logs del sistema: {logs_encontrados}/{len(logs_sistema)} accesibles")
+                    detalles.append(f"✓ Logs del sistema: {logs_encontrados}/{len(logs_sistema)} accesibles")
                 else:
-                    detalles.append(f"[WARNING] Logs del sistema: Solo {logs_encontrados}/{len(logs_sistema)} accesibles")
+                    detalles.append(f"⚠️ Logs del sistema: Solo {logs_encontrados}/{len(logs_sistema)} accesibles")
                     
             except Exception as e:
-                detalles.append(f"[EMOJI] Logs del sistema: Error - {str(e)}")
+                detalles.append(f"✓ Logs del sistema: Error - {str(e)}")
             
             # Verificar permisos
             try:
                 usuario_actual = os.getenv('USER', 'unknown')
                 if usuario_actual == 'root':
                     verificaciones['permisos'] = True
-                    detalles.append("[EMOJI] Permisos: Usuario root detectado")
+                    detalles.append("✓ Permisos: Usuario root detectado")
                 else:
                     # Verificar si puede ejecutar sudo
                     try:
@@ -678,13 +678,13 @@ class ControladorSIEM(ControladorBase):
                                               capture_output=True, text=True, timeout=5)
                         if result.returncode == 0:
                             verificaciones['permisos'] = True
-                            detalles.append("[EMOJI] Permisos: Usuario con acceso sudo")
+                            detalles.append("✓ Permisos: Usuario con acceso sudo")
                         else:
-                            detalles.append("[WARNING] Permisos: Usuario sin privilegios administrativos")
+                            detalles.append("⚠️ Permisos: Usuario sin privilegios administrativos")
                     except (subprocess.TimeoutExpired, subprocess.CalledProcessError, FileNotFoundError):
-                        detalles.append("[WARNING] Permisos: No se pudo verificar acceso sudo")
+                        detalles.append("⚠️ Permisos: No se pudo verificar acceso sudo")
             except Exception as e:
-                detalles.append(f"[EMOJI] Permisos: Error verificando - {str(e)}")
+                detalles.append(f"✓ Permisos: Error verificando - {str(e)}")
             
             # Calcular puntuación general
             puntuacion = sum(verificaciones.values()) / len(verificaciones) * 100
@@ -724,9 +724,9 @@ class ControladorSIEM(ControladorBase):
             self.controlador_fim = controlador_fim
             
             if controlador_cuarentena:
-                self.logger.info("[EMOJI] Referencia a Controlador Cuarentena configurada")
+                self.logger.info("✓ Referencia a Controlador Cuarentena configurada")
             if controlador_fim:
-                self.logger.info("[EMOJI] Referencia a Controlador FIM configurada")
+                self.logger.info("✓ Referencia a Controlador FIM configurada")
                 
         except Exception as e:
             self.logger.error(f"Error configurando referencias de controladores: {e}")

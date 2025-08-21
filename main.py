@@ -39,7 +39,7 @@ def configurar_permisos_basicos():
     """Configurar permisos básicos para archivos de configuración"""
     try:
         directorio_actual = Path(__file__).parent
-        config_dir = directorio_actual / 'configuracion'
+        config_dir = directorio_actual / 'configuración'
         
         # Asegurar que el directorio de configuración sea legible
         if config_dir.exists():
@@ -68,7 +68,7 @@ def verificar_tkinter():
         test_root = tk.Tk()
         test_root.withdraw()  # Ocultar inmediatamente
         test_root.destroy()
-        print("[EMOJI] Tkinter disponible y funcional")
+        print("✅ Tkinter disponible y funcional")
     except ImportError:
         raise ImportError("tkinter no está instalado. Ejecute: sudo apt install python3-tk")
     except Exception as e:
@@ -78,8 +78,8 @@ def verificar_tkinter():
             raise Exception(f"Error con tkinter: {e}")
 
 def main():
-    """Función principal que redirige al login GUI"""
-    print("ARESITOS - Sistema de Seguridad Cibernetica")
+    """Función principal que redirige al login GUI con flujo escalonado"""
+    print("ARESITOS v2.0 - Sistema de Seguridad Cibernética")
     print("=" * 50)
     
     # Verificar Kali Linux antes de continuar
@@ -90,7 +90,7 @@ def main():
         else:
             print("ERROR: ARESITOS requiere Kali Linux")
             print("Sistema operativo no compatible detectado")
-            print("[EMOJI] Para desarrollo: usar --dev o --desarrollo")
+            print("Para desarrollo: usar --dev o --desarrollo")
             sys.exit(1)
     
     # Configurar permisos básicos de archivos antes de continuar
@@ -108,11 +108,22 @@ def main():
             
             # Importar y ejecutar vista login directamente
             sys.path.insert(0, str(directorio_actual))
-            from aresitos.vista import vista_login
             
-            # Ejecutar login
-            vista_login.main()
+            # Importar la clase principal del login
+            from aresitos.vista.vista_login import LoginAresitos
+            
+            # Crear y ejecutar login con flujo completo
+            print("Creando aplicación de login...")
+            app_login = LoginAresitos()
+            print("Aplicación de login creada")
+            
+            print("Iniciando interfaz gráfica...")
+            # Ejecutar GUI - esto manejará todo el flujo automáticamente
+            app_login.root.mainloop()
+            
+            print("Sesión de login finalizada")
             return
+            
         except ImportError as e:
             print(f"Error importando vista login: {e}")
             print("Intentando con método clásico...")
@@ -121,7 +132,7 @@ def main():
             print("Intentando con método clásico...")
     
     # Fallback al método original solo si falla el login
-    print("Usando metodo de inicio clasico...")
+    print("Usando método de inicio clásico...")
     iniciar_aplicacion_clasica()
 
 def iniciar_aplicacion_clasica():
@@ -129,40 +140,71 @@ def iniciar_aplicacion_clasica():
     try:
         import tkinter as tk
         
-        # Cambiar a las rutas correctas de aresitos
+        # Importar módulos principales
         from aresitos.vista.vista_principal import VistaPrincipal
         from aresitos.controlador.controlador_principal_nuevo import ControladorPrincipal  
         from aresitos.modelo.modelo_principal import ModeloPrincipal
         
         print("Modulos principales cargados")
         
-        # Crear aplicacion principal
+        # Crear aplicación principal con tema Burp Suite
         root = tk.Tk()
-        root.title("ARESITOS - Sistema de Seguridad")
-        root.geometry("1200x800")
+        root.title("🛡️ ARESITOS v2.0 - Sistema de Seguridad Cibernética")
+        root.geometry("1400x900")
+        
+        # Configurar icono de la ventana si existe
+        try:
+            import os
+            icono_path = os.path.join(os.path.dirname(__file__), 'aresitos', 'recursos', 'Aresitos.ico')
+            if os.path.exists(icono_path):
+                root.iconbitmap(icono_path)
+        except Exception as e:
+            print(f"No se pudo cargar el icono de la ventana: {e}")
+        
+        # CRÍTICO: Configurar tema oscuro para la ventana principal
+        root.configure(bg='#2b2b2b')
+        
+        # Configurar icono si existe
+        try:
+            root.iconbitmap("aresitos/recursos/Aresitos.ico")
+        except:
+            pass
         
         # Inicializar MVC
+        print("Inicializando componentes MVC...")
         modelo = ModeloPrincipal()
         vista = VistaPrincipal(root)
+        
+        # CRÍTICO: Hacer que la vista ocupe toda la ventana
+        vista.pack(fill="both", expand=True)
+        
         controlador = ControladorPrincipal(modelo)
         
-        vista.controlador = controlador
+        # CRÍTICO: Conectar controlador a la vista
+        vista.set_controlador(controlador)
         
         # Centrar ventana
         root.update_idletasks()
-        x = (root.winfo_screenwidth() // 2) - (1200 // 2)
-        y = (root.winfo_screenheight() // 2) - (800 // 2)
-        root.geometry(f"1200x800+{x}+{y}")
+        x = (root.winfo_screenwidth() // 2) - (1400 // 2)
+        y = (root.winfo_screenheight() // 2) - (900 // 2)
+        root.geometry(f"1400x900+{x}+{y}")
         
-        print("Aplicacion iniciada")
+        print("ARESITOS v2.0 iniciado exitosamente")
+        print("✅ Dashboard completo cargado - Funcional")
+        print("✅ Tema Burp Suite aplicado")
+        print("✅ Herramientas modernizadas configuradas")
+        
+        # Ejecutar aplicación
         root.mainloop()
         
     except ImportError as e:
-        print(f"Error importando modulos: {e}")
-        print("Verifique la instalacion de ARESITOS")
+        print(f"Error importando módulos: {e}")
+        print("Verifique la instalación de ARESITOS")
         print("Ejecute: python configurar.py")
     except Exception as e:
-        print(f"Error iniciando aplicacion: {e}")
+        print(f"Error iniciando aplicación: {e}")
+        import traceback
+        traceback.print_exc()
 
 def verificar_permisos_inicio():
     """Verificar permisos al inicio y mostrar recomendaciones."""

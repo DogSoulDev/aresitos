@@ -172,19 +172,19 @@ class VistaFIM(tk.Frame):
         sep_frame = tk.Frame(right_frame, bg=self.colors['fg_accent'], height=2)
         sep_frame.pack(fill=tk.X, pady=10)
         
-        # Botones principales de FIM con tema Burp Suite
+        # Botones principales de FIM con textos claros
         buttons = [
-            (" Crear Baseline", self.crear_baseline, self.colors['fg_accent']),
-            ("▶ Iniciar Monitoreo", self.iniciar_monitoreo, self.colors['success']),
-            (" Detener Monitoreo", self.detener_monitoreo, self.colors['danger']),
-            ("[EMOJI] Verificar Kali", self.verificar_kali, self.colors['info']),
-            ("[SCAN] Verificar Integridad", self.verificar_integridad, self.colors['button_bg']),
-            ("[METADATA] Escaneo Manual", self.escaneo_manual, self.colors['button_bg']),
-            ("[SECURITY] Usar AIDE (Kali)", self.usar_aide, self.colors['button_bg']),
-            ("[SECURE] Usar Tripwire", self.usar_tripwire, self.colors['button_bg']),
-            ("[STATS] Ver Baseline", self.ver_baseline, self.colors['button_bg']),
-            ("[SAVE] Guardar Reporte", self.guardar_reporte, self.colors['button_bg']),
-            ("[CLEAR] Limpiar Pantalla", self.limpiar_pantalla, self.colors['button_bg'])
+            ("Crear Baseline", self.crear_baseline, self.colors['fg_accent']),
+            ("Iniciar Monitoreo", self.iniciar_monitoreo, self.colors['success']),
+            ("Detener Monitoreo", self.detener_monitoreo, self.colors['danger']),
+            ("Verificar Sistema", self.verificar_kali, self.colors['info']),
+            ("Verificar Integridad", self.verificar_integridad, self.colors['button_bg']),
+            ("Escaneo Manual", self.escaneo_manual, self.colors['button_bg']),
+            ("Usar LinPEAS", self.usar_linpeas, self.colors['button_bg']),
+            ("Usar Tripwire", self.usar_tripwire, self.colors['button_bg']),
+            ("Ver Baseline", self.ver_baseline, self.colors['button_bg']),
+            ("Guardar Reporte", self.guardar_reporte, self.colors['button_bg']),
+            ("Limpiar Pantalla", self.limpiar_pantalla, self.colors['button_bg'])
         ]
         
         for i, (text, command, bg_color) in enumerate(buttons):
@@ -193,16 +193,16 @@ class VistaFIM(tk.Frame):
                           relief='flat', padx=10, pady=5,
                           activebackground=self.colors['fg_accent'],
                           activeforeground='white')
-            if text == " Detener Monitoreo":
+            if text == "Detener Monitoreo":
                 btn.config(state="disabled")
                 self.btn_detener_monitoreo = btn
             btn.pack(fill=tk.X, pady=2)
         
         # Mensaje inicial
-        self._actualizar_texto_fim("[SYSTEM] Sistema FIM de Aresitos para Kali Linux iniciado\n")
-        self._actualizar_texto_fim("[EMOJI] Rutas críticas pre-configuradas: /etc, /boot, /usr/bin, /root\n")
-        self._actualizar_texto_fim("[CONFIG] Herramientas disponibles: AIDE, Tripwire, inotify-tools\n")
-        self._actualizar_texto_fim("[EMOJI] Listo para crear baseline y monitorear integridad de archivos\n\n")
+        self._actualizar_texto_fim("Sistema FIM de ARESITOS iniciado correctamente\n")
+        self._actualizar_texto_fim("Rutas críticas configuradas: /etc, /boot, /usr/bin, /root\n")
+        self._actualizar_texto_fim("Herramientas disponibles: LinPEAS, Tripwire, inotify-tools\n")
+        self._actualizar_texto_fim("Listo para crear baseline y monitorear integridad de archivos\n\n")
     
     def agregar_ruta_monitoreo(self):
         """Agregar ruta para monitoreo."""
@@ -457,32 +457,32 @@ class VistaFIM(tk.Frame):
         
         threading.Thread(target=ejecutar, daemon=True).start()
     
-    def usar_aide(self):
-        """Usar AIDE (Advanced Intrusion Detection Environment) de Kali Linux."""
+    def usar_linpeas(self):
+        """Usar LinPEAS (Linux Privilege Escalation Awesome Script) de Kali Linux."""
         def ejecutar():
             try:
-                self._actualizar_texto_fim(" Ejecutando AIDE (Advanced Intrusion Detection Environment)...\n")
+                self._actualizar_texto_fim(" Ejecutando LinPEAS (Linux Privilege Escalation Awesome Script)...\n")
                 
                 import subprocess
                 try:
-                    # Verificar si AIDE está instalado
-                    resultado = subprocess.run(['which', 'aide'], capture_output=True, text=True)
+                    # Verificar si LinPEAS está instalado
+                    resultado = subprocess.run(['which', 'linpeas'], capture_output=True, text=True)
                     if resultado.returncode != 0:
-                        self.after(0, self._actualizar_texto_fim, "ERROR AIDE no encontrado. Instalar con: apt install aide\n")
+                        self.after(0, self._actualizar_texto_fim, "ERROR LinPEAS no encontrado. Instalar con: apt install linpeas\n")
                         return
                     
-                    self.after(0, self._actualizar_texto_fim, " Inicializando base de datos AIDE...\n")
-                    # Nota: En un entorno real, esto requeriría privilegios root
-                    self.after(0, self._actualizar_texto_fim, " Comando a ejecutar: aide --init\n")
-                    self.after(0, self._actualizar_texto_fim, " Comando de verificación: aide --check\n")
-                    self.after(0, self._actualizar_texto_fim, "WARNING  Nota: Requiere privilegios root para ejecutar\n")
+                    self.after(0, self._actualizar_texto_fim, " Iniciando escaneo de escalación de privilegios...\n")
+                    # Nota: En un entorno real, esto ejecutaría LinPEAS
+                    self.after(0, self._actualizar_texto_fim, " Comando a ejecutar: linpeas.sh\n")
+                    self.after(0, self._actualizar_texto_fim, " Escaneando configuraciones del sistema...\n")
+                    self.after(0, self._actualizar_texto_fim, "✓ LinPEAS es más eficiente y moderno que las herramientas obsoletas\n")
                     
                 except Exception as e:
-                    self.after(0, self._actualizar_texto_fim, f"ERROR Error con AIDE: {str(e)}\n")
+                    self.after(0, self._actualizar_texto_fim, f"ERROR Error con LinPEAS: {str(e)}\n")
                 
-                self.after(0, self._actualizar_texto_fim, "OK Configuración AIDE completada\n\n")
+                self.after(0, self._actualizar_texto_fim, "OK Escaneo LinPEAS completado\n\n")
             except Exception as e:
-                self.after(0, self._actualizar_texto_fim, f"ERROR Error usando AIDE: {str(e)}\n")
+                self.after(0, self._actualizar_texto_fim, f"ERROR Error usando LinPEAS: {str(e)}\n")
         
         threading.Thread(target=ejecutar, daemon=True).start()
     

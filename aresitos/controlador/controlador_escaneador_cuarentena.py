@@ -955,7 +955,7 @@ class ControladorEscaneadorCuarentena:
                         resultado['distribucion'] = 'Kali Linux'
                         
                         # Verificar herramientas comunes de Kali
-                        herramientas_kali = ['nmap', 'nikto', 'sqlmap', 'dirb', 'gobuster', 'hydra']
+                        herramientas_kali = ['nmap', 'nikto', 'sqlmap', 'gobuster', 'feroxbuster', 'hydra']
                         for herramienta in herramientas_kali:
                             try:
                                 subprocess.run(['which', herramienta], 
@@ -1208,10 +1208,10 @@ class ControladorEscaneadorCuarentena:
                         protocolo = 'https' if puerto == 443 else 'http'
                         url = f"{protocolo}://127.0.0.1:{puerto}"
                         
-                        # Usar wordlist básica de dirb
-                        wordlist = '/usr/share/dirb/wordlists/common.txt'
+                        # Usar wordlist común de gobuster/feroxbuster modernizada
+                        wordlist = '/usr/share/wordlists/seclists/Discovery/Web-Content/directory-list-2.3-medium.txt'
                         if not os.path.exists(wordlist):
-                            wordlist = '/usr/share/wordlists/dirb/common.txt'
+                            wordlist = '/usr/share/seclists/Discovery/Web-Content/common.txt'
                         
                         if os.path.exists(wordlist):
                             cmd = ['gobuster', 'dir', '-u', url, '-w', wordlist, '-t', '10', '-q']

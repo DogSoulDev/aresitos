@@ -68,24 +68,27 @@
 # ===================================================================
 # ARESITOS ejecuta herramientas Kali via subprocess.run()
 # 
-# ESCANEO RED Y VULNERABILIDADES:
+# ESCANEO RED Y VULNERABILIDADES (MODERNAS):
 # - nmap (escaneo puertos SYN, deteccion OS/servicios)
+# - rustscan (escaneo ultrarrápido en Rust)
 # - masscan (escaneo masivo alta velocidad)
+# - naabu (descubrimiento puertos Go)
 # - nikto (analisis vulnerabilidades web)
 # - gobuster (fuzzing directorios/archivos)
+# - feroxbuster (fuzzing recursivo web)
+# - httpx (sondeo HTTP/HTTPS rápido)
 # - nuclei (deteccion vulnerabilidades templates)
 # - sqlmap (inyeccion SQL automatizada)
 # 
-# DETECCION MALWARE Y ROOTKITS:
-# - clamscan (antivirus/deteccion malware)
+# DETECCION MALWARE Y ROOTKITS (SIMPLIFICADAS):
+# - linpeas (escalada privilegios Linux)
+# - pspy (monitoreo procesos sin root)
 # - chkrootkit (deteccion rootkits conocidos)
-# - rkhunter (hunter avanzado rootkits/backdoors)
-# - yara (deteccion patrones malware)
 # 
-# AUDITORIA SISTEMA:
+# AUDITORIA SISTEMA (ESSENCIALES):
 # - lynis (auditoria completa seguridad)
-# - aide (deteccion cambios archivos)
-# - tiger (auditoria seguridad sistema)
+# - linpeas (enumeracion sistema Linux)
+# - pspy (monitoreo procesos tiempo real)
 # - systemctl (gestion servicios)
 # 
 # MONITOREO RED:
@@ -109,16 +112,16 @@
 
 # === INSTALACION HERRAMIENTAS KALI ===
 # ===================================================================
-# Comando unico para instalar todas las herramientas:
+# Comando unico para instalar todas las herramientas MODERNAS:
 # 
 # sudo apt update && sudo apt install -y \
-#   nmap masscan nikto gobuster nuclei sqlmap \
-#   clamav clamav-daemon chkrootkit rkhunter \
-#   aide tiger yara lynis inotify-tools \
-#   tcpdump iftop htop curl wget
+#   nmap rustscan masscan naabu nikto gobuster feroxbuster httpx nuclei sqlmap \
+#   chkrootkit lynis inotify-tools \
+#   tcpdump iftop htop curl wget binwalk exiftool
 # 
-# Actualizar base datos antivirus:
-# sudo freshclam
+# Instalación de herramientas adicionales de GitHub:
+# go install github.com/projectdiscovery/nuclei/v2/cmd/nuclei@latest
+# go install github.com/projectdiscovery/httpx/cmd/httpx@latest
 # 
 # Configurar AIDE (deteccion intrusos):
 # sudo aide --init

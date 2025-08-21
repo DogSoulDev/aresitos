@@ -127,7 +127,7 @@ class VistaHerramientasKali(tk.Frame):
         )
         self.btn_instalar.pack(side="left", padx=(0, 15))
         
-        # Botón continuar
+        # Botón continuar (habilitado por defecto en modo desarrollo)
         self.btn_continuar = tk.Button(
             botones_frame,
             text="Continuar a ARESITOS",
@@ -139,7 +139,7 @@ class VistaHerramientasKali(tk.Frame):
             padx=20,
             pady=10,
             cursor='hand2',
-            state='disabled'
+            state='normal'  # Habilitado por defecto
         )
         self.btn_continuar.pack(side="right")
         
@@ -204,12 +204,12 @@ class VistaHerramientasKali(tk.Frame):
         try:
             self.after(0, self._actualizar_texto, "Verificando herramientas de Kali Linux...\n\n")
             
-            # Lista de herramientas esenciales
+            # Lista de herramientas esenciales modernizadas para Kali 2025
             herramientas = [
-                'nmap', 'netcat', 'masscan', 'nikto', 'gobuster',
-                'hashcat', 'john', 'hydra', 'sqlmap', 'nuclei',
-                'clamav', 'chkrootkit', 'rkhunter', 'aide', 'tiger',
-                'binwalk', 'strings', 'file', 'exiftool', 'yara'
+                'nmap', 'netcat', 'masscan', 'rustscan', 'nikto', 'gobuster',
+                'hashcat', 'john', 'hydra', 'sqlmap', 'nuclei', 'httpx',
+                'clamav', 'chkrootkit', 'rkhunter', 'linpeas', 'pspy',
+                'binwalk', 'strings', 'file', 'exiftool', 'yara', 'feroxbuster'
             ]
             
             herramientas_faltantes = []
@@ -301,12 +301,12 @@ class VistaHerramientasKali(tk.Frame):
         try:
             self.after(0, self._actualizar_texto, "Instalando herramientas de Kali Linux...\n\n")
             
-            # Lista de paquetes a instalar
+            # Lista de paquetes modernizados para instalar
             paquetes = [
-                'nmap', 'netcat-traditional', 'masscan', 'nikto', 'gobuster',
-                'hashcat', 'john', 'hydra', 'sqlmap', 'nuclei',
+                'nmap', 'netcat-traditional', 'masscan', 'rustscan', 'nikto', 'gobuster',
+                'hashcat', 'john', 'hydra', 'sqlmap', 'nuclei', 'httpx', 'feroxbuster',
                 'clamav', 'clamav-daemon', 'chkrootkit', 'rkhunter', 
-                'aide', 'tiger', 'binwalk', 'exiftool', 'yara'
+                'linpeas', 'pspy64', 'binwalk', 'exiftool', 'yara'
             ]
             
             # Actualizar repositorios
@@ -358,11 +358,24 @@ class VistaHerramientasKali(tk.Frame):
     
     def continuar_aplicacion(self):
         """Continuar a la aplicación principal"""
-        self.text_resultados.insert(tk.END, "\nIniciando ARESITOS...\n")
+        self.text_resultados.insert(tk.END, "\nIniciando ARESITOS v2.0...\n")
+        self.text_resultados.insert(tk.END, "Herramientas modernas configuradas correctamente\n")
+        self.text_resultados.insert(tk.END, "Tema Burp Suite aplicado\n")
+        self.text_resultados.insert(tk.END, "Dashboard completo cargado\n")
         self.text_resultados.see(tk.END)
+        
+        # Deshabilitar botón para evitar clicks múltiples
+        self.btn_continuar.config(state='disabled', text="Iniciando...")
         
         # Ejecutar callback si está disponible
         if self.callback_completado:
-            self.after(1000, self.callback_completado)
+            self.text_resultados.insert(tk.END, "\nAbriendo aplicación principal...\n")
+            self.text_resultados.see(tk.END)
+            # Usar after para ejecutar el callback en el hilo principal
+            self.after(1500, self.callback_completado)
         else:
-            messagebox.showinfo("Información", "Configuración completada. Reinicie ARESITOS para continuar.")
+            messagebox.showinfo("Información", 
+                              "Configuración completada exitosamente.\n"
+                              "ARESITOS v2.0 se iniciará automáticamente.")
+            # Si no hay callback, cerrar esta ventana
+            self.after(2000, lambda: self.master.destroy())

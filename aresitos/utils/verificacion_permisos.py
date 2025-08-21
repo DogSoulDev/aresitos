@@ -32,7 +32,7 @@ def verificar_gestor_permisos():
     """Verificar que el gestor de permisos funciona correctamente."""
     logger = configurar_logging()
     
-    logger.info("[SCAN] Iniciando verificación del gestor de permisos...")
+    logger.info("🔍 Iniciando verificación del gestor de permisos...")
     
     try:
         # Importar el gestor de permisos
@@ -60,7 +60,7 @@ def verificar_gestor_permisos():
         print("-" * 40)
         
         for herramienta, info in reporte['herramientas'].items():
-            status_icon = "[OK]" if info['disponible'] and info['permisos_ok'] else "[ERROR]"
+            status_icon = "[OK]" if info['disponible'] and info['permisos_ok'] else "❌"
             sudo_text = " [SUDO]" if info.get('sudo_requerido', False) else ""
             
             print(f"{status_icon} {herramienta:<12} - {info['mensaje']}{sudo_text}")
@@ -86,9 +86,9 @@ def verificar_gestor_permisos():
             if exito:
                 print("[OK] nmap ejecutado correctamente")
                 version_line = stdout.split('\n')[0] if stdout else "Versión no detectada"
-                print(f"    [INFO] {version_line}")
+                print(f"    ℹ️ {version_line}")
             else:
-                print("[ERROR] Error ejecutando nmap")
+                print("❌ Error ejecutando nmap")
                 print(f"     Error: {stderr}")
         
         # Prueba 2: Verificar netstat/ss

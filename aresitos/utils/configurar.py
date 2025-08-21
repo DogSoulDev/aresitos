@@ -150,7 +150,7 @@ class ConfiguradorAresAegis:
         herramientas_esenciales = [
             'nmap', 'sqlmap', 'hydra', 'nikto', 'wireshark-common',
             'metasploit-framework', 'john', 'hashcat', 'aircrack-ng',
-            'gobuster', 'dirb', 'wfuzz', 'whatweb'
+            'gobuster', 'feroxbuster', 'wfuzz', 'whatweb', 'nuclei', 'httpx'
         ]
         
         # Actualizar repositorios

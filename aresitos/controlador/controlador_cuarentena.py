@@ -460,7 +460,7 @@ class ControladorCuarentena:
             resultado = self.cuarentena_kali2025.analisis_completo_cuarentena_kali2025(ruta_archivo)
             
             if resultado.get("exito"):
-                self.logger.info("[EMOJI] Cuarentena y análisis Kali 2025 completado")
+                self.logger.info("✓ Cuarentena y análisis Kali 2025 completado")
             
             return resultado
             

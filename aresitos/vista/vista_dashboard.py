@@ -688,7 +688,7 @@ class VistaDashboard(tk.Frame):
             with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as s:
                 s.connect(("8.8.8.8", 80))
                 return s.getsockname()[0]
-        except (ConnectionError, socket.timeout, requests.RequestException):
+        except (ConnectionError, socket.timeout, OSError):
             return "No disponible"
     
     def _actualizar_ip_publica(self):
@@ -731,7 +731,7 @@ class VistaDashboard(tk.Frame):
                         if len(parts) >= 2:
                             current_interface = parts[1].split(':')[0]
                             flags = line.split('<')[1].split('>')[0]
-                            estado = "� UP" if "UP" in flags else "[EMOJI] DOWN"
+                            estado = "✓ UP" if "UP" in flags else "❌ DOWN"
                             self.interfaces_text.insert(tk.END, f"▶ {current_interface}:\n")
                             self.interfaces_text.insert(tk.END, f"   Estado: {estado}\n")
                     

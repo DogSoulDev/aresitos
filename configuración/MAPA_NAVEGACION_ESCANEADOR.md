@@ -1,3 +1,4 @@
+````markdown
 # Mapa de Navegación - Escaneador Modular Ares Aegis
 
 ## Estructura del Sistema de Escaneo
@@ -165,3 +166,5 @@ ares_aegis/
 5. **Extensiones**: Considerar plugins para funcionalidades específicas
 
 Esta estructura modular permite un mantenimiento más eficiente del código mientras mantiene total compatibilidad con el sistema existente.
+
+````

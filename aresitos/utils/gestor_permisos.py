@@ -433,7 +433,7 @@ if __name__ == "__main__":
     
     print("\nHerramientas:")
     for herramienta, info in reporte['herramientas'].items():
-        status = "[OK]" if info['disponible'] and info['permisos_ok'] else "[ERROR]"
+        status = "[OK]" if info['disponible'] and info['permisos_ok'] else "❌"
         print(f"{status} {herramienta}: {info['mensaje']}")
     
     if reporte['recomendaciones']:

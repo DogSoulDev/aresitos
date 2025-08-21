@@ -309,11 +309,11 @@ class EscaneadorAvanzado(EscaneadorBase):
         
         herramienta = comando[0]
         
-        # Lista blanca estricta de herramientas
+        # Lista blanca estricta de herramientas modernizadas
         herramientas_permitidas = {
-            'nmap', 'masscan', 'nikto', 'dirb', 'gobuster', 
+            'nmap', 'masscan', 'nikto', 'gobuster', 'feroxbuster', 'httpx',
             'sqlmap', 'whatweb', 'ss', 'netstat', 'lsof',
-            'ping', 'dig', 'nslookup', 'host'
+            'ping', 'dig', 'nslookup', 'host', 'nuclei', 'rustscan'
         }
         
         if herramienta not in herramientas_permitidas:

@@ -370,14 +370,14 @@ class VistaMonitoreo(tk.Frame):
             resultado = controlador_cuarentena.poner_archivo_en_cuarentena(archivo)
             
             if resultado["exito"]:
-                self.text_cuarentena.insert(tk.END, f"[EMOJI] Archivo agregado a cuarentena: {archivo}\n")
+                self.text_cuarentena.insert(tk.END, f"✓ Archivo agregado a cuarentena: {archivo}\n")
                 messagebox.showinfo("Éxito", "Archivo enviado a cuarentena correctamente")
             else:
-                self.text_cuarentena.insert(tk.END, f"[EMOJI] Error: {resultado['error']}\n")
+                self.text_cuarentena.insert(tk.END, f"❌ Error: {resultado['error']}\n")
                 messagebox.showerror("Error", resultado["error"])
                 
         except Exception as e:
-            self.text_cuarentena.insert(tk.END, f"[EMOJI] Error del sistema: {str(e)}\n")
+            self.text_cuarentena.insert(tk.END, f"❌ Error del sistema: {str(e)}\n")
             messagebox.showerror("Error", f"Error del sistema: {str(e)}")
     
     def listar_cuarentena(self):

@@ -341,7 +341,7 @@ class ControladorPrincipal(ControladorBase):
                         controlador_fim=self.controlador_fim
                     )
                     conexiones_exitosas += 1
-                    self.logger.info("[EMOJI] SIEM → Cuarentena + FIM configurado")
+                    self.logger.info("✓ SIEM → Cuarentena + FIM configurado")
                 except Exception as e:
                     self.logger.error(f"Error configurando SIEM → Cuarentena + FIM: {e}")
             
@@ -350,7 +350,7 @@ class ControladorPrincipal(ControladorBase):
                 try:
                     self.controlador_fim.configurar_notificacion_siem(self.controlador_siem)
                     conexiones_exitosas += 1
-                    self.logger.info("[EMOJI] FIM → SIEM configurado")
+                    self.logger.info("✓ FIM → SIEM configurado")
                 except Exception as e:
                     self.logger.error(f"Error configurando FIM → SIEM: {e}")
             
@@ -390,3 +390,91 @@ class ControladorPrincipal(ControladorBase):
     def _ejecutar_sincrono(self, resultado):
         """Ejecutar resultado de forma síncrona."""
         return resultado if resultado else {'exito': True}
+    
+    def obtener_wordlists_disponibles(self) -> Dict[str, Any]:
+        """Obtener información de wordlists disponibles."""
+        try:
+            if hasattr(self.modelo_principal, 'gestor_wordlists'):
+                gestor = self.modelo_principal.gestor_wordlists
+                if hasattr(gestor, 'obtener_informacion_completa'):
+                    return gestor.obtener_informacion_completa()
+                elif hasattr(gestor, 'wordlists_predefinidas'):
+                    wordlists = gestor.wordlists_predefinidas
+                    return {
+                        'total_wordlists': len(wordlists),
+                        'categorias': list(wordlists.keys()),
+                        'total_entradas': sum(len(wl) for wl in wordlists.values()),
+                        'disponibles': True
+                    }
+            
+            # Intentar desde controlador de wordlists si existe en gestor de componentes  
+            # Por ahora usamos datos básicos del modelo
+            return {
+                'total_wordlists': 0,
+                'categorias': [],
+                'total_entradas': 0,
+                'disponibles': False,
+                'mensaje': 'Controlador de wordlists no configurado en esta versión'
+            }
+            
+            return {
+                'total_wordlists': 0,
+                'categorias': [],
+                'total_entradas': 0,
+                'disponibles': False,
+                'error': 'Gestor de wordlists no disponible'
+            }
+            
+        except Exception as e:
+            self.logger.error(f"Error obteniendo wordlists disponibles: {e}")
+            return {
+                'total_wordlists': 0,
+                'categorias': [],
+                'total_entradas': 0,
+                'disponibles': False,
+                'error': str(e)
+            }
+    
+    def obtener_diccionarios_disponibles(self) -> Dict[str, Any]:
+        """Obtener información de diccionarios disponibles."""
+        try:
+            if hasattr(self.modelo_principal, 'gestor_diccionarios'):
+                gestor = self.modelo_principal.gestor_diccionarios
+                if hasattr(gestor, 'obtener_informacion_completa'):
+                    return gestor.obtener_informacion_completa()
+                elif hasattr(gestor, 'diccionarios_cargados'):
+                    diccionarios = gestor.diccionarios_cargados
+                    return {
+                        'total_diccionarios': len(diccionarios),
+                        'categorias': list(diccionarios.keys()),
+                        'total_entradas': sum(len(d) for d in diccionarios.values() if isinstance(d, dict)),
+                        'disponibles': True
+                    }
+            
+            # Intentar desde controlador de diccionarios si existe en gestor de componentes
+            # Por ahora usamos datos básicos del modelo
+            return {
+                'total_diccionarios': 0,
+                'categorias': [],
+                'total_entradas': 0,
+                'disponibles': False,
+                'mensaje': 'Controlador de diccionarios no configurado en esta versión'
+            }
+            
+            return {
+                'total_diccionarios': 0,
+                'categorias': [],
+                'total_entradas': 0,
+                'disponibles': False,
+                'error': 'Gestor de diccionarios no disponible'
+            }
+            
+        except Exception as e:
+            self.logger.error(f"Error obteniendo diccionarios disponibles: {e}")
+            return {
+                'total_diccionarios': 0,
+                'categorias': [],
+                'total_entradas': 0,
+                'disponibles': False,
+                'error': str(e)
+            }

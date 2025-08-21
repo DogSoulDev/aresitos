@@ -68,11 +68,11 @@ class SIEMKali2025(_SIEMAvanzado):  # type: ignore
                                      capture_output=True, text=True, timeout=5)
                 if result.returncode == 0:
                     self.herramientas_disponibles[herramienta] = result.stdout.strip()
-                    self.log(f"[EMOJI] {herramienta} disponible en {result.stdout.strip()}")
+                    self.log(f"✓ {herramienta} disponible en {result.stdout.strip()}")
                 else:
-                    self.log(f"[EMOJI] {herramienta} no encontrada")
+                    self.log(f"✓ {herramienta} no encontrada")
             except Exception as e:
-                self.log(f"[EMOJI] Error verificando {herramienta}: {e}")
+                self.log(f"✓ Error verificando {herramienta}: {e}")
     
     def inicializar_base_datos(self):
         """Inicializa base de datos SQLite para SIEM"""
@@ -147,10 +147,10 @@ class SIEMKali2025(_SIEMAvanzado):  # type: ignore
             
             conn.commit()
             conn.close()
-            self.log("[EMOJI] Base de datos SIEM Kali2025 inicializada")
+            self.log("✓ Base de datos SIEM Kali2025 inicializada")
             
         except Exception as e:
-            self.log(f"[EMOJI] Error inicializando base de datos SIEM: {e}")
+            self.log(f"✓ Error inicializando base de datos SIEM: {e}")
     
     def cargar_reglas_correlacion(self):
         """Carga reglas de correlación de eventos"""
@@ -192,13 +192,13 @@ class SIEMKali2025(_SIEMAvanzado):  # type: ignore
                 'campo_agrupacion': 'usuario'
             }
         ]
-        self.log(f"[EMOJI] Cargadas {len(self.reglas_correlacion)} reglas de correlación")
+        self.log(f"✓ Cargadas {len(self.reglas_correlacion)} reglas de correlación")
     
     def configurar_auditd(self, reglas_personalizadas: Optional[List[str]] = None) -> Dict[str, Any]:
         """
         Configura auditd con reglas de auditoría
         """
-        self.log("[CONFIG] Configurando auditd")
+        self.log("⚙️ Configurando auditd")
         
         if 'auditctl' not in self.herramientas_disponibles:
             return {"error": "auditctl no disponible"}
@@ -232,16 +232,16 @@ class SIEMKali2025(_SIEMAvanzado):  # type: ignore
                     result = subprocess.run(cmd, capture_output=True, text=True, timeout=10)
                     if result.returncode == 0:
                         reglas_aplicadas += 1
-                        self.log(f"[EMOJI] Regla aplicada: {regla}")
+                        self.log(f"✓ Regla aplicada: {regla}")
                     else:
-                        self.log(f"[EMOJI] Error en regla: {regla} - {result.stderr}")
+                        self.log(f"✓ Error en regla: {regla} - {result.stderr}")
                 except Exception as e:
-                    self.log(f"[EMOJI] Error aplicando regla {regla}: {e}")
+                    self.log(f"✓ Error aplicando regla {regla}: {e}")
             
             # Verificar estado de auditd
             status_result = subprocess.run(['auditctl', '-s'], capture_output=True, text=True)
             
-            self.log(f"[EMOJI] Auditd configurado: {reglas_aplicadas} reglas activas")
+            self.log(f"✓ Auditd configurado: {reglas_aplicadas} reglas activas")
             return {
                 "exito": True,
                 "reglas_aplicadas": reglas_aplicadas,
@@ -251,14 +251,14 @@ class SIEMKali2025(_SIEMAvanzado):  # type: ignore
             }
             
         except Exception as e:
-            self.log(f"[EMOJI] Error configurando auditd: {e}")
+            self.log(f"✓ Error configurando auditd: {e}")
             return {"error": str(e)}
     
     def monitorear_logs_tiempo_real(self, archivos_log: Optional[List[str]] = None) -> Dict[str, Any]:
         """
         Inicia monitoreo de logs en tiempo real
         """
-        self.log("[SCAN] Iniciando monitoreo de logs tiempo real")
+        self.log("🔍 Iniciando monitoreo de logs tiempo real")
         
         try:
             # Archivos de log por defecto
@@ -287,9 +287,9 @@ class SIEMKali2025(_SIEMAvanzado):  # type: ignore
                     }
                     monitores_iniciados += 1
                 else:
-                    self.log(f"[EMOJI] Log no existe: {archivo_log}")
+                    self.log(f"✓ Log no existe: {archivo_log}")
             
-            self.log(f"[EMOJI] Monitoreo iniciado en {monitores_iniciados} logs")
+            self.log(f"✓ Monitoreo iniciado en {monitores_iniciados} logs")
             return {
                 "exito": True,
                 "logs_monitoreados": monitores_iniciados,
@@ -297,7 +297,7 @@ class SIEMKali2025(_SIEMAvanzado):  # type: ignore
             }
             
         except Exception as e:
-            self.log(f"[EMOJI] Error iniciando monitoreo logs: {e}")
+            self.log(f"✓ Error iniciando monitoreo logs: {e}")
             return {"error": str(e)}
     
     def _monitorear_log_file(self, archivo_log: str):
@@ -312,7 +312,7 @@ class SIEMKali2025(_SIEMAvanzado):  # type: ignore
                 bufsize=1
             )
             
-            self.log(f"[SCAN] Monitor activo en: {archivo_log}")
+            self.log(f"🔍 Monitor activo en: {archivo_log}")
             
             while self.monitores_activos.get(archivo_log, {}).get('activo', False):
                 if process.stdout:
@@ -321,7 +321,7 @@ class SIEMKali2025(_SIEMAvanzado):  # type: ignore
                         self._procesar_linea_log(line.strip(), archivo_log)
                     
         except Exception as e:
-            self.log(f"[EMOJI] Error en monitor log {archivo_log}: {e}")
+            self.log(f"✓ Error en monitor log {archivo_log}: {e}")
     
     def _procesar_linea_log(self, linea: str, fuente: str):
         """Procesa una línea de log y la almacena en base de datos"""
@@ -337,7 +337,7 @@ class SIEMKali2025(_SIEMAvanzado):  # type: ignore
                 self._aplicar_reglas_correlacion(evento)
                 
         except Exception as e:
-            self.log(f"[EMOJI] Error procesando línea log: {e}")
+            self.log(f"✓ Error procesando línea log: {e}")
     
     def _parsear_linea_log(self, linea: str, fuente: str) -> Optional[Dict[str, Any]]:
         """Parsea una línea de log y extrae información relevante"""
@@ -526,7 +526,7 @@ class SIEMKali2025(_SIEMAvanzado):  # type: ignore
             jails_result = subprocess.run(['fail2ban-client', 'status'], 
                                         capture_output=True, text=True)
             
-            self.log("[EMOJI] Fail2ban configurado y activo")
+            self.log("✓ Fail2ban configurado y activo")
             return {
                 "exito": True,
                 "estado": status_result.stdout,
@@ -535,14 +535,14 @@ class SIEMKali2025(_SIEMAvanzado):  # type: ignore
             }
             
         except Exception as e:
-            self.log(f"[EMOJI] Error configurando fail2ban: {e}")
+            self.log(f"✓ Error configurando fail2ban: {e}")
             return {"error": str(e)}
     
     def auditoria_sistema_lynis(self) -> Dict[str, Any]:
         """
         Ejecuta auditoría completa del sistema con lynis
         """
-        self.log("[SCAN] Iniciando auditoría lynis")
+        self.log("🔍 Iniciando auditoría lynis")
         
         if 'lynis' not in self.herramientas_disponibles:
             return {"error": "lynis no disponible"}
@@ -563,7 +563,7 @@ class SIEMKali2025(_SIEMAvanzado):  # type: ignore
             # Guardar en base de datos
             self._guardar_auditoria_sistema('lynis', hallazgos)
             
-            self.log(f"[EMOJI] Auditoría lynis completada: {len(hallazgos)} hallazgos")
+            self.log(f"✓ Auditoría lynis completada: {len(hallazgos)} hallazgos")
             return {
                 "exito": True,
                 "hallazgos": hallazgos,
@@ -572,14 +572,14 @@ class SIEMKali2025(_SIEMAvanzado):  # type: ignore
             }
             
         except Exception as e:
-            self.log(f"[EMOJI] Error ejecutando lynis: {e}")
+            self.log(f"✓ Error ejecutando lynis: {e}")
             return {"error": str(e)}
     
     def obtener_estadisticas_red(self) -> Dict[str, Any]:
         """
         Obtiene estadísticas de red del sistema
         """
-        self.log("[STATS] Obteniendo estadísticas de red")
+        self.log("📊 Obteniendo estadísticas de red")
         
         try:
             estadisticas = {}
@@ -601,7 +601,7 @@ class SIEMKali2025(_SIEMAvanzado):  # type: ignore
             # Guardar en base de datos
             self._guardar_estadisticas_red(estadisticas)
             
-            self.log("[EMOJI] Estadísticas de red obtenidas")
+            self.log("✓ Estadísticas de red obtenidas")
             return {
                 "exito": True,
                 "estadisticas": estadisticas,
@@ -609,7 +609,7 @@ class SIEMKali2025(_SIEMAvanzado):  # type: ignore
             }
             
         except Exception as e:
-            self.log(f"[EMOJI] Error obteniendo estadísticas red: {e}")
+            self.log(f"✓ Error obteniendo estadísticas red: {e}")
             return {"error": str(e)}
     
     def analisis_completo_siem_kali2025(self) -> Dict[str, Any]:
@@ -672,7 +672,7 @@ class SIEMKali2025(_SIEMAvanzado):  # type: ignore
             "monitores_activos": len(self.monitores_activos)
         }
         
-        self.log("[EMOJI] ANÁLISIS COMPLETO SIEM FINALIZADO")
+        self.log("✓ ANÁLISIS COMPLETO SIEM FINALIZADO")
         return resultados
     
     def _procesar_resultados_lynis(self, output: str) -> List[Dict[str, Any]]:
@@ -681,8 +681,8 @@ class SIEMKali2025(_SIEMAvanzado):  # type: ignore
         lines = output.split('\n')
         
         for line in lines:
-            if '[WARNING]' in line or '[SUGGESTION]' in line:
-                severidad = 'MEDIUM' if '[WARNING]' in line else 'LOW'
+            if '⚠️' in line or '[SUGGESTION]' in line:
+                severidad = 'MEDIUM' if '⚠️' in line else 'LOW'
                 hallazgos.append({
                     'categoria': 'auditoria_sistema',
                     'hallazgo': line.strip(),

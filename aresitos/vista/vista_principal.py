@@ -3,6 +3,8 @@
 import tkinter as tk
 from tkinter import ttk
 import logging
+import os
+from tkinter import PhotoImage
 
 # Importar todas las vistas disponibles
 from aresitos.vista.vista_dashboard import VistaDashboard
@@ -10,7 +12,6 @@ from aresitos.vista.vista_escaneo import VistaEscaneo
 from aresitos.vista.vista_monitoreo import VistaMonitoreo
 from aresitos.vista.vista_auditoria import VistaAuditoria
 from aresitos.vista.vista_gestion_datos import VistaGestionDatos
-from aresitos.vista.vista_utilidades import VistaUtilidades
 from aresitos.vista.vista_reportes import VistaReportes
 from aresitos.vista.vista_fim import VistaFIM
 from aresitos.vista.vista_siem import VistaSIEM
@@ -29,6 +30,20 @@ class VistaPrincipal(tk.Frame):
         
         # Configurar logging
         self.logger = logging.getLogger(__name__)
+        
+        # Cargar icono de ARESITOS
+        self.icono_aresitos = None
+        try:
+            # Buscar el archivo de icono
+            icono_path = os.path.join(os.path.dirname(__file__), '..', 'recursos', 'Aresitos.ico')
+            if os.path.exists(icono_path):
+                # Para archivos .ico, tkinter no los soporta directamente, usamos el emoji como alternativa
+                self.icono_text = "🛡️"
+            else:
+                self.icono_text = "🔰"
+        except Exception as e:
+            self.logger.warning(f"No se pudo cargar el icono: {e}")
+            self.icono_text = "🔰"
         
         # Solo aplicar tema si está disponible
         if BURP_THEME_AVAILABLE:
@@ -51,6 +66,21 @@ class VistaPrincipal(tk.Frame):
         # Configurar estilos TTK
         self.style = ttk.Style()
         self.theme.configure_ttk_style(self.style)
+        
+        # Aplicar estilos específicos para el notebook
+        self.style.configure('Custom.TNotebook', 
+                           background=self.theme.get_color('bg_primary'),
+                           borderwidth=0)
+        self.style.configure('Custom.TNotebook.Tab',
+                           background=self.theme.get_color('bg_secondary'),
+                           foreground=self.theme.get_color('fg_primary'),
+                           padding=[20, 8],
+                           borderwidth=1)
+        self.style.map('Custom.TNotebook.Tab',
+                     background=[('selected', self.theme.get_color('fg_accent')),
+                               ('active', self.theme.get_color('bg_tertiary'))],
+                     foreground=[('selected', self.theme.get_color('bg_primary')),
+                               ('active', self.theme.get_color('fg_primary'))])
 
     def set_controlador(self, controlador):
         self.controlador = controlador
@@ -68,8 +98,6 @@ class VistaPrincipal(tk.Frame):
         if hasattr(self, 'vista_gestion_datos'):
             # Vista unificada para wordlists y diccionarios
             self.vista_gestion_datos.set_controlador(self.controlador)
-        if hasattr(self.controlador, 'controlador_herramientas'):
-            self.vista_utilidades.set_controlador(self.controlador.controlador_herramientas)
         if hasattr(self.controlador, 'controlador_reportes'):
             self.vista_reportes.set_controlador(self.controlador.controlador_reportes)
         # Conectar FIM y SIEM correctamente
@@ -82,6 +110,12 @@ class VistaPrincipal(tk.Frame):
         self.actualizar_vista_principal()
 
     def crear_widgets(self):
+        # Configurar el fondo de este Frame también
+        if self.theme:
+            self.configure(bg=self.theme.get_color('bg_primary'))
+        else:
+            self.configure(bg='#2b2b2b')  # Fallback al tema Burp Suite
+            
         # Barra de título estilo Burp Suite
         self.crear_barra_titulo()
         
@@ -96,34 +130,57 @@ class VistaPrincipal(tk.Frame):
         if self.theme:
             titulo_frame = tk.Frame(self, bg=self.theme.get_color('bg_secondary'), height=50)
         else:
-            titulo_frame = tk.Frame(self, bg='#f0f0f0', height=50)
+            titulo_frame = tk.Frame(self, bg='#3c3c3c', height=50)  # Gris oscuro Burp Suite
         titulo_frame.pack(fill="x", padx=2, pady=(2, 0))
         titulo_frame.pack_propagate(False)
         
-        # Logo y título
+        # Logo y título principal con icono
+        titulo_main_frame = tk.Frame(titulo_frame, bg=self.theme.get_color('bg_secondary') if self.theme else '#3c3c3c')
+        titulo_main_frame.pack(side="left", padx=15, pady=5)
+        
+        # Icono ARESITOS
+        if self.theme:
+            icono_label = tk.Label(
+                titulo_main_frame,
+                text=self.icono_text,
+                font=("Arial", 20, "bold"),
+                fg=self.theme.get_color('fg_accent'),
+                bg=self.theme.get_color('bg_secondary')
+            )
+        else:
+            icono_label = tk.Label(
+                titulo_main_frame,
+                text=self.icono_text,
+                font=("Arial", 20, "bold"),
+                fg='#ff6633',
+                bg='#3c3c3c'
+            )
+        icono_label.pack(side="left", padx=(0, 8))
+        
+        # Título principal
         if self.theme:
             titulo_label = tk.Label(
-                titulo_frame,
-                text=" ARESITOS",
+                titulo_main_frame,
+                text="ARESITOS v2.0",
                 font=("Arial", 16, "bold"),
                 fg=self.theme.get_color('fg_accent'),
                 bg=self.theme.get_color('bg_secondary')
             )
         else:
             titulo_label = tk.Label(
-                titulo_frame,
-                text=" ARESITOS",
+                titulo_main_frame,
+                text="ARESITOS v2.0",
                 font=("Arial", 16, "bold"),
                 fg='#ff6633',
-                bg='#f0f0f0'
+                bg='#3c3c3c'
             )
-        titulo_label.pack(side="left", padx=15, pady=10)
+        titulo_label.pack(side="left")
         
         # Subtítulo
         if self.theme:
             subtitulo_label = tk.Label(
                 titulo_frame,
-                text="Cybersecurity Professional Suite",
+                text="Cybersecurity Professional Suite | Herramientas Modernizadas",
                 font=("Arial", 9),
                 fg=self.theme.get_color('fg_secondary'),
                 bg=self.theme.get_color('bg_secondary')
@@ -131,10 +188,10 @@ class VistaPrincipal(tk.Frame):
         else:
             subtitulo_label = tk.Label(
                 titulo_frame,
-                text="Cybersecurity Professional Suite",
+                text="Cybersecurity Professional Suite | Herramientas Modernizadas",
                 font=("Arial", 9),
-                fg='#666666',
-                bg='#f0f0f0'
+                fg='#cccccc',
+                bg='#3c3c3c'
             )
         subtitulo_label.pack(side="left", padx=(5, 0), pady=10)
         
@@ -142,7 +199,7 @@ class VistaPrincipal(tk.Frame):
         if self.theme:
             info_label = tk.Label(
                 titulo_frame,
-                text=" Kali Linux Ready",
+                text="🐧 Kali Linux Ready | Tema Burp Suite",
                 font=("Arial", 8),
                 fg=self.theme.get_color('fg_secondary'),
                 bg=self.theme.get_color('bg_secondary')
@@ -150,10 +207,10 @@ class VistaPrincipal(tk.Frame):
         else:
             info_label = tk.Label(
                 titulo_frame,
-                text=" Kali Linux Ready",
+                text="🐧 Kali Linux Ready | Tema Burp Suite",
                 font=("Arial", 8),
-                fg='#666666',
-                bg='#f0f0f0'
+                fg='#cccccc',
+                bg='#3c3c3c'
             )
         info_label.pack(side="right", padx=15, pady=10)
     
@@ -194,28 +251,21 @@ class VistaPrincipal(tk.Frame):
         except Exception as e:
             print(f"Error creando vista gestión de datos: {e}")
         
-        # 6. UTILIDADES - Herramientas adicionales de seguridad
-        try:
-            self.vista_utilidades = VistaUtilidades(self.notebook)
-            self.notebook.add(self.vista_utilidades, text="Utilidades")
-        except Exception as e:
-            print(f"Error creando vista utilidades: {e}")
-        
-        # 7. REPORTES - Generación y visualización de reportes
+        # 6. REPORTES - Generación y visualización de reportes
         try:
             self.vista_reportes = VistaReportes(self.notebook)
             self.notebook.add(self.vista_reportes, text="Reportes")
         except Exception as e:
             print(f"Error creando vista reportes: {e}")
         
-        # 8. FIM - File Integrity Monitoring
+        # 7. FIM - File Integrity Monitoring
         try:
             self.vista_fim = VistaFIM(self.notebook)
             self.notebook.add(self.vista_fim, text="FIM")
         except Exception as e:
             print(f"Error creando vista FIM: {e}")
         
-        # 9. SIEM - Security Information & Event Management
+        # 8. SIEM - Security Information & Event Management
         try:
             self.vista_siem = VistaSIEM(self.notebook)
             self.notebook.add(self.vista_siem, text="SIEM")
@@ -235,7 +285,7 @@ class VistaPrincipal(tk.Frame):
         if self.theme:
             self.status_label = tk.Label(
                 status_frame,
-                text="[READY] Aresitos Ready - All systems operational",
+                text="ARESITOS Ready - Todos los sistemas operativos",
                 font=("Arial", 8),
                 fg=self.theme.get_color('fg_primary'),
                 bg=self.theme.get_color('bg_secondary')
@@ -243,7 +293,7 @@ class VistaPrincipal(tk.Frame):
         else:
             self.status_label = tk.Label(
                 status_frame,
-                text="[READY] Aresitos Ready - All systems operational",
+                text="ARESITOS Ready - Todos los sistemas operativos",
                 font=("Arial", 8),
                 fg='#000000',
                 bg='#f0f0f0'

@@ -241,8 +241,8 @@ class ControladorPrincipalBase(ControladorBase):
                 except (IOError, OSError, PermissionError, FileNotFoundError):
                     pass
             
-            # Verificar herramientas típicas de Kali
-            herramientas_kali = ['nmap', 'nikto', 'gobuster', 'masscan']
+            # Verificar herramientas típicas de Kali (MODERNAS)
+            herramientas_kali = ['nmap', 'nikto', 'gobuster', 'nuclei', 'rustscan']
             herramientas_encontradas = []
             
             import subprocess

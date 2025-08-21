@@ -169,9 +169,9 @@ def verificar_kali_linux_criptografico() -> bool:
 
 # Herramientas requeridas para Aresitos (Kali Linux especializado)
 HERRAMIENTAS_REQUERIDAS = [
-    # Scanners de red criticos
+    # Scanners de red criticos modernizados
     'nmap', 'masscan', 'zmap', 'rustscan', 'dnsenum', 'dnsrecon', 'fierce',
-    'sublist3r', 'amass', 'gobuster', 'dirb', 'dirbuster', 'wfuzz',
+    'sublist3r', 'amass', 'gobuster', 'feroxbuster', 'httpx', 'wfuzz',
     
     # Analisis de vulnerabilidades
     'nikto', 'sqlmap', 'wpscan', 'joomscan', 'droopescan', 'nuclei',
@@ -197,8 +197,8 @@ HERRAMIENTAS_REQUERIDAS = [
     'curl', 'wget', 'git', 'python3', 'pip3', 'perl', 'ruby',
     'java', 'gcc', 'make', 'cmake', 'openssl',
     
-    # Herramientas adicionales
-    'burpsuite', 'owasp-zap', 'commix', 'xsser', 'weevely',
+    # Herramientas adicionales modernizadas
+    'burpsuite', 'owasp-zap', 'nuclei', 'xsser', 'weevely',
     'backdoor-factory', 'shellter', 'veil', 'empire'
 ]
 
@@ -287,7 +287,7 @@ class LoginAresitos:
         if not verificar_kali_linux_estricto():
             # Verificar si estamos en modo desarrollo
             if '--dev' in sys.argv or '--desarrollo' in sys.argv:
-                print("[WARNING]  MODO DESARROLLO: LoginApp en entorno no-Kali")
+                print("MODO DESARROLLO: LoginApp en entorno no-Kali")
             else:
                 print("ERROR: ARESITOS requiere Kali Linux")
                 print("Sistema no compatible detectado")
@@ -933,13 +933,31 @@ class LoginAresitos:
         self.escribir_log(" Abriendo ventana de herramientas de Kali Linux...")
         
         try:
-            # Mostrar vista de herramientas de Kali antes de la aplicación principal
+            # Crear ventana separada para herramientas de Kali
             def callback_herramientas_completadas():
                 """Callback para cuando se complete la configuración de herramientas"""
                 self._iniciar_aplicacion_principal()
             
-            # Crear ventana de herramientas
-            vista_herramientas = VistaHerramientasKali(self.root, callback_herramientas_completadas)
+            # Crear nueva ventana para herramientas
+            ventana_herramientas = tk.Toplevel(self.root)
+            ventana_herramientas.title("ARESITOS - Configuración de Herramientas Kali")
+            ventana_herramientas.geometry("800x600")
+            ventana_herramientas.configure(bg='#2b2b2b')
+            
+            # Centrar ventana de herramientas
+            ventana_herramientas.update_idletasks()
+            x = (ventana_herramientas.winfo_screenwidth() // 2) - (800 // 2)
+            y = (ventana_herramientas.winfo_screenheight() // 2) - (600 // 2)
+            ventana_herramientas.geometry(f"800x600+{x}+{y}")
+            
+            # Crear vista de herramientas en la nueva ventana
+            vista_herramientas = VistaHerramientasKali(ventana_herramientas, callback_herramientas_completadas)
+            vista_herramientas.pack(fill="both", expand=True)
+            
+            # Ocultar ventana de login
+            self.root.withdraw()
+            
+            self.escribir_log("Ventana de herramientas Kali abierta")
             
         except Exception as e:
             self.escribir_log(f"ERROR Error mostrando vista de herramientas: {str(e)}")
@@ -963,10 +981,24 @@ class LoginAresitos:
             
             self.escribir_log("Creando aplicación principal...")
             
-            # Crear aplicación principal
+            # Crear aplicación principal con tema Burp Suite
             root_app = tk.Tk()
-            root_app.title("ARESITOS - Sistema de Seguridad Kali Linux")
-            root_app.geometry("1200x800")
+            root_app.title("🛡️ ARESITOS v2.0 - Sistema de Seguridad Cibernética")
+            root_app.geometry("1400x900")
+            
+            # Configurar icono de la ventana si existe
+            try:
+                import os
+                icono_path = os.path.join(os.path.dirname(__file__), '..', 'recursos', 'Aresitos.ico')
+                if os.path.exists(icono_path):
+                    root_app.iconbitmap(icono_path)
+            except Exception as e:
+                self.escribir_log(f"No se pudo cargar el icono: {e}")
+            
+            # CRÍTICO: Configurar el tema ANTES de crear las vistas
+            root_app.configure(bg='#2b2b2b')  # Fondo Burp Suite principal
+            
+            self.escribir_log("Ventana principal configurada con tema Burp Suite")
             
             # Configurar ícono si está disponible
             try:
@@ -977,16 +1009,18 @@ class LoginAresitos:
                 pass
             
             self.escribir_log("Inicializando modelo de datos...")
-            # Inicializar MVC
+            # Inicializar MVC correctamente
             modelo = ModeloPrincipal()
             
             self.escribir_log("Creando vista principal...")
             vista = VistaPrincipal(root_app)
+            vista.pack(fill="both", expand=True)  # CRÍTICO: Hacer que la vista ocupe toda la ventana
             
             self.escribir_log("Inicializando controlador principal...")
             controlador = ControladorPrincipal(modelo)
             
             self.escribir_log("Configurando conexión vista-controlador...")
+            # CRÍTICO: Conectar el controlador a la vista
             vista.set_controlador(controlador)
             
             # Centrar ventana principal
@@ -1039,7 +1073,7 @@ def main():
     if not verificar_kali_linux_estricto():
         # Verificar si estamos en modo desarrollo
         if '--dev' in sys.argv or '--desarrollo' in sys.argv:
-            print("[WARNING]  MODO DESARROLLO: Vista de login en entorno no-Kali")
+            print("MODO DESARROLLO: Vista de login en entorno no-Kali")
             print("   Ejecutando con funcionalidades limitadas...")
         else:
             print("ERROR: ARESITOS requiere Kali Linux")
@@ -1051,7 +1085,7 @@ def main():
     # Verificar tkinter disponible
     try:
         import tkinter as tk
-        print("[EMOJI] Tkinter importado correctamente")
+        print("Tkinter importado correctamente")
     except ImportError as e:
         print(f"ERROR: tkinter no disponible: {e}")
         print("Instale con: sudo apt install python3-tk")
@@ -1061,7 +1095,7 @@ def main():
     try:
         print("Creando aplicación de login...")
         app = LoginAresitos()
-        print("[EMOJI] Aplicación de login creada")
+        print("Aplicación de login creada")
         
         print("Iniciando interfaz gráfica...")
         app.root.mainloop()

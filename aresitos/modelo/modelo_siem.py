@@ -420,7 +420,7 @@ class SIEMAvanzadoNativo:
         # Persistir alerta
         self._persistir_alerta(alerta)
         
-        self.logger.warning(f"[EMOJI]  ALERTA CORRELACIÓN: {alerta.titulo} - {len(eventos_relacionados) + 1} eventos")
+        self.logger.warning(f"✓  ALERTA CORRELACIÓN: {alerta.titulo} - {len(eventos_relacionados) + 1} eventos")
 
     def _persistir_alerta(self, alerta: Alerta):
         """Persistir alerta en archivo JSON."""
@@ -579,17 +579,17 @@ class SIEMAvanzadoNativo:
             eventos_por_severidad[evento.get('severidad', 'INFO')] += 1
         
         for severidad, cantidad in eventos_por_severidad.items():
-            emoji = {"CRITICA": "�", "ALTA": "�", "MEDIA": "�", "BAJA": "�", "INFO": "[EMOJI]"}
-            reporte += f"- {emoji.get(severidad, '[EMOJI]')} **{severidad}**: {cantidad}\n"
+            emoji = {"CRITICA": "�", "ALTA": "�", "MEDIA": "�", "BAJA": "�", "INFO": "✓"}
+            reporte += f"- {emoji.get(severidad, '✓')} **{severidad}**: {cantidad}\n"
         
-        reporte += f"\n## [EMOJI] ALERTAS ACTIVAS ({len(alertas)})\n"
+        reporte += f"\n## ✓ ALERTAS ACTIVAS ({len(alertas)})\n"
         
         for alerta in alertas[:10]:  # Primeras 10 alertas
-            emoji = {"CRITICA": "�", "ALTA": "�", "MEDIA": "�", "BAJA": "�", "INFO": "[EMOJI]"}
+            emoji = {"CRITICA": "�", "ALTA": "�", "MEDIA": "�", "BAJA": "�", "INFO": "✓"}
             severidad = alerta.get('severidad', 'INFO')
             titulo = alerta.get('titulo', 'Sin título')
             timestamp_str = alerta.get('timestamp', datetime.datetime.now().isoformat())
-            reporte += f"{emoji.get(str(severidad), '[EMOJI]')} **{titulo}**\n"
+            reporte += f"{emoji.get(str(severidad), '✓')} **{titulo}**\n"
             timestamp = datetime.datetime.fromisoformat(timestamp_str)
             reporte += f"   {timestamp.strftime('%Y-%m-%d %H:%M:%S')}\n"
             reporte += f"   {alerta.get('descripcion', 'Sin descripción')}\n\n"
@@ -597,13 +597,13 @@ class SIEMAvanzadoNativo:
         reporte += f"\n##  EVENTOS RECIENTES\n"
         
         for evento in eventos[:20]:  # Primeros 20 eventos
-            emoji = {"CRITICA": "�", "ALTA": "�", "MEDIA": "�", "BAJA": "�", "INFO": "[EMOJI]"}
+            emoji = {"CRITICA": "�", "ALTA": "�", "MEDIA": "�", "BAJA": "�", "INFO": "✓"}
             severidad = evento.get('severidad', 'INFO')
             tipo = evento.get('tipo', 'DESCONOCIDO')
             mensaje = evento.get('mensaje', '')
             timestamp_str = evento.get('timestamp', datetime.datetime.now().isoformat())
             timestamp = datetime.datetime.fromisoformat(timestamp_str)
-            reporte += f"{emoji.get(str(severidad), '[EMOJI]')} {timestamp.strftime('%H:%M:%S')} - {tipo}: {str(mensaje)[:100]}\n"
+            reporte += f"{emoji.get(str(severidad), '✓')} {timestamp.strftime('%H:%M:%S')} - {tipo}: {str(mensaje)[:100]}\n"
         
         reporte += f"\n---\n*Generado: {datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')}*"
         

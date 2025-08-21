@@ -843,7 +843,7 @@ class MonitorAvanzadoNativo:
 - **Conexiones Establecidas**: {datos_red.get('conexiones_establecidas', 'N/A')}
 - **Puertos en Escucha**: {datos_red.get('puertos_escucha', 'N/A')}
 
-## [EMOJI] PROCESOS SOSPECHOSOS ({len(procesos_sospechosos)})
+## ✓ PROCESOS SOSPECHOSOS ({len(procesos_sospechosos)})
 """
         
         if procesos_sospechosos:

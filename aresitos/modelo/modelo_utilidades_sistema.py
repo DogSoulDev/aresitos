@@ -12,16 +12,17 @@ from typing import Dict, List, Any, Optional, Tuple
 class ModeloUtilidadesSistema:
     
     def __init__(self):
+        # Herramientas Kali Linux modernas - fácil instalación con apt
         self.herramientas_kali = {
-            'escaneo_red': ['nmap', 'masscan', 'zmap', 'unicornscan'],
-            'auditoria_sistema': ['lynis', 'chkrootkit', 'rkhunter', 'aide'],
-            'monitoreo_red': ['netstat', 'ss', 'lsof', 'tcpdump', 'wireshark'],
+            'escaneo_red': ['nmap', 'rustscan', 'masscan', 'naabu'],
+            'auditoria_sistema': ['lynis', 'linpeas', 'pspy', 'chkrootkit'],
+            'monitoreo_red': ['netstat', 'ss', 'lsof', 'tcpdump', 'iftop'],
             'firewall': ['iptables', 'ufw', 'firewalld', 'nftables'],
-            'forensics': ['autopsy', 'volatility', 'binwalk', 'foremost'],
-            'web_testing': ['burpsuite', 'owasp-zap', 'nikto', 'dirb', 'gobuster'],
+            'forensics': ['binwalk', 'foremost', 'exiftool', 'strings'],
+            'web_testing': ['nikto', 'gobuster', 'feroxbuster', 'httpx'],
             'password_tools': ['john', 'hashcat', 'hydra', 'medusa'],
-            'explotacion': ['metasploit-framework', 'sqlmap', 'beef-xss'],
-            'analisis_vulnerabilidades': ['openvas', 'nessus', 'nexpose'],
+            'explotacion': ['metasploit-framework', 'sqlmap', 'searchsploit'],
+            'analisis_vulnerabilidades': ['nuclei', 'nmap', 'whatweb', 'wpscan'],
             'herramientas_sistema': ['systemctl', 'ps', 'top', 'htop', 'iotop']
         }
         

@@ -78,11 +78,11 @@ class EscaneadorKali2025(_EscaneadorAvanzado):  # type: ignore
                                      capture_output=True, text=True, timeout=5)
                 if result.returncode == 0:
                     self.herramientas_disponibles[herramienta] = result.stdout.strip()
-                    self.log(f"[EMOJI] {herramienta} disponible en {result.stdout.strip()}")
+                    self.log(f"✓ {herramienta} disponible en {result.stdout.strip()}")
                 else:
-                    self.log(f"[EMOJI] {herramienta} no encontrada")
+                    self.log(f"✓ {herramienta} no encontrada")
             except Exception as e:
-                self.log(f"[EMOJI] Error verificando {herramienta}: {e}")
+                self.log(f"✓ Error verificando {herramienta}: {e}")
     
     def escaneo_rapido_masscan(self, objetivo: str, puertos: str = "1-65535") -> Dict[str, Any]:
         """
@@ -124,7 +124,7 @@ class EscaneadorKali2025(_EscaneadorAvanzado):  # type: ignore
                                     'timestamp': item['timestamp']
                                 })
                     
-                    self.log(f"[EMOJI] Masscan completado: {len(puertos_abiertos)} puertos encontrados")
+                    self.log(f"✓ Masscan completado: {len(puertos_abiertos)} puertos encontrados")
                     return {
                         "exito": True,
                         "puertos_abiertos": puertos_abiertos,
@@ -132,21 +132,21 @@ class EscaneadorKali2025(_EscaneadorAvanzado):  # type: ignore
                         "herramienta": "masscan"
                     }
                 except Exception as e:
-                    self.log(f"[EMOJI] Error procesando resultados masscan: {e}")
+                    self.log(f"✓ Error procesando resultados masscan: {e}")
                     return {"error": f"Error procesando resultados: {e}"}
             else:
-                self.log(f"[EMOJI] Error masscan: {result.stderr}")
+                self.log(f"✓ Error masscan: {result.stderr}")
                 return {"error": result.stderr}
                 
         except Exception as e:
-            self.log(f"[EMOJI] Error ejecutando masscan: {e}")
+            self.log(f"✓ Error ejecutando masscan: {e}")
             return {"error": str(e)}
     
     def escaneo_detallado_nmap(self, objetivo: str, puertos_encontrados: Optional[List[int]] = None) -> Dict[str, Any]:
         """
         Escaneo detallado con nmap basado en puertos encontrados por masscan
         """
-        self.log(f"[SCAN] Iniciando escaneo detallado nmap: {objetivo}")
+        self.log(f"🔍 Iniciando escaneo detallado nmap: {objetivo}")
         
         if 'nmap' not in self.herramientas_disponibles:
             return {"error": "nmap no disponible"}
@@ -185,7 +185,7 @@ class EscaneadorKali2025(_EscaneadorAvanzado):  # type: ignore
                 # Procesar resultados
                 servicios = self._procesar_resultados_nmap('/tmp/nmap_output.txt')
                 
-                self.log(f"[EMOJI] Nmap completado: {len(servicios)} servicios detectados")
+                self.log(f"✓ Nmap completado: {len(servicios)} servicios detectados")
                 return {
                     "exito": True,
                     "servicios": servicios,
@@ -194,11 +194,11 @@ class EscaneadorKali2025(_EscaneadorAvanzado):  # type: ignore
                     "herramienta": "nmap"
                 }
             else:
-                self.log(f"[EMOJI] Error nmap: {result.stderr}")
+                self.log(f"✓ Error nmap: {result.stderr}")
                 return {"error": result.stderr}
                 
         except Exception as e:
-            self.log(f"[EMOJI] Error ejecutando nmap: {e}")
+            self.log(f"✓ Error ejecutando nmap: {e}")
             return {"error": str(e)}
     
     def escaneo_web_gobuster(self, url: str, wordlist: Optional[str] = None) -> Dict[str, Any]:
@@ -211,11 +211,11 @@ class EscaneadorKali2025(_EscaneadorAvanzado):  # type: ignore
             return {"error": "gobuster no disponible"}
         
         try:
-            # Wordlist por defecto
+            # Wordlist por defecto - modernizada
             if not wordlist:
-                wordlist = "/usr/share/wordlists/dirbuster/directory-list-2.3-medium.txt"
+                wordlist = "/usr/share/wordlists/seclists/Discovery/Web-Content/directory-list-2.3-medium.txt"
                 if not os.path.exists(wordlist):
-                    wordlist = "/usr/share/wordlists/dirb/common.txt"
+                    wordlist = "/usr/share/wordlists/seclists/Discovery/Web-Content/common.txt"
             
             # Comando gobuster
             cmd = [
@@ -235,7 +235,7 @@ class EscaneadorKali2025(_EscaneadorAvanzado):  # type: ignore
             # Procesar resultados (gobuster siempre retorna 0)
             directorios = self._procesar_resultados_gobuster('/tmp/gobuster_output.txt')
             
-            self.log(f"[EMOJI] Gobuster completado: {len(directorios)} directorios encontrados")
+            self.log(f"✓ Gobuster completado: {len(directorios)} directorios encontrados")
             return {
                 "exito": True,
                 "directorios": directorios,
@@ -244,7 +244,7 @@ class EscaneadorKali2025(_EscaneadorAvanzado):  # type: ignore
             }
             
         except Exception as e:
-            self.log(f"[EMOJI] Error ejecutando gobuster: {e}")
+            self.log(f"✓ Error ejecutando gobuster: {e}")
             return {"error": str(e)}
     
     def escaneo_vulnerabilidades_nuclei(self, objetivo: str) -> Dict[str, Any]:
@@ -273,7 +273,7 @@ class EscaneadorKali2025(_EscaneadorAvanzado):  # type: ignore
             # Procesar resultados JSON
             vulnerabilidades = self._procesar_resultados_nuclei('/tmp/nuclei_output.json')
             
-            self.log(f"[EMOJI] Nuclei completado: {len(vulnerabilidades)} vulnerabilidades encontradas")
+            self.log(f"✓ Nuclei completado: {len(vulnerabilidades)} vulnerabilidades encontradas")
             return {
                 "exito": True,
                 "vulnerabilidades": vulnerabilidades,
@@ -282,22 +282,22 @@ class EscaneadorKali2025(_EscaneadorAvanzado):  # type: ignore
             }
             
         except Exception as e:
-            self.log(f"[EMOJI] Error ejecutando nuclei: {e}")
+            self.log(f"✓ Error ejecutando nuclei: {e}")
             return {"error": str(e)}
     
     def fuzzing_web_ffuf(self, url: str, wordlist: Optional[str] = None) -> Dict[str, Any]:
         """
         Fuzzing web moderno con ffuf
         """
-        self.log(f"[EMOJI] Iniciando fuzzing ffuf: {url}")
+        self.log(f"✓ Iniciando fuzzing ffuf: {url}")
         
         if 'ffuf' not in self.herramientas_disponibles:
             return {"error": "ffuf no disponible"}
         
         try:
-            # Wordlist por defecto
+            # Wordlist por defecto - modernizada
             if not wordlist:
-                wordlist = "/usr/share/wordlists/dirb/common.txt"
+                wordlist = "/usr/share/wordlists/seclists/Discovery/Web-Content/common.txt"
             
             # Comando ffuf
             cmd = [
@@ -316,7 +316,7 @@ class EscaneadorKali2025(_EscaneadorAvanzado):  # type: ignore
             # Procesar resultados
             resultados = self._procesar_resultados_ffuf('/tmp/ffuf_output.json')
             
-            self.log(f"[EMOJI] FFUF completado: {len(resultados)} endpoints encontrados")
+            self.log(f"✓ FFUF completado: {len(resultados)} endpoints encontrados")
             return {
                 "exito": True,
                 "endpoints": resultados,
@@ -325,7 +325,7 @@ class EscaneadorKali2025(_EscaneadorAvanzado):  # type: ignore
             }
             
         except Exception as e:
-            self.log(f"[EMOJI] Error ejecutando ffuf: {e}")
+            self.log(f"✓ Error ejecutando ffuf: {e}")
             return {"error": str(e)}
     
     def escaneo_completo_kali2025(self, objetivo: str) -> Dict[str, Any]:
@@ -397,8 +397,8 @@ class EscaneadorKali2025(_EscaneadorAvanzado):  # type: ignore
             "duracion": "calculada_en_vista"
         }
         
-        self.log(f"[EMOJI] ESCANEO COMPLETO FINALIZADO")
-        self.log(f"[STATS] Resumen: {total_puertos} puertos, {total_servicios} servicios, {total_vulnerabilidades} vulnerabilidades")
+        self.log(f"✓ ESCANEO COMPLETO FINALIZADO")
+        self.log(f"📊 Resumen: {total_puertos} puertos, {total_servicios} servicios, {total_vulnerabilidades} vulnerabilidades")
         
         return resultados
     

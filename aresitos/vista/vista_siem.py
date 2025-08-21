@@ -100,7 +100,7 @@ class VistaSIEM(tk.Frame):
     def crear_tab_monitoreo(self):
         """Crear pestaña de monitoreo en tiempo real."""
         tab_monitoreo = tk.Frame(self.notebook, bg=self.colors['bg_primary'])
-        self.notebook.add(tab_monitoreo, text='[SCAN] Monitoreo Tiempo Real')
+        self.notebook.add(tab_monitoreo, text='Monitoreo en Tiempo Real')
         
         # Frame principal dividido con tema
         main_frame = tk.Frame(tab_monitoreo, bg=self.colors['bg_primary'])
@@ -132,17 +132,17 @@ class VistaSIEM(tk.Frame):
                                 font=('Arial', 12, 'bold'))
         label_controls.pack(anchor=tk.W, pady=(0, 10))
         
-        # Botones de monitoreo con tema Burp Suite
+        # Botones de monitoreo con textos claros
         buttons_monitoreo = [
-            ("[START] Iniciar SIEM", self.iniciar_siem, self.colors['success']),
-            ("[STOP] Detener SIEM", self.detener_siem, self.colors['danger']),
-            ("[EMOJI] Verificar Kali", self.verificar_kali, self.colors['info']),
-            ("[UPDATE] Actualizar Dashboard", self.actualizar_dashboard, self.colors['button_bg']),
-            ("[STATS] Estadísticas", self.mostrar_estadisticas, self.colors['button_bg']),
-            ("[SETTINGS] Configurar Alertas", self.configurar_alertas, self.colors['button_bg']),
-            ("[METRICS] Métricas Sistema", self.metricas_sistema, self.colors['button_bg']),
-            ("🌐 Monitor Red", self.monitor_red, self.colors['button_bg']),
-            ("[SECURE] Eventos Seguridad", self.eventos_seguridad, self.colors['button_bg'])
+            ("Iniciar SIEM", self.iniciar_siem, self.colors['success']),
+            ("Detener SIEM", self.detener_siem, self.colors['danger']),
+            ("Verificar Sistema", self.verificar_kali, self.colors['info']),
+            ("Actualizar Dashboard", self.actualizar_dashboard, self.colors['button_bg']),
+            ("Ver Estadísticas", self.mostrar_estadisticas, self.colors['button_bg']),
+            ("Configurar Alertas", self.configurar_alertas, self.colors['button_bg']),
+            ("Métricas del Sistema", self.metricas_sistema, self.colors['button_bg']),
+            ("Monitor de Red", self.monitor_red, self.colors['button_bg']),
+            ("Eventos de Seguridad", self.eventos_seguridad, self.colors['button_bg'])
         ]
         
         for text, command, bg_color in buttons_monitoreo:
@@ -151,7 +151,7 @@ class VistaSIEM(tk.Frame):
                           relief='flat', padx=10, pady=5,
                           activebackground=self.colors['fg_accent'],
                           activeforeground='white')
-            if text == "[STOP] Detener SIEM":
+            if text == "Detener SIEM":
                 btn.config(state="disabled")
                 self.btn_detener_siem = btn
             btn.pack(fill=tk.X, pady=2)
@@ -858,26 +858,47 @@ class VistaSIEM(tk.Frame):
         """Usar Volatility para análisis de memoria."""
         def ejecutar():
             try:
-                self.after(0, self._actualizar_texto_forense, " Iniciando análisis con Volatility...\n")
+                self.after(0, self._actualizar_texto_forense, "🧠 VOLATILITY - Análisis de Memoria RAM\n")
+                self.after(0, self._actualizar_texto_forense, "="*50 + "\n")
                 
                 import subprocess
                 try:
-                    resultado = subprocess.run(['volatility', '--info'], capture_output=True, text=True, timeout=10)
+                    # Verificar Volatility 3 (preferido)
+                    resultado = subprocess.run(['vol', '--help'], capture_output=True, text=True, timeout=10)
                     if resultado.returncode == 0:
-                        self.after(0, self._actualizar_texto_forense, "OK Volatility disponible\n")
-                        self.after(0, self._actualizar_texto_forense, " Plugins disponibles para análisis de memoria\n")
+                        self.after(0, self._actualizar_texto_forense, "✅ Volatility 3 disponible\n\n")
+                        self.after(0, self._actualizar_texto_forense, "🔍 COMANDOS KALI LINUX:\n")
+                        self.after(0, self._actualizar_texto_forense, "  vol -f memory.dump windows.info\n")
+                        self.after(0, self._actualizar_texto_forense, "  vol -f memory.dump windows.pslist\n") 
+                        self.after(0, self._actualizar_texto_forense, "  vol -f memory.dump windows.psscan\n")
+                        self.after(0, self._actualizar_texto_forense, "  vol -f memory.dump windows.malfind\n")
+                        self.after(0, self._actualizar_texto_forense, "  vol -f memory.dump windows.netscan\n\n")
                     else:
-                        self.after(0, self._actualizar_texto_forense, "ERROR Error ejecutando Volatility\n")
+                        # Probar Volatility 2
+                        resultado2 = subprocess.run(['volatility', '--info'], capture_output=True, text=True, timeout=10)
+                        if resultado2.returncode == 0:
+                            self.after(0, self._actualizar_texto_forense, "✅ Volatility 2 disponible\n\n")
+                            self.after(0, self._actualizar_texto_forense, "🔍 COMANDOS KALI LINUX:\n")
+                            self.after(0, self._actualizar_texto_forense, "  volatility -f memory.dump imageinfo\n")
+                            self.after(0, self._actualizar_texto_forense, "  volatility -f memory.dump --profile=Win7SP1x64 pslist\n")
+                            self.after(0, self._actualizar_texto_forense, "  volatility -f memory.dump --profile=Win7SP1x64 netscan\n\n")
+                        else:
+                            self.after(0, self._actualizar_texto_forense, "❌ Error ejecutando Volatility\n")
+                            
                 except FileNotFoundError:
-                    self.after(0, self._actualizar_texto_forense, "ERROR Volatility no encontrado. Instalar con: apt install volatility\n")
-                except Exception as e:
-                    self.after(0, self._actualizar_texto_forense, f"ERROR Error: {str(e)}\n")
+                    self.after(0, self._actualizar_texto_forense, "❌ Volatility no encontrado\n")
+                    self.after(0, self._actualizar_texto_forense, "📦 INSTALACIÓN KALI:\n")
+                    self.after(0, self._actualizar_texto_forense, "  sudo apt update\n")
+                    self.after(0, self._actualizar_texto_forense, "  sudo apt install volatility3 volatility -y\n\n")
+                    
+                self.after(0, self._actualizar_texto_forense, "📚 CASOS DE USO:\n")
+                self.after(0, self._actualizar_texto_forense, "  • Análisis de malware en memoria\n")
+                self.after(0, self._actualizar_texto_forense, "  • Forense de incidents response\n")
+                self.after(0, self._actualizar_texto_forense, "  • Detección de rootkits\n")
+                self.after(0, self._actualizar_texto_forense, "  • Extracción de passwords\n\n")
                 
-                self.after(0, self._actualizar_texto_forense, " Comandos útiles:\n")
-                self.after(0, self._actualizar_texto_forense, "  • volatility -f memory.dump imageinfo\n")
-                self.after(0, self._actualizar_texto_forense, "  • volatility -f memory.dump pslist\n\n")
             except Exception as e:
-                self.after(0, self._actualizar_texto_forense, f"ERROR Error usando Volatility: {str(e)}\n")
+                self.after(0, self._actualizar_texto_forense, f"❌ Error usando Volatility: {str(e)}\n")
         
         threading.Thread(target=ejecutar, daemon=True).start()
     
@@ -890,29 +911,150 @@ class VistaSIEM(tk.Frame):
     
     def usar_sleuthkit(self):
         """Usar Sleuth Kit para análisis forense."""
-        self._actualizar_texto_forense(" Sleuth Kit - Herramientas de línea de comandos\n")
-        self._actualizar_texto_forense(" Comandos disponibles:\n")
-        self._actualizar_texto_forense("  • fls: listar archivos\n")
-        self._actualizar_texto_forense("  • ils: información de inodos\n")
-        self._actualizar_texto_forense("  • mmls: información de particiones\n\n")
+        def ejecutar():
+            try:
+                self.after(0, self._actualizar_texto_forense, "🕵️ SLEUTH KIT - Kit de Investigación Forense\n")
+                self.after(0, self._actualizar_texto_forense, "="*50 + "\n")
+                
+                import subprocess
+                try:
+                    resultado = subprocess.run(['fls', '-V'], capture_output=True, text=True, timeout=10)
+                    if resultado.returncode == 0:
+                        self.after(0, self._actualizar_texto_forense, "✅ Sleuth Kit disponible\n\n")
+                        self.after(0, self._actualizar_texto_forense, "🔍 COMANDOS KALI LINUX:\n")
+                        self.after(0, self._actualizar_texto_forense, "  mmls disk.img                         # Particiones\n")
+                        self.after(0, self._actualizar_texto_forense, "  fsstat -f ext4 disk.img               # Info FS\n")
+                        self.after(0, self._actualizar_texto_forense, "  fls -r disk.img                       # Listar archivos\n")
+                        self.after(0, self._actualizar_texto_forense, "  ils disk.img                          # Inodos\n")
+                        self.after(0, self._actualizar_texto_forense, "  icat disk.img 123                     # Leer inode\n\n")
+                    else:
+                        self.after(0, self._actualizar_texto_forense, "❌ Error ejecutando Sleuth Kit\n")
+                        
+                except FileNotFoundError:
+                    self.after(0, self._actualizar_texto_forense, "❌ Sleuth Kit no encontrado\n")
+                    self.after(0, self._actualizar_texto_forense, "📦 INSTALACIÓN KALI:\n")
+                    self.after(0, self._actualizar_texto_forense, "  sudo apt install sleuthkit autopsy -y\n\n")
+                    
+                self.after(0, self._actualizar_texto_forense, "📚 CASOS DE USO:\n")
+                self.after(0, self._actualizar_texto_forense, "  • Análisis de sistemas de archivos\n")
+                self.after(0, self._actualizar_texto_forense, "  • Recuperación de archivos borrados\n")
+                self.after(0, self._actualizar_texto_forense, "  • Timeline de actividades\n")
+                self.after(0, self._actualizar_texto_forense, "  • Forense de discos duros\n\n")
+                
+            except Exception as e:
+                self.after(0, self._actualizar_texto_forense, f"❌ Error usando Sleuth Kit: {str(e)}\n")
+        
+        threading.Thread(target=ejecutar, daemon=True).start()
     
     def usar_binwalk(self):
         """Usar Binwalk para análisis de firmware."""
-        self._actualizar_texto_forense(" Binwalk - Análisis de firmware\n")
-        self._actualizar_texto_forense(" Extrayendo y analizando archivos embebidos\n")
-        self._actualizar_texto_forense(" Comando: binwalk -e firmware.bin\n\n")
+        def ejecutar():
+            try:
+                self.after(0, self._actualizar_texto_forense, "🔬 BINWALK - Análisis de Firmware\n")
+                self.after(0, self._actualizar_texto_forense, "="*50 + "\n")
+                
+                import subprocess
+                try:
+                    resultado = subprocess.run(['binwalk', '--help'], capture_output=True, text=True, timeout=10)
+                    if resultado.returncode == 0:
+                        self.after(0, self._actualizar_texto_forense, "✅ Binwalk disponible\n\n")
+                        self.after(0, self._actualizar_texto_forense, "🔍 COMANDOS KALI LINUX:\n")
+                        self.after(0, self._actualizar_texto_forense, "  binwalk firmware.bin                  # Análisis básico\n")
+                        self.after(0, self._actualizar_texto_forense, "  binwalk -e firmware.bin               # Extraer archivos\n")
+                        self.after(0, self._actualizar_texto_forense, "  binwalk -M firmware.bin               # Recursivo\n")
+                        self.after(0, self._actualizar_texto_forense, "  binwalk --dd='.*' firmware.bin        # Extraer todo\n\n")
+                    else:
+                        self.after(0, self._actualizar_texto_forense, "❌ Error ejecutando Binwalk\n")
+                        
+                except FileNotFoundError:
+                    self.after(0, self._actualizar_texto_forense, "❌ Binwalk no encontrado\n")
+                    self.after(0, self._actualizar_texto_forense, "📦 INSTALACIÓN KALI:\n")
+                    self.after(0, self._actualizar_texto_forense, "  sudo apt update\n")
+                    self.after(0, self._actualizar_texto_forense, "  sudo apt install binwalk -y\n\n")
+                    
+                self.after(0, self._actualizar_texto_forense, "📚 CASOS DE USO:\n")
+                self.after(0, self._actualizar_texto_forense, "  • Análisis de firmware IoT\n")
+                self.after(0, self._actualizar_texto_forense, "  • Extracción de sistemas de archivos\n")
+                self.after(0, self._actualizar_texto_forense, "  • Forense de dispositivos embebidos\n")
+                self.after(0, self._actualizar_texto_forense, "  • Detección de backdoors en firmware\n\n")
+                
+            except Exception as e:
+                self.after(0, self._actualizar_texto_forense, f"❌ Error usando Binwalk: {str(e)}\n")
+        
+        threading.Thread(target=ejecutar, daemon=True).start()
     
     def usar_foremost(self):
         """Usar Foremost para recuperación de archivos."""
-        self._actualizar_texto_forense(" Foremost - Recuperación de archivos\n")
-        self._actualizar_texto_forense(" Recuperando archivos eliminados\n")
-        self._actualizar_texto_forense(" Comando: foremost -i disk.img\n\n")
+        def ejecutar():
+            try:
+                self.after(0, self._actualizar_texto_forense, "🗂️ FOREMOST - Recuperación de Archivos\n")
+                self.after(0, self._actualizar_texto_forense, "="*50 + "\n")
+                
+                import subprocess
+                try:
+                    resultado = subprocess.run(['foremost', '-V'], capture_output=True, text=True, timeout=10)
+                    if resultado.returncode == 0:
+                        self.after(0, self._actualizar_texto_forense, "✅ Foremost disponible\n\n")
+                        self.after(0, self._actualizar_texto_forense, "🔍 COMANDOS KALI LINUX:\n")
+                        self.after(0, self._actualizar_texto_forense, "  foremost -i disk.img -o output/       # Recuperar todo\n")
+                        self.after(0, self._actualizar_texto_forense, "  foremost -t jpg,png -i disk.img       # Solo imágenes\n")
+                        self.after(0, self._actualizar_texto_forense, "  foremost -t pdf,doc -i disk.img       # Documentos\n")
+                        self.after(0, self._actualizar_texto_forense, "  foremost -T -i disk.img               # Con timestamp\n\n")
+                    else:
+                        self.after(0, self._actualizar_texto_forense, "❌ Error ejecutando Foremost\n")
+                        
+                except FileNotFoundError:
+                    self.after(0, self._actualizar_texto_forense, "❌ Foremost no encontrado\n")
+                    self.after(0, self._actualizar_texto_forense, "📦 INSTALACIÓN KALI:\n")
+                    self.after(0, self._actualizar_texto_forense, "  sudo apt install foremost -y\n\n")
+                    
+                self.after(0, self._actualizar_texto_forense, "📚 CASOS DE USO:\n")
+                self.after(0, self._actualizar_texto_forense, "  • Recuperación de archivos borrados\n")
+                self.after(0, self._actualizar_texto_forense, "  • Forense de dispositivos USB\n")
+                self.after(0, self._actualizar_texto_forense, "  • Carving de archivos por signature\n")
+                self.after(0, self._actualizar_texto_forense, "  • Análisis post-incident\n\n")
+                
+            except Exception as e:
+                self.after(0, self._actualizar_texto_forense, f"❌ Error usando Foremost: {str(e)}\n")
+        
+        threading.Thread(target=ejecutar, daemon=True).start()
     
     def usar_strings(self):
         """Usar strings para análisis de texto."""
-        self._actualizar_texto_forense("[STRINGS] Strings - Extracción de cadenas de texto\n")
-        self._actualizar_texto_forense(" Extrayendo strings legibles de archivos binarios\n")
-        self._actualizar_texto_forense(" Comando: strings archivo.bin\n\n")
+        def ejecutar():
+            try:
+                self.after(0, self._actualizar_texto_forense, "🔤 STRINGS - Extracción de Cadenas\n")
+                self.after(0, self._actualizar_texto_forense, "="*50 + "\n")
+                
+                import subprocess
+                try:
+                    resultado = subprocess.run(['strings', '--version'], capture_output=True, text=True, timeout=10)
+                    if resultado.returncode == 0:
+                        self.after(0, self._actualizar_texto_forense, "✅ Strings disponible\n\n")
+                        self.after(0, self._actualizar_texto_forense, "🔍 COMANDOS KALI LINUX:\n")
+                        self.after(0, self._actualizar_texto_forense, "  strings archivo.bin                   # Básico\n")
+                        self.after(0, self._actualizar_texto_forense, "  strings -a archivo.bin                # Todos los archivos\n")
+                        self.after(0, self._actualizar_texto_forense, "  strings -n 10 archivo.bin             # Min 10 chars\n")
+                        self.after(0, self._actualizar_texto_forense, "  strings archivo.bin | grep -i pass    # Buscar passwords\n")
+                        self.after(0, self._actualizar_texto_forense, "  strings archivo.bin | grep -E 'http|ftp' # URLs\n\n")
+                    else:
+                        self.after(0, self._actualizar_texto_forense, "❌ Error ejecutando strings\n")
+                        
+                except FileNotFoundError:
+                    self.after(0, self._actualizar_texto_forense, "❌ Strings no encontrado\n")
+                    self.after(0, self._actualizar_texto_forense, "📦 INSTALACIÓN KALI:\n")
+                    self.after(0, self._actualizar_texto_forense, "  sudo apt install binutils -y\n\n")
+                    
+                self.after(0, self._actualizar_texto_forense, "📚 CASOS DE USO:\n")
+                self.after(0, self._actualizar_texto_forense, "  • Análisis de malware\n")
+                self.after(0, self._actualizar_texto_forense, "  • Búsqueda de passwords\n")
+                self.after(0, self._actualizar_texto_forense, "  • Extracción de URLs\n")
+                self.after(0, self._actualizar_texto_forense, "  • Ingeniería inversa\n\n")
+                
+            except Exception as e:
+                self.after(0, self._actualizar_texto_forense, f"❌ Error usando Strings: {str(e)}\n")
+        
+        threading.Thread(target=ejecutar, daemon=True).start()
     
     # Métodos auxiliares para actualizar texto
     def _actualizar_texto_monitoreo(self, texto):
@@ -1211,7 +1353,7 @@ class VistaSIEM(tk.Frame):
                         else:
                             self._actualizar_texto_forense("\nWARNING Sistema no detectado como Kali Linux\n")
                 except (IOError, OSError, PermissionError, FileNotFoundError):
-                    self._actualizar_texto_forense("\n[EMOJI] No se pudo verificar tipo de sistema\n")
+                    self._actualizar_texto_forense("\n❌ No se pudo verificar tipo de sistema\n")
                     
             except Exception as e:
                 self._actualizar_texto_forense(f"ERROR Error verificando herramientas: {str(e)}\n")
@@ -1273,7 +1415,7 @@ class VistaSIEM(tk.Frame):
                                 if grep_result.returncode == 0 and grep_result.stdout.strip():
                                     # Limitar a las últimas 3 líneas
                                     lineas_encontradas = grep_result.stdout.strip().split('\n')[-3:]
-                                    self._actualizar_texto_forense(f"  [EMOJI] Patrón '{patron}' encontrado:\n")
+                                    self._actualizar_texto_forense(f"  🔍 Patrón '{patron}' encontrado:\n")
                                     for linea in lineas_encontradas:
                                         if linea.strip():
                                             self._actualizar_texto_forense(f"    └─ {linea[:80]}...\n")

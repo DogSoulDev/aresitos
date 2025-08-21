@@ -373,7 +373,7 @@ class ModeloDashboard:
                     info_red['ip_publica'] = resultado_curl['salida'].strip()
                 else:
                     info_red['ip_publica'] = 'No disponible'
-            except (ConnectionError, socket.timeout, requests.RequestException):
+            except (ConnectionError, socket.timeout, OSError):
                 info_red['ip_publica'] = 'No disponible'
             
             # Estadísticas de red usando /proc/net/dev
@@ -635,11 +635,12 @@ class ModeloDashboard:
             parametros = []
             
         try:
-            # Lista de herramientas permitidas
+            # Lista de herramientas permitidas modernizadas
             herramientas_permitidas = [
                 'nmap', 'masscan', 'gobuster', 'nikto', 'sqlmap',
-                'hydra', 'john', 'hashcat', 'dirb', 'wfuzz',
-                'tcpdump', 'wireshark', 'tshark', 'aircrack-ng'
+                'hydra', 'john', 'hashcat', 'feroxbuster', 'wfuzz',
+                'tcpdump', 'wireshark', 'tshark', 'aircrack-ng',
+                'nuclei', 'httpx', 'rustscan', 'linpeas', 'pspy'
             ]
             
             if herramienta not in herramientas_permitidas:

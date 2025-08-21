@@ -8,10 +8,10 @@ Solo herramientas que se instalan fácilmente con 'apt install'.
 
 Herramientas integradas:
 - inotify-tools: Monitoreo en tiempo real
-- aide: Sistema de detección de cambios
+- linpeas: Sistema de escalada de privilegios y auditoría
 - chkrootkit: Detección de rootkits
 - rkhunter: Scanner de rootkits avanzado
-- tiger: Auditoría de seguridad
+- pspy: Monitor de procesos para auditoría
 - yara: Detección de patrones maliciosos
 - clamav: Antivirus para archivos
 
@@ -55,10 +55,10 @@ class FIMKali2025(_FIMAvanzado):  # type: ignore
         super().__init__(gestor_permisos)
         self.herramientas_fim = {
             'inotifywait': '/usr/bin/inotifywait',
-            'aide': '/usr/bin/aide',
+            'linpeas': '/usr/bin/linpeas',
             'chkrootkit': '/usr/bin/chkrootkit',
             'rkhunter': '/usr/bin/rkhunter',
-            'tiger': '/usr/bin/tiger',
+            'pspy': '/usr/bin/pspy64',
             'yara': '/usr/bin/yara',
             'clamscan': '/usr/bin/clamscan'
         }
@@ -77,11 +77,11 @@ class FIMKali2025(_FIMAvanzado):  # type: ignore
                                      capture_output=True, text=True, timeout=5)
                 if result.returncode == 0:
                     self.herramientas_disponibles[herramienta] = result.stdout.strip()
-                    self.log(f"[EMOJI] {herramienta} disponible en {result.stdout.strip()}")
+                    self.log(f"✓ {herramienta} disponible en {result.stdout.strip()}")
                 else:
-                    self.log(f"[EMOJI] {herramienta} no encontrada")
+                    self.log(f"❌ {herramienta} no encontrada")
             except Exception as e:
-                self.log(f"[EMOJI] Error verificando {herramienta}: {e}")
+                self.log(f"❌ Error verificando {herramienta}: {e}")
     
     def inicializar_base_datos(self):
         """Inicializa base de datos SQLite para FIM"""
@@ -149,16 +149,16 @@ class FIMKali2025(_FIMAvanzado):  # type: ignore
             
             conn.commit()
             conn.close()
-            self.log("[EMOJI] Base de datos FIM Kali2025 inicializada")
+            self.log("✓ Base de datos FIM Kali2025 inicializada")
             
         except Exception as e:
-            self.log(f"[EMOJI] Error inicializando base de datos: {e}")
+            self.log(f"❌ Error inicializando base de datos: {e}")
     
     def iniciar_monitoreo_tiempo_real(self, rutas_monitorear: List[str]) -> Dict[str, Any]:
         """
         Inicia monitoreo en tiempo real con inotify-tools
         """
-        self.log(f"[SCAN] Iniciando monitoreo tiempo real: {len(rutas_monitorear)} rutas")
+        self.log(f"🔍 Iniciando monitoreo tiempo real: {len(rutas_monitorear)} rutas")
         
         if 'inotifywait' not in self.herramientas_disponibles:
             return {"error": "inotifywait no disponible"}
@@ -179,9 +179,9 @@ class FIMKali2025(_FIMAvanzado):  # type: ignore
                         'timestamp_inicio': datetime.now().isoformat()
                     }
                 else:
-                    self.log(f"[EMOJI] Ruta no existe: {ruta}")
+                    self.log(f"✓ Ruta no existe: {ruta}")
             
-            self.log(f"[EMOJI] Monitoreo iniciado en {len(self.monitores_activos)} rutas")
+            self.log(f"✓ Monitoreo iniciado en {len(self.monitores_activos)} rutas")
             return {
                 "exito": True,
                 "rutas_monitoreadas": len(self.monitores_activos),
@@ -189,7 +189,7 @@ class FIMKali2025(_FIMAvanzado):  # type: ignore
             }
             
         except Exception as e:
-            self.log(f"[EMOJI] Error iniciando monitoreo: {e}")
+            self.log(f"✓ Error iniciando monitoreo: {e}")
             return {"error": str(e)}
     
     def _monitorear_ruta_inotify(self, ruta: str):
@@ -213,7 +213,7 @@ class FIMKali2025(_FIMAvanzado):  # type: ignore
                 bufsize=1
             )
             
-            self.log(f"[SCAN] Monitor inotify activo en: {ruta}")
+            self.log(f"🔍 Monitor inotify activo en: {ruta}")
             
             while self.monitores_activos.get(ruta, {}).get('activo', False):
                 if process.stdout:
@@ -224,7 +224,7 @@ class FIMKali2025(_FIMAvanzado):  # type: ignore
                     self._procesar_evento_inotify(line.strip())
                     
         except Exception as e:
-            self.log(f"[EMOJI] Error en monitor inotify {ruta}: {e}")
+            self.log(f"✓ Error en monitor inotify {ruta}: {e}")
     
     def _procesar_evento_inotify(self, linea_evento: str):
         """Procesa evento de inotify y lo guarda en base de datos"""
@@ -276,10 +276,10 @@ class FIMKali2025(_FIMAvanzado):  # type: ignore
                 conn.close()
                 
                 # Log del evento
-                self.log(f"[LOG] Evento FIM: {evento} en {archivo}")
+                self.log(f"📝 Evento FIM: {evento} en {archivo}")
                 
         except Exception as e:
-            self.log(f"[EMOJI] Error procesando evento inotify: {e}")
+            self.log(f"✓ Error procesando evento inotify: {e}")
     
     def escaneo_rootkits_chkrootkit(self) -> Dict[str, Any]:
         """
@@ -300,7 +300,7 @@ class FIMKali2025(_FIMAvanzado):  # type: ignore
             # Guardar detecciones en base de datos
             self._guardar_detecciones_rootkit('chkrootkit', detecciones)
             
-            self.log(f"[EMOJI] Chkrootkit completado: {len(detecciones)} detecciones")
+            self.log(f"✓ Chkrootkit completado: {len(detecciones)} detecciones")
             return {
                 "exito": True,
                 "detecciones": detecciones,
@@ -309,7 +309,7 @@ class FIMKali2025(_FIMAvanzado):  # type: ignore
             }
             
         except Exception as e:
-            self.log(f"[EMOJI] Error ejecutando chkrootkit: {e}")
+            self.log(f"✓ Error ejecutando chkrootkit: {e}")
             return {"error": str(e)}
     
     def escaneo_rootkits_rkhunter(self) -> Dict[str, Any]:
@@ -335,7 +335,7 @@ class FIMKali2025(_FIMAvanzado):  # type: ignore
             # Guardar detecciones
             self._guardar_detecciones_rootkit('rkhunter', detecciones)
             
-            self.log(f"[EMOJI] Rkhunter completado: {len(detecciones)} detecciones")
+            self.log(f"✓ Rkhunter completado: {len(detecciones)} detecciones")
             return {
                 "exito": True,
                 "detecciones": detecciones,
@@ -344,35 +344,35 @@ class FIMKali2025(_FIMAvanzado):  # type: ignore
             }
             
         except Exception as e:
-            self.log(f"[EMOJI] Error ejecutando rkhunter: {e}")
+            self.log(f"✓ Error ejecutando rkhunter: {e}")
             return {"error": str(e)}
     
-    def auditoria_sistema_tiger(self) -> Dict[str, Any]:
+    def auditoria_sistema_linpeas(self) -> Dict[str, Any]:
         """
-        Auditoría de seguridad con tiger
+        Auditoría de seguridad con linpeas (más moderno y completo)
         """
-        self.log("[TIGER] Iniciando auditoría tiger")
+        self.log("[LINPEAS] Iniciando auditoría linpeas")
         
-        if 'tiger' not in self.herramientas_disponibles:
-            return {"error": "tiger no disponible"}
+        if 'linpeas' not in self.herramientas_disponibles:
+            return {"error": "linpeas no disponible"}
         
         try:
-            cmd = ['tiger', '-H']  # HTML output
+            cmd = ['linpeas.sh']  # Script de auditoría
             
             result = subprocess.run(cmd, capture_output=True, text=True, timeout=900)
             
-            problemas = self._procesar_resultados_tiger(result.stdout)
+            problemas = self._procesar_resultados_linpeas(result.stdout)
             
-            self.log(f"[EMOJI] Tiger completado: {len(problemas)} problemas detectados")
+            self.log(f"✓ Linpeas completado: {len(problemas)} problemas detectados")
             return {
                 "exito": True,
                 "problemas_seguridad": problemas,
                 "total_problemas": len(problemas),
-                "herramienta": "tiger"
+                "herramienta": "linpeas"
             }
             
         except Exception as e:
-            self.log(f"[EMOJI] Error ejecutando tiger: {e}")
+            self.log(f"✓ Error ejecutando linpeas: {e}")
             return {"error": str(e)}
     
     def escaneo_malware_yara(self, directorio: str, reglas_yara: Optional[str] = None) -> Dict[str, Any]:
@@ -407,7 +407,7 @@ class FIMKali2025(_FIMAvanzado):  # type: ignore
             # Guardar en base de datos
             self._guardar_analisis_yara(detecciones)
             
-            self.log(f"[EMOJI] YARA completado: {len(detecciones)} detecciones")
+            self.log(f"✓ YARA completado: {len(detecciones)} detecciones")
             return {
                 "exito": True,
                 "detecciones_malware": detecciones,
@@ -416,7 +416,7 @@ class FIMKali2025(_FIMAvanzado):  # type: ignore
             }
             
         except Exception as e:
-            self.log(f"[EMOJI] Error ejecutando YARA: {e}")
+            self.log(f"✓ Error ejecutando YARA: {e}")
             return {"error": str(e)}
     
     def escaneo_antivirus_clamav(self, directorio: str) -> Dict[str, Any]:
@@ -441,7 +441,7 @@ class FIMKali2025(_FIMAvanzado):  # type: ignore
             
             infectados = self._procesar_resultados_clamav(result.stdout)
             
-            self.log(f"[EMOJI] ClamAV completado: {len(infectados)} archivos infectados")
+            self.log(f"✓ ClamAV completado: {len(infectados)} archivos infectados")
             return {
                 "exito": True,
                 "archivos_infectados": infectados,
@@ -450,7 +450,7 @@ class FIMKali2025(_FIMAvanzado):  # type: ignore
             }
             
         except Exception as e:
-            self.log(f"[EMOJI] Error ejecutando ClamAV: {e}")
+            self.log(f"✓ Error ejecutando ClamAV: {e}")
             return {"error": str(e)}
     
     def analisis_completo_fim_kali2025(self, rutas_criticas: List[str]) -> Dict[str, Any]:
@@ -487,12 +487,12 @@ class FIMKali2025(_FIMAvanzado):  # type: ignore
         if rkhunter_result.get("exito"):
             resultados["herramientas_utilizadas"].append("rkhunter")
         
-        # 4. Auditoría de seguridad con tiger
-        self.log("FASE 4: Auditoría sistema tiger")
-        tiger_result = self.auditoria_sistema_tiger()
-        resultados["analisis"]["tiger"] = tiger_result
-        if tiger_result.get("exito"):
-            resultados["herramientas_utilizadas"].append("tiger")
+        # 4. Auditoría de seguridad con linpeas
+        self.log("FASE 4: Auditoría sistema linpeas")
+        linpeas_result = self.auditoria_sistema_linpeas()
+        resultados["analisis"]["linpeas"] = linpeas_result
+        if linpeas_result.get("exito"):
+            resultados["herramientas_utilizadas"].append("linpeas")
         
         # 5. Escaneo YARA en rutas críticas
         self.log("FASE 5: Escaneo YARA malware")
@@ -517,7 +517,7 @@ class FIMKali2025(_FIMAvanzado):  # type: ignore
             len(chkrootkit_result.get("detecciones", [])) + 
             len(rkhunter_result.get("detecciones", []))
         )
-        total_problemas_seguridad = len(tiger_result.get("problemas_seguridad", []))
+        total_problemas_seguridad = len(linpeas_result.get("problemas_seguridad", []))
         
         resultados["resumen"] = {
             "rutas_monitoreadas": len(rutas_criticas),
@@ -527,7 +527,7 @@ class FIMKali2025(_FIMAvanzado):  # type: ignore
             "monitoreo_activo": len(self.monitores_activos)
         }
         
-        self.log("[EMOJI] ANÁLISIS COMPLETO FIM FINALIZADO")
+        self.log("✓ ANÁLISIS COMPLETO FIM FINALIZADO")
         return resultados
     
     def _obtener_info_archivo(self, ruta: str) -> Dict[str, Any]:
@@ -615,18 +615,30 @@ class FIMKali2025(_FIMAvanzado):  # type: ignore
                 })
         return detecciones
     
-    def _procesar_resultados_tiger(self, output: str) -> List[Dict[str, Any]]:
-        """Procesa resultados de tiger"""
+    def _procesar_resultados_linpeas(self, output: str) -> List[Dict[str, Any]]:
+        """Procesa resultados de linpeas (más completo que tiger)"""
         problemas = []
         lines = output.split('\n')
         for line in lines:
-            if '--WARN--' in line or '--FAIL--' in line:
-                problemas.append({
-                    'problema': line.strip(),
-                    'tipo': 'seguridad',
-                    'severidad': 'HIGH' if '--FAIL--' in line else 'MEDIUM'
-                })
+            # Buscar indicadores de problemas de seguridad
+            if any(keyword in line.lower() for keyword in ['[!]', 'possible', 'vulnerable', 'writable', 'suid', 'guid']):
+                if line.strip():
+                    problemas.append({
+                        'problema': line.strip(),
+                        'tipo': 'seguridad',
+                        'severidad': self._determinar_severidad_linpeas(line)
+                    })
         return problemas
+    
+    def _determinar_severidad_linpeas(self, line: str) -> str:
+        """Determina la severidad basada en el contenido de linpeas"""
+        line_lower = line.lower()
+        if any(keyword in line_lower for keyword in ['suid', 'sudo', 'writable', 'passwd']):
+            return 'HIGH'
+        elif any(keyword in line_lower for keyword in ['possible', 'check']):
+            return 'MEDIUM'
+        else:
+            return 'LOW'
     
     def _procesar_resultados_yara(self, output: str) -> List[Dict[str, Any]]:
         """Procesa resultados de YARA"""

@@ -81,16 +81,16 @@ docs = [
 # ===================================================================
 # ARESITOS integra herramientas Kali via subprocess.run():
 # 
-# ESCANEO: nmap, masscan, nikto, gobuster, nuclei, sqlmap
-# MALWARE: clamav, chkrootkit, rkhunter, yara 
-# AUDITORIA: lynis, aide, tiger, systemctl
+# ESCANEO: nmap, rustscan, masscan, nikto, gobuster, feroxbuster, httpx, nuclei, sqlmap
+# MALWARE: linpeas, pspy, chkrootkit 
+# AUDITORIA: lynis, linpeas, pspy, systemctl
 # MONITOREO: ss, lsof, tcpdump, iftop, ps, top
 # LOGS: tail, grep, awk, sed, find
 # SISTEMA: df, du, free, uptime, ping, curl
 # 
-# COMANDO INSTALACION:
-# sudo apt install nmap masscan nikto gobuster nuclei sqlmap \
-#   clamav chkrootkit rkhunter aide tiger lynis yara \
+# COMANDO INSTALACION MODERNA:
+# sudo apt install nmap rustscan masscan nikto gobuster feroxbuster httpx nuclei sqlmap \
+#   chkrootkit lynis binwalk exiftool \
 #   tcpdump iftop htop curl wget inotify-tools
 # ===================================================================
 

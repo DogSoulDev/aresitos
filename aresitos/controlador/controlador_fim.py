@@ -51,13 +51,13 @@ class ControladorFIM(ControladorBase):
         if KALI2025_FIM_DISPONIBLE:
             try:
                 self.fim_kali2025 = FIMKali2025()
-                self.logger.info("[EMOJI] FIMKali2025 inicializado correctamente")
+                self.logger.info("✓ FIMKali2025 inicializado correctamente")
             except Exception as e:
-                self.logger.warning(f"[EMOJI] Error inicializando FIMKali2025: {e}")
+                self.logger.warning(f"❌ Error inicializando FIMKali2025: {e}")
                 self.fim_kali2025 = None
         else:
             self.fim_kali2025 = None
-            self.logger.warning("[EMOJI] FIMKali2025 no disponible")
+            self.logger.warning("⚠️ FIMKali2025 no disponible")
         
         if hasattr(modelo_principal, 'siem_avanzado') and modelo_principal.siem_avanzado:
             self.siem = modelo_principal.siem_avanzado
@@ -1300,24 +1300,24 @@ class ControladorFIM(ControladorBase):
                 'herramienta': 'inotifywait'
             }
     
-    def configurar_aide(self) -> Dict[str, Any]:
+    def configurar_linpeas(self) -> Dict[str, Any]:
         """
-        Configurar AIDE (Advanced Intrusion Detection Environment) para FIM profesional.
-        KALI OPTIMIZATION: Configuración específica de AIDE para detección de intrusiones.
+        Configurar LinPEAS (Linux Privilege Escalation Awesome Script) para FIM moderno.
+        KALI OPTIMIZATION: Configuración específica de LinPEAS para detección de vulnerabilidades.
         """
         try:
-            self.logger.info(" Configurando AIDE para detección avanzada de intrusiones...")
+            self.logger.info(" Configurando LinPEAS para detección avanzada de vulnerabilidades...")
             
-            # Verificar si AIDE está disponible
-            result_check = subprocess.run(['which', 'aide'], capture_output=True, text=True, timeout=5)
+            # Verificar si LinPEAS está disponible
+            result_check = subprocess.run(['which', 'linpeas'], capture_output=True, text=True, timeout=5)
             if result_check.returncode != 0:
                 return {
                     'exito': False,
-                    'error': 'AIDE no está instalado',
-                    'recomendacion': 'sudo apt install aide aide-common'
+                    'error': 'LinPEAS no está instalado',
+                    'recomendacion': 'sudo apt install linpeas'
                 }
             
-            # Configuración de AIDE para Kali Linux
+            # Configuración de LinPEAS para Kali Linux
             configuracion_aide = """
 # AIDE configuration for ARESITOS - Kali Linux Security
 # Advanced Intrusion Detection Environment
@@ -1449,6 +1449,98 @@ report_url=stdout
                 'herramienta': 'aide'
             }
     
+    def ejecutar_verificacion_linpeas(self) -> Dict[str, Any]:
+        """
+        Ejecutar verificación de seguridad usando LinPEAS.
+        KALI OPTIMIZATION: Análisis de escalada de privilegios y vulnerabilidades.
+        """
+        try:
+            self.logger.info(" Ejecutando verificación de seguridad con LinPEAS...")
+            
+            # Verificar si LinPEAS está disponible
+            result_check = subprocess.run(['which', 'linpeas'], capture_output=True, text=True, timeout=5)
+            if result_check.returncode != 0:
+                return {
+                    'exito': False,
+                    'error': 'LinPEAS no está instalado',
+                    'recomendacion': 'sudo apt install linpeas',
+                    'herramienta': 'linpeas'
+                }
+            
+            # Ejecutar LinPEAS para análisis de seguridad
+            tiempo_inicio = time.time()
+            
+            try:
+                # Crear directorio temporal para el reporte
+                directorio_temp = f"/tmp/linpeas_fim_{int(time.time())}"
+                os.makedirs(directorio_temp, exist_ok=True)
+                archivo_reporte = f"{directorio_temp}/linpeas_report.txt"
+                
+                cmd_linpeas = ['linpeas', '-o', archivo_reporte, '-q']  # Modo silencioso
+                result = subprocess.run(cmd_linpeas, capture_output=True, text=True, timeout=600)  # 10 minutos max
+                
+                tiempo_total = time.time() - tiempo_inicio
+                
+                # Parsear output de LinPEAS
+                vulnerabilidades_detectadas = 0
+                cambios_criticos = []
+                alertas_seguridad = []
+                
+                if os.path.exists(archivo_reporte):
+                    with open(archivo_reporte, 'r', encoding='utf-8', errors='ignore') as f:
+                        contenido = f.read()
+                        
+                    # Buscar indicadores de vulnerabilidades
+                    lineas = contenido.split('\n')
+                    for linea in lineas:
+                        if any(indicador in linea.lower() for indicador in 
+                               ['vulnerability', 'exploit', 'privesc', 'suid', 'sudo']):
+                            vulnerabilidades_detectadas += 1
+                            if vulnerabilidades_detectadas <= 10:  # Limitar alertas
+                                alertas_seguridad.append(linea.strip())
+                
+                # Limpiar archivos temporales
+                try:
+                    subprocess.run(['rm', '-rf', directorio_temp], timeout=10)
+                except:
+                    pass
+                
+                return {
+                    'exito': True,
+                    'herramienta': 'linpeas',
+                    'tiempo_ejecucion': round(tiempo_total, 2),
+                    'total_cambios': vulnerabilidades_detectadas,
+                    'cambios_detectados': vulnerabilidades_detectadas > 0,
+                    'cambios_criticos': cambios_criticos,
+                    'alertas_seguridad': alertas_seguridad,
+                    'detalles': {
+                        'vulnerabilidades_encontradas': vulnerabilidades_detectadas,
+                        'archivo_reporte': archivo_reporte if os.path.exists(archivo_reporte) else None,
+                        'codigo_salida': result.returncode
+                    }
+                }
+                
+            except subprocess.TimeoutExpired:
+                return {
+                    'exito': False,
+                    'error': 'LinPEAS tardó demasiado tiempo (timeout)',
+                    'herramienta': 'linpeas'
+                }
+            except Exception as e:
+                return {
+                    'exito': False,
+                    'error': f'Error ejecutando LinPEAS: {str(e)}',
+                    'herramienta': 'linpeas'
+                }
+                
+        except Exception as e:
+            self.logger.error(f"Error en verificación LinPEAS: {e}")
+            return {
+                'exito': False,
+                'error': str(e),
+                'herramienta': 'linpeas'
+            }
+
     def ejecutar_verificacion_aide(self) -> Dict[str, Any]:
         """
         Ejecutar verificación de integridad usando AIDE.
@@ -1825,29 +1917,29 @@ report_url=stdout
                 resultados_completos['herramientas_utilizadas'].append('inotify')
                 resultados_completos['resumen_detecciones']['rutas_inotify'] = resultado_inotify['total_rutas']
             
-            # 2. Configurar y verificar con AIDE
-            self.logger.info("2/4 Configurando AIDE...")
-            resultado_aide_config = self.configurar_aide()
-            resultados_completos['analisis_detallado']['aide_config'] = resultado_aide_config
+            # 2. Configurar y verificar con LinPEAS
+            self.logger.info("2/4 Configurando LinPEAS...")
+            resultado_linpeas_config = self.configurar_linpeas()
+            resultados_completos['analisis_detallado']['linpeas_config'] = resultado_linpeas_config
             
-            if resultado_aide_config['exito']:
-                self.logger.info("2.1/4 Ejecutando verificación AIDE...")
-                resultado_aide_check = self.ejecutar_verificacion_aide()
-                resultados_completos['analisis_detallado']['aide_verificacion'] = resultado_aide_check
+            if resultado_linpeas_config['exito']:
+                self.logger.info("2.1/4 Ejecutando verificación LinPEAS...")
+                resultado_linpeas_check = self.ejecutar_verificacion_linpeas()
+                resultados_completos['analisis_detallado']['linpeas_verificacion'] = resultado_linpeas_check
                 
-                if resultado_aide_check['exito']:
-                    resultados_completos['herramientas_utilizadas'].append('aide')
-                    resultados_completos['resumen_detecciones']['cambios_aide'] = resultado_aide_check['total_cambios']
+                if resultado_linpeas_check['exito']:
+                    resultados_completos['herramientas_utilizadas'].append('linpeas')
+                    resultados_completos['resumen_detecciones']['cambios_linpeas'] = resultado_linpeas_check['total_cambios']
                     
-                    # Generar alertas críticas si AIDE detecta cambios importantes
-                    if resultado_aide_check['cambios_detectados']:
-                        cambios_criticos = resultado_aide_check.get('cambios_criticos', [])
+                    # Generar alertas críticas si LinPEAS detecta cambios importantes
+                    if resultado_linpeas_check['cambios_detectados']:
+                        cambios_criticos = resultado_linpeas_check.get('cambios_criticos', [])
                         for cambio in cambios_criticos:
                             resultados_completos['alertas_criticas'].append({
-                                'tipo': 'aide_critical_change',
-                                'descripcion': f"AIDE detectó cambio crítico: {cambio}",
+                                'tipo': 'linpeas_critical_change',
+                                'descripcion': f"LinPEAS detectó cambio crítico: {cambio}",
                                 'severidad': 'CRITICA',
-                                'herramienta': 'aide'
+                                'herramienta': 'linpeas'
                             })
             
             # 3. Configurar auditd para FIM
@@ -2270,7 +2362,7 @@ report_url=stdout
             resultado = self.fim_kali2025.iniciar_monitoreo_tiempo_real(directorios)
             
             if resultado.get("exito"):
-                self.logger.info("[EMOJI] Monitoreo FIM Kali 2025 iniciado")
+                self.logger.info("✓ Monitoreo FIM Kali 2025 iniciado")
             
             return resultado
             
@@ -2286,7 +2378,7 @@ report_url=stdout
         if not self.fim_kali2025:
             return {"error": "FIMKali2025 no disponible"}
         
-        self.logger.info("[SCAN] Iniciando escaneo rootkit Kali 2025")
+        self.logger.info("🔍 Iniciando escaneo rootkit Kali 2025")
         
         try:
             # Usar métodos que sí existen en el modelo
@@ -2295,7 +2387,7 @@ report_url=stdout
             
             if resultado.get("exito"):
                 amenazas = resultado.get("amenazas_detectadas", [])
-                self.logger.info(f"[EMOJI] Análisis FIM completado: {len(amenazas)} elementos detectados")
+                self.logger.info(f"✅ Análisis FIM completado: {len(amenazas)} elementos detectados")
                 
                 # Registrar amenazas en SIEM si están disponibles
                 if self.siem and amenazas:
