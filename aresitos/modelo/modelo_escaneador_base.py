@@ -387,7 +387,7 @@ class EscaneadorBase:
         """Cargar base de datos de vulnerabilidades conocidas."""
         try:
             # Intentar cargar desde archivo si existe
-            vulnerabilidades_file = Path("recursos/cve_database.json")
+            vulnerabilidades_file = Path("data/diccionarios/cve_database_english.json")
             if vulnerabilidades_file.exists():
                 with open(vulnerabilidades_file, 'r', encoding='utf-8') as f:
                     return json.load(f)
