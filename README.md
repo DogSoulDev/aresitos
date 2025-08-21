@@ -34,7 +34,8 @@ Suite integral de ciberseguridad con **arquitectura 100% Python stdlib** sin dep
 ## ⚡ **Instalación Zero-Config**
 
 ```bash
-# Clona, configura permisos y ejecuta - Sin dependencias pip
+# Crear carpeta Ares y clonar repositorio dentro
+mkdir -p ~/Ares && cd ~/Ares
 git clone https://github.com/DogSoulDev/Aresitos.git
 cd Aresitos
 

@@ -10,7 +10,8 @@
 
 ### **Instalación Zero-Config**
 ```bash
-# 1. Clonar repositorio
+# 1. Crear carpeta Ares y clonar repositorio dentro
+mkdir -p ~/Ares && cd ~/Ares
 git clone https://github.com/DogSoulDev/Aresitos.git
 cd Aresitos
 
@@ -372,8 +373,10 @@ inotifywait --help && echo "✅ inotify OK"
 ## 🎯 COMANDOS ESENCIALES
 
 ```bash
-# Instalación completa
-git clone [repo] && cd Ares-Aegis
+# Instalación completa paso a paso
+mkdir -p ~/Ares && cd ~/Ares
+git clone https://github.com/DogSoulDev/Aresitos.git && cd Aresitos
+chmod +x configurar_kali.sh verificacion_final.py
 sudo ./configurar_kali.sh
 python verificacion_final.py
 python main.py
@@ -393,3 +396,23 @@ tail -f logs/aresitos.log
 **TIEMPO INSTALACIÓN**: ~15 minutos  
 **DIFICULTAD**: Básica  
 **SOPORTE**: Solo Kali Linux 2025  
+## 🎯 COMANDOS ESENCIALES
+
+```bash
+# Instalación completa paso a paso
+mkdir -p ~/Ares && cd ~/Ares
+git clone https://github.com/DogSoulDev/Aresitos.git && cd Aresitos
+chmod +x configurar_kali.sh verificacion_final.py
+sudo ./configurar_kali.sh
+python verificacion_final.py
+python main.py
+
+# Verificación rápida
+python -c "import aresitos; print('✅ ARESITOS OK')"
+
+# Debug mode
+python main.py --dev
+
+# Logs de depuración
+tail -f logs/aresitos.log
+```
