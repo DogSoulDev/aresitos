@@ -561,3 +561,15 @@ class VistaGestionDatos(tk.Frame):
             self.logger.error(f"Error obteniendo estadísticas: {e}")
             
         return {}
+    
+    def _log_terminal(self, mensaje, modulo="GESTION", nivel="INFO"):
+        """Registrar mensaje en el terminal integrado global."""
+        try:
+            # Usar el terminal global de VistaDashboard
+            from aresitos.vista.vista_dashboard import VistaDashboard
+            VistaDashboard.log_actividad_global(mensaje, modulo, nivel)
+            
+        except Exception as e:
+            # Fallback a consola si hay problemas
+            print(f"[{modulo}] {mensaje}")
+            print(f"Error logging a terminal: {e}")

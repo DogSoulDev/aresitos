@@ -1626,3 +1626,15 @@ class VistaSIEM(tk.Frame):
                 self._actualizar_texto_forense(f"ERROR Error en integración osquery: {str(e)}\n")
         
         threading.Thread(target=ejecutar_osquery, daemon=True).start()
+    
+    def _log_terminal(self, mensaje, modulo="SIEM", nivel="INFO"):
+        """Registrar mensaje en el terminal integrado global."""
+        try:
+            # Usar el terminal global de VistaDashboard
+            from aresitos.vista.vista_dashboard import VistaDashboard
+            VistaDashboard.log_actividad_global(mensaje, modulo, nivel)
+            
+        except Exception as e:
+            # Fallback a consola si hay problemas
+            print(f"[{modulo}] {mensaje}")
+            print(f"Error logging a terminal: {e}")

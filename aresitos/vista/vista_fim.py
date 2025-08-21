@@ -620,3 +620,15 @@ class VistaFIM(tk.Frame):
             self.fim_text.config(state=tk.NORMAL)
             self.fim_text.insert(tk.END, f" ERROR Error durante verificación: {str(e)}\n")
             self.fim_text.config(state=tk.DISABLED)
+    
+    def _log_terminal(self, mensaje, modulo="FIM", nivel="INFO"):
+        """Registrar mensaje en el terminal integrado global."""
+        try:
+            # Usar el terminal global de VistaDashboard
+            from aresitos.vista.vista_dashboard import VistaDashboard
+            VistaDashboard.log_actividad_global(mensaje, modulo, nivel)
+            
+        except Exception as e:
+            # Fallback a consola si hay problemas
+            print(f"[{modulo}] {mensaje}")
+            print(f"Error logging a terminal: {e}")

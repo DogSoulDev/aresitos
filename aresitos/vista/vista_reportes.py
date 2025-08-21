@@ -333,6 +333,18 @@ class VistaReportes(tk.Frame):
         if respuesta:
             self.reporte_text.delete(1.0, tk.END)
             self.reporte_actual = None
+    
+    def _log_terminal(self, mensaje, modulo="REPORTES", nivel="INFO"):
+        """Registrar mensaje en el terminal integrado global."""
+        try:
+            # Usar el terminal global de VistaDashboard
+            from aresitos.vista.vista_dashboard import VistaDashboard
+            VistaDashboard.log_actividad_global(mensaje, modulo, nivel)
+            
+        except Exception as e:
+            # Fallback a consola si hay problemas
+            print(f"[{modulo}] {mensaje}")
+            print(f"Error logging a terminal: {e}")
 
 # RESUMEN: Vista para generación y gestión de reportes del sistema. Permite generar 
 # reportes completos con datos de escaneo, monitoreo y utilidades, guardar en 

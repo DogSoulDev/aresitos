@@ -108,6 +108,16 @@ class VistaPrincipal(tk.Frame):
         
         # Inicializar vista con datos del controlador
         self.actualizar_vista_principal()
+    
+    def obtener_terminal_integrado(self):
+        """Obtener referencia al terminal integrado global del dashboard."""
+        from aresitos.vista.vista_dashboard import VistaDashboard
+        return VistaDashboard.obtener_terminal_global()
+    
+    def log_actividad(self, mensaje, modulo="GENERAL", nivel="INFO"):
+        """Registrar actividad en el terminal integrado global."""
+        from aresitos.vista.vista_dashboard import VistaDashboard
+        VistaDashboard.log_actividad_global(mensaje, modulo, nivel)
 
     def crear_widgets(self):
         # Configurar el fondo de este Frame también
@@ -222,55 +232,58 @@ class VistaPrincipal(tk.Frame):
             self.notebook = ttk.Notebook(self)
         self.notebook.pack(fill="both", expand=True, padx=2, pady=2)
         
+        # ORDEN DE PESTAÑAS REQUERIDO:
+        # 1. Dashboard, 2. Escaneo, 3. SIEM, 4. FIM, 5. Monitoreo y Cuarentena, 6. Auditoría, 7. Wordlists y Diccionarios, 8. Reportes
+        
         # 1. DASHBOARD - Primera pestaña con métricas en tiempo real
         try:
             self.vista_dashboard = VistaDashboard(self.notebook)
-            self.notebook.add(self.vista_dashboard, text="Dashboard")
+            self.notebook.add(self.vista_dashboard, text="🏠 Dashboard")
         except Exception as e:
             print(f"Error creando vista dashboard: {e}")
         
         # 2. ESCANEO - Funcionalidad principal de escaneo
         self.vista_escaneo = VistaEscaneo(self.notebook)
-        self.notebook.add(self.vista_escaneo, text="Escaneo")
+        self.notebook.add(self.vista_escaneo, text="🔍 Escaneo")
         
-        # 3. MONITOREO Y CUARENTENA - Monitoreo del sistema
-        self.vista_monitoreo = VistaMonitoreo(self.notebook)
-        self.notebook.add(self.vista_monitoreo, text="Monitoreo y Cuarentena")
-        
-        # 4. AUDITORÍA - Auditoría de seguridad avanzada
+        # 3. SIEM - Security Information & Event Management
         try:
-            self.vista_auditoria = VistaAuditoria(self.notebook)
-            self.notebook.add(self.vista_auditoria, text="Auditoría")
+            self.vista_siem = VistaSIEM(self.notebook)
+            self.notebook.add(self.vista_siem, text="🛡️ SIEM")
         except Exception as e:
-            print(f"Error creando vista auditoría: {e}")
+            print(f"Error creando vista SIEM: {e}")
         
-        # 5. WORDLISTS & DICCIONARIOS - Gestión de datos unificados
-        try:
-            self.vista_gestion_datos = VistaGestionDatos(self.notebook)
-            self.notebook.add(self.vista_gestion_datos, text="Wordlists y Diccionarios")
-        except Exception as e:
-            print(f"Error creando vista gestión de datos: {e}")
-        
-        # 6. REPORTES - Generación y visualización de reportes
-        try:
-            self.vista_reportes = VistaReportes(self.notebook)
-            self.notebook.add(self.vista_reportes, text="Reportes")
-        except Exception as e:
-            print(f"Error creando vista reportes: {e}")
-        
-        # 7. FIM - File Integrity Monitoring
+        # 4. FIM - File Integrity Monitoring
         try:
             self.vista_fim = VistaFIM(self.notebook)
-            self.notebook.add(self.vista_fim, text="FIM")
+            self.notebook.add(self.vista_fim, text="📁 FIM")
         except Exception as e:
             print(f"Error creando vista FIM: {e}")
         
-        # 8. SIEM - Security Information & Event Management
+        # 5. MONITOREO Y CUARENTENA - Monitoreo del sistema
+        self.vista_monitoreo = VistaMonitoreo(self.notebook)
+        self.notebook.add(self.vista_monitoreo, text="📊 Monitoreo y Cuarentena")
+        
+        # 6. AUDITORÍA - Auditoría de seguridad avanzada
         try:
-            self.vista_siem = VistaSIEM(self.notebook)
-            self.notebook.add(self.vista_siem, text="SIEM")
+            self.vista_auditoria = VistaAuditoria(self.notebook)
+            self.notebook.add(self.vista_auditoria, text="🔐 Auditoría")
         except Exception as e:
-            print(f"Error creando vista SIEM: {e}")
+            print(f"Error creando vista auditoría: {e}")
+        
+        # 7. WORDLISTS & DICCIONARIOS - Gestión de datos unificados
+        try:
+            self.vista_gestion_datos = VistaGestionDatos(self.notebook)
+            self.notebook.add(self.vista_gestion_datos, text="📚 Wordlists y Diccionarios")
+        except Exception as e:
+            print(f"Error creando vista gestión de datos: {e}")
+        
+        # 8. REPORTES - Generación y visualización de reportes
+        try:
+            self.vista_reportes = VistaReportes(self.notebook)
+            self.notebook.add(self.vista_reportes, text="📄 Reportes")
+        except Exception as e:
+            print(f"Error creando vista reportes: {e}")
     
     def crear_barra_estado(self):
         """Crea la barra de estado inferior estilo Burp"""

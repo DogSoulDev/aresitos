@@ -15,6 +15,9 @@ import os
 import socket
 from datetime import datetime
 import logging
+import queue
+import io
+import sys
 
 try:
     from aresitos.vista.burp_theme import burp_theme
@@ -23,8 +26,78 @@ except ImportError:
     BURP_THEME_AVAILABLE = False
     burp_theme = None
 
+class TerminalIntegradoHandler(logging.Handler):
+    """Handler personalizado para mostrar logs en el terminal integrado."""
+    
+    def __init__(self, terminal_widget):
+        super().__init__()
+        self.terminal_widget = terminal_widget
+        self.queue = queue.Queue()
+        
+    def emit(self, record):
+        """Emitir log al terminal integrado."""
+        try:
+            mensaje = self.format(record)
+            # Usar queue para thread-safety
+            self.queue.put(mensaje)
+            # Programar actualización en el hilo principal
+            if self.terminal_widget:
+                self.terminal_widget.after_idle(self._procesar_queue)
+        except Exception:
+            pass
+    
+    def _procesar_queue(self):
+        """Procesar mensajes en queue y mostrarlos en el terminal."""
+        try:
+            while not self.queue.empty():
+                mensaje = self.queue.get_nowait()
+                if self.terminal_widget:
+                    self.terminal_widget.insert(tk.END, f"{mensaje}\n")
+                    self.terminal_widget.see(tk.END)
+        except queue.Empty:
+            pass
+        except Exception:
+            pass
+
+class StreamRedirector:
+    """Redirigir stdout/stderr al terminal integrado."""
+    
+    def __init__(self, terminal_widget, tipo="STDOUT"):
+        self.terminal_widget = terminal_widget
+        self.tipo = tipo
+        
+    def write(self, mensaje):
+        """Escribir mensaje al terminal."""
+        if mensaje.strip():
+            try:
+                timestamp = datetime.now().strftime("%H:%M:%S")
+                mensaje_formateado = f"[{timestamp}] {self.tipo}: {mensaje}"
+                if self.terminal_widget:
+                    self.terminal_widget.after_idle(
+                        lambda: self._escribir_seguro(mensaje_formateado)
+                    )
+            except Exception:
+                pass
+    
+    def _escribir_seguro(self, mensaje):
+        """Escribir de forma segura en el widget."""
+        try:
+            if self.terminal_widget:
+                self.terminal_widget.insert(tk.END, mensaje)
+                self.terminal_widget.see(tk.END)
+        except Exception:
+            pass
+    
+    def flush(self):
+        """Flush - requerido para interface de stream."""
+        pass
+
 class VistaDashboard(tk.Frame):
-    """Dashboard optimizado para expertos en ciberseguridad."""
+    """Dashboard optimizado para expertos en ciberseguridad con terminal integrado."""
+    
+    # Variable de clase para compartir el terminal entre todas las instancias
+    _terminal_global = None
+    _terminal_widget = None
     
     def __init__(self, parent):
         super().__init__(parent)
@@ -32,6 +105,13 @@ class VistaDashboard(tk.Frame):
         self.logger = logging.getLogger(__name__)
         self.actualizacion_activa = False
         self.shell_detectado = self._detectar_shell()
+        
+        # Variables para el terminal integrado
+        self.terminal_handler = None
+        self.stdout_redirector = None
+        self.stderr_redirector = None
+        self.original_stdout = sys.stdout
+        self.original_stderr = sys.stderr
         
         # Configurar tema y colores
         if BURP_THEME_AVAILABLE and burp_theme:
@@ -64,6 +144,63 @@ class VistaDashboard(tk.Frame):
         
         self.crear_interfaz()
         self.iniciar_actualizacion_metricas()
+        
+    def configurar_logging_integrado(self):
+        """Configurar el sistema de logging integrado después de crear la interfaz."""
+        # Este método se llamará después de crear el terminal_output
+        if hasattr(self, 'terminal_output'):
+            # Configurar handler personalizado para logs
+            self.terminal_handler = TerminalIntegradoHandler(self.terminal_output)
+            self.terminal_handler.setLevel(logging.INFO)
+            
+            # Formato para los logs
+            formatter = logging.Formatter(
+                '[%(asctime)s] %(name)s - %(levelname)s - %(message)s',
+                datefmt='%H:%M:%S'
+            )
+            self.terminal_handler.setFormatter(formatter)
+            
+            # Agregar handler al logger root para capturar todos los logs
+            root_logger = logging.getLogger()
+            root_logger.addHandler(self.terminal_handler)
+            
+            # Redirigir stdout y stderr
+            self.stdout_redirector = StreamRedirector(self.terminal_output, "STDOUT")
+            self.stderr_redirector = StreamRedirector(self.terminal_output, "STDERR")
+            
+            # Mensaje de inicio
+            self.escribir_terminal("🚀 Sistema de logging integrado activado")
+            self.escribir_terminal("📝 Todos los logs de ARESITOS se mostrarán aquí")
+            self.escribir_terminal("="*60)
+    
+    def escribir_terminal(self, mensaje, prefijo="[ARESITOS]"):
+        """Escribir mensaje directo al terminal integrado."""
+        if hasattr(self, 'terminal_output') and self.terminal_output:
+            timestamp = datetime.now().strftime("%H:%M:%S")
+            mensaje_completo = f"[{timestamp}] {prefijo} {mensaje}\n"
+            self.terminal_output.insert(tk.END, mensaje_completo)
+            self.terminal_output.see(tk.END)
+    
+    def activar_captura_logs(self):
+        """Activar captura de todos los logs del sistema."""
+        try:
+            # Redirigir stdout temporalmente para capturar prints
+            sys.stdout = self.stdout_redirector
+            sys.stderr = self.stderr_redirector
+            self.escribir_terminal("✅ Captura de logs activada")
+        except Exception as e:
+            print(f"Error activando captura: {e}")
+    
+    def desactivar_captura_logs(self):
+        """Desactivar captura de logs."""
+        try:
+            sys.stdout = self.original_stdout
+            sys.stderr = self.original_stderr
+            if self.terminal_handler:
+                logging.getLogger().removeHandler(self.terminal_handler)
+            self.escribir_terminal("⏹️ Captura de logs desactivada")
+        except Exception as e:
+            print(f"Error desactivando captura: {e}")
     
     def _detectar_shell(self):
         """Detectar el shell disponible en el sistema."""
@@ -116,17 +253,18 @@ class VistaDashboard(tk.Frame):
         self.notebook = ttk.Notebook(self)
         self.notebook.pack(fill="both", expand=True, padx=10, pady=5)
         
-        # Pestaña de métricas del sistema
-        self.crear_pestana_metricas()
-        
-        # Pestaña de información de red
-        self.crear_pestana_red()
-        
-        # Pestaña de terminal
+        # ORDEN DE PESTAÑAS:
+        # 1. Terminal integrado (PRIMERO)
         self.crear_pestana_terminal()
         
-        # Pestaña de chuletas/cheatsheets
+        # 2. Cheatsheets
         self.crear_pestana_chuletas()
+        
+        # 3. Métricas del sistema
+        self.crear_pestana_metricas()
+        
+        # 4. Información de red (ÚLTIMO)
+        self.crear_pestana_red()
     
     def crear_pestana_metricas(self):
         """Crear pestaña de métricas específicas para ciberseguridad."""
@@ -343,60 +481,88 @@ class VistaDashboard(tk.Frame):
         self.puertos_label.pack(side="right")
     
     def crear_pestana_terminal(self):
-        """Crear pestaña de terminal integrado."""
+        """Crear pestaña de terminal integrado con sistema de logging."""
         terminal_frame = tk.Frame(self.notebook, bg=self.colors['bg_primary'])
-        self.notebook.add(terminal_frame, text=" Terminal")
+        self.notebook.add(terminal_frame, text="🖥️ Terminal ARESITOS")
+        
+        # Frame para controles del terminal
+        controles_frame = tk.LabelFrame(
+            terminal_frame,
+            text="🔧 Controles del Terminal Integrado",
+            bg=self.colors['bg_secondary'],
+            fg=self.colors['fg_primary'],
+            font=("Arial", 12, "bold")
+        )
+        controles_frame.pack(fill="x", padx=10, pady=5)
+        
+        # Frame para botones de control
+        botones_control_frame = tk.Frame(controles_frame, bg=self.colors['bg_secondary'])
+        botones_control_frame.pack(fill="x", pady=5)
+        
+        # Botón para activar/desactivar captura de logs
+        self.btn_toggle_logs = tk.Button(
+            botones_control_frame,
+            text="🔴 ACTIVAR CAPTURA LOGS",
+            command=self.toggle_captura_logs,
+            bg='#ff4444',
+            fg='white',
+            font=("Arial", 10, "bold"),
+            height=2
+        )
+        self.btn_toggle_logs.pack(side="left", padx=5, fill="x", expand=True)
+        
+        # Botón para limpiar terminal
+        btn_limpiar = tk.Button(
+            botones_control_frame,
+            text="🧹 LIMPIAR",
+            command=self.limpiar_terminal,
+            bg='#ffaa00',
+            fg='white',
+            font=("Arial", 10, "bold"),
+            height=2
+        )
+        btn_limpiar.pack(side="left", padx=5, fill="x", expand=True)
+        
+        # Botón para abrir terminal externo
+        btn_terminal_externo = tk.Button(
+            botones_control_frame,
+            text="🖥️ TERMINAL KALI",
+            command=self.abrir_terminal_kali,
+            bg='#00ff00',
+            fg='black',
+            font=("Arial", 10, "bold"),
+            height=2
+        )
+        btn_terminal_externo.pack(side="left", padx=5, fill="x", expand=True)
         
         # Frame para comandos rápidos
         comandos_frame = tk.LabelFrame(
             terminal_frame,
-            text="Terminal y Comandos de Ciberseguridad",
+            text="⚡ Comandos Rápidos de Ciberseguridad",
             bg=self.colors['bg_secondary'],
             fg=self.colors['fg_primary'],
             font=("Arial", 12, "bold")
         )
         comandos_frame.pack(fill="x", padx=10, pady=5)
         
-        # Botón especial para abrir terminal real de Kali
-        terminal_kali_frame = tk.Frame(comandos_frame, bg=self.colors['bg_secondary'])
-        terminal_kali_frame.pack(fill="x", pady=5)
-        
-        btn_terminal_kali = tk.Button(
-            terminal_kali_frame,
-            text=" ABRIR TERMINAL REAL DE KALI LINUX",
-            command=self.abrir_terminal_kali,
-            bg='#00ff00',  # Verde brillante
-            fg='black',
-            font=("Arial", 12, "bold"),
-            height=2,
-            relief='raised',
-            bd=3
-        )
-        btn_terminal_kali.pack(fill="x", padx=5, pady=2)
-        
-        # Separador
-        tk.Label(comandos_frame, text="Comandos Rápidos:", 
-                bg=self.colors['bg_secondary'], fg=self.colors['fg_primary'],
-                font=("Arial", 10, "bold")).pack(anchor="w", padx=5, pady=(10,2))
-        
-        # Frame específico para el grid de botones (soluciona el error de geometría)
+        # Frame específico para el grid de botones
         botones_grid_frame = tk.Frame(comandos_frame, bg=self.colors['bg_secondary'])
         botones_grid_frame.pack(fill="both", expand=True, padx=5, pady=5)
         
         # Botones de comandos rápidos mejorados para Kali
         comandos_rapidos = [
-            ("netstat -tuln", "Conexiones de red"),
-            ("ps aux | head -20", "Procesos activos"),
-            ("ifconfig", "Configuración de red"),
-            ("nmap --version", "Verificar Nmap"),
-            ("df -h", "Espacio en disco"),
-            ("free -h", "Memoria RAM"),
-            ("whoami", "Usuario actual"),
-            ("uname -a", "Info del sistema"),
-            ("ss -tuln", "Sockets de red")
+            ("netstat -tuln", "🌐 Conexiones"),
+            ("ps aux | head -20", "⚙️ Procesos"),
+            ("ifconfig", "🔗 Red"),
+            ("nmap --version", "🔍 Nmap"),
+            ("df -h", "💾 Disco"),
+            ("free -h", "🧠 Memoria"),
+            ("whoami", "👤 Usuario"),
+            ("uname -a", "ℹ️ Sistema"),
+            ("ss -tuln", "🔌 Sockets")
         ]
         
-        # Crear grid de botones en el sub-frame
+        # Crear grid de botones
         for i, (comando, descripcion) in enumerate(comandos_rapidos):
             row = i // 3
             col = i % 3
@@ -420,7 +586,7 @@ class VistaDashboard(tk.Frame):
         entrada_frame = tk.Frame(terminal_frame, bg=self.colors['bg_secondary'])
         entrada_frame.pack(fill="x", padx=10, pady=5)
         
-        tk.Label(entrada_frame, text="Comando:",
+        tk.Label(entrada_frame, text="💻 Comando:",
                 bg=self.colors['bg_secondary'], fg=self.colors['fg_primary'],
                 font=("Arial", 10, "bold")).pack(side="left", padx=(0, 5))
         
@@ -436,7 +602,7 @@ class VistaDashboard(tk.Frame):
         
         ejecutar_btn = tk.Button(
             entrada_frame,
-            text="Ejecutar",
+            text="▶️ Ejecutar",
             command=self.ejecutar_comando_entry,
             bg=self.colors['button_bg'],
             fg=self.colors['button_fg'],
@@ -444,10 +610,10 @@ class VistaDashboard(tk.Frame):
         )
         ejecutar_btn.pack(side="right")
         
-        # Área de salida del terminal
+        # Área de salida del terminal (PRINCIPAL)
         output_frame = tk.LabelFrame(
             terminal_frame,
-            text="Salida del Terminal",
+            text="📺 Terminal ARESITOS - Logs y Comandos en Tiempo Real",
             bg=self.colors['bg_secondary'],
             fg=self.colors['fg_primary'],
             font=("Arial", 12, "bold")
@@ -456,18 +622,95 @@ class VistaDashboard(tk.Frame):
         
         self.terminal_output = scrolledtext.ScrolledText(
             output_frame,
-            bg=self.colors['bg_primary'],
-            fg=self.colors['fg_primary'],
+            bg='#000000',  # Fondo negro como terminal
+            fg='#00ff00',  # Texto verde como terminal
             font=("Consolas", 9),
-            insertbackground=self.colors['fg_primary']
+            insertbackground='#00ff00',
+            selectbackground='#333333'
         )
         self.terminal_output.pack(fill="both", expand=True, padx=5, pady=5)
         
+        # REGISTRAR TERMINAL GLOBAL PARA TODAS LAS VISTAS
+        VistaDashboard._terminal_widget = self.terminal_output
+        
+        # Variable para controlar captura de logs
+        self.captura_logs_activa = False
+        
         # Mensaje inicial
-        self.terminal_output.insert(tk.END, f"Terminal iniciado - {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}\n")
-        self.terminal_output.insert(tk.END, f"Sistema: {platform.system()} {platform.release()}\n")
-        self.terminal_output.insert(tk.END, f"Shell detectado: {self.shell_detectado}\n")
-        self.terminal_output.insert(tk.END, "="*50 + "\n\n")
+        self.terminal_output.insert(tk.END, "="*80 + "\n")
+        self.terminal_output.insert(tk.END, "🚀 ARES AEGIS - TERMINAL INTEGRADO\n")
+        self.terminal_output.insert(tk.END, f"⏰ Iniciado: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}\n")
+        self.terminal_output.insert(tk.END, f"💻 Sistema: {platform.system()} {platform.release()}\n")
+        self.terminal_output.insert(tk.END, f"🔧 Shell: {self.shell_detectado}\n")
+        self.terminal_output.insert(tk.END, "="*80 + "\n")
+        self.terminal_output.insert(tk.END, "📝 Presiona 'ACTIVAR CAPTURA LOGS' para ver logs de ARESITOS aquí\n")
+        self.terminal_output.insert(tk.END, "💡 Usa los comandos rápidos o escribe comandos personalizados\n\n")
+        
+        # Configurar logging integrado ahora que el widget existe
+        self.configurar_logging_integrado()
+    
+    def toggle_captura_logs(self):
+        """Alternar captura de logs."""
+        if not self.captura_logs_activa:
+            self.activar_captura_logs()
+            self.captura_logs_activa = True
+            self.btn_toggle_logs.config(
+                text="🟢 CAPTURA ACTIVA",
+                bg='#00aa00'
+            )
+            self.escribir_terminal("🔴 CAPTURA DE LOGS ACTIVADA", "[SISTEMA]")
+        else:
+            self.desactivar_captura_logs()
+            self.captura_logs_activa = False
+            self.btn_toggle_logs.config(
+                text="🔴 ACTIVAR CAPTURA LOGS", 
+                bg='#ff4444'
+            )
+            self.escribir_terminal("🟢 CAPTURA DE LOGS DESACTIVADA", "[SISTEMA]")
+    
+    def limpiar_terminal(self):
+        """Limpiar el contenido del terminal."""
+        if hasattr(self, 'terminal_output'):
+            self.terminal_output.delete(1.0, tk.END)
+            # Mensaje de limpieza
+            self.terminal_output.insert(tk.END, "="*80 + "\n")
+            self.terminal_output.insert(tk.END, "🧹 TERMINAL LIMPIADO\n")
+            self.terminal_output.insert(tk.END, f"⏰ {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}\n")
+            self.terminal_output.insert(tk.END, "="*80 + "\n\n")
+    
+    def obtener_terminal_integrado(self):
+        """Obtener referencia al terminal integrado global."""
+        return VistaDashboard._terminal_widget
+    
+    @classmethod
+    def obtener_terminal_global(cls):
+        """Método de clase para obtener el terminal desde cualquier lugar."""
+        return cls._terminal_widget
+    
+    @classmethod
+    def log_actividad_global(cls, mensaje, modulo="ARESITOS", nivel="INFO"):
+        """Método de clase para registrar actividad desde cualquier vista."""
+        if cls._terminal_widget:
+            timestamp = datetime.now().strftime("%H:%M:%S")
+            emoji_map = {
+                "INFO": "ℹ️",
+                "SUCCESS": "✅", 
+                "WARNING": "⚠️",
+                "ERROR": "❌",
+                "DEBUG": "🔍"
+            }
+            emoji = emoji_map.get(nivel, "📝")
+            mensaje_completo = f"[{timestamp}] {emoji} [{modulo}] {mensaje}\n"
+            try:
+                cls._terminal_widget.insert(tk.END, mensaje_completo)
+                cls._terminal_widget.see(tk.END)
+            except:
+                pass  # Si hay error, no bloquear la operación
+    
+    def log_actividad(self, mensaje, modulo="ARESITOS", nivel="INFO"):
+        """Método público para que otras vistas registren actividad."""
+        # Usar el método de clase para consistencia
+        VistaDashboard.log_actividad_global(mensaje, modulo, nivel)
     
     def ejecutar_comando_rapido(self, comando):
         """Ejecutar un comando rápido."""
@@ -1496,123 +1739,113 @@ journalctl -u ssh                # Logs de servicio específico
     
     def abrir_terminal_kali(self):
         """Abrir terminal real de Kali Linux con configuración optimizada."""
+        import subprocess
+        import platform
+        import os
+        import shutil
+        
+        print("🖥️ Intentando abrir terminal de Kali Linux...")
+        
         try:
-            import subprocess
-            import platform
-            import os
-            
-            print("Intentando abrir terminal de Kali Linux...")
-            
             if platform.system() == "Linux":
-                # Intentar detectar entorno de escritorio y terminal disponible
-                terminals_kali = [
-                    "qterminal",       # QTerminal (KDE/Kali)
-                    "gnome-terminal",  # GNOME Terminal
-                    "konsole",         # KDE Konsole  
-                    "xfce4-terminal",  # XFCE Terminal
-                    "mate-terminal",   # MATE Terminal
-                    "lxterminal",      # LXDE Terminal
-                    "terminator",      # Terminator
+                # Lista de terminales disponibles en Kali Linux (orden de preferencia)
+                terminales_kali = [
+                    "qterminal",        # QTerminal (predeterminado en Kali)
+                    "gnome-terminal",   # GNOME Terminal
+                    "konsole",          # KDE Konsole
+                    "xfce4-terminal",   # XFCE Terminal
+                    "mate-terminal",    # MATE Terminal
+                    "terminator",       # Terminator
                     "tilix",           # Tilix
-                    "x-terminal-emulator", # Debian alternatives
-                    "xterm"            # Básico X Terminal
+                    "lxterminal",      # LXDE Terminal
+                    "alacritty",       # Alacritty moderno
+                    "kitty",           # Kitty moderno
+                    "x-terminal-emulator", # Alternativa Debian
+                    "xterm"            # Básico siempre disponible
                 ]
                 
-                terminal_cmd = None
-                for terminal in terminals_kali:
-                    try:
-                        # Verificar si el terminal está disponible
-                        resultado = subprocess.run(
-                            ["which", terminal], 
-                            capture_output=True, 
-                            text=True
-                        )
-                        if resultado.returncode == 0:
-                            terminal_cmd = terminal
-                            break
-                    except (subprocess.TimeoutExpired, subprocess.CalledProcessError, FileNotFoundError):
-                        continue
+                # Buscar primer terminal disponible
+                terminal_encontrado = None
+                for terminal in terminales_kali:
+                    if shutil.which(terminal):
+                        terminal_encontrado = terminal
+                        print(f"🔍 Terminal encontrado: {terminal}")
+                        break
                 
-                if terminal_cmd:
-                    # Configurar comando según el terminal disponible
-                    if terminal_cmd in ["gnome-terminal", "mate-terminal"]:
-                        cmd = [terminal_cmd, "--title=ARESITOS Kali Terminal", "--"]
-                    elif terminal_cmd in ["konsole", "qterminal"]:
-                        cmd = [terminal_cmd, "-T", "ARESITOS Kali Terminal"]
-                    elif terminal_cmd in ["xfce4-terminal", "lxterminal"]:
-                        cmd = [terminal_cmd, "--title=ARESITOS Kali Terminal"]
-                    elif terminal_cmd == "terminator":
-                        cmd = [terminal_cmd, "--title=ARESITOS Kali Terminal"]
-                    elif terminal_cmd == "tilix":
-                        cmd = [terminal_cmd, "--title=ARESITOS Kali Terminal"]
+                if terminal_encontrado:
+                    # Construir comando según el terminal
+                    if terminal_encontrado == "gnome-terminal":
+                        cmd = ["gnome-terminal", "--title=ARESITOS Kali Terminal"]
+                    elif terminal_encontrado == "qterminal":
+                        cmd = ["qterminal", "-e", "/bin/bash"]
+                    elif terminal_encontrado == "konsole":
+                        cmd = ["konsole", "--title", "ARESITOS Kali Terminal"]
+                    elif terminal_encontrado == "xfce4-terminal":
+                        cmd = ["xfce4-terminal", "--title=ARESITOS Kali Terminal"]
+                    elif terminal_encontrado == "xterm":
+                        cmd = ["xterm", "-title", "ARESITOS Kali Terminal", "-bg", "black", "-fg", "green"]
                     else:
-                        cmd = [terminal_cmd]
+                        # Para otros terminales, comando básico
+                        cmd = [terminal_encontrado]
                     
-                    # Ejecutar terminal en background
-                    if os.name == 'posix':  # Unix/Linux/macOS
-                        subprocess.Popen(
-                            cmd,
-                            stdout=subprocess.DEVNULL,
-                            stderr=subprocess.DEVNULL,
-                            preexec_fn=os.setsid
-                        )
-                    else:  # Windows
-                        subprocess.Popen(
-                            cmd,
-                            stdout=subprocess.DEVNULL,
-                            stderr=subprocess.DEVNULL,
-                            creationflags=subprocess.CREATE_NEW_PROCESS_GROUP
-                        )
+                    # Ejecutar terminal
+                    proceso = subprocess.Popen(
+                        cmd,
+                        stdout=subprocess.DEVNULL,
+                        stderr=subprocess.DEVNULL,
+                        preexec_fn=getattr(os, 'setsid', None)  # Solo si existe setsid
+                    )
                     
-                    print(f"OK Terminal {terminal_cmd} abierto exitosamente")
-                    self.mostrar_notificacion(f"Terminal {terminal_cmd} iniciado", "info")
+                    print(f"✅ Terminal {terminal_encontrado} abierto (PID: {proceso.pid})")
+                    self.mostrar_notificacion(f"Terminal {terminal_encontrado} iniciado", "success")
+                    return True
                     
                 else:
-                    # Fallback: intentar xterm básico
-                    subprocess.Popen(
-                        ["xterm", "-title", "ARESITOS Kali Terminal"],
-                        stdout=subprocess.DEVNULL,
-                        stderr=subprocess.DEVNULL
-                    )
-                    print("OK Terminal xterm abierto como fallback")
-                    self.mostrar_notificacion("Terminal xterm iniciado", "info")
+                    print("❌ No se encontró ningún terminal disponible")
+                    self.mostrar_notificacion("No hay terminal disponible", "error")
+                    return False
                     
             elif platform.system() == "Windows":
-                # En Windows, abrir WSL o PowerShell con mensaje
-                try:
-                    # Intentar WSL primero (para Kali en WSL)
-                    subprocess.Popen(
-                        ["wsl", "-d", "kali-linux"],
-                        shell=True,
-                        stdout=subprocess.DEVNULL,
-                        stderr=subprocess.DEVNULL
-                    )
-                    print("OK WSL Kali Linux abierto")
-                    self.mostrar_notificacion("WSL Kali Linux iniciado", "info")
-                except (subprocess.TimeoutExpired, subprocess.CalledProcessError, FileNotFoundError):
-                    # Fallback a PowerShell
-                    subprocess.Popen(
-                        ["powershell", "-WindowStyle", "Normal"],
-                        shell=True,
-                        stdout=subprocess.DEVNULL,
-                        stderr=subprocess.DEVNULL
-                    )
-                    print("OK PowerShell abierto (Kali no detectado en WSL)")
-                    self.mostrar_notificacion("PowerShell iniciado - Kali no detectado", "warning")
-                    
-            else:
-                # macOS u otro sistema
-                subprocess.Popen(
-                    ["open", "-a", "Terminal"],
-                    stdout=subprocess.DEVNULL,
-                    stderr=subprocess.DEVNULL
-                )
-                print("OK Terminal del sistema abierto")
-                self.mostrar_notificacion("Terminal del sistema iniciado", "info")
+                # En Windows, intentar WSL con Kali o alternativas
+                opciones = [
+                    (["wsl", "-d", "kali-linux"], "WSL Kali Linux"),
+                    (["wsl", "-d", "Ubuntu"], "WSL Ubuntu"),  
+                    (["wsl"], "WSL por defecto"),
+                    (["wt", "wsl", "-d", "kali-linux"], "Windows Terminal con Kali"),
+                    (["wt"], "Windows Terminal"),
+                    (["powershell"], "PowerShell"),
+                    (["cmd"], "Command Prompt")
+                ]
                 
+                for cmd, nombre in opciones:
+                    try:
+                        subprocess.Popen(cmd, shell=True)
+                        print(f"✅ {nombre} abierto exitosamente")
+                        self.mostrar_notificacion(f"{nombre} iniciado", "success")
+                        return True
+                    except:
+                        continue
+                
+                print("❌ No se pudo abrir ningún terminal en Windows")
+                self.mostrar_notificacion("No hay terminal disponible", "error")
+                return False
+                
+            else:
+                # macOS u otros sistemas
+                try:
+                    subprocess.Popen(["open", "-a", "Terminal"])
+                    print("✅ Terminal de macOS abierto")
+                    self.mostrar_notificacion("Terminal iniciado", "success")
+                    return True
+                except:
+                    print(f"❌ Sistema {platform.system()} no soportado")
+                    self.mostrar_notificacion("SO no soportado", "error")
+                    return False
+                    
         except Exception as e:
-            print(f"ERROR Error abriendo terminal: {e}")
-            self.mostrar_notificacion(f"Error: {str(e)}", "error")
+            print(f"❌ Error abriendo terminal: {e}")
+            self.mostrar_notificacion("Error abriendo terminal", "error")
+            return False
     
     def mostrar_notificacion(self, mensaje, tipo="info"):
         """Mostrar notificación temporal en la interfaz."""

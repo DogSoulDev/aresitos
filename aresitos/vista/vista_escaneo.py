@@ -3,6 +3,7 @@
 import tkinter as tk
 from tkinter import ttk, scrolledtext, messagebox
 import logging
+import threading
 
 try:
     from aresitos.vista.burp_theme import burp_theme
@@ -18,6 +19,7 @@ class VistaEscaneo(tk.Frame):
         self.controlador = None
         self.proceso_activo = False
         self.thread_escaneo = None
+        self.vista_principal = parent  # Referencia al padre para acceder al terminal
         
         # Configurar logging
         self.logger = logging.getLogger(__name__)
@@ -141,69 +143,124 @@ class VistaEscaneo(tk.Frame):
         self.text_resultados.pack(fill="both", expand=True)
     
     def ejecutar_escaneo(self):
-        if not self.controlador:
-            messagebox.showwarning("Advertencia", 
-                                 "El controlador de escaneo no está configurado.\n"
-                                 "Por favor, reinicie la aplicación.")
-            return
-        
+        """Ejecutar escaneo del sistema."""
         if self.proceso_activo:
-            messagebox.showwarning("Advertencia", "Ya hay un escaneo en curso.")
             return
             
+        if not self.controlador:
+            messagebox.showerror("Error", "No hay controlador de escaneo configurado")
+            return
+        
+        # Limpiar resultados anteriores
+        self.text_resultados.delete(1.0, tk.END)
+        self.text_resultados.insert(tk.END, "Iniciando escaneo...\n\n")
+        
+        # Log al terminal integrado
+        self._log_terminal("🚀 Iniciando escaneo del sistema", "ESCANEADOR", "INFO")
+        
+        # Configurar UI para escaneo
         self.proceso_activo = True
         self.btn_escanear.config(state="disabled")
         self.btn_cancelar_escaneo.config(state="normal")
         
-        self.text_resultados.delete(1.0, tk.END)
-        self.text_resultados.insert(tk.END, " Iniciando escaneo...\n\n")
-        
         # Ejecutar escaneo en thread separado
-        import threading
         self.thread_escaneo = threading.Thread(target=self._ejecutar_escaneo_async)
         self.thread_escaneo.daemon = True
         self.thread_escaneo.start()
     
-    def _ejecutar_escaneo_async(self):
-        """Ejecutar escaneo en thread separado."""
+    def _log_terminal(self, mensaje, modulo="ESCANEADOR", nivel="INFO"):
+        """Registrar mensaje en el terminal integrado global."""
         try:
+            # Usar el terminal global de VistaDashboard
+            from aresitos.vista.vista_dashboard import VistaDashboard
+            VistaDashboard.log_actividad_global(mensaje, modulo, nivel)
+            
+        except Exception as e:
+            # Fallback a consola si hay problemas
+            print(f"[{modulo}] {mensaje}")
+            print(f"Error logging a terminal: {e}")
+    
+    def _ejecutar_escaneo_async(self):
+        """Ejecutar escaneo de forma asíncrona."""
+        try:
+            if not self.proceso_activo:
+                return
+            
             # Verificar que el controlador esté configurado
             if not self.controlador:
+                self._log_terminal("❌ Error: Controlador no configurado", "ESCANEADOR", "ERROR")
                 self.after(0, self._mostrar_error_escaneo, "Controlador de escaneo no configurado")
                 return
             
-            # KALI FIX: Usar objetivo localhost por defecto para escaneo básico
-            objetivo = "127.0.0.1"  # Usar IP directa para evitar problemas DNS
-            resultados = self.controlador.ejecutar_escaneo_basico(objetivo)
+            self._log_terminal("🔍 Verificando herramientas de escaneo", "ESCANEADOR", "INFO")
             
-            if not self.proceso_activo:  # Verificar si fue cancelado
+            # Verificar si el método existe
+            if not hasattr(self.controlador, 'ejecutar_escaneo_basico'):
+                self._log_terminal("❌ Error: Método de escaneo no disponible", "ESCANEADOR", "ERROR")
+                self.after(0, self._mostrar_error_escaneo, "Método de escaneo básico no disponible en el controlador")
                 return
+            
+            # Obtener resultados del escaneo
+            resultados = self.controlador.ejecutar_escaneo_basico("127.0.0.1")
+            
+            if not self.proceso_activo:
+                return
+            
+            self._log_terminal("✅ Escaneo completado exitosamente", "ESCANEADOR", "SUCCESS")
             
             # Actualizar UI en el hilo principal
             self.after(0, self._mostrar_resultados_escaneo, resultados)
             
         except Exception as e:
             if self.proceso_activo:  # Solo mostrar error si no fue cancelado
+                self._log_terminal(f"❌ Error durante el escaneo: {str(e)}", "ESCANEADOR", "ERROR")
                 self.after(0, self._mostrar_error_escaneo, str(e))
         finally:
             self.after(0, self._finalizar_escaneo)
     
     def _mostrar_resultados_escaneo(self, resultados):
-        """Mostrar resultados en la UI."""
+        """Mostrar resultados en la UI y en el terminal integrado."""
         if not self.proceso_activo:
             return
-            
+        
+        # Log detallado en el terminal integrado
+        self._log_terminal("📊 Mostrando resultados del escaneo", "ESCANEADOR", "INFO")
+        
+        # Mostrar en la UI tradicional
         self.text_resultados.insert(tk.END, "=== PUERTOS ===\n")
-        for linea in resultados.get('puertos', []):
+        puertos_encontrados = resultados.get('puertos', [])
+        for linea in puertos_encontrados:
             self.text_resultados.insert(tk.END, f"{linea}\n")
+        
+        # Log de puertos al terminal integrado
+        if puertos_encontrados:
+            self._log_terminal(f"🔌 Encontrados {len(puertos_encontrados)} puertos", "ESCANEADOR", "SUCCESS")
+            for puerto in puertos_encontrados[:3]:  # Mostrar solo los primeros 3
+                self._log_terminal(f"  └─ {puerto}", "ESCANEADOR", "INFO")
+        else:
+            self._log_terminal("🔌 No se encontraron puertos activos", "ESCANEADOR", "INFO")
         
         self.text_resultados.insert(tk.END, "\n=== PROCESOS ===\n")
-        for linea in resultados.get('procesos', [])[:10]:  # Mostrar solo 10
+        procesos_encontrados = resultados.get('procesos', [])[:10]  # Mostrar solo 10
+        for linea in procesos_encontrados:
             self.text_resultados.insert(tk.END, f"{linea}\n")
+            
+        # Log de procesos al terminal integrado
+        if procesos_encontrados:
+            self._log_terminal(f"⚙️ Encontrados {len(procesos_encontrados)} procesos", "ESCANEADOR", "SUCCESS")
         
         self.text_resultados.insert(tk.END, "\n=== ANÁLISIS ===\n")
-        for linea in resultados.get('análisis', []):
+        analisis = resultados.get('análisis', [])
+        for linea in analisis:
             self.text_resultados.insert(tk.END, f"{linea}\n")
+            
+        # Log de análisis al terminal integrado
+        if analisis:
+            self._log_terminal(f"🔍 Análisis completado: {len(analisis)} elementos", "ESCANEADOR", "SUCCESS")
+            
+        # Resumen final en terminal integrado
+        total_elementos = len(puertos_encontrados) + len(procesos_encontrados) + len(analisis)
+        self._log_terminal(f"✅ Escaneo finalizado: {total_elementos} elementos analizados", "ESCANEADOR", "SUCCESS")
     
     def _mostrar_error_escaneo(self, error):
         """Mostrar error en la UI."""

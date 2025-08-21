@@ -324,9 +324,9 @@ class VistaHerramientasKali(tk.Frame):
                 'hashcat', 'john', 'hydra', 'medusa', 'patator',
                 # Análisis SQL
                 'sqlmap', 'sqlninja',
-                # Cuarentena y malware
+                # Cuarentena y malware (paquetes APT disponibles)
                 'clamav', 'clamav-daemon', 'yara', 'binwalk', 'exiftool',
-                'volatility3', 'foremost', 'sleuthkit',
+                'foremost', 'sleuthkit',
                 # FIM y monitoreo sistema
                 'inotify-tools', 'chkrootkit', 'rkhunter', 'auditd',
                 # SIEM y auditoría
@@ -335,6 +335,7 @@ class VistaHerramientasKali(tk.Frame):
             
             # Herramientas que requieren instalación manual (se informará al usuario):
             herramientas_manuales = [
+                'volatility3: pip3 install volatility3',
                 'rustscan: cargo install rustscan',
                 'httpx: go install github.com/projectdiscovery/httpx/cmd/httpx@latest',
                 'nuclei: go install github.com/projectdiscovery/nuclei/v2/cmd/nuclei@latest',
@@ -352,22 +353,48 @@ class VistaHerramientasKali(tk.Frame):
             else:
                 self.after(0, self._actualizar_texto, f"✗ Error actualizando repositorios: {result.stderr}\n\n")
             
-            # Instalar paquetes
+            # Instalar paquetes uno por uno para mejor control de errores
             self.after(0, self._actualizar_texto, "Instalando herramientas...\n")
-            cmd = ['sudo', 'apt', 'install', '-y'] + paquetes
             
-            process = subprocess.Popen(cmd, stdout=subprocess.PIPE, 
-                                     stderr=subprocess.STDOUT, text=True)
+            paquetes_exitosos = []
+            paquetes_fallidos = []
             
-            # Leer salida en tiempo real
-            if process.stdout:
-                for line in iter(process.stdout.readline, ''):
-                    if line.strip():
-                        self.after(0, self._actualizar_texto, line)
+            for paquete in paquetes:
+                try:
+                    self.after(0, self._actualizar_texto, f"Instalando {paquete}...\n")
+                    
+                    cmd = ['sudo', 'apt', 'install', '-y', paquete]
+                    result = subprocess.run(cmd, capture_output=True, text=True, timeout=120)
+                    
+                    if result.returncode == 0:
+                        paquetes_exitosos.append(paquete)
+                        self.after(0, self._actualizar_texto, f"✓ {paquete} instalado correctamente\n")
+                    else:
+                        paquetes_fallidos.append(paquete)
+                        self.after(0, self._actualizar_texto, f"✗ Error instalando {paquete}: {result.stderr[:100]}...\n")
+                        
+                except subprocess.TimeoutExpired:
+                    paquetes_fallidos.append(paquete)
+                    self.after(0, self._actualizar_texto, f"✗ Timeout instalando {paquete}\n")
+                except Exception as e:
+                    paquetes_fallidos.append(paquete)
+                    self.after(0, self._actualizar_texto, f"✗ Error instalando {paquete}: {str(e)[:100]}...\n")
             
-            process.wait()
+            # Mostrar resumen
+            self.after(0, self._actualizar_texto, f"\n{'='*50}\n")
+            self.after(0, self._actualizar_texto, f"RESUMEN DE INSTALACIÓN\n")
+            self.after(0, self._actualizar_texto, f"{'='*50}\n")
+            self.after(0, self._actualizar_texto, f"✓ Instalados correctamente: {len(paquetes_exitosos)}\n")
+            self.after(0, self._actualizar_texto, f"✗ Errores de instalación: {len(paquetes_fallidos)}\n\n")
             
-            if process.returncode == 0:
+            if paquetes_fallidos:
+                self.after(0, self._actualizar_texto, "PAQUETES CON ERRORES:\n")
+                for paquete in paquetes_fallidos:
+                    self.after(0, self._actualizar_texto, f"  • {paquete}\n")
+                self.after(0, self._actualizar_texto, "\nEstos paquetes pueden no estar disponibles en este sistema.\n")
+            
+            # Considerar exitoso si al menos el 70% se instaló
+            if len(paquetes_exitosos) >= len(paquetes) * 0.7:
                 self.after(0, self._actualizar_texto, "\n✓ Instalación completada exitosamente\n")
                 
                 # Mostrar información sobre herramientas de instalación manual
@@ -381,7 +408,8 @@ class VistaHerramientasKali(tk.Frame):
                 
                 self.after(0, self._habilitar_continuar)
             else:
-                self.after(0, self._actualizar_texto, "\n✗ Error durante la instalación\n")
+                self.after(0, self._actualizar_texto, f"\n✗ Instalación con muchos errores ({len(paquetes_fallidos)}/{len(paquetes)} fallaron)\n")
+                self.after(0, self._actualizar_texto, "Recomendación: Verificar conexión y repositorios\n")
                 
         except subprocess.TimeoutExpired:
             self.after(0, self._actualizar_texto, "\n✗ Timeout durante la instalación\n")

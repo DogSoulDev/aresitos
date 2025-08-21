@@ -232,14 +232,18 @@ class VistaMonitoreo(tk.Frame):
         if not self.controlador:
             return
             
+        self._log_terminal("🚀 Iniciando monitoreo del sistema", "MONITOREO", "INFO")
+        
         if self.controlador.iniciar_monitoreo():
             self.monitor_activo = True
             self.btn_iniciar_monitor.config(state="disabled")
             self.btn_detener_monitor.config(state="normal")
             self.label_estado.config(text="Estado: Activo")
             self.text_monitor.insert(tk.END, "Monitoreo iniciado...\n")
+            self._log_terminal("✅ Monitoreo iniciado exitosamente", "MONITOREO", "SUCCESS")
             self.after(2000, self.actualizar_monitoreo)  # Actualizar cada 2 segundos
         else:
+            self._log_terminal("❌ Error iniciando monitoreo", "MONITOREO", "ERROR")
             messagebox.showerror("Error", "Monitor init failed")
     
     def detener_monitoreo(self):
@@ -439,6 +443,18 @@ class VistaMonitoreo(tk.Frame):
     
     def actualizar_estado(self):
         pass
+    
+    def _log_terminal(self, mensaje, modulo="MONITOREO", nivel="INFO"):
+        """Registrar mensaje en el terminal integrado global."""
+        try:
+            # Usar el terminal global de VistaDashboard
+            from aresitos.vista.vista_dashboard import VistaDashboard
+            VistaDashboard.log_actividad_global(mensaje, modulo, nivel)
+            
+        except Exception as e:
+            # Fallback a consola si hay problemas
+            print(f"[{modulo}] {mensaje}")
+            print(f"Error logging a terminal: {e}")
 
 
 # RESUMEN: Sistema de monitoreo de red y procesos usando herramientas nativas.
