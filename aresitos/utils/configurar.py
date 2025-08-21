@@ -44,7 +44,7 @@ class ConfiguradorAresAegis:
     
     def verificar_python(self):
         """Verificar instalación de Python"""
-        print("� Verificando Python...")
+        print(" Verificando Python...")
         
         version = sys.version_info
         if version.major < 3 or (version.major == 3 and version.minor < 6):
@@ -95,7 +95,7 @@ class ConfiguradorAresAegis:
                 return False
                 
         except Exception as e:
-            print(f"ERROR Error verificando permisos: {e}")
+            print(f"ERROR verificando permisos: {e}")
             return False
     
     def instalar_dependencias_python(self):
@@ -182,7 +182,7 @@ class ConfiguradorAresAegis:
                 ruta.mkdir(parents=True, exist_ok=True)
                 print(f"OK {directorio}")
             except Exception as e:
-                print(f"ERROR Error creando {directorio}: {e}")
+                print(f"ERROR creando {directorio}: {e}")
     
     def configurar_permisos_archivos(self):
         """Configurar permisos de archivos"""
@@ -207,7 +207,7 @@ class ConfiguradorAresAegis:
                     os.chmod(ruta, 0o755)
                     print(f"OK {archivo} (755)")
                 except Exception as e:
-                    print(f"ERROR Error en {archivo}: {e}")
+                    print(f"ERROR en {archivo}: {e}")
         
         return True
     
@@ -236,7 +236,7 @@ python3 login_gui.py "$@"
             else:
                 print("WARNING Sin permisos para crear alias global")
         except Exception as e:
-            print(f"ERROR Error creando alias: {e}")
+            print(f"ERROR creando alias: {e}")
         
         return True
     
@@ -259,7 +259,7 @@ python3 login_gui.py "$@"
             print(f"ERROR Timeout ejecutando: {' '.join(comando)}")
             return False
         except Exception as e:
-            print(f"ERROR Error ejecutando comando: {e}")
+            print(f"ERROR ejecutando comando: {e}")
             return False
     
     def verificar_configuracion(self):
@@ -315,7 +315,7 @@ python3 login_gui.py "$@"
                 else:
                     print(f"WARNING {nombre} con advertencias")
             except Exception as e:
-                print(f"ERROR Error en {nombre}: {e}")
+                print(f"ERROR en {nombre}: {e}")
         
         print("\n" + "=" * 50)
         print(" RESUMEN DE CONFIGURACIÓN")
@@ -341,10 +341,10 @@ def main():
         sys.exit(0 if resultado else 1)
         
     except KeyboardInterrupt:
-        print("\n\n� Configuración cancelada por el usuario")
+        print("\n\n Configuración cancelada por el usuario")
         sys.exit(1)
     except Exception as e:
-        print(f"\nERROR Error crítico en configuración: {e}")
+        print(f"\nERROR crítico en configuración: {e}")
         sys.exit(1)
 
 if __name__ == "__main__":

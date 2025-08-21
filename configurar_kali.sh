@@ -42,7 +42,7 @@ print_success() {
 }
 
 print_warning() {
-    echo -e "${YELLOW}[⚠]${NC} $1"
+    echo -e "${YELLOW}[WARN]${NC} $1"
 }
 
 print_error() {
@@ -90,94 +90,144 @@ update_repositories() {
 
 # Instalar herramientas necesarias
 install_tools() {
-    print_header "🛠️ Instalando herramientas de ciberseguridad ARESITOS v2.0..."
+    print_header "HERRAMIENTAS Instalando herramientas de ciberseguridad ARESITOS v2.0..."
     
-    # Lista completa de herramientas necesarias para ARESITOS v2.0
-    TOOLS=(
-        # Herramientas básicas del sistema
+    # Lista de herramientas ESENCIALES verificadas para Kali Linux 2025
+    ESSENTIAL_TOOLS=(
+        # Python y herramientas básicas (CRÍTICAS)
         "python3-dev"
-        "python3-pip"
+        "python3-venv"
         "python3-tk"
         "curl"
         "wget"
         "git"
         
-        # Herramientas de red y monitoreo (MODERNAS)
+        # Herramientas de red BÁSICAS que siempre funcionan
         "nmap"
-        "rustscan"
-        "masscan"
-        "netstat-nat"
         "net-tools"
         "tcpdump"
         "iftop"
-        "nethogs"
-        "ss"
+        "netcat-openbsd"
         
-        # Herramientas de escaneo web (ACTUALIZADAS)
+        # Utilidades del sistema ESTABLES
+        "htop"
+        "lsof"
+        "psmisc"
+        "iproute2"
+    )
+    
+    # Lista de herramientas OPCIONALES (si fallan, no es crítico)
+    OPTIONAL_TOOLS=(
+        "rustscan"
+        "masscan" 
+        "gobuster"
         "nikto"
-        "gobuster" 
-        "feroxbuster"
-        "httpx-toolkit"
         "whatweb"
-        
-        # Herramientas de seguridad y análisis (SIMPLIFICADAS)
         "lynis"
         "chkrootkit"
-        
-        # Herramientas de análisis forense (ESENCIALES)
         "foremost"
         "binwalk"
         "exiftool"
-        
-        # Utilidades del sistema
-        "htop"
-        "lsof"
-        "strace"
-        "ltrace"
-        "psmisc"
+        "feroxbuster"
+        "httpx-toolkit"
     )
     
     print_info "Actualizando lista de paquetes..."
     apt update -qq
     
-    for tool in "${TOOLS[@]}"; do
-        print_info "Verificando $tool..."
+    # Instalar herramientas ESENCIALES (críticas para funcionamiento)
+    print_header "📦 Instalando herramientas ESENCIALES..."
+    FAILED_ESSENTIAL=()
+    
+    for tool in "${ESSENTIAL_TOOLS[@]}"; do
+        print_info "Instalando herramienta CRÍTICA: $tool..."
         
         if dpkg -l | grep -q "^ii  $tool "; then
             print_success "$tool ya está instalado"
         else
-            print_info "Instalando $tool..."
             DEBIAN_FRONTEND=noninteractive apt install -y "$tool" >/dev/null 2>&1
             
             if [[ $? -eq 0 ]]; then
                 print_success "$tool instalado correctamente"
             else
-                print_error "Error instalando $tool"
+                print_error "FALLO CRÍTICO: Error instalando $tool"
+                FAILED_ESSENTIAL+=("$tool")
             fi
         fi
     done
     
-    # Instalar nuclei manualmente si no está disponible
-    print_info "Verificando nuclei..."
-    if ! command -v nuclei >/dev/null 2>&1; then
-        print_info "Instalando nuclei desde GitHub..."
-        go install -v github.com/projectdiscovery/nuclei/v2/cmd/nuclei@latest >/dev/null 2>&1 || {
-            print_warning "No se pudo instalar nuclei (requiere Go)"
-        }
+    # Instalar herramientas OPCIONALES (si fallan, continuar)
+    print_header "INSTALANDO herramientas OPCIONALES..."
+    FAILED_OPTIONAL=()
+    
+    for tool in "${OPTIONAL_TOOLS[@]}"; do
+        print_info "Instalando herramienta opcional: $tool..."
+        
+        if dpkg -l | grep -q "^ii  $tool "; then
+            print_success "$tool ya está instalado"
+        else
+            DEBIAN_FRONTEND=noninteractive apt install -y "$tool" >/dev/null 2>&1
+            
+            if [[ $? -eq 0 ]]; then
+                print_success "$tool instalado correctamente"
+            else
+                print_warning "No se pudo instalar $tool (continuando...)"
+                FAILED_OPTIONAL+=("$tool")
+            fi
+        fi
+    done
+    
+    # Instalar iproute2 específicamente para 'ss' command
+    print_info "Verificando comando 'ss' (reemplaza netstat)..."
+    if ! command -v ss >/dev/null 2>&1; then
+        print_info "Instalando iproute2 para comando 'ss'..."
+        DEBIAN_FRONTEND=noninteractive apt install -y iproute2 >/dev/null 2>&1
+        
+        if command -v ss >/dev/null 2>&1; then
+            print_success "Comando 'ss' disponible"
+        else
+            print_warning "No se pudo instalar 'ss', usando 'netstat' como alternativa"
+        fi
     else
-        print_success "nuclei ya está instalado"
+        print_success "Comando 'ss' ya disponible"
     fi
     
-    # Actualizar base de datos de ClamAV
-    print_info "Actualizando base de datos de ClamAV..."
-    sudo -u clamav freshclam >/dev/null 2>&1 || {
-        print_warning "Error actualizando ClamAV (continuando)"
+    # Verificar herramientas alternativas para rustscan
+    if [[ " ${FAILED_OPTIONAL[@]} " =~ " rustscan " ]]; then
+        print_info "rustscan no disponible, verificando nmap como alternativa..."
+        if command -v nmap >/dev/null 2>&1; then
+            print_success "nmap disponible como alternativa a rustscan"
+        else
+            print_warning "Ni rustscan ni nmap están disponibles para escaneo de puertos"
+        fi
+    fi
+    
+    # Reporte final
+    echo
+    print_header "REPORTE DE INSTALACIÓN"
+    
+    if [[ ${#FAILED_ESSENTIAL[@]} -eq 0 ]]; then
+        print_success "Todas las herramientas ESENCIALES instaladas correctamente"
+    else
+        print_error "HERRAMIENTAS CRÍTICAS FALLIDAS: ${FAILED_ESSENTIAL[*]}"
+        print_warning "ARESITOS puede no funcionar correctamente sin estas herramientas"
+    fi
+    
+    if [[ ${#FAILED_OPTIONAL[@]} -gt 0 ]]; then
+        print_warning "Herramientas opcionales no instaladas: ${FAILED_OPTIONAL[*]}"
+        print_info "ARESITOS funcionará sin estas herramientas, pero con funcionalidad limitada"
+    fi
+    
+    # Actualizar base de datos de locate
+    print_info "Actualizando base de datos del sistema..."
+    updatedb >/dev/null 2>&1 || {
+        print_warning "No se pudo actualizar base de datos locate"
     }
 }
 
 # Configurar permisos especiales para herramientas de red
 configure_network_permissions() {
-    print_header "🔐 Configurando permisos de red..."
+    print_header "PERMISOS Configurando permisos de red..."
     
     # nmap - permitir raw sockets
     if command -v nmap >/dev/null 2>&1; then
@@ -221,7 +271,7 @@ configure_network_permissions() {
 
 # Configurar sudo sin contraseña para herramientas específicas
 configure_sudo() {
-    print_header "⚡ Configurando sudo para ARESITOS v2.0..."
+    print_header "CONFIG Configurando sudo para ARESITOS v2.0..."
     
     SUDO_FILE="/etc/sudoers.d/aresitos-v2"
     
@@ -297,17 +347,220 @@ EOF
     fi
 }
 
-# Instalar dependencias Python
+# Instalar dependencias Python con manejo inteligente de entornos
 install_python_deps() {
-    print_header "🐍 Instalando dependencias Python..."
+    print_header "🐍 Configurando entorno Python para ARESITOS..."
     
-    # Cambiar al usuario real para pip
-    sudo -u "$REAL_USER" pip3 install --user Pillow
+    # Detectar si estamos en un entorno externally-managed
+    PYTHON_VERSION=$(python3 -c "import sys; print(f'{sys.version_info.major}.{sys.version_info.minor}')")
+    EXTERNALLY_MANAGED_FILE="/usr/lib/python${PYTHON_VERSION}/EXTERNALLY-MANAGED"
     
-    if [[ $? -eq 0 ]]; then
-        print_success "Dependencias Python instaladas"
+    if [[ -f "$EXTERNALLY_MANAGED_FILE" ]]; then
+        print_warning "Detectado entorno Python externally-managed (Kali Linux 2024+)"
+        print_info "Configurando solución compatible para ARESITOS..."
+        
+        # SOLUCIÓN 1: Instalar dependencias vía APT cuando sea posible
+        print_info "Instalando dependencias Python vía APT (recomendado)..."
+        
+        PYTHON_APT_PACKAGES=(
+            "python3-pil"              # Pillow vía APT
+            "python3-requests"         # requests vía APT
+            "python3-urllib3"          # urllib3 vía APT
+            "python3-sqlite3"          # sqlite3 vía APT
+            "python3-json"             # json vía APT (si disponible)
+        )
+        
+        for package in "${PYTHON_APT_PACKAGES[@]}"; do
+            print_info "Instalando $package..."
+            DEBIAN_FRONTEND=noninteractive apt install -y "$package" >/dev/null 2>&1
+            
+            if [[ $? -eq 0 ]]; then
+                print_success "$package instalado vía APT"
+            else
+                print_warning "No se pudo instalar $package vía APT"
+            fi
+        done
+        
+        # SOLUCIÓN 2: Crear script para bypass temporal si es necesario
+        print_info "Creando script de bypass para dependencias críticas..."
+        
+        BYPASS_SCRIPT="/tmp/install_python_deps_aresitos.py"
+        cat > "$BYPASS_SCRIPT" << 'EOF'
+#!/usr/bin/env python3
+"""
+Script de bypass para instalar dependencias Python críticas de ARESITOS
+Solo instala las dependencias mínimas indispensables
+"""
+import subprocess
+import sys
+import os
+
+def install_with_break_system_packages():
+    """Instalar con --break-system-packages solo para dependencias críticas"""
+    critical_packages = [
+        "Pillow",  # Para interfaz gráfica
+    ]
+    
+    print("INSTALANDO dependencias críticas con bypass...")
+    
+    for package in critical_packages:
+        try:
+            print(f"   Instalando {package}...")
+            result = subprocess.run([
+                sys.executable, "-m", "pip", "install", 
+                "--break-system-packages", 
+                "--user", 
+                package
+            ], capture_output=True, text=True, timeout=60)
+            
+            if result.returncode == 0:
+                print(f"   OK {package} instalado correctamente")
+            else:
+                print(f"   WARN️ Error instalando {package}: {result.stderr}")
+                
+        except Exception as e:
+            print(f"   ERROR Excepción instalando {package}: {e}")
+
+def verify_dependencies():
+    """Verificar que las dependencias están disponibles"""
+    print("\n🧪 Verificando dependencias...")
+    
+    dependencies = {
+        "tkinter": "Interfaz gráfica",
+        "PIL": "Procesamiento de imágenes", 
+        "sqlite3": "Base de datos",
+        "json": "Manejo de JSON",
+        "threading": "Multihilo",
+        "subprocess": "Ejecución de comandos",
+        "os": "Sistema operativo",
+        "sys": "Sistema Python"
+    }
+    
+    missing = []
+    
+    for dep, desc in dependencies.items():
+        try:
+            __import__(dep)
+            print(f"   OK {dep}: {desc}")
+        except ImportError:
+            print(f"   ERROR {dep}: {desc} - NO DISPONIBLE")
+            missing.append(dep)
+    
+    if missing:
+        print(f"\nWARN️ Dependencias faltantes: {', '.join(missing)}")
+        print("ARESITOS puede tener funcionalidad limitada")
+    else:
+        print("\nOK Todas las dependencias están disponibles")
+    
+    return len(missing) == 0
+
+if __name__ == "__main__":
+    print("🐍 Configurador de dependencias Python para ARESITOS")
+    print("=" * 55)
+    
+    # Verificar primero
+    if verify_dependencies():
+        print("\nCOMPLETADO No es necesario instalar dependencias adicionales")
+        sys.exit(0)
+    
+    # Instalar dependencias críticas faltantes
+    install_with_break_system_packages()
+    
+    # Verificar de nuevo
+    print("\n" + "=" * 55)
+    final_check = verify_dependencies()
+    
+    if final_check:
+        print("\nCOMPLETADO Configuración Python completada exitosamente")
+    else:
+        print("\nWARN️ Algunas dependencias no pudieron instalarse")
+        print("ARESITOS debería funcionar con funcionalidad básica")
+EOF
+        
+        # Ejecutar script de bypass como usuario no-root
+        chown "$REAL_USER:$REAL_USER" "$BYPASS_SCRIPT"
+        chmod +x "$BYPASS_SCRIPT"
+        
+        print_info "Ejecutando configuración de dependencias Python..."
+        sudo -u "$REAL_USER" python3 "$BYPASS_SCRIPT"
+        
+        # Limpiar archivo temporal
+        rm -f "$BYPASS_SCRIPT"
+        
+        # SOLUCIÓN 3: Crear entorno virtual si es necesario (opcional)
+        VENV_PATH="$USER_HOME/.aresitos_venv"
+        if [[ ! -d "$VENV_PATH" ]]; then
+            print_info "Creando entorno virtual opcional para ARESITOS..."
+            sudo -u "$REAL_USER" python3 -m venv "$VENV_PATH" >/dev/null 2>&1
+            
+            if [[ $? -eq 0 ]]; then
+                print_success "Entorno virtual creado en $VENV_PATH"
+                
+                # Crear script de activación
+                ACTIVATION_SCRIPT="$USER_HOME/activate_aresitos_venv.sh"
+                cat > "$ACTIVATION_SCRIPT" << EOF
+#!/bin/bash
+# Script para activar entorno virtual de ARESITOS si es necesario
+echo "🐍 Activando entorno virtual ARESITOS..."
+source "$VENV_PATH/bin/activate"
+echo "OK Entorno virtual activado"
+echo "Para instalar dependencias: pip install Pillow"
+echo "Para ejecutar ARESITOS: python3 main.py"
+EOF
+                chown "$REAL_USER:$REAL_USER" "$ACTIVATION_SCRIPT"
+                chmod +x "$ACTIVATION_SCRIPT"
+                
+                print_success "Script de activación creado: $ACTIVATION_SCRIPT"
+            else
+                print_warning "No se pudo crear entorno virtual"
+            fi
+        fi
+        
     else
-        print_warning "Error instalando dependencias Python"
+        # Instalación tradicional para sistemas más antiguos
+        print_info "Entorno Python tradicional detectado"
+        print_info "Instalando dependencias con pip..."
+        
+        sudo -u "$REAL_USER" pip3 install --user Pillow >/dev/null 2>&1
+        
+        if [[ $? -eq 0 ]]; then
+            print_success "Dependencias Python instaladas con pip"
+        else
+            print_warning "Error instalando dependencias con pip"
+        fi
+    fi
+    
+    # Verificación final
+    print_info "Verificando instalación Python..."
+    
+    # Crear script de verificación simple
+    VERIFY_SCRIPT="/tmp/verify_python_aresitos.py"
+    cat > "$VERIFY_SCRIPT" << 'EOF'
+import sys
+try:
+    import tkinter
+    print("OK tkinter: OK")
+except ImportError:
+    print("ERROR tkinter: FALTA")
+    sys.exit(1)
+
+try:
+    from PIL import Image
+    print("OK Pillow: OK")
+except ImportError:
+    print("WARN️ Pillow: FALTA (funcionalidad de imágenes limitada)")
+
+print("🐍 Python configurado para ARESITOS")
+EOF
+    
+    sudo -u "$REAL_USER" python3 "$VERIFY_SCRIPT"
+    PYTHON_CHECK_RESULT=$?
+    rm -f "$VERIFY_SCRIPT"
+    
+    if [[ $PYTHON_CHECK_RESULT -eq 0 ]]; then
+        print_success "Configuración Python completada"
+    else
+        print_warning "Configuración Python con advertencias (ARESITOS debería funcionar)"
     fi
 }
 
@@ -435,12 +688,12 @@ tests = [
 
 for tool, args in tests:
     success, stdout, stderr = test_tool(tool, args)
-    status = "✅" if success else "❌"
+    status = "OK" if success else "ERROR"
     print(f"{status} {tool}: {'OK' if success else 'FAIL'}")
     if success and stdout:
         print(f"   {stdout.split()[0] if stdout else 'Sin versión'}")
 
-print("\n🔐 Probando permisos sudo...")
+print("\nPERMISOS Probando permisos sudo...")
 print("="*30)
 
 sudo_tests = [
@@ -450,11 +703,11 @@ sudo_tests = [
 
 for cmd, args in sudo_tests:
     success, stdout, stderr = test_tool(cmd, args)
-    status = "✅" if success else "❌"
+    status = "OK" if success else "ERROR"
     tool_name = args[0] if args else cmd
     print(f"{status} sudo {tool_name}: {'OK' if success else 'FAIL'}")
 
-print("\n✅ Pruebas completadas")
+print("\nOK Pruebas completadas")
 EOF
 
     chown "$REAL_USER:$REAL_USER" "$TEST_SCRIPT"
@@ -502,7 +755,7 @@ main() {
     create_test_script
     
     echo
-    print_header "🎉 CONFIGURACIÓN COMPLETADA"
+    print_header "COMPLETADO CONFIGURACIÓN COMPLETADA"
     print_header "============================"
     
     print_success "Ares Aegis está configurado para Kali Linux"

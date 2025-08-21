@@ -335,8 +335,21 @@ class FIMAvanzado:
                     datos = json.load(archivo)
                     
                     for ruta, datos_archivo in datos.items():
-                        # Recrear objeto MetadatosArchivo
-                        metadatos = MetadatosArchivo(**datos_archivo)
+                        # Filtrar parámetros válidos para MetadatosArchivo
+                        params_validos = {}
+                        campos_validos = {
+                            'ruta', 'nombre_archivo', 'extension', 'tipo_archivo', 
+                            'tamaño_bytes', 'hash_sha256', 'permisos_octal', 'permisos_texto',
+                            'propietario_uid', 'propietario_nombre', 'grupo_gid', 'grupo_nombre',
+                            'fecha_creacion', 'fecha_modificacion', 'fecha_acceso', 'timestamp_registro'
+                        }
+                        
+                        for campo, valor in datos_archivo.items():
+                            if campo in campos_validos:
+                                params_validos[campo] = valor
+                        
+                        # Recrear objeto MetadatosArchivo con parámetros válidos
+                        metadatos = MetadatosArchivo(**params_validos)
                         
                         # Convertir fechas string a datetime
                         for campo_fecha in ['fecha_creacion', 'fecha_modificacion', 

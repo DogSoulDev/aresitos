@@ -113,7 +113,7 @@ class ControladorEscaneo(ControladorBase):
                 self.logger.warning("WARNING  Escaneador no inicializado - funcionalidad limitada")
                 
         except Exception as e:
-            self.logger.error(f"ERROR Error inicializando componentes: {e}")
+            self.logger.error(f"ERROR inicializando componentes: {e}")
             self.escáner = None
             self.siem = None
             self.escaner_kali2025 = None

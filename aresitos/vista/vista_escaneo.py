@@ -4,6 +4,7 @@ import tkinter as tk
 from tkinter import ttk, scrolledtext, messagebox
 import logging
 import threading
+import datetime
 
 try:
     from aresitos.vista.burp_theme import burp_theme
@@ -66,12 +67,17 @@ class VistaEscaneo(tk.Frame):
         self.controlador = controlador
     
     def crear_widgets(self):
-        # Frame principal con tema
-        main_frame = tk.Frame(self, bg=self.colors['bg_primary'])
+        # PanedWindow principal para dividir contenido y terminal
+        self.paned_window = tk.PanedWindow(self, orient="vertical", bg=self.colors['bg_primary'])
+        self.paned_window.pack(fill="both", expand=True, padx=5, pady=5)
+        
+        # Frame superior para el contenido principal
+        main_frame = tk.Frame(self.paned_window, bg=self.colors['bg_primary'])
+        self.paned_window.add(main_frame, minsize=400)
         
         # Título con tema Burp Suite
         titulo_frame = tk.Frame(main_frame, bg=self.colors['bg_primary'])
-        titulo_frame.pack(fill="x", pady=(0, 15))
+        titulo_frame.pack(fill="x", pady=(10, 15))
         
         titulo_label = tk.Label(titulo_frame, text="ESCANEADOR DE VULNERABILIDADES", 
                               font=('Arial', 14, 'bold'),
@@ -80,8 +86,6 @@ class VistaEscaneo(tk.Frame):
         
         # Frame de botones con tema
         btn_frame = tk.Frame(main_frame, bg=self.colors['bg_primary'])
-            
-        main_frame.pack(fill="both", expand=True, padx=10, pady=10)
         btn_frame.pack(fill="x", pady=(0, 10))
         
         # Botones con tema Burp Suite
@@ -132,7 +136,7 @@ class VistaEscaneo(tk.Frame):
         self.btn_eventos.pack(side="left")
         
         # Área de resultados con tema Burp Suite
-        self.text_resultados = scrolledtext.ScrolledText(main_frame, height=25,
+        self.text_resultados = scrolledtext.ScrolledText(main_frame, height=20,
                                                        bg=self.colors['bg_secondary'], 
                                                        fg=self.colors['fg_primary'],
                                                        font=('Consolas', 10),
@@ -140,7 +144,92 @@ class VistaEscaneo(tk.Frame):
                                                        selectbackground=self.colors['fg_accent'],
                                                        relief='flat', bd=1)
         
-        self.text_resultados.pack(fill="both", expand=True)
+        self.text_resultados.pack(fill="both", expand=True, padx=10)
+        
+        # Crear terminal integrado
+        self.crear_terminal_integrado()
+    
+    def crear_terminal_integrado(self):
+        """Crear terminal integrado en la vista."""
+        try:
+            # Frame del terminal en el PanedWindow
+            terminal_frame = tk.Frame(self.paned_window, bg=self.colors['bg_secondary'])
+            self.paned_window.add(terminal_frame, minsize=150)
+            
+            # Título del terminal
+            terminal_titulo = tk.Label(terminal_frame, text="Terminal Aresitos", 
+                                     font=('Arial', 10, 'bold'),
+                                     bg=self.colors['bg_secondary'], 
+                                     fg=self.colors['fg_primary'])
+            terminal_titulo.pack(pady=5)
+            
+            # Verificar si existe terminal en la vista principal
+            if hasattr(self.vista_principal, 'terminal_widget') and self.vista_principal.terminal_widget:
+                # Usar terminal global existente
+                self.terminal_widget = self.vista_principal.terminal_widget
+                # Crear referencia local si es necesario
+                terminal_local = tk.Text(terminal_frame, height=8, 
+                                       bg='black', fg='green',
+                                       font=('Consolas', 9),
+                                       state='disabled')
+                terminal_local.pack(fill="both", expand=True, padx=5, pady=5)
+                self.terminal_local = terminal_local
+                
+                # Sincronizar con terminal global
+                self.sincronizar_terminal()
+            else:
+                # Crear terminal local
+                self.terminal_widget = tk.Text(terminal_frame, height=8, 
+                                             bg='black', fg='green',
+                                             font=('Consolas', 9),
+                                             state='disabled')
+                self.terminal_widget.pack(fill="both", expand=True, padx=5, pady=5)
+                self.terminal_local = self.terminal_widget
+            
+            self.log_to_terminal("Terminal Escaneo iniciado correctamente")
+            
+        except Exception as e:
+            print(f"Error creando terminal integrado en Vista Escaneo: {e}")
+    
+    def log_to_terminal(self, mensaje):
+        """Registrar mensaje en el terminal."""
+        try:
+            import datetime
+            timestamp = datetime.datetime.now().strftime("%H:%M:%S")
+            mensaje_completo = f"[{timestamp}] {mensaje}\n"
+            
+            # Log al terminal local
+            if hasattr(self, 'terminal_local'):
+                self.terminal_local.config(state='normal')
+                self.terminal_local.insert(tk.END, mensaje_completo)
+                self.terminal_local.see(tk.END)
+                self.terminal_local.config(state='disabled')
+            
+            # Log al terminal global si existe
+            if hasattr(self.vista_principal, 'terminal_widget') and self.vista_principal.terminal_widget:
+                try:
+                    self.vista_principal.terminal_widget.config(state='normal')
+                    self.vista_principal.terminal_widget.insert(tk.END, f"[ESCANEO] {mensaje_completo}")
+                    self.vista_principal.terminal_widget.see(tk.END)
+                    self.vista_principal.terminal_widget.config(state='disabled')
+                except:
+                    pass
+                    
+        except Exception as e:
+            print(f"Error en log_to_terminal: {e}")
+    
+    def sincronizar_terminal(self):
+        """Sincronizar terminal local con global."""
+        try:
+            if hasattr(self.vista_principal, 'terminal_widget') and self.vista_principal.terminal_widget:
+                contenido_global = self.vista_principal.terminal_widget.get("1.0", tk.END)
+                if hasattr(self, 'terminal_local'):
+                    self.terminal_local.config(state='normal')
+                    self.terminal_local.delete("1.0", tk.END)
+                    self.terminal_local.insert("1.0", contenido_global)
+                    self.terminal_local.config(state='disabled')
+        except Exception as e:
+            print(f"Error sincronizando terminal: {e}")
     
     def ejecutar_escaneo(self):
         """Ejecutar escaneo del sistema."""
@@ -156,7 +245,8 @@ class VistaEscaneo(tk.Frame):
         self.text_resultados.insert(tk.END, "Iniciando escaneo...\n\n")
         
         # Log al terminal integrado
-        self._log_terminal("🚀 Iniciando escaneo del sistema", "ESCANEADOR", "INFO")
+        self._log_terminal("INICIANDO escaneo del sistema", "ESCANEADOR", "INFO")
+        self.log_to_terminal("Iniciando escaneo del sistema...")
         
         # Configurar UI para escaneo
         self.proceso_activo = True
@@ -180,19 +270,42 @@ class VistaEscaneo(tk.Frame):
             print(f"[{modulo}] {mensaje}")
             print(f"Error logging a terminal: {e}")
     
+    def _actualizar_texto_seguro(self, texto):
+        """Actualizar texto de resultados de forma segura desde cualquier hilo."""
+        def _update():
+            try:
+                if hasattr(self, 'text_resultados') and self.text_resultados.winfo_exists():
+                    self.text_resultados.insert(tk.END, texto)
+                    self.text_resultados.see(tk.END)
+            except tk.TclError:
+                pass  # Widget ya no existe
+        
+        try:
+            self.after_idle(_update)
+        except:
+            pass  # Si no se puede programar, ignorar
+    
     def _ejecutar_escaneo_async(self):
-        """Ejecutar escaneo completo del sistema en busca de vulnerabilidades, virus, malware y permisos sospechosos."""
+        """Ejecutar escaneo completo del sistema usando herramientas nativas de Kali Linux."""
         try:
             if not self.proceso_activo:
                 return
             
-            self._log_terminal("Iniciando escaneo completo del sistema operativo Kali Linux", "ESCANEADOR", "INFO")
+            self._log_terminal("Iniciando escaneo completo con herramientas nativas de Kali Linux", "ESCANEADOR", "INFO")
             
-            # FASE 1: Escaneo de archivos críticos del sistema
-            self._log_terminal("FASE 1: Verificando archivos críticos del sistema", "ESCANEADOR", "INFO")
+            # FASE 1: Escaneo de red local con herramientas de Kali
+            self._log_terminal("FASE 1: Reconocimiento de red con herramientas de Kali", "ESCANEADOR", "INFO")
+            self._escaneo_red_kali()
+            
+            # FASE 2: Verificación de servicios y puertos
+            self._log_terminal("FASE 2: Análisis de servicios con ss y netstat", "ESCANEADOR", "INFO")
+            self._escanear_servicios_kali()
+            
+            # FASE 3: Escaneo de archivos críticos del sistema
+            self._log_terminal("FASE 3: Verificando archivos críticos del sistema", "ESCANEADOR", "INFO")
             self._escanear_archivos_criticos()
             
-            # FASE 2: Verificación de permisos sospechosos
+            # FASE 4: Verificación de permisos sospechosos
             self._log_terminal("FASE 2: Analizando permisos sospechosos", "ESCANEADOR", "WARNING")
             self._escanear_permisos_sospechosos()
             
@@ -252,7 +365,7 @@ class VistaEscaneo(tk.Frame):
                     # Extraer número de puerto de la información
                     for puerto_num, descripcion in puertos_peligrosos.items():
                         if puerto_num in str(puerto_info):
-                            self._log_terminal(f"⚠️ PUERTO CRÍTICO: {puerto_num} - {descripcion}", "ESCANEADOR", "WARNING")
+                            self._log_terminal(f"ALERTA PUERTO CRÍTICO: {puerto_num} - {descripcion}", "ESCANEADOR", "WARNING")
                             break
             
             # Analizar procesos sospechosos
@@ -269,7 +382,7 @@ class VistaEscaneo(tk.Frame):
                 proceso_lower = proceso.lower()
                 for sospechoso in procesos_sospechosos:
                     if sospechoso in proceso_lower:
-                        self._log_terminal(f"🚨 PROCESO SOSPECHOSO: {proceso.strip()}", "ESCANEADOR", "WARNING")
+                        self._log_terminal(f"ALERTA PROCESO SOSPECHOSO: {proceso.strip()}", "ESCANEADOR", "WARNING")
                         break
             
             # Análisis de configuración de seguridad
@@ -279,10 +392,10 @@ class VistaEscaneo(tk.Frame):
                     if any(palabra in item.lower() for palabra in ['error', 'fail', 'vulnerable', 'insecure', 'weak']):
                         self._log_terminal(f"🔓 VULNERABILIDAD: {item}", "ESCANEADOR", "ERROR")
                     elif any(palabra in item.lower() for palabra in ['warning', 'caution', 'deprecated']):
-                        self._log_terminal(f"⚠️ ADVERTENCIA: {item}", "ESCANEADOR", "WARNING")
+                        self._log_terminal(f"ADVERTENCIA: {item}", "ESCANEADOR", "WARNING")
                         
         except Exception as e:
-            self._log_terminal(f"❌ Error analizando amenazas: {str(e)}", "ESCANEADOR", "ERROR")
+            self._log_terminal(f"ERROR analizando amenazas: {str(e)}", "ESCANEADOR", "ERROR")
     
     def _mostrar_resultados_escaneo(self, resultados):
         """Mostrar resultados en la UI y en el terminal integrado."""
@@ -290,7 +403,7 @@ class VistaEscaneo(tk.Frame):
             return
         
         # Log detallado en el terminal integrado
-        self._log_terminal("📊 Mostrando resultados del escaneo", "ESCANEADOR", "INFO")
+        self._log_terminal("MOSTRANDO resultados del escaneo", "ESCANEADOR", "INFO")
         
         # Mostrar en la UI tradicional
         self.text_resultados.insert(tk.END, "=== PUERTOS ===\n")
@@ -313,7 +426,7 @@ class VistaEscaneo(tk.Frame):
             
         # Log de procesos al terminal integrado
         if procesos_encontrados:
-            self._log_terminal(f"⚙️ Encontrados {len(procesos_encontrados)} procesos", "ESCANEADOR", "SUCCESS")
+            self._log_terminal(f"ENCONTRADOS {len(procesos_encontrados)} procesos", "ESCANEADOR", "SUCCESS")
         
         self.text_resultados.insert(tk.END, "\n=== ANÁLISIS ===\n")
         analisis = resultados.get('análisis', [])
@@ -322,11 +435,11 @@ class VistaEscaneo(tk.Frame):
             
         # Log de análisis al terminal integrado
         if analisis:
-            self._log_terminal(f"🔍 Análisis completado: {len(analisis)} elementos", "ESCANEADOR", "SUCCESS")
+            self._log_terminal(f"ANÁLISIS completado: {len(analisis)} elementos", "ESCANEADOR", "SUCCESS")
             
         # Resumen final en terminal integrado
         total_elementos = len(puertos_encontrados) + len(procesos_encontrados) + len(analisis)
-        self._log_terminal(f"✅ Escaneo finalizado: {total_elementos} elementos analizados", "ESCANEADOR", "SUCCESS")
+        self._log_terminal(f"COMPLETADO Escaneo finalizado: {total_elementos} elementos analizados", "ESCANEADOR", "SUCCESS")
     
     def _mostrar_error_escaneo(self, error):
         """Mostrar error en la UI."""
@@ -640,21 +753,181 @@ class VistaEscaneo(tk.Frame):
             pass
     
     def ver_eventos(self):
-        if not self.controlador:
-            return
-            
-        self.text_resultados.delete(1.0, tk.END)
-        self.text_resultados.insert(tk.END, "Eventos SIEM:\n\n")
+        """Analizar y mostrar eventos SIEM reales del sistema."""
+        import subprocess
+        import os
+        from datetime import datetime
         
-        eventos = self.controlador.obtener_eventos_siem()
-        for evento in eventos:
-            timestamp = evento.get('timestamp', '')
-            if isinstance(timestamp, str):
-                timestamp_str = timestamp
-            else:
-                timestamp_str = str(timestamp)
-            self.text_resultados.insert(tk.END, 
-                f"[{timestamp_str}] {evento.get('tipo', 'Desconocido')}: {evento.get('descripcion', 'Sin descripción')}\n")
+        try:
+            self.text_resultados.delete(1.0, tk.END)
+            self._actualizar_texto_seguro("=== ANÁLISIS DE EVENTOS SIEM REALES ===\n\n")
+            
+            self._log_terminal("Iniciando análisis de eventos SIEM del sistema", "SIEM_ANALYZER", "INFO")
+            
+            # 1. Analizar logs de autenticación para eventos de seguridad
+            self.text_resultados.insert(tk.END, "EVENTOS DE AUTENTICACIÓN:\n")
+            try:
+                result = subprocess.run(['grep', '-E', 'Failed password|Invalid user|authentication failure', '/var/log/auth.log'], 
+                                      capture_output=True, text=True, timeout=15)
+                if result.returncode == 0:
+                    auth_events = result.stdout.strip().split('\n')
+                    recent_events = auth_events[-10:] if auth_events else []
+                    
+                    if recent_events and any(event.strip() for event in recent_events):
+                        for event in recent_events:
+                            if event.strip():
+                                parts = event.split()
+                                if len(parts) >= 3:
+                                    timestamp = ' '.join(parts[:3])
+                                    self.text_resultados.insert(tk.END, f"   ALERTA {timestamp}: {event.split(':', 1)[1] if ':' in event else event}\n")
+                    else:
+                        self.text_resultados.insert(tk.END, "   OK No se detectaron eventos de autenticación sospechosos\n")
+                else:
+                    self.text_resultados.insert(tk.END, "   ADVERTENCIA No se pudo acceder a /var/log/auth.log\n")
+            except Exception as e:
+                self.text_resultados.insert(tk.END, f"   ERROR analizando auth.log: {str(e)}\n")
+            
+            # 2. Analizar conexiones de red activas
+            self.text_resultados.insert(tk.END, "\nANÁLISIS DE RED:\n")
+            try:
+                result = subprocess.run(['ss', '-tuln'], capture_output=True, text=True, timeout=10)
+                if result.returncode == 0:
+                    connections = result.stdout.strip().split('\n')[1:]  # Skip header
+                    suspicious_ports = []
+                    backdoor_ports = ['4444', '6666', '9999', '31337', '12345']
+                    
+                    for conn in connections:
+                        for port in backdoor_ports:
+                            if f':{port} ' in conn or f':{port}\t' in conn:
+                                suspicious_ports.append(conn)
+                                break
+                    
+                    if suspicious_ports:
+                        self.text_resultados.insert(tk.END, "   ALERTA PUERTOS SOSPECHOSOS DETECTADOS:\n")
+                        for port in suspicious_ports:
+                            self.text_resultados.insert(tk.END, f"      • {port.strip()}\n")
+                    else:
+                        self.text_resultados.insert(tk.END, "   OK No se detectaron puertos backdoor activos\n")
+                        
+                    # Contar conexiones por estado
+                    listening_count = len([c for c in connections if 'LISTEN' in c])
+                    self.text_resultados.insert(tk.END, f"   SERVICIOS en escucha: {listening_count}\n")
+                else:
+                    self.text_resultados.insert(tk.END, "   ADVERTENCIA Error ejecutando comando ss\n")
+            except Exception as e:
+                self.text_resultados.insert(tk.END, f"   ERROR analizando red: {str(e)}\n")
+            
+            # 3. Analizar procesos sospechosos
+            self.text_resultados.insert(tk.END, "\nANÁLISIS DE PROCESOS:\n")
+            try:
+                result = subprocess.run(['ps', 'aux'], capture_output=True, text=True, timeout=10)
+                if result.returncode == 0:
+                    processes = result.stdout.strip().split('\n')
+                    suspicious_patterns = ['nc ', 'netcat', 'python -c', 'perl -e', 'bash -i', '/dev/tcp']
+                    suspicious_procs = []
+                    
+                    for proc in processes:
+                        proc_lower = proc.lower()
+                        for pattern in suspicious_patterns:
+                            if pattern in proc_lower:
+                                suspicious_procs.append(proc)
+                                break
+                    
+                    if suspicious_procs:
+                        self.text_resultados.insert(tk.END, "   ALERTA PROCESOS SOSPECHOSOS DETECTADOS:\n")
+                        for proc in suspicious_procs[:5]:  # Limitar a 5 procesos
+                            parts = proc.split()
+                            if len(parts) >= 11:
+                                user = parts[0]
+                                pid = parts[1]
+                                cpu = parts[2]
+                                cmd = ' '.join(parts[10:])[:50]  # Limitar longitud
+                                self.text_resultados.insert(tk.END, f"      • PID {pid} ({user}): {cmd}... (CPU: {cpu}%)\n")
+                    else:
+                        self.text_resultados.insert(tk.END, "   OK No se detectaron procesos sospechosos\n")
+                        
+                    # Detectar procesos con alto uso de CPU
+                    high_cpu_procs = []
+                    for proc in processes[1:]:  # Skip header
+                        parts = proc.split()
+                        if len(parts) >= 3:
+                            try:
+                                cpu_usage = float(parts[2])
+                                if cpu_usage > 80.0:
+                                    high_cpu_procs.append((parts[1], parts[10] if len(parts) > 10 else "unknown", cpu_usage))
+                            except ValueError:
+                                continue
+                    
+                    if high_cpu_procs:
+                        self.text_resultados.insert(tk.END, "   ADVERTENCIA PROCESOS CON ALTO USO DE CPU:\n")
+                        for pid, cmd, cpu in high_cpu_procs[:3]:
+                            self.text_resultados.insert(tk.END, f"      • PID {pid}: {cmd} ({cpu}% CPU)\n")
+                        
+                else:
+                    self.text_resultados.insert(tk.END, "   ADVERTENCIA Error ejecutando comando ps\n")
+            except Exception as e:
+                self.text_resultados.insert(tk.END, f"   ERROR analizando procesos: {str(e)}\n")
+            
+            # 4. Verificar integridad de archivos críticos del sistema
+            self.text_resultados.insert(tk.END, "\nINTEGRIDAD DE ARCHIVOS CRÍTICOS:\n")
+            critical_files = ['/etc/passwd', '/etc/shadow', '/etc/hosts', '/etc/sudoers', '/etc/ssh/sshd_config']
+            
+            for file_path in critical_files:
+                try:
+                    if os.path.exists(file_path):
+                        stat_info = os.stat(file_path)
+                        mod_time = datetime.fromtimestamp(stat_info.st_mtime).strftime("%Y-%m-%d %H:%M:%S")
+                        permissions = oct(stat_info.st_mode)[-3:]
+                        
+                        # Verificar permisos apropiados
+                        expected_perms = {
+                            'passwd': '644', 'shadow': '640', 'hosts': '644', 
+                            'sudoers': '440', 'sshd_config': '644'
+                        }
+                        file_name = os.path.basename(file_path)
+                        expected = expected_perms.get(file_name, '644')
+                        
+                        if permissions == expected:
+                            self.text_resultados.insert(tk.END, f"   OK {file_path}: CORRECTO (permisos {permissions}, mod: {mod_time})\n")
+                        else:
+                            self.text_resultados.insert(tk.END, f"   ALERTA {file_path}: PERMISOS ANÓMALOS ({permissions}, esperado {expected})\n")
+                    else:
+                        self.text_resultados.insert(tk.END, f"   ERROR {file_path}: Archivo no encontrado\n")
+                except Exception as e:
+                    self.text_resultados.insert(tk.END, f"   ADVERTENCIA Error verificando {file_path}: {str(e)}\n")
+            
+            # 5. Analizar logs del sistema en busca de errores críticos
+            self.text_resultados.insert(tk.END, "\nANÁLISIS DE LOGS DEL SISTEMA:\n")
+            try:
+                result = subprocess.run(['grep', '-i', 'error\\|fail\\|critical\\|alert', '/var/log/syslog'], 
+                                      capture_output=True, text=True, timeout=15)
+                if result.returncode == 0:
+                    system_errors = result.stdout.strip().split('\n')
+                    recent_errors = system_errors[-5:] if system_errors else []
+                    
+                    if recent_errors and any(error.strip() for error in recent_errors):
+                        self.text_resultados.insert(tk.END, "   ADVERTENCIA ERRORES RECIENTES DEL SISTEMA:\n")
+                        for error in recent_errors:
+                            if error.strip():
+                                parts = error.split()
+                                if len(parts) >= 3:
+                                    timestamp = ' '.join(parts[:3])
+                                    message = ' '.join(parts[4:])[:80]  # Limitar longitud
+                                    self.text_resultados.insert(tk.END, f"      • {timestamp}: {message}...\n")
+                    else:
+                        self.text_resultados.insert(tk.END, "   OK No se detectaron errores críticos recientes\n")
+                else:
+                    self.text_resultados.insert(tk.END, "   OK No se encontraron errores en syslog\n")
+            except Exception as e:
+                self.text_resultados.insert(tk.END, f"   ERROR analizando syslog: {str(e)}\n")
+            
+            self.text_resultados.insert(tk.END, "\n=== ANÁLISIS SIEM COMPLETADO ===\n")
+            self._log_terminal("Análisis de eventos SIEM completado", "SIEM_ANALYZER", "INFO")
+            
+        except Exception as e:
+            error_msg = f"Error en análisis SIEM: {str(e)}"
+            self.text_resultados.insert(tk.END, f"ERROR {error_msg}\n")
+            self._log_terminal(error_msg, "SIEM_ANALYZER", "ERROR")
 
     def _escanear_archivos_criticos(self):
         """Escanear archivos críticos del sistema en busca de modificaciones sospechosas."""
@@ -951,6 +1224,166 @@ class VistaEscaneo(tk.Frame):
                     
         except Exception as e:
             self._log_terminal(f"Error escaneando vulnerabilidades: {str(e)}", "ESCANEADOR", "WARNING")
+
+    def _escaneo_red_kali(self):
+        """Escaneo de red usando herramientas nativas de Kali Linux."""
+        try:
+            import subprocess
+            
+            self._actualizar_texto_seguro("=== ESCANEO DE RED CON HERRAMIENTAS KALI ===\n\n")
+            
+            # 1. Obtener interfaz de red activa
+            self._actualizar_texto_seguro("COMANDO: ip route | grep default\n")
+            try:
+                resultado = subprocess.run(['bash', '-c', 'ip route | grep default'], 
+                                         capture_output=True, text=True, timeout=10)
+                if resultado.returncode == 0 and resultado.stdout.strip():
+                    ruta_default = resultado.stdout.strip()
+                    interfaz = ruta_default.split()[-1] if len(ruta_default.split()) > 4 else 'unknown'
+                    gateway = ruta_default.split()[2] if len(ruta_default.split()) > 2 else 'unknown'
+                    self._actualizar_texto_seguro(f"INTERFAZ ACTIVA: {interfaz}\n")
+                    self._actualizar_texto_seguro(f"GATEWAY: {gateway}\n\n")
+                else:
+                    self._actualizar_texto_seguro("ERROR: No se pudo determinar la ruta por defecto\n\n")
+            except:
+                self._actualizar_texto_seguro("ERROR: Comando ip route falló\n\n")
+            
+            # 2. Escaneo de red local con nmap si está disponible
+            self._actualizar_texto_seguro("COMANDO: which nmap\n")
+            try:
+                resultado_nmap = subprocess.run(['which', 'nmap'], 
+                                              capture_output=True, text=True, timeout=5)
+                if resultado_nmap.returncode == 0:
+                    self._actualizar_texto_seguro("NMAP DISPONIBLE: Ejecutando escaneo básico de red\n")
+                    # Escaneo básico de la red local
+                    try:
+                        resultado_red = subprocess.run(['nmap', '-sn', '192.168.1.0/24'], 
+                                                     capture_output=True, text=True, timeout=30)
+                        if resultado_red.returncode == 0:
+                            hosts_up = resultado_red.stdout.count('Host is up')
+                            self._actualizar_texto_seguro(f"HOSTS ACTIVOS: {hosts_up} dispositivos detectados en red local\n")
+                            # Mostrar IPs encontradas
+                            lineas = resultado_red.stdout.split('\n')
+                            for linea in lineas:
+                                if 'Nmap scan report for' in linea:
+                                    ip = linea.split()[-1]
+                                    self._actualizar_texto_seguro(f"  HOST: {ip}\n")
+                        else:
+                            self._actualizar_texto_seguro("ERROR: Escaneo nmap falló\n")
+                    except subprocess.TimeoutExpired:
+                        self._actualizar_texto_seguro("TIMEOUT: Escaneo nmap excedió tiempo límite\n")
+                else:
+                    self._actualizar_texto_seguro("NMAP NO DISPONIBLE: Usando métodos alternativos\n")
+                    # Usar ping para escaneo básico
+                    self._actualizar_texto_seguro("ALTERNATIVO: Usando ping para verificar gateway\n")
+                    try:
+                        ping_result = subprocess.run(['ping', '-c', '3', gateway], 
+                                                   capture_output=True, text=True, timeout=15)
+                        if ping_result.returncode == 0:
+                            self._actualizar_texto_seguro(f"CONECTIVIDAD: Gateway {gateway} responde\n")
+                        else:
+                            self._actualizar_texto_seguro(f"PROBLEMA: Gateway {gateway} no responde\n")
+                    except:
+                        self._actualizar_texto_seguro("ERROR: No se pudo hacer ping al gateway\n")
+            except:
+                self._actualizar_texto_seguro("ERROR: No se pudo verificar disponibilidad de nmap\n")
+            
+            self._actualizar_texto_seguro("\n")
+            
+        except Exception as e:
+            self._actualizar_texto_seguro(f"ERROR EN ESCANEO DE RED: {str(e)}\n\n")
+
+    def _escanear_servicios_kali(self):
+        """Escaneo de servicios usando herramientas nativas de Linux."""
+        try:
+            import subprocess
+            
+            self._actualizar_texto_seguro("=== ANÁLISIS DE SERVICIOS CON HERRAMIENTAS LINUX ===\n\n")
+            
+            # 1. Servicios en escucha con ss
+            self._actualizar_texto_seguro("COMANDO: ss -tuln\n")
+            try:
+                resultado = subprocess.run(['ss', '-tuln'], 
+                                         capture_output=True, text=True, timeout=10)
+                if resultado.returncode == 0 and resultado.stdout.strip():
+                    lineas = resultado.stdout.strip().split('\n')[1:]  # Skip header
+                    puertos_tcp = []
+                    puertos_udp = []
+                    
+                    for linea in lineas:
+                        if linea.strip():
+                            partes = linea.split()
+                            if len(partes) >= 4:
+                                protocolo = partes[0]
+                                direccion_local = partes[3]
+                                puerto = direccion_local.split(':')[-1]
+                                
+                                if protocolo.startswith('tcp'):
+                                    puertos_tcp.append(puerto)
+                                elif protocolo.startswith('udp'):
+                                    puertos_udp.append(puerto)
+                    
+                    self._actualizar_texto_seguro(f"PUERTOS TCP EN ESCUCHA: {len(set(puertos_tcp))}\n")
+                    for puerto in sorted(set(puertos_tcp))[:10]:  # Mostrar primeros 10
+                        self._actualizar_texto_seguro(f"  TCP: {puerto}\n")
+                    
+                    self._actualizar_texto_seguro(f"PUERTOS UDP EN ESCUCHA: {len(set(puertos_udp))}\n")
+                    for puerto in sorted(set(puertos_udp))[:5]:  # Mostrar primeros 5
+                        self._actualizar_texto_seguro(f"  UDP: {puerto}\n")
+                else:
+                    self._actualizar_texto_seguro("ERROR: No se pudo ejecutar comando ss\n")
+            except:
+                self._actualizar_texto_seguro("ERROR: Comando ss no disponible\n")
+            
+            self._actualizar_texto_seguro("\n")
+            
+            # 2. Procesos con conexiones de red usando lsof
+            self._actualizar_texto_seguro("COMANDO: lsof -i -n | head -15\n")
+            try:
+                resultado = subprocess.run(['bash', '-c', 'lsof -i -n | head -15'], 
+                                         capture_output=True, text=True, timeout=15)
+                if resultado.returncode == 0 and resultado.stdout.strip():
+                    lineas = resultado.stdout.strip().split('\n')[1:]  # Skip header
+                    self._actualizar_texto_seguro("PROCESOS CON CONEXIONES DE RED:\n")
+                    for linea in lineas:
+                        if linea.strip():
+                            partes = linea.split()
+                            if len(partes) >= 8:
+                                proceso = partes[0]
+                                pid = partes[1]
+                                conexion = partes[7] if len(partes) > 7 else 'N/A'
+                                self._actualizar_texto_seguro(f"  {proceso} (PID: {pid}): {conexion}\n")
+                else:
+                    self._actualizar_texto_seguro("INFO: lsof no mostró conexiones o no está disponible\n")
+            except:
+                self._actualizar_texto_seguro("ADVERTENCIA: lsof no disponible\n")
+            
+            self._actualizar_texto_seguro("\n")
+            
+            # 3. Servicios systemd activos
+            self._actualizar_texto_seguro("COMANDO: systemctl list-units --type=service --state=running\n")
+            try:
+                resultado = subprocess.run(['bash', '-c', 'systemctl list-units --type=service --state=running | head -10'], 
+                                         capture_output=True, text=True, timeout=10)
+                if resultado.returncode == 0 and resultado.stdout.strip():
+                    lineas = resultado.stdout.strip().split('\n')[1:]  # Skip header
+                    servicios_activos = 0
+                    for linea in lineas:
+                        if '.service' in linea and 'running' in linea:
+                            servicios_activos += 1
+                            nombre_servicio = linea.split()[0].replace('.service', '')
+                            self._actualizar_texto_seguro(f"  ACTIVO: {nombre_servicio}\n")
+                    
+                    self._actualizar_texto_seguro(f"TOTAL SERVICIOS ACTIVOS: {servicios_activos}\n")
+                else:
+                    self._actualizar_texto_seguro("ERROR: No se pudo listar servicios systemd\n")
+            except:
+                self._actualizar_texto_seguro("ERROR: systemctl no disponible\n")
+                
+            self._actualizar_texto_seguro("\n")
+            
+        except Exception as e:
+            self._actualizar_texto_seguro(f"ERROR EN ANÁLISIS DE SERVICIOS: {str(e)}\n\n")
 
 
 # RESUMEN: Interfaz de escaneo de vulnerabilidades con opciones básicas y avanzadas.

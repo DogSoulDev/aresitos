@@ -4,6 +4,7 @@ import tkinter as tk
 from tkinter import ttk, scrolledtext, messagebox, filedialog
 import threading
 import logging
+import datetime
 
 try:
     from aresitos.vista.burp_theme import burp_theme
@@ -29,6 +30,7 @@ class VistaAuditoria(tk.Frame):
         super().__init__(parent)
         self.controlador = None
         self.logger = logging.getLogger(__name__)
+        self.vista_principal = parent  # Referencia al padre para acceder al terminal
         
         # Estados únicos de auditoría
         self.proceso_auditoria_activo = False
@@ -74,9 +76,17 @@ class VistaAuditoria(tk.Frame):
     
     def crear_interfaz(self):
         """Crear interfaz especializada para auditorías de seguridad."""
+        # PanedWindow principal para dividir contenido y terminal
+        self.paned_window = tk.PanedWindow(self, orient="vertical", bg=self.colors['bg_primary'])
+        self.paned_window.pack(fill="both", expand=True, padx=5, pady=5)
+        
+        # Frame superior para el contenido principal
+        contenido_frame = tk.Frame(self.paned_window, bg=self.colors['bg_primary'])
+        self.paned_window.add(contenido_frame, minsize=400)
+        
         # Frame del título con tema Burp Suite
-        titulo_frame = tk.Frame(self, bg=self.colors['bg_primary'])
-        titulo_frame.pack(fill=tk.X, pady=(0, 10))
+        titulo_frame = tk.Frame(contenido_frame, bg=self.colors['bg_primary'])
+        titulo_frame.pack(fill=tk.X, pady=(10, 10))
         
         titulo = tk.Label(titulo_frame, text="Auditoría de Seguridad del Sistema",
                          font=('Arial', 16, 'bold'),
@@ -84,8 +94,8 @@ class VistaAuditoria(tk.Frame):
         titulo.pack(pady=10)
         
         # Frame principal con tema
-        main_frame = tk.Frame(self, bg=self.colors['bg_primary'])
-        main_frame.pack(fill=tk.BOTH, expand=True, padx=20, pady=10)
+        main_frame = tk.Frame(contenido_frame, bg=self.colors['bg_primary'])
+        main_frame.pack(fill=tk.BOTH, expand=True, padx=10, pady=10)
         
         # Panel izquierdo - Resultados con tema Burp Suite
         left_frame = tk.Frame(main_frame, bg=self.colors['bg_secondary'])
@@ -118,6 +128,90 @@ class VistaAuditoria(tk.Frame):
         self._crear_seccion_deteccion_malware(right_frame)
         self._crear_seccion_configuraciones(right_frame)
         self._crear_seccion_utilidades(right_frame)
+        
+        # Crear terminal integrado
+        self.crear_terminal_integrado()
+    
+    def crear_terminal_integrado(self):
+        """Crear terminal integrado en la vista Auditoría."""
+        try:
+            # Frame del terminal en el PanedWindow
+            terminal_frame = tk.Frame(self.paned_window, bg=self.colors['bg_secondary'])
+            self.paned_window.add(terminal_frame, minsize=150)
+            
+            # Título del terminal
+            terminal_titulo = tk.Label(terminal_frame, text="Terminal Auditoría", 
+                                     font=('Arial', 10, 'bold'),
+                                     bg=self.colors['bg_secondary'], 
+                                     fg=self.colors['fg_primary'])
+            terminal_titulo.pack(pady=5)
+            
+            # Verificar si existe terminal en la vista principal
+            if hasattr(self.vista_principal, 'terminal_widget') and self.vista_principal.terminal_widget:
+                # Usar terminal global existente
+                self.terminal_widget = self.vista_principal.terminal_widget
+                # Crear referencia local si es necesario
+                terminal_local = tk.Text(terminal_frame, height=8, 
+                                       bg='black', fg='green',
+                                       font=('Consolas', 9),
+                                       state='disabled')
+                terminal_local.pack(fill="both", expand=True, padx=5, pady=5)
+                self.terminal_local = terminal_local
+                
+                # Sincronizar con terminal global
+                self.sincronizar_terminal()
+            else:
+                # Crear terminal local
+                self.terminal_widget = tk.Text(terminal_frame, height=8, 
+                                             bg='black', fg='green',
+                                             font=('Consolas', 9),
+                                             state='disabled')
+                self.terminal_widget.pack(fill="both", expand=True, padx=5, pady=5)
+                self.terminal_local = self.terminal_widget
+            
+            self.log_to_terminal("Terminal Auditoría iniciado correctamente")
+            
+        except Exception as e:
+            print(f"Error creando terminal integrado en Vista Auditoría: {e}")
+    
+    def log_to_terminal(self, mensaje):
+        """Registrar mensaje en el terminal."""
+        try:
+            timestamp = datetime.datetime.now().strftime("%H:%M:%S")
+            mensaje_completo = f"[{timestamp}] {mensaje}\n"
+            
+            # Log al terminal local
+            if hasattr(self, 'terminal_local'):
+                self.terminal_local.config(state='normal')
+                self.terminal_local.insert(tk.END, mensaje_completo)
+                self.terminal_local.see(tk.END)
+                self.terminal_local.config(state='disabled')
+            
+            # Log al terminal global si existe
+            if hasattr(self.vista_principal, 'terminal_widget') and self.vista_principal.terminal_widget:
+                try:
+                    self.vista_principal.terminal_widget.config(state='normal')
+                    self.vista_principal.terminal_widget.insert(tk.END, f"[AUDIT] {mensaje_completo}")
+                    self.vista_principal.terminal_widget.see(tk.END)
+                    self.vista_principal.terminal_widget.config(state='disabled')
+                except:
+                    pass
+                    
+        except Exception as e:
+            print(f"Error en log_to_terminal: {e}")
+    
+    def sincronizar_terminal(self):
+        """Sincronizar terminal local con global."""
+        try:
+            if hasattr(self.vista_principal, 'terminal_widget') and self.vista_principal.terminal_widget:
+                contenido_global = self.vista_principal.terminal_widget.get("1.0", tk.END)
+                if hasattr(self, 'terminal_local'):
+                    self.terminal_local.config(state='normal')
+                    self.terminal_local.delete("1.0", tk.END)
+                    self.terminal_local.insert("1.0", contenido_global)
+                    self.terminal_local.config(state='disabled')
+        except Exception as e:
+            print(f"Error sincronizando terminal: {e}")
     
     def _crear_seccion_auditoria_sistema(self, parent):
         """Crear sección de auditorías generales del sistema."""
@@ -231,6 +325,7 @@ class VistaAuditoria(tk.Frame):
             
         self.proceso_auditoria_activo = True
         self._habilitar_cancelar(True)
+        self.log_to_terminal("Iniciando auditoría completa con Lynis...")
         
         self.auditoria_text.config(state=tk.NORMAL)
         self.auditoria_text.insert(tk.END, "Iniciando auditoría Lynis en Kali Linux...\n")
@@ -255,7 +350,7 @@ class VistaAuditoria(tk.Frame):
                     if 'salida' in resultado:
                         self.after(0, self._actualizar_texto_auditoria, resultado['salida'])
                 else:
-                    self.after(0, self._actualizar_texto_auditoria, f"ERROR Error en auditoría: {resultado.get('error', 'Error desconocido')}\n")
+                    self.after(0, self._actualizar_texto_auditoria, f"ERROR en auditoría: {resultado.get('error', 'Error desconocido')}\n")
             else:
                 # Fallback: ejecución directa
                 import subprocess
@@ -283,15 +378,15 @@ class VistaAuditoria(tk.Frame):
                         self.after(0, self._actualizar_texto_auditoria, "OK Auditoría Lynis completada\n")
                         self.after(0, self._actualizar_texto_auditoria, stdout[-2000:])  # Últimas 2000 caracteres
                     else:
-                        self.after(0, self._actualizar_texto_auditoria, f"ERROR Error en Lynis: {stderr}\n")
+                        self.after(0, self._actualizar_texto_auditoria, f"ERROR en Lynis: {stderr}\n")
                         
                 except FileNotFoundError:
                     self.after(0, self._actualizar_texto_auditoria, "ERROR Lynis no encontrado. Instale con: apt install lynis\n")
                 except Exception as e:
-                    self.after(0, self._actualizar_texto_auditoria, f"ERROR Error ejecutando Lynis: {str(e)}\n")
+                    self.after(0, self._actualizar_texto_auditoria, f"ERROR ejecutando Lynis: {str(e)}\n")
                 
         except Exception as e:
-            self.after(0, self._actualizar_texto_auditoria, f"ERROR Error general: {str(e)}\n")
+            self.after(0, self._actualizar_texto_auditoria, f"ERROR general: {str(e)}\n")
         finally:
             self.after(0, self._finalizar_auditoria)
     
@@ -323,23 +418,143 @@ class VistaAuditoria(tk.Frame):
             self._actualizar_texto_auditoria("\n Cancelando auditoría...\n")
     
     def detectar_rootkits(self):
-        """Detectar rootkits usando controlador."""
+        """Detectar rootkits usando herramientas nativas de Linux y Kali."""
+        self.log_to_terminal("Iniciando detección de rootkits y malware...")
         def ejecutar():
             try:
+                self.after(0, self._actualizar_texto_auditoria, "=== DETECCIÓN DE ROOTKITS CON HERRAMIENTAS LINUX ===\n\n")
+                
+                # 1. Verificar procesos ocultos con ps y comparación
+                self.after(0, self._actualizar_texto_auditoria, "FASE 1: Verificación de procesos ocultos\n")
+                self.after(0, self._actualizar_texto_auditoria, "COMANDO: ps aux | wc -l vs ls /proc | grep '^[0-9]' | wc -l\n")
+                
+                import subprocess
+                try:
+                    # Contar procesos con ps
+                    resultado_ps = subprocess.run(['bash', '-c', 'ps aux | wc -l'], 
+                                                capture_output=True, text=True, timeout=10)
+                    # Contar directorios de procesos en /proc
+                    resultado_proc = subprocess.run(['bash', '-c', "ls /proc | grep '^[0-9]' | wc -l"], 
+                                                  capture_output=True, text=True, timeout=10)
+                    
+                    if resultado_ps.returncode == 0 and resultado_proc.returncode == 0:
+                        procesos_ps = int(resultado_ps.stdout.strip()) - 1  # -1 para header
+                        procesos_proc = int(resultado_proc.stdout.strip())
+                        diferencia = abs(procesos_ps - procesos_proc)
+                        
+                        self.after(0, self._actualizar_texto_auditoria, f"PROCESOS PS: {procesos_ps}\n")
+                        self.after(0, self._actualizar_texto_auditoria, f"PROCESOS /proc: {procesos_proc}\n")
+                        self.after(0, self._actualizar_texto_auditoria, f"DIFERENCIA: {diferencia}\n")
+                        
+                        if diferencia > 5:  # Umbral de sospecha
+                            self.after(0, self._actualizar_texto_auditoria, "ALERTA: Diferencia significativa detectada - posible rootkit\n")
+                        else:
+                            self.after(0, self._actualizar_texto_auditoria, "OK: Recuento de procesos normal\n")
+                except:
+                    self.after(0, self._actualizar_texto_auditoria, "ERROR: No se pudo verificar procesos\n")
+                
+                self.after(0, self._actualizar_texto_auditoria, "\n")
+                
+                # 2. Verificar modificaciones en comandos del sistema
+                self.after(0, self._actualizar_texto_auditoria, "FASE 2: Verificación de integridad de comandos\n")
+                comandos_criticos = ['/bin/ps', '/bin/ls', '/bin/netstat', '/usr/bin/who', '/usr/bin/w']
+                
+                for comando in comandos_criticos:
+                    try:
+                        # Verificar si el comando existe y obtener información
+                        resultado = subprocess.run(['stat', '-c', '%s %Y', comando], 
+                                                 capture_output=True, text=True, timeout=5)
+                        if resultado.returncode == 0:
+                            info = resultado.stdout.strip().split()
+                            tamaño = info[0]
+                            timestamp = info[1]
+                            self.after(0, self._actualizar_texto_auditoria, f"OK: {comando} - Tamaño: {tamaño} bytes\n")
+                        else:
+                            self.after(0, self._actualizar_texto_auditoria, f"ALERTA: {comando} no encontrado o inaccesible\n")
+                    except:
+                        self.after(0, self._actualizar_texto_auditoria, f"ERROR: No se pudo verificar {comando}\n")
+                
+                self.after(0, self._actualizar_texto_auditoria, "\n")
+                
+                # 3. Verificar conexiones de red ocultas
+                self.after(0, self._actualizar_texto_auditoria, "FASE 3: Verificación de conexiones de red ocultas\n")
+                self.after(0, self._actualizar_texto_auditoria, "COMANDO: ss -tuln vs netstat -tuln\n")
+                
+                try:
+                    # Comparar salidas de ss y netstat
+                    resultado_ss = subprocess.run(['ss', '-tuln'], 
+                                                capture_output=True, text=True, timeout=10)
+                    resultado_netstat = subprocess.run(['netstat', '-tuln'], 
+                                                     capture_output=True, text=True, timeout=10)
+                    
+                    if resultado_ss.returncode == 0 and resultado_netstat.returncode == 0:
+                        lineas_ss = len(resultado_ss.stdout.strip().split('\n'))
+                        lineas_netstat = len(resultado_netstat.stdout.strip().split('\n'))
+                        diferencia_red = abs(lineas_ss - lineas_netstat)
+                        
+                        self.after(0, self._actualizar_texto_auditoria, f"CONEXIONES SS: {lineas_ss}\n")
+                        self.after(0, self._actualizar_texto_auditoria, f"CONEXIONES NETSTAT: {lineas_netstat}\n")
+                        
+                        if diferencia_red > 3:
+                            self.after(0, self._actualizar_texto_auditoria, "ALERTA: Diferencias en listado de conexiones\n")
+                        else:
+                            self.after(0, self._actualizar_texto_auditoria, "OK: Listados de red coinciden\n")
+                    else:
+                        self.after(0, self._actualizar_texto_auditoria, "ERROR: No se pudieron ejecutar comandos de red\n")
+                except:
+                    self.after(0, self._actualizar_texto_auditoria, "ERROR: Error comparando herramientas de red\n")
+                
+                self.after(0, self._actualizar_texto_auditoria, "\n")
+                
+                # 4. Verificar módulos del kernel sospechosos
+                self.after(0, self._actualizar_texto_auditoria, "FASE 4: Verificación de módulos del kernel\n")
+                self.after(0, self._actualizar_texto_auditoria, "COMANDO: lsmod | grep -v '^Module'\n")
+                
+                try:
+                    resultado = subprocess.run(['bash', '-c', "lsmod | grep -v '^Module' | wc -l"], 
+                                             capture_output=True, text=True, timeout=10)
+                    if resultado.returncode == 0:
+                        modulos_count = resultado.stdout.strip()
+                        self.after(0, self._actualizar_texto_auditoria, f"MÓDULOS CARGADOS: {modulos_count}\n")
+                        
+                        # Buscar módulos con nombres sospechosos
+                        resultado_modulos = subprocess.run(['lsmod'], 
+                                                         capture_output=True, text=True, timeout=10)
+                        if resultado_modulos.returncode == 0:
+                            modulos_sospechosos = ['rootkit', 'hidden', 'stealth', 'backdoor']
+                            lineas = resultado_modulos.stdout.lower().split('\n')
+                            
+                            encontrados = []
+                            for linea in lineas:
+                                for sospechoso in modulos_sospechosos:
+                                    if sospechoso in linea:
+                                        encontrados.append(linea.strip())
+                            
+                            if encontrados:
+                                self.after(0, self._actualizar_texto_auditoria, "ALERTA: Módulos sospechosos encontrados:\n")
+                                for modulo in encontrados:
+                                    self.after(0, self._actualizar_texto_auditoria, f"  SOSPECHOSO: {modulo}\n")
+                            else:
+                                self.after(0, self._actualizar_texto_auditoria, "OK: No se encontraron módulos con nombres sospechosos\n")
+                except:
+                    self.after(0, self._actualizar_texto_auditoria, "ERROR: No se pudo verificar módulos del kernel\n")
+                
+                # Usar controlador si está disponible
                 if self.controlador:
+                    self.after(0, self._actualizar_texto_auditoria, "\nFASE 5: Ejecutando detector del controlador\n")
                     resultado = self.controlador.ejecutar_deteccion_rootkits()
                     if resultado.get('exito'):
                         self.after(0, self._actualizar_texto_auditoria, "✓ Detección de rootkits completada\n")
                         if 'rootkits_detectados' in resultado:
                             count = resultado['rootkits_detectados']
                             if count > 0:
-                                self.after(0, self._actualizar_texto_auditoria, f"⚠️ {count} posibles rootkits detectados\n")
+                                self.after(0, self._actualizar_texto_auditoria, f"ADVERTENCIA {count} posibles rootkits detectados\n")
                             else:
                                 self.after(0, self._actualizar_texto_auditoria, "✓ No se detectaron rootkits\n")
                         if 'salida' in resultado:
                             self.after(0, self._actualizar_texto_auditoria, f"\nDETALLES:\n{resultado['salida']}\n")
                     else:
-                        self.after(0, self._actualizar_texto_auditoria, f"❌ Error: {resultado.get('error', 'Error desconocido')}\n")
+                        self.after(0, self._actualizar_texto_auditoria, f"ERROR: {resultado.get('error', 'Error desconocido')}\n")
                 else:
                     # Fallback manual
                     self.after(0, self._actualizar_texto_auditoria, " Detectando rootkits con rkhunter y chkrootkit...\n")
@@ -361,15 +576,15 @@ class VistaAuditoria(tk.Frame):
                                 else:
                                     self.after(0, self._actualizar_texto_auditoria, f"OK No se detectaron rootkits con {nombre}\n")
                             else:
-                                self.after(0, self._actualizar_texto_auditoria, f"ERROR Error en {nombre}\n")
+                                self.after(0, self._actualizar_texto_auditoria, f"ERROR en {nombre}\n")
                         except FileNotFoundError:
                             self.after(0, self._actualizar_texto_auditoria, f"ERROR {nombre} no encontrado. Instalar con: apt install {nombre}\n")
                         except subprocess.TimeoutExpired:
-                            self.after(0, self._actualizar_texto_auditoria, f"TIMEOUT Timeout en {nombre}\n")
+                            self.after(0, self._actualizar_texto_auditoria, f"TIMEOUT en {nombre}\n")
                     
                     self.after(0, self._actualizar_texto_auditoria, "\n")
             except Exception as e:
-                self.after(0, self._actualizar_texto_auditoria, f"ERROR Error detectando rootkits: {str(e)}\n")
+                self.after(0, self._actualizar_texto_auditoria, f"ERROR detectando rootkits: {str(e)}\n")
         
         threading.Thread(target=ejecutar, daemon=True).start()
     
@@ -387,7 +602,7 @@ class VistaAuditoria(tk.Frame):
                         if 'detalles' in resultado:
                             self.after(0, self._actualizar_texto_auditoria, resultado['detalles'])
                     else:
-                        self.after(0, self._actualizar_texto_auditoria, f"ERROR Error: {resultado.get('error', 'Error desconocido')}\n")
+                        self.after(0, self._actualizar_texto_auditoria, f"ERROR: {resultado.get('error', 'Error desconocido')}\n")
                 else:
                     # Fallback manual
                     self.after(0, self._actualizar_texto_auditoria, " Analizando servicios activos en Kali Linux...\n")
@@ -404,11 +619,11 @@ class VistaAuditoria(tk.Frame):
                                     self.after(0, self._actualizar_texto_auditoria, f"  {linea}\n")
                             self.after(0, self._actualizar_texto_auditoria, "\n... (mostrando primeros 20)\n")
                         else:
-                            self.after(0, self._actualizar_texto_auditoria, "ERROR Error obteniendo servicios\n")
+                            self.after(0, self._actualizar_texto_auditoria, "ERROR obteniendo servicios\n")
                     except Exception as e:
-                        self.after(0, self._actualizar_texto_auditoria, f"ERROR Error: {str(e)}\n")
+                        self.after(0, self._actualizar_texto_auditoria, f"ERROR: {str(e)}\n")
             except Exception as e:
-                self.after(0, self._actualizar_texto_auditoria, f"ERROR Error analizando servicios: {str(e)}\n")
+                self.after(0, self._actualizar_texto_auditoria, f"ERROR analizando servicios: {str(e)}\n")
         
         threading.Thread(target=ejecutar, daemon=True).start()
     
@@ -423,13 +638,13 @@ class VistaAuditoria(tk.Frame):
                         if 'permisos_incorrectos' in resultado:
                             count = resultado['permisos_incorrectos']
                             if count > 0:
-                                self.after(0, self._actualizar_texto_auditoria, f"⚠️ {count} permisos incorrectos detectados\n")
+                                self.after(0, self._actualizar_texto_auditoria, f"ADVERTENCIA {count} permisos incorrectos detectados\n")
                             else:
                                 self.after(0, self._actualizar_texto_auditoria, "✓ Todos los permisos están correctos\n")
                         if 'detalles' in resultado:
                             self.after(0, self._actualizar_texto_auditoria, f"\nDETALLES:\n{resultado['detalles']}\n")
                     else:
-                        self.after(0, self._actualizar_texto_auditoria, f"❌ Error: {resultado.get('error', 'Error desconocido')}\n")
+                        self.after(0, self._actualizar_texto_auditoria, f"ERROR: {resultado.get('error', 'Error desconocido')}\n")
                 else:
                     # Fallback manual
                     self.after(0, self._actualizar_texto_auditoria, "Verificando permisos críticos del sistema...\n")
@@ -451,18 +666,18 @@ class VistaAuditoria(tk.Frame):
                                 gid = stat_result.st_gid
                                 
                                 self.after(0, self._actualizar_texto_auditoria, 
-                                    f"📁 {ruta}: {permisos} (uid:{uid}, gid:{gid})\n")
+                                    f"DIRECTORIO {ruta}: {permisos} (uid:{uid}, gid:{gid})\n")
                                 
                                 if ruta in ['/etc/shadow', '/etc/sudoers'] and permisos != '640':
-                                    self.after(0, self._actualizar_texto_auditoria, "⚠️ Permisos inusuales detectados\n")
+                                    self.after(0, self._actualizar_texto_auditoria, "ADVERTENCIA Permisos inusuales detectados\n")
                             else:
-                                self.after(0, self._actualizar_texto_auditoria, f"📁 {ruta}: No existe\n")
+                                self.after(0, self._actualizar_texto_auditoria, f"DIRECTORIO {ruta}: No existe\n")
                         except Exception as e:
-                            self.after(0, self._actualizar_texto_auditoria, f"❌ {ruta}: Error - {str(e)}\n")
+                            self.after(0, self._actualizar_texto_auditoria, f"ERROR {ruta}: Error - {str(e)}\n")
                     
                     self.after(0, self._actualizar_texto_auditoria, "\n✓ Verificación de permisos completada\n")
             except Exception as e:
-                self.after(0, self._actualizar_texto_auditoria, f"❌ Error verificando permisos: {str(e)}\n")
+                self.after(0, self._actualizar_texto_auditoria, f"ERROR verificando permisos: {str(e)}\n")
         
         threading.Thread(target=ejecutar, daemon=True).start()
     
@@ -544,7 +759,7 @@ class VistaAuditoria(tk.Frame):
         """Ejecutar auditoría con nuclei (reemplazo moderno de OpenVAS)."""
         def ejecutar():
             try:
-                self._actualizar_texto_auditoria("🔍 Iniciando auditoría nuclei...\n")
+                self._actualizar_texto_auditoria("INICIANDO auditoría nuclei...\n")
                 import subprocess
                 
                 try:
@@ -552,18 +767,18 @@ class VistaAuditoria(tk.Frame):
                     resultado = subprocess.run(['which', 'nuclei'], capture_output=True, text=True)
                     if resultado.returncode == 0:
                         self._actualizar_texto_auditoria("✓ nuclei encontrado\n")
-                        self._actualizar_texto_auditoria("📋 Comandos nuclei:\n")
+                        self._actualizar_texto_auditoria("COMANDOS nuclei:\n")
                         self._actualizar_texto_auditoria("  • nuclei -u <target>: Escanear objetivo\n")
                         self._actualizar_texto_auditoria("  • nuclei -update-templates: Actualizar templates\n")
                         self._actualizar_texto_auditoria("  • nuclei -t vulnerabilities/: Solo vulnerabilidades\n")
                     else:
-                        self._actualizar_texto_auditoria("❌ nuclei no encontrado. Instalar con: go install github.com/projectdiscovery/nuclei/v2/cmd/nuclei@latest\n")
+                        self._actualizar_texto_auditoria("ERROR nuclei no encontrado. Instalar con: go install github.com/projectdiscovery/nuclei/v2/cmd/nuclei@latest\n")
                 except Exception as e:
-                    self._actualizar_texto_auditoria(f"❌ Error verificando nuclei: {str(e)}\n")
+                    self._actualizar_texto_auditoria(f"ERROR verificando nuclei: {str(e)}\n")
                 
-                self._actualizar_texto_auditoria("✅ Auditoría nuclei completada\n\n")
+                self._actualizar_texto_auditoria("COMPLETADO Auditoría nuclei completada\n\n")
             except Exception as e:
-                self._actualizar_texto_auditoria(f"❌ Error en nuclei: {str(e)}\n")
+                self._actualizar_texto_auditoria(f"ERROR en nuclei: {str(e)}\n")
         
         threading.Thread(target=ejecutar, daemon=True).start()
     
@@ -571,7 +786,7 @@ class VistaAuditoria(tk.Frame):
         """Ejecutar scan con httpx (reemplazo moderno de Nessus para web)."""
         def ejecutar():
             try:
-                self._actualizar_texto_auditoria("🔍 Iniciando scan httpx...\n")
+                self._actualizar_texto_auditoria("INICIANDO scan httpx...\n")
                 import subprocess
                 
                 try:
@@ -579,18 +794,18 @@ class VistaAuditoria(tk.Frame):
                     resultado = subprocess.run(['which', 'httpx'], capture_output=True, text=True)
                     if resultado.returncode == 0:
                         self._actualizar_texto_auditoria("✓ httpx encontrado\n")
-                        self._actualizar_texto_auditoria("📋 Comandos httpx:\n")
+                        self._actualizar_texto_auditoria("COMANDOS httpx:\n")
                         self._actualizar_texto_auditoria("  • httpx -l targets.txt: Escanear lista\n")
                         self._actualizar_texto_auditoria("  • httpx -probe -status-code: Detectar servicios web\n")
                         self._actualizar_texto_auditoria("  • httpx -title -tech-detect: Detectar tecnologías\n")
                     else:
-                        self._actualizar_texto_auditoria("❌ httpx no encontrado. Instalar con: go install github.com/projectdiscovery/httpx/cmd/httpx@latest\n")
+                        self._actualizar_texto_auditoria("ERROR httpx no encontrado. Instalar con: go install github.com/projectdiscovery/httpx/cmd/httpx@latest\n")
                 except Exception as e:
-                    self._actualizar_texto_auditoria(f"❌ Error verificando httpx: {str(e)}\n")
+                    self._actualizar_texto_auditoria(f"ERROR verificando httpx: {str(e)}\n")
                 
-                self._actualizar_texto_auditoria("✅ Verificación httpx completada\n\n")
+                self._actualizar_texto_auditoria("COMPLETADO Verificación httpx completada\n\n")
             except Exception as e:
-                self._actualizar_texto_auditoria(f"❌ Error en httpx: {str(e)}\n")
+                self._actualizar_texto_auditoria(f"ERROR en httpx: {str(e)}\n")
         
         threading.Thread(target=ejecutar, daemon=True).start()
     
@@ -625,13 +840,13 @@ class VistaAuditoria(tk.Frame):
                                 self._actualizar_texto_auditoria(f"  {archivo}\n")
                 
                 except subprocess.TimeoutExpired:
-                    self._actualizar_texto_auditoria("TIMEOUT Timeout en búsqueda SUID/SGID\n")
+                    self._actualizar_texto_auditoria("TIMEOUT en búsqueda SUID/SGID\n")
                 except Exception as e:
-                    self._actualizar_texto_auditoria(f"ERROR Error buscando SUID/SGID: {str(e)}\n")
+                    self._actualizar_texto_auditoria(f"ERROR buscando SUID/SGID: {str(e)}\n")
                 
                 self._actualizar_texto_auditoria("OK Análisis SUID/SGID completado\n\n")
             except Exception as e:
-                self._actualizar_texto_auditoria(f"ERROR Error en análisis SUID/SGID: {str(e)}\n")
+                self._actualizar_texto_auditoria(f"ERROR en análisis SUID/SGID: {str(e)}\n")
         
         threading.Thread(target=ejecutar, daemon=True).start()
     
@@ -680,11 +895,11 @@ class VistaAuditoria(tk.Frame):
                         self._actualizar_texto_auditoria("ERROR Servicio SSH: Inactivo\n")
                 
                 except Exception as e:
-                    self._actualizar_texto_auditoria(f"ERROR Error auditando SSH: {str(e)}\n")
+                    self._actualizar_texto_auditoria(f"ERROR auditando SSH: {str(e)}\n")
                 
                 self._actualizar_texto_auditoria("OK Auditoría SSH completada\n\n")
             except Exception as e:
-                self._actualizar_texto_auditoria(f"ERROR Error en auditoría SSH: {str(e)}\n")
+                self._actualizar_texto_auditoria(f"ERROR en auditoría SSH: {str(e)}\n")
         
         threading.Thread(target=ejecutar, daemon=True).start()
     
@@ -730,11 +945,11 @@ class VistaAuditoria(tk.Frame):
                         self._actualizar_texto_auditoria("  OK No hay usuarios sin contraseña\n")
                 
                 except Exception as e:
-                    self._actualizar_texto_auditoria(f"ERROR Error verificando políticas: {str(e)}\n")
+                    self._actualizar_texto_auditoria(f"ERROR verificando políticas: {str(e)}\n")
                 
                 self._actualizar_texto_auditoria("OK Verificación de políticas completada\n\n")
             except Exception as e:
-                self._actualizar_texto_auditoria(f"ERROR Error en verificación de políticas: {str(e)}\n")
+                self._actualizar_texto_auditoria(f"ERROR en verificación de políticas: {str(e)}\n")
         
         threading.Thread(target=ejecutar, daemon=True).start()
 
@@ -786,7 +1001,7 @@ class VistaAuditoria(tk.Frame):
                 
         except Exception as e:
             self.auditoria_text.config(state=tk.NORMAL)
-            self.auditoria_text.insert(tk.END, f" ERROR Error durante verificación: {str(e)}\n")
+            self.auditoria_text.insert(tk.END, f" ERROR durante verificación: {str(e)}\n")
             self.auditoria_text.config(state=tk.DISABLED)
     
     def _log_terminal(self, mensaje, modulo="AUDITORIA", nivel="INFO"):

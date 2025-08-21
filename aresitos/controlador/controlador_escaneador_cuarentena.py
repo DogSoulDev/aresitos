@@ -279,8 +279,8 @@ class ControladorEscaneadorCuarentena:
         self.logger.info("=" * 60)
         self.logger.info(f" Tipo de escaneo: {resultado.get('tipo_escaneo', 'N/A')}")
         self.logger.info(f" Total vulnerabilidades: {stats.get('total_vulnerabilidades', 0)}")
-        self.logger.info(f"� Críticas: {stats.get('criticas', 0)}")
-        self.logger.info(f"� Altas: {stats.get('altas', 0)}")
+        self.logger.info(f" Críticas: {stats.get('criticas', 0)}")
+        self.logger.info(f" Altas: {stats.get('altas', 0)}")
         self.logger.info(f" En cuarentena: {stats.get('en_cuarentena', 0)}")
         
         if stats.get('en_cuarentena', 0) > 0:
@@ -470,13 +470,13 @@ class ControladorEscaneadorCuarentena:
             return {
                 'puertos': [f"Error: {str(e)}"],
                 'procesos': [],
-                'análisis': [f"ERROR Error durante el escaneo: {str(e)}"],
+                'análisis': [f"ERROR durante el escaneo: {str(e)}"],
                 'timestamp': datetime.now().isoformat()
             }
     
     def verificar_funcionalidad_kali(self) -> Dict[str, Any]:
         """Verifica funcionalidad específica para Kali Linux."""
-        self.logger.info("� Verificando funcionalidad en Kali Linux")
+        self.logger.info(" Verificando funcionalidad en Kali Linux")
         
         resultado = {
             'funcionalidad_completa': False,

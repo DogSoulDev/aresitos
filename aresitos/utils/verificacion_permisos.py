@@ -32,7 +32,7 @@ def verificar_gestor_permisos():
     """Verificar que el gestor de permisos funciona correctamente."""
     logger = configurar_logging()
     
-    logger.info("🔍 Iniciando verificación del gestor de permisos...")
+    logger.info("VERIFICANDO Iniciando verificación del gestor de permisos...")
     
     try:
         # Importar el gestor de permisos
@@ -60,13 +60,13 @@ def verificar_gestor_permisos():
         print("-" * 40)
         
         for herramienta, info in reporte['herramientas'].items():
-            status_icon = "[OK]" if info['disponible'] and info['permisos_ok'] else "❌"
+            status_icon = "[OK]" if info['disponible'] and info['permisos_ok'] else "ERROR"
             sudo_text = " [SUDO]" if info.get('sudo_requerido', False) else ""
             
             print(f"{status_icon} {herramienta:<12} - {info['mensaje']}{sudo_text}")
             
             if info['disponible'] and info['path']:
-                print(f"    � Ruta: {info['path']}")
+                print(f"     Ruta: {info['path']}")
         
         if reporte['recomendaciones']:
             print(f"\n RECOMENDACIONES:")
@@ -86,9 +86,9 @@ def verificar_gestor_permisos():
             if exito:
                 print("[OK] nmap ejecutado correctamente")
                 version_line = stdout.split('\n')[0] if stdout else "Versión no detectada"
-                print(f"    ℹ️ {version_line}")
+                print(f"    INFO {version_line}")
             else:
-                print("❌ Error ejecutando nmap")
+                print("ERROR ejecutando nmap")
                 print(f"     Error: {stderr}")
         
         # Prueba 2: Verificar netstat/ss
@@ -101,7 +101,7 @@ def verificar_gestor_permisos():
                 if exito:
                     print(f"OK {herramienta} ejecutado correctamente")
                 else:
-                    print(f"ERROR Error ejecutando {herramienta}")
+                    print(f"ERROR ejecutando {herramienta}")
                     print(f"     Error: {stderr}")
                 break
         
@@ -116,7 +116,7 @@ def verificar_gestor_permisos():
                     lineas = len(contenido.split('\n'))
                     print(f"OK {archivo} leído correctamente ({lineas} líneas)")
                 else:
-                    print(f"ERROR Error leyendo {archivo}")
+                    print(f"ERROR leyendo {archivo}")
                     print(f"     Error: {contenido}")
                 break
         
@@ -128,16 +128,16 @@ def verificar_gestor_permisos():
         total_herramientas = len(reporte['herramientas'])
         
         if herramientas_ok == total_herramientas:
-            print("� EXCELENTE: Todas las herramientas disponibles y funcionales")
+            print(" EXCELENTE: Todas las herramientas disponibles y funcionales")
         elif herramientas_ok >= total_herramientas * 0.7:
-            print("� BUENO: La mayoría de herramientas están disponibles")
+            print(" BUENO: La mayoría de herramientas están disponibles")
         else:
-            print("� ATENCIÓN: Muchas herramientas no están disponibles")
+            print(" ATENCIÓN: Muchas herramientas no están disponibles")
         
         print(f" Funcionalidad: {herramientas_ok}/{total_herramientas} herramientas OK")
         
         # Sugerencias finales
-        print(f"\n� SUGERENCIAS:")
+        print(f"\n SUGERENCIAS:")
         print("-" * 40)
         
         if not reporte['es_root'] and not reporte['sudo_disponible']:
@@ -155,14 +155,14 @@ def verificar_gestor_permisos():
         return True
         
     except ImportError as e:
-        logger.error(f"ERROR Error importando gestor de permisos: {e}")
-        print("ERROR Error: No se pudo importar el gestor de permisos")
+        logger.error(f"ERROR importando gestor de permisos: {e}")
+        print("ERROR: No se pudo importar el gestor de permisos")
         print("   Asegúrese de que el módulo esté correctamente instalado")
         return False
         
     except Exception as e:
-        logger.error(f"ERROR Error inesperado: {e}")
-        print(f"ERROR Error inesperado: {e}")
+        logger.error(f"ERROR inesperado: {e}")
+        print(f"ERROR inesperado: {e}")
         return False
 
 if __name__ == "__main__":

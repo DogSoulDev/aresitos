@@ -169,8 +169,8 @@ class VistaDashboard(tk.Frame):
             self.stderr_redirector = StreamRedirector(self.terminal_output, "STDERR")
             
             # Mensaje de inicio
-            self.escribir_terminal("🚀 Sistema de logging integrado activado")
-            self.escribir_terminal("📝 Todos los logs de ARESITOS se mostrarán aquí")
+            self.escribir_terminal("INICIANDO Sistema de logging integrado activado")
+            self.escribir_terminal("LOG Todos los logs de ARESITOS se mostrarán aquí")
             self.escribir_terminal("="*60)
     
     def escribir_terminal(self, mensaje, prefijo="[ARESITOS]"):
@@ -187,7 +187,7 @@ class VistaDashboard(tk.Frame):
             # Redirigir stdout temporalmente para capturar prints
             sys.stdout = self.stdout_redirector
             sys.stderr = self.stderr_redirector
-            self.escribir_terminal("✅ Captura de logs activada")
+            self.escribir_terminal("OK Captura de logs activada")
         except Exception as e:
             print(f"Error activando captura: {e}")
     
@@ -198,7 +198,7 @@ class VistaDashboard(tk.Frame):
             sys.stderr = self.original_stderr
             if self.terminal_handler:
                 logging.getLogger().removeHandler(self.terminal_handler)
-            self.escribir_terminal("⏹️ Captura de logs desactivada")
+            self.escribir_terminal("DETENIDO Captura de logs desactivada")
         except Exception as e:
             print(f"Error desactivando captura: {e}")
     
@@ -269,7 +269,7 @@ class VistaDashboard(tk.Frame):
     def crear_pestana_metricas(self):
         """Crear pestaña de métricas específicas para ciberseguridad."""
         metricas_frame = tk.Frame(self.notebook, bg=self.colors['bg_primary'])
-        self.notebook.add(metricas_frame, text=" Métricas del Sistema")
+        self.notebook.add(metricas_frame, text="Métricas del Sistema")
         
         # Frame para información del sistema
         info_sistema_frame = tk.LabelFrame(
@@ -389,7 +389,7 @@ class VistaDashboard(tk.Frame):
     def crear_pestana_red(self):
         """Crear pestaña de información de red."""
         red_frame = tk.Frame(self.notebook, bg=self.colors['bg_primary'])
-        self.notebook.add(red_frame, text=" Información de Red")
+        self.notebook.add(red_frame, text="Información de Red")
         
         # Frame para IPs
         ip_frame = tk.LabelFrame(
@@ -483,7 +483,7 @@ class VistaDashboard(tk.Frame):
     def crear_pestana_terminal(self):
         """Crear pestaña de terminal integrado con sistema de logging."""
         terminal_frame = tk.Frame(self.notebook, bg=self.colors['bg_primary'])
-        self.notebook.add(terminal_frame, text="🖥️ Terminal ARESITOS")
+        self.notebook.add(terminal_frame, text="Terminal ARESITOS")
         
         # Frame para controles del terminal
         controles_frame = tk.LabelFrame(
@@ -502,7 +502,7 @@ class VistaDashboard(tk.Frame):
         # Botón para activar/desactivar captura de logs
         self.btn_toggle_logs = tk.Button(
             botones_control_frame,
-            text="🔴 ACTIVAR CAPTURA LOGS",
+            text="ACTIVAR CAPTURA LOGS",
             command=self.toggle_captura_logs,
             bg='#ff4444',
             fg='white',
@@ -526,7 +526,7 @@ class VistaDashboard(tk.Frame):
         # Botón para abrir terminal externo
         btn_terminal_externo = tk.Button(
             botones_control_frame,
-            text="🖥️ TERMINAL KALI",
+            text="TERMINAL KALI",
             command=self.abrir_terminal_kali,
             bg='#00ff00',
             fg='black',
@@ -538,7 +538,7 @@ class VistaDashboard(tk.Frame):
         # Frame para comandos rápidos
         comandos_frame = tk.LabelFrame(
             terminal_frame,
-            text="⚡ Comandos Rápidos de Ciberseguridad",
+            text="COMANDOS Rápidos de Ciberseguridad",
             bg=self.colors['bg_secondary'],
             fg=self.colors['fg_primary'],
             font=("Arial", 12, "bold")
@@ -549,17 +549,23 @@ class VistaDashboard(tk.Frame):
         botones_grid_frame = tk.Frame(comandos_frame, bg=self.colors['bg_secondary'])
         botones_grid_frame.pack(fill="both", expand=True, padx=5, pady=5)
         
-        # Botones de comandos rápidos mejorados para Kali
+        # Botones de comandos rápidos optimizados para Kali Linux
         comandos_rapidos = [
-            ("netstat -tuln", "🌐 Conexiones"),
-            ("ps aux | head -20", "⚙️ Procesos"),
-            ("ifconfig", "🔗 Red"),
-            ("nmap --version", "🔍 Nmap"),
-            ("df -h", "💾 Disco"),
-            ("free -h", "🧠 Memoria"),
-            ("whoami", "👤 Usuario"),
-            ("uname -a", "ℹ️ Sistema"),
-            ("ss -tuln", "🔌 Sockets")
+            ("netstat -tuln", "RED Conexiones"),
+            ("ps aux --sort=-%cpu | head -15", "SISTEMA Top CPU"),
+            ("ip addr show", "RED Interfaces"),
+            ("nmap --version", "ESCANEO Nmap"),
+            ("df -h", "DISCO Espacio"),
+            ("free -h", "MEMORIA Uso"),
+            ("whoami && id", "USUARIO Permisos"),
+            ("uname -a", "INFO Sistema"),
+            ("ss -tuln | grep LISTEN", "RED Servicios"),
+            ("lsof -i | head -10", "RED Archivos"),
+            ("arp -a", "RED ARP"),
+            ("route -n", "RED Rutas"),
+            ("cat /proc/cpuinfo | grep 'model name' | head -1", "CPU Info"),
+            ("lscpu | grep 'CPU(s)'", "CPU Cores"),
+            ("systemctl list-units --type=service --state=running | head -10", "SERVICIOS Activos")
         ]
         
         # Crear grid de botones
@@ -586,7 +592,7 @@ class VistaDashboard(tk.Frame):
         entrada_frame = tk.Frame(terminal_frame, bg=self.colors['bg_secondary'])
         entrada_frame.pack(fill="x", padx=10, pady=5)
         
-        tk.Label(entrada_frame, text="💻 Comando:",
+        tk.Label(entrada_frame, text="COMANDO:",
                 bg=self.colors['bg_secondary'], fg=self.colors['fg_primary'],
                 font=("Arial", 10, "bold")).pack(side="left", padx=(0, 5))
         
@@ -602,7 +608,7 @@ class VistaDashboard(tk.Frame):
         
         ejecutar_btn = tk.Button(
             entrada_frame,
-            text="▶️ Ejecutar",
+            text="EJECUTAR",
             command=self.ejecutar_comando_entry,
             bg=self.colors['button_bg'],
             fg=self.colors['button_fg'],
@@ -643,8 +649,8 @@ class VistaDashboard(tk.Frame):
         self.terminal_output.insert(tk.END, f"Sistema: {platform.system()} {platform.release()}\n")
         self.terminal_output.insert(tk.END, f"Shell: {self.shell_detectado}\n")
         self.terminal_output.insert(tk.END, "="*80 + "\n")
-        self.terminal_output.insert(tk.END, "📝 Presiona 'ACTIVAR CAPTURA LOGS' para ver logs de ARESITOS aquí\n")
-        self.terminal_output.insert(tk.END, "💡 Usa los comandos rápidos o escribe comandos personalizados\n\n")
+        self.terminal_output.insert(tk.END, "LOG Presiona 'ACTIVAR CAPTURA LOGS' para ver logs de ARESITOS aquí\n")
+        self.terminal_output.insert(tk.END, "TIP Usa los comandos rápidos o escribe comandos personalizados\n\n")
         
         # Configurar logging integrado ahora que el widget existe
         self.configurar_logging_integrado()
@@ -655,18 +661,18 @@ class VistaDashboard(tk.Frame):
             self.activar_captura_logs()
             self.captura_logs_activa = True
             self.btn_toggle_logs.config(
-                text="🟢 CAPTURA ACTIVA",
+                text="ACTIVO CAPTURA ACTIVA",
                 bg='#00aa00'
             )
-            self.escribir_terminal("🔴 CAPTURA DE LOGS ACTIVADA", "[SISTEMA]")
+            self.escribir_terminal("ACTIVAR CAPTURA DE LOGS ACTIVADA", "[SISTEMA]")
         else:
             self.desactivar_captura_logs()
             self.captura_logs_activa = False
             self.btn_toggle_logs.config(
-                text="🔴 ACTIVAR CAPTURA LOGS", 
+                text="ACTIVAR CAPTURA LOGS", 
                 bg='#ff4444'
             )
-            self.escribir_terminal("🟢 CAPTURA DE LOGS DESACTIVADA", "[SISTEMA]")
+            self.escribir_terminal("ACTIVO CAPTURA DE LOGS DESACTIVADA", "[SISTEMA]")
     
     def limpiar_terminal(self):
         """Limpiar el contenido del terminal."""
@@ -675,7 +681,7 @@ class VistaDashboard(tk.Frame):
             # Mensaje de limpieza
             self.terminal_output.insert(tk.END, "="*80 + "\n")
             self.terminal_output.insert(tk.END, "🧹 TERMINAL LIMPIADO\n")
-            self.terminal_output.insert(tk.END, f"⏰ {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}\n")
+            self.terminal_output.insert(tk.END, f" {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}\n")
             self.terminal_output.insert(tk.END, "="*80 + "\n\n")
     
     def obtener_terminal_integrado(self):
@@ -693,13 +699,13 @@ class VistaDashboard(tk.Frame):
         if cls._terminal_widget:
             timestamp = datetime.now().strftime("%H:%M:%S")
             emoji_map = {
-                "INFO": "ℹ️",
-                "SUCCESS": "✅", 
-                "WARNING": "⚠️",
-                "ERROR": "❌",
-                "DEBUG": "🔍"
+                "INFO": "INFO",
+                "SUCCESS": "OK", 
+                "WARNING": "ADVERTENCIA",
+                "ERROR": "ERROR",
+                "DEBUG": "ESCANEO"
             }
-            emoji = emoji_map.get(nivel, "📝")
+            emoji = emoji_map.get(nivel, "LOG")
             mensaje_completo = f"[{timestamp}] {emoji} [{modulo}] {mensaje}\n"
             try:
                 cls._terminal_widget.insert(tk.END, mensaje_completo)
@@ -974,8 +980,8 @@ class VistaDashboard(tk.Frame):
                         if len(parts) >= 2:
                             current_interface = parts[1].split(':')[0]
                             flags = line.split('<')[1].split('>')[0]
-                            estado = "✓ UP" if "UP" in flags else "❌ DOWN"
-                            self.interfaces_text.insert(tk.END, f"▶ {current_interface}:\n")
+                            estado = "✓ UP" if "UP" in flags else "ERROR DOWN"
+                            self.interfaces_text.insert(tk.END, f"> {current_interface}:\n")
                             self.interfaces_text.insert(tk.END, f"   Estado: {estado}\n")
                     
                     # Líneas de direcciones IP
@@ -1058,7 +1064,7 @@ class VistaDashboard(tk.Frame):
                 # Verificar si el SIEM está activo
                 if hasattr(self.controlador.modelo, 'siem_avanzado'):
                     siem_activo = self.controlador.modelo.siem_avanzado is not None
-                    self.siem_label.configure(text="� Active" if siem_activo else " Inactive")
+                    self.siem_label.configure(text=" Active" if siem_activo else " Inactive")
                 else:
                     self.siem_label.configure(text=" Inactive")
             else:
@@ -1744,7 +1750,7 @@ journalctl -u ssh                # Logs de servicio específico
         import os
         import shutil
         
-        print("🖥️ Intentando abrir terminal de Kali Linux...")
+        print("TERMINAL Intentando abrir terminal de Kali Linux...")
         
         try:
             if platform.system() == "Linux":
@@ -1769,7 +1775,7 @@ journalctl -u ssh                # Logs de servicio específico
                 for terminal in terminales_kali:
                     if shutil.which(terminal):
                         terminal_encontrado = terminal
-                        print(f"🔍 Terminal encontrado: {terminal}")
+                        print(f"ESCANEO Terminal encontrado: {terminal}")
                         break
                 
                 if terminal_encontrado:
@@ -1796,12 +1802,12 @@ journalctl -u ssh                # Logs de servicio específico
                         preexec_fn=getattr(os, 'setsid', None)  # Solo si existe setsid
                     )
                     
-                    print(f"✅ Terminal {terminal_encontrado} abierto (PID: {proceso.pid})")
+                    print(f"OK Terminal {terminal_encontrado} abierto (PID: {proceso.pid})")
                     self.mostrar_notificacion(f"Terminal {terminal_encontrado} iniciado", "success")
                     return True
                     
                 else:
-                    print("❌ No se encontró ningún terminal disponible")
+                    print("ERROR No se encontró ningún terminal disponible")
                     self.mostrar_notificacion("No hay terminal disponible", "error")
                     return False
                     
@@ -1820,13 +1826,13 @@ journalctl -u ssh                # Logs de servicio específico
                 for cmd, nombre in opciones:
                     try:
                         subprocess.Popen(cmd, shell=True)
-                        print(f"✅ {nombre} abierto exitosamente")
+                        print(f"OK {nombre} abierto exitosamente")
                         self.mostrar_notificacion(f"{nombre} iniciado", "success")
                         return True
                     except:
                         continue
                 
-                print("❌ No se pudo abrir ningún terminal en Windows")
+                print("ERROR No se pudo abrir ningún terminal en Windows")
                 self.mostrar_notificacion("No hay terminal disponible", "error")
                 return False
                 
@@ -1834,16 +1840,16 @@ journalctl -u ssh                # Logs de servicio específico
                 # macOS u otros sistemas
                 try:
                     subprocess.Popen(["open", "-a", "Terminal"])
-                    print("✅ Terminal de macOS abierto")
+                    print("OK Terminal de macOS abierto")
                     self.mostrar_notificacion("Terminal iniciado", "success")
                     return True
                 except:
-                    print(f"❌ Sistema {platform.system()} no soportado")
+                    print(f"ERROR Sistema {platform.system()} no soportado")
                     self.mostrar_notificacion("SO no soportado", "error")
                     return False
                     
         except Exception as e:
-            print(f"❌ Error abriendo terminal: {e}")
+            print(f"ERROR abriendo terminal: {e}")
             self.mostrar_notificacion("Error abriendo terminal", "error")
             return False
     

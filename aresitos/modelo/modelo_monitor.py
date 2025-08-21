@@ -131,7 +131,7 @@ class MonitorAvanzadoNativo:
         # Verificar herramientas disponibles
         self._herramientas = self._verificar_herramientas()
         
-        self.logger.info("� Monitor Avanzado Nativo Ares Aegis inicializado")
+        self.logger.info(" Monitor Avanzado Nativo Ares Aegis inicializado")
         self.logger.info(f"Herramientas disponibles: {len([h for h in self._herramientas.values() if h])}/8")
 
     def _verificar_herramientas(self) -> Dict[str, bool]:
@@ -182,7 +182,7 @@ class MonitorAvanzadoNativo:
                         detalles={'umbrales': self.umbrales}
                     )
                 
-                self.logger.info("� Monitoreo completo iniciado")
+                self.logger.info(" Monitoreo completo iniciado")
                 
                 return {
                     'exito': True,
@@ -222,7 +222,7 @@ class MonitorAvanzadoNativo:
                         mensaje="Monitoreo del sistema detenido"
                     )
                 
-                self.logger.info("� Monitoreo detenido")
+                self.logger.info(" Monitoreo detenido")
                 
                 return {
                     'exito': True,

@@ -5,6 +5,7 @@ from tkinter import ttk, scrolledtext, filedialog, messagebox
 import json
 import os
 import logging
+import datetime
 from pathlib import Path
 
 try:
@@ -22,6 +23,7 @@ class VistaGestionDatos(tk.Frame):
     def __init__(self, parent):
         super().__init__(parent)
         self.controlador = None
+        self.vista_principal = parent  # Referencia al padre para acceder al terminal
         
         # Configurar logging
         self.logger = logging.getLogger(__name__)
@@ -79,28 +81,25 @@ class VistaGestionDatos(tk.Frame):
     
     def crear_interfaz(self):
         """Crear interfaz principal con estilo Burp Suite."""
-        # Frame principal
-        if self.theme:
-            main_frame = tk.Frame(self, bg='#2b2b2b')
-        else:
-            main_frame = tk.Frame(self)
-        main_frame.pack(fill=tk.BOTH, expand=True, padx=10, pady=10)
+        # PanedWindow principal para dividir contenido y terminal
+        self.paned_window = tk.PanedWindow(self, orient="vertical", bg=self.colors['bg_primary'])
+        self.paned_window.pack(fill="both", expand=True, padx=5, pady=5)
+        
+        # Frame superior para el contenido principal
+        main_frame = tk.Frame(self.paned_window, bg=self.colors['bg_primary'])
+        self.paned_window.add(main_frame, minsize=400)
         
         # Título
-        if self.theme:
-            titulo = tk.Label(main_frame, text=" Gestión de Datos", 
-                            font=('Arial', 16, 'bold'),
-                            bg='#2b2b2b', fg='#ff6633')
-        else:
-            titulo = tk.Label(main_frame, text=" Gestión de Datos", 
-                            font=('Arial', 16, 'bold'))
-        titulo.pack(pady=(0, 20))
+        titulo = tk.Label(main_frame, text=" Gestión de Datos", 
+                        font=('Arial', 16, 'bold'),
+                        bg=self.colors['bg_primary'], fg=self.colors['fg_accent'])
+        titulo.pack(pady=(10, 20))
         
         # Frame de selección de tipo
         self.crear_selector_tipo(main_frame)
         
         # Frame principal dividido
-        content_frame = tk.Frame(main_frame, bg='#2b2b2b' if self.theme else 'white')
+        content_frame = tk.Frame(main_frame, bg=self.colors['bg_primary'])
         content_frame.pack(fill=tk.BOTH, expand=True, pady=(10, 0))
         
         # Panel izquierdo - Lista de archivos
@@ -108,6 +107,9 @@ class VistaGestionDatos(tk.Frame):
         
         # Panel derecho - Acciones y contenido
         self.crear_panel_acciones(content_frame)
+        
+        # Crear terminal integrado
+        self.crear_terminal_integrado()
     
     def crear_selector_tipo(self, parent):
         """Crear selector de tipo de datos."""
@@ -205,7 +207,8 @@ class VistaGestionDatos(tk.Frame):
             (" Editar", self.editar_archivo, '#2196F3'),
             (" Guardar", self.guardar_archivo, '#FF9800'),
             (" Eliminar", self.eliminar_archivo, '#f44336'),
-            (" Exportar", self.exportar_archivo, '#9C27B0')
+            (" Exportar", self.exportar_archivo, '#9C27B0'),
+            (" Análisis Kali", self.analizar_con_kali, '#FF5722')
         ]
         
         for i, (texto, comando, color) in enumerate(acciones):
@@ -217,6 +220,31 @@ class VistaGestionDatos(tk.Frame):
             else:
                 btn = ttk.Button(btn_frame, text=texto, command=comando)
                 btn.pack(side=tk.LEFT, padx=(0, 5))
+        
+        # Frame adicional para herramientas de Kali
+        if self.theme:
+            kali_frame = tk.Frame(right_frame, bg='#2b2b2b')
+        else:
+            kali_frame = tk.Frame(right_frame)
+        kali_frame.pack(fill=tk.X, pady=(5, 10))
+        
+        # Botones de herramientas de Kali
+        herramientas_kali = [
+            (" grep", self.usar_grep_kali, '#607D8B'),
+            (" sort", self.usar_sort_kali, '#795548'),
+            (" wc", self.contar_lineas_kali, '#9E9E9E'),
+            (" uniq", self.lineas_unicas_kali, '#673AB7')
+        ]
+        
+        for texto, comando, color in herramientas_kali:
+            if self.theme:
+                btn = tk.Button(kali_frame, text=texto, command=comando,
+                              bg=color, fg='white', font=('Arial', 9),
+                              relief='flat', padx=12, pady=3)
+                btn.pack(side=tk.LEFT, padx=(0, 3))
+            else:
+                btn = ttk.Button(kali_frame, text=texto, command=comando)
+                btn.pack(side=tk.LEFT, padx=(0, 3))
         
         # Área de contenido
         if self.theme:
@@ -350,6 +378,7 @@ class VistaGestionDatos(tk.Frame):
     
     def cargar_archivo(self):
         """Cargar archivo externo."""
+        self.log_to_terminal(f"Cargando archivo {self.tipo_actual}...")
         if self.tipo_actual == "wordlists":
             filetypes = [("Archivos de texto", "*.txt"), ("Archivos JSON", "*.json"), ("Todos los archivos", "*.*")]
         else:
@@ -376,12 +405,16 @@ class VistaGestionDatos(tk.Frame):
                 import shutil
                 shutil.copy2(archivo_origen, destino)
                 
+                self.log_to_terminal(f"✅ Archivo copiado a: {destino.name}")
+                
                 # Recargar lista
                 self.cargar_archivos()
                 
+                self.log_to_terminal(f"📋 Lista de {self.tipo_actual} actualizada")
                 messagebox.showinfo("Éxito", f"Archivo cargado exitosamente:\n{destino.name}")
                 
             except Exception as e:
+                self.log_to_terminal(f"❌ Error al cargar archivo: {str(e)}")
                 messagebox.showerror("Error", f"Error al cargar archivo: {str(e)}")
     
     def editar_archivo(self):
@@ -432,12 +465,14 @@ class VistaGestionDatos(tk.Frame):
                 with open(self.archivo_seleccionado, 'w', encoding='utf-8') as f:
                     f.write(contenido_final)
             
+            self.log_to_terminal(f"💾 Archivo guardado: {self.archivo_seleccionado.name}")
             messagebox.showinfo("Éxito", "Archivo guardado exitosamente.")
             
             # Recargar contenido para mostrar información actualizada
             self.mostrar_contenido_archivo()
             
         except Exception as e:
+            self.log_to_terminal(f"❌ Error al guardar: {str(e)}")
             messagebox.showerror("Error", f"Error al guardar archivo: {str(e)}")
     
     def eliminar_archivo(self):
@@ -520,9 +555,11 @@ class VistaGestionDatos(tk.Frame):
                     with open(destino_path, 'w', encoding='utf-8') as f:
                         f.write(contenido_final)
                 
+                self.log_to_terminal(f"📤 Archivo exportado: {destino_path.name}")
                 messagebox.showinfo("Éxito", f"Archivo exportado exitosamente:\n{destino_path.name}")
                 
             except Exception as e:
+                self.log_to_terminal(f"❌ Error al exportar: {str(e)}")
                 messagebox.showerror("Error", f"Error al exportar archivo: {str(e)}")
     
     def actualizar_desde_controlador(self):
@@ -573,3 +610,321 @@ class VistaGestionDatos(tk.Frame):
             # Fallback a consola si hay problemas
             print(f"[{modulo}] {mensaje}")
             print(f"Error logging a terminal: {e}")
+    
+    def analizar_con_kali(self):
+        """Análisis avanzado de wordlists/diccionarios con herramientas de Kali."""
+        if not self.archivo_seleccionado:
+            messagebox.showwarning("Advertencia", "Seleccione un archivo para analizar.")
+            return
+        
+        try:
+            import subprocess
+            import threading
+            
+            def realizar_analisis():
+                try:
+                    self.text_contenido.delete(1.0, tk.END)
+                    self.text_contenido.insert(tk.END, f"=== ANÁLISIS KALI DE {self.archivo_seleccionado.name if self.archivo_seleccionado else 'archivo'} ===\n\n")
+                    self.text_contenido.update()
+                    
+                    archivo_path = str(self.archivo_seleccionado)
+                    
+                    # Información básica con wc
+                    try:
+                        result = subprocess.run(['wc', '-l', '-w', '-c', archivo_path], 
+                                              capture_output=True, text=True, timeout=10)
+                        self.text_contenido.insert(tk.END, f"ESTADÍSTICAS BÁSICAS:\n{result.stdout}\n")
+                    except:
+                        self.text_contenido.insert(tk.END, "Error obteniendo estadísticas básicas\n")
+                    
+                    # Análisis de duplicados
+                    try:
+                        result = subprocess.run(['sort', archivo_path], 
+                                              capture_output=True, text=True, timeout=15)
+                        if result.stdout:
+                            result2 = subprocess.run(['uniq', '-d'], 
+                                                   input=result.stdout, capture_output=True, text=True, timeout=10)
+                            duplicados = len(result2.stdout.split('\n')) if result2.stdout else 0
+                            self.text_contenido.insert(tk.END, f"\nLÍNEAS DUPLICADAS: {duplicados}\n")
+                    except:
+                        self.text_contenido.insert(tk.END, "\nError analizando duplicados\n")
+                    
+                    # Longitudes de líneas
+                    try:
+                        result = subprocess.run(['awk', '{print length($0)}', archivo_path], 
+                                              capture_output=True, text=True, timeout=10)
+                        if result.stdout:
+                            lengths = [int(x) for x in result.stdout.split('\n') if x.strip().isdigit()]
+                            if lengths:
+                                self.text_contenido.insert(tk.END, f"\nLONGITUD MÍNIMA: {min(lengths)}\n")
+                                self.text_contenido.insert(tk.END, f"LONGITUD MÁXIMA: {max(lengths)}\n")
+                                self.text_contenido.insert(tk.END, f"LONGITUD PROMEDIO: {sum(lengths)/len(lengths):.1f}\n")
+                    except:
+                        self.text_contenido.insert(tk.END, "\nError analizando longitudes\n")
+                    
+                    # Caracteres especiales
+                    try:
+                        result = subprocess.run(['grep', '-o', '[^a-zA-Z0-9 ]', archivo_path], 
+                                              capture_output=True, text=True, timeout=10)
+                        especiales = len(set(result.stdout))
+                        self.text_contenido.insert(tk.END, f"\nCARACTERES ESPECIALES ÚNICOS: {especiales}\n")
+                    except:
+                        self.text_contenido.insert(tk.END, "\nError analizando caracteres especiales\n")
+                    
+                    self.text_contenido.insert(tk.END, "\n=== ANÁLISIS COMPLETADO ===\n")
+                    self._log_terminal(f"Análisis Kali completado para {self.archivo_seleccionado.name if self.archivo_seleccionado else 'archivo'}", "GESTION", "INFO")
+                    
+                except Exception as e:
+                    self.text_contenido.insert(tk.END, f"\nError en análisis: {str(e)}")
+            
+            thread = threading.Thread(target=realizar_analisis)
+            thread.daemon = True
+            thread.start()
+            
+        except Exception as e:
+            messagebox.showerror("Error", f"Error iniciando análisis: {str(e)}")
+    
+    def usar_grep_kali(self):
+        """Buscar patrones usando grep."""
+        if not self.archivo_seleccionado:
+            messagebox.showwarning("Advertencia", "Seleccione un archivo para buscar.")
+            return
+        
+        from tkinter import simpledialog
+        patron = simpledialog.askstring("Buscar con grep", "Ingrese el patrón a buscar:")
+        
+        if patron:
+            try:
+                import subprocess
+                import threading
+                
+                def buscar():
+                    try:
+                        result = subprocess.run(['grep', '-n', '-i', patron, str(self.archivo_seleccionado)], 
+                                              capture_output=True, text=True, timeout=10)
+                        
+                        self.text_contenido.delete(1.0, tk.END)
+                        self.text_contenido.insert(tk.END, f"=== BÚSQUEDA GREP: '{patron}' ===\n\n")
+                        
+                        if result.stdout:
+                            coincidencias = result.stdout.split('\n')
+                            self.text_contenido.insert(tk.END, f"COINCIDENCIAS ENCONTRADAS: {len(coincidencias)-1}\n\n")
+                            self.text_contenido.insert(tk.END, result.stdout)
+                        else:
+                            self.text_contenido.insert(tk.END, "No se encontraron coincidencias.\n")
+                        
+                        self._log_terminal(f"Búsqueda grep '{patron}' en {self.archivo_seleccionado.name if self.archivo_seleccionado else 'archivo'}", "GESTION", "INFO")
+                        
+                    except Exception as e:
+                        self.text_contenido.insert(tk.END, f"Error en búsqueda: {str(e)}")
+                
+                thread = threading.Thread(target=buscar)
+                thread.daemon = True
+                thread.start()
+                
+            except Exception as e:
+                messagebox.showerror("Error", f"Error en grep: {str(e)}")
+    
+    def usar_sort_kali(self):
+        """Ordenar contenido usando sort."""
+        if not self.archivo_seleccionado:
+            messagebox.showwarning("Advertencia", "Seleccione un archivo para ordenar.")
+            return
+        
+        try:
+            import subprocess
+            import threading
+            
+            def ordenar():
+                try:
+                    # Ordenar y mostrar
+                    result = subprocess.run(['sort', '-u', str(self.archivo_seleccionado)], 
+                                          capture_output=True, text=True, timeout=15)
+                    
+                    self.text_contenido.delete(1.0, tk.END)
+                    self.text_contenido.insert(tk.END, "=== CONTENIDO ORDENADO (SIN DUPLICADOS) ===\n\n")
+                    
+                    if result.stdout:
+                        lineas = result.stdout.split('\n')
+                        self.text_contenido.insert(tk.END, f"LÍNEAS ÚNICAS: {len(lineas)-1}\n\n")
+                        self.text_contenido.insert(tk.END, result.stdout)
+                    else:
+                        self.text_contenido.insert(tk.END, "Archivo vacío o error procesando.\n")
+                    
+                    self._log_terminal(f"Ordenamiento completado para {self.archivo_seleccionado.name if self.archivo_seleccionado else 'archivo'}", "GESTION", "INFO")
+                    
+                except Exception as e:
+                    self.text_contenido.insert(tk.END, f"Error ordenando: {str(e)}")
+            
+            thread = threading.Thread(target=ordenar)
+            thread.daemon = True
+            thread.start()
+            
+        except Exception as e:
+            messagebox.showerror("Error", f"Error en sort: {str(e)}")
+    
+    def contar_lineas_kali(self):
+        """Contar líneas, palabras y caracteres usando wc."""
+        if not self.archivo_seleccionado:
+            messagebox.showwarning("Advertencia", "Seleccione un archivo para contar.")
+            return
+        
+        try:
+            import subprocess
+            
+            result = subprocess.run(['wc', '-l', '-w', '-c', str(self.archivo_seleccionado)], 
+                                  capture_output=True, text=True, timeout=5)
+            
+            self.text_contenido.delete(1.0, tk.END)
+            self.text_contenido.insert(tk.END, f"=== ESTADÍSTICAS DE {self.archivo_seleccionado.name if self.archivo_seleccionado else 'archivo'} ===\n\n")
+            self.text_contenido.insert(tk.END, "FORMATO: líneas palabras caracteres archivo\n")
+            self.text_contenido.insert(tk.END, f"{result.stdout}\n")
+            
+            # Análisis adicional
+            if result.stdout:
+                parts = result.stdout.strip().split()
+                if len(parts) >= 3:
+                    lineas = int(parts[0])
+                    palabras = int(parts[1])
+                    caracteres = int(parts[2])
+                    
+                    self.text_contenido.insert(tk.END, f"\nDETALLE:\n")
+                    self.text_contenido.insert(tk.END, f"- Líneas: {lineas:,}\n")
+                    self.text_contenido.insert(tk.END, f"- Palabras: {palabras:,}\n")
+                    self.text_contenido.insert(tk.END, f"- Caracteres: {caracteres:,}\n")
+                    
+                    if lineas > 0:
+                        self.text_contenido.insert(tk.END, f"- Promedio palabras/línea: {palabras/lineas:.2f}\n")
+                        self.text_contenido.insert(tk.END, f"- Promedio caracteres/línea: {caracteres/lineas:.2f}\n")
+            
+            self._log_terminal(f"Conteo completado para {self.archivo_seleccionado.name if self.archivo_seleccionado else 'archivo'}", "GESTION", "INFO")
+            
+        except Exception as e:
+            messagebox.showerror("Error", f"Error contando: {str(e)}")
+    
+    def lineas_unicas_kali(self):
+        """Mostrar líneas únicas usando uniq."""
+        if not self.archivo_seleccionado:
+            messagebox.showwarning("Advertencia", "Seleccione un archivo para procesar.")
+            return
+        
+        try:
+            import subprocess
+            import threading
+            
+            def procesar_unicas():
+                try:
+                    # Primero ordenar, luego obtener únicas
+                    result1 = subprocess.run(['sort', str(self.archivo_seleccionado)], 
+                                           capture_output=True, text=True, timeout=15)
+                    
+                    if result1.stdout:
+                        result2 = subprocess.run(['uniq', '-c'], 
+                                               input=result1.stdout, capture_output=True, text=True, timeout=10)
+                        
+                        self.text_contenido.delete(1.0, tk.END)
+                        self.text_contenido.insert(tk.END, "=== LÍNEAS ÚNICAS CON FRECUENCIA ===\n\n")
+                        self.text_contenido.insert(tk.END, "FORMATO: frecuencia línea\n\n")
+                        
+                        if result2.stdout:
+                            # Ordenar por frecuencia (descendente)
+                            result3 = subprocess.run(['sort', '-nr'], 
+                                                   input=result2.stdout, capture_output=True, text=True, timeout=10)
+                            self.text_contenido.insert(tk.END, result3.stdout if result3.stdout else result2.stdout)
+                        else:
+                            self.text_contenido.insert(tk.END, "Error procesando líneas únicas.\n")
+                    else:
+                        self.text_contenido.insert(tk.END, "Archivo vacío o error leyendo.\n")
+                    
+                    self._log_terminal(f"Análisis de líneas únicas para {self.archivo_seleccionado.name if self.archivo_seleccionado else 'archivo'}", "GESTION", "INFO")
+                    
+                except Exception as e:
+                    self.text_contenido.insert(tk.END, f"Error procesando: {str(e)}")
+            
+            thread = threading.Thread(target=procesar_unicas)
+            thread.daemon = True
+            thread.start()
+            
+        except Exception as e:
+            messagebox.showerror("Error", f"Error en uniq: {str(e)}")
+    
+    def crear_terminal_integrado(self):
+        """Crear terminal integrado en la vista Gestión de Datos."""
+        try:
+            # Frame del terminal en el PanedWindow
+            terminal_frame = tk.Frame(self.paned_window, bg=self.colors['bg_secondary'])
+            self.paned_window.add(terminal_frame, minsize=150)
+            
+            # Título del terminal
+            terminal_titulo = tk.Label(terminal_frame, text="Terminal Gestión Datos", 
+                                     font=('Arial', 10, 'bold'),
+                                     bg=self.colors['bg_secondary'], 
+                                     fg=self.colors['fg_primary'])
+            terminal_titulo.pack(pady=5)
+            
+            # Verificar si existe terminal en la vista principal
+            if hasattr(self.vista_principal, 'terminal_widget') and self.vista_principal.terminal_widget:
+                # Usar terminal global existente
+                self.terminal_widget = self.vista_principal.terminal_widget
+                # Crear referencia local si es necesario
+                terminal_local = tk.Text(terminal_frame, height=8, 
+                                       bg='black', fg='green',
+                                       font=('Consolas', 9),
+                                       state='disabled')
+                terminal_local.pack(fill="both", expand=True, padx=5, pady=5)
+                self.terminal_local = terminal_local
+                
+                # Sincronizar con terminal global
+                self.sincronizar_terminal()
+            else:
+                # Crear terminal local
+                self.terminal_widget = tk.Text(terminal_frame, height=8, 
+                                             bg='black', fg='green',
+                                             font=('Consolas', 9),
+                                             state='disabled')
+                self.terminal_widget.pack(fill="both", expand=True, padx=5, pady=5)
+                self.terminal_local = self.terminal_widget
+            
+            self.log_to_terminal("Terminal Gestión Datos iniciado correctamente")
+            
+        except Exception as e:
+            print(f"Error creando terminal integrado en Vista Gestión Datos: {e}")
+    
+    def log_to_terminal(self, mensaje):
+        """Registrar mensaje en el terminal."""
+        try:
+            timestamp = datetime.datetime.now().strftime("%H:%M:%S")
+            mensaje_completo = f"[{timestamp}] {mensaje}\n"
+            
+            # Log al terminal local
+            if hasattr(self, 'terminal_local'):
+                self.terminal_local.config(state='normal')
+                self.terminal_local.insert(tk.END, mensaje_completo)
+                self.terminal_local.see(tk.END)
+                self.terminal_local.config(state='disabled')
+            
+            # Log al terminal global si existe
+            if hasattr(self.vista_principal, 'terminal_widget') and self.vista_principal.terminal_widget:
+                try:
+                    self.vista_principal.terminal_widget.config(state='normal')
+                    self.vista_principal.terminal_widget.insert(tk.END, f"[DATOS] {mensaje_completo}")
+                    self.vista_principal.terminal_widget.see(tk.END)
+                    self.vista_principal.terminal_widget.config(state='disabled')
+                except:
+                    pass
+                    
+        except Exception as e:
+            print(f"Error en log_to_terminal: {e}")
+    
+    def sincronizar_terminal(self):
+        """Sincronizar terminal local con global."""
+        try:
+            if hasattr(self.vista_principal, 'terminal_widget') and self.vista_principal.terminal_widget:
+                contenido_global = self.vista_principal.terminal_widget.get("1.0", tk.END)
+                if hasattr(self, 'terminal_local'):
+                    self.terminal_local.config(state='normal')
+                    self.terminal_local.delete("1.0", tk.END)
+                    self.terminal_local.insert("1.0", contenido_global)
+                    self.terminal_local.config(state='disabled')
+        except Exception as e:
+            print(f"Error sincronizando terminal: {e}")

@@ -53,11 +53,11 @@ class ControladorFIM(ControladorBase):
                 self.fim_kali2025 = FIMKali2025()
                 self.logger.info("✓ FIMKali2025 inicializado correctamente")
             except Exception as e:
-                self.logger.warning(f"❌ Error inicializando FIMKali2025: {e}")
+                self.logger.warning(f"ERROR inicializando FIMKali2025: {e}")
                 self.fim_kali2025 = None
         else:
             self.fim_kali2025 = None
-            self.logger.warning("⚠️ FIMKali2025 no disponible")
+            self.logger.warning("ADVERTENCIA FIMKali2025 no disponible")
         
         if hasattr(modelo_principal, 'siem_avanzado') and modelo_principal.siem_avanzado:
             self.siem = modelo_principal.siem_avanzado
@@ -2415,7 +2415,7 @@ report_url=stdout
         if not self.fim_kali2025:
             return {"error": "FIMKali2025 no disponible"}
         
-        self.logger.info("🔍 Iniciando escaneo rootkit Kali 2025")
+        self.logger.info("ANALIZANDO Iniciando escaneo rootkit Kali 2025")
         
         try:
             # Usar métodos que sí existen en el modelo
@@ -2424,7 +2424,7 @@ report_url=stdout
             
             if resultado.get("exito"):
                 amenazas = resultado.get("amenazas_detectadas", [])
-                self.logger.info(f"✅ Análisis FIM completado: {len(amenazas)} elementos detectados")
+                self.logger.info(f"OK Análisis FIM completado: {len(amenazas)} elementos detectados")
                 
                 # Registrar amenazas en SIEM si están disponibles
                 if self.siem and amenazas:

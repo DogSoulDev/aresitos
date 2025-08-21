@@ -1,1 +1,14 @@
-404: Not Found
+{
+  "owasp_top10_2021": {
+    "A01_broken_access_control": "Control de acceso roto - La aplicación no restringe adecuadamente lo que los usuarios autenticados pueden hacer",
+    "A02_cryptographic_failures": "Fallas criptográficas - Exposición de datos sensibles debido a criptografía débil o ausente",
+    "A03_injection": "Inyección - Datos no confiables se envían como parte de un comando o consulta",
+    "A04_insecure_design": "Diseño inseguro - Fallas en el diseño y arquitectura de la aplicación",
+    "A05_security_misconfiguration": "Configuración de seguridad incorrecta - Configuraciones de seguridad débiles o por defecto",
+    "A06_vulnerable_components": "Componentes vulnerables y desactualizados - Uso de bibliotecas y frameworks con vulnerabilidades conocidas",
+    "A07_identification_authentication_failures": "Fallas en identificación y autenticación - Sesiones y credenciales mal gestionadas",
+    "A08_software_data_integrity_failures": "Fallas en integridad de software y datos - Código y datos sin verificación de integridad",
+    "A09_security_logging_monitoring_failures": "Fallas en registro y monitoreo de seguridad - Logging insuficiente de eventos de seguridad",
+    "A10_server_side_request_forgery": "Falsificación de solicitudes del lado del servidor (SSRF) - Aplicación obtiene recursos remotos sin validar URL"
+  }
+}

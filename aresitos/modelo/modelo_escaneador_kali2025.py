@@ -146,7 +146,7 @@ class EscaneadorKali2025(_EscaneadorAvanzado):  # type: ignore
         """
         Escaneo detallado con nmap basado en puertos encontrados por masscan
         """
-        self.log(f"🔍 Iniciando escaneo detallado nmap: {objetivo}")
+        self.log(f"ANALIZANDO Iniciando escaneo detallado nmap: {objetivo}")
         
         if 'nmap' not in self.herramientas_disponibles:
             return {"error": "nmap no disponible"}
@@ -205,7 +205,7 @@ class EscaneadorKali2025(_EscaneadorAvanzado):  # type: ignore
         """
         Enumeración de directorios web con gobuster
         """
-        self.log(f"🌐 Iniciando escaneo web gobuster: {url}")
+        self.log(f"WEB Iniciando escaneo web gobuster: {url}")
         
         if 'gobuster' not in self.herramientas_disponibles:
             return {"error": "gobuster no disponible"}
@@ -398,7 +398,7 @@ class EscaneadorKali2025(_EscaneadorAvanzado):  # type: ignore
         }
         
         self.log(f"✓ ESCANEO COMPLETO FINALIZADO")
-        self.log(f"📊 Resumen: {total_puertos} puertos, {total_servicios} servicios, {total_vulnerabilidades} vulnerabilidades")
+        self.log(f"RESUMEN: {total_puertos} puertos, {total_servicios} servicios, {total_vulnerabilidades} vulnerabilidades")
         
         return resultados
     

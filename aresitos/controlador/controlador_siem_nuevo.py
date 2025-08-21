@@ -623,9 +623,9 @@ class ControladorSIEM(ControladorBase):
                     verificaciones['sistema_archivos'] = True
                     detalles.append("✓ Sistema de archivos: OK")
                 else:
-                    detalles.append("❌ Sistema de archivos: Sin permisos de escritura")
+                    detalles.append("ERROR Sistema de archivos: Sin permisos de escritura")
             except Exception as e:
-                detalles.append(f"❌ Sistema de archivos: Error - {str(e)}")
+                detalles.append(f"ERROR Sistema de archivos: Error - {str(e)}")
             
             # Verificar herramientas SIEM
             try:
@@ -642,7 +642,7 @@ class ControladorSIEM(ControladorBase):
                     verificaciones['herramientas_siem'] = True
                     detalles.append(f"✓ Herramientas SIEM: {herramientas_disponibles}/{len(herramientas_kali)} disponibles")
                 else:
-                    detalles.append(f"⚠️ Herramientas SIEM: Solo {herramientas_disponibles}/{len(herramientas_kali)} disponibles")
+                    detalles.append(f"ADVERTENCIA Herramientas SIEM: Solo {herramientas_disponibles}/{len(herramientas_kali)} disponibles")
                     
             except Exception as e:
                 detalles.append(f"✓ Herramientas SIEM: Error - {str(e)}")
@@ -660,7 +660,7 @@ class ControladorSIEM(ControladorBase):
                     verificaciones['logs_sistema'] = True
                     detalles.append(f"✓ Logs del sistema: {logs_encontrados}/{len(logs_sistema)} accesibles")
                 else:
-                    detalles.append(f"⚠️ Logs del sistema: Solo {logs_encontrados}/{len(logs_sistema)} accesibles")
+                    detalles.append(f"ADVERTENCIA Logs del sistema: Solo {logs_encontrados}/{len(logs_sistema)} accesibles")
                     
             except Exception as e:
                 detalles.append(f"✓ Logs del sistema: Error - {str(e)}")
@@ -680,9 +680,9 @@ class ControladorSIEM(ControladorBase):
                             verificaciones['permisos'] = True
                             detalles.append("✓ Permisos: Usuario con acceso sudo")
                         else:
-                            detalles.append("⚠️ Permisos: Usuario sin privilegios administrativos")
+                            detalles.append("ADVERTENCIA Permisos: Usuario sin privilegios administrativos")
                     except (subprocess.TimeoutExpired, subprocess.CalledProcessError, FileNotFoundError):
-                        detalles.append("⚠️ Permisos: No se pudo verificar acceso sudo")
+                        detalles.append("ADVERTENCIA Permisos: No se pudo verificar acceso sudo")
             except Exception as e:
                 detalles.append(f"✓ Permisos: Error verificando - {str(e)}")
             

@@ -122,7 +122,7 @@ class SIEMAvanzadoNativo:
         # Archivos de log del sistema a monitorear
         self.archivos_sistema = self._obtener_archivos_sistema()
         
-        self.logger.info("� SIEM Avanzado Nativo Ares Aegis inicializado")
+        self.logger.info(" SIEM Avanzado Nativo Ares Aegis inicializado")
         self.logger.info(f"Directorio de logs: {self.directorio_logs}")
 
     def _crear_directorio_logs(self) -> str:
@@ -207,7 +207,7 @@ class SIEMAvanzadoNativo:
                     daemon=True
                 )
                 self._thread_procesamiento.start()
-                self.logger.info("� Procesamiento SIEM iniciado")
+                self.logger.info(" Procesamiento SIEM iniciado")
 
     def detener_procesamiento(self):
         """Detener procesamiento en background."""
@@ -215,7 +215,7 @@ class SIEMAvanzadoNativo:
             self._procesando = False
             if self._thread_procesamiento:
                 self._thread_procesamiento.join(timeout=5)
-                self.logger.info("� Procesamiento SIEM detenido")
+                self.logger.info(" Procesamiento SIEM detenido")
 
     def registrar_evento(self, tipo: str, mensaje: str, detalles: Optional[Dict[str, Any]] = None, 
                         severidad: str = "INFO", origen: str = "sistema", tags: Optional[Set[str]] = None) -> str:
@@ -579,13 +579,13 @@ class SIEMAvanzadoNativo:
             eventos_por_severidad[evento.get('severidad', 'INFO')] += 1
         
         for severidad, cantidad in eventos_por_severidad.items():
-            emoji = {"CRITICA": "�", "ALTA": "�", "MEDIA": "�", "BAJA": "�", "INFO": "✓"}
+            emoji = {"CRITICA": "", "ALTA": "", "MEDIA": "", "BAJA": "", "INFO": "✓"}
             reporte += f"- {emoji.get(severidad, '✓')} **{severidad}**: {cantidad}\n"
         
         reporte += f"\n## ✓ ALERTAS ACTIVAS ({len(alertas)})\n"
         
         for alerta in alertas[:10]:  # Primeras 10 alertas
-            emoji = {"CRITICA": "�", "ALTA": "�", "MEDIA": "�", "BAJA": "�", "INFO": "✓"}
+            emoji = {"CRITICA": "", "ALTA": "", "MEDIA": "", "BAJA": "", "INFO": "✓"}
             severidad = alerta.get('severidad', 'INFO')
             titulo = alerta.get('titulo', 'Sin título')
             timestamp_str = alerta.get('timestamp', datetime.datetime.now().isoformat())
@@ -597,7 +597,7 @@ class SIEMAvanzadoNativo:
         reporte += f"\n##  EVENTOS RECIENTES\n"
         
         for evento in eventos[:20]:  # Primeros 20 eventos
-            emoji = {"CRITICA": "�", "ALTA": "�", "MEDIA": "�", "BAJA": "�", "INFO": "✓"}
+            emoji = {"CRITICA": "", "ALTA": "", "MEDIA": "", "BAJA": "", "INFO": "✓"}
             severidad = evento.get('severidad', 'INFO')
             tipo = evento.get('tipo', 'DESCONOCIDO')
             mensaje = evento.get('mensaje', '')

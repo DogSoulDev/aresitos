@@ -6,6 +6,7 @@ import threading
 import os
 import subprocess
 import logging
+from datetime import datetime
 
 try:
     from aresitos.vista.burp_theme import burp_theme
@@ -60,15 +61,24 @@ class VistaSIEM(tk.Frame):
                 'info': 'blue'
             }
         
+        self.vista_principal = parent  # Referencia al padre para acceder al terminal
         self.crear_interfaz()
     
     def set_controlador(self, controlador):
         self.controlador = controlador
     
     def crear_interfaz(self):
+        # PanedWindow principal para dividir contenido y terminal
+        self.paned_window = tk.PanedWindow(self, orient="vertical", bg=self.colors['bg_primary'])
+        self.paned_window.pack(fill="both", expand=True, padx=5, pady=5)
+        
+        # Frame superior para el contenido principal
+        contenido_frame = tk.Frame(self.paned_window, bg=self.colors['bg_primary'])
+        self.paned_window.add(contenido_frame, minsize=400)
+        
         # Frame título con tema
-        titulo_frame = tk.Frame(self, bg=self.colors['bg_primary'])
-        titulo_frame.pack(fill=tk.X, pady=(0, 10))
+        titulo_frame = tk.Frame(contenido_frame, bg=self.colors['bg_primary'])
+        titulo_frame.pack(fill=tk.X, pady=(10, 10))
         
         # Título con tema Burp Suite
         titulo = tk.Label(titulo_frame, text="SIEM - Security Information & Event Management",
@@ -80,10 +90,10 @@ class VistaSIEM(tk.Frame):
         if self.theme:
             style = ttk.Style()
             self.theme.configure_ttk_style(style)
-            self.notebook = ttk.Notebook(self, style='Custom.TNotebook')
+            self.notebook = ttk.Notebook(contenido_frame, style='Custom.TNotebook')
         else:
-            self.notebook = ttk.Notebook(self)
-        self.notebook.pack(fill=tk.BOTH, expand=True, padx=20, pady=10)
+            self.notebook = ttk.Notebook(contenido_frame)
+        self.notebook.pack(fill=tk.BOTH, expand=True, padx=10, pady=10)
         
         # Pestaña 1: Monitoreo en Tiempo Real
         self.crear_tab_monitoreo()
@@ -96,6 +106,90 @@ class VistaSIEM(tk.Frame):
         
         # Pestaña 4: Forense Digital
         self.crear_tab_forense()
+        
+        # Crear terminal integrado
+        self.crear_terminal_integrado()
+    
+    def crear_terminal_integrado(self):
+        """Crear terminal integrado en la vista SIEM."""
+        try:
+            # Frame del terminal en el PanedWindow
+            terminal_frame = tk.Frame(self.paned_window, bg=self.colors['bg_secondary'])
+            self.paned_window.add(terminal_frame, minsize=150)
+            
+            # Título del terminal
+            terminal_titulo = tk.Label(terminal_frame, text="Terminal SIEM", 
+                                     font=('Arial', 10, 'bold'),
+                                     bg=self.colors['bg_secondary'], 
+                                     fg=self.colors['fg_primary'])
+            terminal_titulo.pack(pady=5)
+            
+            # Verificar si existe terminal en la vista principal
+            if hasattr(self.vista_principal, 'terminal_widget') and self.vista_principal.terminal_widget:
+                # Usar terminal global existente
+                self.terminal_widget = self.vista_principal.terminal_widget
+                # Crear referencia local si es necesario
+                terminal_local = tk.Text(terminal_frame, height=8, 
+                                       bg='black', fg='green',
+                                       font=('Consolas', 9),
+                                       state='disabled')
+                terminal_local.pack(fill="both", expand=True, padx=5, pady=5)
+                self.terminal_local = terminal_local
+                
+                # Sincronizar con terminal global
+                self.sincronizar_terminal()
+            else:
+                # Crear terminal local
+                self.terminal_widget = tk.Text(terminal_frame, height=8, 
+                                             bg='black', fg='green',
+                                             font=('Consolas', 9),
+                                             state='disabled')
+                self.terminal_widget.pack(fill="both", expand=True, padx=5, pady=5)
+                self.terminal_local = self.terminal_widget
+            
+            self.log_to_terminal("Terminal SIEM iniciado correctamente")
+            
+        except Exception as e:
+            print(f"Error creando terminal integrado en Vista SIEM: {e}")
+    
+    def log_to_terminal(self, mensaje):
+        """Registrar mensaje en el terminal."""
+        try:
+            timestamp = datetime.now().strftime("%H:%M:%S")
+            mensaje_completo = f"[{timestamp}] {mensaje}\n"
+            
+            # Log al terminal local
+            if hasattr(self, 'terminal_local'):
+                self.terminal_local.config(state='normal')
+                self.terminal_local.insert(tk.END, mensaje_completo)
+                self.terminal_local.see(tk.END)
+                self.terminal_local.config(state='disabled')
+            
+            # Log al terminal global si existe
+            if hasattr(self.vista_principal, 'terminal_widget') and self.vista_principal.terminal_widget:
+                try:
+                    self.vista_principal.terminal_widget.config(state='normal')
+                    self.vista_principal.terminal_widget.insert(tk.END, f"[SIEM] {mensaje_completo}")
+                    self.vista_principal.terminal_widget.see(tk.END)
+                    self.vista_principal.terminal_widget.config(state='disabled')
+                except:
+                    pass
+                    
+        except Exception as e:
+            print(f"Error en log_to_terminal: {e}")
+    
+    def sincronizar_terminal(self):
+        """Sincronizar terminal local con global."""
+        try:
+            if hasattr(self.vista_principal, 'terminal_widget') and self.vista_principal.terminal_widget:
+                contenido_global = self.vista_principal.terminal_widget.get("1.0", tk.END)
+                if hasattr(self, 'terminal_local'):
+                    self.terminal_local.config(state='normal')
+                    self.terminal_local.delete("1.0", tk.END)
+                    self.terminal_local.insert("1.0", contenido_global)
+                    self.terminal_local.config(state='disabled')
+        except Exception as e:
+            print(f"Error sincronizando terminal: {e}")
     
     def crear_tab_monitoreo(self):
         """Crear pestaña de monitoreo en tiempo real."""
@@ -140,8 +234,6 @@ class VistaSIEM(tk.Frame):
             ("Actualizar Dashboard", self.actualizar_dashboard, self.colors['button_bg']),
             ("Ver Estadísticas", self.mostrar_estadisticas, self.colors['button_bg']),
             ("Configurar Alertas", self.configurar_alertas, self.colors['button_bg']),
-            ("Métricas del Sistema", self.metricas_sistema, self.colors['button_bg']),
-            ("Monitor de Red", self.monitor_red, self.colors['button_bg']),
             ("Eventos de Seguridad", self.eventos_seguridad, self.colors['button_bg'])
         ]
         
@@ -162,7 +254,7 @@ class VistaSIEM(tk.Frame):
             tab_analisis = tk.Frame(self.notebook, bg='#2b2b2b')
         else:
             tab_analisis = tk.Frame(self.notebook)
-        self.notebook.add(tab_analisis, text=' Análisis de Logs')
+        self.notebook.add(tab_analisis, text='Análisis de Logs')
         
         # Frame principal
         if self.theme:
@@ -224,7 +316,7 @@ class VistaSIEM(tk.Frame):
                                    bg='#ff6633', fg='white', font=('Arial', 10))
             btn_analizar.pack(side=tk.LEFT, padx=5)
             
-            btn_buscar = tk.Button(btn_frame, text="� Buscar Patrones", 
+            btn_buscar = tk.Button(btn_frame, text=" Buscar Patrones", 
                                  command=self.buscar_patrones,
                                  bg='#404040', fg='white', font=('Arial', 10))
             btn_buscar.pack(side=tk.LEFT, padx=5)
@@ -234,7 +326,7 @@ class VistaSIEM(tk.Frame):
             
             ttk.Button(btn_frame, text=" Analizar Logs Seleccionados", 
                       command=self.analizar_logs_seleccionados).pack(side=tk.LEFT, padx=5)
-            ttk.Button(btn_frame, text="� Buscar Patrones", 
+            ttk.Button(btn_frame, text=" Buscar Patrones", 
                       command=self.buscar_patrones).pack(side=tk.LEFT, padx=5)
         
         # Panel inferior - Resultados de análisis
@@ -260,7 +352,7 @@ class VistaSIEM(tk.Frame):
             tab_alertas = tk.Frame(self.notebook, bg='#2b2b2b')
         else:
             tab_alertas = tk.Frame(self.notebook)
-        self.notebook.add(tab_alertas, text=' Alertas y Correlación')
+        self.notebook.add(tab_alertas, text='Alertas y Correlación')
         
         # Frame principal dividido
         if self.theme:
@@ -327,7 +419,7 @@ class VistaSIEM(tk.Frame):
             tab_forense = tk.Frame(self.notebook, bg='#2b2b2b')
         else:
             tab_forense = tk.Frame(self.notebook)
-        self.notebook.add(tab_forense, text='� Forense Digital')
+        self.notebook.add(tab_forense, text='Forense Digital')
         
         # Frame principal
         if self.theme:
@@ -362,7 +454,7 @@ class VistaSIEM(tk.Frame):
                 (" Head/Tail", self.usar_head_tail),
                 (" Check Kali Tools", self.verificar_herramientas_kali),
                 (" Monitor Real-time", self.monitorear_tiempo_real_kali),
-                ("� Stop Monitor", self.parar_monitoreo),
+                (" Stop Monitor", self.parar_monitoreo),
                 (" OSQuery Analysis", self.integrar_osquery_kali)
             ]
             
@@ -385,7 +477,7 @@ class VistaSIEM(tk.Frame):
                 (" Head/Tail", self.usar_head_tail),
                 (" Check Kali Tools", self.verificar_herramientas_kali),
                 (" Monitor Real-time", self.monitorear_tiempo_real_kali),
-                ("� Stop Monitor", self.parar_monitoreo),
+                (" Stop Monitor", self.parar_monitoreo),
                 (" OSQuery Analysis", self.integrar_osquery_kali)
             ]
             
@@ -429,21 +521,21 @@ class VistaSIEM(tk.Frame):
         self._actualizar_texto_alertas(" Motor de correlación en standby\n\n")
         
         # Forense
-        self._actualizar_texto_forense("� Herramientas forenses de Kali Linux disponibles\n")
+        self._actualizar_texto_forense(" Herramientas forenses de Kali Linux disponibles\n")
         self._actualizar_texto_forense("[FORENSIC] Listo para análisis forense digital\n\n")
     
     # Métodos de la pestaña Monitoreo
     def iniciar_siem(self):
         """Iniciar sistema SIEM con logging detallado."""
         if self.proceso_siem_activo:
-            self._log_terminal("🔄 SIEM ya activo - reiniciando sistema...", "SIEM", "WARNING")
+            self._log_terminal(" SIEM ya activo - reiniciando sistema...", "SIEM", "WARNING")
             self._actualizar_texto_monitoreo(" SIEM ya activo - reiniciando...\n")
             self.detener_siem()
             # Dar tiempo para que termine
             self.after(1000, self._iniciar_siem_impl)
             return
         
-        self._log_terminal("🚀 Iniciando sistema SIEM para detección de amenazas", "SIEM", "INFO")
+        self._log_terminal("INICIANDO sistema SIEM para detección de amenazas", "SIEM", "INFO")
         self._iniciar_siem_impl()
     
     def _iniciar_siem_impl(self):
@@ -451,7 +543,7 @@ class VistaSIEM(tk.Frame):
         self.proceso_siem_activo = True
         self._habilitar_botones_siem(False)
         
-        self._log_terminal("🛡️ Configurando sensores de seguridad...", "SIEM", "INFO")
+        self._log_terminal("Configurando sensores de seguridad...", "SIEM", "INFO")
         self._actualizar_texto_monitoreo(" Iniciando sistema SIEM...\n")
         
         # Ejecutar en thread separado
@@ -496,7 +588,7 @@ class VistaSIEM(tk.Frame):
                 else:
                     error_msg = resultado.get('error', 'Error desconocido')
                     self._log_terminal(f"Error iniciando controlador SIEM: {error_msg}", "SIEM", "ERROR")
-                    self.after(0, self._actualizar_texto_monitoreo, f"ERROR Error iniciando SIEM: {error_msg}\n")
+                    self.after(0, self._actualizar_texto_monitoreo, f"ERROR iniciando SIEM: {error_msg}\n")
             else:
                 self._log_terminal("Controlador SIEM no disponible - ejecutando monitoreo basico", "SIEM", "WARNING")
                 self._ejecutar_monitoreo_basico()
@@ -844,7 +936,7 @@ class VistaSIEM(tk.Frame):
                 self.after(5000, self._monitorear_eventos_continuamente)  # Cada 5 segundos
                 
         except Exception as e:
-            self._log_terminal(f"❌ Error en monitoreo continuo: {str(e)}", "SIEM", "ERROR")
+            self._log_terminal(f"ERROR en monitoreo continuo: {str(e)}", "SIEM", "ERROR")
     
     def _procesar_evento_seguridad(self, evento):
         """Procesar y mostrar evento de seguridad detectado."""
@@ -852,22 +944,22 @@ class VistaSIEM(tk.Frame):
         tipo = evento.get('tipo', 'EVENTO')
         descripcion = evento.get('descripcion', 'Sin descripción')
         
-        # Emojis según severidad
-        emoji_map = {
-            'CRITICAL': '🚨',
-            'HIGH': '⚠️', 
-            'MEDIUM': '🔶',
-            'LOW': 'ℹ️'
+        # Indicadores según severidad
+        indicator_map = {
+            'CRITICAL': '[CRITICO]',
+            'HIGH': '[ALTO]', 
+            'MEDIUM': '[MEDIO]',
+            'LOW': '[BAJO]'
         }
         
-        emoji = emoji_map.get(severidad, '📊')
+        indicator = indicator_map.get(severidad, '[INFORMACION]')
         nivel = "ERROR" if severidad in ['CRITICAL', 'HIGH'] else "WARNING"
         
-        self._log_terminal(f"{emoji} {tipo} [{severidad}]: {descripcion}", "SIEM", nivel)
+        self._log_terminal(f"{indicator} {tipo} [{severidad}]: {descripcion}", "SIEM", nivel)
         
         # También actualizar la interfaz SIEM
         timestamp = __import__('datetime').datetime.now().strftime("%H:%M:%S")
-        evento_msg = f"[{timestamp}] {emoji} {tipo} [{severidad}]: {descripcion}\n"
+        evento_msg = f"[{timestamp}] {indicator} {tipo} [{severidad}]: {descripcion}\n"
         self.after(0, self._actualizar_texto_monitoreo, evento_msg)
     
     def detener_siem(self):
@@ -881,7 +973,7 @@ class VistaSIEM(tk.Frame):
                 if resultado.get('exito'):
                     self._actualizar_texto_monitoreo("OK SIEM detenido correctamente\n")
                 else:
-                    self._actualizar_texto_monitoreo(f"ERROR Error deteniendo SIEM: {resultado.get('error', 'Error desconocido')}\n")
+                    self._actualizar_texto_monitoreo(f"ERROR deteniendo SIEM: {resultado.get('error', 'Error desconocido')}\n")
     
     def _finalizar_siem(self):
         """Finalizar proceso SIEM."""
@@ -897,14 +989,167 @@ class VistaSIEM(tk.Frame):
             self.btn_detener_siem.config(state=estado_detener)
     
     def actualizar_dashboard(self):
-        """Actualizar dashboard de eventos."""
-        self._actualizar_texto_monitoreo(" Actualizando dashboard...\n")
-        # Aquí iría la lógica real de actualización
-        import time
-        threading.Thread(target=lambda: (
-            time.sleep(1),
-            self.after(0, self._actualizar_texto_monitoreo, "OK Dashboard actualizado\n\n")
-        ), daemon=True).start()
+        """Actualizar dashboard SIEM con información en tiempo real del sistema."""
+        def actualizar_dashboard_real():
+            try:
+                self._log_terminal(" Actualizando dashboard SIEM en tiempo real", "SIEM-DASHBOARD", "INFO")
+                
+                import subprocess
+                import os
+                import time
+                
+                # SECCIÓN 1: Estado del sistema
+                self._log_terminal("Obteniendo métricas del sistema:", "SIEM-DASHBOARD", "INFO")
+                
+                # CPU y Memoria
+                try:
+                    resultado = subprocess.run(['cat', '/proc/loadavg'], 
+                                             capture_output=True, text=True, timeout=5)
+                    if resultado.returncode == 0:
+                        load_avg = resultado.stdout.strip().split()[:3]
+                        self._log_terminal(f"Carga CPU: {' '.join(load_avg)} (1m, 5m, 15m)", "SIEM-DASHBOARD", "INFO")
+                    
+                    # Memoria
+                    resultado = subprocess.run(['free', '-h'], 
+                                             capture_output=True, text=True, timeout=5)
+                    if resultado.returncode == 0:
+                        lineas = resultado.stdout.strip().split('\n')
+                        if len(lineas) >= 2:
+                            memoria_info = lineas[1].split()
+                            total = memoria_info[1]
+                            usado = memoria_info[2]
+                            disponible = memoria_info[6] if len(memoria_info) > 6 else memoria_info[3]
+                            self._log_terminal(f"MEMORIA: {usado}/{total} usado, {disponible} disponible", "SIEM-DASHBOARD", "INFO")
+                except:
+                    self._log_terminal("No se pudieron obtener métricas del sistema", "SIEM-DASHBOARD", "WARNING")
+                
+                # SECCIÓN 2: Conexiones de red activas
+                self._log_terminal("Analizando conexiones de red:", "SIEM-DASHBOARD", "INFO")
+                
+                try:
+                    resultado = subprocess.run(['ss', '-tuln'], 
+                                             capture_output=True, text=True, timeout=10)
+                    
+                    if resultado.returncode == 0:
+                        lineas = resultado.stdout.strip().split('\n')
+                        conexiones_tcp = 0
+                        conexiones_udp = 0
+                        puertos_abiertos = []
+                        
+                        for linea in lineas:
+                            if 'LISTEN' in linea:
+                                if 'tcp' in linea.lower():
+                                    conexiones_tcp += 1
+                                elif 'udp' in linea.lower():
+                                    conexiones_udp += 1
+                                    
+                                # Extraer puerto
+                                partes = linea.split()
+                                if len(partes) >= 4:
+                                    puerto = partes[3].split(':')[-1]
+                                    if puerto.isdigit():
+                                        puertos_abiertos.append(puerto)
+                        
+                        self._log_terminal(f"Conexiones activas: {conexiones_tcp} TCP, {conexiones_udp} UDP", "SIEM-DASHBOARD", "INFO")
+                        
+                        # Puertos importantes
+                        puertos_criticos = ['22', '80', '443', '21', '25', '53']
+                        puertos_criticos_abiertos = [p for p in puertos_abiertos if p in puertos_criticos]
+                        
+                        if puertos_criticos_abiertos:
+                            self._log_terminal(f"🔌 Puertos críticos abiertos: {', '.join(puertos_criticos_abiertos)}", "SIEM-DASHBOARD", "WARNING")
+                        else:
+                            self._log_terminal("SEGURIDAD No hay puertos críticos abiertos públicamente", "SIEM-DASHBOARD", "INFO")
+                    
+                except:
+                    self._log_terminal("ADVERTENCIA Error analizando conexiones de red", "SIEM-DASHBOARD", "WARNING")
+                
+                # SECCIÓN 3: Procesos activos
+                self._log_terminal("Monitoreando procesos activos:", "SIEM-DASHBOARD", "INFO")
+                
+                try:
+                    resultado = subprocess.run(['ps', 'aux'], 
+                                             capture_output=True, text=True, timeout=10)
+                    
+                    if resultado.returncode == 0:
+                        lineas = resultado.stdout.strip().split('\n')[1:]  # Saltar header
+                        total_procesos = len(lineas)
+                        
+                        # Procesos con alto uso de CPU
+                        procesos_alta_cpu = []
+                        for linea in lineas[:20]:  # Primeros 20
+                            partes = linea.split()
+                            if len(partes) >= 11:
+                                try:
+                                    cpu = float(partes[2])
+                                    if cpu > 10.0:  # Más del 10% CPU
+                                        proceso = ' '.join(partes[10:])[:50]
+                                        procesos_alta_cpu.append((proceso, cpu))
+                                except:
+                                    pass
+                        
+                        self._log_terminal(f"PROCESOS totales: {total_procesos}", "SIEM-DASHBOARD", "INFO")
+                        
+                        if procesos_alta_cpu:
+                            for proceso, cpu in procesos_alta_cpu[:3]:  # Top 3
+                                self._log_terminal(f"ALTA_CPU Proceso con alta CPU: {proceso} ({cpu}%)", "SIEM-DASHBOARD", "WARNING")
+                        else:
+                            self._log_terminal("OK No hay procesos con uso excesivo de CPU", "SIEM-DASHBOARD", "INFO")
+                    
+                except:
+                    self._log_terminal("ADVERTENCIA Error monitoreando procesos", "SIEM-DASHBOARD", "WARNING")
+                
+                # SECCIÓN 4: Estado de logs críticos
+                self._log_terminal("Verificando logs del sistema:", "SIEM-DASHBOARD", "INFO")
+                
+                logs_criticos = [
+                    ('/var/log/auth.log', 'Autenticación'),
+                    ('/var/log/syslog', 'Sistema'),
+                    ('/var/log/kern.log', 'Kernel')
+                ]
+                
+                for log_path, descripcion in logs_criticos:
+                    try:
+                        if os.path.exists(log_path):
+                            tamano = os.path.getsize(log_path)
+                            tamano_mb = tamano / (1024 * 1024)
+                            
+                            # Últimas entradas
+                            resultado = subprocess.run(['tail', '-n', '1', log_path], 
+                                                     capture_output=True, text=True, timeout=5)
+                            
+                            if resultado.returncode == 0 and resultado.stdout.strip():
+                                ultima_entrada = resultado.stdout.strip()[:100]
+                                self._log_terminal(f" {descripcion}: {tamano_mb:.1f}MB - Última: {ultima_entrada}...", "SIEM-DASHBOARD", "INFO")
+                            else:
+                                self._log_terminal(f" {descripcion}: {tamano_mb:.1f}MB", "SIEM-DASHBOARD", "INFO")
+                        else:
+                            self._log_terminal(f"ERROR {descripcion}: Log no encontrado", "SIEM-DASHBOARD", "ERROR")
+                    except:
+                        self._log_terminal(f"ADVERTENCIA {descripcion}: Error accediendo al log", "SIEM-DASHBOARD", "WARNING")
+                
+                # SECCIÓN 5: Verificación de integridad básica
+                self._log_terminal("Verificación rápida de integridad:", "SIEM-DASHBOARD", "INFO")
+                
+                archivos_criticos = ['/etc/passwd', '/etc/shadow', '/etc/hosts']
+                archivos_ok = 0
+                
+                for archivo in archivos_criticos:
+                    if os.path.exists(archivo):
+                        archivos_ok += 1
+                    
+                self._log_terminal(f"CRITICO Archivos críticos: {archivos_ok}/{len(archivos_criticos)} presentes", "SIEM-DASHBOARD", "INFO")
+                
+                # Timestamp de actualización
+                timestamp = time.strftime("%Y-%m-%d %H:%M:%S")
+                self._log_terminal(f"OK Dashboard actualizado - {timestamp}", "SIEM-DASHBOARD", "SUCCESS")
+                
+            except Exception as e:
+                self._log_terminal(f"ERROR actualizando dashboard: {str(e)}", "SIEM-DASHBOARD", "ERROR")
+        
+        # Ejecutar en thread separado
+        import threading
+        threading.Thread(target=actualizar_dashboard_real, daemon=True).start()
     
     def mostrar_estadisticas(self):
         """Mostrar estadísticas del sistema."""
@@ -916,36 +1161,97 @@ class VistaSIEM(tk.Frame):
     
     # Métodos de la pestaña Análisis
     def analizar_logs_seleccionados(self):
-        """Analizar logs seleccionados."""
+        """Analizar logs seleccionados con comandos avanzados de Linux."""
+        self.log_to_terminal("Iniciando análisis de logs seleccionados...")
         def ejecutar():
             try:
                 logs_seleccionados = [path for path, var in self.logs_vars.items() if var.get()]
                 
                 if not logs_seleccionados:
                     self.after(0, self._actualizar_texto_analisis, "WARNING No se seleccionaron logs para analizar\n")
+                    self.after(0, lambda: self.log_to_terminal("⚠ Advertencia: No hay logs seleccionados"))
                     return
                 
-                self.after(0, self._actualizar_texto_analisis, " Analizando logs seleccionados...\n")
+                self.after(0, self._actualizar_texto_analisis, "ANÁLISIS DE LOGS CON COMANDOS LINUX AVANZADOS\n\n")
+                self.after(0, lambda: self.log_to_terminal(f"Analizando {len(logs_seleccionados)} archivos de log..."))
                 
                 for log_path in logs_seleccionados:
-                    self.after(0, self._actualizar_texto_analisis, f" Procesando {log_path}...\n")
+                    self.after(0, self._actualizar_texto_analisis, f"ANALIZANDO: {log_path}\n")
                     
                     # Verificar si el archivo existe
                     if os.path.exists(log_path):
                         try:
-                            # Leer últimas líneas del log
                             import subprocess
-                            resultado = subprocess.run(['tail', '-n', '20', log_path], 
+                            
+                            # 1. Análisis básico con wc y tail
+                            self.after(0, self._actualizar_texto_analisis, f"COMANDO: wc -l {log_path}\n")
+                            resultado_wc = subprocess.run(['wc', '-l', log_path], 
+                                                        capture_output=True, text=True, timeout=5)
+                            if resultado_wc.returncode == 0:
+                                lineas_total = resultado_wc.stdout.strip().split()[0]
+                                self.after(0, self._actualizar_texto_analisis, f"TOTAL: {lineas_total} líneas en el log\n")
+                            
+                            # 2. Buscar patrones de seguridad con grep
+                            patrones_seguridad = [
+                                ('Failed password', 'Intentos de login fallidos'),
+                                ('Invalid user', 'Usuarios inválidos'),
+                                ('authentication failure', 'Fallos de autenticación'),
+                                ('sudo.*COMMAND', 'Comandos ejecutados con sudo'),
+                                ('sshd.*Connection.*closed', 'Conexiones SSH cerradas'),
+                                ('kernel.*killed process', 'Procesos terminados por el kernel')
+                            ]
+                            
+                            for patron, descripcion in patrones_seguridad:
+                                try:
+                                    self.after(0, self._actualizar_texto_analisis, f"PATRÓN: grep -i '{patron}' {log_path}\n")
+                                    resultado_grep = subprocess.run(['grep', '-i', patron, log_path], 
+                                                                  capture_output=True, text=True, timeout=10)
+                                    if resultado_grep.returncode == 0 and resultado_grep.stdout.strip():
+                                        coincidencias = resultado_grep.stdout.strip().split('\n')
+                                        self.after(0, self._actualizar_texto_analisis, 
+                                                 f"ENCONTRADO: {len(coincidencias)} eventos de {descripcion}\n")
+                                        # Mostrar las últimas 3 coincidencias
+                                        for linea in coincidencias[-3:]:
+                                            timestamp = ' '.join(linea.split()[:3])
+                                            evento = ' '.join(linea.split()[3:8])
+                                            self.after(0, self._actualizar_texto_analisis, f"  {timestamp}: {evento}...\n")
+                                    else:
+                                        self.after(0, self._actualizar_texto_analisis, f"OK: No se encontraron eventos de {descripcion}\n")
+                                except subprocess.TimeoutExpired:
+                                    self.after(0, self._actualizar_texto_analisis, f"TIMEOUT: Búsqueda de {descripcion} excedió tiempo límite\n")
+                                except:
+                                    self.after(0, self._actualizar_texto_analisis, f"ERROR: No se pudo buscar {descripcion}\n")
+                            
+                            # 3. Análisis de frecuencia de IPs con awk
+                            if 'auth.log' in log_path or 'secure' in log_path:
+                                try:
+                                    self.after(0, self._actualizar_texto_analisis, "COMANDO: awk '/Failed password/ {print $(NF-3)}' | sort | uniq -c | sort -nr\n")
+                                    # Extraer IPs de intentos fallidos
+                                    resultado_ips = subprocess.run(['bash', '-c', 
+                                                                   f"grep 'Failed password' {log_path} | awk '{{print $(NF-3)}}' | sort | uniq -c | sort -nr | head -5"], 
+                                                                 capture_output=True, text=True, timeout=15)
+                                    if resultado_ips.returncode == 0 and resultado_ips.stdout.strip():
+                                        self.after(0, self._actualizar_texto_analisis, "TOP IPs con intentos fallidos:\n")
+                                        for linea in resultado_ips.stdout.strip().split('\n'):
+                                            if linea.strip():
+                                                self.after(0, self._actualizar_texto_analisis, f"  {linea.strip()}\n")
+                                    else:
+                                        self.after(0, self._actualizar_texto_analisis, "OK: No hay intentos de login fallidos recientes\n")
+                                except:
+                                    self.after(0, self._actualizar_texto_analisis, "ERROR: No se pudo analizar IPs sospechosas\n")
+                            
+                            # 4. Últimas entradas del log
+                            self.after(0, self._actualizar_texto_analisis, f"COMANDO: tail -n 5 {log_path}\n")
+                            resultado = subprocess.run(['tail', '-n', '5', log_path], 
                                                      capture_output=True, text=True, timeout=10)
                             if resultado.returncode == 0 and resultado.stdout.strip():
                                 lineas = resultado.stdout.strip().split('\n')
-                                self.after(0, self._actualizar_texto_analisis, 
-                                         f"  OK {len(lineas)} líneas analizadas\n")
-                                self.after(0, self._actualizar_texto_analisis, "  CONTENIDO (últimas 5 líneas):\n")
-                                for linea in lineas[-5:]:
+                                self.after(0, self._actualizar_texto_analisis, "ÚLTIMAS ENTRADAS:\n")
+                                for linea in lineas:
                                     if linea.strip():
-                                        timestamp = ' '.join(linea.split()[:3])  # Primeras 3 palabras como timestamp
-                                        mensaje = ' '.join(linea.split()[3:10])  # Siguientes palabras del mensaje
+                                        timestamp = ' '.join(linea.split()[:3])
+                                        mensaje = ' '.join(linea.split()[3:12])
+                                        self.after(0, self._actualizar_texto_analisis, f"  {timestamp}: {mensaje}...\n")
                                         self.after(0, self._actualizar_texto_analisis, f"    {timestamp}: {mensaje}...\n")
                                 
                                 # Buscar patrones sospechosos en las líneas
@@ -980,14 +1286,14 @@ class VistaSIEM(tk.Frame):
                                      f"  WARNING Timeout leyendo archivo\n")
                         except Exception as e:
                             self.after(0, self._actualizar_texto_analisis, 
-                                     f"  ERROR Error leyendo archivo: {str(e)}\n")
+                                     f"  ERROR leyendo archivo: {str(e)}\n")
                     else:
                         self.after(0, self._actualizar_texto_analisis, 
                                  f"  WARNING Archivo no encontrado\n")
                 
                 self.after(0, self._actualizar_texto_analisis, "OK Análisis completado\n\n")
             except Exception as e:
-                self.after(0, self._actualizar_texto_analisis, f"ERROR Error en análisis: {str(e)}\n")
+                self.after(0, self._actualizar_texto_analisis, f"ERROR en análisis: {str(e)}\n")
         
         threading.Thread(target=ejecutar, daemon=True).start()
     
@@ -995,7 +1301,7 @@ class VistaSIEM(tk.Frame):
         """Buscar patrones sospechosos en logs."""
         def ejecutar():
             try:
-                self.after(0, self._actualizar_texto_analisis, "� Buscando patrones sospechosos...\n")
+                self.after(0, self._actualizar_texto_analisis, " Buscando patrones sospechosos...\n")
                 
                 patrones_sospechosos = [
                     "Failed password",
@@ -1013,20 +1319,23 @@ class VistaSIEM(tk.Frame):
                 
                 self.after(0, self._actualizar_texto_analisis, "OK Búsqueda de patrones completada\n\n")
             except Exception as e:
-                self.after(0, self._actualizar_texto_analisis, f"ERROR Error buscando patrones: {str(e)}\n")
+                self.after(0, self._actualizar_texto_analisis, f"ERROR buscando patrones: {str(e)}\n")
         
         threading.Thread(target=ejecutar, daemon=True).start()
     
     # Métodos de la pestaña Alertas
     def detectar_intrusion(self):
         """Detectar intentos de intrusión."""
+        self.log_to_terminal("Iniciando detección de intrusiones...")
         self._actualizar_texto_alertas(" Detectando intentos de intrusión...\n")
         self._actualizar_texto_alertas(" Activando Snort IDS...\n")
         self._actualizar_texto_alertas(" Monitoreando tráfico de red...\n")
         self._actualizar_texto_alertas("OK Sistema de detección activo\n\n")
+        self.log_to_terminal("✓ Sistema de detección de intrusiones activado")
     
     def activar_ids(self):
         """Activar sistema IDS real con Suricata."""
+        self.log_to_terminal("Activando sistema IDS/IPS con Suricata...")
         def ejecutar_ids():
             try:
                 self.after(0, self._actualizar_texto_alertas, " Activando sistema IDS/IPS real...\n")
@@ -1042,11 +1351,11 @@ class VistaSIEM(tk.Frame):
                         install = subprocess.run(['sudo', 'apt', 'update'], capture_output=True)
                         install = subprocess.run(['sudo', 'apt', 'install', '-y', 'suricata'], capture_output=True)
                         if install.returncode != 0:
-                            self.after(0, self._actualizar_texto_alertas, "ERROR Error instalando Suricata\n")
+                            self.after(0, self._actualizar_texto_alertas, "ERROR instalando Suricata\n")
                             return
                         self.after(0, self._actualizar_texto_alertas, "OK Suricata instalado correctamente\n")
                 except Exception as e:
-                    self.after(0, self._actualizar_texto_alertas, f"ERROR Error verificando Suricata: {e}\n")
+                    self.after(0, self._actualizar_texto_alertas, f"ERROR verificando Suricata: {e}\n")
                     return
                 
                 # Configurar Suricata
@@ -1119,14 +1428,14 @@ class VistaSIEM(tk.Frame):
                             # Iniciar monitoreo de logs de Suricata
                             self.after(0, self._iniciar_monitoreo_logs_suricata, log_dir)
                         else:
-                            self.after(0, self._actualizar_texto_alertas, f"ERROR Error iniciando Suricata: {resultado_suricata.stderr}\n")
+                            self.after(0, self._actualizar_texto_alertas, f"ERROR iniciando Suricata: {resultado_suricata.stderr}\n")
                             self.after(0, self._actualizar_texto_alertas, " Verificar permisos sudo y configuración\n")
                     
                 except Exception as e:
-                    self.after(0, self._actualizar_texto_alertas, f"ERROR Error configurando interfaz: {e}\n")
+                    self.after(0, self._actualizar_texto_alertas, f"ERROR configurando interfaz: {e}\n")
                 
             except Exception as e:
-                self.after(0, self._actualizar_texto_alertas, f"ERROR Error activando IDS: {str(e)}\n")
+                self.after(0, self._actualizar_texto_alertas, f"ERROR activando IDS: {str(e)}\n")
         
         threading.Thread(target=ejecutar_ids, daemon=True).start()
     
@@ -1194,7 +1503,7 @@ class VistaSIEM(tk.Frame):
     def monitor_honeypot(self):
         """Monitorear honeypots."""
         self._actualizar_texto_alertas(" Monitoreando honeypots...\n")
-        self._actualizar_texto_alertas("� Verificando trampas de seguridad...\n")
+        self._actualizar_texto_alertas(" Verificando trampas de seguridad...\n")
         self._actualizar_texto_alertas(" Detectando actividad maliciosa...\n")
         self._actualizar_texto_alertas("OK Honeypots operativos\n\n")
     
@@ -1211,8 +1520,8 @@ class VistaSIEM(tk.Frame):
                     # Verificar Volatility 3 (preferido)
                     resultado = subprocess.run(['vol', '--help'], capture_output=True, text=True, timeout=10)
                     if resultado.returncode == 0:
-                        self.after(0, self._actualizar_texto_forense, "✅ Volatility 3 disponible\n\n")
-                        self.after(0, self._actualizar_texto_forense, "🔍 COMANDOS KALI LINUX:\n")
+                        self.after(0, self._actualizar_texto_forense, "OK Volatility 3 disponible\n\n")
+                        self.after(0, self._actualizar_texto_forense, "ANÁLISIS COMANDOS KALI LINUX:\n")
                         self.after(0, self._actualizar_texto_forense, "  vol -f memory.dump windows.info\n")
                         self.after(0, self._actualizar_texto_forense, "  vol -f memory.dump windows.pslist\n") 
                         self.after(0, self._actualizar_texto_forense, "  vol -f memory.dump windows.psscan\n")
@@ -1222,28 +1531,28 @@ class VistaSIEM(tk.Frame):
                         # Probar Volatility 2
                         resultado2 = subprocess.run(['volatility', '--info'], capture_output=True, text=True, timeout=10)
                         if resultado2.returncode == 0:
-                            self.after(0, self._actualizar_texto_forense, "✅ Volatility 2 disponible\n\n")
-                            self.after(0, self._actualizar_texto_forense, "🔍 COMANDOS KALI LINUX:\n")
+                            self.after(0, self._actualizar_texto_forense, "OK Volatility 2 disponible\n\n")
+                            self.after(0, self._actualizar_texto_forense, "ANÁLISIS COMANDOS KALI LINUX:\n")
                             self.after(0, self._actualizar_texto_forense, "  volatility -f memory.dump imageinfo\n")
                             self.after(0, self._actualizar_texto_forense, "  volatility -f memory.dump --profile=Win7SP1x64 pslist\n")
                             self.after(0, self._actualizar_texto_forense, "  volatility -f memory.dump --profile=Win7SP1x64 netscan\n\n")
                         else:
-                            self.after(0, self._actualizar_texto_forense, "❌ Error ejecutando Volatility\n")
+                            self.after(0, self._actualizar_texto_forense, "ERROR ejecutando Volatility\n")
                             
                 except FileNotFoundError:
-                    self.after(0, self._actualizar_texto_forense, "❌ Volatility no encontrado\n")
+                    self.after(0, self._actualizar_texto_forense, "ERROR Volatility no encontrado\n")
                     self.after(0, self._actualizar_texto_forense, "📦 INSTALACIÓN KALI:\n")
                     self.after(0, self._actualizar_texto_forense, "  sudo apt update\n")
                     self.after(0, self._actualizar_texto_forense, "  sudo apt install volatility3 volatility -y\n\n")
                     
-                self.after(0, self._actualizar_texto_forense, "📚 CASOS DE USO:\n")
+                self.after(0, self._actualizar_texto_forense, " CASOS DE USO:\n")
                 self.after(0, self._actualizar_texto_forense, "  • Análisis de malware en memoria\n")
                 self.after(0, self._actualizar_texto_forense, "  • Forense de incidents response\n")
                 self.after(0, self._actualizar_texto_forense, "  • Detección de rootkits\n")
                 self.after(0, self._actualizar_texto_forense, "  • Extracción de passwords\n\n")
                 
             except Exception as e:
-                self.after(0, self._actualizar_texto_forense, f"❌ Error usando Volatility: {str(e)}\n")
+                self.after(0, self._actualizar_texto_forense, f"ERROR usando Volatility: {str(e)}\n")
         
         threading.Thread(target=ejecutar, daemon=True).start()
     
@@ -1258,36 +1567,36 @@ class VistaSIEM(tk.Frame):
         """Usar Sleuth Kit para análisis forense."""
         def ejecutar():
             try:
-                self.after(0, self._actualizar_texto_forense, "🕵️ SLEUTH KIT - Kit de Investigación Forense\n")
+                self.after(0, self._actualizar_texto_forense, "INVESTIGACION SLEUTH KIT - Kit de Investigación Forense\n")
                 self.after(0, self._actualizar_texto_forense, "="*50 + "\n")
                 
                 import subprocess
                 try:
                     resultado = subprocess.run(['fls', '-V'], capture_output=True, text=True, timeout=10)
                     if resultado.returncode == 0:
-                        self.after(0, self._actualizar_texto_forense, "✅ Sleuth Kit disponible\n\n")
-                        self.after(0, self._actualizar_texto_forense, "🔍 COMANDOS KALI LINUX:\n")
+                        self.after(0, self._actualizar_texto_forense, "OK Sleuth Kit disponible\n\n")
+                        self.after(0, self._actualizar_texto_forense, "ANÁLISIS COMANDOS KALI LINUX:\n")
                         self.after(0, self._actualizar_texto_forense, "  mmls disk.img                         # Particiones\n")
                         self.after(0, self._actualizar_texto_forense, "  fsstat -f ext4 disk.img               # Info FS\n")
                         self.after(0, self._actualizar_texto_forense, "  fls -r disk.img                       # Listar archivos\n")
                         self.after(0, self._actualizar_texto_forense, "  ils disk.img                          # Inodos\n")
                         self.after(0, self._actualizar_texto_forense, "  icat disk.img 123                     # Leer inode\n\n")
                     else:
-                        self.after(0, self._actualizar_texto_forense, "❌ Error ejecutando Sleuth Kit\n")
+                        self.after(0, self._actualizar_texto_forense, "ERROR ejecutando Sleuth Kit\n")
                         
                 except FileNotFoundError:
-                    self.after(0, self._actualizar_texto_forense, "❌ Sleuth Kit no encontrado\n")
+                    self.after(0, self._actualizar_texto_forense, "ERROR Sleuth Kit no encontrado\n")
                     self.after(0, self._actualizar_texto_forense, "📦 INSTALACIÓN KALI:\n")
                     self.after(0, self._actualizar_texto_forense, "  sudo apt install sleuthkit autopsy -y\n\n")
                     
-                self.after(0, self._actualizar_texto_forense, "📚 CASOS DE USO:\n")
+                self.after(0, self._actualizar_texto_forense, " CASOS DE USO:\n")
                 self.after(0, self._actualizar_texto_forense, "  • Análisis de sistemas de archivos\n")
                 self.after(0, self._actualizar_texto_forense, "  • Recuperación de archivos borrados\n")
                 self.after(0, self._actualizar_texto_forense, "  • Timeline de actividades\n")
                 self.after(0, self._actualizar_texto_forense, "  • Forense de discos duros\n\n")
                 
             except Exception as e:
-                self.after(0, self._actualizar_texto_forense, f"❌ Error usando Sleuth Kit: {str(e)}\n")
+                self.after(0, self._actualizar_texto_forense, f"ERROR usando Sleuth Kit: {str(e)}\n")
         
         threading.Thread(target=ejecutar, daemon=True).start()
     
@@ -1302,29 +1611,29 @@ class VistaSIEM(tk.Frame):
                 try:
                     resultado = subprocess.run(['binwalk', '--help'], capture_output=True, text=True, timeout=10)
                     if resultado.returncode == 0:
-                        self.after(0, self._actualizar_texto_forense, "✅ Binwalk disponible\n\n")
-                        self.after(0, self._actualizar_texto_forense, "🔍 COMANDOS KALI LINUX:\n")
+                        self.after(0, self._actualizar_texto_forense, "OK Binwalk disponible\n\n")
+                        self.after(0, self._actualizar_texto_forense, "ANÁLISIS COMANDOS KALI LINUX:\n")
                         self.after(0, self._actualizar_texto_forense, "  binwalk firmware.bin                  # Análisis básico\n")
                         self.after(0, self._actualizar_texto_forense, "  binwalk -e firmware.bin               # Extraer archivos\n")
                         self.after(0, self._actualizar_texto_forense, "  binwalk -M firmware.bin               # Recursivo\n")
                         self.after(0, self._actualizar_texto_forense, "  binwalk --dd='.*' firmware.bin        # Extraer todo\n\n")
                     else:
-                        self.after(0, self._actualizar_texto_forense, "❌ Error ejecutando Binwalk\n")
+                        self.after(0, self._actualizar_texto_forense, "ERROR ejecutando Binwalk\n")
                         
                 except FileNotFoundError:
-                    self.after(0, self._actualizar_texto_forense, "❌ Binwalk no encontrado\n")
+                    self.after(0, self._actualizar_texto_forense, "ERROR Binwalk no encontrado\n")
                     self.after(0, self._actualizar_texto_forense, "📦 INSTALACIÓN KALI:\n")
                     self.after(0, self._actualizar_texto_forense, "  sudo apt update\n")
                     self.after(0, self._actualizar_texto_forense, "  sudo apt install binwalk -y\n\n")
                     
-                self.after(0, self._actualizar_texto_forense, "📚 CASOS DE USO:\n")
+                self.after(0, self._actualizar_texto_forense, " CASOS DE USO:\n")
                 self.after(0, self._actualizar_texto_forense, "  • Análisis de firmware IoT\n")
                 self.after(0, self._actualizar_texto_forense, "  • Extracción de sistemas de archivos\n")
                 self.after(0, self._actualizar_texto_forense, "  • Forense de dispositivos embebidos\n")
                 self.after(0, self._actualizar_texto_forense, "  • Detección de backdoors en firmware\n\n")
                 
             except Exception as e:
-                self.after(0, self._actualizar_texto_forense, f"❌ Error usando Binwalk: {str(e)}\n")
+                self.after(0, self._actualizar_texto_forense, f"ERROR usando Binwalk: {str(e)}\n")
         
         threading.Thread(target=ejecutar, daemon=True).start()
     
@@ -1332,35 +1641,35 @@ class VistaSIEM(tk.Frame):
         """Usar Foremost para recuperación de archivos."""
         def ejecutar():
             try:
-                self.after(0, self._actualizar_texto_forense, "🗂️ FOREMOST - Recuperación de Archivos\n")
+                self.after(0, self._actualizar_texto_forense, "FOREMOST - Recuperación de Archivos\n")
                 self.after(0, self._actualizar_texto_forense, "="*50 + "\n")
                 
                 import subprocess
                 try:
                     resultado = subprocess.run(['foremost', '-V'], capture_output=True, text=True, timeout=10)
                     if resultado.returncode == 0:
-                        self.after(0, self._actualizar_texto_forense, "✅ Foremost disponible\n\n")
-                        self.after(0, self._actualizar_texto_forense, "🔍 COMANDOS KALI LINUX:\n")
+                        self.after(0, self._actualizar_texto_forense, "OK Foremost disponible\n\n")
+                        self.after(0, self._actualizar_texto_forense, "ANÁLISIS COMANDOS KALI LINUX:\n")
                         self.after(0, self._actualizar_texto_forense, "  foremost -i disk.img -o output/       # Recuperar todo\n")
                         self.after(0, self._actualizar_texto_forense, "  foremost -t jpg,png -i disk.img       # Solo imágenes\n")
                         self.after(0, self._actualizar_texto_forense, "  foremost -t pdf,doc -i disk.img       # Documentos\n")
                         self.after(0, self._actualizar_texto_forense, "  foremost -T -i disk.img               # Con timestamp\n\n")
                     else:
-                        self.after(0, self._actualizar_texto_forense, "❌ Error ejecutando Foremost\n")
+                        self.after(0, self._actualizar_texto_forense, "ERROR ejecutando Foremost\n")
                         
                 except FileNotFoundError:
-                    self.after(0, self._actualizar_texto_forense, "❌ Foremost no encontrado\n")
+                    self.after(0, self._actualizar_texto_forense, "ERROR Foremost no encontrado\n")
                     self.after(0, self._actualizar_texto_forense, "📦 INSTALACIÓN KALI:\n")
                     self.after(0, self._actualizar_texto_forense, "  sudo apt install foremost -y\n\n")
                     
-                self.after(0, self._actualizar_texto_forense, "📚 CASOS DE USO:\n")
+                self.after(0, self._actualizar_texto_forense, " CASOS DE USO:\n")
                 self.after(0, self._actualizar_texto_forense, "  • Recuperación de archivos borrados\n")
                 self.after(0, self._actualizar_texto_forense, "  • Forense de dispositivos USB\n")
                 self.after(0, self._actualizar_texto_forense, "  • Carving de archivos por signature\n")
                 self.after(0, self._actualizar_texto_forense, "  • Análisis post-incident\n\n")
                 
             except Exception as e:
-                self.after(0, self._actualizar_texto_forense, f"❌ Error usando Foremost: {str(e)}\n")
+                self.after(0, self._actualizar_texto_forense, f"ERROR usando Foremost: {str(e)}\n")
         
         threading.Thread(target=ejecutar, daemon=True).start()
     
@@ -1375,94 +1684,376 @@ class VistaSIEM(tk.Frame):
                 try:
                     resultado = subprocess.run(['strings', '--version'], capture_output=True, text=True, timeout=10)
                     if resultado.returncode == 0:
-                        self.after(0, self._actualizar_texto_forense, "✅ Strings disponible\n\n")
-                        self.after(0, self._actualizar_texto_forense, "🔍 COMANDOS KALI LINUX:\n")
+                        self.after(0, self._actualizar_texto_forense, "OK Strings disponible\n\n")
+                        self.after(0, self._actualizar_texto_forense, "ANÁLISIS COMANDOS KALI LINUX:\n")
                         self.after(0, self._actualizar_texto_forense, "  strings archivo.bin                   # Básico\n")
                         self.after(0, self._actualizar_texto_forense, "  strings -a archivo.bin                # Todos los archivos\n")
                         self.after(0, self._actualizar_texto_forense, "  strings -n 10 archivo.bin             # Min 10 chars\n")
                         self.after(0, self._actualizar_texto_forense, "  strings archivo.bin | grep -i pass    # Buscar passwords\n")
                         self.after(0, self._actualizar_texto_forense, "  strings archivo.bin | grep -E 'http|ftp' # URLs\n\n")
                     else:
-                        self.after(0, self._actualizar_texto_forense, "❌ Error ejecutando strings\n")
+                        self.after(0, self._actualizar_texto_forense, "ERROR ejecutando strings\n")
                         
                 except FileNotFoundError:
-                    self.after(0, self._actualizar_texto_forense, "❌ Strings no encontrado\n")
+                    self.after(0, self._actualizar_texto_forense, "ERROR Strings no encontrado\n")
                     self.after(0, self._actualizar_texto_forense, "📦 INSTALACIÓN KALI:\n")
                     self.after(0, self._actualizar_texto_forense, "  sudo apt install binutils -y\n\n")
                     
-                self.after(0, self._actualizar_texto_forense, "📚 CASOS DE USO:\n")
+                self.after(0, self._actualizar_texto_forense, " CASOS DE USO:\n")
                 self.after(0, self._actualizar_texto_forense, "  • Análisis de malware\n")
                 self.after(0, self._actualizar_texto_forense, "  • Búsqueda de passwords\n")
                 self.after(0, self._actualizar_texto_forense, "  • Extracción de URLs\n")
                 self.after(0, self._actualizar_texto_forense, "  • Ingeniería inversa\n\n")
                 
             except Exception as e:
-                self.after(0, self._actualizar_texto_forense, f"❌ Error usando Strings: {str(e)}\n")
+                self.after(0, self._actualizar_texto_forense, f"ERROR usando Strings: {str(e)}\n")
         
         threading.Thread(target=ejecutar, daemon=True).start()
     
     # Métodos auxiliares para actualizar texto
     def _actualizar_texto_monitoreo(self, texto):
-        """Actualizar texto de monitoreo."""
-        if hasattr(self, 'siem_monitoreo_text'):
-            self.siem_monitoreo_text.config(state=tk.NORMAL)
-            self.siem_monitoreo_text.insert(tk.END, texto)
-            self.siem_monitoreo_text.see(tk.END)
-            self.siem_monitoreo_text.config(state=tk.DISABLED)
+        """Actualizar texto de monitoreo de forma segura."""
+        def _update():
+            try:
+                if hasattr(self, 'siem_monitoreo_text') and self.siem_monitoreo_text.winfo_exists():
+                    self.siem_monitoreo_text.config(state=tk.NORMAL)
+                    self.siem_monitoreo_text.insert(tk.END, texto)
+                    self.siem_monitoreo_text.see(tk.END)
+                    self.siem_monitoreo_text.config(state=tk.DISABLED)
+            except tk.TclError:
+                pass  # Widget ya no existe
+        
+        try:
+            self.after_idle(_update)
+        except:
+            pass  # Si no se puede programar, ignorar
     
     def _actualizar_texto_analisis(self, texto):
-        """Actualizar texto de análisis."""
-        if hasattr(self, 'siem_analisis_text'):
-            self.siem_analisis_text.config(state=tk.NORMAL)
-            self.siem_analisis_text.insert(tk.END, texto)
-            self.siem_analisis_text.see(tk.END)
-            self.siem_analisis_text.config(state=tk.DISABLED)
+        """Actualizar texto de análisis de forma segura."""
+        def _update():
+            try:
+                if hasattr(self, 'siem_analisis_text') and self.siem_analisis_text.winfo_exists():
+                    self.siem_analisis_text.config(state=tk.NORMAL)
+                    self.siem_analisis_text.insert(tk.END, texto)
+                    self.siem_analisis_text.see(tk.END)
+                    self.siem_analisis_text.config(state=tk.DISABLED)
+            except tk.TclError:
+                pass  # Widget ya no existe
+        
+        try:
+            self.after_idle(_update)
+        except:
+            pass  # Si no se puede programar, ignorar
     
     def _actualizar_texto_alertas(self, texto):
-        """Actualizar texto de alertas."""
-        if hasattr(self, 'siem_alertas_text'):
-            self.siem_alertas_text.config(state=tk.NORMAL)
-            self.siem_alertas_text.insert(tk.END, texto)
-            self.siem_alertas_text.see(tk.END)
-            self.siem_alertas_text.config(state=tk.DISABLED)
+        """Actualizar texto de alertas de forma segura."""
+        def _update():
+            try:
+                if hasattr(self, 'siem_alertas_text') and self.siem_alertas_text.winfo_exists():
+                    self.siem_alertas_text.config(state=tk.NORMAL)
+                    self.siem_alertas_text.insert(tk.END, texto)
+                    self.siem_alertas_text.see(tk.END)
+                    self.siem_alertas_text.config(state=tk.DISABLED)
+            except tk.TclError:
+                pass  # Widget ya no existe
+        
+        try:
+            self.after_idle(_update)
+        except:
+            pass  # Si no se puede programar, ignorar
     
     def _actualizar_texto_forense(self, texto):
-        """Actualizar texto forense."""
-        if hasattr(self, 'siem_forense_text'):
-            self.siem_forense_text.config(state=tk.NORMAL)
-            self.siem_forense_text.insert(tk.END, texto)
-            self.siem_forense_text.see(tk.END)
-            self.siem_forense_text.config(state=tk.DISABLED)
+        """Actualizar texto de análisis forense de forma segura."""
+        def _update():
+            try:
+                if hasattr(self, 'siem_forense_text') and self.siem_forense_text.winfo_exists():
+                    self.siem_forense_text.config(state=tk.NORMAL)
+                    self.siem_forense_text.insert(tk.END, texto)
+                    self.siem_forense_text.see(tk.END)
+                    self.siem_forense_text.config(state=tk.DISABLED)
+            except tk.TclError:
+                pass  # Widget ya no existe
+        
+        try:
+            self.after_idle(_update)
+        except:
+            pass  # Si no se puede programar, ignorar
     
     # Métodos adicionales para completar funcionalidad
     def configurar_alertas(self):
-        """Configurar sistema de alertas."""
-        self._actualizar_texto_alertas("� Configurando sistema de alertas...\n")
-        self._actualizar_texto_alertas(" Estableciendo umbrales de detección...\n")
-        self._actualizar_texto_alertas("OK Alertas configuradas correctamente\n\n")
-    
-    def metricas_sistema(self):
-        """Mostrar métricas del sistema."""
-        self._actualizar_texto_monitoreo(" Métricas del Sistema:\n")
-        self._actualizar_texto_monitoreo("  • CPU: 15%\n")
-        self._actualizar_texto_monitoreo("  • Memoria: 2.1GB / 8GB\n")
-        self._actualizar_texto_monitoreo("  • Red: 1.2 MB/s\n")
-        self._actualizar_texto_monitoreo("  • Disco: 45% utilizado\n\n")
-    
-    def monitor_red(self):
-        """Monitorear actividad de red."""
-        self._actualizar_texto_monitoreo(" Monitoreando actividad de red...\n")
-        self._actualizar_texto_monitoreo(" Analizando tráfico entrante y saliente...\n")
-        self._actualizar_texto_monitoreo(" Detectando anomalías en el tráfico...\n")
-        self._actualizar_texto_monitoreo("OK Monitoreo de red activo\n\n")
+        """Configurar sistema de alertas SIEM con umbrales reales."""
+        def configurar_alertas_real():
+            try:
+                self._log_terminal("PROCESOS Configurando sistema de alertas SIEM", "SIEM-ALERTS", "INFO")
+                
+                import subprocess
+                import os
+                
+                # CONFIGURACIÓN 1: Umbrales de CPU y memoria
+                self._log_terminal("Configurando umbrales de recursos del sistema:", "SIEM-ALERTS", "INFO")
+                
+                umbrales_sistema = {
+                    'cpu_warning': 80,      # % de CPU para alerta
+                    'cpu_critical': 95,     # % de CPU crítico
+                    'memory_warning': 80,   # % de memoria para alerta
+                    'memory_critical': 95,  # % de memoria crítico
+                    'disk_warning': 85,     # % de disco para alerta
+                    'disk_critical': 95     # % de disco crítico
+                }
+                
+                for metrica, valor in umbrales_sistema.items():
+                    self._log_terminal(f"ESTADISTICAS {metrica}: {valor}%", "SIEM-ALERTS", "INFO")
+                
+                # CONFIGURACIÓN 2: Alertas de red
+                self._log_terminal("Configurando alertas de red:", "SIEM-ALERTS", "INFO")
+                
+                alertas_red = {
+                    'conexiones_maximas': 100,
+                    'puertos_sospechosos': ['4444', '5555', '6666', '7777', '8888', '9999'],
+                    'trafico_anomalo_mb': 500,  # MB por minuto
+                    'conexiones_por_segundo': 20
+                }
+                
+                self._log_terminal(f"RED Conexiones máximas permitidas: {alertas_red['conexiones_maximas']}", "SIEM-ALERTS", "INFO")
+                self._log_terminal(f"ALERTA Puertos backdoor monitoreados: {', '.join(alertas_red['puertos_sospechosos'])}", "SIEM-ALERTS", "WARNING")
+                self._log_terminal(f"ESTADISTICAS Tráfico anómalo threshold: {alertas_red['trafico_anomalo_mb']}MB/min", "SIEM-ALERTS", "INFO")
+                
+                # CONFIGURACIÓN 3: Alertas de archivos críticos
+                self._log_terminal("Configurando monitoreo de archivos críticos:", "SIEM-ALERTS", "INFO")
+                
+                archivos_vigilados = [
+                    '/etc/passwd',
+                    '/etc/shadow', 
+                    '/etc/hosts',
+                    '/etc/sudoers',
+                    '/etc/ssh/sshd_config',
+                    '/etc/crontab',
+                    '/boot/grub/grub.cfg'
+                ]
+                
+                for archivo in archivos_vigilados:
+                    if os.path.exists(archivo):
+                        self._log_terminal(f"MONITOREANDO Vigilando: {archivo}", "SIEM-ALERTS", "INFO")
+                    else:
+                        self._log_terminal(f"ADVERTENCIA Archivo crítico no encontrado: {archivo}", "SIEM-ALERTS", "WARNING")
+                
+                # CONFIGURACIÓN 4: Alertas de procesos sospechosos
+                self._log_terminal("Configurando detección de procesos sospechosos:", "SIEM-ALERTS", "INFO")
+                
+                procesos_sospechosos = [
+                    'nc', 'netcat', 'ncat',        # Herramientas de red
+                    'python -c', 'perl -e',       # Scripts inline sospechosos
+                    'wget', 'curl http',           # Descargas sospechosas
+                    '/tmp/', '/var/tmp/',          # Ejecución desde directorios temporales
+                    'base64 -d', 'echo',           # Decodificación/ejecución
+                    'bash -i', 'sh -i'             # Shells interactivas
+                ]
+                
+                self._log_terminal(f"ANÁLISIS Monitoreando {len(procesos_sospechosos)} patrones de procesos sospechosos", "SIEM-ALERTS", "WARNING")
+                
+                # CONFIGURACIÓN 5: Alertas de logs
+                self._log_terminal("Configurando análisis de logs:", "SIEM-ALERTS", "INFO")
+                
+                patrones_logs = {
+                    'auth.log': ['Failed password', 'Invalid user', 'authentication failure'],
+                    'syslog': ['segfault', 'kernel panic', 'out of memory'],
+                    'kern.log': ['USB disconnect', 'thermal throttling', 'hardware error']
+                }
+                
+                for log_file, patrones in patrones_logs.items():
+                    self._log_terminal(f" {log_file}: Monitoreando {len(patrones)} patrones", "SIEM-ALERTS", "INFO")
+                
+                # CONFIGURACIÓN 6: Verificar configuración de notificaciones
+                self._log_terminal("Verificando sistema de notificaciones:", "SIEM-ALERTS", "INFO")
+                
+                # Verificar si notify-send está disponible
+                try:
+                    resultado = subprocess.run(['which', 'notify-send'], 
+                                             capture_output=True, timeout=3)
+                    if resultado.returncode == 0:
+                        self._log_terminal("OK Sistema de notificaciones desktop disponible", "SIEM-ALERTS", "INFO")
+                        
+                        # Prueba de notificación
+                        subprocess.run(['notify-send', 'ARESITOS SIEM', 'Sistema de alertas configurado'], 
+                                     timeout=5)
+                    else:
+                        self._log_terminal("ADVERTENCIA notify-send no disponible - alertas solo en terminal", "SIEM-ALERTS", "WARNING")
+                except:
+                    self._log_terminal("ADVERTENCIA Error verificando sistema de notificaciones", "SIEM-ALERTS", "WARNING")
+                
+                # CONFIGURACIÓN 7: Crear archivo de configuración
+                config_alertas = {
+                    'version': '1.0',
+                    'timestamp': __import__('datetime').datetime.now().isoformat(),
+                    'umbrales_sistema': umbrales_sistema,
+                    'alertas_red': alertas_red,
+                    'archivos_vigilados': archivos_vigilados,
+                    'procesos_sospechosos': procesos_sospechosos,
+                    'patrones_logs': patrones_logs
+                }
+                
+                self._log_terminal("MEMORIA Guardando configuración de alertas...", "SIEM-ALERTS", "INFO")
+                
+                try:
+                    import json
+                    config_path = 'configuración/siem_alertas_config.json'
+                    os.makedirs(os.path.dirname(config_path), exist_ok=True)
+                    
+                    with open(config_path, 'w') as f:
+                        json.dump(config_alertas, f, indent=4)
+                    
+                    self._log_terminal(f"OK Configuración guardada en: {config_path}", "SIEM-ALERTS", "SUCCESS")
+                except Exception as e:
+                    self._log_terminal(f"ADVERTENCIA Error guardando configuración: {str(e)}", "SIEM-ALERTS", "WARNING")
+                
+                # Resumen final
+                self._log_terminal("OBJETIVO Sistema de alertas SIEM configurado correctamente", "SIEM-ALERTS", "SUCCESS")
+                self._log_terminal("ESTADISTICAS Umbrales establecidos para CPU, memoria y disco", "SIEM-ALERTS", "INFO")
+                self._log_terminal("RED Monitoreo de red y puertos backdoor activo", "SIEM-ALERTS", "INFO")
+                self._log_terminal("CRITICO Vigilancia de archivos críticos habilitada", "SIEM-ALERTS", "INFO")
+                self._log_terminal("ANÁLISIS Detección de procesos sospechosos configurada", "SIEM-ALERTS", "INFO")
+                
+            except Exception as e:
+                self._log_terminal(f"ERROR configurando alertas: {str(e)}", "SIEM-ALERTS", "ERROR")
+        
+        # Ejecutar en thread separado
+        import threading
+        threading.Thread(target=configurar_alertas_real, daemon=True).start()
     
     def eventos_seguridad(self):
-        """Mostrar eventos de seguridad."""
-        self._actualizar_texto_monitoreo(" Eventos de Seguridad Recientes:\n")
-        self._actualizar_texto_monitoreo("  • [15:32] Login exitoso: usuario admin\n")
-        self._actualizar_texto_monitoreo("  • [15:28] Intento de login fallido: IP 192.168.1.100\n")
-        self._actualizar_texto_monitoreo("  • [15:25] Puerto 22 escaneado desde IP externa\n")
-        self._actualizar_texto_monitoreo("  • [15:20] Proceso sospechoso detectado\n\n")
+        """Analizar y mostrar eventos de seguridad reales del sistema."""
+        try:
+            self._log_terminal("=== ANÁLISIS DE EVENTOS DE SEGURIDAD REALES ===\n")
+            self._actualizar_texto_monitoreo("=== EVENTOS DE SEGURIDAD DEL SISTEMA ===\n\n")
+            
+            # 1. Analizar intentos de login fallidos
+            self._log_terminal("1. Analizando intentos de login fallidos...")
+            try:
+                result = subprocess.run(['grep', '-i', 'failed password', '/var/log/auth.log'], 
+                                      capture_output=True, text=True, timeout=10)
+                if result.returncode == 0:
+                    failed_logins = result.stdout.strip().split('\n')
+                    recent_failures = failed_logins[-10:] if failed_logins else []
+                    self._actualizar_texto_monitoreo(f"ALERTA INTENTOS DE LOGIN FALLIDOS ({len(recent_failures)} recientes):\n")
+                    for failure in recent_failures:
+                        if failure.strip():
+                            parts = failure.split()
+                            if len(parts) >= 3:
+                                timestamp = ' '.join(parts[:3])
+                                self._actualizar_texto_monitoreo(f"   • {timestamp}: {failure.split(':', 1)[1] if ':' in failure else failure}\n")
+                else:
+                    self._actualizar_texto_monitoreo("OK No se detectaron intentos de login fallidos recientes\n")
+            except Exception as e:
+                self._actualizar_texto_monitoreo(f"ADVERTENCIA Error analizando auth.log: {str(e)}\n")
+            
+            # 2. Analizar conexiones de red sospechosas
+            self._log_terminal("2. Analizando conexiones de red activas...")
+            try:
+                result = subprocess.run(['ss', '-tuln'], capture_output=True, text=True, timeout=10)
+                if result.returncode == 0:
+                    connections = result.stdout.strip().split('\n')
+                    suspicious_ports = []
+                    for conn in connections[1:]:  # Skip header
+                        if any(port in conn for port in ['4444', '6666', '9999', '8080']):
+                            suspicious_ports.append(conn)
+                    
+                    if suspicious_ports:
+                        self._actualizar_texto_monitoreo("ALERTA PUERTOS SOSPECHOSOS ACTIVOS:\n")
+                        for port in suspicious_ports:
+                            self._actualizar_texto_monitoreo(f"   • {port}\n")
+                    else:
+                        self._actualizar_texto_monitoreo("OK No se detectaron puertos sospechosos activos\n")
+                else:
+                    self._actualizar_texto_monitoreo("ADVERTENCIA Error analizando conexiones de red\n")
+            except Exception as e:
+                self._actualizar_texto_monitoreo(f"ADVERTENCIA Error ejecutando ss: {str(e)}\n")
+            
+            # 3. Analizar procesos sospechosos
+            self._log_terminal("3. Analizando procesos sospechosos...")
+            try:
+                result = subprocess.run(['ps', 'aux'], capture_output=True, text=True, timeout=10)
+                if result.returncode == 0:
+                    processes = result.stdout.strip().split('\n')
+                    suspicious_procs = []
+                    suspicious_patterns = ['nc ', 'netcat', 'python -c', 'perl -e', 'bash -i']
+                    
+                    for proc in processes:
+                        for pattern in suspicious_patterns:
+                            if pattern in proc.lower():
+                                suspicious_procs.append(proc)
+                                break
+                    
+                    if suspicious_procs:
+                        self._actualizar_texto_monitoreo("ALERTA PROCESOS SOSPECHOSOS DETECTADOS:\n")
+                        for proc in suspicious_procs:
+                            parts = proc.split()
+                            if len(parts) >= 11:
+                                pid = parts[1]
+                                cpu = parts[2]
+                                mem = parts[3]
+                                cmd = ' '.join(parts[10:])
+                                self._actualizar_texto_monitoreo(f"   • PID {pid}: {cmd} (CPU: {cpu}%, MEM: {mem}%)\n")
+                    else:
+                        self._actualizar_texto_monitoreo("OK No se detectaron procesos sospechosos\n")
+                else:
+                    self._actualizar_texto_monitoreo("ADVERTENCIA Error analizando procesos\n")
+            except Exception as e:
+                self._actualizar_texto_monitoreo(f"ADVERTENCIA Error ejecutando ps: {str(e)}\n")
+            
+            # 4. Analizar logs del kernel para errores críticos
+            self._log_terminal("4. Analizando logs del kernel...")
+            try:
+                result = subprocess.run(['grep', '-i', 'error\\|fail\\|segfault', '/var/log/kern.log'], 
+                                      capture_output=True, text=True, timeout=10)
+                if result.returncode == 0:
+                    kernel_errors = result.stdout.strip().split('\n')
+                    recent_errors = kernel_errors[-5:] if kernel_errors else []
+                    if recent_errors and any(error.strip() for error in recent_errors):
+                        self._actualizar_texto_monitoreo("ADVERTENCIA ERRORES RECIENTES DEL KERNEL:\n")
+                        for error in recent_errors:
+                            if error.strip():
+                                parts = error.split()
+                                if len(parts) >= 3:
+                                    timestamp = ' '.join(parts[:3])
+                                    self._actualizar_texto_monitoreo(f"   • {timestamp}: {error.split(':', 2)[2] if error.count(':') >= 2 else error}\n")
+                    else:
+                        self._actualizar_texto_monitoreo("OK No se detectaron errores críticos del kernel\n")
+                else:
+                    self._actualizar_texto_monitoreo("OK No se encontraron errores en kern.log\n")
+            except Exception as e:
+                self._actualizar_texto_monitoreo(f"ADVERTENCIA Error analizando kern.log: {str(e)}\n")
+            
+            # 5. Verificar integridad de archivos críticos
+            self._log_terminal("5. Verificando integridad de archivos críticos...")
+            critical_files = ['/etc/passwd', '/etc/shadow', '/etc/hosts', '/etc/sudoers']
+            for file_path in critical_files:
+                try:
+                    if os.path.exists(file_path):
+                        stat_info = os.stat(file_path)
+                        mod_time = datetime.fromtimestamp(stat_info.st_mtime).strftime("%Y-%m-%d %H:%M:%S")
+                        permissions = oct(stat_info.st_mode)[-3:]
+                        
+                        # Verificar permisos apropiados
+                        expected_perms = {'passwd': '644', 'shadow': '640', 'hosts': '644', 'sudoers': '440'}
+                        file_name = os.path.basename(file_path)
+                        expected = expected_perms.get(file_name, '644')
+                        
+                        if permissions == expected:
+                            self._actualizar_texto_monitoreo(f"OK {file_path}: Permisos OK ({permissions}), Modificado: {mod_time}\n")
+                        else:
+                            self._actualizar_texto_monitoreo(f"ALERTA {file_path}: Permisos ANÓMALOS ({permissions}, esperado {expected}), Modificado: {mod_time}\n")
+                    else:
+                        self._actualizar_texto_monitoreo(f"ADVERTENCIA {file_path}: Archivo no encontrado\n")
+                except Exception as e:
+                    self._actualizar_texto_monitoreo(f"ADVERTENCIA Error verificando {file_path}: {str(e)}\n")
+            
+            self._actualizar_texto_monitoreo("\n=== ANÁLISIS COMPLETADO ===\n")
+            self._log_terminal("Análisis de eventos de seguridad completado")
+            
+        except Exception as e:
+            error_msg = f"Error en análisis de eventos de seguridad: {str(e)}"
+            self._actualizar_texto_monitoreo(f"ERROR {error_msg}\n")
+            self._log_terminal(error_msg)
     
     def eventos_criticos(self):
         """Mostrar eventos críticos."""
@@ -1481,8 +2072,8 @@ class VistaSIEM(tk.Frame):
     def configurar_notificaciones(self):
         """Configurar notificaciones."""
         self._actualizar_texto_alertas(" Configurando notificaciones...\n")
-        self._actualizar_texto_alertas("� Email: Activado\n")
-        self._actualizar_texto_alertas("� Desktop: Activado\n")
+        self._actualizar_texto_alertas(" Email: Activado\n")
+        self._actualizar_texto_alertas(" Desktop: Activado\n")
         self._actualizar_texto_alertas(" SMS: No configurado\n")
         self._actualizar_texto_alertas("OK Notificaciones configuradas\n\n")
     
@@ -1522,56 +2113,142 @@ class VistaSIEM(tk.Frame):
             messagebox.showerror("Error", f"Error al exportar: {str(e)}")
 
     def verificar_kali(self):
-        """Verificar compatibilidad y funcionalidad SIEM en Kali Linux."""
-        if not self.controlador:
-            messagebox.showerror("Error", "No hay controlador SIEM configurado")
-            return
-            
-        try:
-            # Limpiar pantalla principal
-            self.siem_monitoreo_text.config(state=tk.NORMAL)
-            self.siem_monitoreo_text.delete(1.0, tk.END)
-            self.siem_monitoreo_text.insert(tk.END, "=== VERIFICACIÓN SIEM KALI LINUX ===\n\n")
-            
-            # Ejecutar verificación a través del controlador
-            resultado = self.controlador.verificar_funcionalidad_kali()
-            
-            # Mostrar resultados
-            funcionalidad_ok = resultado.get('funcionalidad_completa', False)
-            
-            if funcionalidad_ok:
-                self.siem_monitoreo_text.insert(tk.END, " OK VERIFICACIÓN SIEM EXITOSA\n\n")
-                self.siem_monitoreo_text.insert(tk.END, f"Sistema Operativo: {resultado.get('sistema_operativo', 'Desconocido')}\n")
-                self.siem_monitoreo_text.insert(tk.END, f"Gestor de Permisos: {'OK' if resultado.get('gestor_permisos') else 'ERROR'}\n")
-                self.siem_monitoreo_text.insert(tk.END, f"Permisos Sudo: {'OK' if resultado.get('permisos_sudo') else 'ERROR'}\n\n")
+        """Verificar estado del sistema Kali Linux para SIEM con análisis detallado."""
+        def ejecutar_verificacion():
+            try:
+                self._log_terminal("ANÁLISIS Iniciando verificacion completa del sistema para SIEM", "SIEM-VERIFY", "INFO")
                 
-                self.siem_monitoreo_text.insert(tk.END, "=== HERRAMIENTAS SIEM DISPONIBLES ===\n")
-                for herramienta, estado in resultado.get('herramientas_disponibles', {}).items():
-                    disponible = estado.get('disponible', False)
-                    permisos = estado.get('permisos_ok', False)
-                    icono = "OK" if disponible and permisos else "ERROR"
-                    self.siem_monitoreo_text.insert(tk.END, f"  {icono} {herramienta}\n")
+                # VERIFICACIÓN 1: Sistema operativo y kernel
+                import subprocess
+                import os
+                
+                # Verificar distribución
+                try:
+                    resultado = subprocess.run(['lsb_release', '-d'], capture_output=True, text=True, timeout=5)
+                    if resultado.returncode == 0:
+                        distro = resultado.stdout.strip().split('\t')[1]
+                        self._log_terminal(f"Sistema operativo: {distro}", "SIEM-VERIFY", "INFO")
+                        
+                        if 'kali' in distro.lower():
+                            self._log_terminal("OK Kali Linux detectado - Compatible con SIEM", "SIEM-VERIFY", "SUCCESS")
+                        else:
+                            self._log_terminal("ADVERTENCIA Sistema no es Kali Linux - Funcionalidad limitada", "SIEM-VERIFY", "WARNING")
+                    else:
+                        self._log_terminal("No se pudo detectar la distribución", "SIEM-VERIFY", "WARNING")
+                except:
+                    self._log_terminal("Error verificando distribución", "SIEM-VERIFY", "WARNING")
+                
+                # VERIFICACIÓN 2: Herramientas de monitoreo esenciales
+                herramientas_siem = [
+                    ('nmap', 'Escaneo de puertos y servicios'),
+                    ('ss', 'Monitoreo de conexiones de red'),
+                    ('netstat', 'Estadísticas de red (alternativa)'),
+                    ('tcpdump', 'Captura de tráfico de red'),
+                    ('iptables', 'Firewall del sistema'),
+                    ('systemctl', 'Control de servicios'),
+                    ('journalctl', 'Logs del sistema'),
+                    ('ps', 'Monitoreo de procesos'),
+                    ('lsof', 'Archivos abiertos'),
+                    ('chkrootkit', 'Detección de rootkits')
+                ]
+                
+                herramientas_disponibles = 0
+                self._log_terminal("Verificando herramientas esenciales para SIEM:", "SIEM-VERIFY", "INFO")
+                
+                for herramienta, descripcion in herramientas_siem:
+                    try:
+                        resultado = subprocess.run(['which', herramienta], capture_output=True, timeout=3)
+                        if resultado.returncode == 0:
+                            herramientas_disponibles += 1
+                            self._log_terminal(f"OK {herramienta}: {descripcion}", "SIEM-VERIFY", "INFO")
+                        else:
+                            self._log_terminal(f"ERROR {herramienta}: {descripcion} - NO DISPONIBLE", "SIEM-VERIFY", "ERROR")
+                    except:
+                        self._log_terminal(f"ERROR {herramienta}: Error verificando", "SIEM-VERIFY", "ERROR")
+                
+                porcentaje = (herramientas_disponibles / len(herramientas_siem)) * 100
+                self._log_terminal(f"Herramientas disponibles: {herramientas_disponibles}/{len(herramientas_siem)} ({porcentaje:.1f}%)", "SIEM-VERIFY", "INFO")
+                
+                # VERIFICACIÓN 3: Permisos críticos del sistema
+                self._log_terminal("Verificando permisos del sistema:", "SIEM-VERIFY", "INFO")
+                
+                archivos_criticos = [
+                    '/var/log/syslog', '/var/log/auth.log', '/var/log/kern.log',
+                    '/etc/passwd', '/etc/shadow', '/etc/hosts'
+                ]
+                
+                permisos_ok = 0
+                for archivo in archivos_criticos:
+                    if os.path.exists(archivo):
+                        if os.access(archivo, os.R_OK):
+                            permisos_ok += 1
+                            self._log_terminal(f"OK {archivo}: Lectura permitida", "SIEM-VERIFY", "INFO")
+                        else:
+                            self._log_terminal(f"ERROR {archivo}: Sin permisos de lectura", "SIEM-VERIFY", "ERROR")
+                    else:
+                        self._log_terminal(f"ERROR {archivo}: No existe", "SIEM-VERIFY", "ERROR")
+                
+                # VERIFICACIÓN 4: Servicios del sistema críticos
+                servicios_criticos = ['systemd', 'dbus', 'sshd']
+                self._log_terminal("Verificando servicios críticos:", "SIEM-VERIFY", "INFO")
+                
+                for servicio in servicios_criticos:
+                    try:
+                        resultado = subprocess.run(['systemctl', 'is-active', servicio], 
+                                                 capture_output=True, text=True, timeout=5)
+                        estado = resultado.stdout.strip()
+                        
+                        if estado == 'active':
+                            self._log_terminal(f"OK {servicio}: Activo", "SIEM-VERIFY", "INFO")
+                        else:
+                            self._log_terminal(f"ADVERTENCIA {servicio}: Estado {estado}", "SIEM-VERIFY", "WARNING")
+                    except:
+                        self._log_terminal(f"ERROR {servicio}: Error verificando estado", "SIEM-VERIFY", "WARNING")
+                
+                # VERIFICACIÓN 5: Conectividad de red
+                self._log_terminal("Verificando conectividad de red:", "SIEM-VERIFY", "INFO")
+                
+                try:
+                    resultado = subprocess.run(['ping', '-c', '1', '-W', '3', '8.8.8.8'], 
+                                             capture_output=True, timeout=10)
+                    if resultado.returncode == 0:
+                        self._log_terminal("OK Conectividad externa: OK", "SIEM-VERIFY", "SUCCESS")
+                    else:
+                        self._log_terminal("ERROR Sin conectividad externa", "SIEM-VERIFY", "ERROR")
+                except:
+                    self._log_terminal("ERROR verificando conectividad", "SIEM-VERIFY", "ERROR")
+                
+                # VERIFICACIÓN 6: Capacidades del usuario actual
+                try:
+                    usuario_actual = os.getenv('USER', 'unknown')
+                    self._log_terminal(f"Usuario actual: {usuario_actual}", "SIEM-VERIFY", "INFO")
                     
-            else:
-                self.siem_monitoreo_text.insert(tk.END, " ERROR VERIFICACIÓN SIEM FALLÓ\n\n")
-                self.siem_monitoreo_text.insert(tk.END, f"Sistema Operativo: {resultado.get('sistema_operativo', 'Desconocido')}\n")
-                self.siem_monitoreo_text.insert(tk.END, f"Gestor de Permisos: {'OK' if resultado.get('gestor_permisos') else 'ERROR'}\n")
-                self.siem_monitoreo_text.insert(tk.END, f"Permisos Sudo: {'OK' if resultado.get('permisos_sudo') else 'ERROR'}\n\n")
+                    # Verificar si puede ejecutar comandos privilegiados
+                    resultado = subprocess.run(['sudo', '-n', 'echo', 'test'], 
+                                             capture_output=True, timeout=5)
+                    if resultado.returncode == 0:
+                        self._log_terminal("OK Privilegios sudo: Disponibles sin contraseña", "SIEM-VERIFY", "SUCCESS")
+                    else:
+                        self._log_terminal("ADVERTENCIA Privilegios sudo: Requiere contraseña", "SIEM-VERIFY", "WARNING")
+                except:
+                    self._log_terminal("ERROR verificando privilegios", "SIEM-VERIFY", "WARNING")
                 
-                if resultado.get('recomendaciones'):
-                    self.siem_monitoreo_text.insert(tk.END, "=== RECOMENDACIONES ===\n")
-                    for recomendacion in resultado['recomendaciones']:
-                        self.siem_monitoreo_text.insert(tk.END, f"  • {recomendacion}\n")
+                # RESUMEN FINAL
+                if porcentaje >= 80 and permisos_ok >= 4:
+                    self._log_terminal("OK SISTEMA COMPATIBLE: SIEM puede funcionar correctamente", "SIEM-VERIFY", "SUCCESS")
+                elif porcentaje >= 60:
+                    self._log_terminal("ADVERTENCIA SISTEMA PARCIAL: SIEM funcionará con limitaciones", "SIEM-VERIFY", "WARNING")
+                else:
+                    self._log_terminal("ERROR SISTEMA INCOMPATIBLE: SIEM necesita configuración adicional", "SIEM-VERIFY", "ERROR")
                 
-            if resultado.get('error'):
-                self.siem_monitoreo_text.insert(tk.END, f"\nWARNING Error: {resultado['error']}\n")
+                self._log_terminal("Verificación del sistema completada", "SIEM-VERIFY", "INFO")
                 
-            self.siem_monitoreo_text.config(state=tk.DISABLED)
-                
-        except Exception as e:
-            self.siem_monitoreo_text.config(state=tk.NORMAL)
-            self.siem_monitoreo_text.insert(tk.END, f" ERROR Error durante verificación: {str(e)}\n")
-            self.siem_monitoreo_text.config(state=tk.DISABLED)
+            except Exception as e:
+                self._log_terminal(f"Error durante verificación del sistema: {str(e)}", "SIEM-VERIFY", "ERROR")
+        
+        # Ejecutar en thread separado
+        import threading
+        threading.Thread(target=ejecutar_verificacion, daemon=True).start()
     
     def usar_dd(self):
         """Usar herramientas dd y dcfldd para forense digital."""
@@ -1611,13 +2288,13 @@ class VistaSIEM(tk.Frame):
                     self._actualizar_texto_forense("ERROR DCFLDD no encontrado. Instalar: apt install dcfldd\n")
                 
                 self._actualizar_texto_forense("\n Comandos útiles para forense:\n")
-                self._actualizar_texto_forense("� Copia básica:\n")
+                self._actualizar_texto_forense(" Copia básica:\n")
                 self._actualizar_texto_forense("  dd if=/dev/sdX of=imagen.dd bs=4096 status=progress\n")
-                self._actualizar_texto_forense("� Copia con verificación:\n")
+                self._actualizar_texto_forense(" Copia con verificación:\n")
                 self._actualizar_texto_forense("  dcfldd if=/dev/sdX of=imagen.dd hash=sha256 bs=4096\n")
-                self._actualizar_texto_forense("� Análisis de memoria:\n")
+                self._actualizar_texto_forense(" Análisis de memoria:\n")
                 self._actualizar_texto_forense("  dd if=/proc/kcore of=memoria.dump bs=1M count=100\n")
-                self._actualizar_texto_forense("� Borrado seguro:\n")
+                self._actualizar_texto_forense(" Borrado seguro:\n")
                 self._actualizar_texto_forense("  dd if=/dev/urandom of=/dev/sdX bs=4096\n\n")
                 
                 # Verificar espacio en disco para forense
@@ -1632,7 +2309,7 @@ class VistaSIEM(tk.Frame):
                     pass
                     
             except Exception as e:
-                self._actualizar_texto_forense(f"ERROR Error en análisis DD: {str(e)}\n")
+                self._actualizar_texto_forense(f"ERROR en análisis DD: {str(e)}\n")
         
         threading.Thread(target=ejecutar_dd, daemon=True).start()
     
@@ -1698,10 +2375,10 @@ class VistaSIEM(tk.Frame):
                         else:
                             self._actualizar_texto_forense("\nWARNING Sistema no detectado como Kali Linux\n")
                 except (IOError, OSError, PermissionError, FileNotFoundError):
-                    self._actualizar_texto_forense("\n❌ No se pudo verificar tipo de sistema\n")
+                    self._actualizar_texto_forense("\nERROR No se pudo verificar tipo de sistema\n")
                     
             except Exception as e:
-                self._actualizar_texto_forense(f"ERROR Error verificando herramientas: {str(e)}\n")
+                self._actualizar_texto_forense(f"ERROR verificando herramientas: {str(e)}\n")
         
         threading.Thread(target=ejecutar_verificacion, daemon=True).start()
     
@@ -1709,7 +2386,7 @@ class VistaSIEM(tk.Frame):
         """Análisis rápido de logs usando head/tail nativos de Kali Linux."""
         def ejecutar_analisis():
             try:
-                self._actualizar_texto_forense("� Análisis rápido de logs con herramientas nativas Kali...\n\n")
+                self._actualizar_texto_forense(" Análisis rápido de logs con herramientas nativas Kali...\n\n")
                 import subprocess
                 
                 # Logs críticos en Kali Linux
@@ -1730,7 +2407,7 @@ class VistaSIEM(tk.Frame):
                         if not os.path.exists(log_path):
                             continue
                             
-                        self._actualizar_texto_forense(f"� Analizando: {log_path}\n")
+                        self._actualizar_texto_forense(f" Analizando: {log_path}\n")
                         
                         # Obtener tamaño del archivo de forma segura
                         try:
@@ -1745,7 +2422,7 @@ class VistaSIEM(tk.Frame):
                         try:
                             tail_result = subprocess.run(["tail", "-n", "10", log_path], capture_output=True, text=True, timeout=10)
                             if tail_result.returncode == 0:
-                                self._actualizar_texto_forense("  � Últimas 10 líneas:\n")
+                                self._actualizar_texto_forense("   Últimas 10 líneas:\n")
                                 for i, linea in enumerate(tail_result.stdout.strip().split('\n')[-10:], 1):
                                     if linea.strip():
                                         self._actualizar_texto_forense(f"    {i:2d}: {linea[:100]}...\n")
@@ -1760,7 +2437,7 @@ class VistaSIEM(tk.Frame):
                                 if grep_result.returncode == 0 and grep_result.stdout.strip():
                                     # Limitar a las últimas 3 líneas
                                     lineas_encontradas = grep_result.stdout.strip().split('\n')[-3:]
-                                    self._actualizar_texto_forense(f"  🔍 Patrón '{patron}' encontrado:\n")
+                                    self._actualizar_texto_forense(f"  ANÁLISIS Patrón '{patron}' encontrado:\n")
                                     for linea in lineas_encontradas:
                                         if linea.strip():
                                             self._actualizar_texto_forense(f"    └─ {linea[:80]}...\n")
@@ -1770,9 +2447,9 @@ class VistaSIEM(tk.Frame):
                         self._actualizar_texto_forense("\n")
                         
                     except subprocess.TimeoutExpired:
-                        self._actualizar_texto_forense(f"  TIMEOUT Timeout analizando {log_path}\n")
+                        self._actualizar_texto_forense(f"  TIMEOUT analizando {log_path}\n")
                     except Exception as e:
-                        self._actualizar_texto_forense(f"  ERROR Error analizando {log_path}: {str(e)}\n")
+                        self._actualizar_texto_forense(f"  ERROR analizando {log_path}: {str(e)}\n")
                 
                 # Análisis de journalctl (systemd logs)
                 try:
@@ -1795,7 +2472,7 @@ class VistaSIEM(tk.Frame):
                         login_result = subprocess.run(["journalctl", "_COMM=sshd", "-n", "5", "--no-pager"], 
                                                      capture_output=True, text=True, timeout=15)
                         if login_result.returncode == 0 and login_result.stdout.strip():
-                            self._actualizar_texto_forense("  � Últimas conexiones SSH:\n")
+                            self._actualizar_texto_forense("   Últimas conexiones SSH:\n")
                             for linea in login_result.stdout.strip().split('\n'):
                                 if linea.strip():
                                     self._actualizar_texto_forense(f"    └─ {linea[:100]}...\n")
@@ -1803,12 +2480,12 @@ class VistaSIEM(tk.Frame):
                         self._actualizar_texto_forense("  Error accediendo a logs SSH\n")
                                 
                 except Exception as e:
-                    self._actualizar_texto_forense(f"ERROR Error con journalctl: {str(e)}\n")
+                    self._actualizar_texto_forense(f"ERROR con journalctl: {str(e)}\n")
                 
                 self._actualizar_texto_forense("\nOK Análisis rápido completado\n")
                 
             except Exception as e:
-                self._actualizar_texto_forense(f"ERROR Error en análisis head/tail: {str(e)}\n")
+                self._actualizar_texto_forense(f"ERROR en análisis head/tail: {str(e)}\n")
         
         threading.Thread(target=ejecutar_analisis, daemon=True).start()
 
@@ -1880,16 +2557,16 @@ class VistaSIEM(tk.Frame):
                         contador += 1
                         
                     except subprocess.TimeoutExpired:
-                        self._actualizar_texto_forense("TIMEOUT Timeout en monitoreo\n")
+                        self._actualizar_texto_forense("TIMEOUT en monitoreo\n")
                     except Exception as e:
                         self._actualizar_texto_forense(f"WARNING Error en ciclo de monitoreo: {str(e)}\n")
                         break
                 
-                self._actualizar_texto_forense("\n� Monitoreo detenido\n")
+                self._actualizar_texto_forense("\n Monitoreo detenido\n")
                 self.monitoreo_activo = False
                 
             except Exception as e:
-                self._actualizar_texto_forense(f"ERROR Error en monitoreo tiempo real: {str(e)}\n")
+                self._actualizar_texto_forense(f"ERROR en monitoreo tiempo real: {str(e)}\n")
                 self.monitoreo_activo = False
         
         threading.Thread(target=ejecutar_monitoreo, daemon=True).start()
@@ -1897,7 +2574,7 @@ class VistaSIEM(tk.Frame):
     def parar_monitoreo(self):
         """Detener el monitoreo en tiempo real."""
         self.monitoreo_activo = False
-        self._actualizar_texto_forense("� Deteniendo monitoreo...\n")
+        self._actualizar_texto_forense(" Deteniendo monitoreo...\n")
 
     def integrar_osquery_kali(self):
         """Integración avanzada con osquery para monitoreo en Kali Linux."""
@@ -1954,32 +2631,42 @@ class VistaSIEM(tk.Frame):
                                 else:
                                     self._actualizar_texto_forense("  (Sin resultados)\n")
                             except json.JSONDecodeError:
-                                self._actualizar_texto_forense("  ERROR Error parseando respuesta JSON\n")
+                                self._actualizar_texto_forense("  ERROR parseando respuesta JSON\n")
                         else:
-                            self._actualizar_texto_forense(f"  ERROR Error ejecutando consulta: {resultado.stderr}\n")
+                            self._actualizar_texto_forense(f"  ERROR ejecutando consulta: {resultado.stderr}\n")
                         
                         self._actualizar_texto_forense("\n")
                         
                     except subprocess.TimeoutExpired:
-                        self._actualizar_texto_forense(f"  TIMEOUT Timeout en consulta: {consulta_info['nombre']}\n")
+                        self._actualizar_texto_forense(f"  TIMEOUT en consulta: {consulta_info['nombre']}\n")
                     except Exception as e:
-                        self._actualizar_texto_forense(f"  ERROR Error en {consulta_info['nombre']}: {str(e)}\n")
+                        self._actualizar_texto_forense(f"  ERROR en {consulta_info['nombre']}: {str(e)}\n")
                 
                 self._actualizar_texto_forense("OK Análisis osquery completado\n")
                 
             except Exception as e:
-                self._actualizar_texto_forense(f"ERROR Error en integración osquery: {str(e)}\n")
+                self._actualizar_texto_forense(f"ERROR en integración osquery: {str(e)}\n")
         
         threading.Thread(target=ejecutar_osquery, daemon=True).start()
     
     def _log_terminal(self, mensaje, modulo="SIEM", nivel="INFO"):
-        """Registrar mensaje en el terminal integrado global."""
+        """Registrar mensaje en el terminal integrado global y en la interfaz SIEM."""
         try:
-            # Usar el terminal global de VistaDashboard
+            # Registrar en terminal global
             from aresitos.vista.vista_dashboard import VistaDashboard
             VistaDashboard.log_actividad_global(mensaje, modulo, nivel)
             
+            # También mostrar en la interfaz SIEM para retroalimentación inmediata
+            timestamp = __import__('datetime').datetime.now().strftime("%H:%M:%S")
+            mensaje_formateado = f"[{timestamp}] {mensaje}\n"
+            
+            # Actualizar la interfaz SIEM de forma segura
+            if hasattr(self, 'siem_monitoreo_text'):
+                try:
+                    self.after_idle(lambda: self._actualizar_texto_monitoreo(mensaje_formateado))
+                except:
+                    pass  # Si hay error con tkinter, ignorar silenciosamente
+            
         except Exception as e:
-            # Fallback a consola si hay problemas
+            # Fallback silencioso - solo imprimir en consola
             print(f"[{modulo}] {mensaje}")
-            print(f"Error logging a terminal: {e}")

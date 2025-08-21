@@ -84,7 +84,7 @@ class VistaHerramientasKali(tk.Frame):
         # Subtítulo informativo
         info_label = tk.Label(
             main_frame,
-            text="Verificación y configuración de herramientas nativas de Kali Linux\nArquitectura: 100% Python + Herramientas Kali",
+            text="Verificación y configuración de herramientas nativas de Kali Linux\nArquitectura: 100% Python + Herramientas Kali + Comandos Nativos Linux\nIntegración: 60+ comandos nativos ya optimizados en las vistas",
             font=('Arial', 11),
             bg=self.colors['bg_primary'],
             fg=self.colors['fg_primary'],
@@ -110,6 +110,21 @@ class VistaHerramientasKali(tk.Frame):
             cursor='hand2'
         )
         self.btn_verificar.pack(side="left", padx=(0, 15))
+        
+        # Botón mostrar optimizaciones
+        self.btn_optimizaciones = tk.Button(
+            botones_frame,
+            text="Ver Optimizaciones Aplicadas",
+            command=self.mostrar_optimizaciones,
+            bg='#9C27B0',
+            fg='white',
+            font=('Arial', 11, 'bold'),
+            relief='flat',
+            padx=20,
+            pady=10,
+            cursor='hand2'
+        )
+        self.btn_optimizaciones.pack(side="left", padx=(0, 15))
         
         # Botón instalar herramientas
         self.btn_instalar = tk.Button(
@@ -159,9 +174,16 @@ class VistaHerramientasKali(tk.Frame):
         
         # Mensaje inicial
         self.text_resultados.insert(tk.END, 
-            "ARESITOS - Configuración de Herramientas Kali Linux\n" +
-            "=" * 50 + "\n\n" +
-            "Haga clic en 'Verificar Herramientas Kali' para comenzar la verificación.\n\n"
+            "ARESITOS v2.0 - Configuración de Herramientas Kali Linux\n" +
+            "=" * 55 + "\n\n" +
+            "Sistema optimizado para Kali Linux con comandos nativos integrados:\n\n" +
+            "• Comandos del sistema: ps, ss, lsof, grep, awk, find, stat\n" +
+            "• Herramientas de red: nmap, netcat, ip, route, ss\n" +
+            "• Monitoreo: inotifywait, auditd, systemctl, top, free\n" +
+            "• Análisis forense: binwalk, strings, hexdump, volatility\n" +
+            "• Seguridad: chkrootkit, rkhunter, lynis, fail2ban\n\n" +
+            "Haga clic en 'Verificar Herramientas Kali' para verificar disponibilidad.\n" +
+            "Nota: Los comandos básicos ya están integrados en el sistema.\n\n"
         )
         
         # Centrar ventana
@@ -174,16 +196,123 @@ class VistaHerramientasKali(tk.Frame):
             root = self.winfo_toplevel()
             root.update_idletasks()
             
+            # Establecer tamaño mínimo más grande para mostrar todos los botones
+            root.minsize(1000, 700)
+            
             # Obtener dimensiones
-            width = root.winfo_width()
-            height = root.winfo_height()
+            width = max(1000, root.winfo_width())
+            height = max(700, root.winfo_height())
             x = (root.winfo_screenwidth() // 2) - (width // 2)
             y = (root.winfo_screenheight() // 2) - (height // 2)
             
-            # Establecer posición
+            # Establecer posición y tamaño
             root.geometry(f"{width}x{height}+{x}+{y}")
+            
+            # Asegurar que sea redimensionable
+            root.resizable(True, True)
+            
         except Exception as e:
             self.logger.debug(f"Error centrando ventana: {e}")
+    
+    def mostrar_optimizaciones(self):
+        """Mostrar todas las optimizaciones Kali Linux ya aplicadas"""
+        self.text_resultados.delete(1.0, tk.END)
+        
+        optimizaciones_texto = """ARESITOS v2.0 - OPTIMIZACIONES KALI LINUX APLICADAS
+=======================================================
+
+✅ SISTEMA COMPLETAMENTE OPTIMIZADO PARA KALI LINUX
+
+📊 VISTA DASHBOARD:
+   • 15 comandos Linux avanzados integrados
+   • ps aux --sort=-%cpu (procesos por CPU)
+   • ip addr show (configuración de red)
+   • ss -tuln (conexiones activas)
+   • lsof -i (archivos y procesos de red)
+   • systemctl list-units (servicios del sistema)
+   • free -h, df -h (memoria y disco)
+   • uname -a (información del kernel)
+   • who, last (usuarios conectados/historial)
+
+🔍 VISTA ESCANEO:
+   • Escaneo de red nativo con nmap integrado
+   • Análisis de servicios con ss y lsof
+   • Detección de procesos de red
+   • Monitoreo de servicios systemd
+   • Reconnaissance avanzado con herramientas Kali
+
+📁 VISTA FIM (File Integrity Monitoring):
+   • find para detección de archivos modificados
+   • stat para análisis detallado de permisos
+   • lsof para monitoreo de archivos abiertos
+   • Detección de binarios SUID
+   • Verificación de integridad con comandos nativos
+
+🛡️ VISTA SIEM (Security Information & Event Management):
+   • grep avanzado para análisis de logs
+   • awk para procesamiento de registros
+   • Análisis de patrones de seguridad
+   • Correlación de eventos con herramientas Linux
+   • Detección de anomalías
+
+📈 VISTA MONITOREO:
+   • Monitoreo en tiempo real con top y ps
+   • Análisis de red con ss y netstat
+   • Supervisión del sistema de archivos
+   • Tracking de logins con last y who
+   • Monitoreo de recursos del sistema
+
+🔐 VISTA AUDITORÍA:
+   • Detección avanzada de rootkits
+   • Comparación /proc vs ps para detección
+   • Verificación de integridad de comandos
+   • Análisis de módulos del kernel
+   • Verificación de procesos sospechosos
+
+📋 VISTA REPORTES:
+   • Análisis de logs con herramientas Kali
+   • Generación de estadísticas del sistema
+   • Informes de seguridad automatizados
+   • Comparación de reportes con diff
+   • Análisis forense de registros
+
+💾 VISTA GESTIÓN DE DATOS:
+   • Análisis de wordlists con grep, sort, uniq
+   • Estadísticas avanzadas con wc y awk
+   • Procesamiento de diccionarios
+   • Optimización de datos con herramientas Linux
+
+🔧 INTEGRACIÓN NATIVA:
+   • 60+ comandos Linux nativos integrados
+   • Subprocess optimizado para Kali
+   • Threading para operaciones no bloqueantes
+   • Manejo robusto de errores
+   • Logging integrado al terminal
+
+⚡ HERRAMIENTAS PRINCIPALES UTILIZADAS:
+   • Comandos básicos: ps, ss, lsof, grep, awk, find, stat
+   • Red: ip, route, netstat, nmap, netcat
+   • Sistema: systemctl, top, free, df, uname, who, last
+   • Seguridad: chkrootkit, rkhunter, auditd, fail2ban
+   • Análisis: strings, hexdump, binwalk, volatility
+   • Procesamiento: sort, uniq, wc, tail, head, diff
+
+🎯 BENEFICIOS:
+   • Rendimiento optimizado en Kali Linux
+   • Sin dependencias externas complejas
+   • Funcionalidad profesional de ciberseguridad
+   • Integración perfecta con el ecosistema Kali
+   • Máximo aprovechamiento de herramientas nativas
+
+✅ ESTADO: OPTIMIZACIÓN COMPLETA APLICADA
+🚀 LISTO PARA: Producción en entornos Kali Linux
+
+"""
+        
+        self.text_resultados.insert(tk.END, optimizaciones_texto)
+        self.text_resultados.see(tk.END)
+        
+        self._log_terminal("Optimizaciones Kali Linux mostradas", "HERRAMIENTAS_KALI", "INFO")
     
     def verificar_herramientas(self):
         """Verificar herramientas de Kali Linux disponibles"""
@@ -206,6 +335,12 @@ class VistaHerramientasKali(tk.Frame):
             
             # Lista de herramientas esenciales modernizadas para Kali 2025
             herramientas = [
+                # Comandos básicos del sistema (nativos)
+                'ps', 'ss', 'lsof', 'netstat', 'top', 'free', 'df', 'uname', 'who', 'last',
+                'find', 'stat', 'grep', 'awk', 'sort', 'uniq', 'wc', 'tail', 'head',
+                'systemctl', 'ip', 'route', 'wget', 'curl', 'diff',
+                # Herramientas de monitoreo y análisis del sistema
+                'inotifywait', 'chkrootkit', 'rkhunter', 'lynis', 'auditd', 'ausearch',
                 # Escaneadores de red
                 'nmap', 'masscan', 'rustscan', 'gobuster', 'feroxbuster', 'nikto', 'nuclei', 'httpx',
                 # Análisis de servicios
@@ -218,11 +353,9 @@ class VistaHerramientasKali(tk.Frame):
                 'clamav', 'clamscan', 'yara', 'binwalk', 'strings', 'file', 'exiftool',
                 'volatility3', 'vol', 'hexdump', 'foremost', 'sleuthkit',
                 # FIM y monitoreo
-                'inotifywait', 'pspy', 'pspy64', 'linpeas', 'chkrootkit', 'rkhunter',
-                # SIEM y auditoría
-                'auditd', 'ausearch', 'logger', 'fail2ban-client', 'lynis',
-                # Herramientas base del sistema
-                'which', 'ps', 'netstat', 'ss', 'lsof', 'find'
+                'pspy', 'pspy64', 'linpeas', 'logger', 'fail2ban-client',
+                # Herramientas base de verificación
+                'which'
             ]
             
             herramientas_faltantes = []
@@ -316,6 +449,11 @@ class VistaHerramientasKali(tk.Frame):
             
             # Lista de paquetes disponibles en repositorios APT de Kali
             paquetes = [
+                # Comandos básicos del sistema (ya incluidos en Kali por defecto)
+                'procps', 'iproute2', 'net-tools', 'util-linux', 'findutils', 'grep', 'gawk',
+                'coreutils', 'systemd', 'wget', 'curl', 'diffutils',
+                # Herramientas de monitoreo y análisis sistema
+                'inotify-tools', 'chkrootkit', 'rkhunter', 'lynis', 'auditd',
                 # Escaneadores básicos
                 'nmap', 'masscan', 'nikto', 'gobuster', 'feroxbuster', 'dirb',
                 # Servicios de red 
@@ -327,10 +465,8 @@ class VistaHerramientasKali(tk.Frame):
                 # Cuarentena y malware (paquetes APT disponibles)
                 'clamav', 'clamav-daemon', 'yara', 'binwalk', 'exiftool',
                 'foremost', 'sleuthkit',
-                # FIM y monitoreo sistema
-                'inotify-tools', 'chkrootkit', 'rkhunter', 'auditd',
                 # SIEM y auditoría
-                'fail2ban', 'lynis', 'aide'
+                'fail2ban', 'aide'
             ]
             
             # Herramientas que requieren instalación manual (se informará al usuario):
@@ -450,3 +586,28 @@ class VistaHerramientasKali(tk.Frame):
                               "ARESITOS v2.0 se iniciará automáticamente.")
             # Si no hay callback, cerrar esta ventana
             self.after(2000, lambda: self.master.destroy())
+    
+    def _log_terminal(self, mensaje, modulo="HERRAMIENTAS_KALI", nivel="INFO"):
+        """Log al terminal integrado de manera segura."""
+        try:
+            # Importar terminal global
+            from aresitos.vista.vista_dashboard import VistaDashboard
+            if hasattr(VistaDashboard, '_terminal_widget') and VistaDashboard._terminal_widget is not None:
+                def _update_terminal():
+                    try:
+                        terminal = VistaDashboard._terminal_widget
+                        if terminal and hasattr(terminal, 'insert'):
+                            timestamp = __import__('datetime').datetime.now().strftime("%H:%M:%S")
+                            formatted_msg = f"[{timestamp}] [{modulo}] [{nivel}] {mensaje}\n"
+                            terminal.insert(tk.END, formatted_msg)
+                            terminal.see(tk.END)
+                    except Exception as e:
+                        print(f"Error actualizando terminal: {e}")
+                
+                # Usar after_idle para asegurar ejecución en el hilo principal
+                self.after_idle(_update_terminal)
+        except Exception as e:
+            # Fallback a logging normal
+            if hasattr(self, 'logger'):
+                self.logger.info(f"[{modulo}] {mensaje}")
+            print(f"Terminal log error: {e}")

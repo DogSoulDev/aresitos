@@ -97,11 +97,11 @@ def verificar_compatibilidad_kali():
         
         resultados['es_root'] = es_root
         
-        print(f"� Usuario actual: {usuario}")
+        print(f" Usuario actual: {usuario}")
         print(f" Es root: {'OK Sí' if es_root else 'ERROR No'}")
         
     except (subprocess.TimeoutExpired, subprocess.CalledProcessError, FileNotFoundError):
-        print("ERROR Error verificando usuario")
+        print("ERROR verificando usuario")
     
     # Verificar sudo
     try:
@@ -161,7 +161,7 @@ def verificar_compatibilidad_kali():
     print("-" * 40)
     
     if not resultados['sistema_operativo']:
-        print("� Usar Kali Linux o distribución Linux compatible")
+        print(" Usar Kali Linux o distribución Linux compatible")
     
     if not (resultados['es_root'] or resultados['sudo_disponible']):
         print(" Configurar sudo o ejecutar como root")
@@ -184,10 +184,10 @@ def main():
         resultados = verificar_compatibilidad_kali()
         return 0 if resultados['sistema_operativo'] else 1
     except KeyboardInterrupt:
-        print("\n\n� Verificación cancelada por el usuario")
+        print("\n\n Verificación cancelada por el usuario")
         return 1
     except Exception as e:
-        print(f"\nERROR Error durante verificación: {e}")
+        print(f"\nERROR durante verificación: {e}")
         return 1
 
 if __name__ == "__main__":

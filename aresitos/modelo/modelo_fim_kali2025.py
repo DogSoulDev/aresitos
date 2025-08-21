@@ -79,9 +79,9 @@ class FIMKali2025(_FIMAvanzado):  # type: ignore
                     self.herramientas_disponibles[herramienta] = result.stdout.strip()
                     self.log(f"✓ {herramienta} disponible en {result.stdout.strip()}")
                 else:
-                    self.log(f"❌ {herramienta} no encontrada")
+                    self.log(f"ERROR {herramienta} no encontrada")
             except Exception as e:
-                self.log(f"❌ Error verificando {herramienta}: {e}")
+                self.log(f"ERROR verificando {herramienta}: {e}")
     
     def inicializar_base_datos(self):
         """Inicializa base de datos SQLite para FIM"""
@@ -152,13 +152,13 @@ class FIMKali2025(_FIMAvanzado):  # type: ignore
             self.log("✓ Base de datos FIM Kali2025 inicializada")
             
         except Exception as e:
-            self.log(f"❌ Error inicializando base de datos: {e}")
+            self.log(f"ERROR inicializando base de datos: {e}")
     
     def iniciar_monitoreo_tiempo_real(self, rutas_monitorear: List[str]) -> Dict[str, Any]:
         """
         Inicia monitoreo en tiempo real con inotify-tools
         """
-        self.log(f"🔍 Iniciando monitoreo tiempo real: {len(rutas_monitorear)} rutas")
+        self.log(f"ANALIZANDO Iniciando monitoreo tiempo real: {len(rutas_monitorear)} rutas")
         
         if 'inotifywait' not in self.herramientas_disponibles:
             return {"error": "inotifywait no disponible"}
@@ -213,7 +213,7 @@ class FIMKali2025(_FIMAvanzado):  # type: ignore
                 bufsize=1
             )
             
-            self.log(f"🔍 Monitor inotify activo en: {ruta}")
+            self.log(f"ANALIZANDO Monitor inotify activo en: {ruta}")
             
             while self.monitores_activos.get(ruta, {}).get('activo', False):
                 if process.stdout:
@@ -276,7 +276,7 @@ class FIMKali2025(_FIMAvanzado):  # type: ignore
                 conn.close()
                 
                 # Log del evento
-                self.log(f"📝 Evento FIM: {evento} en {archivo}")
+                self.log(f"STRINGS Evento FIM: {evento} en {archivo}")
                 
         except Exception as e:
             self.log(f"✓ Error procesando evento inotify: {e}")

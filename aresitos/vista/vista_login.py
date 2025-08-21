@@ -512,22 +512,42 @@ class LoginAresitos:
     def escribir_log(self, mensaje):
         """Escribir mensaje en el area de logs de forma segura"""
         try:
+            # Verificar que el widget y la ventana aún existen
+            if not hasattr(self, 'log_text') or not self.log_text or not self.log_text.winfo_exists():
+                print(f"[LOGIN] {mensaje}")
+                return
+                
+            # Verificar que la ventana principal aún existe
+            if not hasattr(self, 'root') or not self.root:
+                print(f"[LOGIN] {mensaje}")
+                return
+            
             # Sanitizar mensaje antes de mostrar
             mensaje_seguro = self.utils_seguridad.sanitizar_para_log(mensaje)
             
-            self.log_text.config(state=tk.NORMAL)
-            
-            # Insertar timestamp y mensaje
-            timestamp = time.strftime('%H:%M:%S')
-            linea_completa = f"[{timestamp}] {mensaje_seguro}\n"
-            
-            self.log_text.insert(tk.END, linea_completa)
-            self.log_text.see(tk.END)
-            self.log_text.config(state=tk.DISABLED)
-            self.root.update()
+            # Actualización directa sin callbacks problemáticos
+            try:
+                if self.log_text.winfo_exists():
+                    self.log_text.config(state=tk.NORMAL)
+                    
+                    # Insertar timestamp y mensaje
+                    timestamp = time.strftime('%H:%M:%S')
+                    linea_completa = f"[{timestamp}] {mensaje_seguro}\n"
+                    
+                    self.log_text.insert(tk.END, linea_completa)
+                    self.log_text.see(tk.END)
+                    self.log_text.config(state=tk.DISABLED)
+                    
+                    # Solo actualizar si la ventana aún existe
+                    if self.root and self.root.winfo_exists():
+                        self.root.update_idletasks()
+            except (tk.TclError, AttributeError):
+                # Si hay cualquier error con tkinter, usar print como fallback
+                print(f"[LOGIN] {mensaje_seguro}")
+                
         except Exception as e:
             # Log de fallback en caso de error
-            print(f"Error en logging: {e}")
+            print(f"[LOGIN] {mensaje}")  # No mostrar el error técnico
     
     def verificar_entorno_inicial(self):
         """Verificar entorno del sistema al inicio"""
@@ -858,13 +878,13 @@ class LoginAresitos:
             thread.start()
             
         except Exception as e:
-            self.escribir_log(f"ERROR Error en instalación automática: {e}")
+            self.escribir_log(f"ERROR en instalación automática: {e}")
     
     def _ejecutar_instalacion_herramientas(self, herramientas, password):
         """Ejecutar instalación de herramientas en thread separado"""
         try:
             # Actualizar repositorios primero
-            self.escribir_log("� Actualizando repositorios...")
+            self.escribir_log(" Actualizando repositorios...")
             cmd_update = f"echo '{password}' | sudo -S apt update"
             
             result = subprocess.run(
@@ -878,7 +898,7 @@ class LoginAresitos:
             if result.returncode == 0:
                 self.escribir_log("OK Repositorios actualizados")
             else:
-                self.escribir_log("WARNING Warning al actualizar repositorios")
+                self.escribir_log("WARNING al actualizar repositorios")
             
             # Instalar herramientas una por una
             for herramienta in herramientas[:5]:  # Limitamos a 5 para no sobrecargar
@@ -900,7 +920,7 @@ class LoginAresitos:
                     if herramienta in self.herramientas_faltantes:
                         self.herramientas_faltantes.remove(herramienta)
                 else:
-                    self.escribir_log(f"ERROR Error instalando {herramienta}")
+                    self.escribir_log(f"ERROR instalando {herramienta}")
             
             self.escribir_log(" Instalación automática completada")
             
@@ -908,7 +928,7 @@ class LoginAresitos:
             self.utils_seguridad.limpiar_memoria_string(password)
             
         except Exception as e:
-            self.escribir_log(f"ERROR Error en instalación: {e}")
+            self.escribir_log(f"ERROR en instalación: {e}")
 
     def continuar_sin_root(self):
         """Continuar sin permisos de root"""
@@ -941,14 +961,14 @@ class LoginAresitos:
             # Crear nueva ventana para herramientas
             ventana_herramientas = tk.Toplevel(self.root)
             ventana_herramientas.title("ARESITOS - Configuración de Herramientas Kali")
-            ventana_herramientas.geometry("800x600")
+            ventana_herramientas.geometry("1000x700")
             ventana_herramientas.configure(bg='#2b2b2b')
             
             # Centrar ventana de herramientas
             ventana_herramientas.update_idletasks()
-            x = (ventana_herramientas.winfo_screenwidth() // 2) - (800 // 2)
-            y = (ventana_herramientas.winfo_screenheight() // 2) - (600 // 2)
-            ventana_herramientas.geometry(f"800x600+{x}+{y}")
+            x = (ventana_herramientas.winfo_screenwidth() // 2) - (1000 // 2)
+            y = (ventana_herramientas.winfo_screenheight() // 2) - (700 // 2)
+            ventana_herramientas.geometry(f"1000x700+{x}+{y}")
             
             # Crear vista de herramientas en la nueva ventana
             vista_herramientas = VistaHerramientasKali(ventana_herramientas, callback_herramientas_completadas)
@@ -960,7 +980,7 @@ class LoginAresitos:
             self.escribir_log("Ventana de herramientas Kali abierta")
             
         except Exception as e:
-            self.escribir_log(f"ERROR Error mostrando vista de herramientas: {str(e)}")
+            self.escribir_log(f"ERROR mostrando vista de herramientas: {str(e)}")
             # Si falla, continuar directamente a la aplicación principal
             self._iniciar_aplicacion_principal()
     

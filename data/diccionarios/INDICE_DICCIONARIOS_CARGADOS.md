@@ -1,8 +1,8 @@
 # Índice de Diccionarios Cargados - Aresitos
 
-**Generado el:** 2025-08-21 21:07:01
+**Generado el:** 2025-08-22 00:58:47
 
-**Total de categorías:** 16
+**Total de categorías:** 17
 
 ## vulnerabilidades_comunes
 - **Entradas:** 4
@@ -49,6 +49,10 @@
 - **Ejemplos:** tipo, descripcion, datos
 
 ## mitre_attack_techniques_english_attack_techniques_mitre
+- **Entradas:** 4
+- **Ejemplos:** tipo, descripcion, datos
+
+## owasp_top10_2021_owasp_top10_2021
 - **Entradas:** 4
 - **Ejemplos:** tipo, descripcion, datos
 

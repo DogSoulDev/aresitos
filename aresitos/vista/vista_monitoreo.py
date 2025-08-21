@@ -5,6 +5,7 @@ from tkinter import ttk, scrolledtext, filedialog, messagebox
 import time
 import logging
 import threading
+import datetime
 
 try:
     from aresitos.vista.burp_theme import burp_theme
@@ -22,6 +23,7 @@ class VistaMonitoreo(tk.Frame):
         self.monitor_activo = False
         self.monitor_red_activo = False
         self.thread_red = None
+        self.vista_principal = parent  # Referencia al padre para acceder al terminal
         
         # Configurar tema y colores de manera consistente
         if BURP_THEME_AVAILABLE and burp_theme:
@@ -66,9 +68,13 @@ class VistaMonitoreo(tk.Frame):
         self.controlador = controlador
     
     def crear_widgets(self):
-        # Frame principal con tema Burp Suite
-        self.notebook = tk.Frame(self, bg=self.colors['bg_primary'])
-        self.notebook.pack(fill="both", expand=True, padx=10, pady=10)
+        # PanedWindow principal para dividir contenido y terminal
+        self.paned_window = tk.PanedWindow(self, orient="vertical", bg=self.colors['bg_primary'])
+        self.paned_window.pack(fill="both", expand=True, padx=5, pady=5)
+        
+        # Frame superior para el contenido principal
+        self.notebook = tk.Frame(self.paned_window, bg=self.colors['bg_primary'])
+        self.paned_window.add(self.notebook, minsize=400)
         
         # Crear pestañas como frames separados con navegación por botones
         self.crear_navegacion_pestanas()
@@ -77,6 +83,90 @@ class VistaMonitoreo(tk.Frame):
         
         # Mostrar pestaña por defecto
         self.mostrar_pestana('monitoreo')
+        
+        # Crear terminal integrado
+        self.crear_terminal_integrado()
+    
+    def crear_terminal_integrado(self):
+        """Crear terminal integrado en la vista Monitoreo."""
+        try:
+            # Frame del terminal en el PanedWindow
+            terminal_frame = tk.Frame(self.paned_window, bg=self.colors['bg_secondary'])
+            self.paned_window.add(terminal_frame, minsize=150)
+            
+            # Título del terminal
+            terminal_titulo = tk.Label(terminal_frame, text="Terminal Monitoreo", 
+                                     font=('Arial', 10, 'bold'),
+                                     bg=self.colors['bg_secondary'], 
+                                     fg=self.colors['fg_primary'])
+            terminal_titulo.pack(pady=5)
+            
+            # Verificar si existe terminal en la vista principal
+            if hasattr(self.vista_principal, 'terminal_widget') and self.vista_principal.terminal_widget:
+                # Usar terminal global existente
+                self.terminal_widget = self.vista_principal.terminal_widget
+                # Crear referencia local si es necesario
+                terminal_local = tk.Text(terminal_frame, height=8, 
+                                       bg='black', fg='green',
+                                       font=('Consolas', 9),
+                                       state='disabled')
+                terminal_local.pack(fill="both", expand=True, padx=5, pady=5)
+                self.terminal_local = terminal_local
+                
+                # Sincronizar con terminal global
+                self.sincronizar_terminal()
+            else:
+                # Crear terminal local
+                self.terminal_widget = tk.Text(terminal_frame, height=8, 
+                                             bg='black', fg='green',
+                                             font=('Consolas', 9),
+                                             state='disabled')
+                self.terminal_widget.pack(fill="both", expand=True, padx=5, pady=5)
+                self.terminal_local = self.terminal_widget
+            
+            self.log_to_terminal("Terminal Monitoreo iniciado correctamente")
+            
+        except Exception as e:
+            print(f"Error creando terminal integrado en Vista Monitoreo: {e}")
+    
+    def log_to_terminal(self, mensaje):
+        """Registrar mensaje en el terminal."""
+        try:
+            timestamp = datetime.datetime.now().strftime("%H:%M:%S")
+            mensaje_completo = f"[{timestamp}] {mensaje}\n"
+            
+            # Log al terminal local
+            if hasattr(self, 'terminal_local'):
+                self.terminal_local.config(state='normal')
+                self.terminal_local.insert(tk.END, mensaje_completo)
+                self.terminal_local.see(tk.END)
+                self.terminal_local.config(state='disabled')
+            
+            # Log al terminal global si existe
+            if hasattr(self.vista_principal, 'terminal_widget') and self.vista_principal.terminal_widget:
+                try:
+                    self.vista_principal.terminal_widget.config(state='normal')
+                    self.vista_principal.terminal_widget.insert(tk.END, f"[MONITOR] {mensaje_completo}")
+                    self.vista_principal.terminal_widget.see(tk.END)
+                    self.vista_principal.terminal_widget.config(state='disabled')
+                except:
+                    pass
+                    
+        except Exception as e:
+            print(f"Error en log_to_terminal: {e}")
+    
+    def sincronizar_terminal(self):
+        """Sincronizar terminal local con global."""
+        try:
+            if hasattr(self.vista_principal, 'terminal_widget') and self.vista_principal.terminal_widget:
+                contenido_global = self.vista_principal.terminal_widget.get("1.0", tk.END)
+                if hasattr(self, 'terminal_local'):
+                    self.terminal_local.config(state='normal')
+                    self.terminal_local.delete("1.0", tk.END)
+                    self.terminal_local.insert("1.0", contenido_global)
+                    self.terminal_local.config(state='disabled')
+        except Exception as e:
+            print(f"Error sincronizando terminal: {e}")
     
     def crear_navegacion_pestanas(self):
         """Crear navegación por pestañas con tema Burp Suite."""
@@ -230,33 +320,34 @@ class VistaMonitoreo(tk.Frame):
         self.text_cuarentena.pack(fill="both", expand=True)
     
     def iniciar_monitoreo(self):
-        """Iniciar monitoreo completo de procesos, permisos y usuarios del sistema."""
+        """Iniciar monitoreo completo con herramientas avanzadas de Linux."""
+        self.log_to_terminal("Iniciando monitoreo del sistema...")
         if not self.controlador:
-            self._log_terminal("Error: Controlador de monitoreo no disponible", "MONITOREO", "ERROR")
-            return
+            self._log_terminal("Iniciando monitoreo con comandos nativos de Linux", "MONITOREO", "INFO")
             
-        self._log_terminal("Iniciando monitoreo completo del sistema", "MONITOREO", "INFO")
+        self._log_terminal("Iniciando monitoreo completo del sistema con herramientas Kali", "MONITOREO", "INFO")
         
         # Iniciar monitoreo a través del controlador si está disponible
         try:
-            if self.controlador.iniciar_monitoreo():
+            if self.controlador and self.controlador.iniciar_monitoreo():
                 self.monitor_activo = True
                 self.btn_iniciar_monitor.config(state="disabled")
                 self.btn_detener_monitor.config(state="normal")
                 self.label_estado.config(text="Estado: Activo")
-                self.text_monitor.insert(tk.END, "Monitoreo completo iniciado...\n")
+                self.text_monitor.insert(tk.END, "Monitoreo completo iniciado con controlador...\n")
                 self._log_terminal("Monitoreo del controlador iniciado exitosamente", "MONITOREO", "SUCCESS")
+                self.log_to_terminal("✓ Monitoreo iniciado exitosamente")
                 
-                # Iniciar monitoreo completo en thread separado
-                threading.Thread(target=self._monitoreo_completo_async, daemon=True).start()
+                # Iniciar monitoreo avanzado en thread separado
+                threading.Thread(target=self._monitoreo_avanzado_linux, daemon=True).start()
                 
                 self.after(2000, self.actualizar_monitoreo)  # Actualizar cada 2 segundos
             else:
-                self._log_terminal("Error iniciando controlador - ejecutando monitoreo basico", "MONITOREO", "WARNING")
-                self._iniciar_monitoreo_basico()
+                self._log_terminal("Ejecutando monitoreo avanzado con comandos Linux", "MONITOREO", "INFO")
+                self._iniciar_monitoreo_linux_avanzado()
         except Exception as e:
-            self._log_terminal(f"Error en controlador - ejecutando monitoreo basico: {str(e)}", "MONITOREO", "WARNING")
-            self._iniciar_monitoreo_basico()
+            self._log_terminal(f"Error en controlador - ejecutando monitoreo Linux: {str(e)}", "MONITOREO", "WARNING")
+            self._iniciar_monitoreo_linux_avanzado()
 
     def _iniciar_monitoreo_basico(self):
         """Iniciar monitoreo básico cuando el controlador no está disponible."""
@@ -542,6 +633,7 @@ class VistaMonitoreo(tk.Frame):
             self.after(5000, self._actualizar_monitoreo_basico)
     
     def detener_monitoreo(self):
+        self.log_to_terminal("Deteniendo monitoreo del sistema...")
         if not self.controlador:
             return
             
@@ -551,6 +643,7 @@ class VistaMonitoreo(tk.Frame):
         self.btn_detener_monitor.config(state="disabled")
         self.label_estado.config(text="Estado: Detenido")
         self.text_monitor.insert(tk.END, "Monitoreo detenido.\n")
+        self.log_to_terminal("✓ Monitoreo detenido correctamente")
     
     def actualizar_monitoreo(self):
         if not self.monitor_activo or not self.controlador:
@@ -980,11 +1073,11 @@ class VistaMonitoreo(tk.Frame):
                 self.text_cuarentena.insert(tk.END, f"✓ Archivo agregado a cuarentena: {archivo}\n")
                 messagebox.showinfo("Éxito", "Archivo enviado a cuarentena correctamente")
             else:
-                self.text_cuarentena.insert(tk.END, f"❌ Error: {resultado['error']}\n")
+                self.text_cuarentena.insert(tk.END, f"ERROR: {resultado['error']}\n")
                 messagebox.showerror("Error", resultado["error"])
                 
         except Exception as e:
-            self.text_cuarentena.insert(tk.END, f"❌ Error del sistema: {str(e)}\n")
+            self.text_cuarentena.insert(tk.END, f"ERROR del sistema: {str(e)}\n")
             messagebox.showerror("Error", f"Error del sistema: {str(e)}")
     
     def listar_cuarentena(self):
@@ -1043,6 +1136,141 @@ class VistaMonitoreo(tk.Frame):
             if resultado["errores"]:
                 for error in resultado["errores"]:
                     self.text_cuarentena.insert(tk.END, f"Error: {error}\n")
+    
+    def _iniciar_monitoreo_linux_avanzado(self):
+        """Iniciar monitoreo usando herramientas nativas de Linux."""
+        self.monitor_activo = True
+        self.btn_iniciar_monitor.config(state="disabled")
+        self.btn_detener_monitor.config(state="normal")
+        self.label_estado.config(text="Estado: Activo (Linux)")
+        
+        self.text_monitor.delete(1.0, tk.END)
+        self.text_monitor.insert(tk.END, "=== MONITOREO AVANZADO CON HERRAMIENTAS LINUX ===\n\n")
+        
+        # Iniciar monitoreo en thread separado
+        threading.Thread(target=self._monitoreo_avanzado_linux, daemon=True).start()
+        self.after(3000, self.actualizar_monitoreo)  # Actualizar cada 3 segundos
+    
+    def _monitoreo_avanzado_linux(self):
+        """Monitoreo avanzado usando comandos nativos de Linux."""
+        try:
+            import subprocess
+            import time
+            
+            contador = 0
+            while self.monitor_activo and contador < 10:  # Máximo 10 ciclos
+                try:
+                    # 1. Monitoreo de procesos con alta CPU usando top
+                    self.after(0, self._actualizar_texto_monitor, f"\n=== CICLO {contador + 1} - MONITOREO LINUX AVANZADO ===\n")
+                    
+                    # Procesos con mayor uso de CPU
+                    try:
+                        resultado = subprocess.run(['bash', '-c', 'ps aux --sort=-%cpu | head -6'], 
+                                                 capture_output=True, text=True, timeout=10)
+                        if resultado.returncode == 0:
+                            lineas = resultado.stdout.strip().split('\n')[1:]  # Skip header
+                            self.after(0, self._actualizar_texto_monitor, "COMANDO: ps aux --sort=-%cpu\n")
+                            self.after(0, self._actualizar_texto_monitor, "TOP PROCESOS POR CPU:\n")
+                            for linea in lineas:
+                                if linea.strip():
+                                    partes = linea.split()
+                                    if len(partes) >= 11:
+                                        usuario = partes[0]
+                                        pid = partes[1]
+                                        cpu = partes[2]
+                                        memoria = partes[3]
+                                        comando = ' '.join(partes[10:13])
+                                        self.after(0, self._actualizar_texto_monitor, 
+                                                 f"  PID {pid}: {usuario} CPU:{cpu}% MEM:{memoria}% CMD:{comando}\n")
+                    except:
+                        self.after(0, self._actualizar_texto_monitor, "ERROR: No se pudo monitorear procesos con ps\n")
+                    
+                    # 2. Conexiones de red activas con ss
+                    try:
+                        resultado = subprocess.run(['ss', '-tuln'], 
+                                                 capture_output=True, text=True, timeout=10)
+                        if resultado.returncode == 0:
+                            lineas = resultado.stdout.strip().split('\n')[1:]  # Skip header
+                            conexiones_tcp = sum(1 for linea in lineas if linea.strip() and 'tcp' in linea.lower())
+                            conexiones_udp = sum(1 for linea in lineas if linea.strip() and 'udp' in linea.lower())
+                            self.after(0, self._actualizar_texto_monitor, f"CONEXIONES ACTIVAS: TCP:{conexiones_tcp} UDP:{conexiones_udp}\n")
+                            
+                            # Mostrar puertos en escucha más relevantes
+                            puertos_criticos = ['22', '80', '443', '8080', '3389', '4444', '5555']
+                            for linea in lineas:
+                                if any(puerto in linea for puerto in puertos_criticos):
+                                    partes = linea.split()
+                                    if len(partes) >= 4:
+                                        puerto_local = partes[3].split(':')[-1]
+                                        self.after(0, self._actualizar_texto_monitor, f"  CRÍTICO: Puerto {puerto_local} en escucha\n")
+                    except:
+                        self.after(0, self._actualizar_texto_monitor, "ERROR: No se pudo monitorear conexiones con ss\n")
+                    
+                    # 3. Uso de memoria con free
+                    try:
+                        resultado = subprocess.run(['free', '-h'], 
+                                                 capture_output=True, text=True, timeout=5)
+                        if resultado.returncode == 0:
+                            lineas = resultado.stdout.strip().split('\n')
+                            if len(lineas) >= 2:
+                                memoria_linea = lineas[1].split()
+                                if len(memoria_linea) >= 3:
+                                    total = memoria_linea[1]
+                                    usado = memoria_linea[2]
+                                    disponible = memoria_linea[6] if len(memoria_linea) > 6 else memoria_linea[3]
+                                    self.after(0, self._actualizar_texto_monitor, 
+                                             f"MEMORIA: Total:{total} Usado:{usado} Disponible:{disponible}\n")
+                    except:
+                        self.after(0, self._actualizar_texto_monitor, "ERROR: No se pudo monitorear memoria\n")
+                    
+                    # 4. Monitoreo de archivos modificados recientemente
+                    try:
+                        resultado = subprocess.run(['find', '/tmp', '/var/tmp', '-type', 'f', '-mmin', '-5'], 
+                                                 capture_output=True, text=True, timeout=15)
+                        if resultado.returncode == 0 and resultado.stdout.strip():
+                            archivos_recientes = resultado.stdout.strip().split('\n')
+                            if len(archivos_recientes) > 0 and archivos_recientes[0]:
+                                self.after(0, self._actualizar_texto_monitor, 
+                                         f"ARCHIVOS TEMPORALES RECIENTES: {len(archivos_recientes)}\n")
+                                for archivo in archivos_recientes[:3]:  # Mostrar primeros 3
+                                    if archivo.strip():
+                                        self.after(0, self._actualizar_texto_monitor, f"  RECIENTE: {archivo}\n")
+                        else:
+                            self.after(0, self._actualizar_texto_monitor, "OK: No hay archivos temporales recientes\n")
+                    except:
+                        self.after(0, self._actualizar_texto_monitor, "ERROR: No se pudo monitorear archivos temporales\n")
+                    
+                    # 5. Verificar intentos de login recientes
+                    try:
+                        resultado = subprocess.run(['bash', '-c', 'last | head -5'], 
+                                                 capture_output=True, text=True, timeout=10)
+                        if resultado.returncode == 0 and resultado.stdout.strip():
+                            lineas = resultado.stdout.strip().split('\n')
+                            logins_recientes = len([l for l in lineas if l.strip() and 'pts' in l])
+                            self.after(0, self._actualizar_texto_monitor, f"LOGINS RECIENTES: {logins_recientes} sesiones activas\n")
+                    except:
+                        self.after(0, self._actualizar_texto_monitor, "ERROR: No se pudo verificar logins recientes\n")
+                    
+                    contador += 1
+                    time.sleep(3)  # Esperar 3 segundos entre ciclos
+                    
+                except Exception as e:
+                    self.after(0, self._actualizar_texto_monitor, f"ERROR EN CICLO: {str(e)}\n")
+                    break
+            
+            self.after(0, self._actualizar_texto_monitor, "\n=== MONITOREO LINUX COMPLETADO ===\n")
+            
+        except Exception as e:
+            self.after(0, self._actualizar_texto_monitor, f"ERROR GENERAL EN MONITOREO: {str(e)}\n")
+    
+    def _actualizar_texto_monitor(self, texto):
+        """Actualizar texto de monitoreo de forma segura."""
+        try:
+            if hasattr(self, 'text_monitor') and self.text_monitor.winfo_exists():
+                self.text_monitor.insert(tk.END, texto)
+                self.text_monitor.see(tk.END)
+        except:
+            pass  # Ignorar errores de UI
     
     def actualizar_estado(self):
         pass

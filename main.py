@@ -68,7 +68,7 @@ def verificar_tkinter():
         test_root = tk.Tk()
         test_root.withdraw()  # Ocultar inmediatamente
         test_root.destroy()
-        print("✅ Tkinter disponible y funcional")
+        print("OK Tkinter disponible y funcional")
     except ImportError:
         raise ImportError("tkinter no está instalado. Ejecute: sudo apt install python3-tk")
     except Exception as e:
@@ -184,9 +184,9 @@ def iniciar_aplicacion_clasica():
         root.geometry(f"1400x900+{x}+{y}")
         
         print("Aresitos iniciado exitosamente")
-        print("✅ Dashboard completo cargado - Funcional")
-        print("✅ Tema Burp Suite aplicado")
-        print("✅ Herramientas modernizadas configuradas")
+        print("OK Dashboard completo cargado - Funcional")
+        print("OK Tema Burp Suite aplicado")
+        print("OK Herramientas modernizadas configuradas")
         
         # Ejecutar aplicación
         root.mainloop()

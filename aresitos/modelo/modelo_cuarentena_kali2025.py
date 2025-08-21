@@ -178,7 +178,7 @@ class CuarentenaKali2025(_CuarentenaAvanzada):  # type: ignore
         """
         Pone un archivo en cuarentena y realiza análisis inicial
         """
-        self.log(f"🔒 Poniendo en cuarentena: {ruta_archivo}")
+        self.log(f"CUARENTENA Poniendo en cuarentena: {ruta_archivo}")
         
         try:
             if not os.path.exists(ruta_archivo):
@@ -334,7 +334,7 @@ class CuarentenaKali2025(_CuarentenaAvanzada):  # type: ignore
         """
         Análisis de archivo binario con binwalk
         """
-        self.log(f"🔍 Análisis binwalk: {ruta_archivo}")
+        self.log(f"ANALIZANDO Análisis binwalk: {ruta_archivo}")
         
         if 'binwalk' not in self.herramientas_disponibles:
             return {"error": "binwalk no disponible"}
@@ -441,7 +441,7 @@ class CuarentenaKali2025(_CuarentenaAvanzada):  # type: ignore
         """
         Análisis de metadatos con ExifTool
         """
-        self.log(f"📋 Análisis metadatos: {ruta_archivo}")
+        self.log(f"METADATOS Análisis metadatos: {ruta_archivo}")
         
         if 'exiftool' not in self.herramientas_disponibles:
             return {"error": "exiftool no disponible"}
@@ -487,7 +487,7 @@ class CuarentenaKali2025(_CuarentenaAvanzada):  # type: ignore
         """
         Análisis de strings en archivo
         """
-        self.log(f"📝 Análisis strings: {ruta_archivo}")
+        self.log(f"STRINGS Análisis strings: {ruta_archivo}")
         
         if 'strings' not in self.herramientas_disponibles:
             return {"error": "strings no disponible"}
@@ -529,7 +529,7 @@ class CuarentenaKali2025(_CuarentenaAvanzada):  # type: ignore
         """
         Análisis de tipo de archivo
         """
-        self.log(f"📁 Análisis tipo archivo: {ruta_archivo}")
+        self.log(f" Análisis tipo archivo: {ruta_archivo}")
         
         if 'file' not in self.herramientas_disponibles:
             return {"error": "file no disponible"}

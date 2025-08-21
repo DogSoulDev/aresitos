@@ -198,7 +198,7 @@ class SIEMKali2025(_SIEMAvanzado):  # type: ignore
         """
         Configura auditd con reglas de auditoría
         """
-        self.log("⚙️ Configurando auditd")
+        self.log("CONFIGURANDO auditd")
         
         if 'auditctl' not in self.herramientas_disponibles:
             return {"error": "auditctl no disponible"}
@@ -258,7 +258,7 @@ class SIEMKali2025(_SIEMAvanzado):  # type: ignore
         """
         Inicia monitoreo de logs en tiempo real
         """
-        self.log("🔍 Iniciando monitoreo de logs tiempo real")
+        self.log("ANALIZANDO Iniciando monitoreo de logs tiempo real")
         
         try:
             # Archivos de log por defecto
@@ -312,7 +312,7 @@ class SIEMKali2025(_SIEMAvanzado):  # type: ignore
                 bufsize=1
             )
             
-            self.log(f"🔍 Monitor activo en: {archivo_log}")
+            self.log(f"ANALIZANDO Monitor activo en: {archivo_log}")
             
             while self.monitores_activos.get(archivo_log, {}).get('activo', False):
                 if process.stdout:
@@ -542,7 +542,7 @@ class SIEMKali2025(_SIEMAvanzado):  # type: ignore
         """
         Ejecuta auditoría completa del sistema con lynis
         """
-        self.log("🔍 Iniciando auditoría lynis")
+        self.log("ANALIZANDO Iniciando auditoría lynis")
         
         if 'lynis' not in self.herramientas_disponibles:
             return {"error": "lynis no disponible"}
@@ -579,7 +579,7 @@ class SIEMKali2025(_SIEMAvanzado):  # type: ignore
         """
         Obtiene estadísticas de red del sistema
         """
-        self.log("📊 Obteniendo estadísticas de red")
+        self.log("RESUMEN Obteniendo estadísticas de red")
         
         try:
             estadisticas = {}
@@ -681,8 +681,8 @@ class SIEMKali2025(_SIEMAvanzado):  # type: ignore
         lines = output.split('\n')
         
         for line in lines:
-            if '⚠️' in line or '[SUGGESTION]' in line:
-                severidad = 'MEDIUM' if '⚠️' in line else 'LOW'
+            if 'ADVERTENCIA' in line or '[SUGGESTION]' in line:
+                severidad = 'MEDIUM' if 'ADVERTENCIA' in line else 'LOW'
                 hallazgos.append({
                     'categoria': 'auditoria_sistema',
                     'hallazgo': line.strip(),

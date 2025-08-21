@@ -166,7 +166,7 @@ class GestorPermisosSeguro:
             return disponible
             
         except (subprocess.TimeoutExpired, FileNotFoundError) as e:
-            self.logger.error(f"ERROR Error verificando sudo: {e}")
+            self.logger.error(f"ERROR verificando sudo: {e}")
             return False
     
     def _validar_comando(self, herramienta: str, argumentos: List[str]) -> Tuple[bool, str]:
@@ -433,7 +433,7 @@ if __name__ == "__main__":
     
     print("\nHerramientas:")
     for herramienta, info in reporte['herramientas'].items():
-        status = "[OK]" if info['disponible'] and info['permisos_ok'] else "❌"
+        status = "[OK]" if info['disponible'] and info['permisos_ok'] else "ERROR"
         print(f"{status} {herramienta}: {info['mensaje']}")
     
     if reporte['recomendaciones']:

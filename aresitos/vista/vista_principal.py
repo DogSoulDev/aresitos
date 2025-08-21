@@ -238,50 +238,50 @@ class VistaPrincipal(tk.Frame):
         # 1. DASHBOARD - Primera pestaña con métricas en tiempo real
         try:
             self.vista_dashboard = VistaDashboard(self.notebook)
-            self.notebook.add(self.vista_dashboard, text="🏠 Dashboard")
+            self.notebook.add(self.vista_dashboard, text="Dashboard")
         except Exception as e:
             print(f"Error creando vista dashboard: {e}")
         
         # 2. ESCANEO - Funcionalidad principal de escaneo
         self.vista_escaneo = VistaEscaneo(self.notebook)
-        self.notebook.add(self.vista_escaneo, text="🔍 Escaneo")
+        self.notebook.add(self.vista_escaneo, text="Escaneo")
         
         # 3. SIEM - Security Information & Event Management
         try:
             self.vista_siem = VistaSIEM(self.notebook)
-            self.notebook.add(self.vista_siem, text="🛡️ SIEM")
+            self.notebook.add(self.vista_siem, text="SIEM")
         except Exception as e:
             print(f"Error creando vista SIEM: {e}")
         
         # 4. FIM - File Integrity Monitoring
         try:
             self.vista_fim = VistaFIM(self.notebook)
-            self.notebook.add(self.vista_fim, text="📁 FIM")
+            self.notebook.add(self.vista_fim, text="FIM")
         except Exception as e:
             print(f"Error creando vista FIM: {e}")
         
         # 5. MONITOREO Y CUARENTENA - Monitoreo del sistema
         self.vista_monitoreo = VistaMonitoreo(self.notebook)
-        self.notebook.add(self.vista_monitoreo, text="📊 Monitoreo y Cuarentena")
+        self.notebook.add(self.vista_monitoreo, text="Monitoreo y Cuarentena")
         
         # 6. AUDITORÍA - Auditoría de seguridad avanzada
         try:
             self.vista_auditoria = VistaAuditoria(self.notebook)
-            self.notebook.add(self.vista_auditoria, text="🔐 Auditoría")
+            self.notebook.add(self.vista_auditoria, text="Auditoría")
         except Exception as e:
             print(f"Error creando vista auditoría: {e}")
         
         # 7. WORDLISTS & DICCIONARIOS - Gestión de datos unificados
         try:
             self.vista_gestion_datos = VistaGestionDatos(self.notebook)
-            self.notebook.add(self.vista_gestion_datos, text="📚 Wordlists y Diccionarios")
+            self.notebook.add(self.vista_gestion_datos, text="Wordlists y Diccionarios")
         except Exception as e:
             print(f"Error creando vista gestión de datos: {e}")
         
         # 8. REPORTES - Generación y visualización de reportes
         try:
             self.vista_reportes = VistaReportes(self.notebook)
-            self.notebook.add(self.vista_reportes, text="📄 Reportes")
+            self.notebook.add(self.vista_reportes, text="Reportes")
         except Exception as e:
             print(f"Error creando vista reportes: {e}")
     

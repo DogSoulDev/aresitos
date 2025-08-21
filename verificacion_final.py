@@ -12,7 +12,7 @@ import subprocess
 
 def verificar_tokens_problemáticos():
     """Verifica que no queden tokens problemáticos"""
-    print("🔍 Verificando tokens problemáticos...")
+    print("VERIFICANDO tokens problemáticos...")
     
     pattern = r'\[(EMOJI|SCAN|STOP|METADATA|SECURE|INFO|WARNING|ERROR|SUCCESS|STATS|CONFIG|UPDATE|SAVE|LOAD|FILE|LOG|SETTINGS|QUARANTINE|UTILS|CLEAN|SYSTEM)\]'
     found_tokens = []
@@ -31,17 +31,17 @@ def verificar_tokens_problemáticos():
                     continue
     
     if found_tokens:
-        print("❌ TOKENS PROBLEMÁTICOS ENCONTRADOS:")
+        print("ERROR TOKENS PROBLEMÁTICOS ENCONTRADOS:")
         for filepath, tokens in found_tokens:
             print(f"   {filepath}: {set(tokens)}")
         return False
     else:
-        print("✅ Tokens problemáticos: LIMPIO")
+        print("OK Tokens problemáticos: LIMPIO")
         return True
 
 def verificar_herramientas_modernas():
     """Verifica que se usen herramientas modernas"""
-    print("🔍 Verificando uso de herramientas modernas...")
+    print("VERIFICANDO uso de herramientas modernas...")
     
     herramientas_modernas = [
         'gobuster', 'feroxbuster', 'nuclei', 'httpx', 
@@ -63,12 +63,12 @@ def verificar_herramientas_modernas():
                 except Exception as e:
                     continue
     
-    print(f"✅ Herramientas modernas encontradas: {sorted(herramientas_encontradas)}")
+    print(f"OK Herramientas modernas encontradas: {sorted(herramientas_encontradas)}")
     return len(herramientas_encontradas) >= 4
 
 def verificar_importaciones():
     """Verifica que no haya importaciones problemáticas"""
-    print("🔍 Verificando importaciones...")
+    print("VERIFICANDO importaciones...")
     
     importaciones_prohibidas = ['requests', 'pandas', 'numpy', 'matplotlib']
     problemas = []
@@ -87,17 +87,17 @@ def verificar_importaciones():
                     continue
     
     if problemas:
-        print("❌ IMPORTACIONES PROBLEMÁTICAS:")
+        print("ERROR IMPORTACIONES PROBLEMÁTICAS:")
         for filepath, imp in problemas:
             print(f"   {filepath}: {imp}")
         return False
     else:
-        print("✅ Importaciones: LIMPIO (solo stdlib)")
+        print("OK Importaciones: LIMPIO (solo stdlib)")
         return True
 
 def verificar_sintaxis():
     """Verifica sintaxis de archivos principales"""
-    print("🔍 Verificando sintaxis de archivos principales...")
+    print("VERIFICANDO sintaxis de archivos principales...")
     
     archivos_principales = [
         'main.py',
@@ -119,17 +119,17 @@ def verificar_sintaxis():
                 errores.append((archivo, str(e)))
     
     if errores:
-        print("❌ ERRORES DE SINTAXIS:")
+        print("ERRORES DE SINTAXIS:")
         for archivo, error in errores:
             print(f"   {archivo}: {error}")
         return False
     else:
-        print("✅ Sintaxis: CORRECTA")
+        print("OK Sintaxis: CORRECTA")
         return True
 
 def verificar_estructura_archivos():
     """Verifica que existan los archivos esenciales"""
-    print("🔍 Verificando estructura de archivos...")
+    print("VERIFICANDO estructura de archivos...")
     
     archivos_esenciales = [
         'main.py',
@@ -148,18 +148,18 @@ def verificar_estructura_archivos():
             faltantes.append(archivo)
     
     if faltantes:
-        print("❌ ARCHIVOS FALTANTES:")
+        print("ERROR ARCHIVOS FALTANTES:")
         for archivo in faltantes:
             print(f"   {archivo}")
         return False
     else:
-        print("✅ Estructura de archivos: COMPLETA")
+        print("OK Estructura de archivos: COMPLETA")
         return True
 
 def main():
     """Función principal de verificación"""
     print("=" * 60)
-    print("🔍 VERIFICACIÓN FINAL DE ARESITOS v2.0")
+    print("VERIFICANDO VERIFICACIÓN FINAL DE ARESITOS v2.0")
     print("=" * 60)
     
     verificaciones = [
@@ -171,21 +171,21 @@ def main():
     ]
     
     print("\n" + "=" * 60)
-    print("📊 RESUMEN DE VERIFICACIÓN")
+    print("RESUMEN DE VERIFICACIÓN")
     print("=" * 60)
     
     exitosas = sum(verificaciones)
     total = len(verificaciones)
     
     if exitosas == total:
-        print("🎉 ¡TODAS LAS VERIFICACIONES PASARON!")
-        print("✅ ARESITOS v2.0 está listo para usar")
-        print("\n📋 Para ejecutar:")
+        print("EXITO ¡TODAS LAS VERIFICACIONES PASARON!")
+        print("OK ARESITOS v2.0 está listo para usar")
+        print("\nINFO Para ejecutar:")
         print("   python main.py --desarrollo")
         print("   python main.py  # Para modo producción")
     else:
-        print(f"⚠️  {exitosas}/{total} verificaciones pasaron")
-        print("❌ Revisar los errores arriba antes de continuar")
+        print(f"ADVERTENCIA  {exitosas}/{total} verificaciones pasaron")
+        print("ERROR Revisar los errores arriba antes de continuar")
         return 1
     
     return 0
