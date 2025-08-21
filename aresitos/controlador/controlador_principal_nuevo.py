@@ -354,6 +354,20 @@ class ControladorPrincipal(ControladorBase):
                 except Exception as e:
                     self.logger.error(f"Error configurando FIM → SIEM: {e}")
             
+            # Configurar conexión Escaneador → SIEM + Cuarentena + FIM
+            if hasattr(self, 'controlador_escaneador') and self.controlador_escaneador:
+                try:
+                    if hasattr(self.controlador_escaneador, 'configurar_integraciones'):
+                        self.controlador_escaneador.configurar_integraciones(
+                            controlador_siem=self.controlador_siem,
+                            controlador_fim=self.controlador_fim,
+                            controlador_cuarentena=self.controlador_cuarentena
+                        )
+                        conexiones_exitosas += 1
+                        self.logger.info("✓ Escaneador → SIEM + FIM + Cuarentena configurado")
+                except Exception as e:
+                    self.logger.error(f"Error configurando integraciones del escaneador: {e}")
+            
             # Verificar integraciones activas
             self.logger.info(f"[POST-EXPLOIT] Conexiones configuradas exitosamente: {conexiones_exitosas}")
             

@@ -983,7 +983,7 @@ class LoginAresitos:
             
             # Crear aplicación principal con tema Burp Suite
             root_app = tk.Tk()
-            root_app.title("🛡️ ARESITOS v2.0 - Sistema de Seguridad Cibernética")
+            root_app.title("Aresitos - Sistema de Seguridad Cibernética")
             root_app.geometry("1400x900")
             
             # Configurar icono de la ventana si existe

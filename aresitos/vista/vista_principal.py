@@ -38,7 +38,7 @@ class VistaPrincipal(tk.Frame):
             icono_path = os.path.join(os.path.dirname(__file__), '..', 'recursos', 'Aresitos.ico')
             if os.path.exists(icono_path):
                 # Para archivos .ico, tkinter no los soporta directamente, usamos el emoji como alternativa
-                self.icono_text = "🛡️"
+                self.icono_text = ""
             else:
                 self.icono_text = "🔰"
         except Exception as e:
@@ -161,7 +161,7 @@ class VistaPrincipal(tk.Frame):
         if self.theme:
             titulo_label = tk.Label(
                 titulo_main_frame,
-                text="ARESITOS v2.0",
+                text="Aresitos",
                 font=("Arial", 16, "bold"),
                 fg=self.theme.get_color('fg_accent'),
                 bg=self.theme.get_color('bg_secondary')
@@ -169,7 +169,7 @@ class VistaPrincipal(tk.Frame):
         else:
             titulo_label = tk.Label(
                 titulo_main_frame,
-                text="ARESITOS v2.0",
+                text="Aresitos",
                 font=("Arial", 16, "bold"),
                 fg='#ff6633',
                 bg='#3c3c3c'
@@ -180,7 +180,7 @@ class VistaPrincipal(tk.Frame):
         if self.theme:
             subtitulo_label = tk.Label(
                 titulo_frame,
-                text="Cybersecurity Professional Suite | Herramientas Modernizadas",
+                text="Herramienta de Ciberseguridad",
                 font=("Arial", 9),
                 fg=self.theme.get_color('fg_secondary'),
                 bg=self.theme.get_color('bg_secondary')
@@ -188,7 +188,7 @@ class VistaPrincipal(tk.Frame):
         else:
             subtitulo_label = tk.Label(
                 titulo_frame,
-                text="Cybersecurity Professional Suite | Herramientas Modernizadas",
+                text="Herramienta de Ciberseguridad",
                 font=("Arial", 9),
                 fg='#cccccc',
                 bg='#3c3c3c'
@@ -199,7 +199,7 @@ class VistaPrincipal(tk.Frame):
         if self.theme:
             info_label = tk.Label(
                 titulo_frame,
-                text="🐧 Kali Linux Ready | Tema Burp Suite",
+                text="DogSoulDev crafted in Galicia",
                 font=("Arial", 8),
                 fg=self.theme.get_color('fg_secondary'),
                 bg=self.theme.get_color('bg_secondary')
@@ -207,7 +207,7 @@ class VistaPrincipal(tk.Frame):
         else:
             info_label = tk.Label(
                 titulo_frame,
-                text="🐧 Kali Linux Ready | Tema Burp Suite",
+                text="DogSoulDev crafted in Galicia",
                 font=("Arial", 8),
                 fg='#cccccc',
                 bg='#3c3c3c'
@@ -325,7 +325,7 @@ class VistaPrincipal(tk.Frame):
             if self.controlador:
                 self.logger.info("Actualizando vista principal con datos del controlador")
                 # Actualizar estado general
-                self.actualizar_estado("Sistema inicializado - ARESITOS v2.0")
+                self.actualizar_estado("Sistema inicializado - Aresitos")
                 
                 # Verificar y actualizar sub-vistas que tienen el método actualizar_desde_controlador
                 if hasattr(self, 'vista_gestion_datos') and hasattr(self.vista_gestion_datos, 'actualizar_desde_controlador'):

@@ -79,7 +79,7 @@ def verificar_tkinter():
 
 def main():
     """Función principal que redirige al login GUI con flujo escalonado"""
-    print("ARESITOS v2.0 - Sistema de Seguridad Cibernética")
+    print("Aresitos - Sistema de Seguridad Cibernética")
     print("=" * 50)
     
     # Verificar Kali Linux antes de continuar
@@ -149,7 +149,7 @@ def iniciar_aplicacion_clasica():
         
         # Crear aplicación principal con tema Burp Suite
         root = tk.Tk()
-        root.title("🛡️ ARESITOS v2.0 - Sistema de Seguridad Cibernética")
+        root.title("Aresitos - Sistema de Seguridad Cibernética")
         root.geometry("1400x900")
         
         # Configurar icono de la ventana si existe
@@ -189,7 +189,7 @@ def iniciar_aplicacion_clasica():
         y = (root.winfo_screenheight() // 2) - (900 // 2)
         root.geometry(f"1400x900+{x}+{y}")
         
-        print("ARESITOS v2.0 iniciado exitosamente")
+        print("Aresitos iniciado exitosamente")
         print("✅ Dashboard completo cargado - Funcional")
         print("✅ Tema Burp Suite aplicado")
         print("✅ Herramientas modernizadas configuradas")

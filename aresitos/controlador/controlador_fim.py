@@ -1122,6 +1122,43 @@ class ControladorFIM(ControladorBase):
                 'error': str(e),
                 'cambios_detectados': 0
             }
+    
+    def verificar_integridad_archivo(self, ruta_archivo: str) -> Dict[str, Any]:
+        """
+        Verificar la integridad de un archivo individual.
+        MÉTODO CLAVE para integración con otros controladores.
+        """
+        try:
+            resultado = self.verificar_integridad_archivos([ruta_archivo])
+            
+            if resultado.get('exito'):
+                cambios = resultado.get('cambios_detectados', 0)
+                tiene_cambios = cambios > 0
+                
+                return {
+                    'exito': True,
+                    'integro': not tiene_cambios,
+                    'archivo': ruta_archivo,
+                    'cambios_detectados': cambios,
+                    'timestamp': datetime.now().isoformat()
+                }
+            else:
+                return {
+                    'exito': False,
+                    'integro': False,
+                    'archivo': ruta_archivo,
+                    'error': resultado.get('error')
+                }
+                
+        except Exception as e:
+            error_msg = f"Error verificando integridad de archivo {ruta_archivo}: {e}"
+            self.logger.error(error_msg)
+            return {
+                'exito': False,
+                'integro': False,
+                'archivo': ruta_archivo,
+                'error': error_msg
+            }
 
     def _obtener_metadatos_archivo(self, ruta_archivo: str) -> Dict[str, Any]:
         """Obtener metadatos de un archivo."""

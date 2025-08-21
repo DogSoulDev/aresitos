@@ -61,6 +61,10 @@ class ControladorEscaneadorCuarentena:
         self.cuarentena: Union[MockCuarentena, Any] = MockCuarentena()
         
         self._inicializar_componentes()
+        
+        # Referencias para integración entre controladores
+        self._siem_conectado = None
+        self._fim_conectado = None
     
     def _inicializar_componentes(self):
         """Inicializa el escáner y el sistema de cuarentena."""
@@ -195,7 +199,50 @@ class ControladorEscaneadorCuarentena:
                 }
             }
             
-            return self.cuarentena.procesar_amenaza_detectada(amenaza_info)
+            # Procesar amenaza con cuarentena
+            resultado = self.cuarentena.procesar_amenaza_detectada(amenaza_info)
+            
+            # Si es amenaza crítica, notificar también al SIEM
+            if resultado and vulnerabilidad.nivel_riesgo.value == 'critico':
+                try:
+                    # Usar SIEM conectado directamente
+                    if self._siem_conectado:
+                        evento_siem = {
+                            'tipo': 'AMENAZA_CRITICA_CUARENTENADA',
+                            'descripcion': f'Archivo crítico enviado a cuarentena: {vulnerabilidad.descripcion}',
+                            'archivo': vulnerabilidad.archivo_afectado,
+                            'severidad': 'critica'
+                        }
+                        self._siem_conectado.generar_evento(
+                            evento_siem['tipo'], 
+                            evento_siem['descripcion'], 
+                            evento_siem['severidad']
+                        )
+                        self.logger.info("Evento crítico notificado al SIEM")
+                    # Fallback: intentar usar SIEM del controlador de cuarentena  
+                    else:
+                        try:
+                            # Intentar obtener SIEM desde cuarentena de manera segura
+                            siem_cuarentena = getattr(self.cuarentena, 'siem', None)
+                            if siem_cuarentena and hasattr(siem_cuarentena, 'generar_evento'):
+                                evento_siem = {
+                                    'tipo': 'AMENAZA_CRITICA_CUARENTENADA',
+                                    'descripcion': f'Archivo crítico enviado a cuarentena: {vulnerabilidad.descripcion}',
+                                    'archivo': vulnerabilidad.archivo_afectado,
+                                    'severidad': 'critica'
+                                }
+                                siem_cuarentena.generar_evento(
+                                    evento_siem['tipo'], 
+                                    evento_siem['descripcion'], 
+                                    evento_siem['severidad']
+                                )
+                                self.logger.info("Evento crítico notificado al SIEM via cuarentena")
+                        except (AttributeError, TypeError) as e:
+                            self.logger.debug(f"No se pudo notificar al SIEM via cuarentena: {e}")
+                except Exception as e:
+                    self.logger.warning(f"Error notificando al SIEM: {e}")
+            
+            return resultado
             
         except Exception as e:
             self.logger.error(f"Error procesando amenaza en cuarentena: {e}")
@@ -288,6 +335,37 @@ class ControladorEscaneadorCuarentena:
             return True
         except Exception as e:
             self.logger.error(f"Error actualizando configuración: {e}")
+            return False
+    
+    def configurar_integraciones(self, controlador_siem=None, controlador_fim=None, controlador_cuarentena=None):
+        """
+        Configurar integraciones con otros controladores del sistema.
+        MÉTODO CLAVE para conectividad entre controladores.
+        """
+        try:
+            conexiones = 0
+            
+            if controlador_siem:
+                self._siem_conectado = controlador_siem
+                conexiones += 1
+                self.logger.info("Escaneador conectado al SIEM")
+                
+            if controlador_fim:
+                self._fim_conectado = controlador_fim
+                conexiones += 1
+                self.logger.info("Escaneador conectado al FIM")
+                
+            if controlador_cuarentena:
+                # Actualizar referencia de cuarentena si se proporciona una nueva
+                self.cuarentena = controlador_cuarentena
+                conexiones += 1
+                self.logger.info("Escaneador conectado a nueva instancia de Cuarentena")
+            
+            self.logger.info(f"Integraciones configuradas: {conexiones} controladores conectados")
+            return True
+            
+        except Exception as e:
+            self.logger.error(f"Error configurando integraciones: {e}")
             return False
     
     # === MÉTODOS REQUERIDOS POR LA INTERFAZ ===
@@ -671,29 +749,29 @@ class ControladorEscaneadorCuarentena:
             
             tiempo_inicio = time.time()
             
-            # 1. Escaneo de puertos locales (SIEMPRE disponible)
-            self.logger.info("1/5 Escaneando puertos locales...")
+            # 1. Escaneo de puertos locales (MEJORADO) - 50 puertos críticos para ciberataques
+            self.logger.info("1/6 Escaneando puertos críticos para ciberataques...")
             try:
                 resultado_puertos = self._escanear_puertos_locales()
                 if resultado_puertos.get('exito'):
-                    resultado['escaneos_ejecutados'].append('puertos_locales')
+                    resultado['escaneos_ejecutados'].append('puertos_criticos')
                     puertos_abiertos = resultado_puertos.get('puertos_abiertos', [])
                     resultado['resumen']['puertos_abiertos'] = len(puertos_abiertos)
+                    resultado['resumen']['puertos_criticos'] = resultado_puertos.get('total_criticos', 0)
                     resultado['puertos_abiertos'] = puertos_abiertos
                     
-                    # Buscar vulnerabilidades básicas en puertos
+                    # Buscar vulnerabilidades críticas en puertos
                     for puerto in puertos_abiertos:
-                        if isinstance(puerto, dict):
-                            puerto_num = puerto.get('puerto', 0)
-                            if puerto_num in [21, 23, 135, 139, 445]:  # Puertos riesgosos
-                                resultado['vulnerabilidades_encontradas'].append({
-                                    'tipo': 'PUERTO_RIESGOSO',
-                                    'severidad': 'MEDIA',
-                                    'descripcion': f"Puerto potencialmente riesgoso abierto: {puerto_num}",
-                                    'puerto': puerto_num,
-                                    'detalles': puerto
-                                })
-                self.logger.info("OK Escaneo de puertos completado")
+                        if isinstance(puerto, dict) and puerto.get('critico'):
+                            resultado['vulnerabilidades_encontradas'].append({
+                                'tipo': 'PUERTO_CRITICO_EXPUESTO',
+                                'severidad': 'ALTA',
+                                'descripcion': f"Puerto crítico para ciberataques abierto: {puerto['puerto']} ({puerto['servicio']})",
+                                'puerto': puerto['puerto'],
+                                'servicio': puerto['servicio'],
+                                'detalles': puerto
+                            })
+                self.logger.info("OK Escaneo de puertos críticos completado")
             except Exception as e:
                 self.logger.warning(f"Error en escaneo de puertos: {e}")
             
@@ -833,10 +911,20 @@ class ControladorEscaneadorCuarentena:
             }
 
     def _escanear_puertos_locales(self) -> Dict[str, Any]:
-        """Escanear puertos abiertos en el sistema local"""
+        """Escanear puertos abiertos en el sistema local incluyendo los 50 puertos más comunes para ciberataques"""
         try:
             import subprocess
             puertos_encontrados = []
+            
+            # 50 puertos más comunes para ciberataques (CRÍTICOS PARA MONITOREO)
+            puertos_criticos = [
+                21, 22, 23, 25, 53, 80, 110, 111, 135, 139, 143, 443, 993, 995,  # Básicos críticos
+                445, 993, 995, 1723, 3306, 3389, 5432, 5900, 6379,               # Servicios comunes
+                1433, 1521, 2049, 2121, 2375, 3128, 5060, 5061, 5432,            # Bases de datos y proxy
+                6667, 8080, 8443, 8888, 9090, 9200, 9300, 10000, 11211,          # Web y aplicaciones
+                27017, 27018, 50070, 6379, 7001, 8000, 8008, 8081, 8090,         # NoSQL y desarrollo
+                9000, 9001, 9043, 9080, 9443, 10051, 11211, 50000                 # Monitoreo y cache
+            ]
             
             # Usar netstat para detectar puertos abiertos
             cmd = ['netstat', '-tuln']
@@ -852,44 +940,412 @@ class ControladorEscaneadorCuarentena:
                             if ':' in direccion_local:
                                 puerto = direccion_local.split(':')[-1]
                                 if puerto.isdigit():
+                                    puerto_num = int(puerto)
+                                    
+                                    # Determinar criticidad del puerto
+                                    es_critico = puerto_num in puertos_criticos
+                                    riesgo = 'ALTO' if es_critico else 'MEDIO'
+                                    
+                                    # Clasificar el servicio por puerto
+                                    servicio = self._identificar_servicio_puerto(puerto_num)
+                                    
                                     puertos_encontrados.append({
-                                        'puerto': int(puerto),
+                                        'puerto': puerto_num,
                                         'protocolo': 'TCP' if 'tcp' in linea.lower() else 'UDP',
                                         'estado': 'LISTENING',
-                                        'direccion': direccion_local
+                                        'direccion': direccion_local,
+                                        'critico': es_critico,
+                                        'riesgo': riesgo,
+                                        'servicio': servicio
                                     })
             
-            return {'puertos': puertos_encontrados, 'exito': True}
+            # Fallback con ss si netstat no funciona
+            if not puertos_encontrados:
+                try:
+                    cmd_ss = ['ss', '-tuln']
+                    result_ss = subprocess.run(cmd_ss, capture_output=True, text=True, timeout=30)
+                    if result_ss.returncode == 0:
+                        lineas_ss = result_ss.stdout.split('\n')
+                        for linea in lineas_ss[1:]:  # Skip header
+                            if 'LISTEN' in linea:
+                                partes = linea.split()
+                                if len(partes) >= 4:
+                                    direccion_local = partes[3]
+                                    if ':' in direccion_local:
+                                        puerto = direccion_local.split(':')[-1]
+                                        if puerto.isdigit():
+                                            puerto_num = int(puerto)
+                                            es_critico = puerto_num in puertos_criticos
+                                            servicio = self._identificar_servicio_puerto(puerto_num)
+                                            
+                                            puertos_encontrados.append({
+                                                'puerto': puerto_num,
+                                                'protocolo': 'TCP',
+                                                'estado': 'LISTENING',
+                                                'direccion': direccion_local,
+                                                'critico': es_critico,
+                                                'riesgo': 'ALTO' if es_critico else 'MEDIO',
+                                                'servicio': servicio
+                                            })
+                except Exception as e:
+                    self.logger.warning(f"Error con comando ss: {e}")
+            
+            return {
+                'puertos_abiertos': puertos_encontrados, 
+                'exito': True,
+                'total_criticos': len([p for p in puertos_encontrados if p.get('critico')]),
+                'total_puertos': len(puertos_encontrados)
+            }
             
         except Exception as e:
             self.logger.error(f"Error escaneando puertos: {e}")
-            return {'puertos': [], 'exito': False, 'error': str(e)}
+            return {'puertos_abiertos': [], 'exito': False, 'error': str(e)}
+    
+    def _identificar_servicio_puerto(self, puerto: int) -> str:
+        """Identificar servicio común por número de puerto"""
+        servicios_comunes = {
+            21: 'FTP', 22: 'SSH', 23: 'Telnet', 25: 'SMTP', 53: 'DNS',
+            80: 'HTTP', 110: 'POP3', 111: 'RPC', 135: 'RPC/DCE', 139: 'NetBIOS',
+            143: 'IMAP', 443: 'HTTPS', 445: 'SMB', 993: 'IMAPS', 995: 'POP3S',
+            1433: 'MSSQL', 1521: 'Oracle', 1723: 'PPTP', 2049: 'NFS', 2121: 'FTP-Proxy',
+            2375: 'Docker', 3128: 'Squid', 3306: 'MySQL', 3389: 'RDP', 5060: 'SIP',
+            5432: 'PostgreSQL', 5900: 'VNC', 6379: 'Redis', 6667: 'IRC', 8080: 'HTTP-Alt',
+            8443: 'HTTPS-Alt', 8888: 'HTTP-Dev', 9090: 'HTTP-Mgmt', 9200: 'Elasticsearch',
+            27017: 'MongoDB', 50070: 'Hadoop'
+        }
+        return servicios_comunes.get(puerto, 'Unknown')
+    
+    def _monitorear_dns_y_red(self) -> Dict[str, Any]:
+        """Monitorear actividad DNS y conexiones de red sospechosas"""
+        try:
+            import subprocess
+            import socket
+            
+            resultado = {
+                'conexiones_activas': [],
+                'dns_queries_sospechosas': [],
+                'ips_externas_conectadas': [],
+                'dominios_sospechosos': [],
+                'exito': False
+            }
+            
+            # Dominios sospechosos comunes (DNS tunneling, C&C, malware)
+            dominios_sospechosos = [
+                'bit.ly', 'tinyurl.com', 'pastebin.com', '0x0.st', 'transfer.sh',
+                'duckdns.org', 'no-ip.com', 'ddns.net', 'freeddns.org',
+                '.tk', '.ml', '.ga', '.cf', '.onion'
+            ]
+            
+            # IPs sospechosas (rangos conocidos por actividad maliciosa)
+            rangos_sospechosos = [
+                '127.0.0.1', '0.0.0.0'  # Localhost como base, expandir según necesidad
+            ]
+            
+            # Monitorear conexiones activas con netstat
+            try:
+                cmd = ['netstat', '-tuln', '--numeric-ports']
+                result = subprocess.run(cmd, capture_output=True, text=True, timeout=20)
+                
+                if result.returncode == 0:
+                    lineas = result.stdout.split('\n')
+                    for linea in lineas:
+                        if 'ESTABLISHED' in linea or 'SYN_SENT' in linea:
+                            partes = linea.split()
+                            if len(partes) >= 5:
+                                direccion_local = partes[3]
+                                direccion_remota = partes[4]
+                                estado = partes[5] if len(partes) > 5 else 'UNKNOWN'
+                                
+                                # Extraer IP remota
+                                if ':' in direccion_remota:
+                                    ip_remota = direccion_remota.split(':')[0]
+                                    puerto_remoto = direccion_remota.split(':')[-1]
+                                    
+                                    # Verificar si es IP externa (no localhost ni red local)
+                                    if not ip_remota.startswith(('127.', '192.168.', '10.', '172.')):
+                                        resultado['ips_externas_conectadas'].append({
+                                            'ip': ip_remota,
+                                            'puerto': puerto_remoto,
+                                            'estado': estado,
+                                            'local': direccion_local
+                                        })
+                                
+                                resultado['conexiones_activas'].append({
+                                    'local': direccion_local,
+                                    'remota': direccion_remota,
+                                    'estado': estado,
+                                    'sospechosa': not direccion_remota.startswith(('127.', '192.168.', '10.'))
+                                })
+            except Exception as e:
+                self.logger.warning(f"Error monitoreando conexiones: {e}")
+            
+            # Verificar resolución DNS para detectar túneles DNS
+            try:
+                # Verificar archivos de configuración DNS
+                dns_files = ['/etc/resolv.conf', '/etc/hosts']
+                for dns_file in dns_files:
+                    try:
+                        import os
+                        if os.path.exists(dns_file):
+                            with open(dns_file, 'r') as f:
+                                contenido = f.read()
+                                # Buscar entradas sospechosas
+                                for dominio in dominios_sospechosos:
+                                    if dominio in contenido:
+                                        resultado['dominios_sospechosos'].append({
+                                            'dominio': dominio,
+                                            'archivo': dns_file,
+                                            'tipo': 'configuracion_dns'
+                                        })
+                    except Exception as e:
+                        self.logger.debug(f"Error leyendo {dns_file}: {e}")
+            except Exception as e:
+                self.logger.warning(f"Error verificando configuración DNS: {e}")
+            
+            # Usar ss como alternativa si está disponible
+            try:
+                cmd_ss = ['ss', '-tuln']
+                result_ss = subprocess.run(cmd_ss, capture_output=True, text=True, timeout=20)
+                if result_ss.returncode == 0 and not resultado['conexiones_activas']:
+                    lineas_ss = result_ss.stdout.split('\n')
+                    for linea in lineas_ss[1:]:  # Skip header
+                        if 'ESTAB' in linea or 'LISTEN' in linea:
+                            partes = linea.split()
+                            if len(partes) >= 4:
+                                local = partes[3]
+                                remota = partes[4] if len(partes) > 4 else 'N/A'
+                                resultado['conexiones_activas'].append({
+                                    'local': local,
+                                    'remota': remota,
+                                    'estado': 'ESTAB' if 'ESTAB' in linea else 'LISTEN',
+                                    'herramienta': 'ss'
+                                })
+            except Exception as e:
+                self.logger.debug(f"Error con comando ss: {e}")
+            
+            resultado['exito'] = True
+            resultado['total_conexiones'] = len(resultado['conexiones_activas'])
+            resultado['total_ips_externas'] = len(resultado['ips_externas_conectadas'])
+            resultado['total_dominios_sospechosos'] = len(resultado['dominios_sospechosos'])
+            
+            return resultado
+            
+        except Exception as e:
+            self.logger.error(f"Error monitoreando DNS y red: {e}")
+            return {'exito': False, 'error': str(e)}
+    
+    def _monitorear_modulos_pam(self) -> Dict[str, Any]:
+        """Monitorear módulos PAM para detectar modificaciones sospechosas"""
+        try:
+            import subprocess
+            import os
+            
+            resultado = {
+                'archivos_pam_monitoreados': [],
+                'modificaciones_sospechosas': [],
+                'configuraciones_inseguras': [],
+                'permisos_incorrectos': [],
+                'exito': False
+            }
+            
+            # Archivos PAM críticos para monitorear
+            archivos_pam_criticos = [
+                '/etc/pam.d/common-auth',
+                '/etc/pam.d/common-account', 
+                '/etc/pam.d/common-password',
+                '/etc/pam.d/common-session',
+                '/etc/pam.d/sudo',
+                '/etc/pam.d/sshd',
+                '/etc/pam.d/login',
+                '/etc/pam.d/passwd'
+            ]
+            
+            # Patrones sospechosos en configuración PAM
+            patrones_sospechosos = [
+                'pam_permit.so',  # Permite acceso sin autenticación
+                'nullok',         # Permite passwords vacíos
+                'try_first_pass', # Reutiliza passwords previos
+                'pam_rootok.so',  # Permite acceso root sin password
+                'pam_succeed_if.so uid = 0'  # Bypasses para root
+            ]
+            
+            for archivo_pam in archivos_pam_criticos:
+                try:
+                    if os.path.exists(archivo_pam):
+                        # Verificar permisos del archivo
+                        st = os.stat(archivo_pam)
+                        permisos = oct(st.st_mode)[-3:]
+                        owner_uid = st.st_uid
+                        group_gid = st.st_gid
+                        
+                        archivo_info = {
+                            'archivo': archivo_pam,
+                            'permisos': permisos,
+                            'owner_uid': owner_uid,
+                            'group_gid': group_gid,
+                            'existe': True
+                        }
+                        
+                        # Verificar permisos seguros (debe ser 644 o más restrictivo)
+                        if permisos not in ['644', '640', '600', '444']:
+                            resultado['permisos_incorrectos'].append({
+                                'archivo': archivo_pam,
+                                'permisos_actuales': permisos,
+                                'permisos_recomendados': '644',
+                                'severidad': 'ALTA'
+                            })
+                        
+                        # Verificar contenido del archivo
+                        try:
+                            with open(archivo_pam, 'r') as f:
+                                contenido = f.read()
+                                
+                                # Buscar patrones sospechosos
+                                for patron in patrones_sospechosos:
+                                    if patron in contenido:
+                                        resultado['configuraciones_inseguras'].append({
+                                            'archivo': archivo_pam,
+                                            'patron_sospechoso': patron,
+                                            'tipo': 'configuracion_insegura',
+                                            'severidad': 'CRITICA'
+                                        })
+                                
+                                # Verificar modificaciones recientes usando stat
+                                mtime = st.st_mtime
+                                import time
+                                tiempo_actual = time.time()
+                                if (tiempo_actual - mtime) < 86400:  # Modificado en últimas 24h
+                                    resultado['modificaciones_sospechosas'].append({
+                                        'archivo': archivo_pam,
+                                        'tiempo_modificacion': mtime,
+                                        'horas_desde_modificacion': (tiempo_actual - mtime) / 3600,
+                                        'tipo': 'modificacion_reciente'
+                                    })
+                        
+                        except (PermissionError, IOError) as e:
+                            archivo_info['error_lectura'] = str(e)
+                        
+                        resultado['archivos_pam_monitoreados'].append(archivo_info)
+                
+                except (OSError, IOError) as e:
+                    resultado['archivos_pam_monitoreados'].append({
+                        'archivo': archivo_pam,
+                        'existe': False,
+                        'error': str(e)
+                    })
+            
+            # Verificar integridad con dpkg si está disponible (Debian/Kali)
+            try:
+                cmd = ['dpkg', '-V', 'libpam-modules']
+                result = subprocess.run(cmd, capture_output=True, text=True, timeout=15)
+                if result.returncode == 0:
+                    # Sin salida significa que los archivos PAM no han sido modificados
+                    pass
+                else:
+                    # Hay diferencias en los archivos PAM
+                    if result.stdout.strip():
+                        resultado['modificaciones_sospechosas'].append({
+                            'tipo': 'integridad_dpkg',
+                            'detalles': result.stdout.strip(),
+                            'severidad': 'ALTA'
+                        })
+            except (FileNotFoundError, subprocess.TimeoutExpired):
+                # dpkg no disponible o timeout
+                pass
+            
+            resultado['exito'] = True
+            resultado['total_archivos_monitoreados'] = len(resultado['archivos_pam_monitoreados'])
+            resultado['total_modificaciones_sospechosas'] = len(resultado['modificaciones_sospechosas'])
+            resultado['total_configuraciones_inseguras'] = len(resultado['configuraciones_inseguras'])
+            resultado['total_permisos_incorrectos'] = len(resultado['permisos_incorrectos'])
+            
+            return resultado
+            
+        except Exception as e:
+            self.logger.error(f"Error monitoreando módulos PAM: {e}")
+            return {'exito': False, 'error': str(e)}
 
     def _escanear_procesos_activos(self) -> Dict[str, Any]:
-        """Escanear procesos activos en el sistema"""
+        """Escanear procesos activos en el sistema detectando actividades sospechosas"""
         try:
             import subprocess
             procesos_encontrados = []
+            procesos_sospechosos = []
+            
+            # Patrones de procesos sospechosos para monitoreo avanzado
+            patrones_sospechosos = [
+                'nc', 'netcat', 'ncat', 'backdoor', 'rootkit', 'miner', 'cryptojack',
+                'wget', 'curl', 'python -c', 'perl -e', 'bash -i', '/dev/tcp',
+                'socat', 'reverse', 'shell', 'exploit', 'metasploit', 'msfvenom',
+                'powershell', 'cmd.exe', 'wscript', 'cscript', 'rundll32'
+            ]
+            
+            # Procesos críticos del sistema que deben monitorearse
+            procesos_criticos = [
+                'ssh', 'sshd', 'apache', 'apache2', 'nginx', 'mysql', 'mysqld',
+                'postgres', 'postgresql', 'redis', 'mongodb', 'docker', 'systemd',
+                'init', 'kernel', 'kthreadd', 'dhcp', 'dns', 'bind', 'named'
+            ]
             
             # Usar ps para obtener procesos
-            cmd = ['ps', 'aux']
+            cmd = ['ps', 'auxww']  # Incluir argumentos completos
             result = subprocess.run(cmd, capture_output=True, text=True, timeout=30)
             
             if result.returncode == 0:
                 lineas = result.stdout.split('\n')[1:]  # Saltar header
-                for linea in lineas[:50]:  # Limitar a 50 procesos
+                for linea in lineas[:100]:  # Aumentar límite a 100 procesos
                     if linea.strip():
                         partes = linea.split(None, 10)
                         if len(partes) >= 11:
-                            procesos_encontrados.append({
-                                'usuario': partes[0],
-                                'pid': partes[1],
-                                'cpu': partes[2],
-                                'memoria': partes[3],
-                                'comando': partes[10]
-                            })
+                            usuario = partes[0]
+                            pid = partes[1]
+                            cpu = partes[2]
+                            memoria = partes[3]
+                            comando_completo = partes[10]
+                            comando_base = comando_completo.split()[0] if comando_completo else ''
+                            
+                            # Determinar si el proceso es sospechoso
+                            es_sospechoso = any(patron in comando_completo.lower() for patron in patrones_sospechosos)
+                            es_critico = any(critico in comando_base.lower() for critico in procesos_criticos)
+                            
+                            # Detectar uso anómalo de CPU/Memoria
+                            try:
+                                cpu_val = float(cpu)
+                                mem_val = float(memoria)
+                                uso_alto = cpu_val > 80.0 or mem_val > 70.0
+                            except (ValueError, TypeError):
+                                uso_alto = False
+                            
+                            # Detectar procesos ejecutándose como root pero sospechosos
+                            root_sospechoso = usuario == 'root' and es_sospechoso
+                            
+                            proceso_info = {
+                                'usuario': usuario,
+                                'pid': pid,
+                                'cpu': cpu,
+                                'memoria': memoria,
+                                'comando': comando_completo[:100],  # Limitar longitud
+                                'comando_base': comando_base,
+                                'sospechoso': es_sospechoso,
+                                'critico': es_critico,
+                                'uso_alto_recursos': uso_alto,
+                                'root_sospechoso': root_sospechoso,
+                                'riesgo': 'ALTO' if (es_sospechoso or root_sospechoso) else ('MEDIO' if es_critico else 'BAJO')
+                            }
+                            
+                            procesos_encontrados.append(proceso_info)
+                            
+                            # Agregar a lista de sospechosos si cumple criterios
+                            if es_sospechoso or root_sospechoso or uso_alto:
+                                procesos_sospechosos.append(proceso_info)
             
-            return {'procesos': procesos_encontrados, 'exito': True}
+            return {
+                'procesos': procesos_encontrados, 
+                'exito': True,
+                'procesos_sospechosos': procesos_sospechosos,
+                'total_sospechosos': len(procesos_sospechosos),
+                'total_procesos': len(procesos_encontrados)
+            }
             
         except Exception as e:
             self.logger.error(f"Error escaneando procesos: {e}")

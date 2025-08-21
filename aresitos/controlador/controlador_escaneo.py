@@ -126,6 +126,11 @@ class ControladorEscaneo(ControladorBase):
             'total_escaneos_realizados': 0
         }
         
+        # Referencias para integración entre controladores
+        self._siem_conectado = None
+        self._fim_conectado = None
+        self._cuarentena_conectada = None
+        
         # SECURITY: Lock para operaciones concurrentes (SECURITY FIX)
         self._lock_escaneo = threading.Lock()
         
@@ -1242,6 +1247,85 @@ class ControladorEscaneo(ControladorBase):
             }
         except Exception as e:
             return {"error": f"Error obteniendo herramientas: {e}"}
+    
+    def configurar_integraciones(self, controlador_siem=None, controlador_fim=None, controlador_cuarentena=None):
+        """
+        Configurar integraciones con otros controladores del sistema.
+        MÉTODO CLAVE para conectividad entre controladores.
+        """
+        try:
+            conexiones = 0
+            
+            if controlador_siem:
+                self._siem_conectado = controlador_siem
+                conexiones += 1
+                self.logger.info("Escaneador conectado al SIEM")
+                
+            if controlador_fim:
+                self._fim_conectado = controlador_fim
+                conexiones += 1
+                self.logger.info("Escaneador conectado al FIM")
+                
+            if controlador_cuarentena:
+                self._cuarentena_conectada = controlador_cuarentena
+                conexiones += 1
+                self.logger.info("Escaneador conectado a Cuarentena")
+            
+            self.logger.info(f"Integraciones configuradas: {conexiones} controladores conectados")
+            return True
+            
+        except Exception as e:
+            self.logger.error(f"Error configurando integraciones: {e}")
+            return False
+    
+    def notificar_vulnerabilidad_detectada(self, vulnerabilidad: Dict[str, Any]) -> bool:
+        """
+        Notificar una vulnerabilidad detectada a otros controladores.
+        MÉTODO CLAVE para integración automática.
+        """
+        try:
+            # Notificar al SIEM
+            if self._siem_conectado:
+                try:
+                    self._siem_conectado.generar_evento(
+                        tipo_evento="VULNERABILIDAD_DETECTADA",
+                        descripcion=f"Vulnerabilidad encontrada: {vulnerabilidad.get('descripcion', 'Sin descripción')}",
+                        severidad=vulnerabilidad.get('nivel_riesgo', 'media')
+                    )
+                    self.logger.info("Vulnerabilidad notificada al SIEM")
+                except Exception as e:
+                    self.logger.warning(f"Error notificando al SIEM: {e}")
+            
+            # Si es crítica, notificar a cuarentena
+            if vulnerabilidad.get('nivel_riesgo') == 'critico' and self._cuarentena_conectada:
+                try:
+                    if vulnerabilidad.get('archivo_afectado'):
+                        resultado = self._cuarentena_conectada.cuarentenar_archivo(
+                            vulnerabilidad['archivo_afectado'],
+                            f"Vulnerabilidad crítica detectada: {vulnerabilidad.get('descripcion')}"
+                        )
+                        if resultado.get('exito'):
+                            self.logger.warning("Archivo crítico enviado a cuarentena automáticamente")
+                except Exception as e:
+                    self.logger.warning(f"Error enviando a cuarentena: {e}")
+            
+            # Notificar al FIM para verificación adicional
+            if self._fim_conectado and vulnerabilidad.get('archivo_afectado'):
+                try:
+                    if hasattr(self._fim_conectado, 'verificar_integridad_archivo'):
+                        resultado_fim = self._fim_conectado.verificar_integridad_archivo(
+                            vulnerabilidad['archivo_afectado']
+                        )
+                        if not resultado_fim.get('integro', True):
+                            self.logger.warning("FIM confirmó compromiso de integridad del archivo")
+                except Exception as e:
+                    self.logger.warning(f"Error verificando con FIM: {e}")
+            
+            return True
+            
+        except Exception as e:
+            self.logger.error(f"Error en notificación de vulnerabilidad: {e}")
+            return False
 
 # RESUMEN TÉCNICO: Controlador de Escaneo avanzado para Ares Aegis con arquitectura asíncrona,
 # herencia de ControladorBase, operaciones thread-safe, análisis de criticidad automático,
