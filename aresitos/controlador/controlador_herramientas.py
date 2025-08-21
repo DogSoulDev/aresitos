@@ -354,6 +354,10 @@ class ControladorHerramientas:
             }
     
     def _obtener_version_herramienta(self, herramienta):
+        # SECURITY FIX: Validar entrada antes de ejecutar comando
+        if not self._validar_nombre_herramienta(herramienta):
+            return 'Herramienta no válida para verificación de versión'
+            
         comandos_version = ['--version', '-v', '-V', 'version']
         
         for cmd in comandos_version:

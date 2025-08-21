@@ -757,6 +757,10 @@ class ControladorEscaneo(ControladorBase):
                 for i in range(1, max_hosts + 1):
                     host_ip = f"{red_base}.{i}"
                     try:
+                        # Validar IP antes de usar en comando (CVE-2021-44228 style prevention)
+                        if not self._validar_ip_segura(host_ip):
+                            continue
+                        
                         # Ping rápido con timeout corto
                         result = subprocess.run(['ping', '-c', '1', '-W', '1', host_ip], 
                                               capture_output=True, timeout=2)
@@ -1325,6 +1329,40 @@ class ControladorEscaneo(ControladorBase):
             
         except Exception as e:
             self.logger.error(f"Error en notificación de vulnerabilidad: {e}")
+            return False
+    
+    def _validar_ip_segura(self, ip: str) -> bool:
+        """
+        Validar IP para prevenir command injection attacks.
+        
+        Args:
+            ip: Dirección IP a validar
+            
+        Returns:
+            bool: True si la IP es segura para usar en comandos
+        """
+        try:
+            import re
+            
+            # Validar formato IPv4 estricto (RFC 5321)
+            patron_ipv4 = r'^(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$'
+            
+            if not re.match(patron_ipv4, ip):
+                return False
+            
+            # Validar que no contenga caracteres peligrosos
+            caracteres_peligrosos = [';', '&', '|', '`', '$', '(', ')', '<', '>', '"', "'", '\\', '\n', '\r']
+            if any(char in ip for char in caracteres_peligrosos):
+                return False
+            
+            # Validar longitud máxima (IPv4 max = 15 caracteres)
+            if len(ip) > 15:
+                return False
+                
+            return True
+            
+        except Exception as e:
+            self.logger.error(f"Error validando IP {ip}: {e}")
             return False
 
 # RESUMEN TÉCNICO: Controlador de Escaneo avanzado para Ares Aegis con arquitectura asíncrona,

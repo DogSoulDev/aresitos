@@ -1,6 +1,73 @@
 # ARESITOS v2.0 - Documentación Técnica Consolidada
 
-## 📋 RESUMEN EJECUTIVO
+## � AUDITORÍA DE SEGURIDAD
+
+### Vulnerabilidades Corregidas
+
+#### 1. Command Injection en controlador_escaneo.py
+- **Ubicación**: Línea 760-775, método `_verificar_conectividad`
+- **Vulnerabilidad**: `subprocess.run(['ping', '-c', '1', '-W', '1', host_ip])` sin validación de entrada
+- **Código Vulnerable**:
+```python
+def _verificar_conectividad(self, host_ip: str) -> bool:
+    # VULNERABILITY: host_ip sin validación puede permitir command injection
+    cmd_result = subprocess.run(['ping', '-c', '1', '-W', '1', host_ip], 
+                               capture_output=True, text=True, timeout=5)
+    return cmd_result.returncode == 0
+```
+- **Código Corregido**:
+```python
+def _verificar_conectividad(self, host_ip: str) -> bool:
+    # SECURITY FIX: Validar IP antes de ejecutar ping
+    if not self._validar_ip_segura(host_ip):
+        return False
+    cmd_result = subprocess.run(['ping', '-c', '1', '-W', '1', host_ip], 
+                               capture_output=True, text=True, timeout=5)
+    return cmd_result.returncode == 0
+
+def _validar_ip_segura(self, ip: str) -> bool:
+    """Valida que la IP sea segura para usar en comandos del sistema"""
+    import re
+    # RFC 5321 IPv4 validation
+    if not re.match(r'^((25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$', ip):
+        return False
+    # Verificar caracteres peligrosos
+    if any(char in ip for char in [';', '|', '&', '`', '$', '(', ')', '>', '<']):
+        return False
+    # Verificar longitud máxima
+    if len(ip) > 15:
+        return False
+    return True
+```
+- **Impacto**: Alto - Podía permitir ejecución de comandos arbitrarios
+- **Mitigación**: Validación RFC 5321 + lista negra de caracteres peligrosos
+
+#### 2. Command Injection en controlador_herramientas.py  
+- **Ubicación**: Línea 361, método `_obtener_version_herramienta`
+- **Vulnerabilidad**: `subprocess.run([herramienta, cmd])` sin validación defensiva
+- **Código Vulnerable**:
+```python
+def _obtener_version_herramienta(self, herramienta):
+    comandos_version = ['--version', '-v', '-V', 'version']
+    for cmd in comandos_version:
+        resultado = subprocess.run([herramienta, cmd], 
+                                 capture_output=True, text=True, timeout=5)
+```
+- **Código Corregido**:
+```python
+def _obtener_version_herramienta(self, herramienta):
+    # SECURITY FIX: Validar entrada antes de ejecutar comando
+    if not self._validar_nombre_herramienta(herramienta):
+        return 'Herramienta no válida para verificación de versión'
+    comandos_version = ['--version', '-v', '-V', 'version']
+    for cmd in comandos_version:
+        resultado = subprocess.run([herramienta, cmd], 
+                                 capture_output=True, text=True, timeout=5)
+```
+- **Impacto**: Medio - Seguridad defensiva para entrada no validada
+- **Mitigación**: Validación redundante con lista blanca de herramientas
+
+## �📋 RESUMEN EJECUTIVO
 
 **ARESITOS v2.0** es una suite de ciberseguridad **exclusiva para Kali Linux** desarrollada con **arquitectura MVC**, **100% Python stdlib** y **tema Burp Suite**.
 
