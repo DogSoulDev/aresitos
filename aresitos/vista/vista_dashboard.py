@@ -488,7 +488,7 @@ class VistaDashboard(tk.Frame):
         # Frame para controles del terminal
         controles_frame = tk.LabelFrame(
             terminal_frame,
-            text="🔧 Controles del Terminal Integrado",
+            text="Terminal integrado de Aresitos",
             bg=self.colors['bg_secondary'],
             fg=self.colors['fg_primary'],
             font=("Arial", 12, "bold")
@@ -638,10 +638,10 @@ class VistaDashboard(tk.Frame):
         
         # Mensaje inicial
         self.terminal_output.insert(tk.END, "="*80 + "\n")
-        self.terminal_output.insert(tk.END, "🚀 ARES AEGIS - TERMINAL INTEGRADO\n")
-        self.terminal_output.insert(tk.END, f"⏰ Iniciado: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}\n")
-        self.terminal_output.insert(tk.END, f"💻 Sistema: {platform.system()} {platform.release()}\n")
-        self.terminal_output.insert(tk.END, f"🔧 Shell: {self.shell_detectado}\n")
+        self.terminal_output.insert(tk.END, "Terminal integrado de Aresitos\n")
+        self.terminal_output.insert(tk.END, f"Iniciado: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}\n")
+        self.terminal_output.insert(tk.END, f"Sistema: {platform.system()} {platform.release()}\n")
+        self.terminal_output.insert(tk.END, f"Shell: {self.shell_detectado}\n")
         self.terminal_output.insert(tk.END, "="*80 + "\n")
         self.terminal_output.insert(tk.END, "📝 Presiona 'ACTIVAR CAPTURA LOGS' para ver logs de ARESITOS aquí\n")
         self.terminal_output.insert(tk.END, "💡 Usa los comandos rápidos o escribe comandos personalizados\n\n")

@@ -24,6 +24,13 @@ class VistaFIM(tk.Frame):
         # Configurar logging
         self.logger = logging.getLogger(__name__)
         
+        # Importar terminal global
+        try:
+            from aresitos.vista.vista_dashboard import VistaDashboard
+            self._terminal_global = VistaDashboard._terminal_widget
+        except (ImportError, AttributeError):
+            self._terminal_global = None
+        
         # Configurar tema y colores de manera consistente
         if BURP_THEME_AVAILABLE and burp_theme:
             self.theme = burp_theme
@@ -61,6 +68,65 @@ class VistaFIM(tk.Frame):
             }
         
         self.crear_interfaz()
+    
+    def _log_terminal(self, mensaje, modulo="FIM", nivel="INFO"):
+        """Registrar actividad en el terminal integrado global."""
+        try:
+            from aresitos.vista.vista_dashboard import VistaDashboard
+            VistaDashboard.log_actividad_global(mensaje, modulo, nivel)
+        except Exception:
+            pass  # Terminal no disponible
+    
+    def _analizar_amenazas_detectadas(self, tipo_evento, ruta, detalles):
+        """Analizar y clasificar amenazas detectadas en FIM."""
+        amenazas_criticas = []
+        
+        # Análisis de archivos críticos modificados
+        archivos_criticos = ['/etc/passwd', '/etc/shadow', '/etc/sudoers', '/etc/hosts', '/boot/grub/grub.cfg']
+        if any(critico in ruta for critico in archivos_criticos):
+            amenazas_criticas.append({
+                'tipo': 'MODIFICACIÓN CRÍTICA',
+                'severidad': 'CRITICAL',
+                'descripcion': f'Archivo crítico modificado: {ruta}',
+                'emoji': '🚨'
+            })
+        
+        # Análisis de permisos sospechosos
+        if 'permisos' in detalles.lower():
+            if any(peligroso in detalles for peligroso in ['777', '666', '755']):
+                amenazas_criticas.append({
+                    'tipo': 'PERMISOS PELIGROSOS',
+                    'severidad': 'HIGH',
+                    'descripcion': f'Permisos inseguros detectados en {ruta}: {detalles}',
+                    'emoji': '⚠️'
+                })
+        
+        # Análisis de archivos ejecutables modificados
+        if ruta.endswith(('.sh', '.py', '.pl', '.rb')) or '/bin/' in ruta or '/sbin/' in ruta:
+            amenazas_criticas.append({
+                'tipo': 'EJECUTABLE MODIFICADO',
+                'severidad': 'HIGH',
+                'descripcion': f'Archivo ejecutable modificado: {ruta}',
+                'emoji': '🔧'
+            })
+        
+        # Análisis de nuevos archivos en directorios sensibles
+        directorios_sensibles = ['/tmp', '/var/tmp', '/dev/shm', '/etc/cron.d']
+        if any(sensible in ruta for sensible in directorios_sensibles) and 'nuevo' in tipo_evento.lower():
+            amenazas_criticas.append({
+                'tipo': 'ARCHIVO SOSPECHOSO',
+                'severidad': 'MEDIUM',
+                'descripcion': f'Nuevo archivo en directorio sensible: {ruta}',
+                'emoji': '📁'
+            })
+        
+        # Reportar amenazas encontradas
+        for amenaza in amenazas_criticas:
+            self._log_terminal(
+                f"{amenaza['emoji']} {amenaza['tipo']} [{amenaza['severidad']}]: {amenaza['descripcion']}", 
+                "FIM", 
+                "ERROR" if amenaza['severidad'] in ['CRITICAL', 'HIGH'] else "WARNING"
+            )
     
     def set_controlador(self, controlador):
         self.controlador = controlador
@@ -269,7 +335,9 @@ class VistaFIM(tk.Frame):
         self.proceso_monitoreo_activo = True
         self._habilitar_botones_monitoreo(False)
         
-        self._actualizar_texto_fim("▶ Iniciando monitoreo continuo de integridad...\n")
+        # Log al terminal integrado
+        self._log_terminal("Iniciando monitoreo continuo de integridad FIM", "FIM", "INFO")
+        self._actualizar_texto_fim("Iniciando monitoreo continuo de integridad...\n")
         
         # Ejecutar en thread separado
         self.thread_monitoreo = threading.Thread(target=self._ejecutar_monitoreo_async)
@@ -277,105 +345,169 @@ class VistaFIM(tk.Frame):
         self.thread_monitoreo.start()
     
     def _ejecutar_monitoreo_async(self):
-        """Ejecutar monitoreo en thread separado."""
+        """Ejecutar monitoreo en thread separado con deteccion de amenazas."""
         try:
             if self.controlador:
+                self._log_terminal("Conectando con controlador FIM", "FIM", "INFO")
                 resultado = self.controlador.iniciar_monitoreo_continuo()
+                
                 if resultado.get('exito'):
-                    self.after(0, self._actualizar_texto_fim, "OK FIM iniciado correctamente\n")
-                    self.after(0, self._actualizar_texto_fim, f" Rutas monitoreadas: {resultado.get('rutas_monitoreadas', 0)}\n")
-                    self.after(0, self._actualizar_texto_fim, f" Intervalo: {resultado.get('intervalo_segundos', 'N/A')}s\n")
+                    rutas_monitoreadas = resultado.get('rutas_monitoreadas', 0)
+                    intervalo = resultado.get('intervalo_segundos', 30)
                     
-                    # Monitoreo real de integridad de archivos
+                    self._log_terminal(f"FIM iniciado correctamente - {rutas_monitoreadas} rutas monitoreadas", "FIM", "SUCCESS")
+                    self.after(0, self._actualizar_texto_fim, "FIM iniciado correctamente\n")
+                    self.after(0, self._actualizar_texto_fim, f"Rutas monitoreadas: {rutas_monitoreadas}\n")
+                    self.after(0, self._actualizar_texto_fim, f"Intervalo: {intervalo}s\n")
+                    
+                    # Monitoreo en tiempo real con deteccion de amenazas
                     import time
                     import subprocess
                     import hashlib
+                    import os
                     
-                    rutas_criticas = ['/etc/passwd', '/etc/shadow', '/etc/hosts', '/etc/sudoers', '/boot']
-                    checksums_anteriores = {}
-                    contador_verificaciones = 0
+                    # Archivos criticos del sistema que monitoreamos
+                    rutas_criticas = [
+                        '/etc/passwd', '/etc/shadow', '/etc/hosts', '/etc/sudoers', 
+                        '/etc/ssh/sshd_config', '/etc/crontab', '/root/.bashrc',
+                        '/etc/fstab', '/etc/systemd/system', '/boot'
+                    ]
                     
+                    checksums_baseline = {}
+                    contador_ciclos = 0
+                    
+                    self._log_terminal("Creando baseline de archivos criticos", "FIM", "INFO")
+                    
+                    # Crear baseline inicial
+                    for ruta in rutas_criticas:
+                        if not self.proceso_monitoreo_activo:
+                            break
+                        
+                        try:
+                            if os.path.exists(ruta):
+                                if os.path.isfile(ruta):
+                                    with open(ruta, 'rb') as f:
+                                        contenido = f.read()
+                                        checksum = hashlib.sha256(contenido).hexdigest()[:16]
+                                    checksums_baseline[ruta] = checksum
+                                    self._log_terminal(f"Baseline creado: {ruta}", "FIM", "DEBUG")
+                                elif os.path.isdir(ruta):
+                                    # Para directorios, verificar permisos y archivos nuevos
+                                    checksums_baseline[ruta] = "DIR_" + str(len(os.listdir(ruta)))
+                        except Exception as e:
+                            self._log_terminal(f"Error accediendo a {ruta}: {str(e)}", "FIM", "WARNING")
+                    
+                    self._log_terminal(f"Baseline completado - {len(checksums_baseline)} elementos", "FIM", "SUCCESS")
+                    
+                    # Ciclo de monitoreo continuo
                     while self.proceso_monitoreo_activo:
                         try:
+                            contador_ciclos += 1
                             cambios_detectados = 0
-                            archivos_verificados = 0
+                            amenazas_detectadas = 0
+                            
+                            self._log_terminal(f"Verificacion FIM #{contador_ciclos} iniciada", "FIM", "INFO")
                             
                             for ruta in rutas_criticas:
                                 if not self.proceso_monitoreo_activo:
                                     break
-                                    
+                                
                                 try:
-                                    if os.path.isfile(ruta):
-                                        # Verificar archivo individual
-                                        with open(ruta, 'rb') as f:
-                                            contenido = f.read()
-                                            checksum_actual = hashlib.sha256(contenido).hexdigest()[:16]
-                                        
-                                        if ruta in checksums_anteriores:
-                                            if checksums_anteriores[ruta] != checksum_actual:
+                                    if os.path.exists(ruta):
+                                        if os.path.isfile(ruta):
+                                            # Verificar integridad de archivo
+                                            with open(ruta, 'rb') as f:
+                                                contenido = f.read()
+                                                checksum_actual = hashlib.sha256(contenido).hexdigest()[:16]
+                                            
+                                            if ruta in checksums_baseline:
+                                                if checksums_baseline[ruta] != checksum_actual:
+                                                    # CAMBIO DETECTADO - POSIBLE AMENAZA
+                                                    cambios_detectados += 1
+                                                    
+                                                    # Detectar tipos de cambios sospechosos
+                                                    if ruta in ['/etc/passwd', '/etc/shadow']:
+                                                        amenazas_detectadas += 1
+                                                        self._log_terminal(f"AMENAZA CRITICA: Archivo de usuarios modificado - {ruta}", "FIM", "ERROR")
+                                                        self.after(0, self._actualizar_texto_fim, f"AMENAZA CRITICA: {ruta} modificado\n")
+                                                    elif ruta == '/etc/hosts':
+                                                        amenazas_detectadas += 1
+                                                        self._log_terminal(f"AMENAZA: Archivo hosts modificado - posible redireccion DNS", "FIM", "ERROR")
+                                                        self.after(0, self._actualizar_texto_fim, f"AMENAZA DNS: {ruta} modificado\n")
+                                                    elif ruta == '/etc/sudoers':
+                                                        amenazas_detectadas += 1
+                                                        self._log_terminal(f"AMENAZA CRITICA: Permisos sudo modificados - {ruta}", "FIM", "ERROR")
+                                                        self.after(0, self._actualizar_texto_fim, f"AMENAZA SUDO: {ruta} modificado\n")
+                                                    elif '/ssh/' in ruta:
+                                                        amenazas_detectadas += 1
+                                                        self._log_terminal(f"AMENAZA: Configuracion SSH modificada - {ruta}", "FIM", "ERROR")
+                                                        self.after(0, self._actualizar_texto_fim, f"AMENAZA SSH: {ruta} modificado\n")
+                                                    else:
+                                                        self._log_terminal(f"CAMBIO DETECTADO: {ruta} - verificar manualmente", "FIM", "WARNING")
+                                                        self.after(0, self._actualizar_texto_fim, f"CAMBIO: {ruta} modificado\n")
+                                                    
+                                                    # Actualizar baseline
+                                                    checksums_baseline[ruta] = checksum_actual
+                                                    
+                                        elif os.path.isdir(ruta):
+                                            # Verificar cambios en directorio
+                                            archivos_actuales = len(os.listdir(ruta))
+                                            baseline_dir = checksums_baseline.get(ruta, "DIR_0")
+                                            archivos_baseline = int(baseline_dir.split('_')[1])
+                                            
+                                            if archivos_actuales != archivos_baseline:
                                                 cambios_detectados += 1
-                                                self.after(0, self._actualizar_texto_fim, f" CAMBIO DETECTADO: {ruta} (checksum: {checksum_actual})\n")
-                                            else:
-                                                self.after(0, self._actualizar_texto_fim, f" OK {ruta} sin cambios\n")
-                                        else:
-                                            self.after(0, self._actualizar_texto_fim, f" BASELINE {ruta} (checksum: {checksum_actual})\n")
-                                        
-                                        checksums_anteriores[ruta] = checksum_actual
-                                        archivos_verificados += 1
-                                        
-                                    elif os.path.isdir(ruta):
-                                        # Verificar directorio
-                                        resultado = subprocess.run(['find', ruta, '-type', 'f', '-newer', '/tmp/fim_last_check'], 
-                                                                 capture_output=True, text=True, timeout=10)
-                                        if resultado.stdout.strip():
-                                            archivos_modificados = len(resultado.stdout.strip().split('\n'))
-                                            cambios_detectados += archivos_modificados
-                                            self.after(0, self._actualizar_texto_fim, f" CAMBIOS EN {ruta}: {archivos_modificados} archivos modificados\n")
-                                        else:
-                                            self.after(0, self._actualizar_texto_fim, f" OK {ruta} sin cambios recientes\n")
-                                        archivos_verificados += 1
-                                        
-                                except PermissionError:
-                                    self.after(0, self._actualizar_texto_fim, f" WARNING Sin permisos para {ruta}\n")
-                                except Exception as e:
-                                    self.after(0, self._actualizar_texto_fim, f" ERROR verificando {ruta}: {str(e)}\n")
-                            
-                            # Verificar permisos críticos
-                            archivos_permisos = ['/etc/passwd', '/etc/shadow', '/etc/sudoers']
-                            for archivo in archivos_permisos:
-                                if os.path.exists(archivo):
-                                    stat_info = os.stat(archivo)
-                                    permisos = oct(stat_info.st_mode)[-3:]
-                                    if archivo == '/etc/shadow' and permisos != '640':
-                                        self.after(0, self._actualizar_texto_fim, f" ALERTA: {archivo} permisos {permisos} (esperado 640)\n")
-                                    elif archivo == '/etc/passwd' and permisos != '644':
-                                        self.after(0, self._actualizar_texto_fim, f" ALERTA: {archivo} permisos {permisos} (esperado 644)\n")
+                                                if ruta == '/boot':
+                                                    amenazas_detectadas += 1
+                                                    self._log_terminal(f"AMENAZA CRITICA: Directorio /boot modificado - posible bootkit", "FIM", "ERROR")
+                                                    self.after(0, self._actualizar_texto_fim, f"AMENAZA BOOT: Archivos en /boot cambiaron\n")
+                                                else:
+                                                    self._log_terminal(f"CAMBIO DIR: {ruta} - {archivos_actuales} archivos (antes: {archivos_baseline})", "FIM", "WARNING")
+                                                    self.after(0, self._actualizar_texto_fim, f"CAMBIO DIR: {ruta} ({archivos_actuales} archivos)\n")
+                                                
+                                                checksums_baseline[ruta] = f"DIR_{archivos_actuales}"
+                                    
                                     else:
-                                        self.after(0, self._actualizar_texto_fim, f" OK {archivo} permisos {permisos}\n")
+                                        # Archivo eliminado
+                                        if ruta in checksums_baseline:
+                                            amenazas_detectadas += 1
+                                            self._log_terminal(f"AMENAZA CRITICA: Archivo critico eliminado - {ruta}", "FIM", "ERROR")
+                                            self.after(0, self._actualizar_texto_fim, f"AMENAZA: {ruta} ELIMINADO\n")
+                                            del checksums_baseline[ruta]
+                                
+                                except Exception as e:
+                                    self._log_terminal(f"Error verificando {ruta}: {str(e)}", "FIM", "WARNING")
                             
-                            contador_verificaciones += 1
-                            self.after(0, self._actualizar_texto_fim, f" === Verificación #{contador_verificaciones}: {archivos_verificados} archivos, {cambios_detectados} cambios ===\n\n")
+                            # Resumen del ciclo
+                            if amenazas_detectadas > 0:
+                                self._log_terminal(f"ALERTA: {amenazas_detectadas} amenazas detectadas en ciclo #{contador_ciclos}", "FIM", "ERROR")
+                                self.after(0, self._actualizar_texto_fim, f"ALERTA: {amenazas_detectadas} amenazas detectadas\n")
+                            elif cambios_detectados > 0:
+                                self._log_terminal(f"Verificacion #{contador_ciclos}: {cambios_detectados} cambios detectados", "FIM", "WARNING")
+                            else:
+                                self._log_terminal(f"Verificacion #{contador_ciclos}: Sistema integro", "FIM", "SUCCESS")
                             
-                            # Actualizar timestamp para find
-                            subprocess.run(['touch', '/tmp/fim_last_check'], capture_output=True)
-                            
-                            time.sleep(10)  # Intervalo de verificación
+                            # Esperar antes del siguiente ciclo
+                            time.sleep(intervalo)
                             
                         except Exception as e:
-                            self.after(0, self._actualizar_texto_fim, f" ERROR en verificación: {str(e)}\n")
-                            time.sleep(5)
+                            self._log_terminal(f"Error en ciclo de monitoreo: {str(e)}", "FIM", "ERROR")
+                            time.sleep(10)  # Esperar mas tiempo si hay error
+                
                 else:
-                    self.after(0, self._actualizar_texto_fim, f"ERROR Error iniciando FIM: {resultado.get('error', 'Error desconocido')}\n")
+                    self._log_terminal("Error iniciando FIM - verificar permisos", "FIM", "ERROR")
+                    self.after(0, self._actualizar_texto_fim, "Error iniciando FIM\n")
             else:
-                # Simulación si no hay controlador
-                import time
-                while self.proceso_monitoreo_activo:
-                    self.after(0, self._actualizar_texto_fim, " Verificando integridad...\n")
-                    time.sleep(5)  # Verificar cada 5 segundos
+                self._log_terminal("Controlador FIM no disponible", "FIM", "ERROR")
+                self.after(0, self._actualizar_texto_fim, "Controlador no disponible\n")
+                
         except Exception as e:
-            self.after(0, self._actualizar_texto_fim, f"ERROR Error en monitoreo: {str(e)}\n")
+            self._log_terminal(f"Error critico en FIM: {str(e)}", "FIM", "ERROR")
+            self.after(0, self._actualizar_texto_fim, f"Error critico: {str(e)}\n")
         finally:
-            self.after(0, self._finalizar_monitoreo)
+            self.proceso_monitoreo_activo = False
+            self._log_terminal("Monitoreo FIM detenido", "FIM", "INFO")
+            self.after(0, self._habilitar_botones_monitoreo, True)
     
     def detener_monitoreo(self):
         """Detener monitoreo continuo."""
@@ -620,15 +752,4 @@ class VistaFIM(tk.Frame):
             self.fim_text.config(state=tk.NORMAL)
             self.fim_text.insert(tk.END, f" ERROR Error durante verificación: {str(e)}\n")
             self.fim_text.config(state=tk.DISABLED)
-    
-    def _log_terminal(self, mensaje, modulo="FIM", nivel="INFO"):
-        """Registrar mensaje en el terminal integrado global."""
-        try:
-            # Usar el terminal global de VistaDashboard
-            from aresitos.vista.vista_dashboard import VistaDashboard
-            VistaDashboard.log_actividad_global(mensaje, modulo, nivel)
-            
-        except Exception as e:
-            # Fallback a consola si hay problemas
-            print(f"[{modulo}] {mensaje}")
             print(f"Error logging a terminal: {e}")

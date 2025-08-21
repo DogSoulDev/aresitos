@@ -4,6 +4,7 @@ import tkinter as tk
 from tkinter import ttk, scrolledtext, filedialog, messagebox
 import time
 import logging
+import threading
 
 try:
     from aresitos.vista.burp_theme import burp_theme
@@ -229,22 +230,316 @@ class VistaMonitoreo(tk.Frame):
         self.text_cuarentena.pack(fill="both", expand=True)
     
     def iniciar_monitoreo(self):
+        """Iniciar monitoreo completo de procesos, permisos y usuarios del sistema."""
         if not self.controlador:
+            self._log_terminal("Error: Controlador de monitoreo no disponible", "MONITOREO", "ERROR")
             return
             
-        self._log_terminal("🚀 Iniciando monitoreo del sistema", "MONITOREO", "INFO")
+        self._log_terminal("Iniciando monitoreo completo del sistema", "MONITOREO", "INFO")
         
-        if self.controlador.iniciar_monitoreo():
-            self.monitor_activo = True
-            self.btn_iniciar_monitor.config(state="disabled")
-            self.btn_detener_monitor.config(state="normal")
-            self.label_estado.config(text="Estado: Activo")
-            self.text_monitor.insert(tk.END, "Monitoreo iniciado...\n")
-            self._log_terminal("✅ Monitoreo iniciado exitosamente", "MONITOREO", "SUCCESS")
-            self.after(2000, self.actualizar_monitoreo)  # Actualizar cada 2 segundos
-        else:
-            self._log_terminal("❌ Error iniciando monitoreo", "MONITOREO", "ERROR")
-            messagebox.showerror("Error", "Monitor init failed")
+        # Iniciar monitoreo a través del controlador si está disponible
+        try:
+            if self.controlador.iniciar_monitoreo():
+                self.monitor_activo = True
+                self.btn_iniciar_monitor.config(state="disabled")
+                self.btn_detener_monitor.config(state="normal")
+                self.label_estado.config(text="Estado: Activo")
+                self.text_monitor.insert(tk.END, "Monitoreo completo iniciado...\n")
+                self._log_terminal("Monitoreo del controlador iniciado exitosamente", "MONITOREO", "SUCCESS")
+                
+                # Iniciar monitoreo completo en thread separado
+                threading.Thread(target=self._monitoreo_completo_async, daemon=True).start()
+                
+                self.after(2000, self.actualizar_monitoreo)  # Actualizar cada 2 segundos
+            else:
+                self._log_terminal("Error iniciando controlador - ejecutando monitoreo basico", "MONITOREO", "WARNING")
+                self._iniciar_monitoreo_basico()
+        except Exception as e:
+            self._log_terminal(f"Error en controlador - ejecutando monitoreo basico: {str(e)}", "MONITOREO", "WARNING")
+            self._iniciar_monitoreo_basico()
+
+    def _iniciar_monitoreo_basico(self):
+        """Iniciar monitoreo básico cuando el controlador no está disponible."""
+        self.monitor_activo = True
+        self.btn_iniciar_monitor.config(state="disabled")
+        self.btn_detener_monitor.config(state="normal")
+        self.label_estado.config(text="Estado: Activo (Básico)")
+        self.text_monitor.insert(tk.END, "Monitoreo básico iniciado...\n")
+        
+        # Iniciar monitoreo básico en thread separado
+        threading.Thread(target=self._monitoreo_completo_async, daemon=True).start()
+        self.after(3000, self._actualizar_monitoreo_basico)
+
+    def _monitoreo_completo_async(self):
+        """Ejecutar monitoreo completo de procesos, permisos y usuarios."""
+        import time
+        
+        try:
+            ciclo = 0
+            while self.monitor_activo:
+                ciclo += 1
+                self._log_terminal(f"Ciclo de monitoreo #{ciclo} iniciado", "MONITOREO", "INFO")
+                
+                # FASE 1: Monitorear procesos del sistema
+                self._log_terminal("FASE 1: Monitoreando procesos del sistema", "MONITOREO", "INFO")
+                self._monitorear_procesos_sistema()
+                
+                # FASE 2: Verificar permisos de archivos críticos
+                self._log_terminal("FASE 2: Verificando permisos de archivos criticos", "MONITOREO", "INFO")
+                self._monitorear_permisos_archivos()
+                
+                # FASE 3: Monitorear usuarios y sesiones
+                self._log_terminal("FASE 3: Monitoreando usuarios y sesiones activas", "MONITOREO", "INFO")
+                self._monitorear_usuarios_sesiones()
+                
+                # FASE 4: Verificar procesos con privilegios elevados
+                self._log_terminal("FASE 4: Verificando procesos con privilegios elevados", "MONITOREO", "WARNING")
+                self._monitorear_procesos_privilegiados()
+                
+                # FASE 5: Monitorear cambios en el sistema
+                self._log_terminal("FASE 5: Detectando cambios en el sistema", "MONITOREO", "INFO")
+                self._monitorear_cambios_sistema()
+                
+                self._log_terminal(f"Ciclo de monitoreo #{ciclo} completado", "MONITOREO", "SUCCESS")
+                
+                # Pausa entre ciclos (15 segundos)
+                for i in range(15):
+                    if not self.monitor_activo:
+                        break
+                    time.sleep(1)
+                    
+        except Exception as e:
+            self._log_terminal(f"Error en monitoreo completo: {str(e)}", "MONITOREO", "ERROR")
+
+    def _monitorear_procesos_sistema(self):
+        """Monitorear todos los procesos del sistema y sus características."""
+        import subprocess
+        
+        try:
+            # Obtener lista completa de procesos
+            resultado = subprocess.run(['ps', 'aux'], capture_output=True, text=True, timeout=10)
+            lineas = resultado.stdout.strip().split('\n')[1:]  # Saltar header
+            
+            procesos_sospechosos = []
+            procesos_alta_cpu = []
+            procesos_alta_memoria = []
+            total_procesos = len(lineas)
+            
+            for linea in lineas:
+                partes = linea.split()
+                if len(partes) >= 11:
+                    usuario = partes[0]
+                    pid = partes[1]
+                    cpu = float(partes[2]) if partes[2].replace('.', '').isdigit() else 0.0
+                    memoria = float(partes[3]) if partes[3].replace('.', '').isdigit() else 0.0
+                    comando = ' '.join(partes[10:])
+                    
+                    # Detectar procesos con alto uso de CPU
+                    if cpu > 50.0:
+                        procesos_alta_cpu.append((pid, comando, cpu))
+                        
+                    # Detectar procesos con alto uso de memoria
+                    if memoria > 10.0:
+                        procesos_alta_memoria.append((pid, comando, memoria))
+                        
+                    # Detectar procesos sospechosos
+                    comandos_sospechosos = [
+                        'nc ', 'netcat', '/tmp/', '/var/tmp/', 'wget', 'curl http',
+                        'python -c', 'perl -e', 'bash -c', '/dev/tcp/'
+                    ]
+                    
+                    for sospechoso in comandos_sospechosos:
+                        if sospechoso in comando.lower():
+                            procesos_sospechosos.append((pid, usuario, comando))
+                            break
+                            
+            # Reportar hallazgos
+            self._log_terminal(f"Procesos totales monitoreados: {total_procesos}", "MONITOREO", "INFO")
+            
+            for pid, comando, cpu in procesos_alta_cpu:
+                self._log_terminal(f"PROCESO ALTO CPU: PID {pid} usando {cpu}% - {comando[:80]}", "MONITOREO", "WARNING")
+                
+            for pid, comando, memoria in procesos_alta_memoria:
+                self._log_terminal(f"PROCESO ALTA MEMORIA: PID {pid} usando {memoria}% - {comando[:80]}", "MONITOREO", "WARNING")
+                
+            for pid, usuario, comando in procesos_sospechosos:
+                self._log_terminal(f"PROCESO SOSPECHOSO: PID {pid} usuario {usuario} - {comando[:80]}", "MONITOREO", "ERROR")
+                
+            if not procesos_sospechosos and len(procesos_alta_cpu) == 0:
+                self._log_terminal("Procesos del sistema funcionando normalmente", "MONITOREO", "INFO")
+                
+        except Exception as e:
+            self._log_terminal(f"Error monitoreando procesos: {str(e)}", "MONITOREO", "WARNING")
+
+    def _monitorear_permisos_archivos(self):
+        """Monitorear permisos de archivos críticos del sistema."""
+        import os
+        import subprocess
+        
+        archivos_criticos = [
+            ('/etc/passwd', '644'), ('/etc/shadow', '640'), ('/etc/group', '644'),
+            ('/etc/sudoers', '440'), ('/etc/hosts', '644'), ('/etc/ssh/sshd_config', '644'),
+            ('/boot/grub/grub.cfg', '644'), ('/etc/crontab', '644')
+        ]
+        
+        try:
+            permisos_incorrectos = []
+            
+            for archivo, permisos_esperados in archivos_criticos:
+                if os.path.exists(archivo):
+                    stat_info = os.stat(archivo)
+                    permisos_actuales = oct(stat_info.st_mode)[-3:]
+                    
+                    if permisos_actuales != permisos_esperados:
+                        permisos_incorrectos.append((archivo, permisos_actuales, permisos_esperados))
+                        self._log_terminal(f"PERMISOS INCORRECTOS: {archivo} tiene {permisos_actuales} (esperado {permisos_esperados})", "MONITOREO", "ERROR")
+                else:
+                    self._log_terminal(f"ARCHIVO CRITICO FALTANTE: {archivo}", "MONITOREO", "ERROR")
+                    
+            if not permisos_incorrectos:
+                self._log_terminal("Permisos de archivos criticos correctos", "MONITOREO", "INFO")
+                
+            # Verificar archivos SUID modificados recientemente
+            resultado = subprocess.run(['find', '/', '-type', 'f', '-perm', '-4000', '-mtime', '-1', '2>/dev/null'], 
+                                     capture_output=True, text=True, timeout=15, shell=True)
+            
+            suid_recientes = resultado.stdout.strip().split('\n') if resultado.stdout.strip() else []
+            for archivo in suid_recientes:
+                if archivo.strip():
+                    self._log_terminal(f"ARCHIVO SUID MODIFICADO: {archivo}", "MONITOREO", "WARNING")
+                    
+        except Exception as e:
+            self._log_terminal(f"Error monitoreando permisos: {str(e)}", "MONITOREO", "WARNING")
+
+    def _monitorear_usuarios_sesiones(self):
+        """Monitorear usuarios conectados y sesiones activas."""
+        import subprocess
+        
+        try:
+            # Verificar usuarios conectados
+            resultado = subprocess.run(['who'], capture_output=True, text=True, timeout=5)
+            usuarios_conectados = resultado.stdout.strip().split('\n') if resultado.stdout.strip() else []
+            
+            self._log_terminal(f"Usuarios conectados: {len(usuarios_conectados)}", "MONITOREO", "INFO")
+            
+            for sesion in usuarios_conectados:
+                if sesion.strip():
+                    partes = sesion.split()
+                    if len(partes) >= 2:
+                        usuario = partes[0]
+                        terminal = partes[1]
+                        self._log_terminal(f"Sesion activa: {usuario} en {terminal}", "MONITOREO", "INFO")
+                        
+            # Verificar últimos logins
+            resultado = subprocess.run(['last', '-n', '5'], capture_output=True, text=True, timeout=5)
+            lineas = resultado.stdout.strip().split('\n')[:3]  # Últimos 3 logins
+            
+            for linea in lineas:
+                if linea.strip() and 'reboot' not in linea.lower() and 'wtmp' not in linea.lower():
+                    partes = linea.split()
+                    if len(partes) >= 3:
+                        usuario = partes[0]
+                        origen = partes[2] if len(partes) > 2 else 'local'
+                        self._log_terminal(f"Login reciente: {usuario} desde {origen}", "MONITOREO", "INFO")
+                        
+            # Verificar usuarios con UID 0 (privilegios root)
+            with open('/etc/passwd', 'r') as f:
+                for linea in f:
+                    partes = linea.strip().split(':')
+                    if len(partes) >= 3:
+                        usuario = partes[0]
+                        uid = partes[2]
+                        if uid == '0' and usuario != 'root':
+                            self._log_terminal(f"USUARIO PRIVILEGIADO DETECTADO: {usuario} (UID 0)", "MONITOREO", "ERROR")
+                            
+        except Exception as e:
+            self._log_terminal(f"Error monitoreando usuarios: {str(e)}", "MONITOREO", "WARNING")
+
+    def _monitorear_procesos_privilegiados(self):
+        """Monitorear procesos ejecutándose con privilegios elevados."""
+        import subprocess
+        
+        try:
+            # Procesos ejecutándose como root
+            resultado = subprocess.run(['ps', '-eo', 'pid,user,comm,args'], 
+                                     capture_output=True, text=True, timeout=10)
+            
+            procesos_root = []
+            procesos_suid = []
+            
+            for linea in resultado.stdout.split('\n')[1:]:  # Saltar header
+                partes = linea.strip().split(None, 3)
+                if len(partes) >= 3:
+                    pid = partes[0]
+                    usuario = partes[1]
+                    comando = partes[2]
+                    args = partes[3] if len(partes) > 3 else ''
+                    
+                    if usuario == 'root':
+                        # Filtrar procesos del sistema normales
+                        procesos_sistema = [
+                            'systemd', 'kthreadd', 'ksoftirqd', 'migration', 'watchdog',
+                            'systemd-', 'dbus', 'NetworkManager', 'sshd'
+                        ]
+                        
+                        if not any(sys_proc in comando for sys_proc in procesos_sistema):
+                            if args and len(args) > 10:  # Solo procesos con argumentos significativos
+                                procesos_root.append((pid, comando, args[:100]))
+                                
+            # Reportar procesos root sospechosos
+            for pid, comando, args in procesos_root[:5]:  # Limitar a 5
+                self._log_terminal(f"PROCESO ROOT: PID {pid} - {comando} {args}", "MONITOREO", "WARNING")
+                
+            if len(procesos_root) > 10:
+                self._log_terminal(f"ALERTA: {len(procesos_root)} procesos ejecutandose como root", "MONITOREO", "WARNING")
+            else:
+                self._log_terminal(f"Procesos root monitoreados: {len(procesos_root)}", "MONITOREO", "INFO")
+                
+        except Exception as e:
+            self._log_terminal(f"Error monitoreando procesos privilegiados: {str(e)}", "MONITOREO", "WARNING")
+
+    def _monitorear_cambios_sistema(self):
+        """Detectar cambios recientes en el sistema."""
+        import subprocess
+        import os
+        
+        try:
+            # Verificar archivos modificados recientemente en directorios críticos
+            directorios_criticos = ['/etc', '/bin', '/sbin', '/usr/bin', '/usr/sbin']
+            
+            cambios_detectados = 0
+            for directorio in directorios_criticos:
+                if os.path.exists(directorio):
+                    try:
+                        resultado = subprocess.run(['find', directorio, '-type', 'f', '-mtime', '-1'], 
+                                                 capture_output=True, text=True, timeout=10)
+                        
+                        archivos_modificados = resultado.stdout.strip().split('\n') if resultado.stdout.strip() else []
+                        archivos_modificados = [f for f in archivos_modificados if f.strip()]
+                        
+                        if len(archivos_modificados) > 0:
+                            cambios_detectados += len(archivos_modificados)
+                            if len(archivos_modificados) > 5:
+                                self._log_terminal(f"MUCHOS CAMBIOS: {len(archivos_modificados)} archivos modificados en {directorio}", "MONITOREO", "WARNING")
+                            else:
+                                for archivo in archivos_modificados[:3]:  # Mostrar solo los primeros 3
+                                    self._log_terminal(f"CAMBIO DETECTADO: {archivo}", "MONITOREO", "INFO")
+                    except:
+                        pass
+                        
+            if cambios_detectados == 0:
+                self._log_terminal("No se detectaron cambios recientes en el sistema", "MONITOREO", "INFO")
+            elif cambios_detectados > 20:
+                self._log_terminal(f"ALERTA: {cambios_detectados} cambios detectados en directorios criticos", "MONITOREO", "ERROR")
+                
+        except Exception as e:
+            self._log_terminal(f"Error monitoreando cambios: {str(e)}", "MONITOREO", "WARNING")
+
+    def _actualizar_monitoreo_basico(self):
+        """Actualizar la interfaz durante el monitoreo básico."""
+        if self.monitor_activo:
+            self.text_monitor.insert(tk.END, "Monitoreo básico en progreso...\n")
+            self.after(5000, self._actualizar_monitoreo_basico)
     
     def detener_monitoreo(self):
         if not self.controlador:
@@ -302,36 +597,344 @@ class VistaMonitoreo(tk.Frame):
         self.monitor_red_activo = True
         self.btn_red.config(state="disabled")
         self.btn_cancelar_red.config(state="normal")
-        
-        self.text_monitor.insert(tk.END, "\n === MONITOREO DE RED INICIADO ===\n")
+        self.text_monitor.insert(tk.END, "\n === MONITOREO COMPLETO DE RED INICIADO ===\n")
         
         # Ejecutar monitoreo en thread separado
-        import threading
-        self.thread_red = threading.Thread(target=self._monitorear_red_async)
+        self.thread_red = threading.Thread(target=self._monitorear_red_completo_async)
         self.thread_red.daemon = True
         self.thread_red.start()
-    
-    def _monitorear_red_async(self):
-        """Monitorear red en thread separado."""
+
+    def _monitorear_red_completo_async(self):
+        """Monitorear red de forma completa: todo lo conectado y actividad de red."""
+        import subprocess
+        import time
+        
         try:
-            # Verificar que el controlador esté configurado
-            if not self.controlador:
-                self.after(0, self._mostrar_error_red, "Controlador de monitoreo no configurado")
-                return
-            
-            resultados = self.controlador.monitorear_red()
-            
-            if not self.monitor_red_activo:  # Verificar si fue cancelado
-                return
-            
-            # Actualizar UI en el hilo principal
-            self.after(0, self._mostrar_resultados_red, resultados)
-            
+            ciclo = 0
+            while self.monitor_red_activo:
+                ciclo += 1
+                self._log_terminal(f"Ciclo de monitoreo de red #{ciclo}", "MONITOREO-RED", "INFO")
+                
+                # FASE 1: Detectar dispositivos conectados a la red
+                self._log_terminal("FASE 1: Detectando dispositivos conectados a la red", "MONITOREO-RED", "INFO")
+                self._detectar_dispositivos_red()
+                
+                # FASE 2: Monitorear interfaces de red activas
+                self._log_terminal("FASE 2: Monitoreando interfaces de red activas", "MONITOREO-RED", "INFO")
+                self._monitorear_interfaces_red()
+                
+                # FASE 3: Verificar conexiones activas
+                self._log_terminal("FASE 3: Verificando conexiones de red activas", "MONITOREO-RED", "INFO")
+                self._monitorear_conexiones_activas()
+                
+                # FASE 4: Monitorear tráfico de red
+                self._log_terminal("FASE 4: Monitoreando trafico de red", "MONITOREO-RED", "INFO")
+                self._monitorear_trafico_red_detallado()
+                
+                # FASE 5: Detectar servicios de red
+                self._log_terminal("FASE 5: Detectando servicios de red disponibles", "MONITOREO-RED", "INFO")
+                self._detectar_servicios_red()
+                
+                # FASE 6: Verificar configuración de red
+                self._log_terminal("FASE 6: Verificando configuracion de red", "MONITOREO-RED", "INFO")
+                self._verificar_configuracion_red()
+                
+                self._log_terminal(f"Ciclo de monitoreo de red #{ciclo} completado", "MONITOREO-RED", "SUCCESS")
+                
+                # Pausa entre ciclos (20 segundos)
+                for i in range(20):
+                    if not self.monitor_red_activo:
+                        break
+                    time.sleep(1)
+                    
         except Exception as e:
-            if self.monitor_red_activo:
-                self.after(0, self._mostrar_error_red, str(e))
+            self._log_terminal(f"Error en monitoreo de red: {str(e)}", "MONITOREO-RED", "ERROR")
         finally:
             self.after(0, self._finalizar_monitoreo_red)
+
+    def _detectar_dispositivos_red(self):
+        """Detectar todos los dispositivos conectados a la red local."""
+        import subprocess
+        
+        try:
+            # Obtener la red local
+            resultado = subprocess.run(['ip', 'route', 'show'], 
+                                     capture_output=True, text=True, timeout=10)
+            
+            redes_locales = []
+            for linea in resultado.stdout.split('\n'):
+                if 'src' in linea and ('192.168.' in linea or '10.' in linea or '172.' in linea):
+                    partes = linea.split()
+                    if len(partes) > 0:
+                        red = partes[0]
+                        if '/' in red:
+                            redes_locales.append(red)
+                            
+            # Escanear dispositivos en cada red local
+            dispositivos_encontrados = 0
+            for red in redes_locales[:2]:  # Limitar a 2 redes
+                try:
+                    # Usar ping para detectar dispositivos activos
+                    red_base = red.split('/')[0].rsplit('.', 1)[0]
+                    
+                    for i in range(1, 20):  # Escanear primeros 20 IPs
+                        if not self.monitor_red_activo:
+                            break
+                            
+                        ip = f"{red_base}.{i}"
+                        resultado = subprocess.run(['ping', '-c', '1', '-W', '1', ip], 
+                                                 capture_output=True, text=True, timeout=3)
+                        
+                        if resultado.returncode == 0:
+                            dispositivos_encontrados += 1
+                            self._log_terminal(f"DISPOSITIVO DETECTADO: {ip} activo en red local", "MONITOREO-RED", "INFO")
+                            
+                            # Intentar obtener hostname
+                            try:
+                                resultado_host = subprocess.run(['nslookup', ip], 
+                                                              capture_output=True, text=True, timeout=2)
+                                if 'name =' in resultado_host.stdout:
+                                    hostname = resultado_host.stdout.split('name =')[1].split()[0]
+                                    self._log_terminal(f"  Hostname: {hostname}", "MONITOREO-RED", "INFO")
+                            except:
+                                pass
+                                
+                except Exception as e:
+                    self._log_terminal(f"Error escaneando red {red}: {str(e)}", "MONITOREO-RED", "WARNING")
+                    
+            self._log_terminal(f"Dispositivos detectados en red local: {dispositivos_encontrados}", "MONITOREO-RED", "INFO")
+            
+        except Exception as e:
+            self._log_terminal(f"Error detectando dispositivos: {str(e)}", "MONITOREO-RED", "WARNING")
+
+    def _monitorear_interfaces_red(self):
+        """Monitorear todas las interfaces de red activas."""
+        import subprocess
+        
+        try:
+            # Obtener información de interfaces
+            resultado = subprocess.run(['ip', 'addr', 'show'], 
+                                     capture_output=True, text=True, timeout=10)
+            
+            interfaces_activas = []
+            interface_actual = None
+            
+            for linea in resultado.stdout.split('\n'):
+                if ': ' in linea and 'state' in linea.lower():
+                    partes = linea.split(': ')
+                    if len(partes) > 1:
+                        nombre = partes[1].split('@')[0]
+                        estado = 'UP' if 'state UP' in linea else 'DOWN'
+                        interface_actual = {'nombre': nombre, 'estado': estado, 'ips': []}
+                        
+                elif 'inet ' in linea and interface_actual:
+                    ip = linea.strip().split()[1]
+                    interface_actual['ips'].append(ip)
+                    
+                elif interface_actual and (linea.strip() == '' or ': ' in linea):
+                    if interface_actual['estado'] == 'UP':
+                        interfaces_activas.append(interface_actual)
+                    interface_actual = None
+                    
+            # Reportar interfaces activas
+            for interfaz in interfaces_activas:
+                nombre = interfaz['nombre']
+                ips = ', '.join(interfaz['ips'])
+                self._log_terminal(f"INTERFAZ ACTIVA: {nombre} - IPs: {ips}", "MONITOREO-RED", "INFO")
+                
+                # Obtener estadísticas de tráfico
+                try:
+                    with open(f'/sys/class/net/{nombre}/statistics/rx_bytes', 'r') as f:
+                        rx_bytes = int(f.read().strip())
+                    with open(f'/sys/class/net/{nombre}/statistics/tx_bytes', 'r') as f:
+                        tx_bytes = int(f.read().strip())
+                        
+                    rx_mb = rx_bytes / (1024 * 1024)
+                    tx_mb = tx_bytes / (1024 * 1024)
+                    self._log_terminal(f"  Trafico {nombre}: RX {rx_mb:.1f}MB, TX {tx_mb:.1f}MB", "MONITOREO-RED", "INFO")
+                except:
+                    pass
+                    
+        except Exception as e:
+            self._log_terminal(f"Error monitoreando interfaces: {str(e)}", "MONITOREO-RED", "WARNING")
+
+    def _monitorear_conexiones_activas(self):
+        """Monitorear todas las conexiones de red activas."""
+        import subprocess
+        
+        try:
+            # Obtener conexiones TCP y UDP
+            resultado = subprocess.run(['ss', '-tuln'], 
+                                     capture_output=True, text=True, timeout=10)
+            
+            conexiones_tcp = 0
+            conexiones_udp = 0
+            puertos_abiertos = []
+            
+            for linea in resultado.stdout.split('\n'):
+                if 'LISTEN' in linea:
+                    partes = linea.split()
+                    if len(partes) >= 4:
+                        protocolo = 'TCP' if 'tcp' in linea.lower() else 'UDP'
+                        direccion = partes[3]
+                        puerto = direccion.split(':')[-1]
+                        
+                        if protocolo == 'TCP':
+                            conexiones_tcp += 1
+                        else:
+                            conexiones_udp += 1
+                            
+                        puertos_abiertos.append((protocolo, puerto, direccion))
+                        
+            self._log_terminal(f"Conexiones activas: {conexiones_tcp} TCP, {conexiones_udp} UDP", "MONITOREO-RED", "INFO")
+            
+            # Mostrar puertos más relevantes
+            puertos_importantes = ['22', '80', '443', '21', '25', '53', '23', '3389']
+            for protocolo, puerto, direccion in puertos_abiertos:
+                if puerto in puertos_importantes:
+                    self._log_terminal(f"PUERTO IMPORTANTE: {protocolo} {puerto} en {direccion}", "MONITOREO-RED", "WARNING")
+                    
+            # Verificar conexiones establecidas
+            resultado = subprocess.run(['ss', '-tupn'], 
+                                     capture_output=True, text=True, timeout=10)
+            
+            conexiones_establecidas = 0
+            for linea in resultado.stdout.split('\n'):
+                if 'ESTAB' in linea:
+                    conexiones_establecidas += 1
+                    
+            self._log_terminal(f"Conexiones establecidas: {conexiones_establecidas}", "MONITOREO-RED", "INFO")
+            
+            if conexiones_establecidas > 50:
+                self._log_terminal(f"ALERTA: Muchas conexiones establecidas ({conexiones_establecidas})", "MONITOREO-RED", "WARNING")
+                
+        except Exception as e:
+            self._log_terminal(f"Error monitoreando conexiones: {str(e)}", "MONITOREO-RED", "WARNING")
+
+    def _monitorear_trafico_red_detallado(self):
+        """Monitorear tráfico de red detallado."""
+        import subprocess
+        
+        try:
+            # Verificar estadísticas de red del sistema
+            with open('/proc/net/dev', 'r') as f:
+                lineas = f.readlines()
+                
+            interfaces_con_trafico = []
+            for linea in lineas[2:]:  # Saltar headers
+                if ':' in linea:
+                    partes = linea.split(':')
+                    interfaz = partes[0].strip()
+                    estadisticas = partes[1].split()
+                    
+                    if len(estadisticas) >= 8 and interfaz != 'lo':
+                        rx_bytes = int(estadisticas[0])
+                        tx_bytes = int(estadisticas[8])
+                        
+                        if rx_bytes > 0 or tx_bytes > 0:
+                            interfaces_con_trafico.append({
+                                'interfaz': interfaz,
+                                'rx_bytes': rx_bytes,
+                                'tx_bytes': tx_bytes
+                            })
+                            
+            for interfaz_data in interfaces_con_trafico:
+                interfaz = interfaz_data['interfaz']
+                rx_mb = interfaz_data['rx_bytes'] / (1024 * 1024)
+                tx_mb = interfaz_data['tx_bytes'] / (1024 * 1024)
+                
+                self._log_terminal(f"TRAFICO {interfaz}: Recibido {rx_mb:.1f}MB, Enviado {tx_mb:.1f}MB", "MONITOREO-RED", "INFO")
+                
+                # Alertar sobre tráfico excesivo
+                if rx_mb > 1000 or tx_mb > 1000:  # Más de 1GB
+                    self._log_terminal(f"ALERTA TRAFICO: {interfaz} con alto volumen de datos", "MONITOREO-RED", "WARNING")
+                    
+        except Exception as e:
+            self._log_terminal(f"Error monitoreando trafico: {str(e)}", "MONITOREO-RED", "WARNING")
+
+    def _detectar_servicios_red(self):
+        """Detectar servicios de red disponibles."""
+        import subprocess
+        
+        try:
+            # Verificar servicios de red comunes en localhost
+            servicios_comunes = [
+                ('SSH', '22'), ('HTTP', '80'), ('HTTPS', '443'), ('FTP', '21'),
+                ('SMTP', '25'), ('DNS', '53'), ('POP3', '110'), ('IMAP', '143')
+            ]
+            
+            servicios_activos = []
+            
+            for nombre, puerto in servicios_comunes:
+                try:
+                    resultado = subprocess.run(['ss', '-ln'], 
+                                             capture_output=True, text=True, timeout=5)
+                    
+                    if f':{puerto} ' in resultado.stdout:
+                        servicios_activos.append((nombre, puerto))
+                        self._log_terminal(f"SERVICIO ACTIVO: {nombre} en puerto {puerto}", "MONITOREO-RED", "INFO")
+                except:
+                    pass
+                    
+            if not servicios_activos:
+                self._log_terminal("No se detectaron servicios de red comunes activos", "MONITOREO-RED", "INFO")
+            else:
+                self._log_terminal(f"Servicios de red detectados: {len(servicios_activos)}", "MONITOREO-RED", "INFO")
+                
+        except Exception as e:
+            self._log_terminal(f"Error detectando servicios: {str(e)}", "MONITOREO-RED", "WARNING")
+
+    def _verificar_configuracion_red(self):
+        """Verificar configuración de red del sistema."""
+        import subprocess
+        
+        try:
+            # Verificar tabla de rutas
+            resultado = subprocess.run(['ip', 'route', 'show'], 
+                                     capture_output=True, text=True, timeout=5)
+            
+            rutas = resultado.stdout.strip().split('\n')
+            rutas_activas = [r for r in rutas if r.strip()]
+            
+            self._log_terminal(f"Tabla de rutas: {len(rutas_activas)} rutas configuradas", "MONITOREO-RED", "INFO")
+            
+            # Buscar gateway por defecto
+            gateway_default = None
+            for ruta in rutas_activas:
+                if 'default' in ruta:
+                    partes = ruta.split()
+                    if 'via' in partes:
+                        idx = partes.index('via')
+                        if idx + 1 < len(partes):
+                            gateway_default = partes[idx + 1]
+                            break
+                            
+            if gateway_default:
+                self._log_terminal(f"Gateway por defecto: {gateway_default}", "MONITOREO-RED", "INFO")
+                
+                # Probar conectividad al gateway
+                resultado = subprocess.run(['ping', '-c', '1', '-W', '2', gateway_default], 
+                                         capture_output=True, text=True, timeout=5)
+                if resultado.returncode == 0:
+                    self._log_terminal("Conectividad al gateway: OK", "MONITOREO-RED", "INFO")
+                else:
+                    self._log_terminal("PROBLEMA: Sin conectividad al gateway", "MONITOREO-RED", "ERROR")
+            else:
+                self._log_terminal("WARNING: No se encontro gateway por defecto", "MONITOREO-RED", "WARNING")
+                
+            # Verificar DNS
+            try:
+                resultado = subprocess.run(['nslookup', 'google.com'], 
+                                         capture_output=True, text=True, timeout=10)
+                if resultado.returncode == 0:
+                    self._log_terminal("Resolucion DNS: OK", "MONITOREO-RED", "INFO")
+                else:
+                    self._log_terminal("PROBLEMA: Fallo en resolucion DNS", "MONITOREO-RED", "ERROR")
+            except:
+                self._log_terminal("WARNING: No se pudo probar DNS", "MONITOREO-RED", "WARNING")
+                
+        except Exception as e:
+            self._log_terminal(f"Error verificando configuracion de red: {str(e)}", "MONITOREO-RED", "WARNING")
     
     def _mostrar_resultados_red(self, resultados):
         """Mostrar resultados del monitoreo de red."""
