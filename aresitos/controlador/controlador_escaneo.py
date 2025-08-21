@@ -8,6 +8,7 @@ import threading
 import time
 import re
 import socket
+import subprocess
 from datetime import datetime
 from typing import Dict, Any, List, Optional
 
@@ -773,11 +774,34 @@ class ControladorEscaneo(ControladorBase):
                     except (subprocess.TimeoutExpired, subprocess.CalledProcessError, FileNotFoundError):
                         continue
             else:
-                # Para redes grandes, devolver solo algunas IPs comunes
-                red_base = red_obj['red'].rsplit('.', 1)[0]
-                ips_comunes = [1, 2, 10, 100, 254]
-                for ip_final in ips_comunes:
-                    hosts_activos.append(f"{red_base}.{ip_final}")
+                # Para redes grandes, usar nmap para descubrir hosts reales
+                import subprocess
+                try:
+                    red_base = red_obj['red'].rsplit('.', 1)[0]
+                    cmd = ['nmap', '-sn', f"{red_base}.0/24"]
+                    resultado = subprocess.run(cmd, capture_output=True, text=True, timeout=30)
+                    
+                    if resultado.returncode == 0:
+                        lineas = resultado.stdout.split('\n')
+                        for i, linea in enumerate(lineas):
+                            if 'Nmap scan report for' in linea and i + 1 < len(lineas):
+                                if 'Host is up' in lineas[i + 1]:
+                                    ip = linea.split()[-1]
+                                    hosts_activos.append(ip)
+                    
+                except Exception:
+                    # Si falla nmap, usar ping en IPs comunes
+                    red_base = red_obj['red'].rsplit('.', 1)[0]
+                    ips_comunes = [1, 2, 10, 100, 254]
+                    for ip_final in ips_comunes:
+                        ip_test = f"{red_base}.{ip_final}"
+                        try:
+                            resultado = subprocess.run(['ping', '-c', '1', '-W', '1', ip_test], 
+                                                     capture_output=True, text=True, timeout=2)
+                            if resultado.returncode == 0:
+                                hosts_activos.append(ip_test)
+                        except Exception:
+                            continue
         
         except Exception as e:
             self.logger.warning(f"Error en descubrimiento de hosts: {e}")

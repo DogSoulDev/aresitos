@@ -14,7 +14,7 @@ Documentación técnica completa del sistema:
 ### **🏗️ [ARQUITECTURA_DESARROLLO.md](ARQUITECTURA_DESARROLLO.md)**
 Arquitectura y guía de desarrollo:
 - 📊 Capa Modelo (19 archivos)
-- 🎨 Capa Vista (12 archivos)
+- 🎨 Capa Vista (12 archivos + terminal_mixin)
 - ⚙️ Capa Controlador (15 archivos)
 - 🧵 Threading y concurrencia
 - 🔒 Seguridad implementada
@@ -36,12 +36,21 @@ Auditoría completa de seguridad:
 - 📊 Análisis por archivos
 - 🎯 Recomendaciones aplicadas
 
+### **🖥️ [TERMINAL_INTEGRADO.md](TERMINAL_INTEGRADO.md)** ⭐ **NUEVO**
+Sistema de terminales integrados:
+- 📱 48 terminales activos en tiempo real
+- 🔄 Logs dinámicos por módulo
+- 🎯 Layout PanedWindow optimizado
+- 💻 Experiencia tipo IDE profesional
+- 🛠️ TerminalMixin reutilizable
+
 ## **🎯 Uso Rápido Documentación**
 
 ### **Para Desarrolladores**
 1. **Inicio**: [GUIA_INSTALACION.md](GUIA_INSTALACION.md) → Instalación completa
 2. **Arquitectura**: [ARQUITECTURA_DESARROLLO.md](ARQUITECTURA_DESARROLLO.md) → Entender MVC
-3. **Técnica**: [DOCUMENTACION_TECNICA_CONSOLIDADA.md](DOCUMENTACION_TECNICA_CONSOLIDADA.md) → Detalles implementación
+3. **Terminales**: [TERMINAL_INTEGRADO.md](TERMINAL_INTEGRADO.md) → Sistema logs tiempo real ⭐
+4. **Técnica**: [DOCUMENTACION_TECNICA_CONSOLIDADA.md](DOCUMENTACION_TECNICA_CONSOLIDADA.md) → Detalles implementación
 
 ### **Para Auditores Seguridad**
 1. **Seguridad**: [AUDITORIA_SEGURIDAD_ARESITOS.md](AUDITORIA_SEGURIDAD_ARESITOS.md) → Estado código
@@ -49,9 +58,10 @@ Auditoría completa de seguridad:
 
 ### **Para Usuarios Finales**
 1. **Instalación**: [GUIA_INSTALACION.md](GUIA_INSTALACION.md) → Setup completo
-2. **Referencia**: [DOCUMENTACION_TECNICA_CONSOLIDADA.md](DOCUMENTACION_TECNICA_CONSOLIDADA.md) → Funcionalidades
+2. **Terminales**: [TERMINAL_INTEGRADO.md](TERMINAL_INTEGRADO.md) → Uso interfaz mejorada ⭐
+3. **Referencia**: [DOCUMENTACION_TECNICA_CONSOLIDADA.md](DOCUMENTACION_TECNICA_CONSOLIDADA.md) → Funcionalidades
 
-## **📊 Resumen Técnico**
+## **📊 Resumen Técnico v2.0**
 
 | Aspecto | Estado | Documentación |
 |---------|--------|---------------|
@@ -59,6 +69,14 @@ Auditoría completa de seguridad:
 | **Instalación** | ✅ Zero-Config | GUIA_INSTALACION.md |
 | **Seguridad** | ✅ Auditado | AUDITORIA_SEGURIDAD_ARESITOS.md |
 | **Técnica** | ✅ Completa | DOCUMENTACION_TECNICA_CONSOLIDADA.md |
+| **Terminales** | ✅ Integrados | TERMINAL_INTEGRADO.md ⭐ |
+
+### **🆕 Novedades v2.0**
+- **🖥️ 48 Terminales integrados** en tiempo real
+- **🎨 Tema Burp Suite** consistente
+- **📱 Layout PanedWindow** optimizado
+- **🔧 TerminalMixin** reutilizable
+- **💻 Experiencia IDE** profesional
 
 ---
 

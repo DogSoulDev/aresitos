@@ -917,18 +917,74 @@ class VistaSIEM(tk.Frame):
             return
             
         try:
-            # Simular detección de eventos críticos
-            eventos_detectados = [
-                {"tipo": "INTRUSIÓN", "descripcion": "Intento de acceso SSH fallido", "severidad": "HIGH"},
-                {"tipo": "MALWARE", "descripcion": "Archivo sospechoso detectado", "severidad": "CRITICAL"},
-                {"tipo": "ANOMALÍA", "descripcion": "Tráfico de red inusual", "severidad": "MEDIUM"},
-                {"tipo": "VULNERABILIDAD", "descripcion": "Puerto abierto no autorizado", "severidad": "HIGH"}
-            ]
+            # Detectar eventos reales de seguridad usando comandos Linux
+            eventos_detectados = []
             
-            # Simular detección aleatoria (en implementación real vendría del controlador)
-            import random
-            if random.random() < 0.3:  # 30% de probabilidad de detectar algo
-                evento = random.choice(eventos_detectados)
+            # 1. Verificar intentos de SSH fallidos
+            try:
+                result = subprocess.run(['grep', '-i', 'failed', '/var/log/auth.log'], 
+                                      capture_output=True, text=True, timeout=3)
+                if result.stdout:
+                    intentos_ssh = len(result.stdout.strip().split('\n'))
+                    if intentos_ssh > 0:
+                        eventos_detectados.append({
+                            "tipo": "INTRUSIÓN", 
+                            "descripcion": f"SSH: {intentos_ssh} intentos fallidos detectados en auth.log",
+                            "severidad": "HIGH",
+                            "detalles": f"Comando: grep -i failed /var/log/auth.log"
+                        })
+            except:
+                pass
+            
+            # 2. Verificar puertos abiertos no autorizados
+            try:
+                result = subprocess.run(['ss', '-tlnp'], capture_output=True, text=True, timeout=3)
+                if result.stdout:
+                    puertos_abiertos = [line for line in result.stdout.split('\n') if ':22 ' in line or ':23 ' in line or ':3389 ' in line]
+                    if puertos_abiertos:
+                        eventos_detectados.append({
+                            "tipo": "VULNERABILIDAD",
+                            "descripcion": f"PUERTOS: {len(puertos_abiertos)} puertos críticos abiertos (SSH/Telnet/RDP)",
+                            "severidad": "HIGH",
+                            "detalles": f"Puertos encontrados: {', '.join([p.split()[3] for p in puertos_abiertos[:3]])}"
+                        })
+            except:
+                pass
+            
+            # 3. Verificar procesos sospechosos
+            try:
+                result = subprocess.run(['ps', 'aux'], capture_output=True, text=True, timeout=3)
+                if result.stdout:
+                    procesos_sospechosos = [line for line in result.stdout.split('\n') 
+                                          if any(x in line.lower() for x in ['nc ', 'netcat', 'ncat', 'metasploit', 'msfvenom'])]
+                    if procesos_sospechosos:
+                        eventos_detectados.append({
+                            "tipo": "MALWARE",
+                            "descripcion": f"PROCESOS: {len(procesos_sospechosos)} procesos sospechosos activos",
+                            "severidad": "CRITICAL",
+                            "detalles": f"Procesos: {', '.join([p.split()[10] for p in procesos_sospechosos[:2] if len(p.split()) > 10])}"
+                        })
+            except:
+                pass
+            
+            # 4. Verificar conexiones de red inusuales
+            try:
+                result = subprocess.run(['ss', '-tn'], capture_output=True, text=True, timeout=3)
+                if result.stdout:
+                    conexiones_externas = [line for line in result.stdout.split('\n') 
+                                         if 'ESTAB' in line and not any(x in line for x in ['127.0.0.1', '192.168.', '10.0.', '172.16.'])]
+                    if len(conexiones_externas) > 5:
+                        eventos_detectados.append({
+                            "tipo": "ANOMALÍA",
+                            "descripcion": f"RED: {len(conexiones_externas)} conexiones externas activas (>5 inusual)",
+                            "severidad": "MEDIUM",
+                            "detalles": f"IPs externas: {', '.join([line.split()[4].split(':')[0] for line in conexiones_externas[:3] if ':' in line])}"
+                        })
+            except:
+                pass
+            
+            # Procesar eventos detectados reales
+            for evento in eventos_detectados:
                 self._procesar_evento_seguridad(evento)
             
             # Continuar monitoreo
@@ -943,6 +999,7 @@ class VistaSIEM(tk.Frame):
         severidad = evento.get('severidad', 'UNKNOWN')
         tipo = evento.get('tipo', 'EVENTO')
         descripcion = evento.get('descripcion', 'Sin descripción')
+        detalles = evento.get('detalles', '')
         
         # Indicadores según severidad
         indicator_map = {
@@ -955,11 +1012,16 @@ class VistaSIEM(tk.Frame):
         indicator = indicator_map.get(severidad, '[INFORMACION]')
         nivel = "ERROR" if severidad in ['CRITICAL', 'HIGH'] else "WARNING"
         
+        # Log con detalles
         self._log_terminal(f"{indicator} {tipo} [{severidad}]: {descripcion}", "SIEM", nivel)
+        if detalles:
+            self._log_terminal(f"    DETALLES: {detalles}", "SIEM", "INFO")
         
         # También actualizar la interfaz SIEM
         timestamp = __import__('datetime').datetime.now().strftime("%H:%M:%S")
         evento_msg = f"[{timestamp}] {indicator} {tipo} [{severidad}]: {descripcion}\n"
+        if detalles:
+            evento_msg += f"    └─ {detalles}\n"
         self.after(0, self._actualizar_texto_monitoreo, evento_msg)
     
     def detener_siem(self):

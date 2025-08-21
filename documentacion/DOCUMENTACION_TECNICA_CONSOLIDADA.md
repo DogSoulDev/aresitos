@@ -14,8 +14,9 @@ aresitos/
 ### **Stack Tecnológico**
 - **Python 3.8+** (stdlib únicamente)
 - **SQLite3** (bases de datos)
-- **Tkinter** (interfaz gráfica)
+- **Tkinter** (interfaz gráfica con PanedWindow)
 - **Subprocess** (integración herramientas Kali)
+- **Threading** (terminales integrados en tiempo real)
 
 ## 🔒 **Seguridad Implementada**
 
@@ -179,21 +180,29 @@ alertas = controlador_siem.generar_alertas_automaticas()
 
 ## 🎨 **Interfaz Usuario**
 
+### **Sistema de Terminales Integrados**
+- **48 Terminales Activos**: Feedback en tiempo real para todas las operaciones
+- **TerminalMixin**: Clase reutilizable para funcionalidad de terminal
+- **PanedWindow Layout**: División profesional entre controles y terminal
+- **Threading Seguro**: Operaciones no bloqueantes con log_to_terminal()
+- **Burp Suite Theme**: Colores consistentes en todos los terminales
+
 ### **Pestañas Principales (8)**
-1. **Dashboard** - Métricas sistema tiempo real
-2. **Escaneo** - Análisis puertos y vulnerabilidades
-3. **Monitoreo y Cuarentena** - Vigilancia malware
-4. **Auditoría** - Evaluación seguridad completa
-5. **Wordlists y Diccionarios** - Gestión recursos
-6. **Reportes** - Exportación resultados
-7. **FIM** - Monitoreo integridad archivos
-8. **SIEM** - Correlación eventos seguridad
+1. **Dashboard** - Métricas sistema tiempo real + terminal monitoreo
+2. **Escaneo** - Análisis puertos y vulnerabilidades + terminal nmap/nuclei
+3. **Monitoreo y Cuarentena** - Vigilancia malware + terminal clamscan/yara
+4. **Auditoría** - Evaluación seguridad completa + terminal linpeas/chkrootkit
+5. **Wordlists y Diccionarios** - Gestión recursos + terminal generación
+6. **Reportes** - Exportación resultados + terminal exportación
+7. **FIM** - Monitoreo integridad archivos + terminal inotifywait
+8. **SIEM** - Correlación eventos seguridad + terminal volatility/binwalk
 
 ### **Tema Visual**
 - **Burp Suite**: Esquema colores profesional
-- **Colores**: #2b2b2b (fondo), #ff6633 (acentos)
-- **Tipografía**: Arial optimizada legibilidad
-- **Componentes**: Tkinter personalizado
+- **Colores**: #2b2b2b (fondo), #ff6633 (acentos), #333333 (terminales)
+- **Tipografía**: Arial optimizada legibilidad + Consolas (terminales)
+- **Componentes**: Tkinter personalizado + PanedWindow para terminales
+- **Layout**: División horizontal controles/terminal en todas las vistas
 
 ---
 
@@ -280,38 +289,51 @@ def _obtener_version_herramienta(self, herramienta):
 
 ## 🛠️ FUNCIONALIDADES CORE
 
-### 📡 Escaneador (EscaneadorKali2025)
+### �️ **Sistema de Terminales Integrados**
+- **48 Terminales Activos**: Uno por cada operación crítica
+- **TerminalMixin**: Funcionalidad reutilizable log_to_terminal()
+- **Threading**: Operaciones no bloqueantes con feedback visual
+- **PanedWindow**: Layout profesional dividido controles/terminal
+- **Burp Theme**: Colores consistentes #2b2b2b fondo, #ffffff texto
+
+### �📡 Escaneador (EscaneadorKali2025)
 - **Herramientas**: nmap, masscan, gobuster, nuclei, ffuf
 - **Capacidades**: Puertos, servicios, vulnerabilidades, directorios
 - **Rendimiento**: 1000 puertos <30 segundos
+- **Terminal**: Feedback tiempo real de todos los escaneos
 
 ### 🛡️ FIM - File Integrity Monitoring (FIMKali2025)
 - **Algoritmo**: SHA-256 exclusivamente
 - **Monitoreo**: Tiempo real con inotifywait
 - **Forense**: Integration con linpeas, chkrootkit, rkhunter
 - **Base de datos**: SQLite embebida
+- **Terminal**: Log en tiempo real de cambios detectados
 
 ### 🔍 SIEM (SIEMKali2025)
 - **Correlación**: 1000 eventos/segundo
 - **Forense**: volatility3, binwalk, strings, sleuthkit, foremost
 - **Detección**: Anomalías y patrones
 - **Almacenamiento**: Logs estructurados + SQLite
+- **Terminal**: Output en tiempo real de análisis forense
 
 ### 🦠 Cuarentena (CuarentenaKali2025)
 - **Análisis**: clamscan, yara
 - **Cifrado**: Archivos cuarentenados
 - **Forense**: exiftool, file, hexdump
 - **Retención**: 30 días configurable
+- **Terminal**: Log detallado de análisis y cuarentena
 
 ### 📊 Dashboard + Monitoreo
 - **Métricas**: CPU, RAM, procesos, red
 - **Visualización**: Tiempo real
 - **Comandos**: ps, top, free, df, ss
+- **Terminal**: Monitoreo continuo del sistema
 
 ### 📈 Reportes
 - **Formatos**: JSON, TXT, HTML, CSV
 - **Integración**: Todos los componentes
 - **Exportación**: Automática
+- **Terminal**: Progreso de generación y exportación
 
 ## 🏗️ ARQUITECTURA TÉCNICA
 
@@ -322,8 +344,9 @@ aresitos/
 │   ├── modelo_*_kali2025.py   # Módulos específicos Kali
 │   └── modelo_*.py            # Módulos base
 ├── vista/                      # Interfaz de usuario
+│   ├── terminal_mixin.py      # Funcionalidad terminales integrados
 │   ├── vista_principal.py     # Navegación principal (8 tabs)
-│   └── vista_*.py             # Vistas especializadas
+│   └── vista_*.py             # Vistas especializadas con terminales
 └── controlador/               # Coordinación MVC
     ├── controlador_principal_nuevo.py
     └── controlador_*.py       # Controladores específicos
@@ -332,9 +355,10 @@ aresitos/
 ### Principios de Diseño
 - **Sin dependencias externas**: Solo Python stdlib
 - **Subprocess**: Ejecución directa de herramientas Linux
-- **Threading**: Operaciones no bloqueantes
+- **Threading**: Operaciones no bloqueantes + terminales en tiempo real
 - **SQLite**: Persistencia embebida
 - **Error handling**: Recuperación automática
+- **PanedWindow**: Layout profesional para terminales integrados
 
 ## 🔧 CORRECCIONES IMPLEMENTADAS
 

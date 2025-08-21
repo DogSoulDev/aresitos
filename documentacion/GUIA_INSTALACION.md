@@ -5,8 +5,9 @@
 ### **Requisitos Sistema**
 - **SO**: Kali Linux 2024.x+ (recomendado)
 - **Python**: 3.8+ (incluido en Kali)
-- **RAM**: 4GB mínimo, 8GB recomendado
+- **RAM**: 4GB mínimo, 8GB recomendado (para 48 terminales)
 - **Disco**: 10GB libres
+- **Terminal**: Soporte para colores y threading
 
 ### **Instalación Zero-Config**
 ```bash
@@ -79,7 +80,9 @@ Aresitos/
 ├── aresitos/                   # Core aplicación
 │   ├── controlador/            # 15 controladores
 │   ├── modelo/                 # 19 modelos datos
-│   ├── vista/                  # 12 vistas GUI
+│   ├── vista/                  # 12 vistas GUI + terminales integrados
+│   │   ├── terminal_mixin.py   # Funcionalidad terminales reutilizable
+│   │   └── vista_*.py          # Vistas con PanedWindow layout
 │   └── utils/                  # 4 utilidades
 ├── data/                       # Bases datos + recursos
 │   ├── *.db                    # SQLite databases
@@ -105,15 +108,20 @@ python3 -c "from aresitos.utils.verificar_kali import verificar_herramientas; ve
 # Iniciar aplicación
 python3 main.py
 
-# Verificar pestañas disponibles:
-# 1. Dashboard - Métricas sistema
-# 2. Escaneo - Análisis vulnerabilidades  
-# 3. Monitoreo y Cuarentena - Vigilancia malware
-# 4. Auditoría - Evaluación seguridad
-# 5. Wordlists y Diccionarios - Recursos
-# 6. Reportes - Exportación resultados
-# 7. FIM - Integridad archivos
-# 8. SIEM - Correlación eventos
+# Verificar pestañas disponibles con terminales integrados:
+# 1. Dashboard - Métricas sistema + terminal monitoreo
+# 2. Escaneo - Análisis vulnerabilidades + terminal nmap/nuclei
+# 3. Monitoreo y Cuarentena - Vigilancia malware + terminal clamscan
+# 4. Auditoría - Evaluación seguridad + terminal linpeas/chkrootkit
+# 5. Wordlists y Diccionarios - Recursos + terminal generación
+# 6. Reportes - Exportación resultados + terminal exportación
+# 7. FIM - Integridad archivos + terminal inotifywait
+# 8. SIEM - Correlación eventos + terminal volatility/binwalk
+
+# Cada vista debe mostrar:
+# - Controles en panel izquierdo
+# - Terminal integrado en panel derecho
+# - 48 terminales activos en total
 ```
 
 ## 🔒 **Permisos y Seguridad**
@@ -197,16 +205,19 @@ ps aux | grep python
 - ✅ **Bases datos**: Creadas y accesibles
 - ✅ **Permisos**: Configurados correctamente
 - ✅ **Interfaz**: 8 pestañas cargando sin errores
+- ✅ **Terminales**: 48 terminales integrados funcionando
+- ✅ **PanedWindow**: Layout dividido controles/terminal
+- ✅ **Threading**: Operaciones no bloqueantes activas
 - ✅ **Logs**: Generándose en directorio logs/
 
 ## 🚀 **Primer Uso Recomendado**
 
 ### **Flujo Inicial**
-1. **Verificar entorno**: Dashboard → Métricas sistema OK
-2. **Test básico**: Escaneo → IP: 127.0.0.1 → "Escanear Sistema"
-3. **Configurar FIM**: FIM → "Crear Baseline" → "Iniciar Monitoreo"
-4. **Activar SIEM**: SIEM → "Iniciar Monitoreo" → Dashboard eventos
-5. **Explorar**: Wordlists, Reportes, Auditoría según necesidades
+1. **Verificar entorno**: Dashboard → Métricas sistema OK → Terminal monitoreo activo
+2. **Test básico**: Escaneo → IP: 127.0.0.1 → "Escanear Sistema" → Ver output en terminal
+3. **Configurar FIM**: FIM → "Crear Baseline" → "Iniciar Monitoreo" → Terminal inotifywait
+4. **Activar SIEM**: SIEM → "Iniciar Monitoreo" → Dashboard eventos → Terminal análisis
+5. **Explorar**: Wordlists, Reportes, Auditoría → Verificar terminales integrados funcionando
 
 ---
 

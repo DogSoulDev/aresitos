@@ -260,131 +260,8 @@ class VistaDashboard(tk.Frame):
         # 2. Cheatsheets
         self.crear_pestana_chuletas()
         
-        # 3. Métricas del sistema
-        self.crear_pestana_metricas()
-        
-        # 4. Información de red (ÚLTIMO)
+        # 3. Información de red
         self.crear_pestana_red()
-    
-    def crear_pestana_metricas(self):
-        """Crear pestaña de métricas específicas para ciberseguridad."""
-        metricas_frame = tk.Frame(self.notebook, bg=self.colors['bg_primary'])
-        self.notebook.add(metricas_frame, text="Métricas del Sistema")
-        
-        # Frame para información del sistema
-        info_sistema_frame = tk.LabelFrame(
-            metricas_frame, 
-            text="Información del Sistema",
-            bg=self.colors['bg_secondary'],
-            fg=self.colors['fg_primary'],
-            font=("Arial", 12, "bold")
-        )
-        info_sistema_frame.pack(fill="x", padx=10, pady=5)
-        
-        # Sistema operativo y arquitectura
-        self.os_label = tk.Label(
-            info_sistema_frame,
-            text=f"OS: {platform.system()} {platform.release()} ({platform.architecture()[0]})",
-            bg=self.colors['bg_secondary'],
-            fg=self.colors['fg_primary'],
-            font=("Consolas", 10)
-        )
-        self.os_label.pack(anchor="w", padx=10, pady=2)
-        
-        # Hostname
-        self.hostname_label = tk.Label(
-            info_sistema_frame,
-            text=f"Hostname: {socket.gethostname()}",
-            bg=self.colors['bg_secondary'],
-            fg=self.colors['fg_primary'],
-            font=("Consolas", 10)
-        )
-        self.hostname_label.pack(anchor="w", padx=10, pady=2)
-        
-        # Usuario actual
-        self.user_label = tk.Label(
-            info_sistema_frame,
-            text=f"Usuario: {os.getenv('USERNAME', os.getenv('USER', 'Unknown'))}",
-            bg=self.colors['bg_secondary'],
-            fg=self.colors['fg_primary'],
-            font=("Consolas", 10)
-        )
-        self.user_label.pack(anchor="w", padx=10, pady=2)
-        
-        # Frame para métricas críticas
-        metricas_criticas_frame = tk.LabelFrame(
-            metricas_frame,
-            text="Métricas Críticas para Ciberseguridad",
-            bg=self.colors['bg_secondary'],
-            fg=self.colors['fg_primary'],
-            font=("Arial", 12, "bold")
-        )
-        metricas_criticas_frame.pack(fill="both", expand=True, padx=10, pady=5)
-        
-        # Uso de CPU
-        cpu_frame = tk.Frame(metricas_criticas_frame, bg=self.colors['bg_secondary'])
-        cpu_frame.pack(fill="x", padx=10, pady=5)
-        
-        tk.Label(cpu_frame, text=" CPU Usage:", 
-                bg=self.colors['bg_secondary'], fg=self.colors['fg_primary'],
-                font=("Arial", 10, "bold")).pack(side="left")
-        
-        self.cpu_label = tk.Label(cpu_frame, text="0.0%",
-                                 bg=self.colors['bg_secondary'], fg=self.colors['fg_accent'],
-                                 font=("Consolas", 10, "bold"))
-        self.cpu_label.pack(side="right")
-        
-        # Uso de memoria
-        memoria_frame = tk.Frame(metricas_criticas_frame, bg=self.colors['bg_secondary'])
-        memoria_frame.pack(fill="x", padx=10, pady=5)
-        
-        tk.Label(memoria_frame, text=" Memory Usage:",
-                bg=self.colors['bg_secondary'], fg=self.colors['fg_primary'],
-                font=("Arial", 10, "bold")).pack(side="left")
-        
-        self.memoria_label = tk.Label(memoria_frame, text="0.0%",
-                                     bg=self.colors['bg_secondary'], fg=self.colors['fg_accent'],
-                                     font=("Consolas", 10, "bold"))
-        self.memoria_label.pack(side="right")
-        
-        # Procesos activos
-        procesos_frame = tk.Frame(metricas_criticas_frame, bg=self.colors['bg_secondary'])
-        procesos_frame.pack(fill="x", padx=10, pady=5)
-        
-        tk.Label(procesos_frame, text=" Procesos Activos:",
-                bg=self.colors['bg_secondary'], fg=self.colors['fg_primary'],
-                font=("Arial", 10, "bold")).pack(side="left")
-        
-        self.procesos_label = tk.Label(procesos_frame, text="0",
-                                      bg=self.colors['bg_secondary'], fg=self.colors['fg_accent'],
-                                      font=("Consolas", 10, "bold"))
-        self.procesos_label.pack(side="right")
-        
-        # Estado de servicios críticos
-        servicios_frame = tk.Frame(metricas_criticas_frame, bg=self.colors['bg_secondary'])
-        servicios_frame.pack(fill="x", padx=10, pady=5)
-        
-        tk.Label(servicios_frame, text=" Estado SIEM:",
-                bg=self.colors['bg_secondary'], fg=self.colors['fg_primary'],
-                font=("Arial", 10, "bold")).pack(side="left")
-        
-        self.siem_label = tk.Label(servicios_frame, text=" Inactive",
-                                  bg=self.colors['bg_secondary'], fg=self.colors['fg_accent'],
-                                  font=("Consolas", 10, "bold"))
-        self.siem_label.pack(side="right")
-        
-        # Tiempo de actividad
-        uptime_frame = tk.Frame(metricas_criticas_frame, bg=self.colors['bg_secondary'])
-        uptime_frame.pack(fill="x", padx=10, pady=5)
-        
-        tk.Label(uptime_frame, text="⏱ Uptime Sistema:",
-                bg=self.colors['bg_secondary'], fg=self.colors['fg_primary'],
-                font=("Arial", 10, "bold")).pack(side="left")
-        
-        self.uptime_label = tk.Label(uptime_frame, text="Unknown",
-                                    bg=self.colors['bg_secondary'], fg=self.colors['fg_accent'],
-                                    font=("Consolas", 10, "bold"))
-        self.uptime_label.pack(side="right")
     
     def crear_pestana_red(self):
         """Crear pestaña de información de red."""
@@ -523,6 +400,18 @@ class VistaDashboard(tk.Frame):
         )
         btn_limpiar.pack(side="left", padx=5, fill="x", expand=True)
         
+        # Botón para abrir carpeta de logs
+        btn_ver_logs = tk.Button(
+            botones_control_frame,
+            text="📁 VER LOGS",
+            command=self.abrir_carpeta_logs,
+            bg='#007acc',
+            fg='white',
+            font=("Arial", 10, "bold"),
+            height=2
+        )
+        btn_ver_logs.pack(side="left", padx=5, fill="x", expand=True)
+        
         # Botón para abrir terminal externo
         btn_terminal_externo = tk.Button(
             botones_control_frame,
@@ -551,21 +440,21 @@ class VistaDashboard(tk.Frame):
         
         # Botones de comandos rápidos optimizados para Kali Linux
         comandos_rapidos = [
-            ("netstat -tuln", "RED Conexiones"),
+            ("ss -tuln 2>/dev/null || netstat -tuln 2>/dev/null", "RED Conexiones"),
             ("ps aux --sort=-%cpu | head -15", "SISTEMA Top CPU"),
             ("ip addr show", "RED Interfaces"),
-            ("nmap --version", "ESCANEO Nmap"),
+            ("nmap --version && nmap --help | head -5", "ESCANEO Nmap"),
             ("df -h", "DISCO Espacio"),
             ("free -h", "MEMORIA Uso"),
             ("whoami && id", "USUARIO Permisos"),
             ("uname -a", "INFO Sistema"),
-            ("ss -tuln | grep LISTEN", "RED Servicios"),
-            ("lsof -i | head -10", "RED Archivos"),
-            ("arp -a", "RED ARP"),
-            ("route -n", "RED Rutas"),
+            ("ss -tlnp 2>/dev/null | grep LISTEN || netstat -tlnp 2>/dev/null | grep LISTEN", "RED Servicios"),
+            ("lsof -i 2>/dev/null | head -15 || ss -tulpn 2>/dev/null | head -15", "RED Archivos"),
+            ("arp -a 2>/dev/null || ip neigh show", "RED ARP"),
+            ("route -n 2>/dev/null || ip route show", "RED Rutas"),
             ("cat /proc/cpuinfo | grep 'model name' | head -1", "CPU Info"),
-            ("lscpu | grep 'CPU(s)'", "CPU Cores"),
-            ("systemctl list-units --type=service --state=running | head -10", "SERVICIOS Activos")
+            ("lscpu | grep 'CPU(s)' || nproc", "CPU Cores"),
+            ("systemctl list-units --type=service --state=running | head -15", "SERVICIOS Activos")
         ]
         
         # Crear grid de botones
@@ -683,6 +572,72 @@ class VistaDashboard(tk.Frame):
             self.terminal_output.insert(tk.END, "🧹 TERMINAL LIMPIADO\n")
             self.terminal_output.insert(tk.END, f" {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}\n")
             self.terminal_output.insert(tk.END, "="*80 + "\n\n")
+    
+    def abrir_carpeta_logs(self):
+        """Abrir carpeta de logs del escaneador en Kali Linux."""
+        import os
+        import subprocess
+        
+        try:
+            # Rutas posibles de logs en orden de prioridad
+            rutas_logs = [
+                "logs/",  # Carpeta logs del proyecto
+                "./logs/",
+                os.path.expanduser("~/Ares/Aresitos/logs/"),
+                "/var/log/aresitos/",
+                "/tmp/aresitos_logs/"
+            ]
+            
+            carpeta_encontrada = None
+            for ruta in rutas_logs:
+                if os.path.exists(ruta) and os.path.isdir(ruta):
+                    carpeta_encontrada = os.path.abspath(ruta)
+                    break
+            
+            if carpeta_encontrada:
+                # Intentar abrir con gestor de archivos de Kali
+                gestores_archivos = [
+                    "thunar",           # XFCE (Kali predeterminado)
+                    "nautilus",         # GNOME
+                    "dolphin",          # KDE
+                    "pcmanfm",          # LXDE
+                    "caja",             # MATE
+                    "nemo",             # Cinnamon
+                    "xdg-open"          # Genérico
+                ]
+                
+                for gestor in gestores_archivos:
+                    try:
+                        subprocess.run([gestor, carpeta_encontrada], 
+                                     check=True, 
+                                     stdout=subprocess.DEVNULL, 
+                                     stderr=subprocess.DEVNULL)
+                        self.escribir_terminal(f"OK Carpeta de logs abierta: {carpeta_encontrada}", "[LOGS]")
+                        return
+                    except (subprocess.CalledProcessError, FileNotFoundError):
+                        continue
+                
+                # Si no funcionó ningún gestor, mostrar ruta
+                self.escribir_terminal(f"INFO Carpeta de logs: {carpeta_encontrada}", "[LOGS]")
+                self.escribir_terminal("Use: cd " + carpeta_encontrada, "[COMANDO]")
+                
+            else:
+                # Crear carpeta de logs si no existe
+                logs_dir = "logs"
+                os.makedirs(logs_dir, exist_ok=True)
+                self.escribir_terminal(f"CREADO Carpeta de logs creada: {os.path.abspath(logs_dir)}", "[LOGS]")
+                
+                # Intentar abrirla
+                try:
+                    subprocess.run(["xdg-open", os.path.abspath(logs_dir)], 
+                                 check=True, 
+                                 stdout=subprocess.DEVNULL, 
+                                 stderr=subprocess.DEVNULL)
+                except:
+                    self.escribir_terminal(f"INFO Acceda manualmente: {os.path.abspath(logs_dir)}", "[LOGS]")
+                    
+        except Exception as e:
+            self.escribir_terminal(f"ERROR abriendo carpeta de logs: {e}", "[ERROR]")
     
     def obtener_terminal_integrado(self):
         """Obtener referencia al terminal integrado global."""
@@ -811,9 +766,6 @@ class VistaDashboard(tk.Frame):
             return
         
         try:
-            # Actualizar métricas del sistema
-            self._actualizar_metricas_sistema()
-            
             # Actualizar información de red
             self._actualizar_info_red()
             
@@ -826,90 +778,6 @@ class VistaDashboard(tk.Frame):
         # Programar siguiente actualización en 60 segundos
         if self.actualizacion_activa:
             self.after(60000, self.actualizar_metricas)  # 60 segundos = 60000 ms
-    
-    def _actualizar_metricas_sistema(self):
-        """Actualizar métricas del sistema."""
-        try:
-            # CPU Usage con comando nativo top
-            try:
-                result = subprocess.run(['top', '-bn1'], capture_output=True, text=True, timeout=5)
-                for line in result.stdout.split('\n'):
-                    if 'Cpu(s):' in line or '%Cpu' in line:
-                        # Extraer porcentaje usado
-                        parts = line.split()
-                        for i, part in enumerate(parts):
-                            if 'us' in part and i > 0:
-                                cpu_percent = float(parts[i-1].replace('%', ''))
-                                break
-                        else:
-                            cpu_percent = 0.0
-                        break
-                else:
-                    cpu_percent = 0.0
-            except (subprocess.SubprocessError, ValueError):
-                cpu_percent = 0.0
-            
-            self.cpu_label.configure(text=f"{cpu_percent:.1f}%")
-            
-            # Memory Usage con comando free
-            try:
-                result = subprocess.run(['free'], capture_output=True, text=True, timeout=5)
-                lines = result.stdout.split('\n')
-                for line in lines:
-                    if 'Mem:' in line:
-                        parts = line.split()
-                        total = int(parts[1])
-                        used = int(parts[2])
-                        memoria_percent = (used / total) * 100
-                        break
-                else:
-                    memoria_percent = 0.0
-            except (subprocess.SubprocessError, ValueError, IndexError):
-                memoria_percent = 0.0
-                
-            self.memoria_label.configure(text=f"{memoria_percent:.1f}%")
-            
-            # Procesos activos con ps
-            try:
-                result = subprocess.run(['ps', 'aux'], capture_output=True, text=True, timeout=5)
-                procesos = len(result.stdout.split('\n')) - 2  # Restar header y línea vacía
-            except subprocess.SubprocessError:
-                procesos = 0
-                
-            self.procesos_label.configure(text=str(procesos))
-            
-            # Uptime del sistema con uptime
-            try:
-                result = subprocess.run(['uptime'], capture_output=True, text=True, timeout=5)
-                uptime_str = result.stdout.strip()
-                # Extraer tiempo de funcionamiento
-                if 'day' in uptime_str:
-                    days = uptime_str.split('day')[0].split()[-1]
-                    time_part = uptime_str.split(',')[1].strip()
-                else:
-                    days = "0"
-                    time_part = uptime_str.split('up')[1].split(',')[0].strip()
-                
-                # Formatear para mostrar horas y minutos
-                if ':' in time_part:
-                    hours, minutes = time_part.split(':')
-                    hours = hours.strip()
-                    minutes = minutes.strip()
-                else:
-                    hours = "0"
-                    minutes = "0"
-                    
-                uptime_display = f"{hours}h {minutes}m"
-                if days != "0":
-                    uptime_display = f"{days}d {uptime_display}"
-                    
-            except (subprocess.SubprocessError, IndexError):
-                uptime_display = "0h 0m"
-                
-            self.uptime_label.configure(text=uptime_display)
-            
-        except Exception as e:
-            print(f"Error actualizando métricas del sistema: {e}")
     
     def _actualizar_info_red(self):
         """Actualizar información de red."""
@@ -1058,21 +926,8 @@ class VistaDashboard(tk.Frame):
     
     def _actualizar_estado_servicios(self):
         """Actualizar estado de servicios de seguridad."""
-        try:
-            if (hasattr(self, 'controlador') and self.controlador and
-                hasattr(self.controlador, 'modelo')):
-                # Verificar si el SIEM está activo
-                if hasattr(self.controlador.modelo, 'siem_avanzado'):
-                    siem_activo = self.controlador.modelo.siem_avanzado is not None
-                    self.siem_label.configure(text=" Active" if siem_activo else " Inactive")
-                else:
-                    self.siem_label.configure(text=" Inactive")
-            else:
-                self.siem_label.configure(text=" Inactive")
-                
-        except Exception as e:
-            print(f"Error actualizando estado de servicios: {e}")
-            self.siem_label.configure(text=" Error")
+        # Función simplificada - métricas eliminadas
+        pass
     
     def crear_pestana_chuletas(self):
         """Crear pestaña de cheatsheets/chuletas de ciberseguridad."""

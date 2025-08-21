@@ -1260,14 +1260,20 @@ class VistaEscaneo(tk.Frame):
                         resultado_red = subprocess.run(['nmap', '-sn', '192.168.1.0/24'], 
                                                      capture_output=True, text=True, timeout=30)
                         if resultado_red.returncode == 0:
-                            hosts_up = resultado_red.stdout.count('Host is up')
-                            self._actualizar_texto_seguro(f"HOSTS ACTIVOS: {hosts_up} dispositivos detectados en red local\n")
-                            # Mostrar IPs encontradas
+                            # Filtrar solo hosts que están UP
                             lineas = resultado_red.stdout.split('\n')
-                            for linea in lineas:
-                                if 'Nmap scan report for' in linea:
-                                    ip = linea.split()[-1]
-                                    self._actualizar_texto_seguro(f"  HOST: {ip}\n")
+                            hosts_activos = []
+                            for i, linea in enumerate(lineas):
+                                if 'Nmap scan report for' in linea and i + 1 < len(lineas):
+                                    if 'Host is up' in lineas[i + 1]:
+                                        ip = linea.split()[-1]
+                                        hosts_activos.append(ip)
+                            
+                            hosts_up = len(hosts_activos)
+                            self._actualizar_texto_seguro(f"HOSTS ACTIVOS: {hosts_up} dispositivos detectados en red local\n")
+                            # Mostrar solo IPs activas
+                            for ip in hosts_activos:
+                                self._actualizar_texto_seguro(f"  HOST: {ip}\n")
                         else:
                             self._actualizar_texto_seguro("ERROR: Escaneo nmap falló\n")
                     except subprocess.TimeoutExpired:
