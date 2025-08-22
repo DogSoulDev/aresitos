@@ -1,34 +1,40 @@
-# ARESITOS v2.0 - Guía de Instalación
+# Guía de Instalación - Aresitos
 
-## Requisitos del Sistema
+## ¿Qué necesitas?
 
-### Sistema Operativo Soportado
-- **Kali Linux 2024.x o superior** (recomendado)
-- **Parrot Security OS** (versiones recientes)
-- **BlackArch Linux** (con adaptaciones menores)
-- **Ubuntu/Debian** (modo desarrollo limitado)
+### Sistema Operativo
+- **Kali Linux** (recomendado)
+- **Parrot Security OS** 
+- **Ubuntu/Debian** (funcionalidad limitada)
 
 ### Requisitos Técnicos
-- **Python**: 3.8 o superior (incluido en Kali Linux)
-- **Espacio en disco**: 100MB mínimo para instalación completa
-- **RAM**: 512MB mínimo (2GB recomendado para operaciones intensivas)
-- **Permisos**: Acceso sudo para herramientas del sistema
+- **Python 3.8** o superior
+- **100MB** de espacio en disco
+- **512MB** de RAM mínimo
+- **Permisos sudo** para herramientas del sistema
 
-### Herramientas de Kali Linux Necesarias
+## Instalación Rápida
+
+### 3 Pasos Simples
+
+1. **Descargar Aresitos**
 ```bash
-# 1. Clonar el repositorio
 git clone https://github.com/DogSoulDev/Aresitos.git
 cd Aresitos
+```
 
-# 2. Ejecutar configuración automática
+2. **Configurar automáticamente**
+```bash
 chmod +x configurar_kali.sh
 sudo ./configurar_kali.sh
+```
 
-# 3. Iniciar la aplicación
+3. **Ejecutar Aresitos**
+```bash
 python3 main.py
 ```
 
-## Proceso de Instalación Completo
+## Instalación Detallada
 
 ### Paso 1: Clonación del Repositorio
 ```bash

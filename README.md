@@ -1,356 +1,149 @@
-![ARESITOS](aresitos/recursos/Aresitos.ico)
+# Aresitos - Herramienta de Ciberseguridad
 
-# ARESITOS v2.0 - Suite Avanzada de Ciberseguridad
-**Plataforma Profesional de Ciberseguridad Exclusiva para Kali Linux 2025**
+**Suite profesional de ciberseguridad para Kali Linux**
 
-[![Versión](https://img.shields.io/badge/versión-v2.0%20Professional-brightgreen.svg)](https://github.com/DogSoulDev/Aresitos)
-[![Kali Linux](https://img.shields.io/badge/Kali%20Linux-2025-blue.svg)](https://www.kali.org/)
-[![Python](https://img.shields.io/badge/Python-3.9%2B%20Native-yellow.svg)](https://www.python.org/)
-[![Arquitectura](https://img.shields.io/badge/Arquitectura-MVC%20SOLID-orange.svg)](README.md)
-[![SIEM](https://img.shields.io/badge/SIEM-Integrado-red.svg)](README.md)
-[![FIM](https://img.shields.io/badge/FIM-Real%20Time-purple.svg)](README.md)
+## Descripción
 
-**ARESITOS v2.0** es la suite de ciberseguridad más avanzada para profesionales, exclusivamente optimizada para **Kali Linux 2025**. Combina las herramientas más modernas del arsenal de seguridad en una plataforma unificada con capacidades SIEM, FIM en tiempo real, cuarentena inteligente y auditorías profesionales.
+**Aresitos** es una herramienta completa de ciberseguridad diseñada específicamente para Kali Linux. Integra múltiples funcionalidades de seguridad en una interfaz unificada y fácil de usar.
 
----
+## Características Principales
 
-## 🚀 **INSTALACIÓN INSTANTÁNEA (30 segundos)**
+- **Escáner de Vulnerabilidades**: Detección automatizada usando herramientas nativas de Kali
+- **SIEM Integrado**: Monitoreo de seguridad en tiempo real
+- **File Integrity Monitoring (FIM)**: Vigilancia de archivos críticos del sistema
+- **Sistema de Cuarentena**: Aislamiento seguro de amenazas detectadas
+- **Auditoría de Sistema**: Evaluación automática de la postura de seguridad
+- **Generación de Reportes**: Informes profesionales en múltiples formatos
+- **Terminal Integrado**: Acceso directo a herramientas del sistema
 
-### ⚡ **Método Automático - Recomendado**
+## Instalación Rápida
+
 ```bash
-# Clonar y ejecutar configuración automática
-git clone https://github.com/DogSoulDev/Aresitos.git && cd Aresitos
-chmod +x configurar_kali.sh && sudo ./configurar_kali.sh
-python3 main.py
-```
-
-### 🔧 **Método Manual - Control Total**
-```bash
-# 1. Descargar ARESITOS
+# Clonar el repositorio
 git clone https://github.com/DogSoulDev/Aresitos.git
 cd Aresitos
 
-# 2. Configurar entorno Kali 2025
+# Configurar el entorno (solo para Kali Linux)
+chmod +x configurar_kali.sh
 sudo ./configurar_kali.sh
 
-# 3. Verificar instalación
-python3 verificacion_final.py
-
-# 4. ¡Iniciar ARESITOS v2.0!
+# Ejecutar Aresitos
 python3 main.py
 ```
 
-### 🛠️ **Modo Desarrollo (Otros Sistemas)**
-```bash
-# Para testing en sistemas no-Kali (funcionalidad limitada)
-python3 main.py --dev
-```
+## Requisitos del Sistema
+
+- **Sistema Operativo**: Kali Linux (recomendado)
+- **Python**: 3.9 o superior
+- **Memoria RAM**: 4GB mínimo
+- **Espacio en disco**: 500MB para instalación completa
+
+## Arquitectura
+
+Aresitos utiliza una arquitectura **MVC (Modelo-Vista-Controlador)** limpia y modular:
+
+- **Vista**: Interfaces de usuario con tkinter nativo
+- **Controlador**: Lógica de negocio y coordinación
+- **Modelo**: Procesamiento de datos y análisis
+- **Utils**: Utilidades y componentes transversales
+
+## Módulos Principales
+
+### 🎯 Dashboard
+Centro de control con métricas del sistema en tiempo real
+
+### 🔍 Escáner
+Reconocimiento y análisis de vulnerabilidades usando:
+- nmap para escaneo de puertos
+- nuclei para vulnerabilidades web
+- rustscan para escaneos rápidos
+
+### 🛡️ SIEM
+Sistema de monitoreo de eventos de seguridad:
+- Detección de anomalías
+- Correlación de eventos
+- Alertas automáticas
+
+### 📁 FIM (File Integrity Monitoring)
+Vigilancia de archivos críticos:
+- Detección de cambios en tiempo real
+- Verificación de integridad con checksums
+- Alertas de modificaciones no autorizadas
+
+### 🔒 Cuarentena
+Sistema de aislamiento de amenazas:
+- Detección automática de malware
+- Aislamiento seguro preservando evidencia
+- Gestión de archivos en cuarentena
+
+### 📊 Reportes
+Generación de informes profesionales:
+- Reportes ejecutivos y técnicos
+- Múltiples formatos de exportación
+- Análisis de tendencias
+
+### ⚙️ Auditoría
+Evaluación automática de seguridad:
+- Análisis de configuraciones
+- Detección de vulnerabilidades del sistema
+- Recomendaciones de hardening
+
+## Uso Básico
+
+1. **Inicio**: Ejecutar `python3 main.py`
+2. **Login**: Autenticarse en el sistema
+3. **Dashboard**: Verificar el estado general del sistema
+4. **Módulos**: Navegar entre las diferentes funcionalidades
+5. **Reportes**: Generar informes de los análisis realizados
+
+## Herramientas Integradas
+
+Aresitos integra las siguientes herramientas nativas de Kali Linux:
+
+- **Análisis**: nmap, masscan, rustscan, nuclei
+- **Web**: gobuster, feroxbuster, nikto, whatweb
+- **Sistema**: lynis, chkrootkit, linpeas, pspy
+- **Forense**: strings, file, hexdump
+- **Red**: ss, netstat, iptables, ufw
+
+## Configuración
+
+La configuración se realiza automáticamente durante la instalación. Para configuraciones avanzadas, consulte los archivos en la carpeta `configuración/`.
+
+## Documentación
+
+Documentación detallada disponible en la carpeta `documentacion/`:
+
+- `DOCUMENTACION_TECNICA_CONSOLIDADA.md`: Manual técnico completo
+- `ARQUITECTURA_DESARROLLO.md`: Guía de desarrollo
+- `GUIA_INSTALACION.md`: Instrucciones de instalación detalladas
+
+## Soporte
+
+- **Repositorio**: https://github.com/DogSoulDev/Aresitos
+- **Issues**: Reportar problemas en GitHub Issues
+- **Email**: dogsouldev@protonmail.com
+
+## Licencia
+
+Open Source Non-Commercial License
+
+### Uso Permitido
+- Educación e investigación
+- Uso personal en sistemas propios
+- Proyectos de código abierto
+
+### Uso Prohibido
+- Uso comercial sin autorización
+- Servicios de consultoría pagados
+- Incorporación en productos comerciales
+
+## Dedicatoria
+
+Este proyecto está dedicado con amor a **Ares**, mi compañero Golden Retriever que fue la inspiración para crear esta herramienta de ciberseguridad.
+
+*"Protegiendo lo que más valoramos"*
 
 ---
 
-## 🏗️ **ARQUITECTURA ARESITOS v2.0**
-
-### 🔐 **Sistema de Autenticación Avanzado**
-![Vista Login](aresitos/recursos/vista_login.png)
-
-**Centro de Control de Acceso y Verificación del Sistema**
-
-**Características Principales:**
-- ✅ **Verificación automática** de herramientas Kali 2025
-- ✅ **SudoManager integrado** - Sin solicitudes repetitivas de contraseña
-- ✅ **Rate limiting** contra ataques de fuerza bruta
-- ✅ **Configuración automática** de herramientas missing
-- ✅ **Modo desarrollo** para testing en otros sistemas
-
-**¿Cómo funciona?**
-El sistema verifica automáticamente que tengas instaladas +25 herramientas críticas, configura permisos especiales y establece una sesión sudo persistente para toda la aplicación.
-
-### ⚙️ **Configurador Inteligente de Herramientas**
-![Vista Herramientas](aresitos/recursos/vista_herramientas.png)
-
-**Instalación y Configuración Automática de Arsenal Completo**
-
-**Herramientas Instaladas Automáticamente:**
-- 🔍 **Scanners**: nmap, masscan, rustscan, zmap
-- 🌐 **Web**: nuclei, httpx, gobuster, feroxbuster, dirb
-- 🔓 **Exploitation**: sqlmap, nikto, whatweb
-- 📊 **Analysis**: linpeas, pspy, chkrootkit, lynis
-- 🛡️ **Defense**: fail2ban, ufw, aide
-- 🔑 **Passwords**: hydra, john, hashcat, crunch
-
-**Configuraciones Automáticas:**
-- ✅ Permisos CAP_NET_RAW para escaneos SYN
-- ✅ Bases de datos de vulnerabilidades actualizadas
-- ✅ Wordlists y diccionarios especializados
-- ✅ Templates nuclei premium y custom
-- ✅ Configuración de firewall adaptativa
-
-### 🎯 **Dashboard Profesional - Centro de Operaciones**
-![Vista Aresitos](aresitos/recursos/vista_aresitos.png)
-
-**Central de Comandos Unificada con Monitoreo en Tiempo Real**
-
-#### **Módulos Integrados:**
-
-🎛️ **Dashboard Ejecutivo**
-- Monitor de sistema en tiempo real (60s refresh)
-- Métricas de red avanzadas con gráficos
-- Status de servicios críticos
-- Terminal integrado con historial persistent
-
-🔍 **Escáner Profesional** 
-- Integración nuclei con templates actualizados
-- Escaneo masivo con rustscan + nmap
-- Detección de servicios y versiones
-- Análisis de superficie de ataque completo
-
-🛡️ **SIEM Integrado**
-- Monitoreo de 50+ puertos críticos en tiempo real
-- Correlación automática de eventos de seguridad
-- Detección de anomalías comportamentales
-- Alertas inteligentes con contexto completo
-
-📁 **FIM (File Integrity Monitoring)**
-- Vigilancia de 60+ directorios críticos del sistema
-- Detección en tiempo real de modificaciones
-- Checksums SHA256 para integridad absoluta
-- Alertas inmediatas de cambios no autorizados
-
-🔒 **Sistema de Cuarentena Avanzado**
-- Detección automática de malware conocido
-- Aislamiento seguro preservando evidencia forense
-- Análisis de comportamiento sospechoso
-- Gestión de false positives inteligente
-
-📊 **Generador de Reportes Profesionales**
-- Informes ejecutivos y técnicos
-- Integración completa de todos los módulos
-- Exportación múltiple: JSON, TXT, CSV
-- Templates personalizables por industria
-
-📚 **Gestor de Inteligencia**
-- Base de datos de vulnerabilidades localizada
-- Wordlists categorizadas por técnica
-- Diccionarios especializados por sector
-- Cheatsheets de herramientas integradas
-
-⚙️ **Auditoría de Sistema Automatizada**
-- Lynis con configuración optimizada para Kali
-- Chkrootkit con heurísticas avanzadas
-- Análisis de configuraciones de seguridad
-- Recomendaciones priorizadas por riesgo
-
----
-
-## 🎯 **CASOS DE USO PROFESIONALES**
-
-### 👨‍🎓 **Para Estudiantes de Ciberseguridad**
-- ✅ **Laboratorio completo**: Entorno real con herramientas profesionales
-- ✅ **Aprendizaje guiado**: Interfaces intuitivas con documentación integrada
-- ✅ **Práctica segura**: Sandbox controlado para experimentación
-- ✅ **Progresión natural**: Desde básico hasta técnicas avanzadas de pentesting
-
-### 👨‍💼 **Para Profesionales SOC/Blue Team**
-- ✅ **Monitoreo centralizado**: SIEM integrado con correlación automática
-- ✅ **Respuesta a incidentes**: FIM + Cuarentena para containment rápido
-- ✅ **Reportes ejecutivos**: Métricas claras para management
-- ✅ **Automatización**: Reduce tiempo de análisis manual en 80%
-
-### 🔴 **Para Red Team/Pentesters**
-- ✅ **Reconocimiento avanzado**: Nuclei + Rustscan para cobertura completa
-- ✅ **Superficie de ataque**: Mapeo automático de servicios y vulnerabilidades
-- ✅ **Documentación automática**: Reportes técnicos listos para entrega
-- ✅ **Arsenal unificado**: +25 herramientas en interface coherente
-
-### 🏢 **Para Equipos Corporativos**
-- ✅ **Compliance**: Auditorías automáticas según frameworks (ISO 27001, NIST)
-- ✅ **Gestión de vulnerabilidades**: Identificación y priorización automática
-- ✅ **Monitoreo continuo**: Vigilancia 24/7 de activos críticos
-- ✅ **ROI medible**: Reducción de tiempo de assessment en 70%
-
----
-
-## ⭐ **CARACTERÍSTICAS AVANZADAS v2.0**
-
-### 🛠️ **Arsenal de Herramientas Modernas**
-**Escáner de Vulnerabilidades de Nueva Generación:**
-- 🚀 **Nuclei Engine**: +4000 templates actualizados automáticamente
-- ⚡ **RustScan**: Escaneo de puertos 10x más rápido que nmap tradicional
-- 🌐 **HTTPx**: Sondeo web masivo con detección de tecnologías
-- 🔍 **Feroxbuster**: Directory fuzzing con técnicas anti-WAF
-
-**Herramientas de Análisis Avanzado:**
-- 📊 **LinPEAS**: Escalada de privilegios con heurísticas ML
-- 👁️ **Pspy**: Monitoreo de procesos sin permisos root
-- 🔐 **Lynis**: Auditoría de hardening con 300+ checks
-- 🔍 **Chkrootkit**: Detección de rootkits con signatures actualizadas
-
-### 🔒 **Seguridad y Privacidad**
-- ✅ **Zero Dependencies**: Solo Python nativo, sin librerías externas
-- ✅ **Offline Capability**: Funciona completamente sin internet
-- ✅ **Local Processing**: Todos los datos se procesan localmente
-- ✅ **Audit Trail**: Logging completo de todas las operaciones
-- ✅ **Encryption**: SHA256 para integridad, AES para datos sensibles
-
-### 📋 **Reportes de Nivel Empresarial**
-- 📋 **Executive Summary**: Métricas de alto nivel para C-Level
-- 📊 **Technical Deep-Dive**: Análisis detallado para técnicos
-- 📈 **Trend Analysis**: Evolución de la postura de seguridad
-- 🎯 **Risk Prioritization**: Vulnerabilidades ordenadas por impacto real
-
----
-
-## 🔧 **INFORMACIÓN TÉCNICA AVANZADA**
-
-### 🏗️ **Arquitectura SOLID + MVC**
-```
-ARESITOS v2.0/
-├── 🎨 Vista (UI Layer)          - 13 interfaces especializadas
-├── 🎮 Controlador (Logic)       - 15 módulos de lógica de negocio  
-├── 💾 Modelo (Data)            - 19 módulos de procesamiento
-├── 🔧 Utils (Infrastructure)   - Componentes transversales
-└── 📊 Data (Intelligence)      - Bases de conocimiento
-```
-
-**Principios de Diseño:**
-- ✅ **Single Responsibility**: Cada clase tiene una función específica
-- ✅ **Open/Closed**: Extensible sin modificar código existente  
-- ✅ **Liskov Substitution**: Interfaces consistentes y predecibles
-- ✅ **Interface Segregation**: APIs específicas para cada caso de uso
-- ✅ **Dependency Inversion**: Abstracciones sobre implementaciones
-
-### 💻 **Compatibilidad y Requisitos**
-
-**Sistemas Soportados:**
-- ✅ **Kali Linux 2025** - Funcionalidad completa optimizada
-- ✅ **Kali Linux 2024** - Compatibilidad total verificada
-- ✅ **Parrot Security** - Soporte nativo para todas las funciones
-- ⚠️ **BlackArch** - Funciones básicas, configuración manual requerida
-- ⚠️ **Ubuntu/Debian** - Modo limitado, ideal para desarrollo
-- ❌ **Windows/macOS** - No soportado oficialmente
-
-**Especificaciones Técnicas:**
-- 🐍 **Python**: 3.9+ (optimización async/await)
-- 💾 **RAM**: 4GB mínimo, 8GB recomendado para análisis pesado
-- 💿 **Almacenamiento**: 500MB para instalación completa
-- 🌐 **Red**: Offline capability, internet opcional para updates
-- 🔐 **Permisos**: sudo para configuración inicial únicamente
-
-**Dependencias del Sistema:**
-- ✅ **Librerías nativas**: Tkinter, subprocess, threading, json
-- ✅ **Herramientas Kali**: Auto-instalación de arsenal completo
-- ✅ **Configuración**: Automatizada 100% via configurar_kali.sh
-- ❌ **PIP packages**: Zero external dependencies
-
----
-
-## 📚 **GUÍA DE INICIO RÁPIDO**
-
-### 🚀 **Primera Ejecución (5 minutos)**
-1. **Clonar repositorio**: `git clone https://github.com/DogSoulDev/Aresitos.git`
-2. **Entrar al directorio**: `cd Aresitos`
-3. **Configuración automática**: `sudo ./configurar_kali.sh`
-4. **Iniciar aplicación**: `python3 main.py`
-5. **Login**: Usuario por defecto o crear nuevo perfil
-6. **¡Explorar!**: Acceso inmediato a los 8 módulos principales
-
-### 📖 **Flujo de Trabajo Típico**
-1. **Dashboard**: Verificar estado del sistema y alertas activas
-2. **Escáner**: Reconocimiento y mapeo de objetivos
-3. **SIEM**: Monitoreo continuo y detección de anomalías
-4. **FIM**: Verificación de integridad de sistemas críticos
-5. **Auditoría**: Evaluación de postura de seguridad propia
-6. **Reportes**: Documentación profesional de hallazgos
-
-### 🔧 **Comandos Esenciales**
-```bash
-# Verificar estado completo del sistema
-python3 verificacion_final.py
-
-# Modo desarrollo (sistemas no-Kali)
-python3 main.py --dev
-
-# Actualizar configuración
-sudo ./configurar_kali.sh --update
-
-# Debug completo
-python3 main.py --verbose
-```
-
----
-
-## 📞 **SOPORTE Y COMUNIDAD**
-
-### 📖 **Documentación Completa**
-- 📚 **Manual técnico**: `/documentacion/DOCUMENTACION_TECNICA_CONSOLIDADA.md`
-- 🏗️ **Guía desarrollo**: `/documentacion/ARQUITECTURA_DESARROLLO.md`
-- 🛡️ **Auditoría seguridad**: `/documentacion/AUDITORIA_SEGURIDAD_ARESITOS.md`
-- 💻 **Terminal integrado**: `/documentacion/TERMINAL_INTEGRADO.md`
-
-### 🤝 **Contacto y Contribución**
-- 🌐 **Repositorio oficial**: https://github.com/DogSoulDev/Aresitos
-- 🐛 **Reportar issues**: GitHub Issues con templates predefinidos
-- 💌 **Email desarrollo**: dogsouldev@protonmail.com
-- 🔗 **LinkedIn**: [DogSoulDev](https://linkedin.com/in/dogsouldev)
-
-### 🎯 **Roadmap v2.1**
-- 🤖 **IA Integration**: ML para detección automática de amenazas
-- 📱 **Mobile Dashboard**: Aplicación móvil para monitoreo remoto
-- ☁️ **Cloud Connector**: Integración con SIEM corporativos
-- 🌐 **API REST**: Endpoints para automatización externa
-
----
-
-## 📜 **LICENCIA Y USO ÉTICO**
-
-### **Open Source Non-Commercial License**
-
-#### **✅ USO PERMITIDO (GRATUITO)**
-- 🎓 **Educación**: Universidades, estudiantes, investigación académica
-- 🛡️ **Seguridad personal**: Testing en sistemas propios o autorizados
-- 🌐 **Open Source**: Proyectos de código abierto sin monetización
-- 📚 **Aprendizaje**: Cursos, talleres, capacitación sin fines de lucro
-- 🤝 **Comunidad**: Compartir conocimientos y mejoras
-
-#### **❌ USO PROHIBIDO (COMERCIAL)**
-- 💰 **Venta directa**: No se puede vender ARESITOS o derivados
-- 🏢 **Consultoría comercial**: No usar para servicios pagos de pentesting
-- 📦 **Productos comerciales**: No incorporar en software comercial
-- 💳 **Monetización**: Cursos pagos, suscripciones, licencias comerciales
-- 🏪 **Servicios**: No ofrecer como SaaS o servicios managed
-
-#### **📋 ATRIBUCIÓN OBLIGATORIA**
-**TODO uso debe incluir:**
-- 👨‍💻 **Creador**: DogSoulDev
-- 📧 **Contacto**: dogsouldev@protonmail.com
-- 🔗 **Fuente**: https://github.com/DogSoulDev/Aresitos
-- 📄 **Licencia**: Open Source Non-Commercial
-
-### **🛡️ CÓDIGO DE ÉTICA**
-- ✅ **Solo sistemas autorizados** - Con permiso explícito por escrito
-- ✅ **Propósitos constructivos** - Mejorar la seguridad, no dañar
-- ✅ **Divulgación responsable** - Reportar vulnerabilidades apropiadamente
-- ❌ **Actividades ilegales** - Prohibido para hacking malicioso
-- ❌ **Daño intencional** - No usar para comprometer sistemas
-
----
-
-## 🐕 **DEDICATORIA ESPECIAL**
-
-### En Memoria de Ares
-*25 de Abril 2013 - 5 de Agosto 2025*
-
-**ARESITOS v2.0** se dedica con amor infinito a mi compañero, guardián, y mejor amigo, **Ares**. Un Golden Retriever que durante 12 años fue mi inspiración constante, mi motivación para crear, y mi recordatorio diario de que la lealtad y el amor incondicional son las fuerzas más poderosas del universo.
-
-Cada línea de código en este proyecto lleva su espíritu: la persistencia para nunca rendirse, la curiosidad para explorar lo desconocido, y la protección feroz de lo que más valoramos.
-
-**ARESITOS** no es solo una herramienta de ciberseguridad; es un legado de amor convertido en código, una manera de asegurar que su memoria viva para siempre ayudando a proteger lo que otros aman.
-
-*"Hasta que volvamos a vernos en los campos infinitos donde corren todos los buenos perros."*
-
-**Con amor eterno,**  
-**DogSoulDev**
-
----
-
-*© 2025 DogSoulDev - ARESITOS v2.0 - Open Source Non-Commercial License*
+**Creado por DogSoulDev**

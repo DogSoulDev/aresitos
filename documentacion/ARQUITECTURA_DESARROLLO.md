@@ -1,54 +1,40 @@
-# ARESITOS v2.0 - Arquitectura y Desarrollo
+# Guía de Desarrollo - Aresitos
 
-## 🏗️ **Arquitectura MVC**
+## Arquitectura del Sistema
 
-### **Principios de Diseño**
-- **MVC estricto**: Separación Modelo-Vista-Controlador
-- **Python stdlib**: Zero dependencias externas
-- **Threading nativo**: Operaciones no bloqueantes
-- **Kali optimizado**: Herramientas Linux integradas
+**Aresitos** usa el patrón **MVC** (Modelo-Vista-Controlador) para organizar el código de manera clara y mantenible.
 
-### **Estructura de Directorios**
+### Estructura del Proyecto
 ```
 aresitos/
-├── controlador/     # 15 archivos - Lógica coordinación
-├── modelo/          # 19 archivos - Datos y persistencia
-├── vista/           # 12 archivos - Interfaz usuario
-└── utils/           # 4 archivos - Utilidades sistema
+├── controlador/     # Lógica de negocio (15 archivos)
+├── modelo/          # Gestión de datos (19 archivos)  
+├── vista/           # Interfaz de usuario (12 archivos)
+└── utils/           # Utilidades del sistema (4 archivos)
 ```
 
-## 📊 **Capa MODELO**
+## Capa Modelo (Datos)
 
-### **Responsabilidades**
-- Gestión datos y persistencia
-- Integración herramientas Kali
-- Algoritmos análisis seguridad
-- Bases datos SQLite
+### Responsabilidades
+- Gestionar bases de datos SQLite
+- Integrar herramientas de Kali Linux
+- Procesar análisis de seguridad
+- Mantener persistencia de datos
 
-### **Módulos Principales**
-```python
-modelo_principal.py              # Coordinador central
-modelo_escaneador_kali2025.py    # nmap, masscan, nuclei
-modelo_fim_kali2025.py           # inotifywait, SHA-256
-modelo_siem_kali2025.py          # Correlación eventos
-modelo_cuarentena_kali2025.py    # ClamAV, YARA
-```
+### Archivos Principales
+- `modelo_principal.py` - Coordinador central
+- `modelo_escaneador_kali2025.py` - Escáner de vulnerabilidades
+- `modelo_fim_kali2025.py` - Monitoreo de archivos
+- `modelo_siem_kali2025.py` - Sistema de eventos
+- `modelo_cuarentena_kali2025.py` - Gestión de cuarentena
 
-## 🎨 **Capa VISTA**
+## Capa Vista (Interfaz)
 
-### **Responsabilidades**
-- Interfaz gráfica Tkinter
-- Tema Burp Suite profesional
-- Navegación 8 pestañas
-- Visualización tiempo real
-- **🆕 Sistema de terminales integrados**
-
-### **Componentes Clave**
-```python
-vista_principal.py      # Ventana principal + navegación
-vista_dashboard.py      # Métricas sistema + terminal global
-vista_escaneo.py        # Interface escaneador + terminal
-vista_fim.py           # Monitoreo integridad + terminal
+### Responsabilidades
+- Interfaces gráficas con Tkinter
+- Tema profesional inspirado en Burp Suite
+- Navegación con pestañas
+- Terminales integrados en tiempo real
 vista_siem.py          # Análisis eventos + terminal
 terminal_mixin.py      # 🆕 Clase base para terminales
 ```

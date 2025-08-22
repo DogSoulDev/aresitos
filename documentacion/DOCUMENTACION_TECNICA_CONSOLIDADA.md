@@ -1,64 +1,37 @@
-# ARESITOS v2.0 Beta 12 Estable - Documentación Técnica Consolidada
+# Manual Técnico - Aresitos
 
-## Introducción
+## ¿Qué es Aresitos?
 
-Aresitos es una suite integral de ciberseguridad desarrollada exclusivamente para Kali Linux, implementando una arquitectura MVC robusta con integración nativa de herramientas especializadas. **Beta 12 Estable** incluye optimizaciones de interfaz, verificación completa de conectividad de reportes y optimización específica para Kali Linux 2025.
+**Aresitos** es una herramienta completa de ciberseguridad diseñada específicamente para Kali Linux. Integra múltiples funciones de seguridad en una sola aplicación fácil de usar.
 
-## Novedades Beta 12 Estable
+## Funcionalidades Principales
 
-### 🎯 Optimizaciones de Interfaz de Usuario
-- **Iconos ARESITOS** en todas las barras de título de ventanas
-- **Interfaz limpia** sin elementos visuales innecesarios
-- **Ventana de login** optimizada a 900x700px para mejor usabilidad
-- **Tema profesional** consistente en toda la aplicación
+### 🔍 Escáner de Vulnerabilidades
+- Detección automática de vulnerabilidades
+- Integración con herramientas nativas de Kali
+- Reportes detallados de seguridad
 
-### 📊 Sistema de Reportes 100% Funcional
-- **Arquitectura MVC completa** verificada para reportes
-- **Integración con todos los módulos** - Dashboard, Escaneador, FIM, SIEM, Cuarentena
-- **Datos en tiempo real** extraídos de cada componente
-- **Reportes profesionales** con métricas de ciberseguridad
-- **Seguridad implementada** con validación de archivos y paths
+### 🛡️ Sistema SIEM
+- Monitoreo de seguridad en tiempo real
+- Análisis de logs del sistema
+- Detección de eventos anómalos
 
-### 🛡️ Optimización Kali Linux 2025
-- **376 integraciones** de herramientas modernas verificadas
-- **ZERO dependencias externas** - Solo Python stdlib
-- **Script de configuración automática** completamente funcional
-- **Verificación de integridad** 5/5 tests pasados
-- **Sintaxis perfecta** en todos los archivos del proyecto
+### 📁 File Integrity Monitoring (FIM)
+- Monitoreo de cambios en archivos críticos
+- Alertas de modificaciones no autorizadas
+- Base de datos de integridad de archivos
 
-## Arquitectura del Sistema
+### 🔒 Sistema de Cuarentena
+- Aislamiento automático de archivos sospechosos
+- Gestión segura de amenazas detectadas
+- Restauración controlada de archivos
 
-### Patrón Modelo-Vista-Controlador (MVC)
+### 📊 Dashboard y Reportes
+- Panel de control centralizado
+- Reportes profesionales en PDF
+- Métricas de seguridad en tiempo real
 
-El sistema implementa un patrón MVC estricto para separar responsabilidades:
-
-```
-aresitos/
-├── controlador/     # Lógica de negocio y orquestación (15 archivos)
-├── modelo/          # Gestión de datos y persistencia (19 archivos)
-├── vista/           # Interfaces de usuario (12 archivos)
-└── utils/           # Utilidades y verificaciones (4 archivos)
-```
-
-### Stack Tecnológico
-
-**Lenguaje Principal**: Python 3.8+
-- Uso exclusivo de librerías estándar para máxima compatibilidad
-- Sin dependencias externas para reducir superficie de ataque
-- Integración nativa con herramientas del sistema Kali Linux
-
-**Base de Datos**: SQLite3
-- Bases de datos embebidas para persistencia optimizada
-- Esquemas específicos para FIM, SIEM y gestión de amenazas
-- Transacciones ACID para integridad de datos críticos
-
-**Interfaz Gráfica**: Tkinter
-- Framework nativo de Python para interfaces consistentes
-- Tema profesional personalizado inspirado en Burp Suite
-- Componentes reutilizables y modulares
-
-**Integración de Sistema**: Subprocess
-- Ejecución controlada de herramientas de Kali Linux
+## Arquitectura Técnica
 - Sanitización completa de parámetros y validación de entrada
 - Manejo seguro de privilegios elevados cuando necesario
 
