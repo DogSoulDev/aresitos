@@ -356,8 +356,13 @@ LISTO PARA: Producción en entornos Kali Linux
             return
         
         self.proceso_activo = True
-        self.btn_verificar.config(state='disabled')
-        self.text_resultados.delete(1.0, tk.END)
+        try:
+            if hasattr(self, 'btn_verificar') and self.btn_verificar.winfo_exists():
+                self.btn_verificar.config(state='disabled')
+            if hasattr(self, 'text_resultados') and self.text_resultados.winfo_exists():
+                self.text_resultados.delete(1.0, tk.END)
+        except (tk.TclError, AttributeError):
+            pass
         
         # Ejecutar verificación en thread separado
         thread = threading.Thread(target=self._verificar_herramientas_async)
@@ -456,21 +461,41 @@ LISTO PARA: Producción en entornos Kali Linux
             for herramienta in herramientas_faltantes:
                 self._actualizar_texto(f"  • {herramienta}\n")
             self._actualizar_texto("\nHaga clic en 'Instalar Herramientas Faltantes' para instalarlas.\n")
-            self.btn_instalar.config(state='normal')
+            try:
+                if hasattr(self, 'btn_instalar') and self.btn_instalar.winfo_exists():
+                    self.btn_instalar.config(state='normal')
+            except (tk.TclError, AttributeError):
+                pass
         else:
             self._actualizar_texto("¡Todas las herramientas están disponibles!\n")
-            self.btn_continuar.config(state='normal')
+            try:
+                if hasattr(self, 'btn_continuar') and self.btn_continuar.winfo_exists():
+                    self.btn_continuar.config(state='normal')
+            except (tk.TclError, AttributeError):
+                pass
     
     def _actualizar_texto(self, texto):
-        """Actualizar texto en el área de resultados"""
-        self.text_resultados.insert(tk.END, texto)
-        self.text_resultados.see(tk.END)
-        self.text_resultados.update()
+        """Actualizar texto en el área de resultados con verificación de seguridad"""
+        try:
+            # Verificar si el widget aún existe y la ventana no ha sido destruida
+            if hasattr(self, 'text_resultados') and self.text_resultados.winfo_exists():
+                self.text_resultados.insert(tk.END, texto)
+                self.text_resultados.see(tk.END)
+                self.text_resultados.update()
+        except (tk.TclError, AttributeError):
+            # Widget ya destruido, ignorar silenciosamente
+            pass
     
     def _finalizar_verificacion(self):
-        """Finalizar proceso de verificación"""
-        self.proceso_activo = False
-        self.btn_verificar.config(state='normal')
+        """Finalizar proceso de verificación con verificación de seguridad"""
+        try:
+            self.proceso_activo = False
+            # Verificar si el widget aún existe y la ventana no ha sido destruida
+            if hasattr(self, 'btn_verificar') and self.btn_verificar.winfo_exists():
+                self.btn_verificar.config(state='normal')
+        except (tk.TclError, AttributeError):
+            # Widget ya destruido, ignorar silenciosamente
+            self.proceso_activo = False
     
     def instalar_herramientas(self):
         """Instalar herramientas faltantes"""
@@ -488,8 +513,13 @@ LISTO PARA: Producción en entornos Kali Linux
             return
         
         self.proceso_activo = True
-        self.btn_instalar.config(state='disabled')
-        self.text_resultados.delete(1.0, tk.END)
+        try:
+            if hasattr(self, 'btn_instalar') and self.btn_instalar.winfo_exists():
+                self.btn_instalar.config(state='disabled')
+            if hasattr(self, 'text_resultados') and self.text_resultados.winfo_exists():
+                self.text_resultados.delete(1.0, tk.END)
+        except (tk.TclError, AttributeError):
+            pass
         
         # Ejecutar instalación en thread separado
         thread = threading.Thread(target=self._instalar_herramientas_async)
@@ -682,37 +712,77 @@ LISTO PARA: Producción en entornos Kali Linux
             self.after(0, self._finalizar_instalacion)
     
     def _habilitar_continuar(self):
-        """Habilitar botón de continuar"""
-        self.btn_continuar.config(state='normal')
+        """Habilitar botón de continuar con verificación de seguridad"""
+        try:
+            # Verificar si el widget aún existe y la ventana no ha sido destruida
+            if hasattr(self, 'btn_continuar') and self.btn_continuar.winfo_exists():
+                self.btn_continuar.config(state='normal')
+        except (tk.TclError, AttributeError):
+            # Widget ya destruido, ignorar silenciosamente
+            pass
     
     def _finalizar_instalacion(self):
-        """Finalizar proceso de instalación"""
-        self.proceso_activo = False
-        self.btn_instalar.config(state='normal')
+        """Finalizar proceso de instalación con verificación de seguridad"""
+        try:
+            self.proceso_activo = False
+            # Verificar si el widget aún existe y la ventana no ha sido destruida
+            if hasattr(self, 'btn_instalar') and self.btn_instalar.winfo_exists():
+                self.btn_instalar.config(state='normal')
+        except (tk.TclError, AttributeError):
+            # Widget ya destruido, ignorar silenciosamente
+            self.proceso_activo = False
     
     def continuar_aplicacion(self):
-        """Continuar a la aplicación principal"""
-        self.text_resultados.insert(tk.END, "\nIniciando ARESITOS v2.0...\n")
-        self.text_resultados.insert(tk.END, "Herramientas modernas configuradas correctamente\n")
-        self.text_resultados.insert(tk.END, "Tema Burp Suite aplicado\n")
-        self.text_resultados.insert(tk.END, "Dashboard completo cargado\n")
-        self.text_resultados.see(tk.END)
-        
-        # Deshabilitar botón para evitar clicks múltiples
-        self.btn_continuar.config(state='disabled', text="Iniciando...")
-        
-        # Ejecutar callback si está disponible
-        if self.callback_completado:
-            self.text_resultados.insert(tk.END, "\nAbriendo aplicación principal...\n")
+        """Continuar a la aplicación principal con verificación de seguridad"""
+        try:
+            # Verificar si los widgets aún existen antes de acceder a ellos
+            if not (hasattr(self, 'text_resultados') and self.text_resultados.winfo_exists()):
+                return
+                
+            self.text_resultados.insert(tk.END, "\nIniciando ARESITOS v2.0...\n")
+            self.text_resultados.insert(tk.END, "Herramientas modernas configuradas correctamente\n")
+            self.text_resultados.insert(tk.END, "Tema Burp Suite aplicado\n")
+            self.text_resultados.insert(tk.END, "Dashboard completo cargado\n")
             self.text_resultados.see(tk.END)
-            # Usar after para ejecutar el callback en el hilo principal
-            self.after(1500, self.callback_completado)
-        else:
-            messagebox.showinfo("Información", 
-                              "Configuración completada exitosamente.\n"
-                              "ARESITOS v2.0 se iniciará automáticamente.")
-            # Si no hay callback, cerrar esta ventana
-            self.after(2000, lambda: self.master.destroy())
+            
+            # Deshabilitar botón para evitar clicks múltiples
+            if hasattr(self, 'btn_continuar') and self.btn_continuar.winfo_exists():
+                self.btn_continuar.config(state='disabled', text="Iniciando...")
+            
+            # Ejecutar callback si está disponible
+            if self.callback_completado:
+                if hasattr(self, 'text_resultados') and self.text_resultados.winfo_exists():
+                    self.text_resultados.insert(tk.END, "\nAbriendo aplicación principal...\n")
+                    self.text_resultados.see(tk.END)
+                # Usar after para ejecutar el callback en el hilo principal
+                self.after(1500, self._ejecutar_callback_seguro)
+            else:
+                messagebox.showinfo("Información", 
+                                  "Configuración completada exitosamente.\n"
+                                  "ARESITOS v2.0 se iniciará automáticamente.")
+                # Si no hay callback, cerrar esta ventana
+                self.after(2000, self._cerrar_ventana_seguro)
+        except (tk.TclError, AttributeError):
+            # Widget ya destruido, ignorar silenciosamente
+            pass
+    
+    def _ejecutar_callback_seguro(self):
+        """Ejecutar callback de forma segura"""
+        try:
+            if self.callback_completado:
+                self.callback_completado()
+        except Exception:
+            # Error al ejecutar callback, ignorar
+            pass
+    
+    def _cerrar_ventana_seguro(self):
+        """Cerrar ventana de forma segura"""
+        try:
+            if hasattr(self, 'master') and self.master.winfo_exists():
+                self.master.destroy()
+        except (tk.TclError, AttributeError):
+            # Ventana ya destruida, ignorar
+            pass
     
     def _log_terminal(self, mensaje, modulo="HERRAMIENTAS_KALI", nivel="INFO"):
         """Log al terminal integrado de manera segura."""
