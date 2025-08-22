@@ -152,12 +152,10 @@ def iniciar_aplicacion_clasica():
         root.title("Aresitos")
         root.geometry("1400x900")
         
-        # Configurar icono de la ventana si existe
+        # Configurar icono de la ventana usando gestor centralizado
         try:
-            import os
-            icono_path = os.path.join(os.path.dirname(__file__), 'aresitos', 'recursos', 'Aresitos.ico')
-            if os.path.exists(icono_path):
-                root.iconbitmap(icono_path)
+            from aresitos.utils.gestor_iconos import configurar_icono_ventana
+            configurar_icono_ventana(root, "ARESITOS v2.0 - Herramientas de Seguridad")
         except Exception as e:
             print(f"No se pudo cargar el icono de la ventana: {e}")
         

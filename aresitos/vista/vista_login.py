@@ -30,6 +30,7 @@ try:
     from aresitos.vista.burp_theme import burp_theme
     from aresitos.vista.vista_herramientas_kali import VistaHerramientasKali
     from aresitos.utils.sudo_manager import SudoManager
+    from aresitos.utils.gestor_iconos import configurar_icono_ventana
     BURP_THEME_AVAILABLE = True
 except ImportError:
     BURP_THEME_AVAILABLE = False
@@ -308,19 +309,9 @@ class LoginAresitos:
         self.root.title("ARESITOS - Autenticacion Segura")
         self.root.geometry("900x700")
         
-        # Configurar icono de la ventana
+        # Configurar icono de la ventana usando gestor centralizado
         try:
-            icono_path = os.path.join(os.path.dirname(__file__), '..', 'recursos', 'Aresitos.png')
-            if os.path.exists(icono_path):
-                try:
-                    # Para PNG necesitamos PhotoImage
-                    self.icono_img = tk.PhotoImage(file=icono_path)
-                    self.root.iconphoto(True, self.icono_img)
-                except tk.TclError:
-                    # Si falla, intentar con el .ico si existe
-                    icono_ico = os.path.join(os.path.dirname(__file__), '..', 'recursos', 'Aresitos.ico')
-                    if os.path.exists(icono_ico):
-                        self.root.iconbitmap(icono_ico)
+            configurar_icono_ventana(self.root, "ARESITOS - Autenticacion Segura")
         except Exception:
             pass  # Continuar sin icono si hay problemas
         
@@ -992,19 +983,9 @@ class LoginAresitos:
             ventana_herramientas.geometry("1000x700")
             ventana_herramientas.configure(bg='#2b2b2b')
             
-            # Configurar icono de la ventana de herramientas
+            # Configurar icono de la ventana de herramientas usando gestor centralizado
             try:
-                icono_path = os.path.join(os.path.dirname(__file__), '..', 'recursos', 'Aresitos.png')
-                if os.path.exists(icono_path):
-                    try:
-                        # Para PNG necesitamos PhotoImage
-                        icono_herramientas = tk.PhotoImage(file=icono_path)
-                        ventana_herramientas.iconphoto(True, icono_herramientas)
-                    except tk.TclError:
-                        # Si falla, intentar con el .ico si existe
-                        icono_ico = os.path.join(os.path.dirname(__file__), '..', 'recursos', 'Aresitos.ico')
-                        if os.path.exists(icono_ico):
-                            ventana_herramientas.iconbitmap(icono_ico)
+                configurar_icono_ventana(ventana_herramientas, "ARESITOS - Configuracion de Herramientas")
             except Exception:
                 pass  # Continuar sin icono si hay problemas
             
@@ -1052,10 +1033,7 @@ class LoginAresitos:
             
             # Configurar icono de la ventana si existe
             try:
-                import os
-                icono_path = os.path.join(os.path.dirname(__file__), '..', 'recursos', 'Aresitos.ico')
-                if os.path.exists(icono_path):
-                    root_app.iconbitmap(icono_path)
+                configurar_icono_ventana(root_app, "ARESITOS v2.0 - Dashboard Principal")
             except Exception as e:
                 self.escribir_log(f"No se pudo cargar el icono: {e}")
             
@@ -1064,24 +1042,10 @@ class LoginAresitos:
             
             self.escribir_log("Ventana principal configurada con tema Burp Suite")
             
-            # Configurar ícono si está disponible (solo en Windows)
+            # Configurar icono usando gestor centralizado
             try:
-                import platform
-                if platform.system() == "Windows":
-                    icon_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), "recursos", "Aresitos.ico")
-                    if os.path.exists(icon_path):
-                        root_app.iconbitmap(icon_path)
-                else:
-                    # En Linux, usar una imagen PNG convertida
-                    icon_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), "recursos", "Aresitos.ico")
-                    if os.path.exists(icon_path):
-                        # Tkinter en Linux puede manejar archivos ico si PIL está disponible
-                        try:
-                            root_app.iconbitmap(icon_path)
-                        except tk.TclError:
-                            # Si falla, solo ignorar el icono en Linux
-                            pass
-            except (IOError, OSError, PermissionError, FileNotFoundError, tk.TclError):
+                configurar_icono_ventana(root_app, "ARESITOS v2.0 - Dashboard Principal")
+            except Exception:
                 pass
             
             self.escribir_log("Inicializando modelo de datos...")
@@ -1105,27 +1069,12 @@ class LoginAresitos:
             y = (root_app.winfo_screenheight() // 2) - (800 // 2)
             root_app.geometry(f"1200x800+{x}+{y}")
             
-            # Configurar ícono para la ventana principal también (solo en Windows)
+            # Configurar icono para la ventana principal usando gestor centralizado
             try:
-                import platform
-                if platform.system() == "Windows":
-                    icon_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), "recursos", "Aresitos.ico")
-                    if os.path.exists(icon_path):
-                        root_app.iconbitmap(icon_path)
-                        self.escribir_log("✓ Ícono de aplicación configurado correctamente")
-                    else:
-                        self.escribir_log("WARNING Archivo de ícono no encontrado en: " + icon_path)
+                if configurar_icono_ventana(root_app, "ARESITOS v2.0 - Dashboard Principal"):
+                    self.escribir_log("✓ Ícono de aplicación configurado correctamente")
                 else:
-                    # En Linux, intentar configurar icono pero sin fallar si no funciona
-                    icon_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), "recursos", "Aresitos.ico")
-                    if os.path.exists(icon_path):
-                        try:
-                            root_app.iconbitmap(icon_path)
-                            self.escribir_log("✓ Ícono de aplicación configurado correctamente (Linux)")
-                        except tk.TclError:
-                            self.escribir_log("INFO Ícono no compatible en Linux - continuando sin icono")
-                    else:
-                        self.escribir_log("INFO Archivo de ícono no encontrado - continuando sin icono")
+                    self.escribir_log("INFO Continuando sin icono - archivo no encontrado")
             except Exception as e:
                 self.escribir_log(f"INFO Error configurando ícono (no crítico): {str(e)}")
             

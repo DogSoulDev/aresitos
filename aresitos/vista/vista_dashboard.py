@@ -21,6 +21,7 @@ import sys
 
 try:
     from aresitos.vista.burp_theme import burp_theme
+    from aresitos.utils.gestor_iconos import configurar_icono_ventana
     BURP_THEME_AVAILABLE = True
 except ImportError:
     BURP_THEME_AVAILABLE = False
@@ -2243,20 +2244,9 @@ journalctl -u ssh                # Logs de servicio específico
             ventana_notif.geometry("400x100")
             ventana_notif.resizable(False, False)
             
-            # Configurar icono de la ventana de notificación
+            # Configurar icono de la ventana de notificación usando gestor centralizado
             try:
-                import os
-                icono_path = os.path.join(os.path.dirname(__file__), '..', 'recursos', 'Aresitos.png')
-                if os.path.exists(icono_path):
-                    try:
-                        # Para PNG necesitamos PhotoImage
-                        icono_notif = tk.PhotoImage(file=icono_path)
-                        ventana_notif.iconphoto(True, icono_notif)
-                    except tk.TclError:
-                        # Si falla, intentar con el .ico si existe
-                        icono_ico = os.path.join(os.path.dirname(__file__), '..', 'recursos', 'Aresitos.ico')
-                        if os.path.exists(icono_ico):
-                            ventana_notif.iconbitmap(icono_ico)
+                configurar_icono_ventana(ventana_notif, "ARESITOS - Notificación del Sistema")
             except Exception:
                 pass  # Continuar sin icono si hay problemas
             
