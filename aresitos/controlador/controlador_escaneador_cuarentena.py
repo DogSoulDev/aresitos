@@ -10,35 +10,6 @@ import ipaddress
 from typing import Dict, List, Any, Optional, Union
 from datetime import datetime
 
-class MockResultado:
-    """Resultado mock para el escáner."""
-    def __init__(self):
-        self.vulnerabilidades = []
-        self.exito = False
-        self.errores = ["Escaneador no disponible"]
-
-class MockEscaneador:
-    """Escaneador mock para fallback."""
-    def escanear_completo(self):
-        return MockResultado()
-    
-    def detectar_malware(self):
-        return MockResultado()
-        
-    def escanear_vulnerabilidades_sistema(self):
-        return MockResultado()
-
-class MockCuarentena:
-    """Cuarentena mock para fallback."""
-    def procesar_amenaza_detectada(self, amenaza):
-        return False
-    
-    def obtener_resumen_cuarentena(self):
-        return {"total_archivos": 0, "mensaje": "Cuarentena no disponible"}
-        
-    def restaurar_archivo(self, ruta):
-        return False
-
 class ControladorEscaneadorCuarentena:
     """
     Controlador principal que integra el escáner con el sistema de cuarentena.
@@ -56,9 +27,9 @@ class ControladorEscaneadorCuarentena:
             'backup_antes_cuarentena': True
         }
         
-        # Inicializar componentes con tipos Union para flexibilidad
-        self.escáner: Union[MockEscaneador, Any] = MockEscaneador()
-        self.cuarentena: Union[MockCuarentena, Any] = MockCuarentena()
+        # Inicializar componentes (se configuran después)
+        self.escáner: Optional[Any] = None
+        self.cuarentena: Optional[Any] = None
         
         self._inicializar_componentes()
         
@@ -75,8 +46,8 @@ class ControladorEscaneadorCuarentena:
             self.logger.info("OK Escaneador avanzado inicializado")
         except Exception as e:
             self.logger.error(f"Error inicializando escáner: {e}")
-            self.escáner = MockEscaneador()
-            self.logger.warning("WARNING Usando escáner mock")
+            self.escáner = None
+            self.logger.warning("WARNING Escáner no disponible")
         
         # Inicializar cuarentena
         try:
@@ -85,7 +56,7 @@ class ControladorEscaneadorCuarentena:
             self.logger.info("OK Sistema de cuarentena inicializado")
         except Exception as e:
             self.logger.error(f"Error inicializando cuarentena: {e}")
-            self.cuarentena = MockCuarentena()
+            self.cuarentena = None
             self.logger.warning("WARNING Usando cuarentena mock")
     
     def ejecutar_escaneo_con_cuarentena(self, tipo_escaneo: str = 'completo') -> Dict[str, Any]:
@@ -111,6 +82,14 @@ class ControladorEscaneadorCuarentena:
         }
         
         try:
+            # Verificar que el escáner esté disponible
+            if not self.escáner:
+                return {
+                    'exito': False,
+                    'errores': ['Escáner no disponible'],
+                    'resultados': {}
+                }
+            
             # 1. Ejecutar escaneo
             if tipo_escaneo == 'completo':
                 resultado_escaneo = self.escáner.escanear_completo()
@@ -199,8 +178,12 @@ class ControladorEscaneadorCuarentena:
                 }
             }
             
-            # Procesar amenaza con cuarentena
-            resultado = self.cuarentena.procesar_amenaza_detectada(amenaza_info)
+            # Procesar amenaza con cuarentena (si está disponible)
+            if self.cuarentena:
+                resultado = self.cuarentena.procesar_amenaza_detectada(amenaza_info)
+            else:
+                resultado = False
+                self.logger.warning("Cuarentena no disponible para procesar amenaza")
             
             # Si es amenaza crítica, notificar también al SIEM
             if resultado and vulnerabilidad.nivel_riesgo.value == 'critico':
@@ -262,10 +245,10 @@ class ControladorEscaneadorCuarentena:
     def _obtener_resumen_cuarentena(self) -> Dict[str, Any]:
         """Obtiene resumen del estado de cuarentena."""
         try:
-            if hasattr(self.cuarentena, 'obtener_resumen_cuarentena'):
+            if self.cuarentena and hasattr(self.cuarentena, 'obtener_resumen_cuarentena'):
                 return self.cuarentena.obtener_resumen_cuarentena()
             else:
-                return {'mensaje': 'Sistema de cuarentena activo'}
+                return {'mensaje': 'Sistema de cuarentena no disponible'}
         except Exception as e:
             self.logger.error(f"Error obteniendo resumen de cuarentena: {e}")
             return {'error': str(e)}
@@ -312,7 +295,7 @@ class ControladorEscaneadorCuarentena:
     def restaurar_desde_cuarentena(self, ruta_archivo: str) -> bool:
         """Restaura un archivo específico desde la cuarentena."""
         try:
-            if hasattr(self.cuarentena, 'restaurar_archivo'):
+            if self.cuarentena and hasattr(self.cuarentena, 'restaurar_archivo'):
                 resultado = self.cuarentena.restaurar_archivo(ruta_archivo)
                 if resultado:
                     self.logger.info(f"OK Archivo restaurado: {ruta_archivo}")

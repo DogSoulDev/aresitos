@@ -68,11 +68,11 @@ class SIEMKali2025(_SIEMAvanzado):  # type: ignore
                                      capture_output=True, text=True, timeout=5)
                 if result.returncode == 0:
                     self.herramientas_disponibles[herramienta] = result.stdout.strip()
-                    self.log(f"✓ {herramienta} disponible en {result.stdout.strip()}")
+                    self.log(f"OK {herramienta} disponible en {result.stdout.strip()}")
                 else:
-                    self.log(f"✓ {herramienta} no encontrada")
+                    self.log(f"INFO {herramienta} no encontrada")
             except Exception as e:
-                self.log(f"✓ Error verificando {herramienta}: {e}")
+                self.log(f"ERROR Error verificando {herramienta}: {e}")
     
     def inicializar_base_datos(self):
         """Inicializa base de datos SQLite para SIEM"""
@@ -147,10 +147,10 @@ class SIEMKali2025(_SIEMAvanzado):  # type: ignore
             
             conn.commit()
             conn.close()
-            self.log("✓ Base de datos SIEM Kali2025 inicializada")
+            self.log("OK Base de datos SIEM Kali2025 inicializada")
             
         except Exception as e:
-            self.log(f"✓ Error inicializando base de datos SIEM: {e}")
+            self.log(f"OK Error inicializando base de datos SIEM: {e}")
     
     def cargar_reglas_correlacion(self):
         """Carga reglas de correlación de eventos"""
@@ -192,7 +192,7 @@ class SIEMKali2025(_SIEMAvanzado):  # type: ignore
                 'campo_agrupacion': 'usuario'
             }
         ]
-        self.log(f"✓ Cargadas {len(self.reglas_correlacion)} reglas de correlación")
+        self.log(f"OK Cargadas {len(self.reglas_correlacion)} reglas de correlación")
     
     def configurar_auditd(self, reglas_personalizadas: Optional[List[str]] = None) -> Dict[str, Any]:
         """
@@ -232,16 +232,16 @@ class SIEMKali2025(_SIEMAvanzado):  # type: ignore
                     result = subprocess.run(cmd, capture_output=True, text=True, timeout=10)
                     if result.returncode == 0:
                         reglas_aplicadas += 1
-                        self.log(f"✓ Regla aplicada: {regla}")
+                        self.log(f"OK Regla aplicada: {regla}")
                     else:
-                        self.log(f"✓ Error en regla: {regla} - {result.stderr}")
+                        self.log(f"OK Error en regla: {regla} - {result.stderr}")
                 except Exception as e:
-                    self.log(f"✓ Error aplicando regla {regla}: {e}")
+                    self.log(f"OK Error aplicando regla {regla}: {e}")
             
             # Verificar estado de auditd
             status_result = subprocess.run(['auditctl', '-s'], capture_output=True, text=True)
             
-            self.log(f"✓ Auditd configurado: {reglas_aplicadas} reglas activas")
+            self.log(f"OK Auditd configurado: {reglas_aplicadas} reglas activas")
             return {
                 "exito": True,
                 "reglas_aplicadas": reglas_aplicadas,
@@ -251,7 +251,7 @@ class SIEMKali2025(_SIEMAvanzado):  # type: ignore
             }
             
         except Exception as e:
-            self.log(f"✓ Error configurando auditd: {e}")
+            self.log(f"OK Error configurando auditd: {e}")
             return {"error": str(e)}
     
     def monitorear_logs_tiempo_real(self, archivos_log: Optional[List[str]] = None) -> Dict[str, Any]:
@@ -287,9 +287,9 @@ class SIEMKali2025(_SIEMAvanzado):  # type: ignore
                     }
                     monitores_iniciados += 1
                 else:
-                    self.log(f"✓ Log no existe: {archivo_log}")
+                    self.log(f"OK Log no existe: {archivo_log}")
             
-            self.log(f"✓ Monitoreo iniciado en {monitores_iniciados} logs")
+            self.log(f"OK Monitoreo iniciado en {monitores_iniciados} logs")
             return {
                 "exito": True,
                 "logs_monitoreados": monitores_iniciados,
@@ -297,7 +297,7 @@ class SIEMKali2025(_SIEMAvanzado):  # type: ignore
             }
             
         except Exception as e:
-            self.log(f"✓ Error iniciando monitoreo logs: {e}")
+            self.log(f"OK Error iniciando monitoreo logs: {e}")
             return {"error": str(e)}
     
     def _monitorear_log_file(self, archivo_log: str):
@@ -321,7 +321,7 @@ class SIEMKali2025(_SIEMAvanzado):  # type: ignore
                         self._procesar_linea_log(line.strip(), archivo_log)
                     
         except Exception as e:
-            self.log(f"✓ Error en monitor log {archivo_log}: {e}")
+            self.log(f"OK Error en monitor log {archivo_log}: {e}")
     
     def _procesar_linea_log(self, linea: str, fuente: str):
         """Procesa una línea de log y la almacena en base de datos"""
@@ -337,7 +337,7 @@ class SIEMKali2025(_SIEMAvanzado):  # type: ignore
                 self._aplicar_reglas_correlacion(evento)
                 
         except Exception as e:
-            self.log(f"✓ Error procesando línea log: {e}")
+            self.log(f"OK Error procesando línea log: {e}")
     
     def _parsear_linea_log(self, linea: str, fuente: str) -> Optional[Dict[str, Any]]:
         """Parsea una línea de log y extrae información relevante"""
@@ -526,7 +526,7 @@ class SIEMKali2025(_SIEMAvanzado):  # type: ignore
             jails_result = subprocess.run(['fail2ban-client', 'status'], 
                                         capture_output=True, text=True)
             
-            self.log("✓ Fail2ban configurado y activo")
+            self.log("OK Fail2ban configurado y activo")
             return {
                 "exito": True,
                 "estado": status_result.stdout,
@@ -535,7 +535,7 @@ class SIEMKali2025(_SIEMAvanzado):  # type: ignore
             }
             
         except Exception as e:
-            self.log(f"✓ Error configurando fail2ban: {e}")
+            self.log(f"OK Error configurando fail2ban: {e}")
             return {"error": str(e)}
     
     def auditoria_sistema_lynis(self) -> Dict[str, Any]:
@@ -563,7 +563,7 @@ class SIEMKali2025(_SIEMAvanzado):  # type: ignore
             # Guardar en base de datos
             self._guardar_auditoria_sistema('lynis', hallazgos)
             
-            self.log(f"✓ Auditoría lynis completada: {len(hallazgos)} hallazgos")
+            self.log(f"OK Auditoría lynis completada: {len(hallazgos)} hallazgos")
             return {
                 "exito": True,
                 "hallazgos": hallazgos,
@@ -572,7 +572,7 @@ class SIEMKali2025(_SIEMAvanzado):  # type: ignore
             }
             
         except Exception as e:
-            self.log(f"✓ Error ejecutando lynis: {e}")
+            self.log(f"OK Error ejecutando lynis: {e}")
             return {"error": str(e)}
     
     def obtener_estadisticas_red(self) -> Dict[str, Any]:
@@ -601,7 +601,7 @@ class SIEMKali2025(_SIEMAvanzado):  # type: ignore
             # Guardar en base de datos
             self._guardar_estadisticas_red(estadisticas)
             
-            self.log("✓ Estadísticas de red obtenidas")
+            self.log("OK Estadísticas de red obtenidas")
             return {
                 "exito": True,
                 "estadisticas": estadisticas,
@@ -609,7 +609,7 @@ class SIEMKali2025(_SIEMAvanzado):  # type: ignore
             }
             
         except Exception as e:
-            self.log(f"✓ Error obteniendo estadísticas red: {e}")
+            self.log(f"OK Error obteniendo estadísticas red: {e}")
             return {"error": str(e)}
     
     def analisis_completo_siem_kali2025(self) -> Dict[str, Any]:
@@ -672,7 +672,7 @@ class SIEMKali2025(_SIEMAvanzado):  # type: ignore
             "monitores_activos": len(self.monitores_activos)
         }
         
-        self.log("✓ ANÁLISIS COMPLETO SIEM FINALIZADO")
+        self.log("OK ANÁLISIS COMPLETO SIEM FINALIZADO")
         return resultados
     
     def _procesar_resultados_lynis(self, output: str) -> List[Dict[str, Any]]:
