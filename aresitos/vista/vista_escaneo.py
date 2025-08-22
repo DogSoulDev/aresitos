@@ -322,55 +322,135 @@ class VistaEscaneo(tk.Frame):
             
             self._log_terminal("Iniciando escaneo completo con herramientas nativas de Kali Linux", "ESCANEADOR", "INFO")
             
+            # Contador de fases completadas y errores
+            fases_completadas = 0
+            fases_con_error = 0
+            total_fases = 10
+            
             # FASE 1: Escaneo de red local con herramientas de Kali
-            self._log_terminal("FASE 1: Reconocimiento de red con herramientas de Kali", "ESCANEADOR", "INFO")
-            self._escaneo_red_kali()
+            try:
+                self._log_terminal("FASE 1: Reconocimiento de red con herramientas de Kali", "ESCANEADOR", "INFO")
+                self._escaneo_red_kali()
+                fases_completadas += 1
+                self._log_terminal("✓ FASE 1 completada exitosamente", "ESCANEADOR", "SUCCESS")
+            except Exception as e:
+                fases_con_error += 1
+                self._log_terminal(f"✗ ERROR en FASE 1: {str(e)}", "ESCANEADOR", "ERROR")
+                self._log_terminal("Continuando con la siguiente fase...", "ESCANEADOR", "WARNING")
             
             # FASE 2: Verificación de servicios y puertos
-            self._log_terminal("FASE 2: Análisis de servicios con ss y netstat", "ESCANEADOR", "INFO")
-            self._escanear_servicios_kali()
+            try:
+                self._log_terminal("FASE 2: Análisis de servicios con ss y netstat", "ESCANEADOR", "INFO")
+                self._escanear_servicios_kali()
+                fases_completadas += 1
+                self._log_terminal("✓ FASE 2 completada exitosamente", "ESCANEADOR", "SUCCESS")
+            except Exception as e:
+                fases_con_error += 1
+                self._log_terminal(f"✗ ERROR en FASE 2: {str(e)}", "ESCANEADOR", "ERROR")
+                self._log_terminal("Continuando con la siguiente fase...", "ESCANEADOR", "WARNING")
             
             # FASE 3: Escaneo de archivos críticos del sistema
-            self._log_terminal("FASE 3: Verificando archivos críticos del sistema", "ESCANEADOR", "INFO")
-            self._escanear_archivos_criticos()
+            try:
+                self._log_terminal("FASE 3: Verificando archivos críticos del sistema", "ESCANEADOR", "INFO")
+                self._escanear_archivos_criticos()
+                fases_completadas += 1
+                self._log_terminal("✓ FASE 3 completada exitosamente", "ESCANEADOR", "SUCCESS")
+            except Exception as e:
+                fases_con_error += 1
+                self._log_terminal(f"✗ ERROR en FASE 3: {str(e)}", "ESCANEADOR", "ERROR")
+                self._log_terminal("Continuando con la siguiente fase...", "ESCANEADOR", "WARNING")
             
             # FASE 4: Verificación de permisos sospechosos
-            self._log_terminal("FASE 2: Analizando permisos sospechosos", "ESCANEADOR", "WARNING")
-            self._escanear_permisos_sospechosos()
+            try:
+                self._log_terminal("FASE 4: Analizando permisos sospechosos", "ESCANEADOR", "WARNING")
+                self._escanear_permisos_sospechosos()
+                fases_completadas += 1
+                self._log_terminal("✓ FASE 4 completada exitosamente", "ESCANEADOR", "SUCCESS")
+            except Exception as e:
+                fases_con_error += 1
+                self._log_terminal(f"✗ ERROR en FASE 4: {str(e)}", "ESCANEADOR", "ERROR")
+                self._log_terminal("Continuando con la siguiente fase...", "ESCANEADOR", "WARNING")
             
-            # FASE 3: Búsqueda de malware y rootkits
-            self._log_terminal("FASE 3: Escaneando en busca de malware y rootkits", "ESCANEADOR", "WARNING")
-            self._escanear_malware_rootkits()
+            # FASE 5: Búsqueda de malware y rootkits
+            try:
+                self._log_terminal("FASE 5: Escaneando en busca de malware y rootkits", "ESCANEADOR", "WARNING")
+                self._escanear_malware_rootkits()
+                fases_completadas += 1
+                self._log_terminal("✓ FASE 5 completada exitosamente", "ESCANEADOR", "SUCCESS")
+            except Exception as e:
+                fases_con_error += 1
+                self._log_terminal(f"✗ ERROR en FASE 5: {str(e)}", "ESCANEADOR", "ERROR")
+                self._log_terminal("Continuando con la siguiente fase...", "ESCANEADOR", "WARNING")
             
-            # FASE 4: Verificación de procesos sospechosos
-            self._log_terminal("FASE 4: Analizando procesos en ejecución", "ESCANEADOR", "INFO")
-            self._escanear_procesos_sospechosos()
+            # FASE 6: Verificación de procesos sospechosos
+            try:
+                self._log_terminal("FASE 6: Analizando procesos en ejecución", "ESCANEADOR", "INFO")
+                self._escanear_procesos_sospechosos()
+                fases_completadas += 1
+                self._log_terminal("✓ FASE 6 completada exitosamente", "ESCANEADOR", "SUCCESS")
+            except Exception as e:
+                fases_con_error += 1
+                self._log_terminal(f"✗ ERROR en FASE 6: {str(e)}", "ESCANEADOR", "ERROR")
+                self._log_terminal("Continuando con la siguiente fase...", "ESCANEADOR", "WARNING")
             
-            # FASE 5: Análisis de conexiones de red
-            self._log_terminal("FASE 5: Verificando conexiones de red", "ESCANEADOR", "INFO")
-            self._escanear_conexiones_red()
-            
-            # FASE 6: Verificación de usuarios y grupos
-            self._log_terminal("FASE 6: Analizando usuarios y grupos del sistema", "ESCANEADOR", "INFO")
-            self._escanear_usuarios_grupos()
-            
-            # FASE 7: Búsqueda de vulnerabilidades conocidas
-            self._log_terminal("FASE 7: Escaneando vulnerabilidades conocidas", "ESCANEADOR", "ERROR")
-            self._escanear_vulnerabilidades()
+            # FASE 7: Análisis de conexiones de red
+            try:
+                self._log_terminal("FASE 7: Verificando conexiones de red", "ESCANEADOR", "INFO")
+                self._escanear_conexiones_red()
+                fases_completadas += 1
+                self._log_terminal("✓ FASE 7 completada exitosamente", "ESCANEADOR", "SUCCESS")
+            except Exception as e:
+                fases_con_error += 1
+                self._log_terminal(f"✗ ERROR en FASE 7: {str(e)}", "ESCANEADOR", "ERROR")
+                self._log_terminal("Continuando con la siguiente fase...", "ESCANEADOR", "WARNING")
             
             # FASE 8: Análisis avanzado con herramientas Kali
-            self._log_terminal("FASE 8: Análisis con herramientas especializadas de Kali", "ESCANEADOR", "WARNING")
-            self._escaneo_avanzado_kali()
+            try:
+                self._log_terminal("FASE 8: Análisis con herramientas especializadas de Kali", "ESCANEADOR", "WARNING")
+                self._escaneo_avanzado_kali()
+                fases_completadas += 1
+                self._log_terminal("✓ FASE 8 completada exitosamente", "ESCANEADOR", "SUCCESS")
+            except Exception as e:
+                fases_con_error += 1
+                self._log_terminal(f"✗ ERROR en FASE 8: {str(e)}", "ESCANEADOR", "ERROR")
+                self._log_terminal("Continuando con la siguiente fase...", "ESCANEADOR", "WARNING")
             
             # FASE 9: Verificación de configuraciones de seguridad
-            self._log_terminal("FASE 9: Verificando configuraciones de seguridad del sistema", "ESCANEADOR", "INFO")
-            self._verificar_configuraciones_seguridad()
+            try:
+                self._log_terminal("FASE 9: Verificando configuraciones de seguridad del sistema", "ESCANEADOR", "INFO")
+                self._verificar_configuraciones_seguridad()
+                fases_completadas += 1
+                self._log_terminal("✓ FASE 9 completada exitosamente", "ESCANEADOR", "SUCCESS")
+            except Exception as e:
+                fases_con_error += 1
+                self._log_terminal(f"✗ ERROR en FASE 9: {str(e)}", "ESCANEADOR", "ERROR")
+                self._log_terminal("Continuando con la siguiente fase...", "ESCANEADOR", "WARNING")
             
             # FASE 10: Detección de rootkits con herramientas nativas
-            self._log_terminal("FASE 10: Detección avanzada de rootkits y backdoors", "ESCANEADOR", "ERROR")
-            self._detectar_rootkits_avanzado()
+            try:
+                self._log_terminal("FASE 10: Detección avanzada de rootkits y backdoors", "ESCANEADOR", "ERROR")
+                self._detectar_rootkits_avanzado()
+                fases_completadas += 1
+                self._log_terminal("✓ FASE 10 completada exitosamente", "ESCANEADOR", "SUCCESS")
+            except Exception as e:
+                fases_con_error += 1
+                self._log_terminal(f"✗ ERROR en FASE 10: {str(e)}", "ESCANEADOR", "ERROR")
             
-            self._log_terminal("Escaneo completo del sistema finalizado", "ESCANEADOR", "SUCCESS")
+            # Resumen final del escaneo
+            self._log_terminal("=" * 60, "ESCANEADOR", "INFO")
+            self._log_terminal("RESUMEN DE ESCANEO COMPLETO:", "ESCANEADOR", "INFO")
+            self._log_terminal(f"📊 Total de fases: {total_fases}", "ESCANEADOR", "INFO")
+            self._log_terminal(f"✅ Fases completadas: {fases_completadas}", "ESCANEADOR", "SUCCESS")
+            self._log_terminal(f"❌ Fases con errores: {fases_con_error}", "ESCANEADOR", "ERROR")
+            
+            if fases_con_error == 0:
+                self._log_terminal("🎉 Escaneo completado sin errores", "ESCANEADOR", "SUCCESS")
+            elif fases_completadas > fases_con_error:
+                self._log_terminal("⚠️ Escaneo completado con algunos errores", "ESCANEADOR", "WARNING")
+            else:
+                self._log_terminal("🚨 Escaneo completado con múltiples errores", "ESCANEADOR", "ERROR")
+            
+            self._log_terminal("=" * 60, "ESCANEADOR", "INFO")
             
         except Exception as e:
             if self.proceso_activo:

@@ -327,51 +327,65 @@ class VistaFIM(tk.Frame):
     
     def _ejecutar_monitoreo_async(self):
         """Ejecutar monitoreo FIM con análisis detallado usando comandos nativos de Linux."""
+        fases_completadas = 0
+        fases_con_error = 0
+        total_fases = 3
+        
         try:
             # FASE 1: Información del sistema con comandos Linux avanzados
-            self._log_terminal("FASE 1: Análisis inicial del sistema con herramientas Linux", "FIM", "INFO")
-            self.after(0, self._actualizar_texto_fim, "FASE 1: ANÁLISIS INICIAL DEL SISTEMA CON COMANDOS LINUX\n")
-            self.after(0, self._actualizar_texto_fim, "POR QUÉ: Establecer baseline de seguridad usando herramientas nativas de Kali\n")
-            self.after(0, self._actualizar_texto_fim, "CÓMO: Verificación con find, stat, lsof, and auditd para análisis forense\n\n")
-            
-            # Comandos Linux para monitoreo avanzado
-            import subprocess
-            
-            # 1. Verificar archivos modificados recientemente
-            self.after(0, self._actualizar_texto_fim, "COMANDO: find /etc -type f -mtime -1\n")
-            self.after(0, self._actualizar_texto_fim, "PROPÓSITO: Archivos de configuración modificados en las últimas 24 horas\n")
             try:
-                result = subprocess.run(['find', '/etc', '-type', 'f', '-mtime', '-1'], 
-                                      capture_output=True, text=True, timeout=10)
-                if result.returncode == 0 and result.stdout:
-                    archivos_modificados = result.stdout.strip().split('\n')
-                    self.after(0, self._actualizar_texto_fim, f"RESULTADO: {len(archivos_modificados)} archivos modificados\n")
-                    for archivo in archivos_modificados[:5]:  # Mostrar primeros 5
-                        self.after(0, self._actualizar_texto_fim, f"  - {archivo}\n")
-                else:
-                    self.after(0, self._actualizar_texto_fim, "RESULTADO: No hay archivos modificados recientemente\n")
-            except:
-                self.after(0, self._actualizar_texto_fim, "ERROR: No se pudo ejecutar find en /etc\n")
-            
-            self.after(0, self._actualizar_texto_fim, "\n")
-            
-            # 2. Verificar permisos sospechosos con find
-            self.after(0, self._actualizar_texto_fim, "COMANDO: find /usr/bin -perm -4000 -type f\n")
-            self.after(0, self._actualizar_texto_fim, "PROPÓSITO: Detectar binarios con permisos SUID sospechosos\n")
-            try:
-                result = subprocess.run(['find', '/usr/bin', '-perm', '-4000', '-type', 'f'], 
-                                      capture_output=True, text=True, timeout=15)
-                if result.returncode == 0 and result.stdout:
-                    binarios_suid = result.stdout.strip().split('\n')
-                    self.after(0, self._actualizar_texto_fim, f"RESULTADO: {len(binarios_suid)} binarios con SUID encontrados\n")
-                    for binario in binarios_suid[:8]:  # Mostrar primeros 8
-                        self.after(0, self._actualizar_texto_fim, f"  SUID: {binario}\n")
-                else:
-                    self.after(0, self._actualizar_texto_fim, "RESULTADO: No se encontraron binarios SUID en /usr/bin\n")
-            except:
-                self.after(0, self._actualizar_texto_fim, "ERROR: No se pudo verificar permisos SUID\n")
-            
-            self.after(0, self._actualizar_texto_fim, "\n")
+                self._log_terminal("FASE 1: Análisis inicial del sistema con herramientas Linux", "FIM", "INFO")
+                self.after(0, self._actualizar_texto_fim, "FASE 1: ANÁLISIS INICIAL DEL SISTEMA CON COMANDOS LINUX\n")
+                self.after(0, self._actualizar_texto_fim, "POR QUÉ: Establecer baseline de seguridad usando herramientas nativas de Kali\n")
+                self.after(0, self._actualizar_texto_fim, "CÓMO: Verificación con find, stat, lsof, and auditd para análisis forense\n\n")
+                
+                # Comandos Linux para monitoreo avanzado
+                import subprocess
+                
+                # 1. Verificar archivos modificados recientemente
+                self.after(0, self._actualizar_texto_fim, "COMANDO: find /etc -type f -mtime -1\n")
+                self.after(0, self._actualizar_texto_fim, "PROPÓSITO: Archivos de configuración modificados en las últimas 24 horas\n")
+                try:
+                    result = subprocess.run(['find', '/etc', '-type', 'f', '-mtime', '-1'], 
+                                          capture_output=True, text=True, timeout=10)
+                    if result.returncode == 0 and result.stdout:
+                        archivos_modificados = result.stdout.strip().split('\n')
+                        self.after(0, self._actualizar_texto_fim, f"RESULTADO: {len(archivos_modificados)} archivos modificados\n")
+                        for archivo in archivos_modificados[:5]:  # Mostrar primeros 5
+                            self.after(0, self._actualizar_texto_fim, f"  - {archivo}\n")
+                    else:
+                        self.after(0, self._actualizar_texto_fim, "RESULTADO: No hay archivos modificados recientemente\n")
+                except:
+                    self.after(0, self._actualizar_texto_fim, "ERROR: No se pudo ejecutar find en /etc\n")
+                
+                self.after(0, self._actualizar_texto_fim, "\n")
+                
+                # 2. Verificar permisos sospechosos con find
+                self.after(0, self._actualizar_texto_fim, "COMANDO: find /usr/bin -perm -4000 -type f\n")
+                self.after(0, self._actualizar_texto_fim, "PROPÓSITO: Detectar binarios con permisos SUID sospechosos\n")
+                try:
+                    result = subprocess.run(['find', '/usr/bin', '-perm', '-4000', '-type', 'f'], 
+                                          capture_output=True, text=True, timeout=15)
+                    if result.returncode == 0 and result.stdout:
+                        binarios_suid = result.stdout.strip().split('\n')
+                        self.after(0, self._actualizar_texto_fim, f"RESULTADO: {len(binarios_suid)} binarios con SUID encontrados\n")
+                        for binario in binarios_suid[:8]:  # Mostrar primeros 8
+                            self.after(0, self._actualizar_texto_fim, f"  SUID: {binario}\n")
+                    else:
+                        self.after(0, self._actualizar_texto_fim, "RESULTADO: No se encontraron binarios SUID en /usr/bin\n")
+                except:
+                    self.after(0, self._actualizar_texto_fim, "ERROR: No se pudo verificar permisos SUID\n")
+                
+                self.after(0, self._actualizar_texto_fim, "\n")
+                
+                fases_completadas += 1
+                self._log_terminal("✓ FASE 1 completada exitosamente", "FIM", "SUCCESS")
+                
+            except Exception as e:
+                fases_con_error += 1
+                self._log_terminal(f"✗ ERROR en FASE 1: {str(e)}", "FIM", "ERROR")
+                self.after(0, self._actualizar_texto_fim, f"ERROR FASE 1: {str(e)}\n")
+                self._log_terminal("Continuando con la siguiente fase...", "FIM", "WARNING")
             
             # 3. Verificar procesos con archivos abiertos sospechosos
             self.after(0, self._actualizar_texto_fim, "COMANDO: lsof -i :22,80,443,8080,4444\n")
@@ -409,6 +423,10 @@ class VistaFIM(tk.Frame):
                 self._log_terminal("Conectando con controlador FIM avanzado", "FIM", "INFO")
                 resultado = self.controlador.iniciar_monitoreo_continuo()
                 
+                # Variables de control de fases
+                fases_completadas = 0
+                fases_con_error = 0
+                
                 if resultado and resultado.get('exito'):
                     rutas_monitoreadas = resultado.get('rutas_monitoreadas', 0)
                     intervalo = resultado.get('intervalo_segundos', 30)
@@ -418,157 +436,177 @@ class VistaFIM(tk.Frame):
                     self.after(0, self._actualizar_texto_fim, f"INTERVALO: Verificación cada {intervalo} segundos\n\n")
                     
                     # FASE 2: Verificación de archivos críticos
-                    self._log_terminal("FASE 2: Verificación de archivos críticos de seguridad", "FIM", "INFO")
-                    self.after(0, self._actualizar_texto_fim, "FASE 2: VERIFICACIÓN DE ARCHIVOS CRÍTICOS\n")
-                    
-                    import time
-                    import hashlib
-                    import os
-                    
-                    archivos_verificados = 0
-                    archivos_problema = 0
-                    
-                    for archivo, descripcion in archivos_criticos.items():
-                        if not self.proceso_monitoreo_activo:
-                            break
+                    try:
+                        self._log_terminal("FASE 2: Verificación de archivos críticos de seguridad", "FIM", "INFO")
+                        self.after(0, self._actualizar_texto_fim, "FASE 2: VERIFICACIÓN DE ARCHIVOS CRÍTICOS\n")
                         
-                        try:
-                            if os.path.exists(archivo):
-                                stat_info = os.stat(archivo)
-                                permisos = oct(stat_info.st_mode)[-3:]
-                                tamaño = stat_info.st_size
-                                
-                                # Verificar permisos apropiados
-                                permisos_esperados = {
-                                    '/etc/passwd': '644',
-                                    '/etc/shadow': '640', 
-                                    '/etc/sudoers': '440',
-                                    '/etc/hosts': '644',
-                                    '/etc/ssh/sshd_config': '644',
-                                    '/etc/crontab': '644',
-                                    '/etc/fstab': '644',
-                                    '/root/.bashrc': '644'
-                                }
-                                
-                                esperado = permisos_esperados.get(archivo, '644')
-                                archivos_verificados += 1
-                                
-                                if permisos == esperado:
-                                    self.after(0, self._actualizar_texto_fim, f"OK {archivo}: Permisos correctos ({permisos}), Tamaño: {tamaño} bytes\n")
-                                    self.after(0, self._actualizar_texto_fim, f"   FUNCIÓN: {descripcion}\n")
+                        import time
+                        import hashlib
+                        import os
+                        
+                        archivos_verificados = 0
+                        archivos_problema = 0
+                        
+                        for archivo, descripcion in archivos_criticos.items():
+                            if not self.proceso_monitoreo_activo:
+                                break
+                            
+                            try:
+                                if os.path.exists(archivo):
+                                    stat_info = os.stat(archivo)
+                                    permisos = oct(stat_info.st_mode)[-3:]
+                                    tamaño = stat_info.st_size
+                                    
+                                    # Verificar permisos apropiados
+                                    permisos_esperados = {
+                                        '/etc/passwd': '644',
+                                        '/etc/shadow': '640', 
+                                        '/etc/sudoers': '440',
+                                        '/etc/hosts': '644',
+                                        '/etc/ssh/sshd_config': '644',
+                                        '/etc/crontab': '644',
+                                        '/etc/fstab': '644',
+                                        '/root/.bashrc': '644'
+                                    }
+                                    
+                                    esperado = permisos_esperados.get(archivo, '644')
+                                    archivos_verificados += 1
+                                    
+                                    if permisos == esperado:
+                                        self.after(0, self._actualizar_texto_fim, f"OK {archivo}: Permisos correctos ({permisos}), Tamaño: {tamaño} bytes\n")
+                                        self.after(0, self._actualizar_texto_fim, f"   FUNCIÓN: {descripcion}\n")
+                                    else:
+                                        archivos_problema += 1
+                                        self.after(0, self._actualizar_texto_fim, f"ALERTA {archivo}: Permisos anómalos ({permisos}, esperado {esperado})\n")
+                                        self.after(0, self._actualizar_texto_fim, f"   RIESGO: {descripcion}\n")
+                                        self.after(0, self._actualizar_texto_fim, f"   ACCIÓN: Revisar cambios recientes y verificar integridad\n")
+                                        self._log_terminal(f"ALERTA: Permisos anómalos en {archivo}", "FIM", "WARNING")
+                                    
+                                    # Calcular hash para baseline
+                                    if os.path.isfile(archivo):
+                                        with open(archivo, 'rb') as f:
+                                            contenido = f.read()
+                                            hash_sha256 = hashlib.sha256(contenido).hexdigest()[:16]
+                                        self.after(0, self._actualizar_texto_fim, f"   HASH: {hash_sha256}... (baseline establecido)\n\n")
+                                    
                                 else:
                                     archivos_problema += 1
-                                    self.after(0, self._actualizar_texto_fim, f"ALERTA {archivo}: Permisos anómalos ({permisos}, esperado {esperado})\n")
-                                    self.after(0, self._actualizar_texto_fim, f"   RIESGO: {descripcion}\n")
-                                    self.after(0, self._actualizar_texto_fim, f"   ACCIÓN: Revisar cambios recientes y verificar integridad\n")
-                                    self._log_terminal(f"ALERTA: Permisos anómalos en {archivo}", "FIM", "WARNING")
-                                
-                                # Calcular hash para baseline
-                                if os.path.isfile(archivo):
-                                    with open(archivo, 'rb') as f:
-                                        contenido = f.read()
-                                        hash_sha256 = hashlib.sha256(contenido).hexdigest()[:16]
-                                    self.after(0, self._actualizar_texto_fim, f"   HASH: {hash_sha256}... (baseline establecido)\n\n")
-                                
-                            else:
+                                    self.after(0, self._actualizar_texto_fim, f"CRÍTICO {archivo}: Archivo no encontrado\n")
+                                    self.after(0, self._actualizar_texto_fim, f"   IMPACTO: {descripcion}\n")
+                                    self.after(0, self._actualizar_texto_fim, f"   ACCIÓN: Verificar si fue eliminado maliciosamente\n\n")
+                                    self._log_terminal(f"CRÍTICO: Archivo crítico no encontrado - {archivo}", "FIM", "ERROR")
+                                    
+                            except Exception as e:
                                 archivos_problema += 1
-                                self.after(0, self._actualizar_texto_fim, f"CRÍTICO {archivo}: Archivo no encontrado\n")
-                                self.after(0, self._actualizar_texto_fim, f"   IMPACTO: {descripcion}\n")
-                                self.after(0, self._actualizar_texto_fim, f"   ACCIÓN: Verificar si fue eliminado maliciosamente\n\n")
-                                self._log_terminal(f"CRÍTICO: Archivo crítico no encontrado - {archivo}", "FIM", "ERROR")
-                                
-                        except Exception as e:
-                            archivos_problema += 1
-                            self.after(0, self._actualizar_texto_fim, f"ERROR verificando {archivo}: {str(e)}\n\n")
+                                self.after(0, self._actualizar_texto_fim, f"ERROR verificando {archivo}: {str(e)}\n\n")
+                        
+                        fases_completadas += 1
+                        self._log_terminal("✓ FASE 2 completada exitosamente", "FIM", "SUCCESS")
+                        
+                    except Exception as e:
+                        fases_con_error += 1
+                        self._log_terminal(f"✗ ERROR en FASE 2: {str(e)}", "FIM", "ERROR")
+                        self.after(0, self._actualizar_texto_fim, f"ERROR FASE 2: {str(e)}\n")
+                        self._log_terminal("Continuando con la siguiente fase...", "FIM", "WARNING")
                     
                     # FASE 2.5: Monitoreo avanzado con herramientas de Kali
-                    self._log_terminal("FASE 2.5: Análisis avanzado con herramientas especializadas de Kali", "FIM", "INFO")
-                    self.after(0, self._actualizar_texto_fim, "\nFASE 2.5: ANÁLISIS AVANZADO CON HERRAMIENTAS KALI\n")
-                    self.after(0, self._actualizar_texto_fim, "PROPÓSITO: Análisis forense profundo usando toolkit de Kali Linux\n\n")
-                    
-                    # 1. Análisis de procesos ocultos con ps avanzado
-                    self.after(0, self._actualizar_texto_fim, "HERRAMIENTA: ps auxf | grep -v grep\n")
-                    self.after(0, self._actualizar_texto_fim, "FUNCIÓN: Detectar procesos ocultos y jerarquías sospechosas\n")
                     try:
-                        result = subprocess.run(['ps', 'auxf'], capture_output=True, text=True, timeout=10)
-                        if result.returncode == 0:
-                            procesos = result.stdout.strip().split('\n')
-                            procesos_sospechosos = []
-                            for proceso in procesos:
-                                if any(sospechoso in proceso.lower() for sospechoso in 
-                                      ['backdoor', 'rootkit', 'trojan', 'keylog', 'rat']):
-                                    procesos_sospechosos.append(proceso)
-                            
-                            if procesos_sospechosos:
-                                self.after(0, self._actualizar_texto_fim, f"ALERTA: {len(procesos_sospechosos)} procesos sospechosos detectados\n")
-                                for proc in procesos_sospechosos[:3]:
-                                    self.after(0, self._actualizar_texto_fim, f"  SOSPECHOSO: {proc[:60]}...\n")
-                                self._log_terminal(f"ALERTA: {len(procesos_sospechosos)} procesos sospechosos en el sistema", "FIM", "WARNING")
+                        self._log_terminal("FASE 2.5: Análisis avanzado con herramientas especializadas de Kali", "FIM", "INFO")
+                        self.after(0, self._actualizar_texto_fim, "\nFASE 2.5: ANÁLISIS AVANZADO CON HERRAMIENTAS KALI\n")
+                        self.after(0, self._actualizar_texto_fim, "PROPÓSITO: Análisis forense profundo usando toolkit de Kali Linux\n\n")
+                        
+                        # 1. Análisis de procesos ocultos con ps avanzado
+                        self.after(0, self._actualizar_texto_fim, "HERRAMIENTA: ps auxf | grep -v grep\n")
+                        self.after(0, self._actualizar_texto_fim, "FUNCIÓN: Detectar procesos ocultos y jerarquías sospechosas\n")
+                        try:
+                            result = subprocess.run(['ps', 'auxf'], capture_output=True, text=True, timeout=10)
+                            if result.returncode == 0:
+                                procesos = result.stdout.strip().split('\n')
+                                procesos_sospechosos = []
+                                for proceso in procesos:
+                                    if any(sospechoso in proceso.lower() for sospechoso in 
+                                          ['backdoor', 'rootkit', 'trojan', 'keylog', 'rat']):
+                                        procesos_sospechosos.append(proceso)
+                                
+                                if procesos_sospechosos:
+                                    self.after(0, self._actualizar_texto_fim, f"ALERTA: {len(procesos_sospechosos)} procesos sospechosos detectados\n")
+                                    for proc in procesos_sospechosos[:3]:
+                                        self.after(0, self._actualizar_texto_fim, f"  SOSPECHOSO: {proc[:60]}...\n")
+                                    self._log_terminal(f"ALERTA: {len(procesos_sospechosos)} procesos sospechosos en el sistema", "FIM", "WARNING")
+                                else:
+                                    self.after(0, self._actualizar_texto_fim, f"OK: {len(procesos)} procesos verificados, ninguno sospechoso\n")
                             else:
-                                self.after(0, self._actualizar_texto_fim, f"OK: {len(procesos)} procesos verificados, ninguno sospechoso\n")
-                        else:
-                            self.after(0, self._actualizar_texto_fim, "ERROR: No se pudo ejecutar análisis de procesos\n")
-                    except:
-                        self.after(0, self._actualizar_texto_fim, "ERROR: Comando ps no disponible\n")
-                    
-                    self.after(0, self._actualizar_texto_fim, "\n")
-                    
-                    # 2. Verificación de módulos del kernel con lsmod
-                    self.after(0, self._actualizar_texto_fim, "HERRAMIENTA: lsmod | head -20\n")
-                    self.after(0, self._actualizar_texto_fim, "FUNCIÓN: Detectar módulos del kernel maliciosos o rootkits\n")
-                    try:
-                        result = subprocess.run(['lsmod'], capture_output=True, text=True, timeout=5)
-                        if result.returncode == 0:
-                            modulos = result.stdout.strip().split('\n')[1:21]  # Primeros 20 módulos
-                            modulos_sospechosos = []
-                            for modulo in modulos:
-                                partes = modulo.split()
-                                if len(partes) >= 1:
-                                    nombre_modulo = partes[0]
-                                    if any(sospechoso in nombre_modulo.lower() for sospechoso in 
-                                          ['rootkit', 'hide', 'stealth', 'keylog']):
-                                        modulos_sospechosos.append(nombre_modulo)
-                            
-                            if modulos_sospechosos:
-                                self.after(0, self._actualizar_texto_fim, f"ALERTA: {len(modulos_sospechosos)} módulos kernel sospechosos\n")
-                                for mod in modulos_sospechosos:
-                                    self.after(0, self._actualizar_texto_fim, f"  MÓDULO SOSPECHOSO: {mod}\n")
-                                self._log_terminal(f"ALERTA: Módulos kernel sospechosos detectados", "FIM", "ERROR")
+                                self.after(0, self._actualizar_texto_fim, "ERROR: No se pudo ejecutar análisis de procesos\n")
+                        except:
+                            self.after(0, self._actualizar_texto_fim, "ERROR: Comando ps no disponible\n")
+                        
+                        self.after(0, self._actualizar_texto_fim, "\n")
+                        
+                        # 2. Verificación de módulos del kernel con lsmod
+                        self.after(0, self._actualizar_texto_fim, "HERRAMIENTA: lsmod | head -20\n")
+                        self.after(0, self._actualizar_texto_fim, "FUNCIÓN: Detectar módulos del kernel maliciosos o rootkits\n")
+                        try:
+                            result = subprocess.run(['lsmod'], capture_output=True, text=True, timeout=5)
+                            if result.returncode == 0:
+                                modulos = result.stdout.strip().split('\n')[1:21]  # Primeros 20 módulos
+                                modulos_sospechosos = []
+                                for modulo in modulos:
+                                    partes = modulo.split()
+                                    if len(partes) >= 1:
+                                        nombre_modulo = partes[0]
+                                        if any(sospechoso in nombre_modulo.lower() for sospechoso in 
+                                              ['rootkit', 'hide', 'stealth', 'keylog']):
+                                            modulos_sospechosos.append(nombre_modulo)
+                                
+                                if modulos_sospechosos:
+                                    self.after(0, self._actualizar_texto_fim, f"ALERTA: {len(modulos_sospechosos)} módulos kernel sospechosos\n")
+                                    for mod in modulos_sospechosos:
+                                        self.after(0, self._actualizar_texto_fim, f"  MÓDULO SOSPECHOSO: {mod}\n")
+                                    self._log_terminal(f"ALERTA: Módulos kernel sospechosos detectados", "FIM", "ERROR")
+                                else:
+                                    self.after(0, self._actualizar_texto_fim, f"OK: {len(modulos)} módulos kernel verificados\n")
                             else:
-                                self.after(0, self._actualizar_texto_fim, f"OK: {len(modulos)} módulos kernel verificados\n")
-                        else:
-                            self.after(0, self._actualizar_texto_fim, "ERROR: No se pudo verificar módulos del kernel\n")
-                    except:
-                        self.after(0, self._actualizar_texto_fim, "ERROR: lsmod no disponible\n")
-                    
-                    self.after(0, self._actualizar_texto_fim, "\n")
-                    
-                    # 3. Análisis de conexiones de red sospechosas con ss
-                    self.after(0, self._actualizar_texto_fim, "HERRAMIENTA: ss -tupnl | grep -E ':(4444|5555|6666|7777|8888|9999|31337)'\n")
-                    self.after(0, self._actualizar_texto_fim, "FUNCIÓN: Detectar backdoors en puertos comúnmente usados por atacantes\n")
-                    try:
-                        result = subprocess.run(['ss', '-tupnl'], capture_output=True, text=True, timeout=10)
-                        if result.returncode == 0:
-                            lineas = result.stdout.strip().split('\n')
-                            puertos_backdoor = ['4444', '5555', '6666', '7777', '8888', '9999', '31337', '12345', '54321']
-                            backdoors_detectados = []
-                            
-                            for linea in lineas:
-                                for puerto in puertos_backdoor:
-                                    if f':{puerto}' in linea:
-                                        backdoors_detectados.append((puerto, linea))
-                            
-                            if backdoors_detectados:
-                                self.after(0, self._actualizar_texto_fim, f"CRÍTICO: {len(backdoors_detectados)} posibles backdoors detectados\n")
-                                for puerto, linea in backdoors_detectados:
-                                    self.after(0, self._actualizar_texto_fim, f"  BACKDOOR PUERTO {puerto}: {linea[:50]}...\n")
-                                self._log_terminal(f"CRÍTICO: {len(backdoors_detectados)} backdoors detectados", "FIM", "ERROR")
+                                self.after(0, self._actualizar_texto_fim, "ERROR: No se pudo verificar módulos del kernel\n")
+                        except:
+                            self.after(0, self._actualizar_texto_fim, "ERROR: lsmod no disponible\n")
+                        
+                        self.after(0, self._actualizar_texto_fim, "\n")
+                        
+                        # 3. Análisis de conexiones de red sospechosas con ss
+                        self.after(0, self._actualizar_texto_fim, "HERRAMIENTA: ss -tupnl | grep -E ':(4444|5555|6666|7777|8888|9999|31337)'\n")
+                        self.after(0, self._actualizar_texto_fim, "FUNCIÓN: Detectar backdoors en puertos comúnmente usados por atacantes\n")
+                        try:
+                            result = subprocess.run(['ss', '-tupnl'], capture_output=True, text=True, timeout=10)
+                            if result.returncode == 0:
+                                lineas = result.stdout.strip().split('\n')
+                                puertos_backdoor = ['4444', '5555', '6666', '7777', '8888', '9999', '31337', '12345', '54321']
+                                backdoors_detectados = []
+                                
+                                for linea in lineas:
+                                    for puerto in puertos_backdoor:
+                                        if f':{puerto}' in linea:
+                                            backdoors_detectados.append((puerto, linea))
+                                
+                                if backdoors_detectados:
+                                    self.after(0, self._actualizar_texto_fim, f"CRÍTICO: {len(backdoors_detectados)} posibles backdoors detectados\n")
+                                    for puerto, linea in backdoors_detectados:
+                                        self.after(0, self._actualizar_texto_fim, f"  BACKDOOR PUERTO {puerto}: {linea[:50]}...\n")
+                                    self._log_terminal(f"CRÍTICO: {len(backdoors_detectados)} backdoors detectados", "FIM", "ERROR")
+                                else:
+                                    self.after(0, self._actualizar_texto_fim, "OK: No se detectaron puertos de backdoor conocidos\n")
                             else:
-                                self.after(0, self._actualizar_texto_fim, "OK: No se detectaron puertos de backdoor conocidos\n")
-                        else:
-                            self.after(0, self._actualizar_texto_fim, "ERROR: No se pudo verificar conexiones de red\n")
-                    except:
-                        self.after(0, self._actualizar_texto_fim, "ERROR: ss no disponible\n")
+                                self.after(0, self._actualizar_texto_fim, "ERROR: No se pudo verificar conexiones de red\n")
+                        except:
+                            self.after(0, self._actualizar_texto_fim, "ERROR: ss no disponible\n")
+                        
+                        fases_completadas += 1
+                        self._log_terminal("✓ FASE 2.5 completada exitosamente", "FIM", "SUCCESS")
+                        
+                    except Exception as e:
+                        fases_con_error += 1
+                        self._log_terminal(f"✗ ERROR en FASE 2.5: {str(e)}", "FIM", "ERROR")
+                        self.after(0, self._actualizar_texto_fim, f"ERROR FASE 2.5: {str(e)}\n")
+                        self._log_terminal("Continuando con la siguiente fase...", "FIM", "WARNING")
                     
                     self.after(0, self._actualizar_texto_fim, "\n")
                     
@@ -647,20 +685,51 @@ class VistaFIM(tk.Frame):
                     self.after(0, self._actualizar_texto_fim, "\n")
                     
                     # FASE 3: Resumen del análisis
-                    self._log_terminal("FASE 3: Generando resumen de seguridad", "FIM", "INFO")
-                    self.after(0, self._actualizar_texto_fim, "FASE 3: RESUMEN DEL ANÁLISIS FIM\n")
-                    self.after(0, self._actualizar_texto_fim, f"ARCHIVOS VERIFICADOS: {archivos_verificados}\n")
-                    self.after(0, self._actualizar_texto_fim, f"PROBLEMAS DETECTADOS: {archivos_problema}\n")
+                    try:
+                        self._log_terminal("FASE 3: Generando resumen de seguridad", "FIM", "INFO")
+                        self.after(0, self._actualizar_texto_fim, "FASE 3: RESUMEN DEL ANÁLISIS FIM\n")
+                        self.after(0, self._actualizar_texto_fim, f"ARCHIVOS VERIFICADOS: {archivos_verificados}\n")
+                        self.after(0, self._actualizar_texto_fim, f"PROBLEMAS DETECTADOS: {archivos_problema}\n")
+                        
+                        if archivos_problema == 0:
+                            self.after(0, self._actualizar_texto_fim, "ESTADO: Sistema íntegro - No se detectaron anomalías\n")
+                            self._log_terminal("Sistema íntegro - baseline establecido correctamente", "FIM", "SUCCESS")
+                        else:
+                            self.after(0, self._actualizar_texto_fim, f"ESTADO: Se detectaron {archivos_problema} anomalías - Revisar alertas\n")
+                            self._log_terminal(f"ALERTA: {archivos_problema} anomalías detectadas en archivos críticos", "FIM", "WARNING")
+                        
+                        self.after(0, self._actualizar_texto_fim, "\nMONITOREO CONTINUO ACTIVO - Verificando cambios en tiempo real...\n")
+                        self.after(0, self._actualizar_texto_fim, "INFO: Los cambios en archivos críticos serán detectados y reportados automáticamente\n")
+                        
+                        fases_completadas += 1
+                        self._log_terminal("✓ FASE 3 completada exitosamente", "FIM", "SUCCESS")
+                        
+                    except Exception as e:
+                        fases_con_error += 1
+                        self._log_terminal(f"✗ ERROR en FASE 3: {str(e)}", "FIM", "ERROR")
+                        self.after(0, self._actualizar_texto_fim, f"ERROR FASE 3: {str(e)}\n")
+                        self._log_terminal("Fase final completada con errores", "FIM", "WARNING")
                     
-                    if archivos_problema == 0:
-                        self.after(0, self._actualizar_texto_fim, "ESTADO: Sistema íntegro - No se detectaron anomalías\n")
-                        self._log_terminal("Sistema íntegro - baseline establecido correctamente", "FIM", "SUCCESS")
-                    else:
-                        self.after(0, self._actualizar_texto_fim, f"ESTADO: Se detectaron {archivos_problema} anomalías - Revisar alertas\n")
-                        self._log_terminal(f"ALERTA: {archivos_problema} anomalías detectadas en archivos críticos", "FIM", "WARNING")
-                    
-                    self.after(0, self._actualizar_texto_fim, "\nMONITOREO CONTINUO ACTIVO - Verificando cambios en tiempo real...\n")
-                    self.after(0, self._actualizar_texto_fim, "INFO: Los cambios en archivos críticos serán detectados y reportados automáticamente\n")
+                    # RESUMEN FINAL DE FASES
+                    try:
+                        self.after(0, self._actualizar_texto_fim, f"\n{'='*50}\n")
+                        self.after(0, self._actualizar_texto_fim, f"RESUMEN DE EJECUCIÓN FIM\n")
+                        self.after(0, self._actualizar_texto_fim, f"{'='*50}\n")
+                        self.after(0, self._actualizar_texto_fim, f"✓ FASES COMPLETADAS: {fases_completadas}/3\n")
+                        self.after(0, self._actualizar_texto_fim, f"✗ FASES CON ERROR: {fases_con_error}/3\n")
+                        
+                        if fases_con_error == 0:
+                            self.after(0, self._actualizar_texto_fim, f"ESTADO GENERAL: ✓ TODAS LAS FASES COMPLETADAS EXITOSAMENTE\n")
+                            self._log_terminal("✓ FIM: Todas las fases completadas exitosamente", "FIM", "SUCCESS")
+                        else:
+                            self.after(0, self._actualizar_texto_fim, f"ESTADO GENERAL: ⚠ {fases_completadas} fases exitosas, {fases_con_error} con errores\n")
+                            self._log_terminal(f"⚠ FIM: {fases_completadas} fases exitosas, {fases_con_error} con errores", "FIM", "WARNING")
+                        
+                        self.after(0, self._actualizar_texto_fim, f"RESULTADO: FIM ejecutado de forma resiliente\n")
+                        self.after(0, self._actualizar_texto_fim, f"{'='*50}\n")
+                    except Exception as e:
+                        self._log_terminal(f"Error generando resumen final: {str(e)}", "FIM", "ERROR")
+                        
                 else:
                     self._log_terminal("Error iniciando controlador FIM", "FIM", "ERROR")
                     self.after(0, self._actualizar_texto_fim, "ERROR: No se pudo iniciar el controlador FIM\n")
