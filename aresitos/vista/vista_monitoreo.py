@@ -1250,11 +1250,11 @@ class VistaMonitoreo(tk.Frame):
             from aresitos.utils.sudo_manager import SudoManager
             sudo_manager = SudoManager()
             if not sudo_manager.is_sudo_active():
-                self.text_cuarentena.insert(tk.END, "⚠️ SUDO NO ACTIVO: Verificar permisos en otras ventanas de ARESITOS\n")
+                self.text_cuarentena.insert(tk.END, "WARNING SUDO NO ACTIVO: Verificar permisos en otras ventanas de ARESITOS\n")
                 messagebox.showwarning("Permisos", "Sudo no activo. Algunas operaciones pueden fallar.")
         except ImportError:
             sudo_manager = None
-            self.text_cuarentena.insert(tk.END, "⚠️ SudoManager no disponible - usando modo básico\n")
+            self.text_cuarentena.insert(tk.END, "WARNING SudoManager no disponible - usando modo básico\n")
         
         # Mostrar advertencia especial para cuarentena
         if not HelperSeguridad.mostrar_advertencia_cuarentena():
@@ -1288,7 +1288,7 @@ class VistaMonitoreo(tk.Frame):
                 file_stat = os.stat(archivo)
                 self.text_cuarentena.insert(tk.END, f"INFO: Archivo encontrado - Tamaño: {file_stat.st_size} bytes\n")
             except PermissionError:
-                self.text_cuarentena.insert(tk.END, f"⚠️ Sin permisos para acceder a {archivo}\n")
+                self.text_cuarentena.insert(tk.END, f"WARNING Sin permisos para acceder a {archivo}\n")
                 if sudo_manager:
                     self.text_cuarentena.insert(tk.END, "INFO: Usando SudoManager para acceso con privilegios\n")
                 else:
@@ -1421,7 +1421,7 @@ class VistaMonitoreo(tk.Frame):
                     
                     self.text_cuarentena.insert(tk.END, f"Tamaño total: {tamaño_str}\n")
             except Exception as e:
-                self.text_cuarentena.insert(tk.END, f"\n⚠️ Error obteniendo resumen: {e}\n")
+                self.text_cuarentena.insert(tk.END, f"\nWARNING Error obteniendo resumen: {e}\n")
                 
         except ImportError as e:
             error_msg = f"Error importando controlador de cuarentena: {e}"
@@ -1480,7 +1480,7 @@ class VistaMonitoreo(tk.Frame):
                 from aresitos.utils.sudo_manager import SudoManager
                 sudo_manager = SudoManager()
                 if not sudo_manager.is_sudo_active():
-                    self.text_cuarentena.insert(tk.END, "⚠️ SUDO NO ACTIVO: La operación puede fallar\n")
+                    self.text_cuarentena.insert(tk.END, "WARNING SUDO NO ACTIVO: La operacion puede fallar\n")
             except ImportError:
                 sudo_manager = None
             
@@ -1500,7 +1500,7 @@ class VistaMonitoreo(tk.Frame):
                     self.text_cuarentena.insert(tk.END, f"✓ Archivos eliminados: {eliminados}\n")
                     
                     if errores:
-                        self.text_cuarentena.insert(tk.END, f"⚠️ Se encontraron {len(errores)} errores:\n")
+                        self.text_cuarentena.insert(tk.END, f"WARNING Se encontraron {len(errores)} errores:\n")
                         for i, error in enumerate(errores[:5], 1):  # Mostrar solo los primeros 5
                             self.text_cuarentena.insert(tk.END, f"   {i}. {error}\n")
                         if len(errores) > 5:
@@ -1510,7 +1510,7 @@ class VistaMonitoreo(tk.Frame):
                     
                     messagebox.showinfo("Éxito", f"Cuarentena limpiada. Archivos eliminados: {eliminados}")
                 else:
-                    self.text_cuarentena.insert(tk.END, f"⚠️ Resultado inesperado: {resultado}\n")
+                    self.text_cuarentena.insert(tk.END, f"WARNING Resultado inesperado: {resultado}\n")
                     
             except Exception as e:
                 error_msg = f"Error durante limpieza: {str(e)}"

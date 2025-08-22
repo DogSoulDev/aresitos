@@ -451,7 +451,7 @@ class VistaEscaneo(tk.Frame):
                     vulnerabilidades = fases["nuclei"].get("vulnerabilidades", [])[:2]
                     for vuln in vulnerabilidades:
                         template = vuln.get("template", "N/A")
-                        self._actualizar_texto_seguro(f"    ⚠─ VULNERABILIDAD: {template}\n")
+                        self._actualizar_texto_seguro(f"    [!] VULNERABILIDAD: {template}\n")
                 
                 self._actualizar_texto_seguro("\n")
             
@@ -465,9 +465,9 @@ class VistaEscaneo(tk.Frame):
             # Recomendaciones
             self._actualizar_texto_seguro("--- RECOMENDACIONES ---\n")
             if total_vulnerabilidades > 0:
-                self._actualizar_texto_seguro("🔴 CRÍTICO: Se encontraron vulnerabilidades - Revisar inmediatamente\n")
+                self._actualizar_texto_seguro("CRITICO: Se encontraron vulnerabilidades - Revisar inmediatamente\n")
             if total_puertos > 20:
-                self._actualizar_texto_seguro("🟡 ATENCIÓN: Muchos puertos abiertos - Revisar superficie de ataque\n")
+                self._actualizar_texto_seguro("ATENCION: Muchos puertos abiertos - Revisar superficie de ataque\n")
             self._actualizar_texto_seguro("🔵 Revisar logs detallados en el módulo SIEM\n")
             self._actualizar_texto_seguro("🔵 Considerar monitoreo FIM de archivos críticos\n\n")
             
@@ -840,14 +840,14 @@ class VistaEscaneo(tk.Frame):
                     if 'kali' in resultado.stdout.lower():
                         self._actualizar_texto_seguro("✓ Sistema: Kali Linux detectado\n")
                     else:
-                        self._actualizar_texto_seguro("⚠ Sistema: No es Kali Linux\n")
+                        self._actualizar_texto_seguro("WARNING Sistema: No es Kali Linux\n")
                 except:
                     pass
                 
                 # Estado general
                 self._actualizar_texto_seguro(f"✓ Fases completadas: {fases_completadas}/{total_fases}\n")
                 if fases_con_error > 0:
-                    self._actualizar_texto_seguro(f"⚠ Fases con errores: {fases_con_error}\n")
+                    self._actualizar_texto_seguro(f"WARNING Fases con errores: {fases_con_error}\n")
                 
                 fases_completadas += 1
                 self._log_terminal("✓ FASE 7 completada", "ESCANEADOR", "SUCCESS")
@@ -865,14 +865,14 @@ class VistaEscaneo(tk.Frame):
             self._actualizar_texto_seguro(f"Fases con errores: {fases_con_error}\n\n")
             
             if fases_con_error == 0:
-                self._actualizar_texto_seguro("✅ ESCANEO COMPLETADO SIN ERRORES\n")
+                self._actualizar_texto_seguro("OK ESCANEO COMPLETADO SIN ERRORES\n")
                 self._log_terminal("🎉 Escaneo básico completado exitosamente", "ESCANEADOR", "SUCCESS")
             elif fases_completadas > fases_con_error:
-                self._actualizar_texto_seguro("⚠️ ESCANEO COMPLETADO CON ADVERTENCIAS\n")
-                self._log_terminal("⚠️ Escaneo básico completado con advertencias", "ESCANEADOR", "WARNING")
+                self._actualizar_texto_seguro("WARNING ESCANEO COMPLETADO CON ADVERTENCIAS\n")
+                self._log_terminal("WARNING Escaneo básico completado con advertencias", "ESCANEADOR", "WARNING")
             else:
-                self._actualizar_texto_seguro("❌ ESCANEO COMPLETADO CON ERRORES\n")
-                self._log_terminal("🚨 Escaneo básico completado con errores", "ESCANEADOR", "ERROR")
+                self._actualizar_texto_seguro("ERROR ESCANEO COMPLETADO CON ERRORES\n")
+                self._log_terminal("ERROR Escaneo básico completado con errores", "ESCANEADOR", "ERROR")
             
             self._actualizar_texto_seguro("\nNOTA: Para análisis completo, use el escaneador avanzado Kali 2025\n")
             self._actualizar_texto_seguro("=" * 60 + "\n")
@@ -2382,35 +2382,98 @@ class VistaEscaneo(tk.Frame):
             self._log_terminal(f"Error en Whatweb: {str(e)}", "WHATWEB", "ERROR")
     
     def _ejecutar_chkrootkit(self):
-        """Ejecutar Chkrootkit para detectar rootkits."""
+        """Ejecutar Chkrootkit para detectar rootkits con configuración optimizada."""
         import subprocess
         try:
-            self._log_terminal("Ejecutando Chkrootkit (detector de rootkits)...", "CHKROOTKIT", "WARNING")
+            self._log_terminal("Iniciando análisis profundo con Chkrootkit...", "CHKROOTKIT", "INFO")
             
-            resultado = subprocess.run(['chkrootkit'], capture_output=True, text=True, timeout=180)
+            # Configuración optimizada para Kali Linux
+            comando = ['chkrootkit', '-q']  # Modo quiet para output más limpio
+            
+            # Usar SudoManager para permisos elevados necesarios
+            try:
+                from aresitos.utils.sudo_manager import get_sudo_manager
+                sudo_manager = get_sudo_manager()
+                
+                if sudo_manager.is_sudo_active():
+                    # Ejecutar con sudo para acceso completo al sistema
+                    self._log_terminal("Ejecutando con permisos elevados para análisis completo...", "CHKROOTKIT", "INFO")
+                    resultado = sudo_manager.execute_sudo_command('chkrootkit -q', timeout=420)
+                else:
+                    # Fallback sin sudo
+                    self._log_terminal("Ejecutando sin sudo - análisis limitado...", "CHKROOTKIT", "WARNING")
+                    resultado = subprocess.run(comando, capture_output=True, text=True, timeout=420)
+            except ImportError:
+                # Fallback si SudoManager no está disponible
+                resultado = subprocess.run(comando, capture_output=True, text=True, timeout=420)
             
             if resultado.returncode == 0:
+                # Análisis inteligente de resultados
                 lineas = resultado.stdout.split('\n')
-                sospechas = []
+                sospechas_criticas = []
+                sospechas_moderadas = []
+                informacion_general = []
+                
+                # Patrones mejorados de detección
+                patrones_criticos = ['INFECTED', 'SUSPECT', 'MALWARE', 'ROOTKIT', 'TROJAN']
+                patrones_moderados = ['WARNING', 'POSSIBLE', 'SUSPICIOUS', 'UNKNOWN']
+                patrones_informativos = ['CHECKING', 'FOUND', 'OK']
                 
                 for linea in lineas:
-                    if any(palabra in linea.upper() for palabra in ['INFECTED', 'SUSPECT', 'WARNING']):
-                        sospechas.append(linea.strip())
+                    linea_upper = linea.upper().strip()
+                    if not linea_upper:
+                        continue
+                        
+                    # Clasificar hallazgos por criticidad
+                    if any(patron in linea_upper for patron in patrones_criticos):
+                        sospechas_criticas.append(linea.strip())
+                    elif any(patron in linea_upper for patron in patrones_moderados):
+                        sospechas_moderadas.append(linea.strip())
+                    elif any(patron in linea_upper for patron in patrones_informativos):
+                        if 'INFECTED' not in linea_upper and 'SUSPECT' not in linea_upper:
+                            informacion_general.append(linea.strip())
                 
-                if sospechas:
-                    self._log_terminal(f"CHKROOTKIT: {len(sospechas)} elementos sospechosos detectados", "CHKROOTKIT", "ERROR")
-                    for sospecha in sospechas[:10]:
+                # Reportar resultados de forma inteligente
+                total_criticas = len(sospechas_criticas)
+                total_moderadas = len(sospechas_moderadas)
+                
+                if total_criticas > 0:
+                    self._log_terminal(f"CHKROOTKIT: WARNING {total_criticas} amenazas CRITICAS detectadas", "CHKROOTKIT", "ERROR")
+                    for sospecha in sospechas_criticas[:8]:  # Mostrar hasta 8 críticas
                         if sospecha:
-                            self._log_terminal(f"  {sospecha}", "CHKROOTKIT", "ERROR")
-                else:
-                    self._log_terminal("CHKROOTKIT: No se detectaron rootkits conocidos", "CHKROOTKIT", "SUCCESS")
+                            self._log_terminal(f"  CRITICO {sospecha}", "CHKROOTKIT", "ERROR")
+                    if total_criticas > 8:
+                        self._log_terminal(f"  ... y {total_criticas - 8} amenazas críticas adicionales", "CHKROOTKIT", "ERROR")
+                
+                if total_moderadas > 0:
+                    self._log_terminal(f"CHKROOTKIT: WARNING {total_moderadas} elementos sospechosos detectados", "CHKROOTKIT", "WARNING")
+                    for sospecha in sospechas_moderadas[:5]:  # Mostrar hasta 5 moderadas
+                        if sospecha:
+                            self._log_terminal(f"  SOSPECHOSO {sospecha}", "CHKROOTKIT", "WARNING")
+                    if total_moderadas > 5:
+                        self._log_terminal(f"  ... y {total_moderadas - 5} elementos sospechosos adicionales", "CHKROOTKIT", "WARNING")
+                
+                if total_criticas == 0 and total_moderadas == 0:
+                    self._log_terminal("CHKROOTKIT: OK Sistema limpio - No se detectaron rootkits conocidos", "CHKROOTKIT", "SUCCESS")
+                    
+                # Información adicional sobre el análisis
+                total_checks = len(informacion_general)
+                if total_checks > 0:
+                    self._log_terminal(f"CHKROOTKIT: Análisis completado - {total_checks} verificaciones realizadas", "CHKROOTKIT", "INFO")
+                    
             else:
-                self._log_terminal("CHKROOTKIT: Error en ejecución o resultados inconclusos", "CHKROOTKIT", "WARNING")
+                error_output = resultado.stderr.strip() if resultado.stderr else "Sin información de error"
+                self._log_terminal(f"CHKROOTKIT: Error en ejecución (código {resultado.returncode})", "CHKROOTKIT", "WARNING")
+                if error_output:
+                    self._log_terminal(f"CHKROOTKIT: {error_output}", "CHKROOTKIT", "WARNING")
                 
         except subprocess.TimeoutExpired:
-            self._log_terminal("CHKROOTKIT: Timeout - análisis muy lento", "CHKROOTKIT", "WARNING")
+            self._log_terminal("CHKROOTKIT: Timeout después de 7 minutos - Sistema puede estar sobrecargado", "CHKROOTKIT", "WARNING")
+            self._log_terminal("CHKROOTKIT: Recomendación: Ejecutar manualmente con más tiempo", "CHKROOTKIT", "INFO")
         except Exception as e:
-            self._log_terminal(f"Error en Chkrootkit: {str(e)}", "CHKROOTKIT", "ERROR")
+            self._log_terminal(f"CHKROOTKIT: Error inesperado - {str(e)}", "CHKROOTKIT", "ERROR")
+            # Información de troubleshooting
+            self._log_terminal("CHKROOTKIT: Verifique que chkrootkit esté instalado: sudo apt install chkrootkit", "CHKROOTKIT", "INFO")
     
     def _ejecutar_rkhunter(self):
         """Ejecutar RKHunter para caza de rootkits."""

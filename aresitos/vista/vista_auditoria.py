@@ -365,18 +365,18 @@ class VistaAuditoria(tk.Frame):
                     from aresitos.utils.sudo_manager import SudoManager
                     sudo_manager = SudoManager()
                     if sudo_manager.is_sudo_active():
-                        self._actualizar_texto_auditoria("✓ SudoManager activo para auditoría completa\n")
+                        self._actualizar_texto_auditoria("OK SudoManager activo para auditoría completa\n")
                     else:
-                        self._actualizar_texto_auditoria("⚠ SudoManager no activo - algunas verificaciones pueden fallar\n")
+                        self._actualizar_texto_auditoria("WARNING SudoManager no activo - algunas verificaciones pueden fallar\n")
                 except ImportError:
                     sudo_manager = None
-                    self._actualizar_texto_auditoria("⚠ SudoManager no disponible\n")
+                    self._actualizar_texto_auditoria("WARNING SudoManager no disponible\n")
                 
                 try:
                     # Verificar si Lynis está instalado
                     resultado = subprocess.run(['which', 'lynis'], capture_output=True, text=True, timeout=10)
                     if resultado.returncode == 0:
-                        self._actualizar_texto_auditoria("✓ Lynis encontrado en sistema\n")
+                        self._actualizar_texto_auditoria("OK Lynis encontrado en sistema\n")
                         
                         # Verificar y crear directorios de logs
                         log_dir = "/var/log/lynis"
@@ -408,7 +408,7 @@ class VistaAuditoria(tk.Frame):
                             else:
                                 salida = proceso_result.stdout
                                 errores = proceso_result.stderr
-                                self._actualizar_texto_auditoria(f"⚠ Lynis terminó con código: {proceso_result.returncode}\n")
+                                self._actualizar_texto_auditoria(f"WARNING Lynis terminó con código: {proceso_result.returncode}\n")
                         else:
                             # Ejecutar sin sudo
                             self._actualizar_texto_auditoria("• Ejecutando sin privilegios elevados - algunas verificaciones limitadas\n")
@@ -436,18 +436,18 @@ class VistaAuditoria(tk.Frame):
                                 ]):
                                     if 'warning' in linea.lower():
                                         warnings_count += 1
-                                        lineas_importantes.append(f"⚠ {linea}")
+                                        lineas_importantes.append(f"WARNING {linea}")
                                     elif 'suggestion' in linea.lower():
                                         suggestions_count += 1
                                         lineas_importantes.append(f"💡 {linea}")
                                     elif any(critical in linea.lower() for critical in ['vulnerable', 'weak', 'missing']):
-                                        lineas_importantes.append(f"🚨 {linea}")
+                                        lineas_importantes.append(f"CRITICO {linea}")
                                     else:
-                                        lineas_importantes.append(f"ℹ {linea}")
+                                        lineas_importantes.append(f"INFO {linea}")
                             
                             # Mostrar resumen de hallazgos
                             self._actualizar_texto_auditoria(f"✓ Auditoría completada - Procesando {len(lineas_importantes)} hallazgos\n")
-                            self._actualizar_texto_auditoria(f"⚠ Advertencias encontradas: {warnings_count}\n")
+                            self._actualizar_texto_auditoria(f"WARNING Advertencias encontradas: {warnings_count}\n")
                             self._actualizar_texto_auditoria(f"💡 Sugerencias de mejora: {suggestions_count}\n\n")
                             
                             # Mostrar hallazgos más importantes (primeros 30)
@@ -492,7 +492,7 @@ class VistaAuditoria(tk.Frame):
                         self._actualizar_texto_auditoria("• lynis audit system --tests-from-group networking\n")
                         
                         if errores and errores.strip():
-                            self._actualizar_texto_auditoria(f"\n⚠ Errores reportados:\n{errores[:500]}\n")
+                            self._actualizar_texto_auditoria(f"\nWARNING Errores reportados:\n{errores[:500]}\n")
                         
                     else:
                         self._actualizar_texto_auditoria("ERROR Lynis no encontrado en sistema\n")
@@ -708,31 +708,56 @@ class VistaAuditoria(tk.Frame):
                     else:
                         self.after(0, self._actualizar_texto_auditoria, f"ERROR: {resultado.get('error', 'Error desconocido')}\n")
                 else:
-                    # Fallback manual
-                    self.after(0, self._actualizar_texto_auditoria, " Detectando rootkits con rkhunter y chkrootkit...\n")
+                    # Fallback manual con configuración optimizada
+                    self.after(0, self._actualizar_texto_auditoria, " Detectando rootkits con rkhunter y chkrootkit (optimizado)...\n")
                     
                     import subprocess
+                    
+                    # Configuración optimizada para herramientas anti-rootkit
                     herramientas = [
-                        (['rkhunter', '--check', '--skip-keypress'], 'rkhunter'),
-                        (['chkrootkit'], 'chkrootkit')
+                        (['rkhunter', '--check', '--skip-keypress', '--quiet'], 'rkhunter'),
+                        (['chkrootkit', '-q'], 'chkrootkit')  # Modo quiet para mejor parsing
                     ]
+                    
+                    # Intentar usar SudoManager para permisos elevados
+                    try:
+                        from aresitos.utils.sudo_manager import get_sudo_manager
+                        sudo_manager = get_sudo_manager()
+                        sudo_disponible = sudo_manager.is_sudo_active()
+                        
+                        if sudo_disponible:
+                            self.after(0, self._actualizar_texto_auditoria, " Ejecutando con permisos elevados para análisis completo...\n")
+                    except ImportError:
+                        sudo_disponible = False
+                        sudo_manager = None
                     
                     for comando, nombre in herramientas:
                         try:
-                            self.after(0, self._actualizar_texto_auditoria, f" Ejecutando {nombre}...\n")
-                            resultado = subprocess.run(comando, capture_output=True, text=True, timeout=300)
-                            if resultado.returncode == 0:
-                                self.after(0, self._actualizar_texto_auditoria, f"OK {nombre} completado\n")
-                                if "INFECTED" in resultado.stdout or "infected" in resultado.stdout:
-                                    self.after(0, self._actualizar_texto_auditoria, "WARNING POSIBLES ROOTKITS DETECTADOS\n")
-                                else:
-                                    self.after(0, self._actualizar_texto_auditoria, f"OK No se detectaron rootkits con {nombre}\n")
+                            self.after(0, self._actualizar_texto_auditoria, f" Ejecutando {nombre} con configuración optimizada...\n")
+                            
+                            # Usar sudo si está disponible para chkrootkit (necesita acceso root)
+                            if nombre == 'chkrootkit' and sudo_disponible and sudo_manager:
+                                resultado = sudo_manager.execute_sudo_command('chkrootkit -q', timeout=420)
                             else:
-                                self.after(0, self._actualizar_texto_auditoria, f"ERROR en {nombre}\n")
+                                resultado = subprocess.run(comando, capture_output=True, text=True, timeout=420)
+                            
+                            if resultado.returncode == 0:
+                                self.after(0, self._actualizar_texto_auditoria, f"OK {nombre} completado exitosamente\n")
+                                
+                                # Análisis inteligente de resultados específico por herramienta
+                                if nombre == 'chkrootkit':
+                                    self._analizar_resultados_chkrootkit(resultado.stdout)
+                                elif nombre == 'rkhunter':
+                                    self._analizar_resultados_rkhunter(resultado.stdout)
+                                    
+                            else:
+                                error_msg = resultado.stderr.strip() if resultado.stderr else "Error desconocido"
+                                self.after(0, self._actualizar_texto_auditoria, f"WARNING Error en {nombre}: {error_msg}\n")
+                                
                         except FileNotFoundError:
-                            self.after(0, self._actualizar_texto_auditoria, f"ERROR {nombre} no encontrado. Instalar con: apt install {nombre}\n")
+                            self.after(0, self._actualizar_texto_auditoria, f"ERROR {nombre} no encontrado. Instalar: sudo apt install {nombre}\n")
                         except subprocess.TimeoutExpired:
-                            self.after(0, self._actualizar_texto_auditoria, f"TIMEOUT en {nombre}\n")
+                            self.after(0, self._actualizar_texto_auditoria, f"TIMEOUT en {nombre} (análisis muy extenso)\n")
                     
                     self.after(0, self._actualizar_texto_auditoria, "\n")
             except Exception as e:
@@ -969,18 +994,18 @@ class VistaAuditoria(tk.Frame):
                     from aresitos.utils.sudo_manager import SudoManager
                     sudo_manager = SudoManager()
                     if sudo_manager.is_sudo_active():
-                        self._actualizar_texto_auditoria("✓ SudoManager activo para escaneo completo\n")
+                        self._actualizar_texto_auditoria("OK SudoManager activo para escaneo completo\n")
                     else:
-                        self._actualizar_texto_auditoria("⚠ SudoManager no activo - algunas detecciones pueden fallar\n")
+                        self._actualizar_texto_auditoria("WARNING SudoManager no activo - algunas detecciones pueden fallar\n")
                 except ImportError:
                     sudo_manager = None
-                    self._actualizar_texto_auditoria("⚠ SudoManager no disponible\n")
+                    self._actualizar_texto_auditoria("WARNING SudoManager no disponible\n")
                 
                 try:
                     # Verificar si nuclei está instalado
                     resultado = subprocess.run(['which', 'nuclei'], capture_output=True, text=True, timeout=10)
                     if resultado.returncode == 0:
-                        self._actualizar_texto_auditoria("✓ nuclei encontrado en sistema\n")
+                        self._actualizar_texto_auditoria("OK nuclei encontrado en sistema\n")
                         
                         # Verificar y actualizar templates con timeout extendido
                         self._actualizar_texto_auditoria("• Actualizando templates nuclei (puede tardar varios minutos)...\n")
@@ -989,7 +1014,7 @@ class VistaAuditoria(tk.Frame):
                         if update_result.returncode == 0:
                             self._actualizar_texto_auditoria("✓ Templates nuclei actualizados exitosamente\n")
                         else:
-                            self._actualizar_texto_auditoria("⚠ Error actualizando templates, usando existentes\n")
+                            self._actualizar_texto_auditoria("WARNING Error actualizando templates, usando existentes\n")
                         
                         # Detectar objetivos expandidos
                         self._actualizar_texto_auditoria("• Detectando objetivos para escaneo nuclei avanzado...\n")
@@ -1045,12 +1070,12 @@ class VistaAuditoria(tk.Frame):
                                         pass
                                         
                         except Exception as e:
-                            self._actualizar_texto_auditoria(f"  ⚠ Error detectando objetivos: {str(e)}\n")
+                            self._actualizar_texto_auditoria(f"  WARNING Error detectando objetivos: {str(e)}\n")
                         
                         # Valor por defecto si no hay objetivos
                         if not targets:
                             targets = ['127.0.0.1']
-                            self._actualizar_texto_auditoria("  ⚠ Usando objetivo por defecto: 127.0.0.1\n")
+                            self._actualizar_texto_auditoria("  WARNING Usando objetivo por defecto: 127.0.0.1\n")
                         
                         self._actualizar_texto_auditoria(f"• Total objetivos para auditoría: {len(targets)}\n")
                         
@@ -1107,9 +1132,9 @@ class VistaAuditoria(tk.Frame):
                                     time.sleep(2)  # Pausa entre escaneos
                                     
                                 except subprocess.TimeoutExpired:
-                                    self._actualizar_texto_auditoria(f"⚠ Timeout escaneando {target} [{descripcion}] - escáner tomó más de 7 minutos\n")
+                                    self._actualizar_texto_auditoria(f"WARNING Timeout escaneando {target} [{descripcion}] - escáner tomó más de 7 minutos\n")
                                 except Exception as e:
-                                    self._actualizar_texto_auditoria(f"⚠ Error escaneando {target}: {str(e)}\n")
+                                    self._actualizar_texto_auditoria(f"WARNING Error escaneando {target}: {str(e)}\n")
                         
                         # Escaneo con templates especializados mejorado
                         self._actualizar_texto_auditoria(f"\n=== ESCANEO CON TEMPLATES ESPECIALIZADOS ===\n")
@@ -1162,9 +1187,9 @@ class VistaAuditoria(tk.Frame):
                                             self._actualizar_texto_auditoria(f"  ✓ Sin {descripcion.lower()} en {target}\n")
                                     
                                 except subprocess.TimeoutExpired:
-                                    self._actualizar_texto_auditoria(f"    ⚠ Timeout template {descripcion} en {target}\n")
+                                    self._actualizar_texto_auditoria(f"    WARNING Timeout template {descripcion} en {target}\n")
                                 except Exception as e:
-                                    self._actualizar_texto_auditoria(f"    ⚠ Error template {descripcion}: {str(e)}\n")
+                                    self._actualizar_texto_auditoria(f"    WARNING Error template {descripcion}: {str(e)}\n")
                         
                         # Resumen final mejorado
                         self._actualizar_texto_auditoria(f"\n=== RESUMEN AUDITORÍA NUCLEI PROFESIONAL ===\n")
@@ -1173,11 +1198,11 @@ class VistaAuditoria(tk.Frame):
                         self._actualizar_texto_auditoria(f"✓ Total vulnerabilidades encontradas: {vulnerabilidades_totales}\n")
                         
                         if vulnerabilidades_totales > 20:
-                            self._actualizar_texto_auditoria(f"🚨 ALERTA: Sistema altamente vulnerable ({vulnerabilidades_totales} issues)\n")
+                            self._actualizar_texto_auditoria(f"CRITICO ALERTA: Sistema altamente vulnerable ({vulnerabilidades_totales} issues)\n")
                         elif vulnerabilidades_totales > 5:
-                            self._actualizar_texto_auditoria(f"⚠ REVISAR: Vulnerabilidades encontradas requieren atención\n")
+                            self._actualizar_texto_auditoria(f"WARNING REVISAR: Vulnerabilidades encontradas requieren atención\n")
                         elif vulnerabilidades_totales > 0:
-                            self._actualizar_texto_auditoria(f"⚠ MENOR: Pocas vulnerabilidades detectadas\n")
+                            self._actualizar_texto_auditoria(f"WARNING MENOR: Pocas vulnerabilidades detectadas\n")
                         else:
                             self._actualizar_texto_auditoria(f"✓ SEGURO: Sistema sin vulnerabilidades detectables con nuclei\n")
                         
@@ -1465,3 +1490,120 @@ class VistaAuditoria(tk.Frame):
             # Fallback a consola si hay problemas
             print(f"[{modulo}] {mensaje}")
             print(f"Error logging a terminal: {e}")
+
+    def _analizar_resultados_chkrootkit(self, output):
+        """Analizar resultados de chkrootkit de forma inteligente."""
+        try:
+            lineas = output.split('\n')
+            sospechas_criticas = []
+            sospechas_moderadas = []
+            total_checks = 0
+            
+            # Patrones mejorados de detección para chkrootkit
+            patrones_criticos = ['INFECTED', 'SUSPECT', 'MALWARE', 'ROOTKIT', 'TROJAN']
+            patrones_moderados = ['WARNING', 'POSSIBLE', 'SUSPICIOUS', 'UNKNOWN']
+            
+            for linea in lineas:
+                linea_clean = linea.strip()
+                if not linea_clean:
+                    continue
+                    
+                linea_upper = linea_clean.upper()
+                
+                # Contar checks realizados (líneas que contienen "CHECKING")
+                if 'CHECKING' in linea_upper:
+                    total_checks += 1
+                
+                # Clasificar hallazgos por criticidad
+                if any(patron in linea_upper for patron in patrones_criticos):
+                    sospechas_criticas.append(linea_clean)
+                elif any(patron in linea_upper for patron in patrones_moderados):
+                    sospechas_moderadas.append(linea_clean)
+            
+            # Reportar resultados
+            total_criticas = len(sospechas_criticas)
+            total_moderadas = len(sospechas_moderadas)
+            
+            if total_criticas > 0:
+                self.after(0, self._actualizar_texto_auditoria, f"CRITICO CHKROOTKIT: {total_criticas} amenazas CRITICAS detectadas:\n")
+                for sospecha in sospechas_criticas[:5]:  # Mostrar hasta 5 críticas
+                    self.after(0, self._actualizar_texto_auditoria, f"   CRITICO {sospecha}\n")
+                if total_criticas > 5:
+                    self.after(0, self._actualizar_texto_auditoria, f"   ... y {total_criticas - 5} amenazas adicionales\n")
+            
+            if total_moderadas > 0:
+                self.after(0, self._actualizar_texto_auditoria, f"WARNING CHKROOTKIT: {total_moderadas} elementos sospechosos:\n")
+                for sospecha in sospechas_moderadas[:3]:  # Mostrar hasta 3 moderadas
+                    self.after(0, self._actualizar_texto_auditoria, f"   SOSPECHOSO {sospecha}\n")
+                if total_moderadas > 3:
+                    self.after(0, self._actualizar_texto_auditoria, f"   ... y {total_moderadas - 3} elementos adicionales\n")
+            
+            if total_criticas == 0 and total_moderadas == 0:
+                self.after(0, self._actualizar_texto_auditoria, "OK CHKROOTKIT: Sistema limpio - No rootkits detectados\n")
+            
+            # Estadísticas del análisis
+            if total_checks > 0:
+                self.after(0, self._actualizar_texto_auditoria, f"INFO CHKROOTKIT: {total_checks} verificaciones completadas\n")
+                
+        except Exception as e:
+            self.after(0, self._actualizar_texto_auditoria, f"ERROR analizando resultados chkrootkit: {str(e)}\n")
+
+    def _analizar_resultados_rkhunter(self, output):
+        """Analizar resultados de rkhunter de forma inteligente."""
+        try:
+            lineas = output.split('\n')
+            warnings = []
+            infected = []
+            suspicious = []
+            total_files_checked = 0
+            
+            for linea in lineas:
+                linea_clean = linea.strip()
+                if not linea_clean:
+                    continue
+                    
+                linea_upper = linea_clean.upper()
+                
+                # Contar archivos verificados
+                if 'CHECKING' in linea_upper:
+                    total_files_checked += 1
+                
+                # Detectar problemas específicos de rkhunter
+                if 'WARNING' in linea_upper and 'INFECTED' not in linea_upper:
+                    warnings.append(linea_clean)
+                elif 'INFECTED' in linea_upper or 'SUSPECT' in linea_upper:
+                    infected.append(linea_clean)
+                elif 'SUSPICIOUS' in linea_upper or 'POSSIBLE' in linea_upper:
+                    suspicious.append(linea_clean)
+            
+            # Reportar resultados
+            total_infected = len(infected)
+            total_suspicious = len(suspicious)
+            total_warnings = len(warnings)
+            
+            if total_infected > 0:
+                self.after(0, self._actualizar_texto_auditoria, f"CRITICO RKHUNTER: {total_infected} archivos INFECTADOS detectados:\n")
+                for item in infected[:5]:
+                    self.after(0, self._actualizar_texto_auditoria, f"   INFECTADO {item}\n")
+                if total_infected > 5:
+                    self.after(0, self._actualizar_texto_auditoria, f"   ... y {total_infected - 5} archivos adicionales\n")
+            
+            if total_suspicious > 0:
+                self.after(0, self._actualizar_texto_auditoria, f"WARNING RKHUNTER: {total_suspicious} elementos sospechosos:\n")
+                for item in suspicious[:3]:
+                    self.after(0, self._actualizar_texto_auditoria, f"   SOSPECHOSO {item}\n")
+                if total_suspicious > 3:
+                    self.after(0, self._actualizar_texto_auditoria, f"   ... y {total_suspicious - 3} elementos adicionales\n")
+            
+            if total_warnings > 0:
+                self.after(0, self._actualizar_texto_auditoria, f"INFO RKHUNTER: {total_warnings} advertencias menores\n")
+            
+            if total_infected == 0 and total_suspicious == 0:
+                self.after(0, self._actualizar_texto_auditoria, "OK RKHUNTER: Sistema limpio - No amenazas detectadas\n")
+            
+            # Estadísticas del análisis
+            if total_files_checked > 0:
+                self.after(0, self._actualizar_texto_auditoria, f"INFO RKHUNTER: {total_files_checked} elementos verificados\n")
+                
+        except Exception as e:
+            self.after(0, self._actualizar_texto_auditoria, f"ERROR analizando resultados rkhunter: {str(e)}\n")
