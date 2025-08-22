@@ -74,7 +74,7 @@ class VistaHerramientasKali(tk.Frame):
         # Título
         titulo_label = tk.Label(
             main_frame, 
-            text="Configuración de Herramientas Kali Linux",
+            text="Configurador de Herramientas Kali",
             font=('Arial', 16, 'bold'),
             bg=self.colors['bg_primary'], 
             fg=self.colors['fg_accent']
@@ -84,7 +84,7 @@ class VistaHerramientasKali(tk.Frame):
         # Subtítulo informativo
         info_label = tk.Label(
             main_frame,
-            text="Verificación y configuración de herramientas nativas de Kali Linux\nArquitectura: 100% Python + Herramientas Kali + Comandos Nativos Linux\nIntegración: 60+ comandos nativos ya optimizados en las vistas",
+            text="Antes de arrancar el programa es recomendable instalar las herramientas que se usaran.",
             font=('Arial', 11),
             bg=self.colors['bg_primary'],
             fg=self.colors['fg_primary'],
@@ -92,55 +92,59 @@ class VistaHerramientasKali(tk.Frame):
         )
         info_label.pack(pady=(0, 30))
         
-        # Frame de botones
+        # Frame de botones con distribución uniforme
         botones_frame = tk.Frame(main_frame, bg=self.colors['bg_primary'])
         botones_frame.pack(fill="x", pady=(0, 20))
+        
+        # Configurar columnas con peso igual para distribución uniforme
+        for i in range(4):
+            botones_frame.grid_columnconfigure(i, weight=1, uniform="botones")
         
         # Botón verificar herramientas
         self.btn_verificar = tk.Button(
             botones_frame,
-            text="Verificar Herramientas Kali",
+            text="Verificar Herramientas",
             command=self.verificar_herramientas,
             bg=self.colors['button_bg'],
             fg='white',
-            font=('Arial', 11, 'bold'),
+            font=('Arial', 10, 'bold'),
             relief='flat',
-            padx=20,
-            pady=10,
+            padx=15,
+            pady=8,
             cursor='hand2'
         )
-        self.btn_verificar.pack(side="left", padx=(0, 15))
+        self.btn_verificar.grid(row=0, column=0, padx=10, sticky="ew")
         
         # Botón mostrar optimizaciones
         self.btn_optimizaciones = tk.Button(
             botones_frame,
-            text="Ver Optimizaciones Aplicadas",
+            text="Ver Optimizaciones",
             command=self.mostrar_optimizaciones,
             bg='#9C27B0',
             fg='white',
-            font=('Arial', 11, 'bold'),
+            font=('Arial', 10, 'bold'),
             relief='flat',
-            padx=20,
-            pady=10,
+            padx=15,
+            pady=8,
             cursor='hand2'
         )
-        self.btn_optimizaciones.pack(side="left", padx=(0, 15))
+        self.btn_optimizaciones.grid(row=0, column=1, padx=10, sticky="ew")
         
         # Botón instalar herramientas
         self.btn_instalar = tk.Button(
             botones_frame,
-            text="Instalar Herramientas Faltantes",
+            text="Instalar Faltantes",
             command=self.instalar_herramientas,
             bg=self.colors['warning'],
             fg='white',
-            font=('Arial', 11, 'bold'),
+            font=('Arial', 10, 'bold'),
             relief='flat',
-            padx=20,
-            pady=10,
+            padx=15,
+            pady=8,
             cursor='hand2',
             state='disabled'
         )
-        self.btn_instalar.pack(side="left", padx=(0, 15))
+        self.btn_instalar.grid(row=0, column=2, padx=10, sticky="ew")
         
         # Botón continuar (habilitado por defecto en modo desarrollo)
         self.btn_continuar = tk.Button(
@@ -149,14 +153,14 @@ class VistaHerramientasKali(tk.Frame):
             command=self.continuar_aplicacion,
             bg=self.colors['success'],
             fg='white',
-            font=('Arial', 11, 'bold'),
+            font=('Arial', 10, 'bold'),
             relief='flat',
-            padx=20,
-            pady=10,
+            padx=15,
+            pady=8,
             cursor='hand2',
             state='normal'  # Habilitado por defecto
         )
-        self.btn_continuar.pack(side="right")
+        self.btn_continuar.grid(row=0, column=3, padx=10, sticky="ew")
         
         # Área de resultados
         self.text_resultados = scrolledtext.ScrolledText(
@@ -174,8 +178,8 @@ class VistaHerramientasKali(tk.Frame):
         
         # Mensaje inicial
         self.text_resultados.insert(tk.END, 
-            "ARESITOS v2.0 - Configuración de Herramientas Kali Linux\n" +
-            "=" * 55 + "\n\n" +
+            "ARESITOS v2.0 - Configurador de Herramientas Kali\n" +
+            "=" * 50 + "\n\n" +
             "Sistema optimizado para Kali Linux con comandos nativos integrados:\n\n" +
             "• Comandos del sistema: ps, ss, lsof, grep, awk, find, stat\n" +
             "• Herramientas de red: nmap, netcat, ip, route, ss\n" +

@@ -377,7 +377,7 @@ class LoginAresitos:
         
         subtitle_label = tk.Label(
             main_frame,
-            text="Sistema de Seguridad Cibernetica - Kali Linux",
+            text="Herramienta de Ciberseguridad",
             font=("Arial", 12),
             fg=self.fg_secondary,
             bg=self.bg_primary

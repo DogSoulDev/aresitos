@@ -109,7 +109,7 @@ class VistaMonitoreo(tk.Frame):
                 controles_frame,
                 text="LIMPIAR",
                 command=self.limpiar_terminal_monitoreo,
-                bg='#ffaa00',
+                bg=self.colors.get('warning', '#ffaa00'),
                 fg='white',
                 font=("Arial", 8, "bold"),
                 height=1
@@ -121,7 +121,7 @@ class VistaMonitoreo(tk.Frame):
                 controles_frame,
                 text="VER LOGS",
                 command=self.abrir_logs_monitoreo,
-                bg='#007acc',
+                bg=self.colors.get('info', '#007acc'),
                 fg='white',
                 font=("Arial", 8, "bold"),
                 height=1
@@ -132,8 +132,8 @@ class VistaMonitoreo(tk.Frame):
             self.terminal_output = scrolledtext.ScrolledText(
                 terminal_frame,
                 height=6,  # Más pequeño que dashboard
-                bg='#000000',  # Fondo negro como dashboard
-                fg='#00ff00',  # Texto verde como dashboard
+                bg='#000000',  # Terminal negro estándar
+                fg='#00ff00',  # Terminal verde estándar
                 font=("Consolas", 8),  # Fuente menor que dashboard
                 insertbackground='#00ff00',
                 selectbackground='#333333'
