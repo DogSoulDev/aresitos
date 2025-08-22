@@ -8,6 +8,13 @@ import logging
 import threading
 import datetime
 
+# Importar SudoManager para prevenir crashes
+try:
+    from aresitos.utils.sudo_manager import SudoManager
+    SUDO_MANAGER_DISPONIBLE = True
+except ImportError:
+    SUDO_MANAGER_DISPONIBLE = False
+
 try:
     from aresitos.vista.burp_theme import burp_theme
     BURP_THEME_AVAILABLE = True
@@ -25,6 +32,18 @@ class VistaMonitoreo(tk.Frame):
         self.monitor_red_activo = False
         self.thread_red = None
         self.vista_principal = parent  # Referencia al padre para acceder al terminal
+        
+        # Inicializar SudoManager para prevenir crashes
+        if SUDO_MANAGER_DISPONIBLE:
+            try:
+                self.sudo_manager = SudoManager()
+                self.logger.info("SudoManager inicializado para VistaMonitoreo")
+            except Exception as e:
+                self.logger.warning(f"Error inicializando SudoManager: {e}")
+                self.sudo_manager = None
+        else:
+            self.sudo_manager = None
+            self.logger.warning("SudoManager no disponible en VistaMonitoreo")
         
         # Configurar tema y colores de manera consistente
         if BURP_THEME_AVAILABLE and burp_theme:
@@ -67,6 +86,64 @@ class VistaMonitoreo(tk.Frame):
     
     def set_controlador(self, controlador):
         self.controlador = controlador
+    
+    def _ejecutar_comando_seguro(self, comando: list, timeout: int = 30, usar_sudo: bool = False) -> dict:
+        """
+        Ejecutar comando de sistema de forma segura con manejo de errores
+        
+        Args:
+            comando: Lista de comando y argumentos
+            timeout: Timeout en segundos
+            usar_sudo: Si usar sudo para el comando
+            
+        Returns:
+            Dict con resultado del comando
+        """
+        import subprocess
+        
+        try:
+            if usar_sudo and self.sudo_manager and self.sudo_manager.is_sudo_active():
+                # Usar SudoManager para comandos que requieren privilegios
+                comando_str = ' '.join(comando)
+                resultado = self.sudo_manager.execute_sudo_command(comando_str, timeout=timeout)
+            else:
+                # Ejecutar comando normal
+                resultado = subprocess.run(
+                    comando,
+                    capture_output=True,
+                    text=True,
+                    timeout=timeout,
+                    check=False
+                )
+            
+            return {
+                'success': resultado.returncode == 0,
+                'output': resultado.stdout,
+                'error': resultado.stderr,
+                'returncode': resultado.returncode
+            }
+            
+        except subprocess.TimeoutExpired:
+            return {
+                'success': False,
+                'output': '',
+                'error': f'Comando excedió timeout de {timeout}s',
+                'returncode': -1
+            }
+        except FileNotFoundError:
+            return {
+                'success': False,
+                'output': '',
+                'error': f'Comando no encontrado: {comando[0]}',
+                'returncode': -2
+            }
+        except Exception as e:
+            return {
+                'success': False,
+                'output': '',
+                'error': f'Error ejecutando comando: {str(e)}',
+                'returncode': -3
+            }
     
     def crear_widgets(self):
         # PanedWindow principal para dividir contenido y terminal
@@ -172,20 +249,33 @@ class VistaMonitoreo(tk.Frame):
             print(f"Error limpiando terminal Monitoreo: {e}")
     
     def abrir_logs_monitoreo(self):
-        """Abrir carpeta de logs Monitoreo."""
+        """Abrir carpeta de logs Monitoreo con manejo seguro de errores."""
         try:
             import os
             import platform
-            import subprocess
             logs_path = "logs/"
-            if os.path.exists(logs_path):
-                if platform.system() == "Linux":
-                    subprocess.run(["xdg-open", logs_path], check=False)
-                else:
-                    subprocess.run(["explorer", logs_path], check=False)
-                self.log_to_terminal("Carpeta de logs Monitoreo abierta")
-            else:
+            
+            if not os.path.exists(logs_path):
                 self.log_to_terminal("WARNING: Carpeta de logs no encontrada")
+                messagebox.showwarning("Advertencia", "Carpeta de logs no encontrada")
+                return
+            
+            # Usar método seguro para abrir directorio
+            if platform.system() == "Linux":
+                resultado = self._ejecutar_comando_seguro(["xdg-open", logs_path], timeout=10)
+            else:
+                resultado = self._ejecutar_comando_seguro(["explorer", logs_path], timeout=10)
+            
+            if resultado['success']:
+                self.log_to_terminal("✓ Carpeta de logs Monitoreo abierta")
+            else:
+                self.log_to_terminal(f"ERROR: No se pudo abrir logs - {resultado['error']}")
+                messagebox.showerror("Error", f"No se pudo abrir la carpeta de logs: {resultado['error']}")
+                
+        except Exception as e:
+            error_msg = f"Error abriendo logs: {str(e)}"
+            self.log_to_terminal(f"ERROR: {error_msg}")
+            messagebox.showerror("Error", error_msg)
         except Exception as e:
             self.log_to_terminal(f"ERROR abriendo logs Monitoreo: {e}")
     
@@ -442,13 +532,16 @@ class VistaMonitoreo(tk.Frame):
             self._log_terminal(f"Error en monitoreo completo: {str(e)}", "MONITOREO", "ERROR")
 
     def _monitorear_procesos_sistema(self):
-        """Monitorear todos los procesos del sistema y sus características."""
-        import subprocess
-        
+        """Monitorear todos los procesos del sistema y sus características con manejo seguro."""
         try:
-            # Obtener lista completa de procesos
-            resultado = subprocess.run(['ps', 'aux'], capture_output=True, text=True, timeout=10)
-            lineas = resultado.stdout.strip().split('\n')[1:]  # Saltar header
+            # Obtener lista completa de procesos usando método seguro
+            resultado = self._ejecutar_comando_seguro(['ps', 'aux'], timeout=15)
+            
+            if not resultado['success']:
+                self._log_terminal(f"Error obteniendo procesos: {resultado['error']}", "PROCESOS", "ERROR")
+                return
+            
+            lineas = resultado['output'].strip().split('\n')[1:]  # Saltar header
             
             procesos_sospechosos = []
             procesos_alta_cpu = []
@@ -456,32 +549,36 @@ class VistaMonitoreo(tk.Frame):
             total_procesos = len(lineas)
             
             for linea in lineas:
-                partes = linea.split()
-                if len(partes) >= 11:
-                    usuario = partes[0]
-                    pid = partes[1]
-                    cpu = float(partes[2]) if partes[2].replace('.', '').isdigit() else 0.0
-                    memoria = float(partes[3]) if partes[3].replace('.', '').isdigit() else 0.0
-                    comando = ' '.join(partes[10:])
+                try:
+                    partes = linea.split()
+                    if len(partes) >= 11:
+                        usuario = partes[0]
+                        pid = partes[1]
+                        cpu = float(partes[2]) if partes[2].replace('.', '').isdigit() else 0.0
+                        memoria = float(partes[3]) if partes[3].replace('.', '').isdigit() else 0.0
+                        comando = ' '.join(partes[10:])
                     
-                    # Detectar procesos con alto uso de CPU
-                    if cpu > 50.0:
-                        procesos_alta_cpu.append((pid, comando, cpu))
+                        # Detectar procesos con alto uso de CPU
+                        if cpu > 50.0:
+                            procesos_alta_cpu.append((pid, comando, cpu))
+                            
+                        # Detectar procesos con alto uso de memoria
+                        if memoria > 10.0:
+                            procesos_alta_memoria.append((pid, comando, memoria))
+                            
+                        # Detectar procesos sospechosos
+                        comandos_sospechosos = [
+                            'nc ', 'netcat', '/tmp/', '/var/tmp/', 'wget', 'curl http',
+                            'python -c', 'perl -e', 'bash -c', '/dev/tcp/'
+                        ]
                         
-                    # Detectar procesos con alto uso de memoria
-                    if memoria > 10.0:
-                        procesos_alta_memoria.append((pid, comando, memoria))
-                        
-                    # Detectar procesos sospechosos
-                    comandos_sospechosos = [
-                        'nc ', 'netcat', '/tmp/', '/var/tmp/', 'wget', 'curl http',
-                        'python -c', 'perl -e', 'bash -c', '/dev/tcp/'
-                    ]
-                    
-                    for sospechoso in comandos_sospechosos:
-                        if sospechoso in comando.lower():
-                            procesos_sospechosos.append((pid, usuario, comando))
-                            break
+                        for sospechoso in comandos_sospechosos:
+                            if sospechoso in comando.lower():
+                                procesos_sospechosos.append((pid, usuario, comando))
+                                break
+                except (ValueError, IndexError) as e:
+                    # Ignorar líneas malformadas
+                    continue
                             
             # Reportar hallazgos
             self._log_terminal(f"Procesos totales monitoreados: {total_procesos}", "MONITOREO", "INFO")
@@ -529,75 +626,104 @@ class VistaMonitoreo(tk.Frame):
             if not permisos_incorrectos:
                 self._log_terminal("Permisos de archivos criticos correctos", "MONITOREO", "INFO")
                 
-            # Verificar archivos SUID modificados recientemente
-            resultado = subprocess.run(['find', '/', '-type', 'f', '-perm', '-4000', '-mtime', '-1', '2>/dev/null'], 
-                                     capture_output=True, text=True, timeout=15, shell=True)
+            # Verificar archivos SUID modificados recientemente usando método seguro
+            resultado = self._ejecutar_comando_seguro(
+                ['find', '/', '-type', 'f', '-perm', '-4000', '-mtime', '-1'],
+                timeout=20,
+                usar_sudo=True
+            )
             
-            suid_recientes = resultado.stdout.strip().split('\n') if resultado.stdout.strip() else []
-            for archivo in suid_recientes:
-                if archivo.strip():
-                    self._log_terminal(f"ARCHIVO SUID MODIFICADO: {archivo}", "MONITOREO", "WARNING")
+            if resultado['success']:
+                suid_recientes = resultado['output'].strip().split('\n') if resultado['output'].strip() else []
+                for archivo in suid_recientes:
+                    if archivo.strip():
+                        self._log_terminal(f"ARCHIVO SUID MODIFICADO: {archivo}", "MONITOREO", "WARNING")
+            else:
+                self._log_terminal(f"No se pudieron verificar archivos SUID: {resultado['error']}", "MONITOREO", "WARNING")
                     
         except Exception as e:
             self._log_terminal(f"Error monitoreando permisos: {str(e)}", "MONITOREO", "WARNING")
 
     def _monitorear_usuarios_sesiones(self):
-        """Monitorear usuarios conectados y sesiones activas."""
-        import subprocess
-        
+        """Monitorear usuarios conectados y sesiones activas con manejo seguro."""
         try:
-            # Verificar usuarios conectados
-            resultado = subprocess.run(['who'], capture_output=True, text=True, timeout=5)
-            usuarios_conectados = resultado.stdout.strip().split('\n') if resultado.stdout.strip() else []
+            # Verificar usuarios conectados usando método seguro
+            resultado = self._ejecutar_comando_seguro(['who'], timeout=10)
             
-            self._log_terminal(f"Usuarios conectados: {len(usuarios_conectados)}", "MONITOREO", "INFO")
+            if not resultado['success']:
+                self._log_terminal(f"Error obteniendo usuarios conectados: {resultado['error']}", "USUARIOS", "WARNING")
+                return
+            
+            usuarios_conectados = resultado['output'].strip().split('\n') if resultado['output'].strip() else []
+            
+            self._log_terminal(f"Usuarios conectados: {len(usuarios_conectados)}", "USUARIOS", "INFO")
             
             for sesion in usuarios_conectados:
                 if sesion.strip():
-                    partes = sesion.split()
-                    if len(partes) >= 2:
-                        usuario = partes[0]
-                        terminal = partes[1]
-                        self._log_terminal(f"Sesion activa: {usuario} en {terminal}", "MONITOREO", "INFO")
+                    try:
+                        partes = sesion.split()
+                        if len(partes) >= 2:
+                            usuario = partes[0]
+                            terminal = partes[1]
+                            self._log_terminal(f"Sesion activa: {usuario} en {terminal}", "USUARIOS", "INFO")
+                    except Exception as e:
+                        self._log_terminal(f"Error procesando sesión: {e}", "USUARIOS", "WARNING")
                         
-            # Verificar últimos logins
-            resultado = subprocess.run(['last', '-n', '5'], capture_output=True, text=True, timeout=5)
-            lineas = resultado.stdout.strip().split('\n')[:3]  # Últimos 3 logins
+            # Verificar últimos logins usando método seguro
+            resultado = self._ejecutar_comando_seguro(['last', '-n', '5'], timeout=10)
             
-            for linea in lineas:
-                if linea.strip() and 'reboot' not in linea.lower() and 'wtmp' not in linea.lower():
-                    partes = linea.split()
-                    if len(partes) >= 3:
-                        usuario = partes[0]
-                        origen = partes[2] if len(partes) > 2 else 'local'
-                        self._log_terminal(f"Login reciente: {usuario} desde {origen}", "MONITOREO", "INFO")
+            if resultado['success']:
+                lineas = resultado['output'].strip().split('\n')[:3]  # Últimos 3 logins
+                
+                for linea in lineas:
+                    if linea.strip() and 'reboot' not in linea.lower() and 'wtmp' not in linea.lower():
+                        try:
+                            partes = linea.split()
+                            if len(partes) >= 3:
+                                usuario = partes[0]
+                                origen = partes[2] if len(partes) > 2 else 'local'
+                                self._log_terminal(f"Login reciente: {usuario} desde {origen}", "USUARIOS", "INFO")
+                        except Exception as e:
+                            self._log_terminal(f"Error procesando login: {e}", "USUARIOS", "WARNING")
+            else:
+                self._log_terminal(f"No se pudieron obtener últimos logins: {resultado['error']}", "USUARIOS", "WARNING")
                         
-            # Verificar usuarios con UID 0 (privilegios root)
-            with open('/etc/passwd', 'r') as f:
-                for linea in f:
-                    partes = linea.strip().split(':')
-                    if len(partes) >= 3:
-                        usuario = partes[0]
-                        uid = partes[2]
-                        if uid == '0' and usuario != 'root':
-                            self._log_terminal(f"USUARIO PRIVILEGIADO DETECTADO: {usuario} (UID 0)", "MONITOREO", "ERROR")
+            # Verificar usuarios con UID 0 (privilegios root) con manejo de errores
+            try:
+                with open('/etc/passwd', 'r') as f:
+                    for linea in f:
+                        try:
+                            partes = linea.strip().split(':')
+                            if len(partes) >= 3:
+                                usuario = partes[0]
+                                uid = partes[2]
+                                if uid == '0' and usuario != 'root':
+                                    self._log_terminal(f"USUARIO PRIVILEGIADO DETECTADO: {usuario} (UID 0)", "USUARIOS", "ERROR")
+                        except Exception as e:
+                            # Ignorar líneas malformadas en /etc/passwd
+                            continue
+            except FileNotFoundError:
+                self._log_terminal("No se pudo acceder a /etc/passwd", "USUARIOS", "WARNING")
+            except PermissionError:
+                self._log_terminal("Sin permisos para leer /etc/passwd", "USUARIOS", "WARNING")
                             
         except Exception as e:
-            self._log_terminal(f"Error monitoreando usuarios: {str(e)}", "MONITOREO", "WARNING")
+            self._log_terminal(f"Error monitoreando usuarios: {str(e)}", "USUARIOS", "WARNING")
 
     def _monitorear_procesos_privilegiados(self):
-        """Monitorear procesos ejecutándose con privilegios elevados."""
-        import subprocess
-        
+        """Monitorear procesos ejecutándose con privilegios elevados con manejo seguro."""
         try:
-            # Procesos ejecutándose como root
-            resultado = subprocess.run(['ps', '-eo', 'pid,user,comm,args'], 
-                                     capture_output=True, text=True, timeout=10)
+            # Procesos ejecutándose como root usando método seguro
+            resultado = self._ejecutar_comando_seguro(['ps', '-eo', 'pid,user,comm,args'], timeout=15)
+            
+            if not resultado['success']:
+                self._log_terminal(f"Error obteniendo procesos privilegiados: {resultado['error']}", "PROCESOS", "WARNING")
+                return
             
             procesos_root = []
             procesos_suid = []
             
-            for linea in resultado.stdout.split('\n')[1:]:  # Saltar header
+            for linea in resultado['output'].split('\n')[1:]:  # Saltar header
                 partes = linea.strip().split(None, 3)
                 if len(partes) >= 3:
                     pid = partes[0]
@@ -1115,9 +1241,20 @@ class VistaMonitoreo(tk.Frame):
             self._finalizar_monitoreo_red()
     
     def agregar_a_cuarentena(self):
-        """Agregar archivo a cuarentena con validación de seguridad."""
+        """Agregar archivo a cuarentena con validación de seguridad y manejo robusto de errores."""
         from aresitos.utils.sanitizador_archivos import SanitizadorArchivos
         from aresitos.utils.helper_seguridad import HelperSeguridad
+        
+        # Importar SudoManager para prevenir crashes
+        try:
+            from aresitos.utils.sudo_manager import SudoManager
+            sudo_manager = SudoManager()
+            if not sudo_manager.is_sudo_active():
+                self.text_cuarentena.insert(tk.END, "⚠️ SUDO NO ACTIVO: Verificar permisos en otras ventanas de ARESITOS\n")
+                messagebox.showwarning("Permisos", "Sudo no activo. Algunas operaciones pueden fallar.")
+        except ImportError:
+            sudo_manager = None
+            self.text_cuarentena.insert(tk.END, "⚠️ SudoManager no disponible - usando modo básico\n")
         
         # Mostrar advertencia especial para cuarentena
         if not HelperSeguridad.mostrar_advertencia_cuarentena():
@@ -1135,9 +1272,31 @@ class VistaMonitoreo(tk.Frame):
             ]
         )
         if not archivo:
+            self.text_cuarentena.insert(tk.END, "CANCEL Usuario canceló selección de archivo\n")
             return
         
         try:
+            # Verificar que el archivo existe antes de continuar
+            if not os.path.exists(archivo):
+                error_msg = f"El archivo {archivo} no existe"
+                self.text_cuarentena.insert(tk.END, f"ERROR: {error_msg}\n")
+                messagebox.showerror("Error", error_msg)
+                return
+            
+            # Verificar permisos de acceso
+            try:
+                file_stat = os.stat(archivo)
+                self.text_cuarentena.insert(tk.END, f"INFO: Archivo encontrado - Tamaño: {file_stat.st_size} bytes\n")
+            except PermissionError:
+                self.text_cuarentena.insert(tk.END, f"⚠️ Sin permisos para acceder a {archivo}\n")
+                if sudo_manager:
+                    self.text_cuarentena.insert(tk.END, "INFO: Usando SudoManager para acceso con privilegios\n")
+                else:
+                    respuesta = messagebox.askyesno("Permisos", 
+                                                  "Sin permisos de acceso. ¿Continuar de todos modos?")
+                    if not respuesta:
+                        return
+            
             # VALIDACIÓN BÁSICA DE SEGURIDAD (menos restrictiva para cuarentena)
             sanitizador = SanitizadorArchivos()
             
@@ -1166,20 +1325,46 @@ class VistaMonitoreo(tk.Frame):
             # Crear controlador de cuarentena directamente si no está disponible
             from aresitos.controlador.controlador_cuarentena import ControladorCuarentena
             controlador_cuarentena = ControladorCuarentena()
+            
+            # Mostrar progreso
+            self.text_cuarentena.insert(tk.END, "PROCESSING Iniciando proceso de cuarentena...\n")
+            self.text_cuarentena.update()
+            
             resultado = controlador_cuarentena.poner_archivo_en_cuarentena(archivo)
             
             if resultado["exito"]:
                 self.text_cuarentena.insert(tk.END, f"✓ Archivo agregado a cuarentena: {os.path.basename(archivo)}\n")
+                self.text_cuarentena.insert(tk.END, f"✓ Proceso completado exitosamente\n")
                 messagebox.showinfo("Éxito", "Archivo enviado a cuarentena correctamente")
             else:
-                self.text_cuarentena.insert(tk.END, f"ERROR: {resultado['error']}\n")
-                messagebox.showerror("Error", resultado["error"])
+                error_msg = resultado.get('error', 'Error desconocido en cuarentena')
+                self.text_cuarentena.insert(tk.END, f"ERROR: {error_msg}\n")
+                messagebox.showerror("Error", error_msg)
                 
+        except FileNotFoundError as e:
+            error_msg = f"Archivo no encontrado: {str(e)}"
+            self.text_cuarentena.insert(tk.END, f"ERROR: {error_msg}\n")
+            messagebox.showerror("Error", error_msg)
+        except PermissionError as e:
+            error_msg = f"Sin permisos: {str(e)}"
+            self.text_cuarentena.insert(tk.END, f"ERROR: {error_msg}\n")
+            messagebox.showerror("Error de Permisos", error_msg)
+        except ImportError as e:
+            error_msg = f"Error importando módulos: {str(e)}"
+            self.text_cuarentena.insert(tk.END, f"ERROR: {error_msg}\n")
+            messagebox.showerror("Error del Sistema", error_msg)
         except Exception as e:
-            self.text_cuarentena.insert(tk.END, f"ERROR del sistema: {str(e)}\n")
-            messagebox.showerror("Error", f"Error del sistema: {str(e)}")
+            error_msg = f"Error del sistema: {str(e)}"
+            self.text_cuarentena.insert(tk.END, f"ERROR CRÍTICO: {error_msg}\n")
+            messagebox.showerror("Error Crítico", error_msg)
+            
+            # Log adicional para debugging
+            import logging
+            logger = logging.getLogger("AresAegis.VistaMonitoreo")
+            logger.error(f"Error crítico en agregar_a_cuarentena: {e}", exc_info=True)
     
     def listar_cuarentena(self):
+        """Listar archivos en cuarentena con manejo robusto de errores"""
         try:
             from aresitos.controlador.controlador_cuarentena import ControladorCuarentena
             controlador_cuarentena = ControladorCuarentena()
@@ -1187,25 +1372,70 @@ class VistaMonitoreo(tk.Frame):
             self.text_cuarentena.delete(1.0, tk.END)
             self.text_cuarentena.insert(tk.END, "=== ARCHIVOS EN CUARENTENA ===\n\n")
             
+            # Mostrar estado de carga
+            self.text_cuarentena.insert(tk.END, "LOADING Cargando archivos de cuarentena...\n")
+            self.text_cuarentena.update()
+            
             archivos = controlador_cuarentena.listar_archivos_cuarentena()
             
+            # Limpiar mensaje de carga
+            self.text_cuarentena.delete(1.0, tk.END)
+            self.text_cuarentena.insert(tk.END, "=== ARCHIVOS EN CUARENTENA ===\n\n")
+            
             if not archivos:
-                self.text_cuarentena.insert(tk.END, "No hay archivos en cuarentena.\n")
+                self.text_cuarentena.insert(tk.END, "✓ No hay archivos en cuarentena.\n")
+                self.text_cuarentena.insert(tk.END, "✓ Sistema limpio\n")
             else:
-                for i, archivo in enumerate(archivos, 1):
-                    self.text_cuarentena.insert(tk.END, f"{i}. {archivo.get('ruta_original', 'Desconocido')}\n")
-                    self.text_cuarentena.insert(tk.END, f"   Fecha: {archivo.get('fecha', 'N/A')}\n")
-                    self.text_cuarentena.insert(tk.END, f"   Razón: {archivo.get('razon', 'N/A')}\n\n")
-                    
-            # Obtener resumen adicional
-            resumen = controlador_cuarentena.obtener_resumen_cuarentena()
-            if resumen:
-                self.text_cuarentena.insert(tk.END, f"\n=== RESUMEN ===\n")
-                self.text_cuarentena.insert(tk.END, f"Total archivos: {resumen.get('total_archivos', 0)}\n")
-                self.text_cuarentena.insert(tk.END, f"Tamaño total: {resumen.get('tamano_total', 0)} bytes\n")
+                self.text_cuarentena.insert(tk.END, f"TOTAL: {len(archivos)} archivo(s) en cuarentena\n\n")
                 
+                for i, archivo in enumerate(archivos, 1):
+                    try:
+                        nombre = archivo.get('ruta_original', 'Desconocido')
+                        fecha = archivo.get('fecha', 'N/A')
+                        razon = archivo.get('razon', 'N/A')
+                        
+                        self.text_cuarentena.insert(tk.END, f"{i}. {os.path.basename(nombre)}\n")
+                        self.text_cuarentena.insert(tk.END, f"   Ruta: {nombre}\n")
+                        self.text_cuarentena.insert(tk.END, f"   Fecha: {fecha}\n")
+                        self.text_cuarentena.insert(tk.END, f"   Razón: {razon}\n\n")
+                    except Exception as e:
+                        self.text_cuarentena.insert(tk.END, f"   ERROR procesando archivo {i}: {e}\n\n")
+                    
+            # Obtener resumen adicional con manejo de errores
+            try:
+                resumen = controlador_cuarentena.obtener_resumen_cuarentena()
+                if resumen:
+                    self.text_cuarentena.insert(tk.END, f"\n=== RESUMEN ===\n")
+                    total = resumen.get('total_archivos', 0)
+                    tamaño = resumen.get('tamano_total', 0)
+                    
+                    self.text_cuarentena.insert(tk.END, f"Total archivos: {total}\n")
+                    
+                    # Convertir bytes a formato legible
+                    if tamaño > 1024 * 1024:  # MB
+                        tamaño_str = f"{tamaño / (1024 * 1024):.2f} MB"
+                    elif tamaño > 1024:  # KB
+                        tamaño_str = f"{tamaño / 1024:.2f} KB"
+                    else:
+                        tamaño_str = f"{tamaño} bytes"
+                    
+                    self.text_cuarentena.insert(tk.END, f"Tamaño total: {tamaño_str}\n")
+            except Exception as e:
+                self.text_cuarentena.insert(tk.END, f"\n⚠️ Error obteniendo resumen: {e}\n")
+                
+        except ImportError as e:
+            error_msg = f"Error importando controlador de cuarentena: {e}"
+            self.text_cuarentena.delete(1.0, tk.END)
+            self.text_cuarentena.insert(tk.END, f"ERROR: {error_msg}\n")
         except Exception as e:
-            self.text_cuarentena.insert(tk.END, f"Error listando cuarentena: {str(e)}\n")
+            error_msg = f"Error listando cuarentena: {e}"
+            self.text_cuarentena.delete(1.0, tk.END) 
+            self.text_cuarentena.insert(tk.END, f"ERROR: {error_msg}\n")
+            
+            # Log adicional para debugging
+            import logging
+            logger = logging.getLogger("AresAegis.VistaMonitoreo")
+            logger.error(f"Error en listar_cuarentena: {e}", exc_info=True)
         
         if not archivos:
             self.text_cuarentena.insert(tk.END, "No hay archivos en cuarentena.\n")
@@ -1223,18 +1453,79 @@ class VistaMonitoreo(tk.Frame):
             )
     
     def limpiar_cuarentena(self):
-        if not self.controlador:
-            return
+        """Limpiar cuarentena con manejo robusto de errores y confirmación segura"""
+        try:
+            # Verificar que el controlador existe
+            if not hasattr(self, 'controlador') or not self.controlador:
+                self.text_cuarentena.insert(tk.END, "ERROR: Controlador no disponible\n")
+                messagebox.showerror("Error", "Controlador de monitoreo no disponible")
+                return
             
-        respuesta = messagebox.askyesno("Confirm", 
-                                      "¿Eliminar permanentemente todos los archivos de cuarentena?")
-        if respuesta:
-            resultado = self.controlador.limpiar_cuarentena_completa()
-            self.text_cuarentena.insert(tk.END, 
-                f"Cuarentena limpiada. Archivos eliminados: {resultado['eliminados']}\n")
-            if resultado["errores"]:
-                for error in resultado["errores"]:
-                    self.text_cuarentena.insert(tk.END, f"Error: {error}\n")
+            # Confirmación doble para operación destructiva
+            respuesta1 = messagebox.askyesno("Confirmación 1/2", 
+                                           "¿Está seguro de que desea eliminar TODOS los archivos de cuarentena?")
+            if not respuesta1:
+                self.text_cuarentena.insert(tk.END, "CANCEL Usuario canceló limpieza de cuarentena\n")
+                return
+            
+            respuesta2 = messagebox.askyesno("Confirmación 2/2", 
+                                           "ÚLTIMA OPORTUNIDAD: Esta acción NO SE PUEDE DESHACER.\n" +
+                                           "¿Eliminar permanentemente todos los archivos de cuarentena?")
+            if not respuesta2:
+                self.text_cuarentena.insert(tk.END, "CANCEL Usuario canceló limpieza de cuarentena en segunda confirmación\n")
+                return
+            
+            # Importar SudoManager para operaciones seguras
+            try:
+                from aresitos.utils.sudo_manager import SudoManager
+                sudo_manager = SudoManager()
+                if not sudo_manager.is_sudo_active():
+                    self.text_cuarentena.insert(tk.END, "⚠️ SUDO NO ACTIVO: La operación puede fallar\n")
+            except ImportError:
+                sudo_manager = None
+            
+            # Mostrar progreso
+            self.text_cuarentena.insert(tk.END, "PROCESSING Iniciando limpieza de cuarentena...\n")
+            self.text_cuarentena.update()
+            
+            # Ejecutar limpieza con timeout y manejo de errores
+            try:
+                resultado = self.controlador.limpiar_cuarentena_completa()
+                
+                if isinstance(resultado, dict):
+                    eliminados = resultado.get('eliminados', 0)
+                    errores = resultado.get('errores', [])
+                    
+                    self.text_cuarentena.insert(tk.END, f"✓ Cuarentena limpiada exitosamente\n")
+                    self.text_cuarentena.insert(tk.END, f"✓ Archivos eliminados: {eliminados}\n")
+                    
+                    if errores:
+                        self.text_cuarentena.insert(tk.END, f"⚠️ Se encontraron {len(errores)} errores:\n")
+                        for i, error in enumerate(errores[:5], 1):  # Mostrar solo los primeros 5
+                            self.text_cuarentena.insert(tk.END, f"   {i}. {error}\n")
+                        if len(errores) > 5:
+                            self.text_cuarentena.insert(tk.END, f"   ... y {len(errores) - 5} errores más\n")
+                    else:
+                        self.text_cuarentena.insert(tk.END, "✓ Sin errores reportados\n")
+                    
+                    messagebox.showinfo("Éxito", f"Cuarentena limpiada. Archivos eliminados: {eliminados}")
+                else:
+                    self.text_cuarentena.insert(tk.END, f"⚠️ Resultado inesperado: {resultado}\n")
+                    
+            except Exception as e:
+                error_msg = f"Error durante limpieza: {str(e)}"
+                self.text_cuarentena.insert(tk.END, f"ERROR: {error_msg}\n")
+                messagebox.showerror("Error", error_msg)
+                
+        except Exception as e:
+            error_msg = f"Error crítico en limpiar_cuarentena: {str(e)}"
+            self.text_cuarentena.insert(tk.END, f"ERROR CRÍTICO: {error_msg}\n")
+            messagebox.showerror("Error Crítico", error_msg)
+            
+            # Log adicional para debugging
+            import logging
+            logger = logging.getLogger("AresAegis.VistaMonitoreo")
+            logger.error(f"Error crítico en limpiar_cuarentena: {e}", exc_info=True)
     
     def _iniciar_monitoreo_linux_avanzado(self):
         """Iniciar monitoreo usando herramientas nativas de Linux."""

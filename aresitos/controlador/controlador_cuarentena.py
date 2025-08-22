@@ -10,6 +10,13 @@ from datetime import datetime
 from typing import Dict, List, Any, Optional
 from ..modelo.modelo_cuarentena import Cuarentena, ArchivoEnCuarentena
 
+# Importar SudoManager para prevenir crashes
+try:
+    from ..utils.sudo_manager import SudoManager
+    SUDO_MANAGER_DISPONIBLE = True
+except ImportError:
+    SUDO_MANAGER_DISPONIBLE = False
+
 # Importar nuevo modelo Kali 2025
 try:
     from ..modelo.modelo_cuarentena_kali2025 import CuarentenaKali2025
@@ -30,6 +37,18 @@ class ControladorCuarentena:
             directorio_cuarentena: Directorio personalizado para cuarentena
         """
         self.logger = logging.getLogger(f"AresAegis.{self.__class__.__name__}")
+        
+        # Inicializar SudoManager para prevenir crashes
+        if SUDO_MANAGER_DISPONIBLE:
+            try:
+                self.sudo_manager = SudoManager()
+                self.logger.info("SudoManager inicializado para operaciones seguras")
+            except Exception as e:
+                self.logger.warning(f"Error inicializando SudoManager: {e}")
+                self.sudo_manager = None
+        else:
+            self.sudo_manager = None
+            self.logger.warning("SudoManager no disponible")
         
         # Usar directorio por defecto si no se especifica
         if directorio_cuarentena is None:
@@ -106,41 +125,71 @@ class ControladorCuarentena:
             
             # Si hay un archivo asociado, ponerlo en cuarentena usando comandos nativos
             if archivo and os.path.exists(archivo):
-                # Verificar si el archivo está en uso con lsof
-                import subprocess
+                # Verificar si el archivo está en uso con lsof usando SudoManager
                 archivo_en_uso = False
                 try:
-                    lsof_result = subprocess.run(['lsof', archivo], 
-                                               capture_output=True, text=True, timeout=10)
-                    if lsof_result.returncode == 0 and lsof_result.stdout.strip():
-                        archivo_en_uso = True
-                        self.logger.warning(f"Archivo {archivo} está siendo usado por proceso: {lsof_result.stdout.strip()[:100]}")
-                except (subprocess.TimeoutExpired, subprocess.CalledProcessError, FileNotFoundError):
-                    pass  # lsof no disponible o error, continuar
+                    if self.sudo_manager:
+                        resultado_lsof = self.sudo_manager.execute_sudo_command(f'lsof "{archivo}"')
+                        if resultado_lsof and resultado_lsof.returncode == 0 and resultado_lsof.stdout.strip():
+                            archivo_en_uso = True
+                            output_limitado = resultado_lsof.stdout[:100]
+                            self.logger.warning(f"Archivo {archivo} está siendo usado por proceso: {output_limitado}")
+                    else:
+                        # Fallback sin sudo si no está disponible
+                        import subprocess
+                        lsof_result = subprocess.run(['lsof', archivo], 
+                                                   capture_output=True, text=True, timeout=10)
+                        if lsof_result.returncode == 0 and lsof_result.stdout.strip():
+                            archivo_en_uso = True
+                            self.logger.warning(f"Archivo {archivo} está siendo usado por proceso: {lsof_result.stdout.strip()[:100]}")
+                except Exception as e:
+                    self.logger.warning(f"Error verificando uso de archivo {archivo}: {e}")
                 
-                # Obtener información detallada con stat
+                # Obtener información detallada con stat usando SudoManager
                 try:
-                    stat_result = subprocess.run(['stat', '-c', '%a:%U:%G:%s', archivo],
-                                               capture_output=True, text=True, timeout=5)
-                    if stat_result.returncode == 0:
-                        stat_info = stat_result.stdout.strip().split(':')
-                        metadatos.update({
-                            'permisos_originales': stat_info[0] if len(stat_info) > 0 else '000',
-                            'owner_original': stat_info[1] if len(stat_info) > 1 else 'unknown',
-                            'group_original': stat_info[2] if len(stat_info) > 2 else 'unknown',
-                            'size_bytes': stat_info[3] if len(stat_info) > 3 else '0'
-                        })
-                except (subprocess.TimeoutExpired, subprocess.CalledProcessError, FileNotFoundError):
-                    pass
+                    if self.sudo_manager:
+                        resultado_stat = self.sudo_manager.execute_sudo_command(f'stat -c "%a:%U:%G:%s" "{archivo}"')
+                        if resultado_stat and resultado_stat.returncode == 0:
+                            stat_info = resultado_stat.stdout.strip().split(':')
+                            metadatos.update({
+                                'permisos_originales': stat_info[0] if len(stat_info) > 0 else '000',
+                                'owner_original': stat_info[1] if len(stat_info) > 1 else 'unknown',
+                                'group_original': stat_info[2] if len(stat_info) > 2 else 'unknown',
+                                'size_bytes': stat_info[3] if len(stat_info) > 3 else '0'
+                            })
+                    else:
+                        # Fallback sin sudo
+                        import subprocess
+                        stat_result = subprocess.run(['stat', '-c', '%a:%U:%G:%s', archivo],
+                                                   capture_output=True, text=True, timeout=5)
+                        if stat_result.returncode == 0:
+                            stat_info = stat_result.stdout.strip().split(':')
+                            metadatos.update({
+                                'permisos_originales': stat_info[0] if len(stat_info) > 0 else '000',
+                                'owner_original': stat_info[1] if len(stat_info) > 1 else 'unknown',
+                                'group_original': stat_info[2] if len(stat_info) > 2 else 'unknown',
+                                'size_bytes': stat_info[3] if len(stat_info) > 3 else '0'
+                            })
+                except Exception as e:
+                    self.logger.warning(f"Error obteniendo información del archivo {archivo}: {e}")
                 
-                # Calcular hash con sha256sum
+                # Calcular hash con sha256sum usando SudoManager
                 try:
-                    hash_result = subprocess.run(['sha256sum', archivo],
-                                               capture_output=True, text=True, timeout=30)
-                    if hash_result.returncode == 0:
-                        metadatos['hash_sha256'] = hash_result.stdout.split()[0]
-                except (subprocess.TimeoutExpired, subprocess.CalledProcessError, FileNotFoundError):
-                    pass
+                    if self.sudo_manager:
+                        resultado_hash = self.sudo_manager.execute_sudo_command(f'sha256sum "{archivo}"')
+                        if resultado_hash and resultado_hash.returncode == 0:
+                            output_hash = resultado_hash.stdout.strip()
+                            if output_hash:
+                                metadatos['hash_sha256'] = output_hash.split()[0]
+                    else:
+                        # Fallback sin sudo
+                        import subprocess
+                        hash_result = subprocess.run(['sha256sum', archivo],
+                                                   capture_output=True, text=True, timeout=30)
+                        if hash_result.returncode == 0:
+                            metadatos['hash_sha256'] = hash_result.stdout.split()[0]
+                except Exception as e:
+                    self.logger.warning(f"Error calculando hash de {archivo}: {e}")
                 
                 resultado = self.cuarentena.poner_en_cuarentena(
                     archivo_path=archivo,
