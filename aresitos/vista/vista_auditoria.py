@@ -226,7 +226,6 @@ class VistaAuditoria(tk.Frame):
         buttons = [
             ("Ejecutar Lynis", self.ejecutar_lynis, self.colors['fg_accent']),
             ("Cancelar Lynis", self.cancelar_auditoria, self.colors['danger']),
-            ("Verificar Kali", self.verificar_kali, self.colors['info']),
         ]
         
         for text, command, color in buttons:
@@ -750,60 +749,206 @@ class VistaAuditoria(tk.Frame):
         self.auditoria_text.config(state=tk.DISABLED)
     
     def cancelar_rootkits(self):
-        """Cancelar detección de rootkits."""
-        if hasattr(self, 'proceso_rootkits_activo'):
-            self.proceso_rootkits_activo = False
-            self._actualizar_texto_auditoria(" Detección de rootkits cancelada\n")
-    
-    def ejecutar_nuclei(self):
-        """Ejecutar auditoría con nuclei (reemplazo moderno de OpenVAS)."""
+        """Cancelar detección de rootkits mediante terminación de procesos activos."""
         def ejecutar():
             try:
-                self._actualizar_texto_auditoria("INICIANDO auditoría nuclei...\n")
+                self._actualizar_texto_auditoria("=== CANCELANDO DETECCIÓN ROOTKITS ===\n")
                 import subprocess
+                
+                # Terminar procesos conocidos de detección de rootkits
+                procesos_rootkits = ['rkhunter', 'chkrootkit', 'unhide', 'lynis']
+                procesos_terminados = 0
+                
+                for proceso in procesos_rootkits:
+                    try:
+                        # Buscar procesos activos
+                        resultado = subprocess.run(['pgrep', '-f', proceso], 
+                                                capture_output=True, text=True)
+                        if resultado.returncode == 0 and resultado.stdout.strip():
+                            pids = resultado.stdout.strip().split('\n')
+                            for pid in pids:
+                                if pid.strip():
+                                    # Terminar proceso específico
+                                    subprocess.run(['kill', '-TERM', pid.strip()], 
+                                                capture_output=True)
+                                    self._actualizar_texto_auditoria(f"✓ Terminado proceso {proceso} (PID: {pid.strip()})\n")
+                                    procesos_terminados += 1
+                    except Exception as e:
+                        continue
+                
+                if procesos_terminados > 0:
+                    self._actualizar_texto_auditoria(f"✓ COMPLETADO: {procesos_terminados} procesos de rootkits terminados\n")
+                else:
+                    self._actualizar_texto_auditoria("• INFO: No se encontraron procesos de detección de rootkits activos\n")
+                    
+                # Limpiar archivos temporales de rootkits
+                archivos_temp = ['/tmp/rkhunter.log', '/tmp/chkrootkit.log', '/var/log/rkhunter.log']
+                for archivo in archivos_temp:
+                    try:
+                        subprocess.run(['rm', '-f', archivo], capture_output=True)
+                    except:
+                        pass
+                        
+                self._actualizar_texto_auditoria("✓ Limpieza de archivos temporales completada\n")
+                self._actualizar_texto_auditoria("=== CANCELACIÓN ROOTKITS COMPLETADA ===\n\n")
+                
+            except Exception as e:
+                self._actualizar_texto_auditoria(f"ERROR durante cancelación: {str(e)}\n")
+        
+        threading.Thread(target=ejecutar, daemon=True).start()
+    
+    def ejecutar_nuclei(self):
+        """Ejecutar auditoría completa con nuclei - escáner de vulnerabilidades moderno."""
+        def ejecutar():
+            try:
+                self._actualizar_texto_auditoria("=== INICIANDO AUDITORÍA NUCLEI ===\n")
+                import subprocess
+                import os
                 
                 try:
                     # Verificar si nuclei está instalado
                     resultado = subprocess.run(['which', 'nuclei'], capture_output=True, text=True)
                     if resultado.returncode == 0:
-                        self._actualizar_texto_auditoria("✓ nuclei encontrado\n")
-                        self._actualizar_texto_auditoria("COMANDOS nuclei:\n")
-                        self._actualizar_texto_auditoria("  • nuclei -u <target>: Escanear objetivo\n")
-                        self._actualizar_texto_auditoria("  • nuclei -update-templates: Actualizar templates\n")
-                        self._actualizar_texto_auditoria("  • nuclei -t vulnerabilities/: Solo vulnerabilidades\n")
+                        self._actualizar_texto_auditoria("✓ nuclei encontrado en sistema\n")
+                        
+                        # Verificar templates actualizados
+                        self._actualizar_texto_auditoria("• Verificando templates nuclei...\n")
+                        update_result = subprocess.run(['nuclei', '-update-templates'], 
+                                                     capture_output=True, text=True, timeout=30)
+                        if update_result.returncode == 0:
+                            self._actualizar_texto_auditoria("✓ Templates nuclei actualizados\n")
+                        
+                        # Ejecutar escaneo básico de red local
+                        self._actualizar_texto_auditoria("• Ejecutando escaneo nuclei de red local...\n")
+                        targets = ['127.0.0.1', 'localhost', '192.168.1.1']
+                        
+                        for target in targets:
+                            self._actualizar_texto_auditoria(f"  → Escaneando {target}...\n")
+                            
+                            # Escaneo básico con nuclei
+                            cmd = ['nuclei', '-u', target, '-severity', 'high,critical', 
+                                  '-timeout', '10', '-no-color', '-silent']
+                            
+                            proceso = subprocess.run(cmd, capture_output=True, 
+                                                   text=True, timeout=60)
+                            
+                            if proceso.stdout and proceso.stdout.strip():
+                                self._actualizar_texto_auditoria(f"VULNERABILIDADES ENCONTRADAS en {target}:\n")
+                                for linea in proceso.stdout.strip().split('\n'):
+                                    if linea.strip():
+                                        self._actualizar_texto_auditoria(f"  • {linea}\n")
+                            else:
+                                self._actualizar_texto_auditoria(f"✓ No se encontraron vulnerabilidades críticas en {target}\n")
+                        
+                        # Mostrar comandos útiles
+                        self._actualizar_texto_auditoria("\n=== COMANDOS NUCLEI ÚTILES ===\n")
+                        self._actualizar_texto_auditoria("• nuclei -u <target> -severity critical: Solo críticas\n")
+                        self._actualizar_texto_auditoria("• nuclei -l targets.txt -o resultados.txt: Múltiples targets\n")
+                        self._actualizar_texto_auditoria("• nuclei -t vulnerabilities/ -u <target>: Solo vulnerabilidades\n")
+                        self._actualizar_texto_auditoria("• nuclei -t exposures/ -u <target>: Exposiciones\n")
+                        
                     else:
-                        self._actualizar_texto_auditoria("ERROR nuclei no encontrado. Instalar con: go install github.com/projectdiscovery/nuclei/v2/cmd/nuclei@latest\n")
+                        self._actualizar_texto_auditoria("WARNING nuclei no encontrado\n")
+                        self._actualizar_texto_auditoria("INSTALACIÓN: apt install nuclei\n")
+                        self._actualizar_texto_auditoria("O desde Go: go install github.com/projectdiscovery/nuclei/v2/cmd/nuclei@latest\n")
+                        
+                except subprocess.TimeoutExpired:
+                    self._actualizar_texto_auditoria("WARNING Timeout en nuclei - proceso demasiado lento\n")
                 except Exception as e:
                     self._actualizar_texto_auditoria(f"ERROR verificando nuclei: {str(e)}\n")
                 
-                self._actualizar_texto_auditoria("COMPLETADO Auditoría nuclei completada\n\n")
+                self._actualizar_texto_auditoria("=== AUDITORÍA NUCLEI COMPLETADA ===\n\n")
             except Exception as e:
                 self._actualizar_texto_auditoria(f"ERROR en nuclei: {str(e)}\n")
         
         threading.Thread(target=ejecutar, daemon=True).start()
     
     def ejecutar_httpx(self):
-        """Ejecutar scan con httpx (reemplazo moderno de Nessus para web)."""
+        """Ejecutar escaneo web completo con httpx - probe HTTP avanzado."""
         def ejecutar():
             try:
-                self._actualizar_texto_auditoria("INICIANDO scan httpx...\n")
+                self._actualizar_texto_auditoria("=== INICIANDO ESCANEO HTTPX ===\n")
                 import subprocess
+                import os
                 
                 try:
                     # Verificar si httpx está instalado
                     resultado = subprocess.run(['which', 'httpx'], capture_output=True, text=True)
                     if resultado.returncode == 0:
-                        self._actualizar_texto_auditoria("✓ httpx encontrado\n")
-                        self._actualizar_texto_auditoria("COMANDOS httpx:\n")
-                        self._actualizar_texto_auditoria("  • httpx -l targets.txt: Escanear lista\n")
-                        self._actualizar_texto_auditoria("  • httpx -probe -status-code: Detectar servicios web\n")
-                        self._actualizar_texto_auditoria("  • httpx -title -tech-detect: Detectar tecnologías\n")
+                        self._actualizar_texto_auditoria("✓ httpx encontrado en sistema\n")
+                        
+                        # Targets comunes para escanear
+                        targets = ['127.0.0.1', 'localhost', '192.168.1.1', '192.168.1.254']
+                        puertos = ['80', '443', '8080', '8443', '3000', '5000']
+                        
+                        servicios_encontrados = []
+                        
+                        for target in targets:
+                            self._actualizar_texto_auditoria(f"• Escaneando servicios web en {target}...\n")
+                            
+                            # Crear lista de URLs para httpx
+                            urls_target = []
+                            for puerto in puertos:
+                                urls_target.extend([f"http://{target}:{puerto}", f"https://{target}:{puerto}"])
+                            
+                            # Ejecutar httpx con probe
+                            for url in urls_target:
+                                try:
+                                    cmd = ['httpx', '-u', url, '-probe', '-status-code', 
+                                          '-title', '-tech-detect', '-timeout', '5', '-silent']
+                                    
+                                    proceso = subprocess.run(cmd, capture_output=True, 
+                                                           text=True, timeout=10)
+                                    
+                                    if proceso.stdout and proceso.stdout.strip():
+                                        lineas = proceso.stdout.strip().split('\n')
+                                        for linea in lineas:
+                                            if linea.strip() and '[' in linea:
+                                                servicios_encontrados.append(linea.strip())
+                                                self._actualizar_texto_auditoria(f"  ✓ SERVICIO: {linea.strip()}\n")
+                                                
+                                except subprocess.TimeoutExpired:
+                                    continue
+                                except Exception:
+                                    continue
+                        
+                        if servicios_encontrados:
+                            self._actualizar_texto_auditoria(f"\n=== RESUMEN: {len(servicios_encontrados)} servicios web encontrados ===\n")
+                            for servicio in servicios_encontrados:
+                                self._actualizar_texto_auditoria(f"  • {servicio}\n")
+                        else:
+                            self._actualizar_texto_auditoria("• INFO: No se encontraron servicios web activos\n")
+                        
+                        # Ejecutar detección de tecnologías en localhost
+                        self._actualizar_texto_auditoria("\n• Detectando tecnologías en localhost...\n")
+                        try:
+                            cmd_tech = ['httpx', '-u', 'http://localhost', '-tech-detect', 
+                                       '-follow-redirects', '-timeout', '10', '-silent']
+                            tech_result = subprocess.run(cmd_tech, capture_output=True, 
+                                                       text=True, timeout=15)
+                            if tech_result.stdout and tech_result.stdout.strip():
+                                self._actualizar_texto_auditoria(f"TECNOLOGÍAS: {tech_result.stdout.strip()}\n")
+                            else:
+                                self._actualizar_texto_auditoria("• No se detectaron tecnologías específicas\n")
+                        except:
+                            pass
+                        
+                        # Mostrar comandos útiles
+                        self._actualizar_texto_auditoria("\n=== COMANDOS HTTPX ÚTILES ===\n")
+                        self._actualizar_texto_auditoria("• httpx -l targets.txt -probe: Verificar múltiples URLs\n")
+                        self._actualizar_texto_auditoria("• httpx -u target.com -ports 80,443,8080: Puertos específicos\n")
+                        self._actualizar_texto_auditoria("• httpx -u target.com -screenshot: Capturar pantalla\n")
+                        self._actualizar_texto_auditoria("• httpx -u target.com -favicon: Hash de favicon\n")
+                        
                     else:
-                        self._actualizar_texto_auditoria("ERROR httpx no encontrado. Instalar con: go install github.com/projectdiscovery/httpx/cmd/httpx@latest\n")
+                        self._actualizar_texto_auditoria("WARNING httpx no encontrado\n")
+                        self._actualizar_texto_auditoria("INSTALACIÓN: apt install httpx\n")
+                        self._actualizar_texto_auditoria("O desde Go: go install github.com/projectdiscovery/httpx/cmd/httpx@latest\n")
+                        
                 except Exception as e:
                     self._actualizar_texto_auditoria(f"ERROR verificando httpx: {str(e)}\n")
                 
-                self._actualizar_texto_auditoria("COMPLETADO Verificación httpx completada\n\n")
+                self._actualizar_texto_auditoria("=== ESCANEO HTTPX COMPLETADO ===\n\n")
             except Exception as e:
                 self._actualizar_texto_auditoria(f"ERROR en httpx: {str(e)}\n")
         
@@ -953,57 +1098,6 @@ class VistaAuditoria(tk.Frame):
         
         threading.Thread(target=ejecutar, daemon=True).start()
 
-    def verificar_kali(self):
-        """Verificar compatibilidad y funcionalidad de auditoría en Kali Linux."""
-        if not self.controlador:
-            messagebox.showerror("Error", "No hay controlador de auditoría configurado")
-            return
-            
-        try:
-            self.auditoria_text.config(state=tk.NORMAL)
-            self.auditoria_text.delete(1.0, tk.END)
-            self.auditoria_text.insert(tk.END, "=== VERIFICACIÓN AUDITORÍA KALI LINUX ===\n\n")
-            
-            # Ejecutar verificación a través del controlador
-            resultado = self.controlador.verificar_funcionalidad_kali()
-            
-            # Mostrar resultados
-            funcionalidad_ok = resultado.get('funcionalidad_completa', False)
-            
-            if funcionalidad_ok:
-                self.auditoria_text.insert(tk.END, " OK VERIFICACIÓN AUDITORÍA EXITOSA\n\n")
-                self.auditoria_text.insert(tk.END, f"Sistema Operativo: {resultado.get('sistema_operativo', 'Desconocido')}\n")
-                self.auditoria_text.insert(tk.END, f"Gestor de Permisos: {'OK' if resultado.get('gestor_permisos') else 'ERROR'}\n")
-                self.auditoria_text.insert(tk.END, f"Permisos Sudo: {'OK' if resultado.get('permisos_sudo') else 'ERROR'}\n\n")
-                
-                self.auditoria_text.insert(tk.END, "=== HERRAMIENTAS AUDITORÍA DISPONIBLES ===\n")
-                for herramienta, estado in resultado.get('herramientas_disponibles', {}).items():
-                    disponible = estado.get('disponible', False)
-                    permisos = estado.get('permisos_ok', False)
-                    icono = "OK" if disponible and permisos else "ERROR"
-                    self.auditoria_text.insert(tk.END, f"  {icono} {herramienta}\n")
-                    
-            else:
-                self.auditoria_text.insert(tk.END, " ERROR VERIFICACIÓN AUDITORÍA FALLÓ\n\n")
-                self.auditoria_text.insert(tk.END, f"Sistema Operativo: {resultado.get('sistema_operativo', 'Desconocido')}\n")
-                self.auditoria_text.insert(tk.END, f"Gestor de Permisos: {'OK' if resultado.get('gestor_permisos') else 'ERROR'}\n")
-                self.auditoria_text.insert(tk.END, f"Permisos Sudo: {'OK' if resultado.get('permisos_sudo') else 'ERROR'}\n\n")
-                
-                if resultado.get('recomendaciones'):
-                    self.auditoria_text.insert(tk.END, "=== RECOMENDACIONES ===\n")
-                    for recomendacion in resultado['recomendaciones']:
-                        self.auditoria_text.insert(tk.END, f"  • {recomendacion}\n")
-                
-            if resultado.get('error'):
-                self.auditoria_text.insert(tk.END, f"\nWARNING Error: {resultado['error']}\n")
-                
-            self.auditoria_text.config(state=tk.DISABLED)
-                
-        except Exception as e:
-            self.auditoria_text.config(state=tk.NORMAL)
-            self.auditoria_text.insert(tk.END, f" ERROR durante verificación: {str(e)}\n")
-            self.auditoria_text.config(state=tk.DISABLED)
-    
     def _log_terminal(self, mensaje, modulo="AUDITORIA", nivel="INFO"):
         """Registrar mensaje en el terminal integrado global."""
         try:
