@@ -194,12 +194,12 @@ class VistaSIEM(tk.Frame):
             ejecutar_btn.pack(side="right")
             
             # Mensaje inicial estilo dashboard
-            self.terminal_output.insert(tk.END, "="*60 + "\n")
-            self.terminal_output.insert(tk.END, "Terminal ARESITOS - SIEM v2.0\n")
-            self.terminal_output.insert(tk.END, f"Iniciado: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}\n")
-            self.terminal_output.insert(tk.END, f"Sistema: Kali Linux - Security Information & Event Management\n")
-            self.terminal_output.insert(tk.END, "="*60 + "\n")
-            self.terminal_output.insert(tk.END, "LOG Monitoreo SIEM en tiempo real\n\n")
+            self._actualizar_terminal_seguro("="*60 + "\n")
+            self._actualizar_terminal_seguro("Terminal ARESITOS - SIEM v2.0\n")
+            self._actualizar_terminal_seguro(f"Iniciado: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}\n")
+            self._actualizar_terminal_seguro(f"Sistema: Kali Linux - Security Information & Event Management\n")
+            self._actualizar_terminal_seguro("="*60 + "\n")
+            self._actualizar_terminal_seguro("LOG Monitoreo SIEM en tiempo real\n\n")
             
             self.log_to_terminal("Terminal SIEM iniciado correctamente")
             
@@ -210,14 +210,14 @@ class VistaSIEM(tk.Frame):
         """Limpiar terminal SIEM manteniendo cabecera."""
         try:
             if hasattr(self, 'terminal_output'):
-                self.terminal_output.delete(1.0, tk.END)
+                self._actualizar_terminal_seguro("", "clear")
                 # Recrear cabecera estándar
-                self.terminal_output.insert(tk.END, "="*60 + "\n")
-                self.terminal_output.insert(tk.END, "Terminal ARESITOS - SIEM v2.0\n")
-                self.terminal_output.insert(tk.END, f"Limpiado: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}\n")
-                self.terminal_output.insert(tk.END, "Sistema: Kali Linux - Security Information & Event Management\n")
-                self.terminal_output.insert(tk.END, "="*60 + "\n")
-                self.terminal_output.insert(tk.END, "LOG Terminal SIEM reiniciado\n\n")
+                self._actualizar_terminal_seguro("="*60 + "\n")
+                self._actualizar_terminal_seguro("Terminal ARESITOS - SIEM v2.0\n")
+                self._actualizar_terminal_seguro(f"Limpiado: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}\n")
+                self._actualizar_terminal_seguro("Sistema: Kali Linux - Security Information & Event Management\n")
+                self._actualizar_terminal_seguro("="*60 + "\n")
+                self._actualizar_terminal_seguro("LOG Terminal SIEM reiniciado\n\n")
         except Exception as e:
             print(f"Error limpiando terminal SIEM: {e}")
     
@@ -234,19 +234,17 @@ class VistaSIEM(tk.Frame):
             es_valido, comando_sanitizado, mensaje = validar_comando_seguro(comando)
             
             # Mostrar el comando original en el terminal
-            self.terminal_output.insert(tk.END, f"\n> {comando}\n")
+            self._actualizar_terminal_seguro(f"\n> {comando}\n")
             
             if not es_valido:
                 # Mostrar error de seguridad
-                self.terminal_output.insert(tk.END, f"{mensaje}\n")
-                self.terminal_output.insert(tk.END, "💡 Use 'ayuda-comandos' para ver comandos disponibles\n")
-                self.terminal_output.see(tk.END)
+                self._actualizar_terminal_seguro(f"{mensaje}\n")
+                self._actualizar_terminal_seguro("Use 'ayuda-comandos' para ver comandos disponibles\n")
                 self.comando_entry.delete(0, tk.END)
                 return
             
             # Mostrar mensaje de autorización
-            self.terminal_output.insert(tk.END, f"{mensaje}\n")
-            self.terminal_output.see(tk.END)
+            self._actualizar_terminal_seguro(f"{mensaje}\n")
             self.comando_entry.delete(0, tk.END)
             
             # Ejecutar comando sanitizado en thread
@@ -4346,3 +4344,28 @@ ls -la "$OUTPUT_DIR/"
                 'error': f'Error obteniendo datos: {str(e)}',
                 'info': 'Error al obtener datos del SIEM para reporte'
             }
+    
+    def _actualizar_terminal_seguro(self, texto, modo="append"):
+        """Actualizar terminal_output de forma segura desde threads."""
+        def _update():
+            try:
+                if hasattr(self, 'terminal_output') and self.terminal_output.winfo_exists():
+                    if modo == "clear":
+                        self.terminal_output.delete(1.0, tk.END)
+                    elif modo == "replace":
+                        self.terminal_output.delete(1.0, tk.END)
+                        self.terminal_output.insert(1.0, texto)
+                    elif modo == "append":
+                        self.terminal_output.insert(tk.END, texto)
+                    elif modo == "insert_start":
+                        self.terminal_output.insert(1.0, texto)
+                    self.terminal_output.see(tk.END)
+                    if hasattr(self.terminal_output, 'update'):
+                        self.terminal_output.update()
+            except (tk.TclError, AttributeError):
+                pass
+        
+        try:
+            self.after_idle(_update)
+        except (tk.TclError, AttributeError):
+            pass
