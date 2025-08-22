@@ -7,6 +7,9 @@ import os
 import subprocess
 import logging
 import datetime
+import time
+import hashlib
+import stat
 
 try:
     from aresitos.vista.burp_theme import burp_theme
@@ -293,19 +296,26 @@ class VistaFIM(tk.Frame):
         self.btn_verificar.pack(fill="x", padx=10, pady=5)
         
         # NUEVOS BOTONES FASE 3.3 - FIM AVANZADO
-        self.btn_monitoreo_avanzado = tk.Button(left_frame, text="🔍 Monitoreo Avanzado",
+        self.btn_monitoreo_avanzado = tk.Button(left_frame, text="Monitoreo Avanzado",
                                                command=self.monitoreo_avanzado_kali,
                                                bg='#6f42c1', fg='white',
                                                font=('Arial', 10),
                                                relief='flat', padx=15, pady=8)
         self.btn_monitoreo_avanzado.pack(fill="x", padx=10, pady=5)
         
-        self.btn_analisis_forense = tk.Button(left_frame, text="🔬 Análisis Forense",
+        self.btn_analisis_forense = tk.Button(left_frame, text="Análisis Forense",
                                              command=self.analisis_forense_archivos,
                                              bg='#dc3545', fg='white',
                                              font=('Arial', 10),
                                              relief='flat', padx=15, pady=8)
         self.btn_analisis_forense.pack(fill="x", padx=10, pady=5)
+        
+        self.btn_tiempo_real = tk.Button(left_frame, text="Monitoreo Tiempo Real",
+                                        command=self.iniciar_monitoreo_tiempo_real,
+                                        bg='#28a745', fg='white',
+                                        font=('Arial', 10),
+                                        relief='flat', padx=15, pady=8)
+        self.btn_tiempo_real.pack(fill="x", padx=10, pady=5)
         
         # Área de resultados
         resultados_label = tk.Label(right_frame, text="Resultados del Monitoreo FIM",
@@ -792,6 +802,96 @@ class VistaFIM(tk.Frame):
         # Realizar verificación básica
         self._realizar_analisis_basico()
     
+    def iniciar_monitoreo_tiempo_real(self):
+        """Iniciar monitoreo en tiempo real usando inotify de Linux."""
+        if hasattr(self, 'monitoreo_tiempo_real_activo') and self.monitoreo_tiempo_real_activo:
+            return
+        
+        self.monitoreo_tiempo_real_activo = True
+        self._log_terminal("Iniciando monitoreo FIM en tiempo real con inotify", "FIM", "INFO")
+        self._actualizar_texto_fim("=== MONITOREO FIM EN TIEMPO REAL ACTIVADO ===\n")
+        self._actualizar_texto_fim("Usando inotify de Linux para detección inmediata de cambios\n\n")
+        
+        # Ejecutar en thread separado
+        thread_tiempo_real = threading.Thread(target=self._monitoreo_tiempo_real_async)
+        thread_tiempo_real.daemon = True
+        thread_tiempo_real.start()
+    
+    def _monitoreo_tiempo_real_async(self):
+        """Monitoreo en tiempo real usando inotify para detectar cambios inmediatos."""
+        try:
+            # Directorios críticos para monitoreo en tiempo real
+            directorios_criticos = [
+                '/etc/passwd', '/etc/shadow', '/etc/group', '/etc/sudoers',
+                '/etc/hosts', '/etc/ssh/', '/etc/crontab', '/root/.ssh/',
+                '/root/.bashrc', '/root/.bash_history', '/bin/', '/sbin/',
+                '/usr/bin/', '/usr/sbin/', '/tmp/', '/var/tmp/', '/dev/shm/'
+            ]
+            
+            self.after(0, self._actualizar_texto_fim, "INICIANDO MONITOREO EN TIEMPO REAL:\n")
+            for directorio in directorios_criticos:
+                if os.path.exists(directorio):
+                    self.after(0, self._actualizar_texto_fim, f"  ✓ Monitoreando: {directorio}\n")
+            
+            self.after(0, self._actualizar_texto_fim, "\nUSANDO inotifywatch para detección inmediata...\n")
+            
+            # Usar inotifywatch para monitoreo en tiempo real
+            comando_inotify = [
+                'inotifywatch', '-r', '-t', '300', '-e', 
+                'modify,create,delete,move,attrib'
+            ] + [d for d in directorios_criticos if os.path.exists(d)]
+            
+            try:
+                resultado = subprocess.run(
+                    comando_inotify,
+                    capture_output=True,
+                    text=True,
+                    timeout=300  # 5 minutos de monitoreo
+                )
+                
+                if resultado.returncode == 0 and resultado.stdout:
+                    self.after(0, self._actualizar_texto_fim, "\nCOMPETADO: Resumen de actividad detectada:\n")
+                    lineas = resultado.stdout.strip().split('\n')
+                    eventos_detectados = 0
+                    
+                    for linea in lineas[3:]:  # Saltar headers
+                        if linea.strip() and not linea.startswith('total'):
+                            eventos_detectados += 1
+                            self.after(0, self._actualizar_texto_fim, f"  {linea}\n")
+                    
+                    if eventos_detectados > 0:
+                        self.after(0, self._actualizar_texto_fim, f"\nALERTA: {eventos_detectados} eventos de cambio detectados\n")
+                        self._log_terminal(f"FIM: {eventos_detectados} eventos de cambio detectados", "FIM", "WARNING")
+                    else:
+                        self.after(0, self._actualizar_texto_fim, "\nOK: No se detectaron cambios durante el monitoreo\n")
+                else:
+                    self.after(0, self._actualizar_texto_fim, "\nINFO: Monitoreo completado sin eventos\n")
+                    
+            except subprocess.TimeoutExpired:
+                self.after(0, self._actualizar_texto_fim, "\nINFO: Tiempo de monitoreo completado (5 minutos)\n")
+            except FileNotFoundError:
+                self.after(0, self._actualizar_texto_fim, "\nWARNING: inotifywatch no disponible\n")
+                self.after(0, self._actualizar_texto_fim, "Instalando inotify-tools...\n")
+                
+                # Intentar instalar inotify-tools
+                try:
+                    from aresitos.utils.sudo_manager import get_sudo_manager
+                    sudo_manager = get_sudo_manager()
+                    install_result = sudo_manager.execute_sudo_command('apt install -y inotify-tools', timeout=60)
+                    
+                    if install_result.returncode == 0:
+                        self.after(0, self._actualizar_texto_fim, "OK: inotify-tools instalado correctamente\n")
+                        self.after(0, self._actualizar_texto_fim, "Reinicie el monitoreo para usar inotify\n")
+                    else:
+                        self.after(0, self._actualizar_texto_fim, "ERROR: No se pudo instalar inotify-tools\n")
+                except ImportError:
+                    self.after(0, self._actualizar_texto_fim, "ERROR: SudoManager no disponible\n")
+                
+        except Exception as e:
+            self.after(0, self._actualizar_texto_fim, f"ERROR en monitoreo tiempo real: {str(e)}\n")
+        finally:
+            self.monitoreo_tiempo_real_activo = False
+    
     def _realizar_analisis_basico(self):
         """Realizar análisis básico de archivos críticos sin controlador."""
         try:
@@ -821,6 +921,16 @@ class VistaFIM(tk.Frame):
                 '/etc/ssh/': 'Configuración SSH',
                 '/etc/apache2/': 'Configuración Apache (si existe)',
                 '/etc/nginx/': 'Configuración Nginx (si existe)',
+                '/etc/systemd/': 'Configuración de servicios systemd',
+                '/etc/init.d/': 'Scripts de inicio del sistema',
+                '/etc/rc.local': 'Script de inicio local',
+                '/etc/profile': 'Perfil global del sistema',
+                '/etc/bashrc': 'Configuración global de bash',
+                '/etc/environment': 'Variables de entorno del sistema',
+                '/etc/motd': 'Mensaje del día',
+                '/etc/issue': 'Banner de login',
+                '/etc/fstab': 'Tabla de sistemas de archivos',
+                '/etc/iptables/': 'Reglas de firewall',
                 
                 # Directorios de herramientas de Kali
                 '/usr/share/wordlists/': 'Wordlists de Kali Linux',
@@ -830,19 +940,59 @@ class VistaFIM(tk.Frame):
                 '/usr/share/burpsuite/': 'Burp Suite',
                 '/usr/share/aircrack-ng/': 'Aircrack-ng',
                 '/usr/share/sqlmap/': 'SQLMap',
+                '/usr/share/nikto/': 'Nikto web scanner',
+                '/usr/share/dirb/': 'DIRB directory buster',
+                '/usr/share/gobuster/': 'Gobuster directory/file buster',
+                '/usr/share/hydra/': 'THC Hydra',
+                '/usr/share/hashcat/': 'Hashcat password recovery',
+                '/usr/share/wireshark/': 'Wireshark network analyzer',
                 
                 # Directorios de usuario críticos
                 '/home/': 'Directorios de usuarios',
                 '/root/': 'Directorio del usuario root',
+                '/root/.ssh/': 'Claves SSH del root',
+                '/root/.bash_history': 'Historial de comandos de root',
+                '/root/.bashrc': 'Configuración de bash de root',
                 '/tmp/': 'Directorio temporal (crítico para seguridad)',
                 '/var/log/': 'Logs del sistema',
                 '/var/www/': 'Directorio web (si existe)',
+                '/var/tmp/': 'Directorio temporal variable',
+                '/dev/shm/': 'Memoria compartida (usado por malware)',
                 
                 # Binarios críticos
                 '/usr/bin/': 'Binarios del sistema',
                 '/usr/sbin/': 'Binarios de administración',
                 '/bin/': 'Binarios esenciales',
-                '/sbin/': 'Binarios de sistema esenciales'
+                '/sbin/': 'Binarios de sistema esenciales',
+                '/usr/local/bin/': 'Binarios locales instalados',
+                '/usr/local/sbin/': 'Binarios de administración locales',
+                
+                # Directorios de configuración adicionales
+                '/opt/': 'Software adicional instalado',
+                '/usr/lib/': 'Librerías del sistema',
+                '/lib/': 'Librerías esenciales',
+                '/lib64/': 'Librerías de 64 bits',
+                '/usr/share/': 'Datos compartidos de aplicaciones',
+                '/var/cache/': 'Cache del sistema',
+                '/var/spool/': 'Cola de trabajos del sistema',
+                '/proc/sys/': 'Configuración del kernel en tiempo real',
+                
+                # Directorios específicos de seguridad
+                '/etc/fail2ban/': 'Configuración Fail2Ban',
+                '/etc/aide/': 'Configuración AIDE (Advanced Intrusion Detection)',
+                '/etc/tripwire/': 'Configuración Tripwire',
+                '/etc/samhain/': 'Configuración Samhain HIDS',
+                '/etc/logrotate.d/': 'Configuración de rotación de logs',
+                '/etc/rsyslog.d/': 'Configuración de syslog',
+                '/etc/audit/': 'Configuración de auditoría del sistema',
+                
+                # Directorios de servicios de red
+                '/etc/mysql/': 'Configuración MySQL/MariaDB',
+                '/etc/postgresql/': 'Configuración PostgreSQL',
+                '/etc/bind/': 'Configuración DNS BIND',
+                '/etc/dhcp/': 'Configuración DHCP',
+                '/etc/samba/': 'Configuración Samba',
+                '/etc/vsftpd/': 'Configuración FTP'
             }
             
             self.after(0, self._actualizar_texto_fim, "\nEXPANSION FIM: Monitoreando directorios críticos de Kali Linux\n")
