@@ -29,17 +29,21 @@ python3 main.py
 > ```
 > El script ahora establece automáticamente el directorio de trabajo correcto.
 
-> **⚠️ HERRAMIENTAS PROBLEMÁTICAS**: Algunas herramientas requieren instalación manual:
+> **⚠️ HERRAMIENTAS OPCIONALES**: Si necesitas herramientas adicionales:
 > ```bash
+> # Esperar a que termine el configurador automático
+> # Solo ejecutar si configurar_kali.sh ya terminó
+> 
 > # Volatility (análisis de memoria)
-> sudo apt install volatility3 python3-volatility3
+> sudo apt update && sudo apt install -y volatility3
 > 
-> # Wireshark (análisis de tráfico)
-> sudo apt install wireshark
+> # Wireshark (análisis de tráfico) 
+> sudo apt install -y wireshark
 > 
-> # Autopsy (forense)
-> sudo apt install autopsy
+> # Autopsy (forense digital)
+> sudo apt install -y sleuthkit autopsy
 > ```
+> **IMPORTANTE**: Ejecutar solo UNA herramienta por vez para evitar bloqueos de apt
 
 ### 🔧 **Método Manual - Control Total**
 ```bash
