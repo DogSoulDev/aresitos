@@ -493,28 +493,117 @@ class VistaFIM(tk.Frame):
                 './data/': 'Directorio de datos'
             }
             
+            # EXPANSIÓN: Directorios críticos adicionales de Kali Linux para monitoreo
+            directorios_kali_expandidos = {
+                # Directorios del sistema críticos
+                '/etc/passwd': 'Archivo de usuarios del sistema',
+                '/etc/shadow': 'Archivo de contraseñas encriptadas',
+                '/etc/group': 'Archivo de grupos del sistema',
+                '/etc/sudoers': 'Configuración de permisos sudo',
+                '/etc/hosts': 'Archivo de hosts del sistema',
+                '/etc/crontab': 'Tareas programadas del sistema',
+                '/etc/ssh/': 'Configuración SSH',
+                '/etc/apache2/': 'Configuración Apache (si existe)',
+                '/etc/nginx/': 'Configuración Nginx (si existe)',
+                
+                # Directorios de herramientas de Kali
+                '/usr/share/wordlists/': 'Wordlists de Kali Linux',
+                '/usr/share/nmap/': 'Scripts de Nmap',
+                '/usr/share/metasploit-framework/': 'Framework Metasploit',
+                '/usr/share/john/': 'John the Ripper',
+                '/usr/share/burpsuite/': 'Burp Suite',
+                '/usr/share/aircrack-ng/': 'Aircrack-ng',
+                '/usr/share/sqlmap/': 'SQLMap',
+                
+                # Directorios de usuario críticos
+                '/home/': 'Directorios de usuarios',
+                '/root/': 'Directorio del usuario root',
+                '/tmp/': 'Directorio temporal (crítico para seguridad)',
+                '/var/log/': 'Logs del sistema',
+                '/var/www/': 'Directorio web (si existe)',
+                
+                # Binarios críticos
+                '/usr/bin/': 'Binarios del sistema',
+                '/usr/sbin/': 'Binarios de administración',
+                '/bin/': 'Binarios esenciales',
+                '/sbin/': 'Binarios de sistema esenciales'
+            }
+            
+            self.after(0, self._actualizar_texto_fim, "\n🔍 EXPANSIÓN FIM: Monitoreando directorios críticos de Kali Linux\n")
+            self.after(0, self._actualizar_texto_fim, "="*70 + "\n")
+            
             archivos_encontrados = 0
             
+            # 1. Verificar archivos básicos del proyecto
+            self.after(0, self._actualizar_texto_fim, "\n📁 VERIFICANDO ARCHIVOS DEL PROYECTO ARESITOS:\n")
             for archivo, descripcion in archivos_basicos.items():
                 try:
                     if os.path.exists(archivo):
                         stat_info = os.stat(archivo)
                         if os.path.isfile(archivo):
                             tamaño = stat_info.st_size
-                            self.after(0, self._actualizar_texto_fim, f"OK {archivo}: {descripcion} (Tamaño: {tamaño} bytes)\n")
+                            self.after(0, self._actualizar_texto_fim, f"✅ {archivo}: {descripcion} (Tamaño: {tamaño} bytes)\n")
                         else:
-                            self.after(0, self._actualizar_texto_fim, f"OK {archivo}: {descripcion} (Directorio)\n")
+                            self.after(0, self._actualizar_texto_fim, f"✅ {archivo}: {descripcion} (Directorio)\n")
                         archivos_encontrados += 1
                     else:
-                        self.after(0, self._actualizar_texto_fim, f"FALTA {archivo}: {descripcion}\n")
+                        self.after(0, self._actualizar_texto_fim, f"❌ {archivo}: {descripcion} (NO ENCONTRADO)\n")
                 except Exception as e:
-                    self.after(0, self._actualizar_texto_fim, f"ERROR {archivo}: {str(e)}\n")
+                    self.after(0, self._actualizar_texto_fim, f"⚠️ Error verificando {archivo}: {e}\n")
             
-            self.after(0, self._actualizar_texto_fim, f"\nRESUMEN: {archivos_encontrados} elementos verificados\n")
-            self.after(0, self._actualizar_texto_fim, "RECOMENDACIÓN: Ejecutar en Kali Linux para análisis completo\n")
+            # 2. Verificar directorios críticos de Kali Linux (solo si estamos en Linux)
+            import platform
+            if platform.system().lower() == 'linux':
+                self.after(0, self._actualizar_texto_fim, f"\n🐉 VERIFICANDO DIRECTORIOS CRÍTICOS DE KALI LINUX:\n")
+                
+                directorios_criticos = 0
+                directorios_monitoreados = 0
+                
+                for ruta, descripcion in directorios_kali_expandidos.items():
+                    try:
+                        if os.path.exists(ruta):
+                            stat_info = os.stat(ruta)
+                            permisos = oct(stat_info.st_mode)[-3:]
+                            
+                            if os.path.isfile(ruta):
+                                tamaño = stat_info.st_size
+                                self.after(0, self._actualizar_texto_fim, f"🔐 {ruta}: {descripcion} (Archivo: {tamaño}B, Permisos: {permisos})\n")
+                                directorios_criticos += 1
+                            elif os.path.isdir(ruta):
+                                try:
+                                    # Contar archivos en directorio (limitado para no sobrecargar)
+                                    archivos_en_dir = len(os.listdir(ruta)) if os.access(ruta, os.R_OK) else "Sin acceso"
+                                    self.after(0, self._actualizar_texto_fim, f"📂 {ruta}: {descripcion} (Dir: {archivos_en_dir} items, Permisos: {permisos})\n")
+                                    directorios_criticos += 1
+                                except PermissionError:
+                                    self.after(0, self._actualizar_texto_fim, f"🔒 {ruta}: {descripcion} (Sin permisos de lectura)\n")
+                                    directorios_criticos += 1
+                                    
+                            directorios_monitoreados += 1
+                            
+                        else:
+                            # Solo mostrar los más importantes si no existen
+                            if ruta in ['/etc/passwd', '/etc/shadow', '/etc/hosts', '/usr/share/wordlists/', '/usr/share/nmap/']:
+                                self.after(0, self._actualizar_texto_fim, f"❌ {ruta}: {descripcion} (NO ENCONTRADO)\n")
+                                
+                    except Exception as e:
+                        if ruta in ['/etc/passwd', '/etc/shadow', '/etc/hosts']:  # Solo reportar errores críticos
+                            self.after(0, self._actualizar_texto_fim, f"⚠️ Error accediendo a {ruta}: {e}\n")
+                
+                self.after(0, self._actualizar_texto_fim, f"\n📊 RESUMEN EXPANSIÓN FIM:\n")
+                self.after(0, self._actualizar_texto_fim, f"   • Directorios críticos encontrados: {directorios_criticos}\n")
+                self.after(0, self._actualizar_texto_fim, f"   • Rutas monitoreadas: {directorios_monitoreados}\n")
+                self.after(0, self._actualizar_texto_fim, f"   • Sistema: Kali Linux compatible\n")
+                
+            else:
+                self.after(0, self._actualizar_texto_fim, f"\n⚠️ LIMITACIÓN: No estamos en Linux - Monitoreo básico únicamente\n")
+                self.after(0, self._actualizar_texto_fim, f"   Para funcionalidad completa, ejecutar en Kali Linux\n")
+            
+            self.after(0, self._actualizar_texto_fim, f"\n📊 RESUMEN TOTAL: {archivos_encontrados} elementos verificados del proyecto\n")
+            self.after(0, self._actualizar_texto_fim, "💡 RECOMENDACIÓN: Ejecutar en Kali Linux para análisis completo de seguridad\n")
             
         except Exception as e:
-            self.after(0, self._actualizar_texto_fim, f"ERROR en análisis básico: {str(e)}\n")
+            self.after(0, self._actualizar_texto_fim, f"❌ ERROR en análisis básico: {str(e)}\n")
 
     def _habilitar_botones_monitoreo(self, habilitar):
         """Habilitar/deshabilitar botones según estado del monitoreo."""

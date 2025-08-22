@@ -640,70 +640,124 @@ class VistaDashboard(tk.Frame):
             self.escribir_terminal(f"ERROR abriendo carpeta de logs: {e}", "[ERROR]")
     
     def abrir_carpeta_cheatsheets(self):
-        """Abrir carpeta de cheatsheets en Kali Linux."""
+        """Abrir carpeta de cheatsheets en Kali Linux con optimizaciones nativas."""
         import os
         import subprocess
+        import platform
         
         try:
-            # Rutas posibles de cheatsheets en orden de prioridad
+            # Obtener directorio actual del proyecto
+            directorio_proyecto = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+            
+            # Rutas de cheatsheets optimizadas para Kali Linux
             rutas_cheatsheets = [
-                "data/cheatsheets/",  # Carpeta cheatsheets del proyecto
+                os.path.join(directorio_proyecto, "data", "cheatsheets"),  # Ruta relativa al proyecto
+                "data/cheatsheets/",
                 "./data/cheatsheets/",
-                os.path.expanduser("~/Ares/Aresitos/data/cheatsheets/"),
-                "/opt/aresitos/cheatsheets/",
+                os.path.expanduser("~/Desktop/Ares-Aegis/data/cheatsheets/"),
+                os.path.expanduser("~/Aresitos/data/cheatsheets/"),
+                "/opt/aresitos/data/cheatsheets/",
                 "/usr/share/aresitos/cheatsheets/"
             ]
             
             carpeta_encontrada = None
             for ruta in rutas_cheatsheets:
-                if os.path.exists(ruta) and os.path.isdir(ruta):
-                    carpeta_encontrada = os.path.abspath(ruta)
+                ruta_abs = os.path.abspath(ruta)
+                if os.path.exists(ruta_abs) and os.path.isdir(ruta_abs):
+                    carpeta_encontrada = ruta_abs
                     break
             
             if carpeta_encontrada:
-                # Intentar abrir con gestor de archivos de Kali
-                gestores_archivos = [
-                    "thunar",           # XFCE (Kali predeterminado)
-                    "nautilus",         # GNOME
-                    "dolphin",          # KDE
-                    "pcmanfm",          # LXDE
-                    "caja",             # MATE
-                    "nemo",             # Cinnamon
-                    "xdg-open"          # Genérico
-                ]
+                # Verificar si estamos en Kali Linux
+                is_kali = platform.system().lower() == 'linux'
                 
-                for gestor in gestores_archivos:
+                if is_kali:
+                    # Comandos nativos de Kali Linux en orden de prioridad
+                    comandos_kali = [
+                        ["thunar", carpeta_encontrada],                    # XFCE (predeterminado Kali)
+                        ["nautilus", carpeta_encontrada],                  # GNOME
+                        ["dolphin", carpeta_encontrada],                   # KDE
+                        ["pcmanfm", carpeta_encontrada],                   # LXDE
+                        ["caja", carpeta_encontrada],                      # MATE
+                        ["nemo", carpeta_encontrada],                      # Cinnamon
+                        ["xdg-open", carpeta_encontrada]                   # Genérico Linux
+                    ]
+                    
+                    for comando in comandos_kali:
+                        try:
+                            # Verificar si el comando existe
+                            subprocess.run(["which", comando[0]], 
+                                         check=True, 
+                                         stdout=subprocess.DEVNULL, 
+                                         stderr=subprocess.DEVNULL)
+                            
+                            # Ejecutar el gestor de archivos
+                            subprocess.Popen(comando, 
+                                           stdout=subprocess.DEVNULL, 
+                                           stderr=subprocess.DEVNULL)
+                            
+                            self.escribir_terminal(f"OK Cheatsheets abiertos con {comando[0]}: {carpeta_encontrada}", "[CHEATSHEETS]")
+                            
+                            # Mostrar contenido de la carpeta
+                            try:
+                                archivos = os.listdir(carpeta_encontrada)
+                                cheatsheets = [f for f in archivos if f.endswith('.txt')]
+                                if cheatsheets:
+                                    self.escribir_terminal(f"INFO {len(cheatsheets)} cheatsheets disponibles:", "[CHEATSHEETS]")
+                                    for cs in cheatsheets[:5]:  # Mostrar los primeros 5
+                                        self.escribir_terminal(f"   • {cs}", "[CHEATSHEETS]")
+                                    if len(cheatsheets) > 5:
+                                        self.escribir_terminal(f"   ... y {len(cheatsheets)-5} más", "[CHEATSHEETS]")
+                                else:
+                                    self.escribir_terminal("INFO Carpeta vacía - puede agregar cheatsheets .txt", "[CHEATSHEETS]")
+                            except:
+                                pass
+                            
+                            return
+                            
+                        except (subprocess.CalledProcessError, FileNotFoundError):
+                            continue
+                    
+                    # Si no funcionó ningún gestor, mostrar información manual
+                    self.escribir_terminal(f"INFO Cheatsheets en: {carpeta_encontrada}", "[CHEATSHEETS]")
+                    self.escribir_terminal(f"CMD  cd {carpeta_encontrada}", "[COMANDO]")
+                    self.escribir_terminal("CMD  ls -la", "[COMANDO]")
+                    
+                else:
+                    # En modo desarrollo (Windows)
                     try:
-                        subprocess.run([gestor, carpeta_encontrada], 
-                                     check=True, 
-                                     stdout=subprocess.DEVNULL, 
-                                     stderr=subprocess.DEVNULL)
-                        self.escribir_terminal(f"OK Carpeta de cheatsheets abierta: {carpeta_encontrada}", "[CHEATSHEETS]")
-                        return
-                    except (subprocess.CalledProcessError, FileNotFoundError):
-                        continue
-                
-                # Si no funcionó ningún gestor, mostrar ruta
-                self.escribir_terminal(f"INFO Carpeta de cheatsheets: {carpeta_encontrada}", "[CHEATSHEETS]")
-                self.escribir_terminal("Use: cd " + carpeta_encontrada, "[COMANDO]")
+                        import subprocess
+                        subprocess.run(["explorer", carpeta_encontrada], check=True)
+                        self.escribir_terminal(f"OK Cheatsheets abiertos (Windows): {carpeta_encontrada}", "[CHEATSHEETS]")
+                    except:
+                        self.escribir_terminal(f"INFO Cheatsheets en: {carpeta_encontrada}", "[CHEATSHEETS]")
                 
             else:
                 # Crear carpeta de cheatsheets si no existe
-                cheatsheets_dir = "data/cheatsheets"
+                cheatsheets_dir = os.path.join(directorio_proyecto, "data", "cheatsheets")
                 os.makedirs(cheatsheets_dir, exist_ok=True)
-                self.escribir_terminal(f"CREADO Carpeta de cheatsheets creada: {os.path.abspath(cheatsheets_dir)}", "[CHEATSHEETS]")
                 
-                # Intentar abrirla
-                try:
-                    subprocess.run(["xdg-open", os.path.abspath(cheatsheets_dir)], 
-                                 check=True, 
-                                 stdout=subprocess.DEVNULL, 
-                                 stderr=subprocess.DEVNULL)
-                except:
-                    self.escribir_terminal(f"INFO Acceda manualmente: {os.path.abspath(cheatsheets_dir)}", "[CHEATSHEETS]")
+                self.escribir_terminal(f"CREADO Carpeta cheatsheets: {cheatsheets_dir}", "[CHEATSHEETS]")
+                self.escribir_terminal("INFO Puede copiar archivos .txt con comandos de seguridad", "[CHEATSHEETS]")
+                self.escribir_terminal("EJEMPLO nmap_commands.txt, burpsuite_tips.txt, etc.", "[CHEATSHEETS]")
+                
+                # Intentar abrir la carpeta recién creada
+                if platform.system().lower() == 'linux':
+                    try:
+                        subprocess.Popen(["thunar", cheatsheets_dir], 
+                                       stdout=subprocess.DEVNULL, 
+                                       stderr=subprocess.DEVNULL)
+                    except:
+                        self.escribir_terminal(f"CMD  cd {cheatsheets_dir}", "[COMANDO]")
+                else:
+                    try:
+                        subprocess.run(["explorer", cheatsheets_dir], check=True)
+                    except:
+                        pass
                     
         except Exception as e:
-            self.escribir_terminal(f"ERROR abriendo carpeta de cheatsheets: {e}", "[ERROR]")
+            self.escribir_terminal(f"ERROR abriendo cheatsheets: {e}", "[ERROR]")
+            self.escribir_terminal("SOLUCION Verifique que existe data/cheatsheets/", "[HELP]")
     
     def obtener_terminal_integrado(self):
         """Obtener referencia al terminal integrado global."""

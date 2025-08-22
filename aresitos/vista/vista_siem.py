@@ -246,6 +246,8 @@ class VistaSIEM(tk.Frame):
             if text == "Detener SIEM":
                 btn.config(state="disabled")
                 self.btn_detener_siem = btn
+            elif text == "Iniciar SIEM":
+                self.btn_iniciar_siem = btn
             btn.pack(fill=tk.X, pady=2)
     
     def crear_tab_analisis(self):
@@ -1026,16 +1028,41 @@ class VistaSIEM(tk.Frame):
     
     def detener_siem(self):
         """Detener sistema SIEM."""
-        if self.proceso_siem_activo:
-            self.proceso_siem_activo = False
-            self._actualizar_texto_monitoreo(" Deteniendo sistema SIEM...\n")
-            
-            if self.controlador:
-                resultado = self.controlador.detener_monitoreo_eventos()
-                if resultado.get('exito'):
-                    self._actualizar_texto_monitoreo("OK SIEM detenido correctamente\n")
-                else:
-                    self._actualizar_texto_monitoreo(f"ERROR deteniendo SIEM: {resultado.get('error', 'Error desconocido')}\n")
+        try:
+            if hasattr(self, 'proceso_siem_activo') and self.proceso_siem_activo:
+                self.proceso_siem_activo = False
+                self._actualizar_texto_monitoreo("⏹️ Deteniendo sistema SIEM...\n")
+                
+                # Detener el hilo de monitoreo si existe
+                if hasattr(self, 'thread_siem') and self.thread_siem and self.thread_siem.is_alive():
+                    # Enviar señal para detener el hilo
+                    self.proceso_siem_activo = False
+                    
+                # Detener controlador si existe
+                if self.controlador:
+                    try:
+                        resultado = self.controlador.detener_monitoreo_eventos()
+                        if resultado.get('exito'):
+                            self._actualizar_texto_monitoreo("✅ SIEM detenido correctamente\n")
+                        else:
+                            self._actualizar_texto_monitoreo(f"⚠️ Advertencia deteniendo SIEM: {resultado.get('error', 'Parcialmente detenido')}\n")
+                    except Exception as e:
+                        self._actualizar_texto_monitoreo(f"⚠️ SIEM detenido (error en controlador): {e}\n")
+                
+                # Actualizar estado de botones
+                self._habilitar_botones_siem(True)  # True = SIEM no activo, habilitar iniciar
+                self._actualizar_texto_monitoreo("🔴 Sistema SIEM DETENIDO\n\n")
+                
+            else:
+                self._actualizar_texto_monitoreo("ℹ️ SIEM no estaba activo\n")
+                self._habilitar_botones_siem(True)  # Asegurar estado correcto
+                
+        except Exception as e:
+            self._actualizar_texto_monitoreo(f"❌ ERROR deteniendo SIEM: {e}\n")
+            # Aún así, intentar restablecer el estado
+            if hasattr(self, 'proceso_siem_activo'):
+                self.proceso_siem_activo = False
+            self._habilitar_botones_siem(True)
     
     def _finalizar_siem(self):
         """Finalizar proceso SIEM."""
@@ -1046,9 +1073,18 @@ class VistaSIEM(tk.Frame):
     
     def _habilitar_botones_siem(self, habilitar):
         """Habilitar/deshabilitar botones SIEM."""
-        estado_detener = "normal" if not habilitar else "disabled"
+        # habilitar = True cuando SIEM NO está activo (puede iniciar)
+        # habilitar = False cuando SIEM SÍ está activo (puede detener)
+        estado_iniciar = "normal" if habilitar else "disabled"
+        estado_detener = "disabled" if habilitar else "normal"
+        
+        # Botón detener debe estar habilitado cuando SIEM está activo
         if hasattr(self, 'btn_detener_siem'):
             self.btn_detener_siem.config(state=estado_detener)
+            
+        # También actualizar otros botones si existen
+        if hasattr(self, 'btn_iniciar_siem'):
+            self.btn_iniciar_siem.config(state=estado_iniciar)
     
     def actualizar_dashboard(self):
         """Actualizar dashboard SIEM con información en tiempo real del sistema."""
