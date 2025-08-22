@@ -277,23 +277,68 @@ class VistaMonitoreo(tk.Frame):
             print(f"Error limpiando terminal Monitoreo: {e}")
     
     def ejecutar_comando_entry(self, event=None):
-        """Ejecutar comando desde la entrada."""
+        """Ejecutar comando desde la entrada con validación de seguridad."""
         comando = self.comando_entry.get().strip()
         if not comando:
             return
         
-        self.terminal_output.insert(tk.END, f"\n> {comando}\n")
-        self.terminal_output.see(tk.END)
-        self.comando_entry.delete(0, tk.END)
-        
-        # Ejecutar comando en thread para no bloquear la UI
-        thread = threading.Thread(target=self._ejecutar_comando_async, args=(comando,))
-        thread.daemon = True
-        thread.start()
+        # Validar comando con el módulo de seguridad
+        try:
+            from aresitos.utils.seguridad_comandos import validar_comando_seguro
+            
+            es_valido, comando_sanitizado, mensaje = validar_comando_seguro(comando)
+            
+            # Mostrar el comando original en el terminal
+            self.terminal_output.insert(tk.END, f"\n> {comando}\n")
+            
+            if not es_valido:
+                # Mostrar error de seguridad
+                self.terminal_output.insert(tk.END, f"{mensaje}\n")
+                self.terminal_output.insert(tk.END, "💡 Use 'ayuda-comandos' para ver comandos disponibles\n")
+                self.terminal_output.see(tk.END)
+                self.comando_entry.delete(0, tk.END)
+                return
+            
+            # Mostrar mensaje de autorización
+            self.terminal_output.insert(tk.END, f"{mensaje}\n")
+            self.terminal_output.see(tk.END)
+            self.comando_entry.delete(0, tk.END)
+            
+            # Ejecutar comando sanitizado en thread
+            thread = threading.Thread(target=self._ejecutar_comando_async, args=(comando_sanitizado,))
+            thread.daemon = True
+            thread.start()
+            
+        except ImportError:
+            # Fallback sin validación (modo inseguro)
+            self.terminal_output.insert(tk.END, f"\n> {comando}\n")
+            self.terminal_output.insert(tk.END, "⚠️  EJECUTANDO SIN VALIDACIÓN DE SEGURIDAD\n")
+            self.terminal_output.see(tk.END)
+            self.comando_entry.delete(0, tk.END)
+            
+            thread = threading.Thread(target=self._ejecutar_comando_async, args=(comando,))
+            thread.daemon = True
+            thread.start()
+        except Exception as e:
+            self.terminal_output.insert(tk.END, f"\n> {comando}\n")
+            self.terminal_output.insert(tk.END, f"❌ Error de seguridad: {e}\n")
+            self.terminal_output.see(tk.END)
+            self.comando_entry.delete(0, tk.END)
     
     def _ejecutar_comando_async(self, comando):
-        """Ejecutar comando de forma asíncrona."""
+        """Ejecutar comando de forma asíncrona con comandos especiales."""
         try:
+            # Comandos especiales de ARESITOS
+            if comando == "ayuda-comandos":
+                self._mostrar_ayuda_comandos()
+                return
+            elif comando == "info-seguridad":
+                self._mostrar_info_seguridad()
+                return
+            elif comando == "clear" or comando == "cls":
+                self.limpiar_terminal_monitoreo()
+                return
+            
             import platform
             import subprocess
             
@@ -320,6 +365,58 @@ class VistaMonitoreo(tk.Frame):
             self.terminal_output.insert(tk.END, "ERROR: Comando timeout (30s)\n")
         except Exception as e:
             self.terminal_output.insert(tk.END, f"ERROR ejecutando comando: {e}\n")
+        
+        self.terminal_output.see(tk.END)
+    
+    def _mostrar_ayuda_comandos(self):
+        """Mostrar ayuda de comandos disponibles."""
+        try:
+            from aresitos.utils.seguridad_comandos import obtener_comandos_disponibles
+            
+            comandos = obtener_comandos_disponibles()
+            
+            self.terminal_output.insert(tk.END, "\n" + "="*60 + "\n")
+            self.terminal_output.insert(tk.END, "🛡️  COMANDOS DISPONIBLES EN ARESITOS v2.0\n")
+            self.terminal_output.insert(tk.END, "="*60 + "\n\n")
+            
+            for categoria, lista_comandos in comandos.items():
+                self.terminal_output.insert(tk.END, f"📂 {categoria.upper()}:\n")
+                comandos_linea = ", ".join(lista_comandos)
+                self.terminal_output.insert(tk.END, f"   {comandos_linea}\n\n")
+            
+            self.terminal_output.insert(tk.END, "🔧 COMANDOS ESPECIALES:\n")
+            self.terminal_output.insert(tk.END, "   ayuda-comandos, info-seguridad, clear/cls\n\n")
+            self.terminal_output.insert(tk.END, "="*60 + "\n")
+            
+        except Exception as e:
+            self.terminal_output.insert(tk.END, f"Error mostrando ayuda: {e}\n")
+        
+        self.terminal_output.see(tk.END)
+    
+    def _mostrar_info_seguridad(self):
+        """Mostrar información de seguridad actual."""
+        try:
+            from aresitos.utils.seguridad_comandos import validador_comandos
+            
+            info = validador_comandos.obtener_info_seguridad()
+            
+            self.terminal_output.insert(tk.END, "\n" + "="*60 + "\n")
+            self.terminal_output.insert(tk.END, "🔐 INFORMACIÓN DE SEGURIDAD ARESITOS\n")
+            self.terminal_output.insert(tk.END, "="*60 + "\n\n")
+            
+            estado_seguridad = "✅ SEGURO" if info['es_usuario_kali'] else "❌ INSEGURO"
+            
+            self.terminal_output.insert(tk.END, f"Estado: {estado_seguridad}\n")
+            self.terminal_output.insert(tk.END, f"Usuario: {info['usuario_actual']}\n")
+            self.terminal_output.insert(tk.END, f"Sistema: {info['sistema']}\n")
+            self.terminal_output.insert(tk.END, f"Usuario Kali válido: {info['es_usuario_kali']}\n")
+            self.terminal_output.insert(tk.END, f"Comandos permitidos: {info['total_comandos_permitidos']}\n")
+            self.terminal_output.insert(tk.END, f"Comandos prohibidos: {info['total_comandos_prohibidos']}\n")
+            self.terminal_output.insert(tk.END, f"Patrones de seguridad: {info['patrones_seguridad']}\n\n")
+            self.terminal_output.insert(tk.END, "="*60 + "\n")
+            
+        except Exception as e:
+            self.terminal_output.insert(tk.END, f"Error mostrando info seguridad: {e}\n")
         
         self.terminal_output.see(tk.END)
     
