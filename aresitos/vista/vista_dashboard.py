@@ -440,21 +440,21 @@ class VistaDashboard(tk.Frame):
         
         # Botones de comandos rápidos optimizados para Kali Linux
         comandos_rapidos = [
-            ("echo '=== CONEXIONES DE RED ACTIVAS ===' && (ss -tuln 2>/dev/null | grep -E ':(22|80|443|21|25|53|993|995|587|143|110|993|8080|8443)' || netstat -tuln 2>/dev/null | grep -E ':(22|80|443|21|25|53|993|995|587|143|110|993|8080|8443)') && echo '=== RESUMEN ===' && (ss -tuln 2>/dev/null | wc -l || netstat -tuln 2>/dev/null | wc -l) | awk '{print \"Total conexiones: \" $1-1}'", "RED Conexiones"),
-            ("ps aux --sort=-%cpu | head -15", "SISTEMA Top CPU"),
-            ("ip addr show", "RED Interfaces"),
-            ("which nmap >/dev/null 2>&1 && echo 'Nmap disponible en Kali' && nmap --version | head -2 || echo 'Nmap no encontrado - verificar instalacion'", "ESCANEO Nmap"),
-            ("df -h", "DISCO Espacio"),
-            ("free -h", "MEMORIA Uso"),
-            ("whoami && id", "USUARIO Permisos"),
-            ("uname -a", "INFO Sistema"),
-            ("echo '=== SERVICIOS EN ESCUCHA ===' && (ss -tlnp 2>/dev/null | grep LISTEN | head -10 || netstat -tlnp 2>/dev/null | grep LISTEN | head -10) && echo '=== TOTAL SERVICIOS ===' && (ss -tlnp 2>/dev/null | grep LISTEN | wc -l || netstat -tlnp 2>/dev/null | grep LISTEN | wc -l)", "RED Servicios"),
-            ("echo '=== ARCHIVOS DE RED ABIERTOS ===' && (lsof -i 2>/dev/null | head -15 || echo 'lsof requiere permisos root') && echo '=== ALTERNATIVO ===' && (ss -tulpn 2>/dev/null | head -10)", "RED Archivos"),
-            ("arp -a 2>/dev/null || ip neigh show", "RED ARP"),
-            ("route -n 2>/dev/null || ip route show", "RED Rutas"),
-            ("cat /proc/cpuinfo | grep 'model name' | head -1", "CPU Info"),
-            ("lscpu | grep 'CPU(s)' || nproc", "CPU Cores"),
-            ("systemctl list-units --type=service --state=running | head -15", "SERVICIOS Activos")
+            ("echo '=== CONEXIONES DE RED ACTIVAS ===' && (ss -tuln 2>/dev/null | grep -E ':(22|80|443|21|25|53|993|995|587|143|110|993|8080|8443)' || netstat -tuln 2>/dev/null | grep -E ':(22|80|443|21|25|53|993|995|587|143|110|993|8080|8443)') && echo '=== RESUMEN ===' && (ss -tuln 2>/dev/null | wc -l || netstat -tuln 2>/dev/null | wc -l) | awk '{print \"Total conexiones: \" $1-1}'", "Ver Conexiones de Red"),
+            ("ps aux --sort=-%cpu | head -15", "Procesos que Más CPU Usan"),
+            ("ip addr show", "Ver Interfaces de Red"),
+            ("which nmap >/dev/null 2>&1 && echo 'Nmap disponible en Kali' && nmap --version | head -2 || echo 'Nmap no encontrado - verificar instalacion'", "Verificar Nmap Disponible"),
+            ("df -h", "Ver Espacio en Disco"),
+            ("free -h", "Ver Uso de Memoria"),
+            ("whoami && id", "Ver Usuario y Permisos"),
+            ("uname -a", "Información del Sistema"),
+            ("echo '=== SERVICIOS EN ESCUCHA ===' && (ss -tlnp 2>/dev/null | grep LISTEN | head -10 || netstat -tlnp 2>/dev/null | grep LISTEN | head -10) && echo '=== TOTAL SERVICIOS ===' && (ss -tlnp 2>/dev/null | grep LISTEN | wc -l || netstat -tlnp 2>/dev/null | grep LISTEN | wc -l)", "Ver Servicios en Escucha"),
+            ("echo '=== ARCHIVOS DE RED ABIERTOS ===' && (lsof -i 2>/dev/null | head -15 || echo 'lsof requiere permisos root') && echo '=== ALTERNATIVO ===' && (ss -tulpn 2>/dev/null | head -10)", "Ver Archivos de Red Abiertos"),
+            ("arp -a 2>/dev/null || ip neigh show", "Ver Tabla ARP"),
+            ("route -n 2>/dev/null || ip route show", "Ver Rutas de Red"),
+            ("cat /proc/cpuinfo | grep 'model name' | head -1", "Información del Procesador"),
+            ("lscpu | grep 'CPU(s)' || nproc", "Número de Núcleos CPU"),
+            ("systemctl list-units --type=service --state=running | head -15", "Ver Servicios Activos")
         ]
         
         # Crear grid de botones
@@ -463,7 +463,7 @@ class VistaDashboard(tk.Frame):
             col = i % 3
             btn = tk.Button(
                 botones_grid_frame,
-                text=f"{descripcion}\n{comando}",
+                text=descripcion,
                 command=lambda cmd=comando: self.ejecutar_comando_rapido(cmd),
                 bg=self.colors['button_bg'],
                 fg=self.colors['button_fg'],
@@ -1194,100 +1194,223 @@ class VistaDashboard(tk.Frame):
             ))
     
     def _actualizar_interfaces_red(self):
-        """Actualizar información de interfaces de red."""
+        """Actualizar información de interfaces de red con datos completos."""
         try:
             self.interfaces_text.delete(1.0, tk.END)
             
-            # Usar comando ip addr para obtener interfaces
+            # Obtener interfaces con ip addr
             try:
                 result = subprocess.run(['ip', 'addr'], capture_output=True, text=True, timeout=5)
                 lines = result.stdout.split('\n')
                 
                 current_interface = None
+                interface_info = {}
+                
                 for line in lines:
                     line = line.strip()
                     
-                    # Línea de interface (ej: "2: eth0: <BROADCAST,MULTICAST,UP,LOWER_UP>")
+                    # Línea de interface
                     if ': ' in line and '<' in line and '>' in line:
+                        # Guardar información de la interfaz anterior
+                        if current_interface and current_interface in interface_info:
+                            self._mostrar_info_interfaz(current_interface, interface_info[current_interface])
+                        
                         parts = line.split(': ')
                         if len(parts) >= 2:
                             current_interface = parts[1].split(':')[0]
                             flags = line.split('<')[1].split('>')[0]
-                            estado = "OK UP" if "UP" in flags else "ERROR DOWN"
-                            self.interfaces_text.insert(tk.END, f"> {current_interface}:\n")
-                            self.interfaces_text.insert(tk.END, f"   Estado: {estado}\n")
+                            estado = "✓ ACTIVA" if "UP" in flags else "✗ INACTIVA"
+                            tipo = "WiFi" if "wlan" in current_interface or "wlp" in current_interface else \
+                                   "Ethernet" if "eth" in current_interface or "enp" in current_interface else \
+                                   "Loopback" if "lo" in current_interface else "Otra"
+                            
+                            interface_info[current_interface] = {
+                                'estado': estado,
+                                'tipo': tipo,
+                                'flags': flags,
+                                'ipv4': [],
+                                'ipv6': [],
+                                'mac': None
+                            }
                     
-                    # Líneas de direcciones IP
+                    # Obtener direcciones IP
                     elif current_interface and 'inet ' in line:
                         ip_info = line.split('inet ')[1].split()[0]
-                        self.interfaces_text.insert(tk.END, f"   IPv4: {ip_info}\n")
+                        interface_info[current_interface]['ipv4'].append(ip_info)
                     
-                    elif current_interface and 'inet6 ' in line and 'scope global' in line:
-                        ip_info = line.split('inet6 ')[1].split()[0]
-                        self.interfaces_text.insert(tk.END, f"   IPv6: {ip_info}\n")
-                        
-                # Agregar información de velocidad con ethtool si está disponible
-                try:
-                    result_ethtool = subprocess.run(['ethtool', 'eth0'], capture_output=True, text=True, timeout=3)
-                    for line in result_ethtool.stdout.split('\n'):
-                        if 'Speed:' in line:
-                            speed = line.split('Speed:')[1].strip()
-                            self.interfaces_text.insert(tk.END, f"   Velocidad: {speed}\n")
-                            break
-                except (subprocess.TimeoutExpired, subprocess.CalledProcessError, FileNotFoundError):
-                    pass  # ethtool no disponible o falló
-                            
-            except subprocess.SubprocessError:
-                # Fallback usando ifconfig si ip no está disponible
-                try:
-                    result = subprocess.run(['ifconfig'], capture_output=True, text=True, timeout=5)
-                    self.interfaces_text.insert(tk.END, result.stdout[:1000])  # Truncar si es muy largo
-                except subprocess.SubprocessError:
-                    self.interfaces_text.insert(tk.END, "Error: comandos de red no disponibles")
-            
+                    elif current_interface and 'inet6 ' in line:
+                        ipv6_info = line.split('inet6 ')[1].split()[0]
+                        if 'scope global' in line:
+                            interface_info[current_interface]['ipv6'].append(ipv6_info)
+                    
+                    # Obtener dirección MAC
+                    elif current_interface and 'link/ether' in line:
+                        mac_addr = line.split('link/ether ')[1].split()[0]
+                        interface_info[current_interface]['mac'] = mac_addr
+                
+                # Mostrar información de la última interfaz
+                if current_interface and current_interface in interface_info:
+                    self._mostrar_info_interfaz(current_interface, interface_info[current_interface])
+                
+                # Obtener información adicional de red
+                self._agregar_info_red_adicional()
+                
+            except subprocess.TimeoutExpired:
+                self.interfaces_text.insert(tk.END, "ERROR: Timeout obteniendo interfaces\n")
+            except FileNotFoundError:
+                # Fallback a ifconfig si ip no está disponible
+                self._obtener_interfaces_ifconfig()
+                
         except Exception as e:
-            self.interfaces_text.delete(1.0, tk.END)
-            self.interfaces_text.insert(tk.END, f"Error obteniendo interfaces: {e}")
+            self.interfaces_text.insert(tk.END, f"ERROR: {str(e)}\n")
+    
+    def _mostrar_info_interfaz(self, nombre, info):
+        """Mostrar información detallada de una interfaz"""
+        self.interfaces_text.insert(tk.END, f"🔗 {nombre} ({info['tipo']}):\n")
+        self.interfaces_text.insert(tk.END, f"   Estado: {info['estado']}\n")
+        
+        if info['ipv4']:
+            for ip in info['ipv4']:
+                self.interfaces_text.insert(tk.END, f"   IPv4: {ip}\n")
+        
+        if info['ipv6']:
+            for ipv6 in info['ipv6']:
+                self.interfaces_text.insert(tk.END, f"   IPv6: {ipv6}\n")
+        
+        if info['mac']:
+            self.interfaces_text.insert(tk.END, f"   MAC: {info['mac']}\n")
+        
+        # Estadísticas de tráfico si están disponibles
+        try:
+            stats_result = subprocess.run(['cat', f'/sys/class/net/{nombre}/statistics/rx_bytes'], 
+                                        capture_output=True, text=True, timeout=2)
+            if stats_result.returncode == 0:
+                rx_bytes = int(stats_result.stdout.strip())
+                rx_mb = rx_bytes / (1024 * 1024)
+                self.interfaces_text.insert(tk.END, f"   RX: {rx_mb:.1f} MB\n")
+        except:
+            pass
+        
+        try:
+            stats_result = subprocess.run(['cat', f'/sys/class/net/{nombre}/statistics/tx_bytes'], 
+                                        capture_output=True, text=True, timeout=2)
+            if stats_result.returncode == 0:
+                tx_bytes = int(stats_result.stdout.strip())
+                tx_mb = tx_bytes / (1024 * 1024)
+                self.interfaces_text.insert(tk.END, f"   TX: {tx_mb:.1f} MB\n")
+        except:
+            pass
+        
+        self.interfaces_text.insert(tk.END, "\n")
+    
+    def _agregar_info_red_adicional(self):
+        """Agregar información adicional de red"""
+        self.interfaces_text.insert(tk.END, "🌐 INFORMACIÓN ADICIONAL DE RED:\n\n")
+        
+        # Gateway predeterminado
+        try:
+            result = subprocess.run(['ip', 'route', 'show', 'default'], 
+                                  capture_output=True, text=True, timeout=3)
+            if result.stdout:
+                gateway = result.stdout.split('via ')[1].split()[0] if 'via ' in result.stdout else "No configurado"
+                self.interfaces_text.insert(tk.END, f"🚪 Gateway: {gateway}\n")
+        except:
+            pass
+        
+        # Servidores DNS
+        try:
+            with open('/etc/resolv.conf', 'r') as f:
+                dns_servers = []
+                for line in f:
+                    if line.startswith('nameserver'):
+                        dns_servers.append(line.split()[1])
+                if dns_servers:
+                    self.interfaces_text.insert(tk.END, f"🔍 DNS: {', '.join(dns_servers)}\n")
+        except:
+            pass
+        
+        # Hostname
+        try:
+            result = subprocess.run(['hostname'], capture_output=True, text=True, timeout=2)
+            if result.stdout:
+                hostname = result.stdout.strip()
+                self.interfaces_text.insert(tk.END, f"🏠 Hostname: {hostname}\n")
+        except:
+            pass
+    
+    def _obtener_interfaces_ifconfig(self):
+        """Fallback usando ifconfig"""
+        try:
+            result = subprocess.run(['ifconfig'], capture_output=True, text=True, timeout=5)
+            self.interfaces_text.insert(tk.END, "📡 INTERFACES (ifconfig):\n")
+            self.interfaces_text.insert(tk.END, result.stdout[:1000] + "...\n")
+        except:
+            self.interfaces_text.insert(tk.END, "ERROR: No se pudo obtener información de interfaces\n")
     
     def _actualizar_estadisticas_red(self):
-        """Actualizar estadísticas de red."""
+        """Actualizar estadísticas de red con datos reales."""
         try:
-            # Conexiones activas usando ss command
+            # Obtener conexiones establecidas
             try:
-                # Contar conexiones establecidas
-                result = subprocess.run(['ss', '-tuln'], capture_output=True, text=True, timeout=5)
-                lines = result.stdout.split('\n')
+                # Usar ss para conexiones establecidas
+                result_conn = subprocess.run(['ss', '-tuan'], capture_output=True, text=True, timeout=5)
+                lines_conn = result_conn.stdout.split('\n')
                 
                 conexiones_establecidas = 0
-                puertos_escucha = 0
-                
-                for line in lines:
+                for line in lines_conn:
                     if 'ESTAB' in line or 'ESTABLISHED' in line:
                         conexiones_establecidas += 1
-                    elif 'LISTEN' in line:
+                
+                # Usar ss para puertos en escucha
+                result_listen = subprocess.run(['ss', '-tln'], capture_output=True, text=True, timeout=5)
+                lines_listen = result_listen.stdout.split('\n')
+                
+                puertos_escucha = 0
+                for line in lines_listen:
+                    if 'LISTEN' in line:
                         puertos_escucha += 1
                 
                 self.conexiones_label.configure(text=str(conexiones_establecidas))
                 self.puertos_label.configure(text=str(puertos_escucha))
                 
-            except subprocess.SubprocessError:
+            except (subprocess.SubprocessError, FileNotFoundError):
                 # Fallback usando netstat si ss no está disponible
                 try:
-                    result = subprocess.run(['netstat', '-tuln'], capture_output=True, text=True, timeout=5)
-                    lines = result.stdout.split('\n')
+                    # Conexiones establecidas
+                    result_conn = subprocess.run(['netstat', '-tuan'], capture_output=True, text=True, timeout=5)
+                    conexiones_establecidas = result_conn.stdout.count('ESTABLISHED')
                     
-                    conexiones_establecidas = len([l for l in lines if 'ESTABLISHED' in l])
-                    puertos_escucha = len([l for l in lines if 'LISTEN' in l])
+                    # Puertos en escucha
+                    result_listen = subprocess.run(['netstat', '-tln'], capture_output=True, text=True, timeout=5)
+                    puertos_escucha = result_listen.stdout.count('LISTEN')
                     
                     self.conexiones_label.configure(text=str(conexiones_establecidas))
                     self.puertos_label.configure(text=str(puertos_escucha))
                     
-                except subprocess.SubprocessError:
-                    self.conexiones_label.configure(text="N/A")
-                    self.puertos_label.configure(text="N/A")
+                except (subprocess.SubprocessError, FileNotFoundError):
+                    # Último fallback usando /proc/net
+                    try:
+                        # Leer conexiones TCP del sistema
+                        with open('/proc/net/tcp', 'r') as f:
+                            tcp_lines = f.readlines()
+                        with open('/proc/net/tcp6', 'r') as f:
+                            tcp6_lines = f.readlines()
+                        
+                        # Estado 01 = ESTABLISHED, 0A = LISTEN
+                        establecidas = sum(1 for line in tcp_lines[1:] + tcp6_lines[1:] if ' 01 ' in line)
+                        escuchando = sum(1 for line in tcp_lines[1:] + tcp6_lines[1:] if ' 0A ' in line)
+                        
+                        self.conexiones_label.configure(text=str(establecidas))
+                        self.puertos_label.configure(text=str(escuchando))
+                        
+                    except (FileNotFoundError, PermissionError):
+                        self.conexiones_label.configure(text="N/A")
+                        self.puertos_label.configure(text="N/A")
             
         except Exception as e:
             print(f"Error actualizando estadísticas de red: {e}")
+            self.conexiones_label.configure(text="ERROR")
+            self.puertos_label.configure(text="ERROR")
     
     def _actualizar_estado_servicios(self):
         """Actualizar estado de servicios de seguridad."""

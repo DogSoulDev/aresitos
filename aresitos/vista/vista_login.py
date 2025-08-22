@@ -301,6 +301,22 @@ class LoginAresitos:
         self.root.title("ARESITOS - Autenticacion Segura")
         self.root.geometry("800x600")
         
+        # Configurar icono de la ventana
+        try:
+            icono_path = os.path.join(os.path.dirname(__file__), '..', 'recursos', 'Aresitos.png')
+            if os.path.exists(icono_path):
+                try:
+                    # Para PNG necesitamos PhotoImage
+                    self.icono_img = tk.PhotoImage(file=icono_path)
+                    self.root.iconphoto(True, self.icono_img)
+                except tk.TclError:
+                    # Si falla, intentar con el .ico si existe
+                    icono_ico = os.path.join(os.path.dirname(__file__), '..', 'recursos', 'Aresitos.ico')
+                    if os.path.exists(icono_ico):
+                        self.root.iconbitmap(icono_ico)
+        except Exception:
+            pass  # Continuar sin icono si hay problemas
+        
         # Configurar tema Burp Suite
         if BURP_THEME_AVAILABLE and burp_theme:
             self.theme = burp_theme
@@ -364,6 +380,22 @@ class LoginAresitos:
         # Frame principal
         main_frame = tk.Frame(self.root, bg=self.bg_primary)
         main_frame.pack(fill=tk.BOTH, expand=True, padx=20, pady=20)
+        
+        # Logo de Aresitos
+        try:
+            logo_path = os.path.join(os.path.dirname(__file__), '..', 'recursos', 'Aresitos.png')
+            if os.path.exists(logo_path):
+                self.logo_img = tk.PhotoImage(file=logo_path)
+                # Redimensionar imagen si es necesario (tkinter básico)
+                logo_label = tk.Label(
+                    main_frame,
+                    image=self.logo_img,
+                    bg=self.bg_primary
+                )
+                logo_label.pack(pady=(0, 10))
+        except Exception:
+            # Si no se puede cargar la imagen, continuar sin logo
+            pass
         
         # Titulo principal
         title_label = tk.Label(

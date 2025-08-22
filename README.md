@@ -1,4 +1,4 @@
-![ARESITOS](aresitos/recursos/Aresitos.ico)
+![ARESITOS](aresitos/recursos/Aresitos.png)
 
 # ARESITOS v2.0
 **Suite Profesional de Ciberseguridad para Kali Linux**
@@ -123,7 +123,7 @@ Aresitos/
 │   │   └── helper_seguridad.py               # 🆕 Helpers interfaces seguridad
 │   │
 │   └── 🎨 recursos/                     # Recursos gráficos
-│       └── Aresitos.ico                      # Icono aplicación
+│       └── Aresitos.png                      # Icono aplicación
 │
 ├── 🗂️  data/                            # Datos y bases de datos
 │   ├── 📊 *.db                              # Bases datos SQLite (FIM, SIEM, cuarentena)
@@ -225,7 +225,7 @@ Sistema de datos dinámico y configurable:
 - **Sistema Operativo**: Kali Linux 2024.x o superior
 - **Python**: 3.8+ (incluido en Kali Linux)
 - **Permisos**: Acceso sudo para herramientas del sistema
-- **Espacio**: 500MB libres para datos y logs
+- **Espacio**: 100MB libres para datos y logs
 
 ### Proceso de Instalación
 ```bash

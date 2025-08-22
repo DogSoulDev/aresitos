@@ -71,6 +71,21 @@ class VistaHerramientasKali(tk.Frame):
         main_frame = tk.Frame(self, bg=self.colors['bg_primary'])
         main_frame.pack(fill="both", expand=True, padx=20, pady=20)
         
+        # Logo de Aresitos
+        try:
+            import os
+            logo_path = os.path.join(os.path.dirname(__file__), '..', 'recursos', 'Aresitos.png')
+            if os.path.exists(logo_path):
+                self.logo_img = tk.PhotoImage(file=logo_path)
+                logo_label = tk.Label(
+                    main_frame,
+                    image=self.logo_img,
+                    bg=self.colors['bg_primary']
+                )
+                logo_label.pack(pady=(0, 10))
+        except Exception:
+            pass  # Continuar sin logo si hay problemas
+        
         # Título
         titulo_label = tk.Label(
             main_frame, 
@@ -553,14 +568,35 @@ LISTO PARA: Producción en entornos Kali Linux
                         self.after(0, self._actualizar_texto, f"✓ {paquete} instalado correctamente\n")
                     else:
                         paquetes_fallidos.append(paquete)
-                        self.after(0, self._actualizar_texto, f"✗ Error instalando {paquete}: {result.stderr[:100]}...\n")
+                        error_msg = result.stderr.strip()
+                        
+                        # Identificar errores comunes y dar instrucciones específicas
+                        if "Unable to locate package" in error_msg or "E: Package" in error_msg:
+                            self.after(0, self._actualizar_texto, f"✗ Error instalando {paquete}: Paquete no encontrado en repositorios\n")
+                            self.after(0, self._actualizar_texto, f"  💡 SOLUCIÓN: Instale manualmente con: sudo apt update && sudo apt install {paquete}\n")
+                            self.after(0, self._actualizar_texto, f"  📝 O busque en: https://kali.org/tools/ para instalación alternativa\n")
+                        elif "WARNING: apt does not have a stable CLI interface" in error_msg:
+                            self.after(0, self._actualizar_texto, f"⚠️ {paquete}: Advertencia de compatibilidad APT (no es error crítico)\n")
+                            self.after(0, self._actualizar_texto, f"  💡 SOLUCIÓN: Instale manualmente con: sudo apt install {paquete}\n")
+                        elif "externally-managed-environment" in error_msg:
+                            self.after(0, self._actualizar_texto, f"✗ Error instalando {paquete}: Entorno Python gestionado externamente\n")
+                            self.after(0, self._actualizar_texto, f"  💡 SOLUCIÓN: Instale con pipx: pipx install {paquete}\n")
+                            self.after(0, self._actualizar_texto, f"  📝 O use: python3 -m pip install --user {paquete} --break-system-packages\n")
+                        else:
+                            self.after(0, self._actualizar_texto, f"✗ Error instalando {paquete}: {error_msg[:100]}...\n")
+                            self.after(0, self._actualizar_texto, f"  💡 SOLUCIÓN: Instale manualmente con: sudo apt install {paquete}\n")
+                            self.after(0, self._actualizar_texto, f"  📝 O consulte documentación específica de la herramienta\n")
                         
                 except subprocess.TimeoutExpired:
                     paquetes_fallidos.append(paquete)
                     self.after(0, self._actualizar_texto, f"✗ Timeout instalando {paquete}\n")
+                    self.after(0, self._actualizar_texto, f"  💡 SOLUCIÓN: Instale manualmente con más tiempo: sudo apt install {paquete}\n")
+                    self.after(0, self._actualizar_texto, f"  📝 Puede requerir descargas grandes o dependencias complejas\n")
                 except Exception as e:
                     paquetes_fallidos.append(paquete)
                     self.after(0, self._actualizar_texto, f"✗ Error instalando {paquete}: {str(e)[:100]}...\n")
+                    self.after(0, self._actualizar_texto, f"  💡 SOLUCIÓN: Revise permisos e instale manualmente: sudo apt install {paquete}\n")
+                    self.after(0, self._actualizar_texto, f"  📝 Verifique conectividad y repositorios actualizados\n")
             
             # Mostrar resumen
             self.after(0, self._actualizar_texto, f"\n{'='*50}\n")
@@ -568,6 +604,19 @@ LISTO PARA: Producción en entornos Kali Linux
             self.after(0, self._actualizar_texto, f"{'='*50}\n")
             self.after(0, self._actualizar_texto, f"✓ Instalados correctamente: {len(paquetes_exitosos)}\n")
             self.after(0, self._actualizar_texto, f"✗ Errores de instalación: {len(paquetes_fallidos)}\n\n")
+            
+            if paquetes_fallidos:
+                self.after(0, self._actualizar_texto, f"🔧 HERRAMIENTAS QUE REQUIEREN INSTALACIÓN MANUAL:\n")
+                for paquete in paquetes_fallidos:
+                    self.after(0, self._actualizar_texto, f"   • {paquete}\n")
+                self.after(0, self._actualizar_texto, f"\n📋 COMANDOS PARA INSTALACIÓN MANUAL:\n")
+                self.after(0, self._actualizar_texto, f"sudo apt update\n")
+                for paquete in paquetes_fallidos:
+                    self.after(0, self._actualizar_texto, f"sudo apt install {paquete}\n")
+                self.after(0, self._actualizar_texto, f"\n📚 RECURSOS ADICIONALES:\n")
+                self.after(0, self._actualizar_texto, f"• Kali Tools: https://kali.org/tools/\n")
+                self.after(0, self._actualizar_texto, f"• Documentation: https://kali.org/docs/\n")
+                self.after(0, self._actualizar_texto, f"• Forum Support: https://forums.kali.org/\n")
             
             if paquetes_fallidos:
                 self.after(0, self._actualizar_texto, "PAQUETES CON ERRORES:\n")

@@ -1423,9 +1423,44 @@ class VistaEscaneo(tk.Frame):
                                               capture_output=True, text=True, timeout=5)
                 if resultado_nmap.returncode == 0:
                     self._actualizar_texto_seguro("NMAP DISPONIBLE: Ejecutando escaneo básico de red\n")
-                    # Escaneo básico de la red local
+                    
+                    # Detectar la red local del usuario automáticamente
+                    red_local = None
                     try:
-                        resultado_red = subprocess.run(['nmap', '-sn', '192.168.1.0/24'], 
+                        # Obtener la IP del gateway y calcular la red
+                        if gateway and gateway != 'unknown':
+                            # Intentar detectar la red basándose en el gateway
+                            partes_gateway = gateway.split('.')
+                            if len(partes_gateway) == 4:
+                                red_local = f"{partes_gateway[0]}.{partes_gateway[1]}.{partes_gateway[2]}.0/24"
+                        
+                        # Método alternativo: usar ip route para obtener la red
+                        if not red_local:
+                            try:
+                                route_result = subprocess.run(['ip', 'route', 'show', 'scope', 'link'], 
+                                                            capture_output=True, text=True, timeout=5)
+                                for line in route_result.stdout.split('\n'):
+                                    if '/' in line and 'dev' in line:
+                                        red_local = line.split()[0]
+                                        break
+                            except:
+                                pass
+                        
+                        # Fallback a red común si no se detecta
+                        if not red_local:
+                            red_local = "192.168.1.0/24"
+                            self._actualizar_texto_seguro("ADVERTENCIA: Usando red por defecto 192.168.1.0/24\n")
+                        else:
+                            self._actualizar_texto_seguro(f"RED DETECTADA: {red_local}\n")
+                    
+                    except Exception as e:
+                        red_local = "192.168.1.0/24"
+                        self._actualizar_texto_seguro(f"ERROR detectando red: {e}, usando red por defecto\n")
+                    
+                    # Escaneo de la red detectada
+                    try:
+                        self._actualizar_texto_seguro(f"ESCANEANDO: {red_local}\n")
+                        resultado_red = subprocess.run(['nmap', '-sn', red_local], 
                                                      capture_output=True, text=True, timeout=30)
                         if resultado_red.returncode == 0:
                             # Filtrar solo hosts que están UP
@@ -1435,6 +1470,8 @@ class VistaEscaneo(tk.Frame):
                                 if 'Nmap scan report for' in linea and i + 1 < len(lineas):
                                     if 'Host is up' in lineas[i + 1]:
                                         ip = linea.split()[-1]
+                                        # Limpiar IP de paréntesis si los tiene
+                                        ip = ip.strip('()')
                                         hosts_activos.append(ip)
                             
                             hosts_up = len(hosts_activos)

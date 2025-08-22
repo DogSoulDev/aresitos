@@ -10,45 +10,272 @@
 
 ### Requisitos Técnicos
 - **Python**: 3.8 o superior (incluido en Kali Linux)
-- **Espacio en disco**: 500MB mínimo para instalación completa
+- **Espacio en disco**: 100MB mínimo para instalación completa
 - **RAM**: 512MB mínimo (2GB recomendado para operaciones intensivas)
 - **Permisos**: Acceso sudo para herramientas del sistema
 
 ### Herramientas de Kali Linux Necesarias
 ```bash
-# 1. Crear carpeta Ares y clonar repositorio dentro
-mkdir -p ~/Ares && cd ~/Ares
+# 1. Clonar el repositorio
 git clone https://github.com/DogSoulDev/Aresitos.git
 cd Aresitos
 
-# 2. Configurar permisos necesarios
+# 2. Ejecutar configuración automática
 chmod +x configurar_kali.sh
-chmod +x verificacion_final.py
-find . -name "*.py" -exec chmod +x {} \;
-
-# 3. Configurar automáticamente
 sudo ./configurar_kali.sh
 
-# 4. Ejecutar inmediatamente
+# 3. Iniciar la aplicación
 python3 main.py
+```
+
+## Proceso de Instalación Completo
+
+### Paso 1: Clonación del Repositorio
+```bash
+┌──(kali㉿kali)-[~]
+└─$ git clone https://github.com/DogSoulDev/Aresitos.git
+Cloning into 'Aresitos'...
+remote: Enumerating objects: 1445, done.
+remote: Counting objects: 100% (376/376), done.
+remote: Compressing objects: 100% (236/236), done.
+remote: Total 1445 (delta 269), reused 228 (delta 139), pack-reused 1069 (from 1)
+Receiving objects: 100% (1445/1445), 2.52 MiB | 207.00 KiB/s, done.
+Resolving deltas: 100% (910/910), done.
+```
+
+### Paso 2: Configuración Automática
+```bash
+└─$ cd Aresitos
+└─$ chmod +x configurar_kali.sh
+└─$ sudo ./configurar_kali.sh
+[sudo] password for kali: 
+
+🛡️ CONFIGURADOR DE PERMISOS ARES AEGIS PARA KALI LINUX
+==========================================================
+[INFO] Usuario detectado: kali
+[INFO] Directorio home: /home/kali
+
+[INFO] Este script configurará Ares Aegis para funcionar correctamente en Kali Linux
+[INFO] Se realizarán las siguientes acciones:
+  • Actualizar repositorios
+  • Instalar herramientas de seguridad necesarias
+  • Configurar permisos de red especiales
+  • Configurar sudo sin contraseña para herramientas específicas
+  • Instalar dependencias Python
+  • Verificar configuración
+
+¿Continuar? (y/N): y
+```
+
+### Paso 3: Actualización de Repositorios
+```bash
+🔄 Actualizando repositorios...
+Hit:1 http://http.kali.org/kali kali-rolling InRelease
+31 packages can be upgraded. Run 'apt list --upgradable' to see them.
+[✓] Repositorios actualizados
+```
+
+### Paso 4: Instalación de Herramientas Esenciales
+```bash
+📦 Instalando herramientas ESENCIALES...
+[INFO] Instalando herramienta CRÍTICA: python3-dev...
+[✓] python3-dev ya está instalado
+[INFO] Instalando herramienta CRÍTICA: python3-venv...
+[✓] python3-venv ya está instalado
+[INFO] Instalando herramienta CRÍTICA: python3-tk...
+[✓] python3-tk instalado correctamente
+[INFO] Instalando herramienta CRÍTICA: curl...
+[✓] curl ya está instalado
+[INFO] Instalando herramienta CRÍTICA: wget...
+[✓] wget ya está instalado
+[INFO] Instalando herramienta CRÍTICA: git...
+[✓] git ya está instalado
+[INFO] Instalando herramienta CRÍTICA: nmap...
+[✓] nmap ya está instalado
+[INFO] Instalando herramienta CRÍTICA: net-tools...
+[✓] net-tools ya está instalado
+[INFO] Instalando herramienta CRÍTICA: tcpdump...
+[✓] tcpdump ya está instalado
+[INFO] Instalando herramienta CRÍTICA: iftop...
+[✓] iftop ya está instalado
+[INFO] Instalando herramienta CRÍTICA: netcat-openbsd...
+[✓] netcat-openbsd ya está instalado
+[INFO] Instalando herramienta CRÍTICA: htop...
+[✓] htop ya está instalado
+[INFO] Instalando herramienta CRÍTICA: lsof...
+[✓] lsof ya está instalado
+[INFO] Instalando herramienta CRÍTICA: psmisc...
+[✓] psmisc ya está instalado
+[INFO] Instalando herramienta CRÍTICA: iproute2...
+[✓] iproute2 ya está instalado
+```
+
+### Paso 5: Instalación de Herramientas Opcionales
+```bash
+INSTALANDO herramientas OPCIONALES...
+[INFO] Instalando herramienta opcional: rustscan...
+[WARN] No se pudo instalar rustscan (continuando...)
+[INFO] Instalando herramienta opcional: masscan...
+[✓] masscan ya está instalado
+[INFO] Instalando herramienta opcional: gobuster...
+[✓] gobuster ya está instalado
+[INFO] Instalando herramienta opcional: nikto...
+[✓] nikto ya está instalado
+[INFO] Instalando herramienta opcional: whatweb...
+[✓] whatweb ya está instalado
+[INFO] Instalando herramienta opcional: lynis...
+[✓] lynis ya está instalado
+[INFO] Instalando herramienta opcional: chkrootkit...
+[✓] chkrootkit ya está instalado
+[INFO] Instalando herramienta opcional: foremost...
+[✓] foremost ya está instalado
+[INFO] Instalando herramienta opcional: binwalk...
+[✓] binwalk ya está instalado
+[INFO] Instalando herramienta opcional: exiftool...
+[✓] exiftool instalado correctamente
+[INFO] Instalando herramienta opcional: feroxbuster...
+[✓] feroxbuster ya está instalado
+[INFO] Instalando herramienta opcional: httpx-toolkit...
+[✓] httpx-toolkit ya está instalado
+```
+
+### Paso 6: Reporte de Instalación
+```bash
+REPORTE DE INSTALACIÓN
+[✓] Todas las herramientas ESENCIALES instaladas correctamente
+[WARN] Herramientas opcionales no instaladas: rustscan
+[INFO] ARESITOS funcionará sin estas herramientas, pero con funcionalidad limitada
+[INFO] Actualizando base de datos del sistema...
+```
+
+### Paso 7: Configuración de Permisos
+```bash
+PERMISOS Configurando permisos de red...
+[INFO] Configurando permisos para nmap...
+[✓] Permisos de nmap configurados
+[INFO] Configurando permisos para tcpdump...
+[✓] Permisos de tcpdump configurados
+[INFO] Añadiendo usuario kali a grupos necesarios...
+[✓] Usuario añadido al grupo wireshark
+[✓] Usuario añadido al grupo netdev
+
+CONFIG Configurando sudo para ARESITOS v2.0...
+/etc/sudoers.d/aresitos-v2: parsed OK
+[✓] Configuración sudo creada en /etc/sudoers.d/aresitos-v2
+```
+
+### Paso 8: Configuración Python
+```bash
+🐍 Configurando entorno Python para ARESITOS...
+[WARN] Detectado entorno Python externally-managed (Kali Linux 2024+)
+[INFO] Configurando solución compatible para ARESITOS...
+[INFO] Instalando dependencias Python vía APT (recomendado)...
+[INFO] Instalando python3-pil...
+[✓] python3-pil instalado vía APT
+[INFO] Instalando python3-requests...
+[✓] python3-requests instalado vía APT
+[INFO] Instalando python3-urllib3...
+[✓] python3-urllib3 instalado vía APT
+
+🧪 Verificando dependencias...
+   OK tkinter: Interfaz gráfica
+   OK PIL: Procesamiento de imágenes
+   OK sqlite3: Base de datos
+   OK json: Manejo de JSON
+   OK threading: Multihilo
+   OK subprocess: Ejecución de comandos
+   OK os: Sistema operativo
+   OK sys: Sistema Python
+
+OK Todas las dependencias están disponibles
+[✓] Configuración Python completada
+```
+
+### Paso 9: Verificación Final
+```bash
+🧪 Verificando configuración...
+[✓] nmap disponible
+[✓] nmap ejecutable sin contraseña
+[✓] netstat disponible
+[✓] netstat ejecutable sin contraseña
+[✓] ss disponible
+[✓] ss ejecutable sin contraseña
+[✓] tcpdump disponible
+[✓] tcpdump ejecutable sin contraseña
+[INFO] Verificando membresía de grupos para kali...
+[✓] Usuario en grupo wireshark
+
+COMPLETADO CONFIGURACIÓN COMPLETADA
+============================
+[✓] Ares Aegis está configurado para Kali Linux
+
+[INFO] Pasos siguientes:
+  1. Cierre y reabra la terminal para aplicar cambios de grupo
+  2. Execute el script de prueba: python3 /home/kali/test_ares_permissions.py
+  3. Execute la verificación de permisos: python3 verificacion_permisos.py
+  4. Inicie Ares Aegis: python3 main.py
+```
+
+### Paso 10: Inicio de la Aplicación
+```bash
+└─$ python3 main.py
+Aresitos - Sistema de Seguridad Cibernética
+==================================================
+Iniciando con interfaz de login...
+OK Tkinter disponible y funcional
+Creando aplicación de login...
+Aplicación de login creada
+Iniciando interfaz gráfica...
 ```
 
 ## Configuración Automática
 
-### Script de Configuración
-El script `configurar_kali.sh` instala y verifica automáticamente las herramientas necesarias:
+### Script de Configuración `configurar_kali.sh`
+El script de configuración automática realiza todas las tareas necesarias para preparar Kali Linux:
 
-#### Herramientas de Escaneado de Red
-- **nmap**: Network mapper para descubrimiento y análisis de puertos
-- **masscan**: Scanner de puertos de alta velocidad para redes grandes
-- **gobuster**: Enumeración de directorios y archivos web mediante fuerza bruta
-- **nuclei**: Scanner de vulnerabilidades basado en plantillas
-- **ffuf**: Web fuzzer moderno para descubrimiento de contenido
+#### ✅ **Herramientas Críticas Instaladas**
+- **python3-dev, python3-venv, python3-tk**: Entorno Python completo
+- **curl, wget, git**: Herramientas de descarga y control de versiones
+- **nmap**: Escaneador de red principal
+- **net-tools, iproute2**: Herramientas de red fundamentales
+- **tcpdump**: Captura de tráfico de red
+- **netcat-openbsd**: Utilidad de red versátil
+- **htop, lsof, psmisc**: Monitoreo de sistema y procesos
 
-#### Herramientas de Monitoreo del Sistema
-- **inotifywait**: Monitoreo de archivos en tiempo real
-- **auditd**: Sistema de auditoría de eventos del kernel Linux
-- **pspy**: Monitor de procesos que no requiere privilegios root
+#### ✅ **Herramientas de Seguridad Opcionales**
+- **masscan**: Escaneador de puertos de alta velocidad
+- **gobuster**: Enumeración de directorios web
+- **nikto**: Escaneador de vulnerabilidades web
+- **whatweb**: Identificador de tecnologías web
+- **lynis**: Auditor de seguridad del sistema
+- **chkrootkit**: Detector de rootkits
+- **foremost**: Recuperación de archivos
+- **binwalk**: Análisis de firmwares
+- **exiftool**: Análisis de metadatos
+- **feroxbuster**: Fuzzing de directorios
+- **httpx-toolkit**: Herramientas HTTP modernas
+
+#### ⚠️ **Herramientas que Requieren Instalación Manual**
+- **rustscan**: Escaneador moderno (requiere Rust)
+  ```bash
+  # Para instalar rustscan manualmente:
+  cargo install rustscan
+  ```
+
+#### 🔧 **Configuraciones Automáticas**
+1. **Permisos de Red**: Configuración de nmap y tcpdump sin sudo
+2. **Grupos de Usuario**: Adición a grupos wireshark y netdev
+3. **Configuración Sudo**: Archivo `/etc/sudoers.d/aresitos-v2` para herramientas específicas
+4. **Dependencias Python**: Instalación vía APT para compatibilidad con Kali 2024+
+5. **Permisos de Archivos**: Configuración automática de todos los permisos necesarios
+
+#### 🧪 **Verificación Automática**
+El script verifica automáticamente:
+- Disponibilidad de todas las herramientas críticas
+- Permisos de ejecución sin contraseña
+- Membresía en grupos necesarios
+- Funcionamiento de dependencias Python
+- Creación de scripts de prueba
 
 #### Herramientas de Análisis Forense
 - **volatility3**: Framework de análisis forense de memoria
@@ -443,8 +670,8 @@ inotifywait --help && echo "✅ inotify OK"
 - [ ] **Git** disponible para clonar repositorio
 - [ ] **Permisos root** para instalación de herramientas
 - [ ] **Conexión internet** para descargar dependencias
-- [ ] **20GB espacio libre** en disco
-- [ ] **8GB RAM** disponible (recomendado)
+- [ ] **100MB espacio libre** en disco mínimo
+- [ ] **2GB RAM** disponible (recomendado)
 - [ ] **Ejecutar** `configurar_kali.sh` como root
 - [ ] **Verificar** con `python verificacion_final.py`
 - [ ] **Probar** ejecución con `python main.py`
@@ -470,28 +697,83 @@ python main.py --dev
 tail -f logs/aresitos.log
 ```
 
+## 📋 NOTAS IMPORTANTES DE INSTALACIÓN
+
+### ✅ **Instalación Exitosa - Indicadores**
+Si la instalación es exitosa, verás estos mensajes:
+```
+[✓] Todas las herramientas ESENCIALES instaladas correctamente
+[✓] Configuración sudo creada en /etc/sudoers.d/aresitos-v2
+[✓] Configuración Python completada
+COMPLETADO CONFIGURACIÓN COMPLETADA
+[✓] Ares Aegis está configurado para Kali Linux
+```
+
+### ⚠️ **Advertencias Normales (No son errores)**
+Estos mensajes son normales y no impiden el funcionamiento:
+```
+[WARN] No se pudo instalar rustscan (continuando...)
+[WARN] Detectado entorno Python externally-managed (Kali Linux 2024+)
+[WARN] No se pudo instalar python3-sqlite3 vía APT
+[WARN] No se pudo instalar python3-json vía APT
+```
+
+### 🔄 **Pasos Post-Instalación Importantes**
+1. **Reiniciar sesión**: Para aplicar cambios de grupos
+   ```bash
+   # Cerrar y reabrir terminal o:
+   newgrp wireshark
+   ```
+
+2. **Verificar scripts de prueba**:
+   ```bash
+   python3 /home/kali/test_ares_permissions.py
+   python3 verificacion_permisos.py
+   ```
+
+3. **Inicio normal**:
+   ```bash
+   python3 main.py
+   # Debería mostrar:
+   # Aresitos - Sistema de Seguridad Cibernética
+   # Iniciando con interfaz de login...
+   # OK Tkinter disponible y funcional
+   ```
+
+### 🚨 **Solución de Problemas Comunes**
+
+**Si falta python3-tk:**
+```bash
+sudo apt update && sudo apt install python3-tk
+```
+
+**Si hay errores de permisos:**
+```bash
+sudo ./configurar_kali.sh  # Reejecutar configuración
+```
+
+**Si rustscan no está disponible:**
+```bash
+# ARESITOS funciona sin rustscan, usa nmap como alternativa
+# Para instalar rustscan manualmente:
+curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
+source ~/.cargo/env
+cargo install rustscan
+```
+
+**Si fallan las dependencias Python:**
+```bash
+# El script maneja automáticamente las dependencias
+# Todas las librerías críticas (tkinter, sqlite3, json) son nativas de Python
+```
+
+---
+
+**✨ INSTALACIÓN COMPLETADA**  
+*Una vez que veas "Iniciando interfaz gráfica..." tu instalación está lista.*
+
 ---
 
 **TIEMPO INSTALACIÓN**: ~15 minutos  
 **DIFICULTAD**: Básica  
-**SOPORTE**: Solo Kali Linux 2025  
-## 🎯 COMANDOS ESENCIALES
-
-```bash
-# Instalación completa paso a paso
-mkdir -p ~/Ares && cd ~/Ares
-git clone https://github.com/DogSoulDev/Aresitos.git && cd Aresitos
-chmod +x configurar_kali.sh verificacion_final.py
-sudo ./configurar_kali.sh
-python verificacion_final.py
-python main.py
-
-# Verificación rápida
-python -c "import aresitos; print('✅ ARESITOS OK')"
-
-# Debug mode
-python main.py --dev
-
-# Logs de depuración
-tail -f logs/aresitos.log
-```
+**SOPORTE**: Solo Kali Linux 2025

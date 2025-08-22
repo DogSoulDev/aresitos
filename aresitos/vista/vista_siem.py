@@ -503,7 +503,7 @@ class VistaSIEM(tk.Frame):
                 (" Sleuth Kit", self.usar_sleuthkit),
                 (" Binwalk", self.usar_binwalk),
                 (" Foremost", self.usar_foremost),
-                ("[STRINGS] Strings", self.usar_strings),
+                ("Extraer Strings", self.usar_strings),
                 (" DD/DCFLDD", self.usar_dd),
                 (" Head/Tail", self.usar_head_tail),
                 (" Check Kali Tools", self.verificar_herramientas_kali),
@@ -526,7 +526,7 @@ class VistaSIEM(tk.Frame):
                 (" Sleuth Kit", self.usar_sleuthkit),
                 (" Binwalk", self.usar_binwalk),
                 (" Foremost", self.usar_foremost),
-                ("[STRINGS] Strings", self.usar_strings),
+                ("Extraer Strings", self.usar_strings),
                 (" DD/DCFLDD", self.usar_dd),
                 (" Head/Tail", self.usar_head_tail),
                 (" Check Kali Tools", self.verificar_herramientas_kali),
@@ -1853,15 +1853,42 @@ class VistaSIEM(tk.Frame):
                         
                         # Crear directorio para logs si no existe
                         log_dir = '/var/log/suricata'
+                        
+                        # Verificar si Suricata ya está ejecutándose
+                        pidfile_path = '/var/run/suricata.pid'
+                        try:
+                            # Verificar si el pidfile existe y si el proceso sigue activo
+                            if os.path.exists(pidfile_path):
+                                with open(pidfile_path, 'r') as f:
+                                    pid = int(f.read().strip())
+                                # Verificar si el proceso sigue corriendo
+                                check_proc = subprocess.run(['ps', '-p', str(pid)], capture_output=True, text=True)
+                                if check_proc.returncode == 0:
+                                    self.after(0, self._actualizar_texto_alertas, "INFO Suricata ya está ejecutándose\n")
+                                    self.after(0, self._actualizar_texto_alertas, f" PID activo: {pid}\n")
+                                    self.after(0, self._actualizar_texto_alertas, " Conectando al proceso existente\n")
+                                    # Continuar con el monitoreo de logs del proceso existente
+                                    self.after(0, self._iniciar_monitoreo_logs_suricata, log_dir)
+                                    return
+                                else:
+                                    # El proceso no existe, remover pidfile obsoleto
+                                    self.after(0, self._actualizar_texto_alertas, "INFO Removiendo pidfile obsoleto\n")
+                                    subprocess.run(['sudo', 'rm', '-f', pidfile_path], capture_output=True)
+                        except (FileNotFoundError, ValueError, PermissionError):
+                            # Si hay error leyendo el pidfile, intentar removerlo
+                            subprocess.run(['sudo', 'rm', '-f', pidfile_path], capture_output=True)
+                        
+                        # Crear directorio para logs si no existe
                         if not os.path.exists(log_dir):
                             subprocess.run(['sudo', 'mkdir', '-p', log_dir], capture_output=True)
                         
                         # Comando para iniciar Suricata
                         suricata_cmd = [
                             'sudo', 'suricata', '-c', '/etc/suricata/suricata.yaml',
-                            '-i', interface, '-D', '--pidfile', '/var/run/suricata.pid'
+                            '-i', interface, '-D', '--pidfile', pidfile_path
                         ]
                         
+                        self.after(0, self._actualizar_texto_alertas, f" Ejecutando: suricata -i {interface} -D\n")
                         resultado_suricata = subprocess.run(suricata_cmd, capture_output=True, text=True)
                         
                         if resultado_suricata.returncode == 0:
@@ -1870,11 +1897,25 @@ class VistaSIEM(tk.Frame):
                             self.after(0, self._actualizar_texto_alertas, " Monitoreando tráfico en tiempo real\n")
                             self.after(0, self._actualizar_texto_alertas, " Detectando: exploits, malware, escaneos\n")
                             
+                            # Verificar que el pidfile se creó correctamente
+                            if os.path.exists(pidfile_path):
+                                self.after(0, self._actualizar_texto_alertas, f" PID file creado: {pidfile_path}\n")
+                            
                             # Iniciar monitoreo de logs de Suricata
                             self.after(0, self._iniciar_monitoreo_logs_suricata, log_dir)
                         else:
-                            self.after(0, self._actualizar_texto_alertas, f"ERROR iniciando Suricata: {resultado_suricata.stderr}\n")
-                            self.after(0, self._actualizar_texto_alertas, " Verificar permisos sudo y configuración\n")
+                            error_msg = resultado_suricata.stderr.strip() if resultado_suricata.stderr else "Error desconocido"
+                            self.after(0, self._actualizar_texto_alertas, f"ERROR iniciando Suricata: {error_msg}\n")
+                            
+                            # Dar sugerencias específicas según el error
+                            if "pidfile" in error_msg.lower():
+                                self.after(0, self._actualizar_texto_alertas, " SOLUCIÓN: sudo pkill suricata && sudo rm -f /var/run/suricata.pid\n")
+                            elif "permission" in error_msg.lower():
+                                self.after(0, self._actualizar_texto_alertas, " SOLUCIÓN: Verificar permisos sudo\n")
+                            elif "interface" in error_msg.lower():
+                                self.after(0, self._actualizar_texto_alertas, f" SOLUCIÓN: Verificar que la interfaz {interface} existe\n")
+                            else:
+                                self.after(0, self._actualizar_texto_alertas, " SOLUCIÓN: Verificar configuración en /etc/suricata/suricata.yaml\n")
                     
                 except Exception as e:
                     self.after(0, self._actualizar_texto_alertas, f"ERROR configurando interfaz: {e}\n")
@@ -2119,39 +2160,163 @@ class VistaSIEM(tk.Frame):
         threading.Thread(target=ejecutar, daemon=True).start()
     
     def usar_strings(self):
-        """Usar strings para análisis de texto."""
+        """Análisis profesional con strings para extracción de cadenas de texto."""
         def ejecutar():
             try:
-                self.after(0, self._actualizar_texto_forense, "🔤 STRINGS - Extracción de Cadenas\n")
-                self.after(0, self._actualizar_texto_forense, "="*50 + "\n")
+                self.after(0, self._actualizar_texto_forense, "🔤 ANÁLISIS PROFESIONAL CON STRINGS\n")
+                self.after(0, self._actualizar_texto_forense, "="*60 + "\n")
                 
                 import subprocess
+                import os
+                import tempfile
+                
+                # Verificar disponibilidad de strings
                 try:
                     resultado = subprocess.run(['strings', '--version'], capture_output=True, text=True, timeout=10)
                     if resultado.returncode == 0:
-                        self.after(0, self._actualizar_texto_forense, "OK Strings disponible\n\n")
-                        self.after(0, self._actualizar_texto_forense, "ANÁLISIS COMANDOS KALI LINUX:\n")
-                        self.after(0, self._actualizar_texto_forense, "  strings archivo.bin                   # Básico\n")
-                        self.after(0, self._actualizar_texto_forense, "  strings -a archivo.bin                # Todos los archivos\n")
-                        self.after(0, self._actualizar_texto_forense, "  strings -n 10 archivo.bin             # Min 10 chars\n")
-                        self.after(0, self._actualizar_texto_forense, "  strings archivo.bin | grep -i pass    # Buscar passwords\n")
-                        self.after(0, self._actualizar_texto_forense, "  strings archivo.bin | grep -E 'http|ftp' # URLs\n\n")
+                        self.after(0, self._actualizar_texto_forense, "✓ Strings disponible en el sistema\n\n")
+                    
+                        # ANÁLISIS AUTOMÁTICO DE ARCHIVOS CRÍTICOS DEL SISTEMA
+                        self.after(0, self._actualizar_texto_forense, "🔍 ANÁLISIS AUTOMÁTICO - ARCHIVOS CRÍTICOS DEL SISTEMA:\n")
+                        self.after(0, self._actualizar_texto_forense, "-" * 50 + "\n")
+                        
+                        archivos_criticos = [
+                            "/bin/bash",
+                            "/bin/sh", 
+                            "/usr/bin/sudo",
+                            "/etc/passwd",
+                            "/var/log/auth.log"
+                        ]
+                        
+                        for archivo in archivos_criticos:
+                            if os.path.exists(archivo) and os.path.isfile(archivo):
+                                self.after(0, self._actualizar_texto_forense, f"\n📄 ANALIZANDO: {archivo}\n")
+                                try:
+                                    # Análisis básico de strings
+                                    resultado_strings = subprocess.run(
+                                        ['strings', '-n', '8', archivo], 
+                                        capture_output=True, text=True, timeout=15
+                                    )
+                                    
+                                    if resultado_strings.returncode == 0:
+                                        lines = resultado_strings.stdout.split('\n')[:10]  # Primeras 10 líneas
+                                        self.after(0, self._actualizar_texto_forense, f"  ✓ {len(lines)} strings encontrados (mostrando primeros 10):\n")
+                                        for i, line in enumerate(lines, 1):
+                                            if line.strip():
+                                                self.after(0, self._actualizar_texto_forense, f"    {i:2d}: {line[:80]}...\n")
+                                        
+                                        # Búsqueda de patrones sospechosos
+                                        self.after(0, self._actualizar_texto_forense, "  🔍 BÚSQUEDA DE PATRONES SOSPECHOSOS:\n")
+                                        patrones = ['password', 'admin', 'root', 'key', 'token', 'secret']
+                                        
+                                        for patron in patrones:
+                                            grep_result = subprocess.run(
+                                                ['strings', archivo], 
+                                                capture_output=True, text=True, timeout=10
+                                            )
+                                            if grep_result.returncode == 0:
+                                                matches = [line for line in grep_result.stdout.split('\n') 
+                                                         if patron.lower() in line.lower()]
+                                                if matches:
+                                                    self.after(0, self._actualizar_texto_forense, f"    🚨 PATRÓN '{patron}': {len(matches)} coincidencias\n")
+                                    
+                                except subprocess.TimeoutExpired:
+                                    self.after(0, self._actualizar_texto_forense, f"    ⚠️ Timeout analizando {archivo}\n")
+                                except Exception as e:
+                                    self.after(0, self._actualizar_texto_forense, f"    ❌ Error: {str(e)[:50]}\n")
+                        
+                        # COMANDOS PROFESIONALES DE KALI LINUX
+                        self.after(0, self._actualizar_texto_forense, "\n🛠️ COMANDOS PROFESIONALES KALI LINUX:\n")
+                        self.after(0, self._actualizar_texto_forense, "-" * 50 + "\n")
+                        comandos_profesionales = [
+                            ("Análisis Completo", "strings -a -t x archivo.bin | head -100"),
+                            ("Buscar Passwords", "strings archivo.bin | grep -iE '(pass|pwd|secret|key)' | head -20"),
+                            ("Extraer URLs", r"strings archivo.bin | grep -E 'https?://[^\s]+' | head -20"),
+                            ("Buscar IPs", "strings archivo.bin | grep -E '[0-9]{1,3}\\.[0-9]{1,3}\\.[0-9]{1,3}\\.[0-9]{1,3}'"),
+                            ("Strings Unicode", "strings -el archivo.bin | head -50"),
+                            ("Filtrar por Longitud", "strings -n 15 archivo.bin | head -30"),
+                            ("Buscar Emails", "strings archivo.bin | grep -E '[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}'"),
+                            ("Analizar Binarios", "strings /usr/bin/* | grep -i suspicious")
+                        ]
+                        
+                        for descripcion, comando in comandos_profesionales:
+                            self.after(0, self._actualizar_texto_forense, f"  📋 {descripcion}:\n")
+                            self.after(0, self._actualizar_texto_forense, f"      {comando}\n\n")
+                        
+                        # CREAR SCRIPT DE ANÁLISIS AUTOMATIZADO
+                        script_path = "/tmp/aresitos_strings_analysis.sh"
+                        script_content = '''#!/bin/bash
+# ARESITOS - Script de Análisis Profesional con Strings
+echo "=== ARESITOS STRINGS ANALYSIS ==="
+echo "Generado: $(date)"
+echo "==============================="
+
+if [ "$1" = "" ]; then
+    echo "Uso: $0 <archivo_a_analizar>"
+    exit 1
+fi
+
+ARCHIVO="$1"
+OUTPUT_DIR="/tmp/aresitos_logs/strings_analysis"
+mkdir -p "$OUTPUT_DIR"
+
+echo "Analizando: $ARCHIVO"
+echo "Resultados en: $OUTPUT_DIR"
+
+# Análisis básico
+strings -a "$ARCHIVO" > "$OUTPUT_DIR/all_strings.txt"
+echo "✓ Strings básicos extraídos"
+
+# Buscar patrones de interés
+strings "$ARCHIVO" | grep -iE "(pass|pwd|secret|key|token)" > "$OUTPUT_DIR/credentials.txt"
+strings "$ARCHIVO" | grep -E "https?://[^\\s]+" > "$OUTPUT_DIR/urls.txt"
+strings "$ARCHIVO" | grep -E "[0-9]{1,3}\\.[0-9]{1,3}\\.[0-9]{1,3}\\.[0-9]{1,3}" > "$OUTPUT_DIR/ips.txt"
+strings "$ARQUIVO" | grep -E "[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}" > "$OUTPUT_DIR/emails.txt"
+
+echo "✓ Análisis completado"
+echo "Archivos generados:"
+ls -la "$OUTPUT_DIR/"
+'''
+                        
+                        try:
+                            with open(script_path, 'w') as f:
+                                f.write(script_content)
+                            os.chmod(script_path, 0o755)
+                            self.after(0, self._actualizar_texto_forense, f"📝 SCRIPT CREADO: {script_path}\n")
+                            self.after(0, self._actualizar_texto_forense, f"   Uso: {script_path} <archivo>\n\n")
+                        except Exception as e:
+                            self.after(0, self._actualizar_texto_forense, f"⚠️ Error creando script: {e}\n")
+                        
                     else:
-                        self.after(0, self._actualizar_texto_forense, "ERROR ejecutando strings\n")
+                        self.after(0, self._actualizar_texto_forense, "❌ Error ejecutando strings\n")
                         
                 except FileNotFoundError:
-                    self.after(0, self._actualizar_texto_forense, "ERROR Strings no encontrado\n")
-                    self.after(0, self._actualizar_texto_forense, "📦 INSTALACIÓN KALI:\n")
-                    self.after(0, self._actualizar_texto_forense, "  sudo apt install binutils -y\n\n")
+                    self.after(0, self._actualizar_texto_forense, "❌ Strings no encontrado en el sistema\n")
+                    self.after(0, self._actualizar_texto_forense, "📦 INSTALACIÓN EN KALI LINUX:\n")
+                    self.after(0, self._actualizar_texto_forense, "  sudo apt update && sudo apt install binutils -y\n\n")
                     
-                self.after(0, self._actualizar_texto_forense, " CASOS DE USO:\n")
-                self.after(0, self._actualizar_texto_forense, "  • Análisis de malware\n")
-                self.after(0, self._actualizar_texto_forense, "  • Búsqueda de passwords\n")
-                self.after(0, self._actualizar_texto_forense, "  • Extracción de URLs\n")
-                self.after(0, self._actualizar_texto_forense, "  • Ingeniería inversa\n\n")
+                # CASOS DE USO PROFESIONALES
+                self.after(0, self._actualizar_texto_forense, "🎯 CASOS DE USO PROFESIONALES:\n")
+                self.after(0, self._actualizar_texto_forense, "-" * 40 + "\n")
+                casos_uso = [
+                    "🦠 Análisis de malware y detección de IoCs",
+                    "🔍 Ingeniería inversa de binarios sospechosos", 
+                    "🔐 Búsqueda de credenciales hardcodeadas",
+                    "🌐 Extracción de URLs y dominios maliciosos",
+                    "📧 Identificación de direcciones de email",
+                    "🏠 Descubrimiento de direcciones IP internas",
+                    "🔑 Localización de claves criptográficas",
+                    "📱 Análisis forense de aplicaciones móviles"
+                ]
+                
+                for caso in casos_uso:
+                    self.after(0, self._actualizar_texto_forense, f"  {caso}\n")
+                
+                self.after(0, self._actualizar_texto_forense, f"\n📁 DIRECTORIO DE LOGS: /tmp/aresitos_logs/strings_analysis/\n")
+                self.after(0, self._actualizar_texto_forense, "✅ ANÁLISIS COMPLETADO\n\n")
                 
             except Exception as e:
-                self.after(0, self._actualizar_texto_forense, f"ERROR usando Strings: {str(e)}\n")
+                self.after(0, self._actualizar_texto_forense, f"❌ ERROR en análisis con strings: {str(e)}\n")
         
         threading.Thread(target=ejecutar, daemon=True).start()
     

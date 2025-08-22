@@ -34,11 +34,15 @@ class VistaPrincipal(tk.Frame):
         # Cargar icono de ARESITOS
         self.icono_aresitos = None
         try:
-            # Buscar el archivo de icono
-            icono_path = os.path.join(os.path.dirname(__file__), '..', 'recursos', 'Aresitos.ico')
+            # Buscar el archivo de icono PNG
+            icono_path = os.path.join(os.path.dirname(__file__), '..', 'recursos', 'Aresitos.png')
             if os.path.exists(icono_path):
-                # Para archivos .ico, tkinter no los soporta directamente, usamos el emoji como alternativa
-                self.icono_text = ""
+                try:
+                    # Cargar imagen PNG para usar en la interfaz
+                    self.icono_aresitos = tk.PhotoImage(file=icono_path)
+                    self.icono_text = ""
+                except tk.TclError:
+                    self.icono_text = "🔰"
             else:
                 self.icono_text = "🔰"
         except Exception as e:
