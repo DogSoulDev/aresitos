@@ -179,8 +179,7 @@ class VistaDashboard(tk.Frame):
         if hasattr(self, 'terminal_output') and self.terminal_output:
             timestamp = datetime.now().strftime("%H:%M:%S")
             mensaje_completo = f"[{timestamp}] {prefijo} {mensaje}\n"
-            self.terminal_output.insert(tk.END, mensaje_completo)
-            self.terminal_output.see(tk.END)
+            self._actualizar_terminal_seguro(mensaje_completo)
     
     def activar_captura_logs(self):
         """Activar captura de todos los logs del sistema."""
@@ -533,14 +532,14 @@ class VistaDashboard(tk.Frame):
         self.captura_logs_activa = False
         
         # Mensaje inicial
-        self.terminal_output.insert(tk.END, "="*80 + "\n")
-        self.terminal_output.insert(tk.END, "Terminal integrado de Aresitos\n")
-        self.terminal_output.insert(tk.END, f"Iniciado: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}\n")
-        self.terminal_output.insert(tk.END, f"Sistema: {platform.system()} {platform.release()}\n")
-        self.terminal_output.insert(tk.END, f"Shell: {self.shell_detectado}\n")
-        self.terminal_output.insert(tk.END, "="*80 + "\n")
-        self.terminal_output.insert(tk.END, "LOG Presiona 'ACTIVAR CAPTURA LOGS' para ver logs de ARESITOS aquí\n")
-        self.terminal_output.insert(tk.END, "TIP Usa los comandos rápidos o escribe comandos personalizados\n\n")
+        self._actualizar_terminal_seguro("="*80 + "\n")
+        self._actualizar_terminal_seguro("Terminal integrado de Aresitos\n")
+        self._actualizar_terminal_seguro(f"Iniciado: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}\n")
+        self._actualizar_terminal_seguro(f"Sistema: {platform.system()} {platform.release()}\n")
+        self._actualizar_terminal_seguro(f"Shell: {self.shell_detectado}\n")
+        self._actualizar_terminal_seguro("="*80 + "\n")
+        self._actualizar_terminal_seguro("LOG Presiona 'ACTIVAR CAPTURA LOGS' para ver logs de ARESITOS aquí\n")
+        self._actualizar_terminal_seguro("TIP Usa los comandos rápidos o escribe comandos personalizados\n\n")
         
         # Configurar logging integrado ahora que el widget existe
         self.configurar_logging_integrado()
@@ -567,12 +566,12 @@ class VistaDashboard(tk.Frame):
     def limpiar_terminal(self):
         """Limpiar el contenido del terminal."""
         if hasattr(self, 'terminal_output'):
-            self.terminal_output.delete(1.0, tk.END)
+            self._actualizar_terminal_seguro("", "clear")
             # Mensaje de limpieza
-            self.terminal_output.insert(tk.END, "="*80 + "\n")
-            self.terminal_output.insert(tk.END, "🧹 TERMINAL LIMPIADO\n")
-            self.terminal_output.insert(tk.END, f" {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}\n")
-            self.terminal_output.insert(tk.END, "="*80 + "\n\n")
+            self._actualizar_terminal_seguro("="*80 + "\n")
+            self._actualizar_terminal_seguro("🧹 TERMINAL LIMPIADO\n")
+            self._actualizar_terminal_seguro(f" {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}\n")
+            self._actualizar_terminal_seguro("="*80 + "\n\n")
     
     def abrir_carpeta_logs(self):
         """Abrir carpeta de logs del escaneador en Kali Linux."""
@@ -1029,9 +1028,10 @@ class VistaDashboard(tk.Frame):
             emoji = emoji_map.get(nivel, "LOG")
             mensaje_completo = f"[{timestamp}] {emoji} [{modulo}] {mensaje}\n"
             try:
-                cls._terminal_widget.insert(tk.END, mensaje_completo)
-                cls._terminal_widget.see(tk.END)
-            except:
+                if cls._terminal_widget and cls._terminal_widget.winfo_exists():
+                    cls._terminal_widget.insert(tk.END, mensaje_completo)
+                    cls._terminal_widget.see(tk.END)
+            except (tk.TclError, AttributeError):
                 pass  # Si hay error, no bloquear la operación
     
     def log_actividad(self, mensaje, modulo="ARESITOS", nivel="INFO"):
@@ -1051,8 +1051,7 @@ class VistaDashboard(tk.Frame):
         if not comando:
             return
         
-        self.terminal_output.insert(tk.END, f"\n> {comando}\n")
-        self.terminal_output.see(tk.END)
+        self._actualizar_terminal_seguro(f"\n> {comando}\n")
         
         # Ejecutar comando en thread para no bloquear la UI
         thread = threading.Thread(target=self._ejecutar_comando_async, args=(comando,))
@@ -1112,9 +1111,8 @@ class VistaDashboard(tk.Frame):
     
     def _mostrar_output_comando(self, output):
         """Mostrar output del comando en el terminal."""
-        self.terminal_output.insert(tk.END, output + "\n")
-        self.terminal_output.insert(tk.END, "="*50 + "\n\n")
-        self.terminal_output.see(tk.END)
+        self._actualizar_terminal_seguro(output + "\n")
+        self._actualizar_terminal_seguro("="*50 + "\n\n")
     
     def iniciar_actualizacion_metricas(self):
         """Iniciar la actualización de métricas cada 60 segundos."""
@@ -2282,6 +2280,32 @@ journalctl -u ssh                # Logs de servicio específico
             
         except Exception as e:
             print(f"Error mostrando notificación: {e}")
+    
+    def _actualizar_terminal_seguro(self, texto, modo="append"):
+        """Actualizar terminal_output de forma segura desde threads."""
+        def _update():
+            try:
+                if hasattr(self, 'terminal_output') and self.terminal_output.winfo_exists():
+                    if modo == "clear":
+                        self.terminal_output.delete(1.0, tk.END)
+                    elif modo == "replace":
+                        self.terminal_output.delete(1.0, tk.END)
+                        self.terminal_output.insert(1.0, texto)
+                    elif modo == "append":
+                        self.terminal_output.insert(tk.END, texto)
+                    elif modo == "insert_start":
+                        self.terminal_output.insert(1.0, texto)
+                    self.terminal_output.see(tk.END)
+                    if hasattr(self.terminal_output, 'update'):
+                        self.terminal_output.update()
+            except (tk.TclError, AttributeError):
+                pass  # Widget ya no existe o ha sido destruido
+        
+        # Programar la actualización para el hilo principal
+        try:
+            self.after_idle(_update)
+        except (tk.TclError, AttributeError):
+            pass  # Ventana ya destruida
     
     def destroy(self):
         """Limpiar recursos al destruir la vista."""
