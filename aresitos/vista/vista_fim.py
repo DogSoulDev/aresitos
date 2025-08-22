@@ -461,11 +461,100 @@ class VistaFIM(tk.Frame):
             self.after(0, self._habilitar_botones_monitoreo, True)
 
     def detener_monitoreo(self):
-        """Detener monitoreo continuo."""
-        self.proceso_monitoreo_activo = False
-        self._habilitar_botones_monitoreo(True)
-        self._log_terminal("Monitoreo FIM detenido", "FIM", "INFO")
-        self._actualizar_texto_fim("MONITOREO FIM DETENIDO\n")
+        """Detener monitoreo continuo de manera robusta."""
+        def ejecutar_detencion():
+            try:
+                self._actualizar_texto_fim("=== DETENIENDO MONITOREO FIM ===\n")
+                import subprocess
+                import os
+                import signal
+                
+                # Detener variable de control
+                self.proceso_monitoreo_activo = False
+                
+                # Terminar procesos de monitoreo conocidos
+                procesos_fim = ['inotifywait', 'auditd', 'aide', 'samhain', 'tripwire']
+                procesos_terminados = 0
+                
+                for proceso in procesos_fim:
+                    try:
+                        # Buscar procesos activos relacionados con FIM
+                        resultado = subprocess.run(['pgrep', '-f', proceso], 
+                                                capture_output=True, text=True)
+                        if resultado.returncode == 0 and resultado.stdout.strip():
+                            pids = resultado.stdout.strip().split('\n')
+                            for pid in pids:
+                                if pid.strip():
+                                    try:
+                                        # Terminar proceso específico
+                                        subprocess.run(['kill', '-TERM', pid.strip()], 
+                                                    capture_output=True)
+                                        self._actualizar_texto_fim(f"✓ Terminado proceso {proceso} (PID: {pid.strip()})\n")
+                                        procesos_terminados += 1
+                                    except Exception:
+                                        continue
+                    except Exception:
+                        continue
+                
+                # Terminar procesos Python de monitoreo
+                try:
+                    resultado = subprocess.run(['pgrep', '-f', 'python.*fim'], 
+                                            capture_output=True, text=True)
+                    if resultado.returncode == 0 and resultado.stdout.strip():
+                        pids = resultado.stdout.strip().split('\n')
+                        for pid in pids:
+                            if pid.strip() and pid.strip() != str(os.getpid()):
+                                try:
+                                    subprocess.run(['kill', '-TERM', pid.strip()], 
+                                                capture_output=True)
+                                    self._actualizar_texto_fim(f"✓ Terminado monitoreo Python (PID: {pid.strip()})\n")
+                                    procesos_terminados += 1
+                                except Exception:
+                                    continue
+                except Exception:
+                    pass
+                
+                # Limpiar archivos temporales de FIM
+                archivos_temp = [
+                    '/tmp/fim_monitor.pid',
+                    '/tmp/fim_changes.log',
+                    '/var/log/fim_monitor.log',
+                    '/tmp/inotify_monitor.pid'
+                ]
+                
+                for archivo in archivos_temp:
+                    try:
+                        if os.path.exists(archivo):
+                            os.remove(archivo)
+                            self._actualizar_texto_fim(f"✓ Limpiado archivo temporal: {archivo}\n")
+                    except Exception:
+                        pass
+                
+                # Detener monitores inotify específicos
+                try:
+                    subprocess.run(['pkill', '-f', 'inotifywait.*fim'], 
+                                capture_output=True)
+                except Exception:
+                    pass
+                
+                if procesos_terminados > 0:
+                    self._actualizar_texto_fim(f"✓ COMPLETADO: {procesos_terminados} procesos de monitoreo terminados\n")
+                else:
+                    self._actualizar_texto_fim("• INFO: No se encontraron procesos de monitoreo FIM activos\n")
+                
+                self._actualizar_texto_fim("✓ Limpieza de archivos temporales completada\n")
+                self._actualizar_texto_fim("=== MONITOREO FIM DETENIDO COMPLETAMENTE ===\n\n")
+                
+                # Reactivar botones
+                self.after(0, self._habilitar_botones_monitoreo, True)
+                self._log_terminal("Monitoreo FIM detenido completamente", "FIM", "INFO")
+                
+            except Exception as e:
+                self._actualizar_texto_fim(f"ERROR durante detención: {str(e)}\n")
+                self.after(0, self._habilitar_botones_monitoreo, True)
+        
+        import threading
+        threading.Thread(target=ejecutar_detencion, daemon=True).start()
     
     def verificar_integridad(self):
         """Verificar integridad de archivos críticos."""

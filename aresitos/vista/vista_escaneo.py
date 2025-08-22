@@ -98,15 +98,6 @@ class VistaEscaneo(tk.Frame):
                                     activeforeground='white')
         self.btn_escanear.pack(side="left", padx=(0, 10))
         
-        self.btn_verificar = tk.Button(btn_frame, text="Verificar Kali", 
-                                     command=self.verificar_kali,
-                                     bg=self.colors['info'], fg='white', 
-                                     font=('Arial', 10, 'bold'),
-                                     relief='flat', padx=15, pady=8,
-                                     activebackground=self.colors['fg_accent'],
-                                     activeforeground='white')
-        self.btn_verificar.pack(side="left", padx=(0, 10))
-            
         self.btn_cancelar_escaneo = tk.Button(btn_frame, text="Cancelar", 
                                             command=self.cancelar_escaneo,
                                             state="disabled",
@@ -453,112 +444,91 @@ class VistaEscaneo(tk.Frame):
         self.thread_escaneo = None
     
     def cancelar_escaneo(self):
-        """Cancelar el escaneo en curso."""
-        if self.proceso_activo:
-            self.proceso_activo = False
-            self.text_resultados.insert(tk.END, "\n Escaneo cancelado por el usuario.\n")
-    
-    def verificar_kali(self):
-        """Verificar la integridad completa del sistema operativo Kali Linux."""
-        try:
-            self.text_resultados.delete(1.0, tk.END)
-            self.text_resultados.insert(tk.END, "=== VERIFICACION INTEGRIDAD KALI LINUX ===\n\n")
-            
-            # Log al terminal integrado
-            self._log_terminal("Iniciando verificacion completa de integridad del sistema Kali Linux", "VERIFICADOR", "INFO")
-            
-            # Deshabilitar botón durante verificación
-            self.btn_verificar.config(state="disabled")
-            
-            # Ejecutar verificación completa en thread separado
-            threading.Thread(target=self._verificar_integridad_kali_async, daemon=True).start()
-            
-        except Exception as e:
-            self._log_terminal(f"Error iniciando verificacion: {str(e)}", "VERIFICADOR", "ERROR")
-            messagebox.showerror("Error", f"Error durante verificación: {str(e)}")
-        finally:
-            # Reactivar botón después de 30 segundos
-            self.after(30000, lambda: self.btn_verificar.config(state="normal"))
-
-    def _verificar_integridad_kali_async(self):
-        """Verificar integridad del sistema Kali Linux de forma asíncrona."""
-        import subprocess
-        import os
-        
-        try:
-            # FASE 1: Verificar estructura de directorios críticos
-            self._log_terminal("FASE 1: Verificando estructura de directorios criticos", "VERIFICADOR", "INFO")
-            self._verificar_directorios_criticos()
-            
-            # FASE 2: Verificar archivos de configuración esenciales
-            self._log_terminal("FASE 2: Verificando archivos de configuracion esenciales", "VERIFICADOR", "INFO")
-            self._verificar_archivos_configuracion()
-            
-            # FASE 3: Verificar herramientas de Kali Linux
-            self._log_terminal("FASE 3: Verificando herramientas de seguridad de Kali", "VERIFICADOR", "INFO")
-            self._verificar_herramientas_kali()
-            
-            # FASE 4: Verificar servicios del sistema
-            self._log_terminal("FASE 4: Verificando servicios criticos del sistema", "VERIFICADOR", "INFO")
-            self._verificar_servicios_sistema()
-            
-            # FASE 5: Verificar integridad de paquetes
-            self._log_terminal("FASE 5: Verificando integridad de paquetes instalados", "VERIFICADOR", "INFO")
-            self._verificar_paquetes_sistema()
-            
-            # FASE 6: Verificar configuración de red
-            self._log_terminal("FASE 6: Verificando configuracion de red", "VERIFICADOR", "INFO")
-            self._verificar_configuracion_red()
-            
-            self._log_terminal("Verificacion de integridad completada", "VERIFICADOR", "SUCCESS")
-            
-        except Exception as e:
-            self._log_terminal(f"Error durante verificacion de integridad: {str(e)}", "VERIFICADOR", "ERROR")
-
-    def _verificar_directorios_criticos(self):
-        """Verificar que existen los directorios críticos del sistema."""
-        import os
-        
-        directorios_criticos = [
-            '/bin', '/sbin', '/usr/bin', '/usr/sbin', '/usr/local/bin',
-            '/etc', '/var', '/tmp', '/home', '/root', '/boot',
-            '/lib', '/usr/lib', '/proc', '/sys', '/dev'
-        ]
-        
-        directorios_kali = [
-            '/usr/share/wordlists', '/usr/share/nmap', '/usr/share/metasploit-framework',
-            '/usr/share/sqlmap', '/usr/share/dirb', '/usr/share/nikto'
-        ]
-        
-        todos_directorios = directorios_criticos + directorios_kali
-        
-        for directorio in todos_directorios:
-            if os.path.exists(directorio) and os.path.isdir(directorio):
-                self._log_terminal(f"OK: Directorio {directorio} presente", "VERIFICADOR", "INFO")
-            else:
-                self._log_terminal(f"ERROR: Directorio critico {directorio} no encontrado", "VERIFICADOR", "ERROR")
-
-    def _verificar_archivos_configuracion(self):
-        """Verificar archivos de configuración esenciales."""
-        import os
-        
-        archivos_esenciales = [
-            '/etc/passwd', '/etc/group', '/etc/shadow', '/etc/sudoers',
-            '/etc/hosts', '/etc/hostname', '/etc/resolv.conf',
-            '/etc/fstab', '/etc/shells', '/etc/profile',
-            '/etc/ssh/sshd_config', '/etc/apt/sources.list'
-        ]
-        
-        for archivo in archivos_esenciales:
-            if os.path.exists(archivo) and os.path.isfile(archivo):
-                # Verificar tamaño mínimo (no debe estar vacío)
-                tamano = os.path.getsize(archivo)
-                if tamano > 0:
-                    self._log_terminal(f"OK: {archivo} presente y valido ({tamano} bytes)", "VERIFICADOR", "INFO")
+        """Cancelar el escaneo en curso de manera robusta."""
+        def ejecutar_cancelacion():
+            try:
+                self.text_resultados.insert(tk.END, "\n=== CANCELANDO ESCANEO EN CURSO ===\n")
+                import subprocess
+                import os
+                
+                # Detener variable de control
+                self.proceso_activo = False
+                
+                # Terminar procesos de escaneo conocidos
+                procesos_escaneo = ['nmap', 'masscan', 'rustscan', 'nikto', 'gobuster', 
+                                  'feroxbuster', 'dirb', 'wfuzz', 'sqlmap', 'nuclei', 'httpx']
+                procesos_terminados = 0
+                
+                for proceso in procesos_escaneo:
+                    try:
+                        # Buscar procesos activos
+                        resultado = subprocess.run(['pgrep', '-f', proceso], 
+                                                capture_output=True, text=True)
+                        if resultado.returncode == 0 and resultado.stdout.strip():
+                            pids = resultado.stdout.strip().split('\n')
+                            for pid in pids:
+                                if pid.strip():
+                                    try:
+                                        # Terminar proceso específico
+                                        subprocess.run(['kill', '-TERM', pid.strip()], 
+                                                    capture_output=True)
+                                        self.text_resultados.insert(tk.END, f"✓ Terminado proceso {proceso} (PID: {pid.strip()})\n")
+                                        procesos_terminados += 1
+                                    except Exception:
+                                        continue
+                    except Exception:
+                        continue
+                
+                # Terminar procesos Python de escaneo
+                try:
+                    resultado = subprocess.run(['pgrep', '-f', 'python.*escan'], 
+                                            capture_output=True, text=True)
+                    if resultado.returncode == 0 and resultado.stdout.strip():
+                        pids = resultado.stdout.strip().split('\n')
+                        for pid in pids:
+                            if pid.strip() and pid.strip() != str(os.getpid()):
+                                try:
+                                    subprocess.run(['kill', '-TERM', pid.strip()], 
+                                                capture_output=True)
+                                    self.text_resultados.insert(tk.END, f"✓ Terminado escaneo Python (PID: {pid.strip()})\n")
+                                    procesos_terminados += 1
+                                except Exception:
+                                    continue
+                except Exception:
+                    pass
+                
+                # Limpiar archivos temporales de escaneo
+                archivos_temp = [
+                    '/tmp/nmap_scan.xml',
+                    '/tmp/masscan_output.txt',
+                    '/tmp/nikto_output.txt',
+                    '/tmp/gobuster_output.txt',
+                    '/tmp/escaneo_temp.log'
+                ]
+                
+                for archivo in archivos_temp:
+                    try:
+                        if os.path.exists(archivo):
+                            os.remove(archivo)
+                            self.text_resultados.insert(tk.END, f"✓ Limpiado archivo temporal: {archivo}\n")
+                    except Exception:
+                        pass
+                
+                if procesos_terminados > 0:
+                    self.text_resultados.insert(tk.END, f"✓ COMPLETADO: {procesos_terminados} procesos de escaneo terminados\n")
                 else:
-                    self._log_terminal(f"ERROR: {archivo} esta vacio", "VERIFICADOR", "ERROR")
-            else:
-                self._log_terminal(f"ERROR: Archivo critico {archivo} no encontrado", "VERIFICADOR", "ERROR")
+                    self.text_resultados.insert(tk.END, "• INFO: No se encontraron procesos de escaneo activos\n")
+                
+                self.text_resultados.insert(tk.END, "=== CANCELACIÓN DE ESCANEO COMPLETADA ===\n\n")
+                
+                # Log al terminal
+                self._log_terminal("Escaneo cancelado completamente", "ESCANEADOR", "INFO")
+                
+            except Exception as e:
+                self.text_resultados.insert(tk.END, f"ERROR durante cancelación: {str(e)}\n")
+        
+        import threading
+        threading.Thread(target=ejecutar_cancelacion, daemon=True).start()
 
     def _verificar_herramientas_kali(self):
         """Verificar herramientas esenciales de Kali Linux."""
