@@ -555,6 +555,8 @@ class VistaEscaneo(tk.Frame):
         except Exception as e:
             self._actualizar_texto_seguro(f"Error en escaneo de emergencia: {str(e)}\n")
             self._log_terminal(f"Error en escaneo de emergencia: {str(e)}", "ESCANEADOR", "ERROR")
+    
+    def _mostrar_resultados_escaneo_kali(self, resultado):
         """Mostrar resultados del escaneo Kali 2025 de forma organizada."""
         try:
             datos = resultado.get("resultado", {})

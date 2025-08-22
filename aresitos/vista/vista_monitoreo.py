@@ -276,8 +276,6 @@ class VistaMonitoreo(tk.Frame):
             error_msg = f"Error abriendo logs: {str(e)}"
             self.log_to_terminal(f"ERROR: {error_msg}")
             messagebox.showerror("Error", error_msg)
-        except Exception as e:
-            self.log_to_terminal(f"ERROR abriendo logs Monitoreo: {e}")
     
     def log_to_terminal(self, mensaje):
         """Registrar mensaje en el terminal con formato estándar."""
