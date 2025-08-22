@@ -218,6 +218,34 @@ class VistaMonitoreo(tk.Frame):
             )
             self.terminal_output.pack(fill="both", expand=True, padx=5, pady=5)
             
+            # Frame para entrada de comandos (como Dashboard)
+            entrada_frame = tk.Frame(terminal_frame, bg='#1e1e1e')
+            entrada_frame.pack(fill="x", padx=5, pady=2)
+            
+            tk.Label(entrada_frame, text="COMANDO:",
+                    bg='#1e1e1e', fg='#00ff00',
+                    font=("Arial", 9, "bold")).pack(side="left", padx=(0, 5))
+            
+            self.comando_entry = tk.Entry(
+                entrada_frame,
+                bg='#000000',
+                fg='#00ff00',
+                font=("Consolas", 9),
+                insertbackground='#00ff00'
+            )
+            self.comando_entry.pack(side="left", fill="x", expand=True, padx=(0, 5))
+            self.comando_entry.bind("<Return>", self.ejecutar_comando_entry)
+            
+            ejecutar_btn = tk.Button(
+                entrada_frame,
+                text="EJECUTAR",
+                command=self.ejecutar_comando_entry,
+                bg='#2d5aa0',
+                fg='white',
+                font=("Arial", 8, "bold")
+            )
+            ejecutar_btn.pack(side="right")
+            
             # Mensaje inicial estilo dashboard
             import datetime
             self.terminal_output.insert(tk.END, "="*60 + "\n")
@@ -247,6 +275,53 @@ class VistaMonitoreo(tk.Frame):
                 self.terminal_output.insert(tk.END, "LOG Terminal Monitoreo reiniciado\n\n")
         except Exception as e:
             print(f"Error limpiando terminal Monitoreo: {e}")
+    
+    def ejecutar_comando_entry(self, event=None):
+        """Ejecutar comando desde la entrada."""
+        comando = self.comando_entry.get().strip()
+        if not comando:
+            return
+        
+        self.terminal_output.insert(tk.END, f"\n> {comando}\n")
+        self.terminal_output.see(tk.END)
+        self.comando_entry.delete(0, tk.END)
+        
+        # Ejecutar comando en thread para no bloquear la UI
+        thread = threading.Thread(target=self._ejecutar_comando_async, args=(comando,))
+        thread.daemon = True
+        thread.start()
+    
+    def _ejecutar_comando_async(self, comando):
+        """Ejecutar comando de forma asíncrona."""
+        try:
+            import platform
+            import subprocess
+            
+            if platform.system() == "Windows":
+                comando_completo = ["cmd", "/c", comando]
+            else:
+                comando_completo = ["/bin/bash", "-c", comando]
+            
+            resultado = subprocess.run(
+                comando_completo,
+                capture_output=True,
+                text=True,
+                timeout=30
+            )
+            
+            if resultado.stdout:
+                self.terminal_output.insert(tk.END, resultado.stdout)
+            if resultado.stderr:
+                self.terminal_output.insert(tk.END, f"ERROR: {resultado.stderr}")
+            
+            self.terminal_output.see(tk.END)
+            
+        except subprocess.TimeoutExpired:
+            self.terminal_output.insert(tk.END, "ERROR: Comando timeout (30s)\n")
+        except Exception as e:
+            self.terminal_output.insert(tk.END, f"ERROR ejecutando comando: {e}\n")
+        
+        self.terminal_output.see(tk.END)
     
     def abrir_logs_monitoreo(self):
         """Abrir carpeta de logs Monitoreo con manejo seguro de errores."""
