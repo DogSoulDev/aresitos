@@ -1488,13 +1488,13 @@ class VistaFIM(tk.Frame):
     def _actualizar_texto_fim(self, texto):
         """Actualizar texto en el área de resultados de forma segura."""
         try:
-            if hasattr(self, 'fim_text') and self.fim_text:
+            if hasattr(self, 'fim_text') and self.fim_text and self.fim_text.winfo_exists():
                 self.fim_text.config(state=tk.NORMAL)
                 self.fim_text.insert(tk.END, texto)
                 self.fim_text.see(tk.END)
                 self.fim_text.config(state=tk.DISABLED)
-        except Exception:
-            pass  # Ignorar errores de UI
+        except (tk.TclError, AttributeError):
+            pass  # Widget ya no existe o ha sido destruido
     
     def set_controlador(self, controlador):
         """Establecer el controlador del FIM."""

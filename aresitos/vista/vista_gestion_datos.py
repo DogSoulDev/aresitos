@@ -302,7 +302,7 @@ class VistaGestionDatos(tk.Frame):
             
             # Limpiar selección y contenido
             self.archivo_seleccionado = None
-            self.text_contenido.delete(1.0, tk.END)
+            self._actualizar_contenido_seguro("", "clear")
             
             # Llamar al controlador para obtener datos específicos del tipo
             if self.controlador:
@@ -384,18 +384,18 @@ class VistaGestionDatos(tk.Frame):
             return
         
         try:
-            self.text_contenido.delete(1.0, tk.END)
+            self._actualizar_contenido_seguro("", "clear")
             
             if self.archivo_seleccionado.suffix == '.json':
                 with open(self.archivo_seleccionado, 'r', encoding='utf-8') as f:
                     datos = json.load(f)
                     self.datos_actuales = datos
                     contenido_formateado = json.dumps(datos, indent=2, ensure_ascii=False)
-                    self.text_contenido.insert(1.0, contenido_formateado)
+                    self._actualizar_contenido_seguro(contenido_formateado, "replace")
             else:
                 with open(self.archivo_seleccionado, 'r', encoding='utf-8', errors='ignore') as f:
                     contenido = f.read()
-                    self.text_contenido.insert(1.0, contenido)
+                    self._actualizar_contenido_seguro(contenido, "replace")
             
             # Información del archivo
             stats = self.archivo_seleccionado.stat()
@@ -410,7 +410,7 @@ class VistaGestionDatos(tk.Frame):
                 elif isinstance(self.datos_actuales, list):
                     info += f"# Elementos: {len(self.datos_actuales)} items\n"
             
-            self.text_contenido.insert(tk.END, info)
+            self._actualizar_contenido_seguro(info)
             
         except Exception as e:
             messagebox.showerror("Error", f"Error al cargar archivo: {str(e)}")
@@ -557,7 +557,7 @@ class VistaGestionDatos(tk.Frame):
                 
                 # Limpiar selección y contenido
                 self.archivo_seleccionado = None
-                self.text_contenido.delete(1.0, tk.END)
+                self._actualizar_contenido_seguro("", "clear")
                 
                 # Recargar lista
                 self.cargar_archivos()
@@ -689,9 +689,9 @@ class VistaGestionDatos(tk.Frame):
             
             def realizar_analisis():
                 try:
-                    self.text_contenido.delete(1.0, tk.END)
-                    self.text_contenido.insert(tk.END, f"=== ANÁLISIS KALI DE {self.archivo_seleccionado.name if self.archivo_seleccionado else 'archivo'} ===\n\n")
-                    self.text_contenido.update()
+                    # Limpiar contenido de forma segura
+                    self._actualizar_contenido_seguro("", "clear")
+                    self._actualizar_contenido_seguro(f"=== ANÁLISIS KALI DE {self.archivo_seleccionado.name if self.archivo_seleccionado else 'archivo'} ===\n\n")
                     
                     archivo_path = str(self.archivo_seleccionado)
                     
@@ -699,9 +699,9 @@ class VistaGestionDatos(tk.Frame):
                     try:
                         result = subprocess.run(['wc', '-l', '-w', '-c', archivo_path], 
                                               capture_output=True, text=True, timeout=10)
-                        self.text_contenido.insert(tk.END, f"ESTADÍSTICAS BÁSICAS:\n{result.stdout}\n")
+                        self._actualizar_contenido_seguro(f"ESTADÍSTICAS BÁSICAS:\n{result.stdout}\n")
                     except:
-                        self.text_contenido.insert(tk.END, "Error obteniendo estadísticas básicas\n")
+                        self._actualizar_contenido_seguro("Error obteniendo estadísticas básicas\n")
                     
                     # Análisis de duplicados
                     try:
@@ -711,9 +711,9 @@ class VistaGestionDatos(tk.Frame):
                             result2 = subprocess.run(['uniq', '-d'], 
                                                    input=result.stdout, capture_output=True, text=True, timeout=10)
                             duplicados = len(result2.stdout.split('\n')) if result2.stdout else 0
-                            self.text_contenido.insert(tk.END, f"\nLÍNEAS DUPLICADAS: {duplicados}\n")
+                            self._actualizar_contenido_seguro(f"\nLÍNEAS DUPLICADAS: {duplicados}\n")
                     except:
-                        self.text_contenido.insert(tk.END, "\nError analizando duplicados\n")
+                        self._actualizar_contenido_seguro("\nError analizando duplicados\n")
                     
                     # Longitudes de líneas
                     try:
@@ -722,26 +722,26 @@ class VistaGestionDatos(tk.Frame):
                         if result.stdout:
                             lengths = [int(x) for x in result.stdout.split('\n') if x.strip().isdigit()]
                             if lengths:
-                                self.text_contenido.insert(tk.END, f"\nLONGITUD MÍNIMA: {min(lengths)}\n")
-                                self.text_contenido.insert(tk.END, f"LONGITUD MÁXIMA: {max(lengths)}\n")
-                                self.text_contenido.insert(tk.END, f"LONGITUD PROMEDIO: {sum(lengths)/len(lengths):.1f}\n")
+                                self._actualizar_contenido_seguro(f"\nLONGITUD MÍNIMA: {min(lengths)}\n")
+                                self._actualizar_contenido_seguro(f"LONGITUD MÁXIMA: {max(lengths)}\n")
+                                self._actualizar_contenido_seguro(f"LONGITUD PROMEDIO: {sum(lengths)/len(lengths):.1f}\n")
                     except:
-                        self.text_contenido.insert(tk.END, "\nError analizando longitudes\n")
+                        self._actualizar_contenido_seguro("\nError analizando longitudes\n")
                     
                     # Caracteres especiales
                     try:
                         result = subprocess.run(['grep', '-o', '[^a-zA-Z0-9 ]', archivo_path], 
                                               capture_output=True, text=True, timeout=10)
                         especiales = len(set(result.stdout))
-                        self.text_contenido.insert(tk.END, f"\nCARACTERES ESPECIALES ÚNICOS: {especiales}\n")
+                        self._actualizar_contenido_seguro(f"\nCARACTERES ESPECIALES ÚNICOS: {especiales}\n")
                     except:
-                        self.text_contenido.insert(tk.END, "\nError analizando caracteres especiales\n")
+                        self._actualizar_contenido_seguro("\nError analizando caracteres especiales\n")
                     
-                    self.text_contenido.insert(tk.END, "\n=== ANÁLISIS COMPLETADO ===\n")
+                    self._actualizar_contenido_seguro("\n=== ANÁLISIS COMPLETADO ===\n")
                     self._log_terminal(f"Análisis Kali completado para {self.archivo_seleccionado.name if self.archivo_seleccionado else 'archivo'}", "GESTION", "INFO")
                     
                 except Exception as e:
-                    self.text_contenido.insert(tk.END, f"\nError en análisis: {str(e)}")
+                    self._actualizar_contenido_seguro(f"\nError en análisis: {str(e)}")
             
             thread = threading.Thread(target=realizar_analisis)
             thread.daemon = True
@@ -769,20 +769,20 @@ class VistaGestionDatos(tk.Frame):
                         result = subprocess.run(['grep', '-n', '-i', patron, str(self.archivo_seleccionado)], 
                                               capture_output=True, text=True, timeout=10)
                         
-                        self.text_contenido.delete(1.0, tk.END)
-                        self.text_contenido.insert(tk.END, f"=== BÚSQUEDA GREP: '{patron}' ===\n\n")
+                        self._actualizar_contenido_seguro("", "clear")
+                        self._actualizar_contenido_seguro(f"=== BÚSQUEDA GREP: '{patron}' ===\n\n")
                         
                         if result.stdout:
                             coincidencias = result.stdout.split('\n')
-                            self.text_contenido.insert(tk.END, f"COINCIDENCIAS ENCONTRADAS: {len(coincidencias)-1}\n\n")
-                            self.text_contenido.insert(tk.END, result.stdout)
+                            self._actualizar_contenido_seguro(f"COINCIDENCIAS ENCONTRADAS: {len(coincidencias)-1}\n\n")
+                            self._actualizar_contenido_seguro(result.stdout)
                         else:
-                            self.text_contenido.insert(tk.END, "No se encontraron coincidencias.\n")
+                            self._actualizar_contenido_seguro("No se encontraron coincidencias.\n")
                         
                         self._log_terminal(f"Búsqueda grep '{patron}' en {self.archivo_seleccionado.name if self.archivo_seleccionado else 'archivo'}", "GESTION", "INFO")
                         
                     except Exception as e:
-                        self.text_contenido.insert(tk.END, f"Error en búsqueda: {str(e)}")
+                        self._actualizar_contenido_seguro(f"Error en búsqueda: {str(e)}")
                 
                 thread = threading.Thread(target=buscar)
                 thread.daemon = True
@@ -807,20 +807,20 @@ class VistaGestionDatos(tk.Frame):
                     result = subprocess.run(['sort', '-u', str(self.archivo_seleccionado)], 
                                           capture_output=True, text=True, timeout=15)
                     
-                    self.text_contenido.delete(1.0, tk.END)
-                    self.text_contenido.insert(tk.END, "=== CONTENIDO ORDENADO (SIN DUPLICADOS) ===\n\n")
+                    self._actualizar_contenido_seguro("", "clear")
+                    self._actualizar_contenido_seguro("=== CONTENIDO ORDENADO (SIN DUPLICADOS) ===\n\n")
                     
                     if result.stdout:
                         lineas = result.stdout.split('\n')
-                        self.text_contenido.insert(tk.END, f"LÍNEAS ÚNICAS: {len(lineas)-1}\n\n")
-                        self.text_contenido.insert(tk.END, result.stdout)
+                        self._actualizar_contenido_seguro(f"LÍNEAS ÚNICAS: {len(lineas)-1}\n\n")
+                        self._actualizar_contenido_seguro(result.stdout)
                     else:
-                        self.text_contenido.insert(tk.END, "Archivo vacío o error procesando.\n")
+                        self._actualizar_contenido_seguro("Archivo vacío o error procesando.\n")
                     
                     self._log_terminal(f"Ordenamiento completado para {self.archivo_seleccionado.name if self.archivo_seleccionado else 'archivo'}", "GESTION", "INFO")
                     
                 except Exception as e:
-                    self.text_contenido.insert(tk.END, f"Error ordenando: {str(e)}")
+                    self._actualizar_contenido_seguro(f"Error ordenando: {str(e)}")
             
             thread = threading.Thread(target=ordenar)
             thread.daemon = True
@@ -841,10 +841,10 @@ class VistaGestionDatos(tk.Frame):
             result = subprocess.run(['wc', '-l', '-w', '-c', str(self.archivo_seleccionado)], 
                                   capture_output=True, text=True, timeout=5)
             
-            self.text_contenido.delete(1.0, tk.END)
-            self.text_contenido.insert(tk.END, f"=== ESTADÍSTICAS DE {self.archivo_seleccionado.name if self.archivo_seleccionado else 'archivo'} ===\n\n")
-            self.text_contenido.insert(tk.END, "FORMATO: líneas palabras caracteres archivo\n")
-            self.text_contenido.insert(tk.END, f"{result.stdout}\n")
+            self._actualizar_contenido_seguro("", "clear")
+            self._actualizar_contenido_seguro(f"=== ESTADÍSTICAS DE {self.archivo_seleccionado.name if self.archivo_seleccionado else 'archivo'} ===\n\n")
+            self._actualizar_contenido_seguro("FORMATO: líneas palabras caracteres archivo\n")
+            self._actualizar_contenido_seguro(f"{result.stdout}\n")
             
             # Análisis adicional
             if result.stdout:
@@ -854,14 +854,14 @@ class VistaGestionDatos(tk.Frame):
                     palabras = int(parts[1])
                     caracteres = int(parts[2])
                     
-                    self.text_contenido.insert(tk.END, f"\nDETALLE:\n")
-                    self.text_contenido.insert(tk.END, f"- Líneas: {lineas:,}\n")
-                    self.text_contenido.insert(tk.END, f"- Palabras: {palabras:,}\n")
-                    self.text_contenido.insert(tk.END, f"- Caracteres: {caracteres:,}\n")
+                    self._actualizar_contenido_seguro(f"\nDETALLE:\n")
+                    self._actualizar_contenido_seguro(f"- Líneas: {lineas:,}\n")
+                    self._actualizar_contenido_seguro(f"- Palabras: {palabras:,}\n")
+                    self._actualizar_contenido_seguro(f"- Caracteres: {caracteres:,}\n")
                     
                     if lineas > 0:
-                        self.text_contenido.insert(tk.END, f"- Promedio palabras/línea: {palabras/lineas:.2f}\n")
-                        self.text_contenido.insert(tk.END, f"- Promedio caracteres/línea: {caracteres/lineas:.2f}\n")
+                        self._actualizar_contenido_seguro(f"- Promedio palabras/línea: {palabras/lineas:.2f}\n")
+                        self._actualizar_contenido_seguro(f"- Promedio caracteres/línea: {caracteres/lineas:.2f}\n")
             
             self._log_terminal(f"Conteo completado para {self.archivo_seleccionado.name if self.archivo_seleccionado else 'archivo'}", "GESTION", "INFO")
             
@@ -888,24 +888,24 @@ class VistaGestionDatos(tk.Frame):
                         result2 = subprocess.run(['uniq', '-c'], 
                                                input=result1.stdout, capture_output=True, text=True, timeout=10)
                         
-                        self.text_contenido.delete(1.0, tk.END)
-                        self.text_contenido.insert(tk.END, "=== LÍNEAS ÚNICAS CON FRECUENCIA ===\n\n")
-                        self.text_contenido.insert(tk.END, "FORMATO: frecuencia línea\n\n")
+                        self._actualizar_contenido_seguro("", "clear")
+                        self._actualizar_contenido_seguro("=== LÍNEAS ÚNICAS CON FRECUENCIA ===\n\n")
+                        self._actualizar_contenido_seguro("FORMATO: frecuencia línea\n\n")
                         
                         if result2.stdout:
                             # Ordenar por frecuencia (descendente)
                             result3 = subprocess.run(['sort', '-nr'], 
                                                    input=result2.stdout, capture_output=True, text=True, timeout=10)
-                            self.text_contenido.insert(tk.END, result3.stdout if result3.stdout else result2.stdout)
+                            self._actualizar_contenido_seguro(result3.stdout if result3.stdout else result2.stdout)
                         else:
-                            self.text_contenido.insert(tk.END, "Error procesando líneas únicas.\n")
+                            self._actualizar_contenido_seguro("Error procesando líneas únicas.\n")
                     else:
-                        self.text_contenido.insert(tk.END, "Archivo vacío o error leyendo.\n")
+                        self._actualizar_contenido_seguro("Archivo vacío o error leyendo.\n")
                     
                     self._log_terminal(f"Análisis de líneas únicas para {self.archivo_seleccionado.name if self.archivo_seleccionado else 'archivo'}", "GESTION", "INFO")
                     
                 except Exception as e:
-                    self.text_contenido.insert(tk.END, f"Error procesando: {str(e)}")
+                    self._actualizar_contenido_seguro(f"Error procesando: {str(e)}")
             
             thread = threading.Thread(target=procesar_unicas)
             thread.daemon = True
@@ -1242,6 +1242,31 @@ class VistaGestionDatos(tk.Frame):
     def sincronizar_terminal(self):
         """Función de compatibilidad - ya no necesaria con terminal estándar."""
         pass
+
+    def _actualizar_contenido_seguro(self, texto, modo="append"):
+        """Actualizar text_contenido de forma segura desde threads."""
+        def _update():
+            try:
+                if hasattr(self, 'text_contenido') and self.text_contenido.winfo_exists():
+                    if modo == "clear":
+                        self.text_contenido.delete(1.0, tk.END)
+                    elif modo == "replace":
+                        self.text_contenido.delete(1.0, tk.END)
+                        self.text_contenido.insert(1.0, texto)
+                    elif modo == "append":
+                        self.text_contenido.insert(tk.END, texto)
+                    elif modo == "insert_start":
+                        self.text_contenido.insert(1.0, texto)
+                    self.text_contenido.see(tk.END)
+                    if hasattr(self.text_contenido, 'update'):
+                        self.text_contenido.update()
+            except (tk.TclError, AttributeError):
+                pass  # Widget ya no existe o ha sido destruido
+        
+        try:
+            self.after_idle(_update)
+        except:
+            pass  # Si no se puede programar, ignorar
 
     def _mostrar_ayuda_comandos(self):
         """Mostrar ayuda de comandos disponibles."""

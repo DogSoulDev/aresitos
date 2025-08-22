@@ -644,18 +644,24 @@ class VistaAuditoria(tk.Frame):
         self.thread_auditoria.start()
     
     def _actualizar_texto_auditoria(self, texto):
-        """Actualizar texto de auditoría en el hilo principal."""
-        if self.auditoria_text:
-            self.auditoria_text.config(state=tk.NORMAL)
-            self.auditoria_text.insert(tk.END, texto)
-            self.auditoria_text.see(tk.END)
-            self.auditoria_text.config(state=tk.DISABLED)
+        """Actualizar texto de auditoría en el hilo principal de forma segura."""
+        try:
+            if hasattr(self, 'auditoria_text') and self.auditoria_text and self.auditoria_text.winfo_exists():
+                self.auditoria_text.config(state=tk.NORMAL)
+                self.auditoria_text.insert(tk.END, texto)
+                self.auditoria_text.see(tk.END)
+                self.auditoria_text.config(state=tk.DISABLED)
+        except (tk.TclError, AttributeError):
+            pass  # Widget ya no existe o ha sido destruido
     
     def _habilitar_cancelar(self, habilitar):
-        """Habilitar o deshabilitar botón de cancelar."""
-        estado = "normal" if habilitar else "disabled"
-        if hasattr(self, 'btn_cancelar_auditoria'):
-            self.btn_cancelar_auditoria.config(state=estado)
+        """Habilitar o deshabilitar botón de cancelar de forma segura."""
+        try:
+            estado = "normal" if habilitar else "disabled"
+            if hasattr(self, 'btn_cancelar_auditoria') and self.btn_cancelar_auditoria.winfo_exists():
+                self.btn_cancelar_auditoria.config(state=estado)
+        except (tk.TclError, AttributeError):
+            pass  # Widget ya no existe o ha sido destruido
     
     def _finalizar_auditoria(self):
         """Finalizar proceso de auditoría."""
