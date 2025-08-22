@@ -32,6 +32,11 @@ PURPLE='\033[0;35m'
 CYAN='\033[0;36m'
 NC='\033[0m' # No Color
 
+# Establecer directorio de trabajo del script
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+cd "$SCRIPT_DIR"
+echo -e "${CYAN}[SETUP]${NC} Directorio de trabajo establecido en: $SCRIPT_DIR"
+
 # Función para imprimir con colores
 print_info() {
     echo -e "${BLUE}[INFO]${NC} $1"
@@ -621,17 +626,18 @@ configure_aresitos_permissions() {
     
     # Permisos para directorios de datos
     print_info "Configurando permisos para directorios de datos..."
+    print_info "Directorio actual: $(pwd)"
     
-    # Crear directorios si no existen
-    mkdir -p data/ logs/ configuración/
+    # Crear directorios si no existen (en el directorio del proyecto)
+    mkdir -p "$SCRIPT_DIR/data/" "$SCRIPT_DIR/logs/" "$SCRIPT_DIR/configuración/"
     
     # Configurar permisos
-    chmod -R 755 data/ 2>/dev/null
-    chmod -R 755 logs/ 2>/dev/null
-    chmod -R 755 configuración/ 2>/dev/null
+    chmod -R 755 "$SCRIPT_DIR/data/" 2>/dev/null
+    chmod -R 755 "$SCRIPT_DIR/logs/" 2>/dev/null
+    chmod -R 755 "$SCRIPT_DIR/configuración/" 2>/dev/null
     
-    if [ -d "aresitos/" ]; then
-        chmod -R 755 aresitos/ 2>/dev/null
+    if [ -d "$SCRIPT_DIR/aresitos/" ]; then
+        chmod -R 755 "$SCRIPT_DIR/aresitos/" 2>/dev/null
         print_success "Permisos configurados para directorio aresitos/"
     fi
     

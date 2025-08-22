@@ -23,6 +23,12 @@ chmod +x configurar_kali.sh && sudo ./configurar_kali.sh
 python3 main.py
 ```
 
+> **🔧 NOTA**: Si experimentas problemas con directorios duplicados, ejecuta:
+> ```bash
+> cd Aresitos && sudo ./configurar_kali.sh
+> ```
+> El script ahora establece automáticamente el directorio de trabajo correcto.
+
 ### 🔧 **Método Manual - Control Total**
 ```bash
 # 1. Descargar ARESITOS
