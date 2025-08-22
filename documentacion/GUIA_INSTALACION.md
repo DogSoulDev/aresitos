@@ -628,28 +628,57 @@ if __name__ == "__main__":
 
 ### Errores Comunes
 
-#### 1. Herramientas Faltantes
+#### 1. Problemas con APT (Error de Locks)
+```bash
+# Error típico:
+# Could not get lock /var/lib/dpkg/lock-frontend. It is held by process XXXXX (apt)
+
+# ✅ SOLUCIÓN RECOMENDADA (Método Seguro):
+# 1. Esperar 5-10 minutos (otro proceso puede estar actualizando)
+# 2. Verificar procesos activos:
+sudo ps aux | grep apt
+sudo ps aux | grep dpkg
+
+# 3. Si hay procesos colgados, identificar el PID:
+sudo lsof /var/lib/dpkg/lock-frontend
+sudo lsof /var/lib/dpkg/lock
+
+# 4. Terminar proceso específico (sustituir XXXXX por el PID real):
+sudo kill -9 XXXXX
+
+# ⚠️ MÉTODO DE ÚLTIMO RECURSO (Solo si lo anterior no funciona):
+sudo rm /var/lib/dpkg/lock-frontend
+sudo rm /var/lib/dpkg/lock
+sudo rm /var/cache/apt/archives/lock
+sudo dpkg --configure -a
+sudo apt update
+
+# 5. Reintentar instalación:
+sudo apt install kali-tools-forensics
+```
+
+#### 2. Herramientas Faltantes
 ```bash
 # Error: comando no encontrado
 sudo apt update
 sudo apt install -y [herramienta]
 ```
 
-#### 2. Permisos Insuficientes
+#### 3. Permisos Insuficientes
 ```bash
 # Error: Permission denied
 sudo chown -R $USER:$USER /opt/aresitos
 chmod +x *.sh
 ```
 
-#### 3. Base de Datos ClamAV
+#### 4. Base de Datos ClamAV
 ```bash
 # Error: ClamAV database not found
 sudo freshclam
 sudo systemctl start clamav-daemon
 ```
 
-#### 4. Python Dependencies
+#### 5. Python Dependencies
 ```bash
 # Error: módulo no encontrado
 # ARESITOS usa SOLO stdlib - no instalar pip packages
