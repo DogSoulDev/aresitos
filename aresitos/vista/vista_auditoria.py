@@ -865,9 +865,36 @@ class VistaAuditoria(tk.Frame):
                         if update_result.returncode == 0:
                             self._actualizar_texto_auditoria("✓ Templates nuclei actualizados\n")
                         
-                        # Ejecutar escaneo básico de red local
-                        self._actualizar_texto_auditoria("• Ejecutando escaneo nuclei de red local...\n")
-                        targets = ['127.0.0.1', 'localhost', '192.168.1.1']
+                        # Ejecutar escaneo en localhost y red local detectada automáticamente
+                        self._actualizar_texto_auditoria("• Detectando objetivos para escaneo nuclei...\n")
+                        
+                        # Objetivos por defecto
+                        targets = ['127.0.0.1', 'localhost']
+                        
+                        # Detectar IP local del usuario
+                        try:
+                            # Método 1: Usar hostname -I
+                            ip_result = subprocess.run(['hostname', '-I'], capture_output=True, text=True, timeout=5)
+                            if ip_result.returncode == 0 and ip_result.stdout.strip():
+                                ips_locales = ip_result.stdout.strip().split()
+                                for ip in ips_locales:
+                                    if ip.startswith(('192.168.', '10.', '172.')) and ip not in targets:
+                                        targets.append(ip)
+                                        self._actualizar_texto_auditoria(f"  ✓ IP local detectada: {ip}\n")
+                                        
+                            # Método 2: Usar ip route para gateway
+                            route_result = subprocess.run(['ip', 'route', 'show', 'default'], 
+                                                        capture_output=True, text=True, timeout=5)
+                            if route_result.returncode == 0 and 'via' in route_result.stdout:
+                                gateway = route_result.stdout.split('via')[1].split()[0]
+                                if gateway not in targets:
+                                    targets.append(gateway)
+                                    self._actualizar_texto_auditoria(f"  ✓ Gateway detectado: {gateway}\n")
+                                    
+                        except Exception as e:
+                            self._actualizar_texto_auditoria(f"  ⚠ Error detectando IPs: {str(e)}\n")
+                        
+                        self._actualizar_texto_auditoria(f"• Objetivos finales: {', '.join(targets)}\n")
                         
                         for target in targets:
                             self._actualizar_texto_auditoria(f"  → Escaneando {target}...\n")

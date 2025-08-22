@@ -39,28 +39,35 @@ class ModeloReportes:
         return normalized
     
     def _crear_directorio_reportes(self) -> str:
-        """Crea directorio de reportes de forma segura"""
+        """Crea directorio de reportes dentro del proyecto de forma segura"""
         try:
-            # Usar directorio específico para Ares en HOME del usuario
-            home_dir = os.path.expanduser("~")
-            directorio = os.path.join(home_dir, "ares_reportes")
+            # Usar directorio de reportes dentro del proyecto Aresitos
+            # Obtener directorio base del proyecto
+            proyecto_dir = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+            directorio = os.path.join(proyecto_dir, "reportes")
             
-            # Normalizar y validar el path
+            # Normalizar el path
             directorio = self._normalizar_path(directorio)
             
-            # Verificar que estamos dentro del home del usuario
-            if not directorio.startswith(home_dir):
-                raise ValueError("Directorio fuera del home del usuario")
+            # Verificar que estamos dentro del proyecto
+            if not directorio.startswith(proyecto_dir):
+                raise ValueError("Directorio fuera del proyecto")
             
             if not os.path.exists(directorio):
-                os.makedirs(directorio, mode=0o750)  # Permisos restrictivos
+                os.makedirs(directorio, mode=0o755)  # Permisos normales para el proyecto
                 
             return directorio
         except Exception as e:
             logging.error(f"Error creando directorio de reportes: {str(e)}")
-            # Fallback a directorio temporal
-            import tempfile
-            return tempfile.mkdtemp(prefix="ares_reportes_")
+            # Fallback a directorio temporal dentro del proyecto
+            try:
+                proyecto_dir = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+                temp_dir = os.path.join(proyecto_dir, "reportes_temp")
+                os.makedirs(temp_dir, exist_ok=True)
+                return temp_dir
+            except:
+                import tempfile
+                return tempfile.mkdtemp(prefix="aresitos_reportes_")
     
     def generar_reporte_completo(self, datos_escaneo: Dict, datos_monitoreo: Dict, datos_utilidades: Dict, datos_fim: Optional[Dict] = None, datos_siem: Optional[Dict] = None, datos_cuarentena: Optional[Dict] = None) -> Dict[str, Any]:
         timestamp = datetime.datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
