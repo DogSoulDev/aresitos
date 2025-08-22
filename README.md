@@ -9,7 +9,7 @@
 [![SIEM](https://img.shields.io/badge/SIEM-Integrado-red.svg)](README.md)
 [![FIM](https://img.shields.io/badge/FIM-Real%20Time-purple.svg)](README.md)
 
-**ARESITOS v2.0** es la suite de ciberseguridad más avanzada para profesionales, exclusivamente optimizada para **Kali Linux 2025**. Combina las herramientas más modernas del arsenal de seguridad en una plataforma unificada con capacidades SIEM, FIM en tiempo real, cuarentena inteligente y auditorías profesionales.
+**ARESITOS** es una herramienta de ciberseguridad para proteger a los pentesters, los compis del red team o estudiantes que estan aprendiendo a usar kali linux y les viene bien saber que esta pasando en sus equipos.
 
 ---
 
@@ -109,56 +109,7 @@ El corazón de Aresitos. Una vez configurado todo, esta es tu central de operaci
 
 ---
 
-## 🔧 **CORRECCIONES TÉCNICAS v2.0**
-
-### ✅ **TclError 'invalid command name' - RESUELTO COMPLETAMENTE**
-**Problema identificado y corregido en todas las vistas de la aplicación**
-
-**¿Qué era el problema?**
-- Operaciones directas con widgets Tkinter desde threads secundarios
-- Widgets destruidos antes de que threads terminen de acceder a ellos
-- Error específico: `TclError: invalid command name ".!frame.!frame.!text"`
-
-**✅ SOLUCIÓN IMPLEMENTADA:**
-- **Thread Safety**: Implementación de métodos `_actualizar_[widget]_seguro()` en todas las vistas
-- **Validación robusta**: Uso sistemático de `winfo_exists()` antes de cada operación
-- **Programación segura**: Uso de `after_idle()` para actualizaciones desde threads
-- **Patrón defensivo**: Try/catch con falla silenciosa para widgets destruidos
-
-**📋 ARCHIVOS CORREGIDOS:**
-- ✅ `vista_herramientas_kali.py` - Protecciones completas
-- ✅ `vista_gestion_datos.py` - Método `_actualizar_contenido_seguro()` 
-- ✅ `vista_dashboard.py` - Método `_actualizar_terminal_seguro()`
-- ✅ `vista_escaneo.py` - Protecciones principales implementadas
-- ✅ `vista_siem.py` - Correcciones + eliminación emoticonos
-- ✅ `vista_reportes.py` - Métodos duales para reporte y terminal
-- ✅ `vista_auditoria.py` - Protecciones mejoradas
-- ✅ `vista_fim.py` - Protecciones mejoradas
-- ✅ `vista_monitoreo.py` - Ya implementado correctamente
-
-**🛡️ PATRÓN ESTÁNDAR APLICADO:**
-```python
-def _actualizar_widget_seguro(self, texto, modo="append"):
-    def _update():
-        try:
-            if hasattr(self, 'widget') and self.widget.winfo_exists():
-                # Operaciones seguras aquí
-                pass
-        except (tk.TclError, AttributeError):
-            pass  # Widget destruido - falla silenciosa
-    
-    self.after_idle(_update)  # Thread safety garantizado
-```
-
-**🎯 RESULTADO:**
-- **Estabilidad**: Eliminación completa de crashes por TclError
-- **Robustez**: Manejo elegante de widgets destruidos
-- **Performance**: UI responsiva durante operaciones largas
-- **Escalabilidad**: Patrones reutilizables para futuras funcionalidades
-
----
-
-## 🏗️ **ARQUITECTURA ARESITOS v2.0**
+## 🏗️ **ARQUITECTURA ARESITOS**
 
 ### 🔐 **Sistema de Autenticación Avanzado**
 **Centro de Control de Acceso y Verificación del Sistema**
@@ -196,37 +147,37 @@ El sistema verifica automáticamente que tengas instaladas +25 herramientas crí
 
 #### **Módulos Integrados:**
 
-🎛️ **Dashboard Ejecutivo**
+🎛️ **Dashboard**
 - Monitor de sistema en tiempo real (60s refresh)
 - Métricas de red avanzadas con gráficos
 - Status de servicios críticos
 - Terminal integrado con historial persistent
 
-🔍 **Escáner Profesional** 
+🔍 **Escáner** 
 - Integración nuclei con templates actualizados
 - Escaneo masivo con rustscan + nmap
 - Detección de servicios y versiones
 - Análisis de superficie de ataque completo
 
-🛡️ **SIEM Integrado**
+🛡️ **SIEM**
 - Monitoreo de 50+ puertos críticos en tiempo real
 - Correlación automática de eventos de seguridad
 - Detección de anomalías comportamentales
 - Alertas inteligentes con contexto completo
 
-📁 **FIM (File Integrity Monitoring)**
+📁 **FIM**
 - Vigilancia de 60+ directorios críticos del sistema
 - Detección en tiempo real de modificaciones
 - Checksums SHA256 para integridad absoluta
 - Alertas inmediatas de cambios no autorizados
 
-🔒 **Sistema de Cuarentena Avanzado**
+🔒 **Sistema de Cuarentena**
 - Detección automática de malware conocido
 - Aislamiento seguro preservando evidencia forense
 - Análisis de comportamiento sospechoso
 - Gestión de false positives inteligente
 
-📊 **Generador de Reportes Profesionales**
+📊 **Generador de Reportes**
 - Informes ejecutivos y técnicos
 - Integración completa de todos los módulos
 - Exportación múltiple: JSON, TXT, CSV
@@ -243,64 +194,6 @@ El sistema verifica automáticamente que tengas instaladas +25 herramientas crí
 - Chkrootkit con heurísticas avanzadas
 - Análisis de configuraciones de seguridad
 - Recomendaciones priorizadas por riesgo
-
----
-
-## 🎯 **CASOS DE USO PROFESIONALES**
-
-### 👨‍🎓 **Para Estudiantes de Ciberseguridad**
-- ✅ **Laboratorio completo**: Entorno real con herramientas profesionales
-- ✅ **Aprendizaje guiado**: Interfaces intuitivas con documentación integrada
-- ✅ **Práctica segura**: Sandbox controlado para experimentación
-- ✅ **Progresión natural**: Desde básico hasta técnicas avanzadas de pentesting
-
-### 👨‍💼 **Para Profesionales SOC/Blue Team**
-- ✅ **Monitoreo centralizado**: SIEM integrado con correlación automática
-- ✅ **Respuesta a incidentes**: FIM + Cuarentena para containment rápido
-- ✅ **Reportes ejecutivos**: Métricas claras para management
-- ✅ **Automatización**: Reduce tiempo de análisis manual en 80%
-
-### 🔴 **Para Red Team/Pentesters**
-- ✅ **Reconocimiento avanzado**: Nuclei + Rustscan para cobertura completa
-- ✅ **Superficie de ataque**: Mapeo automático de servicios y vulnerabilidades
-- ✅ **Documentación automática**: Reportes técnicos listos para entrega
-- ✅ **Arsenal unificado**: +25 herramientas en interface coherente
-
-### 🏢 **Para Equipos Corporativos**
-- ✅ **Compliance**: Auditorías automáticas según frameworks (ISO 27001, NIST)
-- ✅ **Gestión de vulnerabilidades**: Identificación y priorización automática
-- ✅ **Monitoreo continuo**: Vigilancia 24/7 de activos críticos
-- ✅ **ROI medible**: Reducción de tiempo de assessment en 70%
-
----
-
-## ⭐ **CARACTERÍSTICAS AVANZADAS v2.0**
-
-### 🛠️ **Arsenal de Herramientas Modernas**
-**Escáner de Vulnerabilidades de Nueva Generación:**
-- 🚀 **Nuclei Engine**: +4000 templates actualizados automáticamente
-- ⚡ **RustScan**: Escaneo de puertos 10x más rápido que nmap tradicional
-- 🌐 **HTTPx**: Sondeo web masivo con detección de tecnologías
-- 🔍 **Feroxbuster**: Directory fuzzing con técnicas anti-WAF
-
-**Herramientas de Análisis Avanzado:**
-- 📊 **LinPEAS**: Escalada de privilegios con heurísticas ML
-- 👁️ **Pspy**: Monitoreo de procesos sin permisos root
-- 🔐 **Lynis**: Auditoría de hardening con 300+ checks
-- 🔍 **Chkrootkit**: Detección de rootkits con signatures actualizadas
-
-### 🔒 **Seguridad y Privacidad**
-- ✅ **Zero Dependencies**: Solo Python nativo, sin librerías externas
-- ✅ **Offline Capability**: Funciona completamente sin internet
-- ✅ **Local Processing**: Todos los datos se procesan localmente
-- ✅ **Audit Trail**: Logging completo de todas las operaciones
-- ✅ **Encryption**: SHA256 para integridad, AES para datos sensibles
-
-### 📋 **Reportes de Nivel Empresarial**
-- 📋 **Executive Summary**: Métricas de alto nivel para C-Level
-- 📊 **Technical Deep-Dive**: Análisis detallado para técnicos
-- 📈 **Trend Analysis**: Evolución de la postura de seguridad
-- 🎯 **Risk Prioritization**: Vulnerabilidades ordenadas por impacto real
 
 ---
 
@@ -348,24 +241,6 @@ ARESITOS v2.0/
 
 ---
 
-## 📚 **GUÍA DE INICIO RÁPIDO**
-
-### 🚀 **Primera Ejecución (5 minutos)**
-1. **Clonar repositorio**: `git clone https://github.com/DogSoulDev/Aresitos.git`
-2. **Entrar al directorio**: `cd Aresitos`
-3. **Configuración automática**: `sudo ./configurar_kali.sh`
-4. **Iniciar aplicación**: `python3 main.py`
-5. **Login**: Usuario por defecto o crear nuevo perfil
-6. **¡Explorar!**: Acceso inmediato a los 8 módulos principales
-
-### 📖 **Flujo de Trabajo Típico**
-1. **Dashboard**: Verificar estado del sistema y alertas activas
-2. **Escáner**: Reconocimiento y mapeo de objetivos
-3. **SIEM**: Monitoreo continuo y detección de anomalías
-4. **FIM**: Verificación de integridad de sistemas críticos
-5. **Auditoría**: Evaluación de postura de seguridad propia
-6. **Reportes**: Documentación profesional de hallazgos
-
 ### 🔧 **Comandos Esenciales**
 ```bash
 # Verificar estado completo del sistema
@@ -396,12 +271,6 @@ python3 main.py --verbose
 - 🐛 **Reportar issues**: GitHub Issues con templates predefinidos
 - 💌 **Email desarrollo**: dogsouldev@protonmail.com
 - 🔗 **LinkedIn**: [DogSoulDev](https://linkedin.com/in/dogsouldev)
-
-### 🎯 **Roadmap v2.1**
-- 🤖 **IA Integration**: ML para detección automática de amenazas
-- 📱 **Mobile Dashboard**: Aplicación móvil para monitoreo remoto
-- ☁️ **Cloud Connector**: Integración con SIEM corporativos
-- 🌐 **API REST**: Endpoints para automatización externa
 
 ---
 
