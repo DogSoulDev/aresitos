@@ -29,24 +29,23 @@ python3 main.py
 > ```
 > El script ahora establece automáticamente el directorio de trabajo correcto.
 
-> **⚠️ HERRAMIENTAS OPCIONALES**: Si necesitas herramientas adicionales:
+> **⚠️ HERRAMIENTAS FORENSES OPCIONALES**: Si necesitas herramientas adicionales:
 > ```bash
-> # IMPORTANTE: Ejecutar cada comando POR SEPARADO
-> # Esperar a que cada uno termine antes del siguiente
+> # MÉTODO RECOMENDADO: Instalar paquete completo de forense
+> sudo apt install kali-tools-forensics
 > 
-> # 1. Actualizar repositorios (ejecutar solo)
-> sudo apt update
+> # O instalar herramientas individuales (ejecutar UNO por vez):
 > 
-> # 2. Volatility (ejecutar cuando termine el anterior)
-> sudo apt install -y volatility3
+> # 1. Wireshark (análisis de tráfico)
+> sudo apt install wireshark
 > 
-> # 3. Wireshark (ejecutar cuando termine el anterior)
-> sudo apt install -y wireshark
+> # 2. Autopsy (forense digital)  
+> sudo apt install autopsy
 > 
-> # 4. Autopsy (ejecutar cuando termine el anterior)
-> sudo apt install -y sleuthkit autopsy
+> # 3. SleuthKit (investigación forense)
+> sudo apt install sleuthkit
 > ```
-> **CRÍTICO**: NO ejecutar todos los comandos de una vez. Uno por uno.
+> **IMPORTANTE**: kali-tools-forensics incluye TODAS las herramientas forenses disponibles
 
 ### 🔧 **Método Manual - Control Total**
 ```bash
