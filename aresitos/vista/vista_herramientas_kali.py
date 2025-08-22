@@ -19,6 +19,7 @@ from typing import Optional, Any
 
 try:
     from aresitos.vista.burp_theme import burp_theme
+    from aresitos.utils.sudo_manager import get_sudo_manager, is_sudo_available
     BURP_THEME_AVAILABLE = True
 except ImportError:
     BURP_THEME_AVAILABLE = False

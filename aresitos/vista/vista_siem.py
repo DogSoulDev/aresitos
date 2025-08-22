@@ -1997,63 +1997,226 @@ class VistaSIEM(tk.Frame):
         threading.Thread(target=ejecutar_ids, daemon=True).start()
     
     def _iniciar_monitoreo_logs_suricata(self, log_dir):
-        """Iniciar monitoreo de logs de Suricata en tiempo real"""
+        """Iniciar monitoreo mejorado de logs de Suricata en tiempo real con alertas claras"""
         def monitorear_logs():
             import time
             import os
+            import json
             
             archivo_eve = os.path.join(log_dir, 'eve.json')
             archivo_fast = os.path.join(log_dir, 'fast.log')
             
+            self.after(0, self._actualizar_texto_alertas, "\n" + "="*70 + "\n")
+            self.after(0, self._actualizar_texto_alertas, "           SISTEMA IDS/IPS ACTIVO - MONITOREO EN TIEMPO REAL\n")
+            self.after(0, self._actualizar_texto_alertas, "="*70 + "\n\n")
+            
             contador = 0
+            alertas_totales = 0
+            alertas_criticas = 0
+            
             while contador < 20:  # Monitorear por 20 ciclos
                 try:
-                    # Verificar archivo eve.json (alertas detalladas)
+                    # HEADER DE CICLO
+                    self.after(0, self._actualizar_texto_alertas, f"[CICLO {contador+1:02d}/20] " + "-"*50 + "\n")
+                    hora_actual = time.strftime('%H:%M:%S')
+                    self.after(0, self._actualizar_texto_alertas, f"Timestamp: {hora_actual}\n")
+                    
+                    alertas_ciclo = 0
+                    
+                    # 1. ANÁLISIS DE EVENTOS DETALLADOS (eve.json)
                     if os.path.exists(archivo_eve):
-                        resultado = subprocess.run(['tail', '-n', '3', archivo_eve], 
+                        self.after(0, self._actualizar_texto_alertas, "\n1. ANÁLISIS DE EVENTOS DETALLADOS:\n")
+                        resultado = subprocess.run(['tail', '-n', '5', archivo_eve], 
                                                  capture_output=True, text=True, timeout=5)
                         if resultado.returncode == 0 and resultado.stdout.strip():
                             lineas = resultado.stdout.strip().split('\n')
-                            self.after(0, self._actualizar_texto_alertas, f" EVE.JSON: {len(lineas)} eventos detectados\n")
+                            eventos_procesados = 0
+                            
                             for linea in lineas:
                                 if '"event_type":' in linea:
-                                    import json
                                     try:
                                         evento = json.loads(linea)
                                         tipo_evento = evento.get('event_type', 'desconocido')
                                         timestamp = evento.get('timestamp', '')[:19]
-                                        self.after(0, self._actualizar_texto_alertas, f"   {timestamp}: {tipo_evento}\n")
-                                    except (subprocess.TimeoutExpired, subprocess.CalledProcessError, FileNotFoundError):
-                                        self.after(0, self._actualizar_texto_alertas, f"   Evento: {linea[:50]}...\n")
+                                        
+                                        # Clasificar severidad según tipo de evento
+                                        if tipo_evento in ['alert']:
+                                            severidad = "CRÍTICA"
+                                            alertas_criticas += 1
+                                            icono = "[!!!]"
+                                        elif tipo_evento in ['anomaly', 'drop']:
+                                            severidad = "ALTA"
+                                            icono = "[!*]"
+                                        elif tipo_evento in ['flow', 'netflow']:
+                                            severidad = "MEDIA"
+                                            icono = "[i]"
+                                        else:
+                                            severidad = "BAJA"
+                                            icono = "[·]"
+                                        
+                                        # Extraer información específica según tipo
+                                        info_adicional = ""
+                                        if tipo_evento == 'alert':
+                                            alert_info = evento.get('alert', {})
+                                            signature = alert_info.get('signature', 'Sin descripción')
+                                            category = alert_info.get('category', 'General')
+                                            severity = alert_info.get('severity', 'N/A')
+                                            info_adicional = f"\n       Descripción: {signature[:60]}...\n       Categoría: {category}\n       Severidad Suricata: {severity}"
+                                            
+                                            # Información de red si está disponible
+                                            src_ip = evento.get('src_ip', '')
+                                            dest_ip = evento.get('dest_ip', '')
+                                            if src_ip and dest_ip:
+                                                info_adicional += f"\n       Flujo: {src_ip} → {dest_ip}"
+                                        
+                                        elif tipo_evento in ['flow', 'netflow']:
+                                            src_ip = evento.get('src_ip', '')
+                                            dest_ip = evento.get('dest_ip', '')
+                                            proto = evento.get('proto', '')
+                                            if src_ip and dest_ip:
+                                                info_adicional = f"\n       Red: {src_ip} → {dest_ip} ({proto})"
+                                        
+                                        self.after(0, self._actualizar_texto_alertas, 
+                                                 f"   {icono} [{severidad}] {timestamp} - {tipo_evento.upper()}{info_adicional}\n")
+                                        alertas_ciclo += 1
+                                        eventos_procesados += 1
+                                        
+                                    except json.JSONDecodeError:
+                                        self.after(0, self._actualizar_texto_alertas, 
+                                                 f"   [?] Evento malformado: {linea[:50]}...\n")
+                            
+                            if eventos_procesados == 0:
+                                self.after(0, self._actualizar_texto_alertas, "   [OK] Sin eventos nuevos en eve.json\n")
+                        else:
+                            self.after(0, self._actualizar_texto_alertas, "   [INFO] Eve.json sin contenido nuevo\n")
+                    else:
+                        self.after(0, self._actualizar_texto_alertas, "   [WARNING] Archivo eve.json no encontrado\n")
                     
-                    # Verificar archivo fast.log (alertas rápidas)
+                    # 2. ANÁLISIS DE ALERTAS RÁPIDAS (fast.log)
                     if os.path.exists(archivo_fast):
-                        resultado = subprocess.run(['tail', '-n', '2', archivo_fast], 
+                        self.after(0, self._actualizar_texto_alertas, "\n2. ALERTAS RÁPIDAS:\n")
+                        resultado = subprocess.run(['tail', '-n', '3', archivo_fast], 
                                                  capture_output=True, text=True, timeout=5)
                         if resultado.returncode == 0 and resultado.stdout.strip():
                             lineas = resultado.stdout.strip().split('\n')
-                            self.after(0, self._actualizar_texto_alertas, f" FAST.LOG: {len(lineas)} alertas\n")
-                            for linea in lineas:
+                            for i, linea in enumerate(lineas, 1):
                                 if linea.strip():
-                                    partes = linea.split('] ')
-                                    if len(partes) > 1:
-                                        alerta = partes[1][:80]
-                                        self.after(0, self._actualizar_texto_alertas, f"   ALERTA: {alerta}...\n")
+                                    # Parsear formato fast.log: timestamp [**] [sid:id] descripción [**] [Classification: class] [Priority: X] {protocol} src -> dst
+                                    try:
+                                        partes = linea.split('[**]')
+                                        if len(partes) >= 3:
+                                            timestamp = partes[0].strip()[:19]
+                                            sid_info = partes[1].strip()
+                                            descripcion = partes[2].strip()
+                                            
+                                            # Extraer prioridad si está disponible
+                                            priority = "N/A"
+                                            if '[Priority:' in linea:
+                                                try:
+                                                    priority_part = linea.split('[Priority:')[1].split(']')[0].strip()
+                                                    priority = priority_part
+                                                except:
+                                                    pass
+                                            
+                                            # Determinar nivel según prioridad
+                                            if priority in ['1', '2']:
+                                                nivel = "CRÍTICA"
+                                                icono = "[!!!]"
+                                            elif priority in ['3', '4']:
+                                                nivel = "ALTA"
+                                                icono = "[!!]"
+                                            else:
+                                                nivel = "MEDIA"
+                                                icono = "[!]"
+                                            
+                                            self.after(0, self._actualizar_texto_alertas, 
+                                                     f"   {icono} [{nivel}] {timestamp}\n")
+                                            self.after(0, self._actualizar_texto_alertas, 
+                                                     f"       SID: {sid_info}\n")
+                                            self.after(0, self._actualizar_texto_alertas, 
+                                                     f"       Evento: {descripcion[:70]}...\n")
+                                            self.after(0, self._actualizar_texto_alertas, 
+                                                     f"       Prioridad: {priority}\n")
+                                            alertas_ciclo += 1
+                                        else:
+                                            self.after(0, self._actualizar_texto_alertas, 
+                                                     f"   [?] Formato no estándar: {linea[:50]}...\n")
+                                    except Exception:
+                                        self.after(0, self._actualizar_texto_alertas, 
+                                                 f"   [ERROR] Error parseando alerta: {linea[:40]}...\n")
+                            
+                            if not lineas or all(not line.strip() for line in lineas):
+                                self.after(0, self._actualizar_texto_alertas, "   [OK] Sin alertas nuevas en fast.log\n")
+                        else:
+                            self.after(0, self._actualizar_texto_alertas, "   [INFO] Fast.log sin contenido nuevo\n")
+                    else:
+                        self.after(0, self._actualizar_texto_alertas, "   [WARNING] Archivo fast.log no encontrado\n")
                     
-                    # Verificar estadísticas
-                    resultado_stats = subprocess.run(['sudo', 'suricata', '--dump-config'], 
-                                                   capture_output=True, text=True, timeout=10)
-                    if resultado_stats.returncode == 0:
-                        self.after(0, self._actualizar_texto_alertas, f" === Monitoreo activo (ciclo {contador+1}/20) ===\n")
+                    # 3. ESTADÍSTICAS DEL CICLO
+                    alertas_totales += alertas_ciclo
+                    self.after(0, self._actualizar_texto_alertas, f"\n3. ESTADÍSTICAS DEL CICLO:\n")
+                    self.after(0, self._actualizar_texto_alertas, f"   • Alertas en este ciclo: {alertas_ciclo}\n")
+                    self.after(0, self._actualizar_texto_alertas, f"   • Total acumulado: {alertas_totales}\n")
+                    self.after(0, self._actualizar_texto_alertas, f"   • Alertas críticas: {alertas_criticas}\n")
+                    
+                    # Nivel de riesgo actual
+                    if alertas_criticas > 5:
+                        nivel_riesgo = "CRÍTICO"
+                        recomendacion = "Revisar inmediatamente"
+                    elif alertas_totales > 10:
+                        nivel_riesgo = "ALTO"
+                        recomendacion = "Monitorear de cerca"
+                    elif alertas_totales > 0:
+                        nivel_riesgo = "MEDIO"
+                        recomendacion = "Vigilancia normal"
+                    else:
+                        nivel_riesgo = "BAJO"
+                        recomendacion = "Sistema estable"
+                    
+                    self.after(0, self._actualizar_texto_alertas, f"   • Nivel de riesgo: {nivel_riesgo}\n")
+                    self.after(0, self._actualizar_texto_alertas, f"   • Recomendación: {recomendacion}\n")
+                    
+                    # 4. VERIFICACIÓN DE ESTADO DEL PROCESO
+                    try:
+                        resultado_stats = subprocess.run(['pgrep', 'suricata'], 
+                                                       capture_output=True, text=True, timeout=5)
+                        if resultado_stats.returncode == 0:
+                            pids = resultado_stats.stdout.strip().split('\n')
+                            self.after(0, self._actualizar_texto_alertas, f"   • Procesos Suricata activos: {len(pids)}\n")
+                        else:
+                            self.after(0, self._actualizar_texto_alertas, "   [WARNING] Suricata no parece estar ejecutándose\n")
+                    except:
+                        self.after(0, self._actualizar_texto_alertas, "   [ERROR] No se pudo verificar estado de Suricata\n")
+                    
+                    self.after(0, self._actualizar_texto_alertas, "\n")
                     
                     contador += 1
+                    if contador < 20:
+                        self.after(0, self._actualizar_texto_alertas, f"Esperando 15 segundos para el siguiente ciclo...\n\n")
                     time.sleep(15)  # Verificar cada 15 segundos
                     
                 except Exception as e:
-                    self.after(0, self._actualizar_texto_alertas, f" ERROR monitoreo: {str(e)}\n")
+                    self.after(0, self._actualizar_texto_alertas, f"[ERROR] Error en monitoreo: {str(e)}\n")
                     time.sleep(5)
             
-            self.after(0, self._actualizar_texto_alertas, " Monitoreo de logs Suricata completado\n")
+            # RESUMEN FINAL
+            self.after(0, self._actualizar_texto_alertas, "="*70 + "\n")
+            self.after(0, self._actualizar_texto_alertas, "                    RESUMEN DEL MONITOREO COMPLETADO\n")
+            self.after(0, self._actualizar_texto_alertas, "="*70 + "\n")
+            self.after(0, self._actualizar_texto_alertas, f"• Duración del monitoreo: 20 ciclos (5 minutos)\n")
+            self.after(0, self._actualizar_texto_alertas, f"• Total de alertas detectadas: {alertas_totales}\n")
+            self.after(0, self._actualizar_texto_alertas, f"• Alertas críticas: {alertas_criticas}\n")
+            
+            if alertas_criticas > 0:
+                self.after(0, self._actualizar_texto_alertas, "\nACCIONES RECOMENDADAS:\n")
+                self.after(0, self._actualizar_texto_alertas, "• Revisar logs detallados en /var/log/suricata/\n")
+                self.after(0, self._actualizar_texto_alertas, "• Analizar tráfico sospechoso\n")
+                self.after(0, self._actualizar_texto_alertas, "• Considerar implementar contramedidas\n")
+            else:
+                self.after(0, self._actualizar_texto_alertas, "\nSISTEMA SEGURO: No se detectaron amenazas críticas\n")
+            
+            self.after(0, self._actualizar_texto_alertas, "\nEl monitoreo en tiempo real ha finalizado.\n")
+            self.after(0, self._actualizar_texto_alertas, "Para continuar monitoreando, reactive el IDS.\n")
         
         threading.Thread(target=monitorear_logs, daemon=True).start()
     

@@ -29,6 +29,7 @@ from typing import Optional, Dict, List
 try:
     from aresitos.vista.burp_theme import burp_theme
     from aresitos.vista.vista_herramientas_kali import VistaHerramientasKali
+    from aresitos.utils.sudo_manager import SudoManager
     BURP_THEME_AVAILABLE = True
 except ImportError:
     BURP_THEME_AVAILABLE = False
@@ -49,10 +50,11 @@ class RateLimiter:
         with self.lock:
             ahora = time.time()
             
+            # Limpiar intentos antiguos
             if identificador not in self.intentos:
                 self.intentos[identificador] = []
             
-            # Limpiar intentos antiguos
+            # Filtrar intentos dentro de la ventana de tiempo
             self.intentos[identificador] = [
                 timestamp for timestamp in self.intentos[identificador]
                 if ahora - timestamp < self.ventana_tiempo
@@ -66,6 +68,8 @@ class RateLimiter:
             if identificador not in self.intentos:
                 self.intentos[identificador] = []
             self.intentos[identificador].append(time.time())
+
+# Clase global para mantener estado de sudo está ahora en utils/sudo_manager.py
 
 # Utilidades de seguridad
 class SeguridadUtils:
@@ -296,6 +300,9 @@ class LoginAresitos:
         # Inicializar rate limiter
         self.rate_limiter = RateLimiter(max_intentos=3, ventana_tiempo=300)
         self.utils_seguridad = SeguridadUtils()
+        
+        # CRÍTICO: Inicializar SudoManager global
+        self.sudo_manager = SudoManager()
         
         self.root = tk.Tk()
         self.root.title("ARESITOS - Autenticacion Segura")
@@ -810,11 +817,14 @@ class LoginAresitos:
                 self.password_correcta = True
                 self.escribir_log("Autenticacion exitosa - Permisos de root confirmados")
                 
+                # CRÍTICO: Configurar SudoManager para mantener sudo en todas las ventanas
+                sudo_manager = SudoManager()
+                sudo_manager.set_sudo_authenticated(password)
+                
                 # Configurar permisos completos para ARESITOS
                 self.configurar_permisos_aresitos(password)
                 
-                # Limpiar contraseña de memoria
-                self.utils_seguridad.limpiar_memoria_string(password)
+                # Limpiar contraseña de memoria (excepto en SudoManager que la necesita)
                 self.password_entry.delete(0, tk.END)
                 
                 # Deshabilitar campos de login
@@ -829,6 +839,8 @@ class LoginAresitos:
                 # Si ya completo verificación, habilitar continuar
                 if self.verificacion_completada:
                     self.continue_btn.config(state=tk.NORMAL)
+                    
+                self.escribir_log("SUDO configurado para mantener permisos en todas las ventanas")
             else:
                 self.rate_limiter.registrar_intento(self.session_id)
                 self.escribir_log("Contraseña incorrecta")
