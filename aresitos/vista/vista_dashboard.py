@@ -2243,6 +2243,23 @@ journalctl -u ssh                # Logs de servicio específico
             ventana_notif.geometry("400x100")
             ventana_notif.resizable(False, False)
             
+            # Configurar icono de la ventana de notificación
+            try:
+                import os
+                icono_path = os.path.join(os.path.dirname(__file__), '..', 'recursos', 'Aresitos.png')
+                if os.path.exists(icono_path):
+                    try:
+                        # Para PNG necesitamos PhotoImage
+                        icono_notif = tk.PhotoImage(file=icono_path)
+                        ventana_notif.iconphoto(True, icono_notif)
+                    except tk.TclError:
+                        # Si falla, intentar con el .ico si existe
+                        icono_ico = os.path.join(os.path.dirname(__file__), '..', 'recursos', 'Aresitos.ico')
+                        if os.path.exists(icono_ico):
+                            ventana_notif.iconbitmap(icono_ico)
+            except Exception:
+                pass  # Continuar sin icono si hay problemas
+            
             # Configurar colores según tipo
             colores = {
                 "info": {"bg": "#d4edda", "fg": "#155724"},

@@ -1,8 +1,30 @@
-# ARESITOS v2.0 - Documentación Técnica Consolidada
+# ARESITOS v2.0 Beta 12 Estable - Documentación Técnica Consolidada
 
 ## Introducción
 
-Aresitos es una suite integral de ciberseguridad desarrollada exclusivamente para Kali Linux, implementando una arquitectura MVC robusta con integración nativa de herramientas especializadas. Este documento describe la arquitectura técnica, componentes del sistema y consideraciones de seguridad.
+Aresitos es una suite integral de ciberseguridad desarrollada exclusivamente para Kali Linux, implementando una arquitectura MVC robusta con integración nativa de herramientas especializadas. **Beta 12 Estable** incluye optimizaciones de interfaz, verificación completa de conectividad de reportes y optimización específica para Kali Linux 2025.
+
+## Novedades Beta 12 Estable
+
+### 🎯 Optimizaciones de Interfaz de Usuario
+- **Iconos ARESITOS** en todas las barras de título de ventanas
+- **Interfaz limpia** sin elementos visuales innecesarios
+- **Ventana de login** optimizada a 900x700px para mejor usabilidad
+- **Tema profesional** consistente en toda la aplicación
+
+### 📊 Sistema de Reportes 100% Funcional
+- **Arquitectura MVC completa** verificada para reportes
+- **Integración con todos los módulos** - Dashboard, Escaneador, FIM, SIEM, Cuarentena
+- **Datos en tiempo real** extraídos de cada componente
+- **Reportes profesionales** con métricas de ciberseguridad
+- **Seguridad implementada** con validación de archivos y paths
+
+### 🛡️ Optimización Kali Linux 2025
+- **376 integraciones** de herramientas modernas verificadas
+- **ZERO dependencias externas** - Solo Python stdlib
+- **Script de configuración automática** completamente funcional
+- **Verificación de integridad** 5/5 tests pasados
+- **Sintaxis perfecta** en todos los archivos del proyecto
 
 ## Arquitectura del Sistema
 

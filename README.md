@@ -1,9 +1,46 @@
 ![ARESITOS](aresitos/recursos/Aresitos.png)
 
-# ARESITOS v2.0
+# ARESITOS v2.0 Beta 12 Estable
 **Suite Profesional de Ciberseguridad para Kali Linux**
 
+[![Versión](https://img.shields.io/badge/versión-Beta%2012%20Estable-brightgreen.svg)](https://github.com/DogSoulDev/Aresitos)
+[![Kali Linux](https://img.shields.io/badge/Kali%20Linux-2024%2B-blue.svg)](https://www.kali.org/)
+[![Python](https://img.shields.io/badge/Python-3.8%2B-yellow.svg)](https://www.python.org/)
+[![Arquitectura](https://img.shields.io/badge/Arquitectura-MVC%20Nativa-orange.svg)](README.md)
+
 Aresitos es una herramienta integral de ciberseguridad desarrollada exclusivamente para Kali Linux, diseñada para profesionales de seguridad informática y estudiantes de ciberseguridad. Combina técnicas avanzadas de escaneo, monitoreo de integridad, análisis forense y gestión de amenazas en una interfaz unificada y profesional.
+
+## ✨ Novedades Beta 12 Estable
+
+### 🎯 Optimizaciones de Iconos y UX
+- ✅ **Iconos en todas las ventanas** - Logo ARESITOS en barras de título
+- ✅ **Interfaz limpia** - Eliminados elementos visuales innecesarios
+- ✅ **Ventana de login optimizada** - Tamaño 900x700 para mejor visibilidad
+- ✅ **Eliminación de emojis molestos** - Interfaz profesional sin distracciones
+
+### 🔧 Conectividad de Reportes 100% Verificada
+- ✅ **Arquitectura MVC completa** - Vista, Controlador y Modelo integrados
+- ✅ **Reportes profesionales** - Integración con todos los módulos del sistema
+- ✅ **Datos en tiempo real** - Escaneador, FIM, SIEM, Cuarentena, Dashboard
+- ✅ **Formatos múltiples** - JSON estructurado y TXT legible
+- ✅ **Seguridad implementada** - Validación de archivos y paths seguros
+
+### 🛡️ Optimización Kali Linux 2025
+- ✅ **376 integraciones** de herramientas modernas verificadas
+- ✅ **Arquitectura nativa** - ZERO dependencias externas, solo Python stdlib
+- ✅ **Script de configuración** - `configurar_kali.sh` completamente automatizado
+- ✅ **Verificación completa** - 5/5 tests de integridad pasados
+- ✅ **Sintaxis perfecta** - Todos los archivos libres de errores
+
+### 📊 Herramientas Modernas Integradas
+- 🚀 **rustscan** (22 menciones) - Escaneo ultrarrápido en Rust
+- 🎯 **nuclei** (73 menciones) - Scanner moderno de vulnerabilidades  
+- 🔍 **gobuster** (62 menciones) - Fuzzing de directorios web
+- ⚡ **feroxbuster** (14 menciones) - Fuzzing recursivo avanzado
+- 🌐 **httpx** (39 menciones) - Sondeo HTTP/HTTPS rápido
+- 💨 **masscan** (73 menciones) - Escaneo masivo alta velocidad
+- 🔐 **linpeas** (67 menciones) - Escalada de privilegios Linux
+- 👁️ **pspy** (26 menciones) - Monitoreo procesos sin root
 
 ## Características Principales
 

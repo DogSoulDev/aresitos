@@ -31,24 +31,6 @@ class VistaPrincipal(tk.Frame):
         # Configurar logging
         self.logger = logging.getLogger(__name__)
         
-        # Cargar icono de ARESITOS
-        self.icono_aresitos = None
-        try:
-            # Buscar el archivo de icono PNG
-            icono_path = os.path.join(os.path.dirname(__file__), '..', 'recursos', 'Aresitos.png')
-            if os.path.exists(icono_path):
-                try:
-                    # Cargar imagen PNG para usar en la interfaz
-                    self.icono_aresitos = tk.PhotoImage(file=icono_path)
-                    self.icono_text = ""
-                except tk.TclError:
-                    self.icono_text = "🔰"
-            else:
-                self.icono_text = "🔰"
-        except Exception as e:
-            self.logger.warning(f"No se pudo cargar el icono: {e}")
-            self.icono_text = "🔰"
-        
         # Solo aplicar tema si está disponible
         if BURP_THEME_AVAILABLE:
             self.theme = burp_theme
@@ -181,25 +163,6 @@ class VistaPrincipal(tk.Frame):
         # Logo y título principal con icono
         titulo_main_frame = tk.Frame(titulo_frame, bg=self.theme.get_color('bg_secondary') if self.theme else '#3c3c3c')
         titulo_main_frame.pack(side="left", padx=15, pady=5)
-        
-        # Icono ARESITOS
-        if self.theme:
-            icono_label = tk.Label(
-                titulo_main_frame,
-                text=self.icono_text,
-                font=("Arial", 20, "bold"),
-                fg=self.theme.get_color('fg_accent'),
-                bg=self.theme.get_color('bg_secondary')
-            )
-        else:
-            icono_label = tk.Label(
-                titulo_main_frame,
-                text=self.icono_text,
-                font=("Arial", 20, "bold"),
-                fg='#ff6633',
-                bg='#3c3c3c'
-            )
-        icono_label.pack(side="left", padx=(0, 8))
         
         # Título principal
         if self.theme:

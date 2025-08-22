@@ -299,7 +299,7 @@ class LoginAresitos:
         
         self.root = tk.Tk()
         self.root.title("ARESITOS - Autenticacion Segura")
-        self.root.geometry("800x600")
+        self.root.geometry("900x700")
         
         # Configurar icono de la ventana
         try:
@@ -370,9 +370,9 @@ class LoginAresitos:
     def centrar_ventana(self):
         """Centrar la ventana en la pantalla"""
         self.root.update_idletasks()
-        x = (self.root.winfo_screenwidth() // 2) - (800 // 2)
-        y = (self.root.winfo_screenheight() // 2) - (600 // 2)
-        self.root.geometry(f"800x600+{x}+{y}")
+        x = (self.root.winfo_screenwidth() // 2) - (900 // 2)
+        y = (self.root.winfo_screenheight() // 2) - (700 // 2)
+        self.root.geometry(f"900x700+{x}+{y}")
     
     def crear_interfaz(self):
         """Crear la interfaz grafica completa con tema Burp Suite"""
@@ -380,22 +380,6 @@ class LoginAresitos:
         # Frame principal
         main_frame = tk.Frame(self.root, bg=self.bg_primary)
         main_frame.pack(fill=tk.BOTH, expand=True, padx=20, pady=20)
-        
-        # Logo de Aresitos
-        try:
-            logo_path = os.path.join(os.path.dirname(__file__), '..', 'recursos', 'Aresitos.png')
-            if os.path.exists(logo_path):
-                self.logo_img = tk.PhotoImage(file=logo_path)
-                # Redimensionar imagen si es necesario (tkinter básico)
-                logo_label = tk.Label(
-                    main_frame,
-                    image=self.logo_img,
-                    bg=self.bg_primary
-                )
-                logo_label.pack(pady=(0, 10))
-        except Exception:
-            # Si no se puede cargar la imagen, continuar sin logo
-            pass
         
         # Titulo principal
         title_label = tk.Label(
@@ -405,7 +389,7 @@ class LoginAresitos:
             fg=self.accent_orange,
             bg=self.bg_primary
         )
-        title_label.pack(pady=(0, 10))
+        title_label.pack(pady=(20, 10))
         
         subtitle_label = tk.Label(
             main_frame,
@@ -995,6 +979,22 @@ class LoginAresitos:
             ventana_herramientas.title("ARESITOS - Configuración de Herramientas Kali")
             ventana_herramientas.geometry("1000x700")
             ventana_herramientas.configure(bg='#2b2b2b')
+            
+            # Configurar icono de la ventana de herramientas
+            try:
+                icono_path = os.path.join(os.path.dirname(__file__), '..', 'recursos', 'Aresitos.png')
+                if os.path.exists(icono_path):
+                    try:
+                        # Para PNG necesitamos PhotoImage
+                        icono_herramientas = tk.PhotoImage(file=icono_path)
+                        ventana_herramientas.iconphoto(True, icono_herramientas)
+                    except tk.TclError:
+                        # Si falla, intentar con el .ico si existe
+                        icono_ico = os.path.join(os.path.dirname(__file__), '..', 'recursos', 'Aresitos.ico')
+                        if os.path.exists(icono_ico):
+                            ventana_herramientas.iconbitmap(icono_ico)
+            except Exception:
+                pass  # Continuar sin icono si hay problemas
             
             # Centrar ventana de herramientas
             ventana_herramientas.update_idletasks()
