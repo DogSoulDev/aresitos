@@ -396,7 +396,7 @@ class ControladorAuditoria:
         
         return resultado
     
-    def ejecutar_auditoria_completa(self) -> Dict[str, Any]:
+    def ejecutar_auditoria_completa_legacy(self) -> Dict[str, Any]:
         """
         Ejecuta una auditoría completa del sistema.
         
@@ -568,6 +568,65 @@ class ControladorAuditoria:
             resultado['error'] = str(e)
         
         return resultado
+    
+    def ejecutar_auditoria_completa(self, tipo: str = "completa") -> Dict[str, Any]:
+        """
+        Ejecuta auditoría específica según el tipo solicitado.
+        
+        Args:
+            tipo: Tipo de auditoría ("lynis", "rootkits", "permisos", "servicios", "completa")
+            
+        Returns:
+            Diccionario con resultados de auditoría
+        """
+        resultado = {
+            'timestamp_inicio': datetime.now().isoformat(),
+            'timestamp_fin': None,
+            'exito': False,
+            'tipo_auditoria': tipo,
+            'salida': '',
+            'error': None
+        }
+        
+        try:
+            if tipo.lower() == "lynis":
+                # Ejecutar solo auditoría Lynis
+                resultado_lynis = self.ejecutar_auditoria_lynis()
+                resultado.update(resultado_lynis)
+                resultado['salida'] = resultado_lynis.get('resultado_texto', '')
+                
+            elif tipo.lower() == "rootkits":
+                # Ejecutar solo detección de rootkits
+                resultado_rootkits = self.ejecutar_deteccion_rootkits()
+                resultado.update(resultado_rootkits)
+                resultado['salida'] = f"Rootkits detectados: {len(resultado_rootkits.get('rootkits_detectados', []))}"
+                
+            elif tipo.lower() == "permisos":
+                # Ejecutar solo verificación de permisos
+                resultado_permisos = self.verificar_permisos_criticos()
+                resultado.update(resultado_permisos)
+                resultado['salida'] = f"Problemas de permisos: {len(resultado_permisos.get('problemas_permisos', []))}"
+                
+            elif tipo.lower() == "servicios":
+                # Ejecutar solo análisis de servicios
+                resultado_servicios = self.analizar_servicios_sistema()
+                resultado.update(resultado_servicios)
+                resultado['salida'] = f"Servicios analizados: {len(resultado_servicios.get('servicios_activos', []))}"
+                
+            else:
+                # Auditoría completa (comportamiento original)
+                return self.ejecutar_auditoria_completa_legacy()
+                
+            resultado['timestamp_fin'] = datetime.now().isoformat()
+            resultado['exito'] = True
+            
+        except Exception as e:
+            resultado['error'] = str(e)
+            resultado['timestamp_fin'] = datetime.now().isoformat()
+            resultado['exito'] = False
+        
+        return resultado
+    
 
 # RESUMEN TÉCNICO: Controlador de auditorías de seguridad para Kali Linux. Coordina 
 # análisis de sistema con lynis, detección de rootkits, verificación de permisos y 

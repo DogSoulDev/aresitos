@@ -202,6 +202,50 @@ class DetenerProcesos:
         
         threading.Thread(target=ejecutar_cancelacion, daemon=True).start()
     
+    def cancelar_auditoria(self, callback_actualizacion: Callable, callback_habilitar: Callable):
+        """Cancelar procesos de auditoría de manera robusta."""
+        def ejecutar_cancelacion():
+            try:
+                callback_actualizacion("=== CANCELANDO AUDITORÍA ===\n")
+                
+                # Procesos de auditoría específicos
+                procesos_auditoria = [
+                    'lynis', 'rkhunter', 'chkrootkit', 'nuclei', 'httpx',
+                    'linpeas', 'pspy', 'clamav', 'clamscan'
+                ]
+                
+                procesos_terminados = self._terminar_procesos_por_nombre(
+                    procesos_auditoria, callback_actualizacion, "AUDITORIA"
+                )
+                
+                # Terminar procesos Python relacionados con auditoría
+                procesos_terminados += self._terminar_procesos_python(
+                    ['python.*audit', 'python.*lynis'], callback_actualizacion
+                )
+                
+                # Limpiar archivos temporales de auditoría
+                archivos_temp = [
+                    '/tmp/lynis.log',
+                    '/tmp/rkhunter.log',
+                    '/tmp/nuclei_output.txt',
+                    '/tmp/auditoria_temp.log'
+                ]
+                self._limpiar_archivos_temporales(archivos_temp, callback_actualizacion)
+                
+                if procesos_terminados > 0:
+                    callback_actualizacion(f"✓ COMPLETADO: {procesos_terminados} procesos de auditoría cancelados\n")
+                else:
+                    callback_actualizacion("• INFO: No se encontraron procesos de auditoría activos\n")
+                
+                callback_actualizacion("=== AUDITORÍA CANCELADA COMPLETAMENTE ===\n\n")
+                callback_habilitar()
+                
+            except Exception as e:
+                callback_actualizacion(f"ERROR durante cancelación de auditoría: {str(e)}\n")
+                callback_habilitar()
+        
+        threading.Thread(target=ejecutar_cancelacion, daemon=True).start()
+    
     def _terminar_procesos_por_nombre(self, procesos: List[str], 
                                     callback_actualizacion: Callable, 
                                     tipo: str) -> int:

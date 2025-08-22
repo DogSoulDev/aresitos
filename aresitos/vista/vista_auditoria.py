@@ -234,18 +234,8 @@ class VistaAuditoria(tk.Frame):
             self.log_to_terminal(f"ERROR abriendo logs Auditoría: {e}")
     
     def log_to_terminal(self, mensaje):
-        """Registrar mensaje en el terminal con formato estándar."""
-        try:
-            import datetime
-            timestamp = datetime.datetime.now().strftime("%H:%M:%S")
-            mensaje_completo = f"[{timestamp}] {mensaje}\n"
-            
-            # Log al terminal integrado estándar
-            if hasattr(self, 'terminal_output'):
-                self.terminal_output.insert(tk.END, mensaje_completo)
-                self.terminal_output.see(tk.END)
-        except Exception as e:
-            print(f"Error en log_to_terminal: {e}")
+        """Registrar mensaje en el terminal usando función estándar."""
+        self._log_terminal(mensaje, "AUDITORIA", "INFO")
     
     def sincronizar_terminal(self):
         """Función de compatibilidad - ya no necesaria con terminal estándar."""
@@ -449,10 +439,29 @@ class VistaAuditoria(tk.Frame):
         self._actualizar_texto_auditoria("\n=== Auditoría finalizada ===\n\n")
     
     def cancelar_auditoria(self):
-        """Cancelar la auditoría en curso."""
+        """Cancelar auditoría usando sistema unificado."""
         if self.proceso_auditoria_activo:
             self.proceso_auditoria_activo = False
-            self._actualizar_texto_auditoria("\n Cancelando auditoría...\n")
+            self._actualizar_texto_auditoria("\n🛑 Cancelando auditoría...\n")
+            
+            # Importar sistema unificado para detener procesos de auditoría
+            try:
+                from ..utils.detener_procesos import detener_procesos
+                
+                # Callbacks para la vista
+                def callback_actualizacion(mensaje):
+                    self._actualizar_texto_auditoria(mensaje)
+                
+                def callback_habilitar():
+                    self._finalizar_auditoria()
+                    self._log_terminal("Auditoría cancelada completamente", "AUDITORIA", "INFO")
+                
+                # Usar sistema unificado
+                detener_procesos.cancelar_auditoria(callback_actualizacion, callback_habilitar)
+                    
+            except Exception as e:
+                self._actualizar_texto_auditoria(f"ERROR cancelando auditoría: {e}\n")
+                self._finalizar_auditoria()
     
     def detectar_rootkits(self):
         """Detectar rootkits usando herramientas nativas de Linux y Kali."""

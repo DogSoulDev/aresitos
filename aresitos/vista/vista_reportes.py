@@ -242,17 +242,24 @@ class VistaReportes(tk.Frame):
                 
                 self.log_to_terminal("DATOS Recopilando datos del sistema...")
                 
-                incluir_dashboard = {} if self.incluir_dashboard.get() else None
-                incluir_escaneo = {} if self.incluir_escaneo.get() else None
-                incluir_monitoreo = {} if self.incluir_monitoreo.get() else None
-                incluir_fim = {} if self.incluir_fim.get() else None
-                incluir_siem = {} if self.incluir_siem.get() else None
-                incluir_cuarentena = {} if self.incluir_cuarentena.get() else None
+                # Obtener datos reales de cada módulo
+                datos_dashboard = self._obtener_datos_dashboard() if self.incluir_dashboard.get() else None
+                datos_escaneo = self._obtener_datos_escaneo() if self.incluir_escaneo.get() else None  
+                datos_monitoreo = self._obtener_datos_monitoreo() if self.incluir_monitoreo.get() else None
+                datos_fim = self._obtener_datos_fim() if self.incluir_fim.get() else None
+                datos_siem = self._obtener_datos_siem() if self.incluir_siem.get() else None
+                datos_cuarentena = self._obtener_datos_cuarentena() if self.incluir_cuarentena.get() else None
                 
                 self.log_to_terminal("REPORTE Generando reporte con módulos seleccionados...")
                 
+                # Llamar con parámetros correctos
                 self.reporte_actual = self.controlador.generar_reporte_completo(
-                    incluir_dashboard, incluir_escaneo, incluir_monitoreo, incluir_fim, incluir_siem, incluir_cuarentena
+                    datos_escaneo=datos_escaneo,
+                    datos_monitoreo=datos_monitoreo, 
+                    datos_utilidades=datos_dashboard,  # Dashboard como utilidades
+                    datos_fim=datos_fim,
+                    datos_siem=datos_siem,
+                    datos_cuarentena=datos_cuarentena
                 )
                 
                 if self.reporte_actual:
@@ -792,6 +799,118 @@ class VistaReportes(tk.Frame):
         except Exception as e:
             print(f"Error limpiando terminal Reportes: {e}")
     
+    def _obtener_datos_dashboard(self):
+        """Obtener datos del módulo Dashboard."""
+        try:
+            # Acceder a la vista principal para obtener datos del dashboard
+            if hasattr(self.vista_principal, 'notebook') and hasattr(self.vista_principal.notebook, 'tab'):
+                # Buscar la pestaña del dashboard
+                for i, (nombre, vista) in enumerate(self.vista_principal.vistas.items()):
+                    if 'dashboard' in nombre.lower():
+                        if hasattr(vista, 'obtener_datos_para_reporte'):
+                            return vista.obtener_datos_para_reporte()
+            
+            # Datos básicos por defecto
+            return {
+                'timestamp': datetime.datetime.now().isoformat(),
+                'modulo': 'Dashboard',
+                'estado': 'datos_limitados',
+                'info': 'Datos básicos del sistema'
+            }
+        except Exception as e:
+            return {'error': f'Error obteniendo datos dashboard: {str(e)}'}
+    
+    def _obtener_datos_escaneo(self):
+        """Obtener datos del módulo Escaneador."""
+        try:
+            # Similar al dashboard, buscar la vista de escaneo
+            if hasattr(self.vista_principal, 'vistas'):
+                for nombre, vista in self.vista_principal.vistas.items():
+                    if 'escaneo' in nombre.lower():
+                        if hasattr(vista, 'obtener_datos_para_reporte'):
+                            return vista.obtener_datos_para_reporte()
+            
+            return {
+                'timestamp': datetime.datetime.now().isoformat(),
+                'modulo': 'Escaneador',
+                'estado': 'datos_limitados',
+                'info': 'Resultados de escaneos recientes'
+            }
+        except Exception as e:
+            return {'error': f'Error obteniendo datos escaneo: {str(e)}'}
+    
+    def _obtener_datos_monitoreo(self):
+        """Obtener datos del módulo Monitoreo."""
+        try:
+            if hasattr(self.vista_principal, 'vistas'):
+                for nombre, vista in self.vista_principal.vistas.items():
+                    if 'monitoreo' in nombre.lower():
+                        if hasattr(vista, 'obtener_datos_para_reporte'):
+                            return vista.obtener_datos_para_reporte()
+            
+            return {
+                'timestamp': datetime.datetime.now().isoformat(),
+                'modulo': 'Monitoreo',
+                'estado': 'datos_limitados',
+                'info': 'Estado del sistema y procesos'
+            }
+        except Exception as e:
+            return {'error': f'Error obteniendo datos monitoreo: {str(e)}'}
+    
+    def _obtener_datos_fim(self):
+        """Obtener datos del módulo FIM."""
+        try:
+            if hasattr(self.vista_principal, 'vistas'):
+                for nombre, vista in self.vista_principal.vistas.items():
+                    if 'fim' in nombre.lower():
+                        if hasattr(vista, 'obtener_datos_para_reporte'):
+                            return vista.obtener_datos_para_reporte()
+            
+            return {
+                'timestamp': datetime.datetime.now().isoformat(),
+                'modulo': 'FIM',
+                'estado': 'datos_limitados',
+                'info': 'Monitoreo de integridad de archivos'
+            }
+        except Exception as e:
+            return {'error': f'Error obteniendo datos FIM: {str(e)}'}
+    
+    def _obtener_datos_siem(self):
+        """Obtener datos del módulo SIEM."""
+        try:
+            if hasattr(self.vista_principal, 'vistas'):
+                for nombre, vista in self.vista_principal.vistas.items():
+                    if 'siem' in nombre.lower():
+                        if hasattr(vista, 'obtener_datos_para_reporte'):
+                            return vista.obtener_datos_para_reporte()
+            
+            return {
+                'timestamp': datetime.datetime.now().isoformat(),
+                'modulo': 'SIEM',
+                'estado': 'datos_limitados',
+                'info': 'Eventos de seguridad y análisis'
+            }
+        except Exception as e:
+            return {'error': f'Error obteniendo datos SIEM: {str(e)}'}
+    
+    def _obtener_datos_cuarentena(self):
+        """Obtener datos del módulo Cuarentena."""
+        try:
+            if hasattr(self.vista_principal, 'vistas'):
+                for nombre, vista in self.vista_principal.vistas.items():
+                    if 'cuarentena' in nombre.lower():
+                        if hasattr(vista, 'obtener_datos_para_reporte'):
+                            return vista.obtener_datos_para_reporte()
+            
+            return {
+                'timestamp': datetime.datetime.now().isoformat(),
+                'modulo': 'Cuarentena',
+                'estado': 'datos_limitados',
+                'info': 'Archivos en cuarentena y análisis'
+            }
+        except Exception as e:
+            return {'error': f'Error obteniendo datos cuarentena: {str(e)}'}
+    
     def abrir_logs_reportes(self):
         """Abrir carpeta de logs Reportes."""
         try:
@@ -811,18 +930,8 @@ class VistaReportes(tk.Frame):
             self.log_to_terminal(f"ERROR abriendo logs Reportes: {e}")
     
     def log_to_terminal(self, mensaje):
-        """Registrar mensaje en el terminal con formato estándar."""
-        try:
-            import datetime
-            timestamp = datetime.datetime.now().strftime("%H:%M:%S")
-            mensaje_completo = f"[{timestamp}] {mensaje}\n"
-            
-            # Log al terminal integrado estándar
-            if hasattr(self, 'terminal_output'):
-                self.terminal_output.insert(tk.END, mensaje_completo)
-                self.terminal_output.see(tk.END)
-        except Exception as e:
-            print(f"Error en log_to_terminal: {e}")
+        """Registrar mensaje en el terminal usando función estándar."""
+        self._log_terminal(mensaje, "REPORTES", "INFO")
     
     def sincronizar_terminal(self):
         """Función de compatibilidad - ya no necesaria con terminal estándar."""
