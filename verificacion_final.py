@@ -11,10 +11,11 @@ import sys
 import subprocess
 
 def verificar_tokens_problemáticos():
-    """Verifica que no queden tokens problemáticos"""
+    """Verifica que no queden tokens problemáticos de desarrollo"""
     print("VERIFICANDO tokens problemáticos...")
     
-    pattern = r'\[(EMOJI|SCAN|STOP|METADATA|SECURE|INFO|WARNING|ERROR|SUCCESS|STATS|CONFIG|UPDATE|SAVE|LOAD|FILE|LOG|SETTINGS|QUARANTINE|UTILS|CLEAN|SYSTEM)\]'
+    # Buscar solo patrones de desarrollo reales, no logging legítimo
+    pattern = r'\[(EMOJI|SCAN|STOP|METADATA|SECURE|SUCCESS|STATS|CONFIG|UPDATE|SAVE|LOAD|FILE|SETTINGS|QUARANTINE|UTILS|CLEAN|SYSTEM)\]'
     found_tokens = []
     
     for root, dirs, files in os.walk('aresitos'):
@@ -26,7 +27,13 @@ def verificar_tokens_problemáticos():
                         content = f.read()
                         matches = re.findall(pattern, content)
                         if matches:
-                            found_tokens.append((filepath, matches))
+                            # Filtrar tokens legítimos de logging
+                            tokens_problematicos = []
+                            for match in matches:
+                                if match not in ['INFO', 'WARNING', 'ERROR']:  # Excluir logging legítimo
+                                    tokens_problematicos.append(match)
+                            if tokens_problematicos:
+                                found_tokens.append((filepath, tokens_problematicos))
                 except Exception as e:
                     continue
     

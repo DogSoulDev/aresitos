@@ -93,22 +93,52 @@ class VistaPrincipal(tk.Frame):
         # Configurar controladores para todas las vistas
         if hasattr(self, 'vista_dashboard'):
             self.vista_dashboard.set_controlador(controlador)
+            self.logger.info("✓ Vista Dashboard conectada")
+        else:
+            self.logger.warning("⚠️ Vista Dashboard no disponible")
+            
         if hasattr(self.controlador, 'controlador_escaneador'):
             self.vista_escaneo.set_controlador(self.controlador.controlador_escaneador)
+            self.logger.info("✓ Vista Escaneo conectada")
+        else:
+            self.logger.warning("⚠️ Controlador Escaneador no disponible")
+            
         if hasattr(self.controlador, 'controlador_monitoreo'):
             self.vista_monitoreo.set_controlador(self.controlador.controlador_monitoreo)
+            self.logger.info("✓ Vista Monitoreo conectada")
+        else:
+            self.logger.warning("⚠️ Controlador Monitoreo no disponible")
+            
         if hasattr(self.controlador, 'controlador_auditoria'):
             self.vista_auditoria.set_controlador(self.controlador.controlador_auditoria)
+            self.logger.info("✓ Vista Auditoría conectada")
+        else:
+            self.logger.warning("⚠️ Controlador Auditoría no disponible")
+            
         if hasattr(self, 'vista_gestion_datos'):
             # Vista unificada para wordlists y diccionarios
             self.vista_gestion_datos.set_controlador(self.controlador)
+            self.logger.info("✓ Vista Gestión Datos conectada")
+        else:
+            self.logger.warning("⚠️ Vista Gestión Datos no disponible")
+            
         if hasattr(self.controlador, 'controlador_reportes'):
             self.vista_reportes.set_controlador(self.controlador.controlador_reportes)
+            self.logger.info("✓ Vista Reportes conectada")
+        else:
+            self.logger.warning("⚠️ Controlador Reportes no disponible")
         # Conectar FIM y SIEM correctamente
         if hasattr(self.controlador, 'controlador_fim'):
             self.vista_fim.set_controlador(self.controlador.controlador_fim)
+            self.logger.info("✓ Vista FIM conectada")
+        else:
+            self.logger.warning("⚠️ Controlador FIM no disponible")
+            
         if hasattr(self.controlador, 'controlador_siem'):
             self.vista_siem.set_controlador(self.controlador.controlador_siem)
+            self.logger.info("✓ Vista SIEM conectada")
+        else:
+            self.logger.warning("⚠️ Controlador SIEM no disponible")
         
         # Inicializar vista con datos del controlador
         self.actualizar_vista_principal()
