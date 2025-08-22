@@ -330,7 +330,7 @@ class VistaEscaneo(tk.Frame):
             
             # Forzar uso del controlador de escaneo avanzado
             if self.controlador:
-                self._log_terminal("✓ Controlador disponible - Iniciando escaneo Kali 2025", "ESCANEADOR", "SUCCESS")
+                self._log_terminal("CONTROLADOR Controlador disponible - Iniciando escaneo Kali 2025", "ESCANEADOR", "SUCCESS")  # Issue 22/24: Sin emojis
                 self._actualizar_texto_seguro("MODO: Escaneador Avanzado Kali 2025\n")
                 self._actualizar_texto_seguro("HERRAMIENTAS: masscan, nmap, nuclei, gobuster, ffuf, rustscan\n\n")
                 
@@ -378,7 +378,7 @@ class VistaEscaneo(tk.Frame):
                         
                         if resultado and resultado.get("exito"):
                             resultados_totales["resultados"].append(resultado)
-                            self._log_terminal(f"✓ Escaneo de {objetivo} completado", "ESCANEADOR", "SUCCESS")
+                            self._log_terminal(f"CONTROLADOR Escaneo de {objetivo} completado", "ESCANEADOR", "SUCCESS")
                         else:
                             self._log_terminal(f"✗ Error en escaneo de {objetivo}: {resultado.get('error', 'Error desconocido')}", "ESCANEADOR", "ERROR")
                             
@@ -475,7 +475,7 @@ class VistaEscaneo(tk.Frame):
             self._actualizar_texto_seguro("        ESCANEO KALI 2025 COMPLETADO EXITOSAMENTE\n")
             self._actualizar_texto_seguro("=" * 70 + "\n")
             
-            self._log_terminal("✓ Escaneo Kali 2025 completado con éxito", "ESCANEADOR", "SUCCESS")
+            self._log_terminal("CONTROLADOR Escaneo Kali 2025 completado con éxito", "ESCANEADOR", "SUCCESS")
             
         except Exception as e:
             self._actualizar_texto_seguro(f"Error mostrando resultados consolidados: {str(e)}\n")
@@ -666,7 +666,7 @@ class VistaEscaneo(tk.Frame):
             self._actualizar_texto_seguro("           ESCANEO KALI 2025 COMPLETADO\n")
             self._actualizar_texto_seguro("=" * 60 + "\n")
             
-            self._log_terminal("✓ Escaneo Kali 2025 completado exitosamente", "ESCANEADOR", "SUCCESS")
+            self._log_terminal("CONTROLADOR Escaneo Kali 2025 completado exitosamente", "ESCANEADOR", "SUCCESS")
             
         except Exception as e:
             self._actualizar_texto_seguro(f"Error mostrando resultados: {str(e)}\n")
@@ -700,7 +700,7 @@ class VistaEscaneo(tk.Frame):
                     self._actualizar_texto_seguro(f"Usuario actual: {resultado.stdout.strip()}\n")
                 
                 fases_completadas += 1
-                self._log_terminal("✓ FASE 1 completada", "ESCANEADOR", "SUCCESS")
+                self._log_terminal("CONTROLADOR FASE 1 completada", "ESCANEADOR", "SUCCESS")
                 
             except Exception as e:
                 fases_con_error += 1
@@ -726,7 +726,7 @@ class VistaEscaneo(tk.Frame):
                     self._actualizar_texto_seguro(f"Gateway: {resultado.stdout.strip()}\n")
                 
                 fases_completadas += 1
-                self._log_terminal("✓ FASE 2 completada", "ESCANEADOR", "SUCCESS")
+                self._log_terminal("CONTROLADOR FASE 2 completada", "ESCANEADOR", "SUCCESS")
                 
             except Exception as e:
                 fases_con_error += 1
@@ -747,7 +747,7 @@ class VistaEscaneo(tk.Frame):
                         self._actualizar_texto_seguro(f"  ... y {len(lineas) - 5} puertos más\n")
                 
                 fases_completadas += 1
-                self._log_terminal("✓ FASE 3 completada", "ESCANEADOR", "SUCCESS")
+                self._log_terminal("CONTROLADOR FASE 3 completada", "ESCANEADOR", "SUCCESS")
                 
             except Exception as e:
                 fases_con_error += 1
@@ -772,7 +772,7 @@ class VistaEscaneo(tk.Frame):
                                 self._actualizar_texto_seguro(f"  {usuario} ({cpu}%): {comando}\n")
                 
                 fases_completadas += 1
-                self._log_terminal("✓ FASE 4 completada", "ESCANEADOR", "SUCCESS")
+                self._log_terminal("CONTROLADOR FASE 4 completada", "ESCANEADOR", "SUCCESS")
                 
             except Exception as e:
                 fases_con_error += 1
@@ -795,7 +795,7 @@ class VistaEscaneo(tk.Frame):
                         self._actualizar_texto_seguro(f"  ... y {len(lineas) - 6} servicios más\n")
                 
                 fases_completadas += 1
-                self._log_terminal("✓ FASE 5 completada", "ESCANEADOR", "SUCCESS")
+                self._log_terminal("CONTROLADOR FASE 5 completada", "ESCANEADOR", "SUCCESS")
                 
             except Exception as e:
                 fases_con_error += 1
@@ -814,7 +814,7 @@ class VistaEscaneo(tk.Frame):
                         resultado = subprocess.run(['which', herramienta], capture_output=True, text=True, timeout=3)
                         if resultado.returncode == 0:
                             disponibles.append(herramienta)
-                            self._actualizar_texto_seguro(f"  ✓ {herramienta}: {resultado.stdout.strip()}\n")
+                            self._actualizar_texto_seguro(f"  CONTROLADOR {herramienta}: {resultado.stdout.strip()}\n")
                         else:
                             self._actualizar_texto_seguro(f"  ✗ {herramienta}: No disponible\n")
                     except:
@@ -823,7 +823,7 @@ class VistaEscaneo(tk.Frame):
                 self._actualizar_texto_seguro(f"\nHerramientas disponibles: {len(disponibles)}/{len(herramientas)}\n")
                 
                 fases_completadas += 1
-                self._log_terminal("✓ FASE 6 completada", "ESCANEADOR", "SUCCESS")
+                self._log_terminal("CONTROLADOR FASE 6 completada", "ESCANEADOR", "SUCCESS")
                 
             except Exception as e:
                 fases_con_error += 1
@@ -838,19 +838,19 @@ class VistaEscaneo(tk.Frame):
                 try:
                     resultado = subprocess.run(['cat', '/etc/os-release'], capture_output=True, text=True, timeout=5)
                     if 'kali' in resultado.stdout.lower():
-                        self._actualizar_texto_seguro("✓ Sistema: Kali Linux detectado\n")
+                        self._actualizar_texto_seguro("CONTROLADOR Sistema: Kali Linux detectado\n")
                     else:
                         self._actualizar_texto_seguro("WARNING Sistema: No es Kali Linux\n")
                 except:
                     pass
                 
                 # Estado general
-                self._actualizar_texto_seguro(f"✓ Fases completadas: {fases_completadas}/{total_fases}\n")
+                self._actualizar_texto_seguro(f"CONTROLADOR Fases completadas: {fases_completadas}/{total_fases}\n")
                 if fases_con_error > 0:
                     self._actualizar_texto_seguro(f"WARNING Fases con errores: {fases_con_error}\n")
                 
                 fases_completadas += 1
-                self._log_terminal("✓ FASE 7 completada", "ESCANEADOR", "SUCCESS")
+                self._log_terminal("CONTROLADOR FASE 7 completada", "ESCANEADOR", "SUCCESS")
                 
             except Exception as e:
                 fases_con_error += 1
@@ -2090,7 +2090,7 @@ class VistaEscaneo(tk.Frame):
                         elif herramienta in ['pspy', 'htop', 'iotop']:
                             categorias_disponibles['procesos'].append(herramienta)
                             
-                        self._log_terminal(f"✓ DISPONIBLE: {herramienta} - {descripcion}", "KALI", "SUCCESS")
+                        self._log_terminal(f"CONTROLADOR DISPONIBLE: {herramienta} - {descripcion}", "KALI", "SUCCESS")
                 except:
                     pass
             

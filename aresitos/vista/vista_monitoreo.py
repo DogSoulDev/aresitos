@@ -267,7 +267,7 @@ class VistaMonitoreo(tk.Frame):
                 resultado = self._ejecutar_comando_seguro(["explorer", logs_path], timeout=10)
             
             if resultado['success']:
-                self.log_to_terminal("✓ Carpeta de logs Monitoreo abierta")
+                self.log_to_terminal("OK Carpeta de logs Monitoreo abierta")  # Issue 22/24: Sin emojis
             else:
                 self.log_to_terminal(f"ERROR: No se pudo abrir logs - {resultado['error']}")
                 messagebox.showerror("Error", f"No se pudo abrir la carpeta de logs: {resultado['error']}")
@@ -465,7 +465,7 @@ class VistaMonitoreo(tk.Frame):
                 self.label_estado.config(text="Estado: Activo")
                 self.text_monitor.insert(tk.END, "Monitoreo completo iniciado con controlador...\n")
                 self._log_terminal("Monitoreo del controlador iniciado exitosamente", "MONITOREO", "SUCCESS")
-                self.log_to_terminal("✓ Monitoreo iniciado exitosamente")
+                self.log_to_terminal("OK Monitoreo iniciado exitosamente")  # Issue 22/24: Sin emojis
                 
                 # Iniciar monitoreo avanzado en thread separado
                 threading.Thread(target=self._monitoreo_avanzado_linux, daemon=True).start()
@@ -810,7 +810,7 @@ class VistaMonitoreo(tk.Frame):
         
         # Callbacks para la vista
         def callback_actualizacion(mensaje):
-            self.log_to_terminal(mensaje.replace("✓", "").replace("=== ", "").replace(" ===", "").strip())
+            self.log_to_terminal(mensaje.replace("OK", "").replace("=== ", "").replace(" ===", "").strip())  # Issue 22/24: Sin emojis
         
         def callback_habilitar():
             # Actualizar interfaz
@@ -1591,8 +1591,8 @@ class VistaMonitoreo(tk.Frame):
             resultado = controlador_cuarentena.poner_archivo_en_cuarentena(archivo)
             
             if resultado["exito"]:
-                self.text_cuarentena.insert(tk.END, f"✓ Archivo agregado a cuarentena: {os.path.basename(archivo)}\n")
-                self.text_cuarentena.insert(tk.END, f"✓ Proceso completado exitosamente\n")
+                self.text_cuarentena.insert(tk.END, f"OK Archivo agregado a cuarentena: {os.path.basename(archivo)}\n")  # Issue 22/24: Sin emojis
+                self.text_cuarentena.insert(tk.END, f"OK Proceso completado exitosamente\n")  # Issue 22/24: Sin emojis
                 messagebox.showinfo("Éxito", "Archivo enviado a cuarentena correctamente")
             else:
                 error_msg = resultado.get('error', 'Error desconocido en cuarentena')
@@ -1641,8 +1641,8 @@ class VistaMonitoreo(tk.Frame):
             self.text_cuarentena.insert(tk.END, "=== ARCHIVOS EN CUARENTENA ===\n\n")
             
             if not archivos:
-                self.text_cuarentena.insert(tk.END, "✓ No hay archivos en cuarentena.\n")
-                self.text_cuarentena.insert(tk.END, "✓ Sistema limpio\n")
+                self.text_cuarentena.insert(tk.END, "OK No hay archivos en cuarentena.\n")  # Issue 22/24: Sin emojis
+                self.text_cuarentena.insert(tk.END, "OK Sistema limpio\n")  # Issue 22/24: Sin emojis
             else:
                 self.text_cuarentena.insert(tk.END, f"TOTAL: {len(archivos)} archivo(s) en cuarentena\n\n")
                 
@@ -1754,8 +1754,8 @@ class VistaMonitoreo(tk.Frame):
                     eliminados = resultado.get('eliminados', 0)
                     errores = resultado.get('errores', [])
                     
-                    self.text_cuarentena.insert(tk.END, f"✓ Cuarentena limpiada exitosamente\n")
-                    self.text_cuarentena.insert(tk.END, f"✓ Archivos eliminados: {eliminados}\n")
+                    self.text_cuarentena.insert(tk.END, f"OK Cuarentena limpiada exitosamente\n")  # Issue 22/24: Sin emojis
+                    self.text_cuarentena.insert(tk.END, f"OK Archivos eliminados: {eliminados}\n")  # Issue 22/24: Sin emojis
                     
                     if errores:
                         self.text_cuarentena.insert(tk.END, f"WARNING Se encontraron {len(errores)} errores:\n")
@@ -1764,7 +1764,7 @@ class VistaMonitoreo(tk.Frame):
                         if len(errores) > 5:
                             self.text_cuarentena.insert(tk.END, f"   ... y {len(errores) - 5} errores más\n")
                     else:
-                        self.text_cuarentena.insert(tk.END, "✓ Sin errores reportados\n")
+                        self.text_cuarentena.insert(tk.END, "OK Sin errores reportados\n")  # Issue 22/24: Sin emojis
                     
                     messagebox.showinfo("Éxito", f"Cuarentena limpiada. Archivos eliminados: {eliminados}")
                 else:

@@ -700,7 +700,7 @@ class MonitorAvanzadoNativo:
             # CPU
             cpu = self._obtener_uso_cpu()
             if cpu is not None:
-                datos['cpu_porcentaje'] = float(cpu)
+                datos['cpu_porcentaje'] = str(float(cpu))  # Issue 22/24: Convertir a string para compatibilidad
             
             # Memoria
             memoria = self._obtener_uso_memoria()
@@ -843,7 +843,7 @@ class MonitorAvanzadoNativo:
 - **Conexiones Establecidas**: {datos_red.get('conexiones_establecidas', 'N/A')}
 - **Puertos en Escucha**: {datos_red.get('puertos_escucha', 'N/A')}
 
-## ✓ PROCESOS SOSPECHOSOS ({len(procesos_sospechosos)})
+## OK PROCESOS SOSPECHOSOS ({len(procesos_sospechosos)})
 """
         
         if procesos_sospechosos:

@@ -82,6 +82,14 @@ def main():
     print("Aresitos - Sistema de Seguridad Cibernética")
     print("=" * 50)
     
+    # Issue 23/24: Verificación de estabilidad del sistema
+    if "--verify" in sys.argv or "--verificar" in sys.argv:
+        estable = verificacion_estabilidad_sistema()
+        if not estable:
+            sys.exit(1)
+        else:
+            print("Sistema verificado - continuando con inicio normal...")
+    
     # Verificar Kali Linux antes de continuar
     if not verificar_kali_linux():
         if verificar_modo_desarrollo():
@@ -220,6 +228,56 @@ def verificar_permisos_inicio():
                 
         except (subprocess.TimeoutExpired, subprocess.CalledProcessError, FileNotFoundError):
             pass  # No mostrar errores si no se puede verificar
+
+def verificacion_estabilidad_sistema():
+    """Issue 23/24: Verificación final de estabilidad del sistema"""
+    """Verificar integridad y estabilidad de todos los componentes de Aresitos"""
+    print("\n=== VERIFICACIÓN DE ESTABILIDAD ARESITOS ===")
+    
+    verificaciones = []
+    
+    # Verificar estructura de archivos críticos
+    archivos_criticos = [
+        "aresitos/vista/vista_principal.py",
+        "aresitos/controlador/controlador_principal_nuevo.py", 
+        "aresitos/modelo/modelo_principal.py",
+        "aresitos/utils/sudo_manager.py",
+        "aresitos/vista/terminal_mixin.py"
+    ]
+    
+    for archivo in archivos_criticos:
+        if os.path.exists(archivo):
+            verificaciones.append(f"OK Archivo crítico: {archivo}")
+        else:
+            verificaciones.append(f"ERROR Archivo faltante: {archivo}")
+    
+    # Verificar configuraciones
+    configs = ["configuración/aresitos_config.json", "configuración/aresitos_config_kali.json"]
+    for config in configs:
+        if os.path.exists(config):
+            verificaciones.append(f"OK Configuración: {config}")
+        else:
+            verificaciones.append(f"ERROR Configuración faltante: {config}")
+    
+    # Verificar directorios de datos
+    directorios = ["data", "logs", "data/cheatsheets", "data/wordlists"]
+    for directorio in directorios:
+        if os.path.exists(directorio):
+            verificaciones.append(f"OK Directorio: {directorio}")
+        else:
+            verificaciones.append(f"WARN Directorio faltante: {directorio}")
+    
+    # Mostrar resultados
+    for verificacion in verificaciones:
+        print(f"  {verificacion}")
+    
+    errores = [v for v in verificaciones if v.startswith("ERROR")]
+    if errores:
+        print(f"\nERRORES DETECTADOS: {len(errores)}")
+        return False
+    else:
+        print(f"\nSISTEMA ESTABLE: {len(verificaciones)} verificaciones completadas")
+        return True
 
 if __name__ == "__main__":
     main()

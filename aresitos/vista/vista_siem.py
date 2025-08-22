@@ -620,7 +620,7 @@ class VistaSIEM(tk.Frame):
                 self._log_terminal("FASE 1: Activando proteccion de IP y configuracion de red", "SIEM", "INFO")
                 self._proteger_configuracion_ip()
                 fases_completadas += 1
-                self._log_terminal("✓ FASE 1 completada exitosamente", "SIEM", "SUCCESS")
+                self._log_terminal("OK FASE 1 completada exitosamente", "SIEM", "SUCCESS")  # Issue 22/24: Sin emojis
             except Exception as e:
                 fases_con_error += 1
                 self._log_terminal(f"✗ ERROR en FASE 1: {str(e)}", "SIEM", "ERROR")
@@ -1364,7 +1364,7 @@ class VistaSIEM(tk.Frame):
             
             # 1. Marcar proceso como inactivo INMEDIATAMENTE
             self.proceso_siem_activo = False
-            self._log_terminal("✓ Proceso SIEM marcado como inactivo", "SIEM", "INFO")
+            self._log_terminal("OK Proceso SIEM marcado como inactivo", "SIEM", "INFO")  # Issue 22/24: Sin emojis
             
             # 2. Esperar a que el hilo termine (máximo 3 segundos)
             if hasattr(self, 'thread_siem') and self.thread_siem and self.thread_siem.is_alive():

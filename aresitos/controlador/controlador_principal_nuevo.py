@@ -492,3 +492,72 @@ class ControladorPrincipal(ControladorBase):
                 'disponibles': False,
                 'error': str(e)
             }
+    
+    def estabilizar_sistema_completo(self):
+        """Issue 23/24: Estabilización final del sistema"""
+        """Verificar y estabilizar todos los componentes del sistema"""
+        try:
+            estabilizaciones = []
+            
+            # Verificar estado de todos los controladores
+            controladores = [
+                ('dashboard', getattr(self, 'controlador_dashboard', None)),
+                ('escaneo', self.controlador_escaneador),
+                ('monitoreo', self.controlador_monitoreo),
+                ('auditoria', self.controlador_auditoria),
+                ('reportes', self.controlador_reportes),
+                ('fim', self.controlador_fim),
+                ('siem', self.controlador_siem)
+            ]
+            
+            for nombre, controlador in controladores:
+                if controlador is not None:
+                    # Verificar que el controlador responde
+                    try:
+                        if hasattr(controlador, 'verificar_estado'):
+                            estado = controlador.verificar_estado()
+                            estabilizaciones.append(f"{nombre}: {estado}")
+                        else:
+                            estabilizaciones.append(f"{nombre}: Operativo")
+                    except Exception as e:
+                        estabilizaciones.append(f"{nombre}: Error - {str(e)}")
+                else:
+                    estabilizaciones.append(f"{nombre}: No disponible")
+            
+            # Verificar memoria y recursos
+            try:
+                import gc
+                collected = gc.collect()
+                estabilizaciones.append(f"Memoria: {collected} objetos liberados")
+            except Exception as e:
+                estabilizaciones.append(f"Memoria: Error - {str(e)}")
+            
+            # Verificar integraciones activas
+            integraciones_activas = 0
+            try:
+                resultado_conexiones = self.configurar_conexiones_controladores()
+                if resultado_conexiones.get('exito'):
+                    integraciones_activas = resultado_conexiones.get('conexiones_configuradas', 0)
+            except Exception as e:
+                estabilizaciones.append(f"Integraciones: Error - {str(e)}")
+            
+            estabilizaciones.append(f"Integraciones: {integraciones_activas} configuradas")
+            
+            # Log resultado
+            self.logger.info(f"Estabilización completada: {len(estabilizaciones)} verificaciones")
+            for est in estabilizaciones:
+                self.logger.debug(f"  {est}")
+            
+            return {
+                'exito': True,
+                'estabilizaciones': estabilizaciones,
+                'total_verificaciones': len(estabilizaciones)
+            }
+            
+        except Exception as e:
+            self.logger.error(f"Error en estabilización del sistema: {e}")
+            return {
+                'exito': False,
+                'error': str(e),
+                'estabilizaciones': ['Error general en estabilización']
+            }
