@@ -12,7 +12,7 @@ from datetime import datetime
 from typing import Dict, Any, List, Optional
 from pathlib import Path
 
-from aresitos.modelo.modelo_utilidades_sistema import ModeloUtilidadesSistema
+from Aresitos.modelo.modelo_utilidades_sistema import ModeloUtilidadesSistema
 
 class ControladorAuditoria:
     """

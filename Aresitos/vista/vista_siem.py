@@ -10,8 +10,8 @@ import platform
 from datetime import datetime
 
 try:
-    from aresitos.vista.burp_theme import burp_theme
-    from aresitos.utils.sudo_manager import get_sudo_manager, is_sudo_available
+    from Aresitos.vista.burp_theme import burp_theme
+    from Aresitos.utils.sudo_manager import get_sudo_manager, is_sudo_available
     BURP_THEME_AVAILABLE = True
 except ImportError:
     BURP_THEME_AVAILABLE = False
@@ -229,7 +229,7 @@ class VistaSIEM(tk.Frame):
         
         # Validar comando con el módulo de seguridad
         try:
-            from aresitos.utils.seguridad_comandos import validar_comando_seguro
+            from Aresitos.utils.seguridad_comandos import validar_comando_seguro
             
             es_valido, comando_sanitizado, mensaje = validar_comando_seguro(comando)
             
@@ -314,7 +314,7 @@ class VistaSIEM(tk.Frame):
     def _mostrar_ayuda_comandos(self):
         """Mostrar ayuda de comandos disponibles."""
         try:
-            from aresitos.utils.seguridad_comandos import obtener_comandos_disponibles
+            from Aresitos.utils.seguridad_comandos import obtener_comandos_disponibles
             
             comandos = obtener_comandos_disponibles()
             
@@ -339,7 +339,7 @@ class VistaSIEM(tk.Frame):
     def _mostrar_info_seguridad(self):
         """Mostrar información de seguridad actual."""
         try:
-            from aresitos.utils.seguridad_comandos import validador_comandos
+            from Aresitos.utils.seguridad_comandos import validador_comandos
             
             info = validador_comandos.obtener_info_seguridad()
             
@@ -3687,7 +3687,7 @@ ls -la "$OUTPUT_DIR/"
         """Registrar mensaje en el terminal integrado global y en la interfaz SIEM."""
         try:
             # Registrar en terminal global
-            from aresitos.vista.vista_dashboard import VistaDashboard
+            from Aresitos.vista.vista_dashboard import VistaDashboard
             VistaDashboard.log_actividad_global(mensaje, modulo, nivel)
             
             # También mostrar en la interfaz SIEM para retroalimentación inmediata

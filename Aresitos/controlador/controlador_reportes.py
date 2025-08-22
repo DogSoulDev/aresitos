@@ -3,7 +3,7 @@
 import os
 import re
 import logging
-from aresitos.modelo.modelo_reportes import ModeloReportes
+from Aresitos.modelo.modelo_reportes import ModeloReportes
 
 class ControladorReportes:
     

@@ -9,8 +9,8 @@ import os
 import time
 import subprocess
 from typing import Dict, Any, List, Optional
-from aresitos.modelo.modelo_monitor import Monitor
-from aresitos.modelo.modelo_siem import SIEM
+from Aresitos.modelo.modelo_monitor import Monitor
+from Aresitos.modelo.modelo_siem import SIEM
 
 class ControladorMonitoreo:
     """

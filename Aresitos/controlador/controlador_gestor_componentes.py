@@ -9,7 +9,7 @@ import logging
 from datetime import datetime
 from typing import Dict, Any, Optional, Set
 
-from aresitos.controlador.controlador_principal_base import ControladorPrincipalBase
+from Aresitos.controlador.controlador_principal_base import ControladorPrincipalBase
 
 class GestorComponentes(ControladorPrincipalBase):
     """
@@ -139,7 +139,7 @@ class GestorComponentes(ControladorPrincipalBase):
     def _inicializar_siem(self) -> Dict[str, Any]:
         """Inicializar componente SIEM."""
         try:
-            from aresitos.modelo.modelo_siem import SIEM
+            from Aresitos.modelo.modelo_siem import SIEM
             
             # Crear instancia SIEM
             siem_instance = SIEM()
@@ -165,7 +165,7 @@ class GestorComponentes(ControladorPrincipalBase):
     def _inicializar_fim(self) -> Dict[str, Any]:
         """Inicializar componente FIM."""
         try:
-            from aresitos.modelo.modelo_fim import FIMAvanzado
+            from Aresitos.modelo.modelo_fim import FIMAvanzado
             
             # Obtener instancia SIEM si está disponible
             siem_instance = self._componentes_estado['siem']['instancia']
@@ -196,7 +196,7 @@ class GestorComponentes(ControladorPrincipalBase):
     def _inicializar_escaneador(self) -> Dict[str, Any]:
         """Inicializar componente Escaneador."""
         try:
-            from aresitos.modelo.modelo_escaneador_avanzado import EscaneadorAvanzado
+            from Aresitos.modelo.modelo_escaneador_avanzado import EscaneadorAvanzado
             
             # Obtener instancia SIEM si está disponible
             siem_instance = self._componentes_estado['siem']['instancia']
@@ -227,7 +227,7 @@ class GestorComponentes(ControladorPrincipalBase):
         try:
             # Importar el sistema de cuarentena
             try:
-                from aresitos.modelo.modelo_cuarentena import Cuarentena as GestorCuarentena
+                from Aresitos.modelo.modelo_cuarentena import Cuarentena as GestorCuarentena
             except ImportError:
                 self.logger.warning("Sistema de cuarentena no encontrado - usando mock")
                 # Crear clase mock básica

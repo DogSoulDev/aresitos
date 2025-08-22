@@ -14,13 +14,13 @@ from datetime import datetime
 from typing import Dict, Any, List, Optional, Set
 from pathlib import Path
 
-from aresitos.controlador.controlador_base import ControladorBase
-from aresitos.modelo.modelo_fim import FIMAvanzado, TipoArchivoFIM, TipoCambioFIM, MetadatosArchivo
-from aresitos.modelo.modelo_siem import SIEM, TipoEvento, SeveridadEvento
+from Aresitos.controlador.controlador_base import ControladorBase
+from Aresitos.modelo.modelo_fim import FIMAvanzado, TipoArchivoFIM, TipoCambioFIM, MetadatosArchivo
+from Aresitos.modelo.modelo_siem import SIEM, TipoEvento, SeveridadEvento
 
 # Importar nuevos modelos Kali 2025
 try:
-    from aresitos.modelo.modelo_fim_kali2025 import FIMKali2025
+    from Aresitos.modelo.modelo_fim_kali2025 import FIMKali2025
     KALI2025_FIM_DISPONIBLE = True
 except ImportError:
     KALI2025_FIM_DISPONIBLE = False

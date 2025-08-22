@@ -20,8 +20,8 @@ import io
 import sys
 
 try:
-    from aresitos.vista.burp_theme import burp_theme
-    from aresitos.utils.gestor_iconos import configurar_icono_ventana
+    from Aresitos.vista.burp_theme import burp_theme
+    from Aresitos.utils.gestor_iconos import configurar_icono_ventana
     BURP_THEME_AVAILABLE = True
 except ImportError:
     BURP_THEME_AVAILABLE = False

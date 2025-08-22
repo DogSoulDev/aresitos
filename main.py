@@ -118,7 +118,7 @@ def main():
             sys.path.insert(0, str(directorio_actual))
             
             # Importar la clase principal del login
-            from aresitos.vista.vista_login import LoginAresitos
+            from Aresitos.vista.vista_login import LoginAresitos
             
             # Crear y ejecutar login con flujo completo
             print("Creando aplicación de login...")
@@ -149,9 +149,9 @@ def iniciar_aplicacion_clasica():
         import tkinter as tk
         
         # Importar módulos principales
-        from aresitos.vista.vista_principal import VistaPrincipal
-        from aresitos.controlador.controlador_principal_nuevo import ControladorPrincipal  
-        from aresitos.modelo.modelo_principal import ModeloPrincipal
+        from Aresitos.vista.vista_principal import VistaPrincipal
+        from Aresitos.controlador.controlador_principal_nuevo import ControladorPrincipal  
+        from Aresitos.modelo.modelo_principal import ModeloPrincipal
         
         print("Modulos principales cargados")
         
@@ -162,7 +162,7 @@ def iniciar_aplicacion_clasica():
         
         # Configurar icono de la ventana usando gestor centralizado
         try:
-            from aresitos.utils.gestor_iconos import configurar_icono_ventana
+            from Aresitos.utils.gestor_iconos import configurar_icono_ventana
             configurar_icono_ventana(root, "ARESITOS v2.0 - Herramientas de Seguridad")
         except Exception as e:
             print(f"No se pudo cargar el icono de la ventana: {e}")

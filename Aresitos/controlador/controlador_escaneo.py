@@ -12,13 +12,13 @@ import subprocess
 from datetime import datetime
 from typing import Dict, Any, List, Optional
 
-from aresitos.controlador.controlador_base import ControladorBase
-from aresitos.modelo.modelo_escaneador_avanzado_real import EscaneadorAvanzadoReal, TipoEscaneo, NivelRiesgo
-from aresitos.modelo.modelo_siem import SIEMAvanzadoNativo, TipoEvento, SeveridadEvento
+from Aresitos.controlador.controlador_base import ControladorBase
+from Aresitos.modelo.modelo_escaneador_avanzado_real import EscaneadorAvanzadoReal, TipoEscaneo, NivelRiesgo
+from Aresitos.modelo.modelo_siem import SIEMAvanzadoNativo, TipoEvento, SeveridadEvento
 
 # Importar nuevos modelos Kali 2025
 try:
-    from aresitos.modelo.modelo_escaneador_kali2025 import EscaneadorKali2025
+    from Aresitos.modelo.modelo_escaneador_kali2025 import EscaneadorKali2025
     KALI2025_DISPONIBLE = True
 except ImportError:
     KALI2025_DISPONIBLE = False

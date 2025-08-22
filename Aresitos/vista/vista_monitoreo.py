@@ -10,13 +10,13 @@ import datetime
 
 # Importar SudoManager para prevenir crashes
 try:
-    from aresitos.utils.sudo_manager import SudoManager
+    from Aresitos.utils.sudo_manager import SudoManager
     SUDO_MANAGER_DISPONIBLE = True
 except ImportError:
     SUDO_MANAGER_DISPONIBLE = False
 
 try:
-    from aresitos.vista.burp_theme import burp_theme
+    from Aresitos.vista.burp_theme import burp_theme
     BURP_THEME_AVAILABLE = True
 except ImportError:
     BURP_THEME_AVAILABLE = False
@@ -284,7 +284,7 @@ class VistaMonitoreo(tk.Frame):
         
         # Validar comando con el módulo de seguridad
         try:
-            from aresitos.utils.seguridad_comandos import validar_comando_seguro
+            from Aresitos.utils.seguridad_comandos import validar_comando_seguro
             
             es_valido, comando_sanitizado, mensaje = validar_comando_seguro(comando)
             
@@ -371,7 +371,7 @@ class VistaMonitoreo(tk.Frame):
     def _mostrar_ayuda_comandos(self):
         """Mostrar ayuda de comandos disponibles."""
         try:
-            from aresitos.utils.seguridad_comandos import obtener_comandos_disponibles
+            from Aresitos.utils.seguridad_comandos import obtener_comandos_disponibles
             
             comandos = obtener_comandos_disponibles()
             
@@ -396,7 +396,7 @@ class VistaMonitoreo(tk.Frame):
     def _mostrar_info_seguridad(self):
         """Mostrar información de seguridad actual."""
         try:
-            from aresitos.utils.seguridad_comandos import validador_comandos
+            from Aresitos.utils.seguridad_comandos import validador_comandos
             
             info = validador_comandos.obtener_info_seguridad()
             
@@ -1670,12 +1670,12 @@ class VistaMonitoreo(tk.Frame):
     
     def agregar_a_cuarentena(self):
         """Agregar archivo a cuarentena con validación de seguridad y manejo robusto de errores."""
-        from aresitos.utils.sanitizador_archivos import SanitizadorArchivos
-        from aresitos.utils.helper_seguridad import HelperSeguridad
+        from Aresitos.utils.sanitizador_archivos import SanitizadorArchivos
+        from Aresitos.utils.helper_seguridad import HelperSeguridad
         
         # Importar SudoManager para prevenir crashes
         try:
-            from aresitos.utils.sudo_manager import SudoManager
+            from Aresitos.utils.sudo_manager import SudoManager
             sudo_manager = SudoManager()
             if not sudo_manager.is_sudo_active():
                 self.text_cuarentena.insert(tk.END, "WARNING SUDO NO ACTIVO: Verificar permisos en otras ventanas de ARESITOS\n")
@@ -1751,7 +1751,7 @@ class VistaMonitoreo(tk.Frame):
             self.text_cuarentena.insert(tk.END, f"SECURE Archivo validado para cuarentena: {os.path.basename(archivo)}\n")
             
             # Crear controlador de cuarentena directamente si no está disponible
-            from aresitos.controlador.controlador_cuarentena import ControladorCuarentena
+            from Aresitos.controlador.controlador_cuarentena import ControladorCuarentena
             controlador_cuarentena = ControladorCuarentena()
             
             # Mostrar progreso
@@ -1794,7 +1794,7 @@ class VistaMonitoreo(tk.Frame):
     def listar_cuarentena(self):
         """Listar archivos en cuarentena con manejo robusto de errores"""
         try:
-            from aresitos.controlador.controlador_cuarentena import ControladorCuarentena
+            from Aresitos.controlador.controlador_cuarentena import ControladorCuarentena
             controlador_cuarentena = ControladorCuarentena()
             
             self.text_cuarentena.delete(1.0, tk.END)
@@ -1905,7 +1905,7 @@ class VistaMonitoreo(tk.Frame):
             
             # Importar SudoManager para operaciones seguras
             try:
-                from aresitos.utils.sudo_manager import SudoManager
+                from Aresitos.utils.sudo_manager import SudoManager
                 sudo_manager = SudoManager()
                 if not sudo_manager.is_sudo_active():
                     self.text_cuarentena.insert(tk.END, "WARNING SUDO NO ACTIVO: La operacion puede fallar\n")
@@ -2162,7 +2162,7 @@ class VistaMonitoreo(tk.Frame):
         """Registrar mensaje en el terminal integrado global."""
         try:
             # Usar el terminal global de VistaDashboard
-            from aresitos.vista.vista_dashboard import VistaDashboard
+            from Aresitos.vista.vista_dashboard import VistaDashboard
             VistaDashboard.log_actividad_global(mensaje, modulo, nivel)
             
         except Exception as e:

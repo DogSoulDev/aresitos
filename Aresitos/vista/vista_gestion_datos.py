@@ -10,7 +10,7 @@ import threading
 from pathlib import Path
 
 try:
-    from aresitos.vista.burp_theme import burp_theme
+    from Aresitos.vista.burp_theme import burp_theme
     BURP_THEME_AVAILABLE = True
 except ImportError:
     BURP_THEME_AVAILABLE = False
@@ -417,8 +417,8 @@ class VistaGestionDatos(tk.Frame):
     
     def cargar_archivo(self):
         """Cargar archivo externo con validación de seguridad."""
-        from aresitos.utils.sanitizador_archivos import SanitizadorArchivos
-        from aresitos.utils.helper_seguridad import HelperSeguridad
+        from Aresitos.utils.sanitizador_archivos import SanitizadorArchivos
+        from Aresitos.utils.helper_seguridad import HelperSeguridad
         
         # Mostrar información de seguridad al usuario
         if not HelperSeguridad.mostrar_info_carga_archivo(self.tipo_actual):
@@ -478,7 +478,7 @@ class VistaGestionDatos(tk.Frame):
     
     def mostrar_ayuda_formatos(self):
         """Mostrar ayuda sobre formatos de archivo soportados."""
-        from aresitos.utils.helper_seguridad import HelperSeguridad
+        from Aresitos.utils.helper_seguridad import HelperSeguridad
         
         self.log_to_terminal(f"INFO Mostrando ayuda de formatos para {self.tipo_actual}")
         HelperSeguridad.mostrar_ayuda_formatos(self.tipo_actual)
@@ -669,7 +669,7 @@ class VistaGestionDatos(tk.Frame):
         """Registrar mensaje en el terminal integrado global."""
         try:
             # Usar el terminal global de VistaDashboard
-            from aresitos.vista.vista_dashboard import VistaDashboard
+            from Aresitos.vista.vista_dashboard import VistaDashboard
             VistaDashboard.log_actividad_global(mensaje, modulo, nivel)
             
         except Exception as e:
@@ -1033,7 +1033,7 @@ class VistaGestionDatos(tk.Frame):
         
         # Validar comando con el módulo de seguridad
         try:
-            from aresitos.utils.seguridad_comandos import validador_comandos
+            from Aresitos.utils.seguridad_comandos import validador_comandos
             
             es_valido, comando_sanitizado, mensaje = validador_comandos.validar_comando_completo(comando)
             
@@ -1271,7 +1271,7 @@ class VistaGestionDatos(tk.Frame):
     def _mostrar_ayuda_comandos(self):
         """Mostrar ayuda de comandos disponibles."""
         try:
-            from aresitos.utils.seguridad_comandos import validador_comandos
+            from Aresitos.utils.seguridad_comandos import validador_comandos
             
             comandos = validador_comandos.obtener_comandos_disponibles()
             
@@ -1296,7 +1296,7 @@ class VistaGestionDatos(tk.Frame):
     def _mostrar_info_seguridad(self):
         """Mostrar información de seguridad actual."""
         try:
-            from aresitos.utils.seguridad_comandos import validador_comandos
+            from Aresitos.utils.seguridad_comandos import validador_comandos
             
             info = validador_comandos.obtener_info_seguridad()
             

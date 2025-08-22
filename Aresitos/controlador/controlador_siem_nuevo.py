@@ -22,7 +22,7 @@ from datetime import datetime
 from typing import Dict, Any, List, Optional
 from collections import defaultdict, deque
 
-from aresitos.controlador.controlador_base import ControladorBase
+from Aresitos.controlador.controlador_base import ControladorBase
 
 class ControladorSIEM(ControladorBase):
     """
@@ -95,7 +95,7 @@ class ControladorSIEM(ControladorBase):
             # Verificar o crear modelo SIEM
             if not self.siem:
                 try:
-                    from aresitos.modelo.modelo_siem import SIEM
+                    from Aresitos.modelo.modelo_siem import SIEM
                     self.siem = SIEM()
                     self.logger.info("Modelo SIEM creado internamente")
                 except ImportError:

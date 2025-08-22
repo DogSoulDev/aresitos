@@ -18,8 +18,8 @@ import logging
 from typing import Optional, Any
 
 try:
-    from aresitos.vista.burp_theme import burp_theme
-    from aresitos.utils.sudo_manager import get_sudo_manager, is_sudo_available
+    from Aresitos.vista.burp_theme import burp_theme
+    from Aresitos.utils.sudo_manager import get_sudo_manager, is_sudo_available
     BURP_THEME_AVAILABLE = True
 except ImportError:
     BURP_THEME_AVAILABLE = False
@@ -788,7 +788,7 @@ LISTO PARA: Producción en entornos Kali Linux
         """Log al terminal integrado de manera segura."""
         try:
             # Importar terminal global
-            from aresitos.vista.vista_dashboard import VistaDashboard
+            from Aresitos.vista.vista_dashboard import VistaDashboard
             if hasattr(VistaDashboard, '_terminal_widget') and VistaDashboard._terminal_widget is not None:
                 def _update_terminal():
                     try:

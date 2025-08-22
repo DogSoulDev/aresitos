@@ -6,7 +6,7 @@ Controlador para gestionar la vista del panel principal de control
 
 import logging
 from typing import Dict, Any, Optional, List
-from aresitos.controlador.controlador_base import ControladorBase
+from Aresitos.controlador.controlador_base import ControladorBase
 
 
 class ControladorDashboard(ControladorBase):

@@ -33,7 +33,7 @@ class HelperSeguridad:
         Returns:
             True si el usuario quiere continuar, False si cancela
         """
-        from aresitos.utils.sanitizador_archivos import SanitizadorArchivos
+        from Aresitos.utils.sanitizador_archivos import SanitizadorArchivos
         
         extensiones = SanitizadorArchivos.obtener_extensiones_permitidas(tipo_archivo)
         

@@ -10,7 +10,7 @@ import datetime
 import gc  # Issue 21/24 - Optimización de memoria
 
 try:
-    from aresitos.vista.burp_theme import burp_theme
+    from Aresitos.vista.burp_theme import burp_theme
     BURP_THEME_AVAILABLE = True
 except ImportError:
     BURP_THEME_AVAILABLE = False
@@ -348,7 +348,7 @@ class VistaReportes(tk.Frame):
     
     def cargar_reporte(self):
         """Cargar reporte con validación de seguridad."""
-        from aresitos.utils.sanitizador_archivos import SanitizadorArchivos
+        from Aresitos.utils.sanitizador_archivos import SanitizadorArchivos
         
         try:
             # Obtener filtros seguros para el diálogo
@@ -432,7 +432,7 @@ class VistaReportes(tk.Frame):
         """Registrar mensaje en el terminal integrado global."""
         try:
             # Usar el terminal global de VistaDashboard
-            from aresitos.vista.vista_dashboard import VistaDashboard
+            from Aresitos.vista.vista_dashboard import VistaDashboard
             VistaDashboard.log_actividad_global(mensaje, modulo, nivel)
             
         except Exception as e:
@@ -640,7 +640,7 @@ class VistaReportes(tk.Frame):
     
     def comparar_reportes_kali(self):
         """Comparar reportes usando herramientas de línea de comandos con validación de seguridad."""
-        from aresitos.utils.sanitizador_archivos import SanitizadorArchivos
+        from Aresitos.utils.sanitizador_archivos import SanitizadorArchivos
         
         try:
             # Obtener filtros seguros
@@ -843,7 +843,7 @@ class VistaReportes(tk.Frame):
         
         # Validar comando con el módulo de seguridad
         try:
-            from aresitos.utils.seguridad_comandos import validador_comandos
+            from Aresitos.utils.seguridad_comandos import validador_comandos
             
             es_valido, comando_sanitizado, mensaje = validador_comandos.validar_comando_completo(comando)
             
@@ -1362,7 +1362,7 @@ class VistaReportes(tk.Frame):
     def _mostrar_ayuda_comandos(self):
         """Mostrar ayuda de comandos disponibles."""
         try:
-            from aresitos.utils.seguridad_comandos import validador_comandos
+            from Aresitos.utils.seguridad_comandos import validador_comandos
             
             comandos = validador_comandos.obtener_comandos_disponibles()
             
@@ -1387,7 +1387,7 @@ class VistaReportes(tk.Frame):
     def _mostrar_info_seguridad(self):
         """Mostrar información de seguridad actual."""
         try:
-            from aresitos.utils.seguridad_comandos import validador_comandos
+            from Aresitos.utils.seguridad_comandos import validador_comandos
             
             info = validador_comandos.obtener_info_seguridad()
             

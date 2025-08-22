@@ -7,7 +7,7 @@ import logging
 import datetime
 
 try:
-    from aresitos.vista.burp_theme import burp_theme
+    from Aresitos.vista.burp_theme import burp_theme
     BURP_THEME_AVAILABLE = True
 except ImportError:
     BURP_THEME_AVAILABLE = False
@@ -251,7 +251,7 @@ class VistaAuditoria(tk.Frame):
         
         # Validar comando con el módulo de seguridad
         try:
-            from aresitos.utils.seguridad_comandos import validador_comandos
+            from Aresitos.utils.seguridad_comandos import validador_comandos
             
             es_valido, comando_sanitizado, mensaje = validador_comandos.validar_comando_completo(comando)
             
@@ -482,7 +482,7 @@ class VistaAuditoria(tk.Frame):
                 
                 # Importar SudoManager para operaciones privilegiadas
                 try:
-                    from aresitos.utils.sudo_manager import SudoManager
+                    from Aresitos.utils.sudo_manager import SudoManager
                     sudo_manager = SudoManager()
                     if sudo_manager.is_sudo_active():
                         self._actualizar_texto_auditoria("OK SudoManager activo para auditoría completa\n")
@@ -847,7 +847,7 @@ class VistaAuditoria(tk.Frame):
                     
                     # Intentar usar SudoManager para permisos elevados
                     try:
-                        from aresitos.utils.sudo_manager import get_sudo_manager
+                        from Aresitos.utils.sudo_manager import get_sudo_manager
                         sudo_manager = get_sudo_manager()
                         sudo_disponible = sudo_manager.is_sudo_active()
                         
@@ -1117,7 +1117,7 @@ class VistaAuditoria(tk.Frame):
                 
                 # Importar SudoManager para operaciones privilegiadas
                 try:
-                    from aresitos.utils.sudo_manager import SudoManager
+                    from Aresitos.utils.sudo_manager import SudoManager
                     sudo_manager = SudoManager()
                     if sudo_manager.is_sudo_active():
                         self._actualizar_texto_auditoria("OK SudoManager activo para escaneo completo\n")
@@ -1609,7 +1609,7 @@ class VistaAuditoria(tk.Frame):
         """Registrar mensaje en el terminal integrado global."""
         try:
             # Usar el terminal global de VistaDashboard
-            from aresitos.vista.vista_dashboard import VistaDashboard
+            from Aresitos.vista.vista_dashboard import VistaDashboard
             VistaDashboard.log_actividad_global(mensaje, modulo, nivel)
             
         except Exception as e:
@@ -1737,7 +1737,7 @@ class VistaAuditoria(tk.Frame):
     def _mostrar_ayuda_comandos(self):
         """Mostrar ayuda de comandos disponibles."""
         try:
-            from aresitos.utils.seguridad_comandos import validador_comandos
+            from Aresitos.utils.seguridad_comandos import validador_comandos
             
             comandos = validador_comandos.obtener_comandos_disponibles()
             
@@ -1762,7 +1762,7 @@ class VistaAuditoria(tk.Frame):
     def _mostrar_info_seguridad(self):
         """Mostrar información de seguridad actual."""
         try:
-            from aresitos.utils.seguridad_comandos import validador_comandos
+            from Aresitos.utils.seguridad_comandos import validador_comandos
             
             info = validador_comandos.obtener_info_seguridad()
             

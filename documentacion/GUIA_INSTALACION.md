@@ -341,7 +341,7 @@ Aresitos/
 python3 verificacion_final.py
 
 # Verificar herramientas específicas de Kali Linux
-python3 -c "from aresitos.utils.verificar_kali import verificar_herramientas; verificar_herramientas()"
+python3 -c "from Aresitos.utils.verificar_kali import verificar_herramientas; verificar_herramientas()"
 ```
 
 ### Verificación Manual de la Interfaz
@@ -433,7 +433,7 @@ sudo usermod -a -G sudo,adm $USER
 #### "Base de datos no encontrada"
 ```bash
 # Recrear bases de datos automáticamente
-python3 -c "from aresitos.modelo.modelo_principal import ModeloPrincipal; ModeloPrincipal()"
+python3 -c "from Aresitos.modelo.modelo_principal import ModeloPrincipal; ModeloPrincipal()"
 ```
 
 #### "Error de dependencias Python"
@@ -694,7 +694,7 @@ python verificacion_final.py
 python main.py
 
 # Verificación rápida
-python -c "import aresitos; print('✅ ARESITOS OK')"
+python -c "import Aresitos; print('✅ ARESITOS OK')"
 
 # Debug mode
 python main.py --dev

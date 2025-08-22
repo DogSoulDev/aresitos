@@ -3,7 +3,7 @@
 import subprocess
 import re
 import shlex
-from aresitos.modelo.modelo_utilidades_sistema import ModeloUtilidadesSistema
+from Aresitos.modelo.modelo_utilidades_sistema import ModeloUtilidadesSistema
 
 class ControladorHerramientas:
     
