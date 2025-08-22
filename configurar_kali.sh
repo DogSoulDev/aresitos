@@ -1,27 +1,27 @@
 #!/bin/bash
 # -*- coding: utf-8 -*-
-"""
-ARESITOS v2.0 - Script de Configuración para Kali Linux
-=======================================================
-
-Script de configuración automática para preparar Kali Linux
-para ejecutar ARESITOS con todas las funcionalidades.
-
-Funciones principales:
-- Instalar herramientas de ciberseguridad necesarias
-- Configurar permisos sudo para herramientas específicas
-- Configurar permisos de red para escaneo
-- Actualizar bases de datos de vulnerabilidades
-- Verificar funcionamiento completo del sistema
-
-Autor: DogSoulDev
-Fecha: 18 de Agosto de 2025
-Versión: 2.0
-Proyecto: ARESITOS - Suite de Ciberseguridad
-
-IMPORTANTE: Este script debe ejecutarse como root o con sudo
-sudo ./configurar_kali.sh
-"""
+#
+# ARESITOS v2.0 - Script de Configuración para Kali Linux
+# =======================================================
+#
+# Script de configuración automática para preparar Kali Linux
+# para ejecutar ARESITOS con todas las funcionalidades.
+#
+# Funciones principales:
+# - Instalar herramientas de ciberseguridad necesarias
+# - Configurar permisos sudo para herramientas específicas
+# - Configurar permisos de red para escaneo
+# - Actualizar bases de datos de vulnerabilidades
+# - Verificar funcionamiento completo del sistema
+#
+# Autor: DogSoulDev
+# Fecha: 18 de Agosto de 2025
+# Versión: 2.0
+# Proyecto: ARESITOS - Suite de Ciberseguridad
+#
+# IMPORTANTE: Este script debe ejecutarse como root o con sudo
+# sudo ./configurar_kali.sh
+#
 
 # Colores para output
 RED='\033[0;31m'
