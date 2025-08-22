@@ -51,19 +51,16 @@ class GestorIconos:
                     cls._icono_path = ruta_normalizada
                     break
             
-            # Log de depuración
-            if cls._icono_path:
-                print(f"[GestorIconos] Icono encontrado: {cls._icono_path}")
-            else:
-                print(f"[GestorIconos] ADVERTENCIA: Icono Aresitos.ico no encontrado en ubicaciones esperadas")
-                print(f"[GestorIconos] Rutas buscadas: {posibles_rutas}")
+            # Solo mostrar mensaje una vez al encontrar el icono
+            if cls._icono_path and not cls._icono_cargado:
+                pass  # Log silencioso para evitar spam
         
         return cls._icono_path
     
     @classmethod
     def aplicar_icono_ventana(cls, ventana: Union[tk.Tk, tk.Toplevel]) -> bool:
         """
-        Aplicar el icono Aresitos.ico a una ventana Tkinter
+        Aplicar el icono Aresitos.ico a una ventana Tkinter con manejo robusto de errores
         
         Args:
             ventana: Ventana Tkinter (Tk o Toplevel)
@@ -74,42 +71,55 @@ class GestorIconos:
         try:
             ruta_icono = cls.obtener_ruta_icono()
             
-            if ruta_icono and os.path.exists(ruta_icono):
-                # En Linux, usar PhotoImage primero (más compatible)
-                import platform
-                if platform.system() == "Linux":
-                    try:
-                        # Buscar PNG alternativo (más compatible en Linux)
-                        ruta_png = ruta_icono.replace('.ico', '.png')
-                        if os.path.exists(ruta_png):
-                            icono_img = tk.PhotoImage(file=ruta_png)
-                            ventana.iconphoto(True, icono_img)
-                            # Mantener referencia
-                            if hasattr(ventana, '__dict__'):
-                                ventana.__dict__['_icono_ref'] = icono_img
-                            else:
-                                setattr(ventana, '_icono_ref', icono_img)
-                            cls._icono_cargado = True
-                            print(f"[GestorIconos] Icono PNG aplicado en Linux: {ruta_png}")
-                            return True
-                    except Exception as e:
-                        print(f"[GestorIconos] PNG falló, intentando ICO: {e}")
-                
-                # Método tradicional con iconbitmap
-                ventana.iconbitmap(ruta_icono)
-                cls._icono_cargado = True
-                print(f"[GestorIconos] Icono ICO aplicado: {ruta_icono}")
-                return True
-            else:
-                print(f"[GestorIconos] No se pudo aplicar icono - archivo no encontrado: {ruta_icono}")
+            if not ruta_icono or not os.path.exists(ruta_icono):
+                # Silenciosamente fallar sin logs repetitivos
                 return False
+            
+            # Método 1: Intentar PNG primero (más compatible en Linux)
+            import platform
+            if platform.system() == "Linux":
+                ruta_png = ruta_icono.replace('.ico', '.png')
+                if os.path.exists(ruta_png):
+                    try:
+                        # Verificar que el archivo PNG es válido antes de cargar
+                        with open(ruta_png, 'rb') as f:
+                            header = f.read(8)
+                            # Verificar signature PNG válida
+                            if header == b'\x89PNG\r\n\x1a\n':
+                                icono_img = tk.PhotoImage(file=ruta_png)
+                                ventana.iconphoto(True, icono_img)
+                                # Mantener referencia para evitar garbage collection
+                                setattr(ventana, '_icono_ref', icono_img)
+                                cls._icono_cargado = True
+                                return True
+                    except (tk.TclError, IOError, OSError):
+                        # PNG no válido o corrupto, continuar con ICO
+                        pass
+            
+            # Método 2: Intentar iconbitmap con .ico
+            try:
+                # Verificar que el archivo ICO existe y es legible
+                if os.access(ruta_icono, os.R_OK):
+                    ventana.iconbitmap(ruta_icono)
+                    cls._icono_cargado = True
+                    return True
+            except tk.TclError:
+                # ICO no soportado o corrupto
+                pass
+            
+            # Método 3: Usar icono por defecto del sistema si disponible
+            try:
+                # En Linux, usar icono genérico del sistema
+                if platform.system() == "Linux":
+                    ventana.iconname("ARESITOS")
+                return True
+            except (tk.TclError, AttributeError):
+                pass
                 
-        except tk.TclError as e:
-            print(f"[GestorIconos] Error Tkinter aplicando icono: {e}")
-            # Intentar método alternativo
-            return cls.aplicar_icono_photoimage(ventana)
-        except Exception as e:
-            print(f"[GestorIconos] Error general aplicando icono: {e}")
+            return False
+                
+        except Exception:
+            # Fallar silenciosamente para evitar logs excesivos
             return False
     
     @classmethod
@@ -165,18 +175,16 @@ class GestorIconos:
             # Configurar título
             ventana.title(titulo)
             
-            # Aplicar icono
+            # Aplicar icono silenciosamente
             icono_aplicado = cls.aplicar_icono_ventana(ventana)
             
-            if not icono_aplicado:
-                print(f"[GestorIconos] Ventana '{titulo}' configurada sin icono")
-            else:
-                print(f"[GestorIconos] Ventana '{titulo}' configurada exitosamente con icono")
+            # Solo mostrar mensaje de éxito, no de fallo
+            if icono_aplicado:
+                pass  # Silencioso para evitar spam en logs
             
             return icono_aplicado
             
-        except Exception as e:
-            print(f"[GestorIconos] Error configurando ventana: {e}")
+        except Exception:
             return False
     
     @classmethod

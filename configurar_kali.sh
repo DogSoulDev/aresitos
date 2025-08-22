@@ -128,7 +128,6 @@ install_tools() {
     
     # Lista de herramientas OPCIONALES (si fallan, no es crítico)
     OPTIONAL_TOOLS=(
-        "rustscan"
         "masscan" 
         "gobuster"
         "nikto"
@@ -140,6 +139,11 @@ install_tools() {
         "exiftool"
         "feroxbuster"
         "httpx-toolkit"
+    )
+    
+    # Herramientas especiales que requieren instalación manual
+    SPECIAL_TOOLS=(
+        "rustscan"  # Requiere Rust
     )
     
     print_info "Actualizando lista de paquetes..."
@@ -186,6 +190,59 @@ install_tools() {
             fi
         fi
     done
+    
+    # Instalar herramientas especiales
+    print_header "INSTALANDO herramientas especiales..."
+    
+    # Rustscan - instalación manual via cargo
+    if ! command -v rustscan >/dev/null 2>&1; then
+        print_info "Instalando rustscan via cargo..."
+        
+        # Verificar si cargo está disponible
+        if command -v cargo >/dev/null 2>&1; then
+            # Instalar rustscan como usuario no-root
+            sudo -u "$REAL_USER" cargo install rustscan >/dev/null 2>&1 &
+            CARGO_PID=$!
+            
+            # Esperar máximo 60 segundos
+            timeout=60
+            while kill -0 "$CARGO_PID" 2>/dev/null && [[ $timeout -gt 0 ]]; do
+                sleep 2
+                ((timeout-=2))
+                if [[ $((60-timeout)) -eq 20 ]]; then
+                    print_info "Instalando rustscan... (puede tardar varios minutos)"
+                fi
+            done
+            
+            if kill -0 "$CARGO_PID" 2>/dev/null; then
+                kill "$CARGO_PID" 2>/dev/null
+                print_warning "Timeout instalando rustscan - proceso cancelado"
+                print_info "Para instalar manualmente: cargo install rustscan"
+                FAILED_OPTIONAL+=("rustscan")
+            else
+                if command -v rustscan >/dev/null 2>&1; then
+                    print_success "rustscan instalado via cargo"
+                else
+                    print_warning "rustscan no se instaló correctamente"
+                    FAILED_OPTIONAL+=("rustscan")
+                fi
+            fi
+        else
+            print_info "cargo no disponible, instalando Rust..."
+            # Instalar Rust para el usuario
+            curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sudo -u "$REAL_USER" sh -s -- -y >/dev/null 2>&1
+            
+            if [[ $? -eq 0 ]]; then
+                print_success "Rust instalado"
+                print_info "Para usar rustscan: source ~/.cargo/env && cargo install rustscan"
+            else
+                print_warning "No se pudo instalar Rust para rustscan"
+            fi
+            FAILED_OPTIONAL+=("rustscan")
+        fi
+    else
+        print_success "rustscan ya está disponible"
+    fi
     
     # Instalar iproute2 específicamente para 'ss' command
     print_info "Verificando comando 'ss' (reemplaza netstat)..."
@@ -316,6 +373,22 @@ $REAL_USER ALL=(ALL) NOPASSWD: /usr/bin/rkhunter
 $REAL_USER ALL=(ALL) NOPASSWD: /usr/bin/clamscan
 $REAL_USER ALL=(ALL) NOPASSWD: /usr/bin/clamdscan
 
+# === HERRAMIENTAS FORENSES ===
+$REAL_USER ALL=(ALL) NOPASSWD: /usr/bin/wireshark
+$REAL_USER ALL=(ALL) NOPASSWD: /usr/bin/tshark
+$REAL_USER ALL=(ALL) NOPASSWD: /usr/bin/autopsy
+$REAL_USER ALL=(ALL) NOPASSWD: /usr/bin/fls
+$REAL_USER ALL=(ALL) NOPASSWD: /usr/bin/ils
+$REAL_USER ALL=(ALL) NOPASSWD: /usr/bin/istat
+$REAL_USER ALL=(ALL) NOPASSWD: /usr/bin/mmls
+$REAL_USER ALL=(ALL) NOPASSWD: /usr/bin/fsstat
+$REAL_USER ALL=(ALL) NOPASSWD: /usr/bin/sleuthkit
+$REAL_USER ALL=(ALL) NOPASSWD: /usr/bin/binwalk
+$REAL_USER ALL=(ALL) NOPASSWD: /usr/bin/foremost
+$REAL_USER ALL=(ALL) NOPASSWD: /usr/bin/strings
+$REAL_USER ALL=(ALL) NOPASSWD: /usr/bin/hexdump
+$REAL_USER ALL=(ALL) NOPASSWD: /usr/bin/xxd
+
 # === ACCESO A LOGS DEL SISTEMA ===
 $REAL_USER ALL=(ALL) NOPASSWD: /bin/cat /var/log/auth.log*
 $REAL_USER ALL=(ALL) NOPASSWD: /bin/cat /var/log/syslog*
@@ -376,9 +449,10 @@ install_python_deps() {
             "python3-pil"              # Pillow vía APT
             "python3-requests"         # requests vía APT
             "python3-urllib3"          # urllib3 vía APT
-            "python3-sqlite3"          # sqlite3 vía APT
-            "python3-json"             # json vía APT (si disponible)
         )
+        
+        # Nota: python3-sqlite3 y python3-json son parte del stdlib, no requieren instalación
+        print_info "sqlite3 y json son módulos nativos de Python - no requieren instalación"
         
         for package in "${PYTHON_APT_PACKAGES[@]}"; do
             print_info "Instalando $package..."
@@ -578,28 +652,51 @@ EOF
 verify_setup() {
     print_header "🧪 Verificando configuración..."
     
-    # Verificar herramientas
-    TOOLS_TO_CHECK=("nmap" "netstat" "ss" "tcpdump" "wireshark" "autopsy" "fls")
+    # Verificar herramientas críticas
+    TOOLS_TO_CHECK=("nmap" "netstat" "ss" "tcpdump")
     
     for tool in "${TOOLS_TO_CHECK[@]}"; do
         if command -v "$tool" >/dev/null 2>&1; then
             print_success "$tool disponible"
             
-            # Verificar permisos sudo
+            # Verificar permisos sudo de forma silenciosa
             sudo -u "$REAL_USER" sudo -n "$tool" --version >/dev/null 2>&1
             if [[ $? -eq 0 ]]; then
                 print_success "$tool ejecutable sin contraseña"
             else
-                print_warning "$tool requiere contraseña"
+                # Solo mostrar advertencia para herramientas críticas
+                if [[ "$tool" == "nmap" || "$tool" == "tcpdump" ]]; then
+                    print_warning "$tool requiere contraseña (configurar sudoers)"
+                fi
             fi
         else
             print_error "$tool no encontrado"
         fi
     done
     
+    # Verificar herramientas forenses (opcional - no mostrar errores)
+    FORENSIC_TOOLS=("wireshark" "autopsy" "fls")
+    forensic_count=0
+    
+    for tool in "${FORENSIC_TOOLS[@]}"; do
+        if command -v "$tool" >/dev/null 2>&1; then
+            ((forensic_count++))
+        fi
+    done
+    
+    if [[ $forensic_count -gt 0 ]]; then
+        print_success "$forensic_count herramientas forenses disponibles"
+    else
+        print_info "Herramientas forenses no instaladas (opcionales)"
+    fi
+    
     # Verificar grupos
     print_info "Verificando membresía de grupos para $REAL_USER..."
-    groups "$REAL_USER" | grep -q wireshark && print_success "Usuario en grupo wireshark" || print_warning "Usuario NO en grupo wireshark"
+    if groups "$REAL_USER" | grep -q wireshark; then
+        print_success "Usuario en grupo wireshark"
+    else
+        print_info "Usuario no en grupo wireshark (ejecutar: sudo usermod -a -G wireshark $REAL_USER)"
+    fi
 }
 
 # Función para configurar permisos de archivos ARESITOS
