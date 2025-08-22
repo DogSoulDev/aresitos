@@ -4,6 +4,7 @@ import tkinter as tk
 from tkinter import ttk, scrolledtext, messagebox, filedialog
 import threading
 import os
+import subprocess
 import logging
 import datetime
 
@@ -122,81 +123,135 @@ class VistaFIM(tk.Frame):
             pass  # Si falla, usar posición por defecto
     
     def crear_terminal_integrado(self, parent_frame):
-        """Crear terminal integrado en la vista FIM."""
-        # Título del terminal
-        titulo_terminal = tk.Label(parent_frame, 
-                                 text="Terminal ARESITOS - FIM", 
-                                 bg=self.colors['bg_secondary'], 
-                                 fg=self.colors['fg_accent'],
-                                 font=('Arial', 11, 'bold'))
-        titulo_terminal.pack(anchor="w", padx=5, pady=(5, 0))
-        
-        # Frame para el terminal
-        terminal_content = tk.Frame(parent_frame, bg=self.colors['bg_secondary'])
-        terminal_content.pack(fill="both", expand=True, padx=5, pady=5)
-        
-        # Widget de texto para el terminal (usando el terminal global del Dashboard)
+        """Crear terminal integrado FIM con diseño estándar coherente."""
         try:
-            from aresitos.vista.vista_dashboard import VistaDashboard
-            terminal_global = VistaDashboard.obtener_terminal_global()
+            # Frame del terminal estilo dashboard (reemplaza el parent_frame directamente)
+            # Configurar el parent_frame como LabelFrame estilo dashboard
+            parent_frame.config(relief="ridge", bd=2)
             
-            if terminal_global:
-                # Si hay terminal global, mostrar referencia
-                info_label = tk.Label(terminal_content,
-                                    text="Terminal compartido con Dashboard - Ver pestaña Dashboard para terminal completo",
-                                    bg=self.colors['bg_secondary'],
-                                    fg=self.colors['fg_primary'],
-                                    font=('Arial', 10),
-                                    wraplength=600)
-                info_label.pack(pady=20)
-                
-                # Mostrar últimas actividades de FIM
-                self.mini_terminal = scrolledtext.ScrolledText(terminal_content,
-                                                             height=8,
-                                                             bg='#000000',
-                                                             fg='#00ff00',
-                                                             font=("Consolas", 9),
-                                                             insertbackground='#00ff00')
-                self.mini_terminal.pack(fill="both", expand=True)
-                
-                # Mensaje inicial
-                import datetime
-                self.mini_terminal.insert(tk.END, f"=== FIM Terminal Local ===\n")
-                self.mini_terminal.insert(tk.END, f"Iniciado: {datetime.datetime.now().strftime('%H:%M:%S')}\n")
-                self.mini_terminal.insert(tk.END, f"Actividades de File Integrity Monitoring\n\n")
-            else:
-                # Si no hay terminal global, crear uno local
-                self.crear_terminal_local(terminal_content)
-                
+            # Título del terminal estilo dashboard
+            titulo_frame = tk.Frame(parent_frame, bg=self.colors['bg_secondary'])
+            titulo_frame.pack(fill="x", padx=5, pady=2)
+            
+            titulo_label = tk.Label(titulo_frame,
+                                   text="Terminal ARESITOS - FIM",
+                                   bg=self.colors['bg_secondary'],
+                                   fg=self.colors['fg_primary'],
+                                   font=("Arial", 10, "bold"))
+            titulo_label.pack(side="left")
+            
+            # Frame para controles del terminal (compacto)
+            controles_frame = tk.Frame(parent_frame, bg=self.colors['bg_secondary'])
+            controles_frame.pack(fill="x", padx=5, pady=2)
+            
+            # Botón limpiar terminal (estilo dashboard, compacto)
+            btn_limpiar = tk.Button(
+                controles_frame,
+                text="LIMPIAR",
+                command=self.limpiar_terminal_fim,
+                bg='#ffaa00',
+                fg='white',
+                font=("Arial", 8, "bold"),
+                height=1
+            )
+            btn_limpiar.pack(side="left", padx=2, fill="x", expand=True)
+            
+            # Botón ver logs (estilo dashboard, compacto)
+            btn_logs = tk.Button(
+                controles_frame,
+                text="VER LOGS",
+                command=self.abrir_logs_fim,
+                bg='#007acc',
+                fg='white',
+                font=("Arial", 8, "bold"),
+                height=1
+            )
+            btn_logs.pack(side="left", padx=2, fill="x", expand=True)
+            
+            # Área de terminal (misma estética que dashboard, más pequeña)
+            self.terminal_output = scrolledtext.ScrolledText(
+                parent_frame,
+                height=6,  # Más pequeño que dashboard
+                bg='#000000',  # Fondo negro como dashboard
+                fg='#00ff00',  # Texto verde como dashboard
+                font=("Consolas", 8),  # Fuente menor que dashboard
+                insertbackground='#00ff00',
+                selectbackground='#333333'
+            )
+            self.terminal_output.pack(fill="both", expand=True, padx=5, pady=5)
+            
+            # Mensaje inicial estilo dashboard
+            self.terminal_output.insert(tk.END, "="*60 + "\n")
+            self.terminal_output.insert(tk.END, "Terminal ARESITOS - FIM v2.0\n")
+            self.terminal_output.insert(tk.END, f"Iniciado: {datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')}\n")
+            self.terminal_output.insert(tk.END, f"Sistema: Kali Linux - File Integrity Monitoring\n")
+            self.terminal_output.insert(tk.END, "="*60 + "\n")
+            self.terminal_output.insert(tk.END, "LOG Monitoreo FIM en tiempo real\n\n")
+            
         except Exception as e:
-            # Fallback: crear terminal local
-            self.crear_terminal_local(terminal_content)
+            # Fallback: crear terminal básico
+            self.crear_terminal_local(parent_frame)
+    
+    def limpiar_terminal_fim(self):
+        """Limpiar terminal FIM manteniendo cabecera."""
+        try:
+            if hasattr(self, 'terminal_output'):
+                self.terminal_output.delete(1.0, tk.END)
+                # Recrear cabecera estándar
+                self.terminal_output.insert(tk.END, "="*60 + "\n")
+                self.terminal_output.insert(tk.END, "Terminal ARESITOS - FIM v2.0\n")
+                self.terminal_output.insert(tk.END, f"Limpiado: {datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')}\n")
+                self.terminal_output.insert(tk.END, "Sistema: Kali Linux - File Integrity Monitoring\n")
+                self.terminal_output.insert(tk.END, "="*60 + "\n")
+                self.terminal_output.insert(tk.END, "LOG Terminal FIM reiniciado\n\n")
+        except Exception as e:
+            print(f"Error limpiando terminal FIM: {e}")
+    
+    def abrir_logs_fim(self):
+        """Abrir carpeta de logs FIM."""
+        try:
+            import os
+            import platform
+            logs_path = "logs/"
+            if os.path.exists(logs_path):
+                if platform.system() == "Linux":
+                    subprocess.run(["xdg-open", logs_path], check=False)
+                else:
+                    subprocess.run(["explorer", logs_path], check=False)
+                self.log_to_terminal("Carpeta de logs FIM abierta")
+            else:
+                self.log_to_terminal("WARNING: Carpeta de logs no encontrada")
+        except Exception as e:
+            self.log_to_terminal(f"ERROR abriendo logs FIM: {e}")
     
     def crear_terminal_local(self, parent_frame):
-        """Crear terminal local si no hay terminal global disponible."""
-        self.mini_terminal = scrolledtext.ScrolledText(parent_frame,
-                                                     height=8,
+        """Crear terminal local si no hay terminal global disponible (fallback)."""
+        self.terminal_output = scrolledtext.ScrolledText(parent_frame,
+                                                     height=6,
                                                      bg='#000000',
                                                      fg='#00ff00',
-                                                     font=("Consolas", 9),
+                                                     font=("Consolas", 8),
                                                      insertbackground='#00ff00')
-        self.mini_terminal.pack(fill="both", expand=True)
+        self.terminal_output.pack(fill="both", expand=True)
         
         # Mensaje inicial
         import datetime
-        self.mini_terminal.insert(tk.END, f"=== Terminal FIM Local ===\n")
-        self.mini_terminal.insert(tk.END, f"Iniciado: {datetime.datetime.now().strftime('%H:%M:%S')}\n")
-        self.mini_terminal.insert(tk.END, f"File Integrity Monitoring\n\n")
+        self.terminal_output.insert(tk.END, f"=== Terminal FIM Local ===\n")
+        self.terminal_output.insert(tk.END, f"Iniciado: {datetime.datetime.now().strftime('%H:%M:%S')}\n")
+        self.terminal_output.insert(tk.END, f"File Integrity Monitoring\n\n")
     
     def log_to_terminal(self, mensaje):
-        """Enviar mensaje al terminal integrado."""
+        """Registrar mensaje en el terminal con formato estándar."""
         try:
-            if hasattr(self, 'mini_terminal') and self.mini_terminal:
-                timestamp = datetime.datetime.now().strftime("%H:%M:%S")
-                self.mini_terminal.insert(tk.END, f"[{timestamp}] {mensaje}\n")
-                self.mini_terminal.see(tk.END)
+            timestamp = datetime.datetime.now().strftime("%H:%M:%S")
+            mensaje_completo = f"[{timestamp}] {mensaje}\n"
+            
+            # Log al terminal integrado estándar
+            if hasattr(self, 'terminal_output'):
+                self.terminal_output.insert(tk.END, mensaje_completo)
+                self.terminal_output.see(tk.END)
         except:
-            pass  # Si no hay terminal, ignorar
+            pass  # Si no hay terminal, ignorar silenciosamente
     
     def crear_contenido_fim(self, parent_frame):
         """Crear el contenido principal de FIM."""
