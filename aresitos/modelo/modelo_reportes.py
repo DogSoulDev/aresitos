@@ -69,13 +69,14 @@ class ModeloReportes:
                 import tempfile
                 return tempfile.mkdtemp(prefix="aresitos_reportes_")
     
-    def generar_reporte_completo(self, datos_escaneo: Dict, datos_monitoreo: Dict, datos_utilidades: Dict, datos_fim: Optional[Dict] = None, datos_siem: Optional[Dict] = None, datos_cuarentena: Optional[Dict] = None) -> Dict[str, Any]:
+    def generar_reporte_completo(self, datos_escaneo: Dict, datos_monitoreo: Dict, datos_utilidades: Dict, datos_fim: Optional[Dict] = None, datos_siem: Optional[Dict] = None, datos_cuarentena: Optional[Dict] = None, datos_terminal_principal: Optional[Dict] = None) -> Dict[str, Any]:
         timestamp = datetime.datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
         
-        # Inicializar datos opcionales
+        # Inicializar datos opcionales - Issue 20/24
         datos_fim = datos_fim or {}
         datos_siem = datos_siem or {}
         datos_cuarentena = datos_cuarentena or {}
+        datos_terminal_principal = datos_terminal_principal or {}
         
         reporte = {
             "timestamp": timestamp,
@@ -89,7 +90,8 @@ class ModeloReportes:
                 "eventos_monitoreo": len(datos_monitoreo.get('eventos', [])),
                 "cambios_fim": len(datos_fim.get('cambios_detectados', [])),
                 "alertas_siem": len(datos_siem.get('alertas_generadas', [])),
-                "archivos_cuarentena": len(datos_cuarentena.get('archivos_aislados', []))
+                "archivos_cuarentena": len(datos_cuarentena.get('archivos_aislados', [])),
+                "terminal_principal_lineas": datos_terminal_principal.get('terminal_lines', 0)
             },
             "datos": {
                 "escaneo": datos_escaneo,
@@ -97,7 +99,8 @@ class ModeloReportes:
                 "utilidades": datos_utilidades,
                 "fim": datos_fim,
                 "siem": datos_siem,
-                "cuarentena": datos_cuarentena
+                "cuarentena": datos_cuarentena,
+                "terminal_principal": datos_terminal_principal
             }
         }
         
@@ -120,6 +123,7 @@ Eventos de monitoreo: {reporte['resumen']['eventos_monitoreo']}
 Cambios FIM detectados: {reporte['resumen'].get('cambios_fim', 0)}
 Alertas SIEM generadas: {reporte['resumen'].get('alertas_siem', 0)}
 Archivos en cuarentena: {reporte['resumen'].get('archivos_cuarentena', 0)}
+Terminal principal - lineas: {reporte['resumen'].get('terminal_principal_lineas', 0)}
 
 DETALLES
 --------
@@ -152,6 +156,24 @@ DETALLES
             texto += "\nArchivos en Cuarentena:\n"
             for archivo in reporte['datos']['cuarentena']['archivos_aislados']:
                 texto += f"- {archivo}\n"
+        
+        # Agregar información del terminal principal - Issue 20/24
+        if reporte['datos'].get('terminal_principal'):
+            terminal_data = reporte['datos']['terminal_principal']
+            if terminal_data.get('estado') == 'captura_completa':
+                texto += "\nTerminal Principal de Aresitos:\n"
+                if terminal_data.get('eventos_sistema'):
+                    texto += "Eventos del Sistema:\n"
+                    for evento in terminal_data['eventos_sistema'][:10]:  # Limitar a 10 eventos
+                        texto += f"- {evento}\n"
+                if terminal_data.get('comandos_ejecutados'):
+                    texto += "Comandos Ejecutados:\n"
+                    for comando in terminal_data['comandos_ejecutados'][:10]:  # Limitar a 10 comandos
+                        texto += f"- {comando}\n"
+                estadisticas = terminal_data.get('estadisticas', {})
+                texto += f"Estadísticas Terminal: {estadisticas.get('lineas_terminal', 0)} líneas, "
+                texto += f"{estadisticas.get('eventos_sistema', 0)} eventos, "
+                texto += f"{estadisticas.get('comandos_ejecutados', 0)} comandos\n"
         
         return texto
     

@@ -37,15 +37,16 @@ class ControladorReportes:
         """Valida que el formato sea permitido"""
         return formato.lower() in self.formatos_permitidos
     
-    def generar_reporte_completo(self, datos_escaneo=None, datos_monitoreo=None, datos_utilidades=None, datos_fim=None, datos_siem=None, datos_cuarentena=None):
-        """Genera reporte completo incluyendo todos los módulos optimizados para Kali"""
+    def generar_reporte_completo(self, datos_escaneo=None, datos_monitoreo=None, datos_utilidades=None, datos_fim=None, datos_siem=None, datos_cuarentena=None, datos_terminal_principal=None):
+        """Genera reporte completo incluyendo todos los módulos optimizados para Kali - Issue 20/24"""
         return self.reportes.generar_reporte_completo(
             datos_escaneo or {}, 
             datos_monitoreo or {}, 
             datos_utilidades or {},
             datos_fim or {},
             datos_siem or {},
-            datos_cuarentena or {}
+            datos_cuarentena or {},
+            datos_terminal_principal or {}
         )
     
     def guardar_reporte_json(self, reporte, nombre_archivo=None):
@@ -154,7 +155,7 @@ class ControladorReportes:
         except OSError:
             logging.error("Error de sistema al calcular espacio")
             return "Error de sistema"
-        except (IOError, OSError, PermissionError, FileNotFoundError):
+        except Exception:
             logging.error("Error no específico al calcular espacio")
             return "No disponible"
 

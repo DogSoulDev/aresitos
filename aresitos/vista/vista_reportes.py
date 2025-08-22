@@ -250,16 +250,20 @@ class VistaReportes(tk.Frame):
                 datos_siem = self._obtener_datos_siem() if self.incluir_siem.get() else None
                 datos_cuarentena = self._obtener_datos_cuarentena() if self.incluir_cuarentena.get() else None
                 
+                # Capturar terminal principal de Aresitos - Issue 20/24
+                datos_terminal_principal = self._obtener_terminal_principal()
+                
                 self.log_to_terminal("REPORTE Generando reporte con módulos seleccionados...")
                 
-                # Llamar con parámetros correctos
+                # Llamar con parámetros correctos incluyendo terminal principal - Issue 20/24
                 self.reporte_actual = self.controlador.generar_reporte_completo(
                     datos_escaneo=datos_escaneo,
                     datos_monitoreo=datos_monitoreo, 
                     datos_utilidades=datos_dashboard,  # Dashboard como utilidades
                     datos_fim=datos_fim,
                     datos_siem=datos_siem,
-                    datos_cuarentena=datos_cuarentena
+                    datos_cuarentena=datos_cuarentena,
+                    datos_terminal_principal=datos_terminal_principal
                 )
                 
                 if self.reporte_actual:
@@ -821,95 +825,389 @@ class VistaReportes(tk.Frame):
             return {'error': f'Error obteniendo datos dashboard: {str(e)}'}
     
     def _obtener_datos_escaneo(self):
-        """Obtener datos del módulo Escaneador."""
+        """Obtener datos completos del módulo Escaneador - Issue 20/24."""
         try:
-            # Similar al dashboard, buscar la vista de escaneo
+            datos = {
+                'timestamp': datetime.datetime.now().isoformat(),
+                'modulo': 'Escaneador',
+                'estado': 'captura_completa',
+                'terminal_content': '',
+                'estadisticas': {},
+                'configuracion': {}
+            }
+            
+            # Buscar la vista de escaneo y capturar su terminal
             if hasattr(self.vista_principal, 'vistas'):
                 for nombre, vista in self.vista_principal.vistas.items():
                     if 'escaneo' in nombre.lower():
+                        # Capturar contenido del terminal de escaneador
+                        if hasattr(vista, 'text_terminal'):
+                            try:
+                                contenido_terminal = vista.text_terminal.get(1.0, tk.END)
+                                datos['terminal_content'] = contenido_terminal.strip()
+                                datos['terminal_lines'] = len(contenido_terminal.split('\n'))
+                            except Exception:
+                                datos['terminal_content'] = 'No se pudo capturar terminal de escaneador'
+                        
+                        # Capturar datos específicos si tiene método
                         if hasattr(vista, 'obtener_datos_para_reporte'):
-                            return vista.obtener_datos_para_reporte()
+                            datos_especificos = vista.obtener_datos_para_reporte()
+                            if isinstance(datos_especificos, dict):
+                                datos.update(datos_especificos)
+                        
+                        # Capturar estadísticas de escaneador
+                        if hasattr(vista, 'estadisticas_escaneador'):
+                            datos['estadisticas'] = vista.estadisticas_escaneador
+                        
+                        break
             
+            # Si no se encontró terminal, marcar como limitado
+            if not datos['terminal_content']:
+                datos['estado'] = 'datos_limitados'
+                datos['info'] = 'Terminal de escaneador no accesible'
+            
+            return datos
+            
+        except Exception as e:
             return {
                 'timestamp': datetime.datetime.now().isoformat(),
                 'modulo': 'Escaneador',
-                'estado': 'datos_limitados',
-                'info': 'Resultados de escaneos recientes'
+                'error': f'Error obteniendo datos escaneo: {str(e)}',
+                'estado': 'error'
             }
-        except Exception as e:
-            return {'error': f'Error obteniendo datos escaneo: {str(e)}'}
     
     def _obtener_datos_monitoreo(self):
-        """Obtener datos del módulo Monitoreo."""
+        """Obtener datos completos del módulo Monitoreo - Issue 20/24."""
         try:
+            datos = {
+                'timestamp': datetime.datetime.now().isoformat(),
+                'modulo': 'Monitoreo',
+                'estado': 'captura_completa',
+                'terminal_content': '',
+                'monitor_estado': {},
+                'alertas': []
+            }
+            
+            # Buscar la vista de monitoreo y capturar su terminal
             if hasattr(self.vista_principal, 'vistas'):
                 for nombre, vista in self.vista_principal.vistas.items():
                     if 'monitoreo' in nombre.lower():
+                        # Capturar contenido del terminal de monitoreo
+                        if hasattr(vista, 'text_monitor'):
+                            try:
+                                contenido_terminal = vista.text_monitor.get(1.0, tk.END)
+                                datos['terminal_content'] = contenido_terminal.strip()
+                                datos['terminal_lines'] = len(contenido_terminal.split('\n'))
+                                
+                                # Analizar contenido para extraer alertas
+                                lineas = contenido_terminal.split('\n')
+                                for linea in lineas:
+                                    if any(palabra in linea.upper() for palabra in ['ERROR', 'WARNING', 'CRITICO', 'ALERTA']):
+                                        datos['alertas'].append(linea.strip())
+                                        
+                            except Exception:
+                                datos['terminal_content'] = 'No se pudo capturar terminal de monitoreo'
+                        
+                        # Capturar estado del monitor
+                        if hasattr(vista, 'monitor_activo'):
+                            datos['monitor_estado']['activo'] = vista.monitor_activo
+                        if hasattr(vista, 'monitor_red_activo'):
+                            datos['monitor_estado']['red_activo'] = vista.monitor_red_activo
+                        
+                        # Capturar datos específicos si tiene método
                         if hasattr(vista, 'obtener_datos_para_reporte'):
-                            return vista.obtener_datos_para_reporte()
+                            datos_especificos = vista.obtener_datos_para_reporte()
+                            if isinstance(datos_especificos, dict):
+                                datos.update(datos_especificos)
+                        
+                        break
             
+            # Si no se encontró terminal, marcar como limitado
+            if not datos['terminal_content']:
+                datos['estado'] = 'datos_limitados'
+                datos['info'] = 'Terminal de monitoreo no accesible'
+            
+            return datos
+            
+        except Exception as e:
             return {
                 'timestamp': datetime.datetime.now().isoformat(),
                 'modulo': 'Monitoreo',
-                'estado': 'datos_limitados',
-                'info': 'Estado del sistema y procesos'
+                'error': f'Error obteniendo datos monitoreo: {str(e)}',
+                'estado': 'error'
             }
-        except Exception as e:
-            return {'error': f'Error obteniendo datos monitoreo: {str(e)}'}
     
     def _obtener_datos_fim(self):
-        """Obtener datos del módulo FIM."""
+        """Obtener datos completos del módulo FIM - Issue 20/24."""
         try:
+            datos = {
+                'timestamp': datetime.datetime.now().isoformat(),
+                'modulo': 'FIM',
+                'estado': 'captura_completa',
+                'terminal_content': '',
+                'monitor_fim_activo': False,
+                'archivos_monitoreados': [],
+                'alertas_integridad': []
+            }
+            
+            # Buscar la vista FIM y capturar su terminal
             if hasattr(self.vista_principal, 'vistas'):
                 for nombre, vista in self.vista_principal.vistas.items():
                     if 'fim' in nombre.lower():
+                        # Capturar contenido del terminal FIM
+                        if hasattr(vista, 'text_fim'):
+                            try:
+                                contenido_terminal = vista.text_fim.get(1.0, tk.END)
+                                datos['terminal_content'] = contenido_terminal.strip()
+                                datos['terminal_lines'] = len(contenido_terminal.split('\n'))
+                                
+                                # Analizar contenido para extraer información de integridad
+                                lineas = contenido_terminal.split('\n')
+                                for linea in lineas:
+                                    if 'PROBLEMA:' in linea or 'WARNING:' in linea or 'ERROR' in linea:
+                                        datos['alertas_integridad'].append(linea.strip())
+                                    elif 'Verificando:' in linea or 'ARCHIVO:' in linea:
+                                        datos['archivos_monitoreados'].append(linea.strip())
+                                        
+                            except Exception:
+                                datos['terminal_content'] = 'No se pudo capturar terminal FIM'
+                        
+                        # Capturar estado del monitoreo FIM
+                        if hasattr(vista, 'proceso_monitoreo_activo'):
+                            datos['monitor_fim_activo'] = vista.proceso_monitoreo_activo
+                        
+                        # Capturar datos específicos si tiene método
                         if hasattr(vista, 'obtener_datos_para_reporte'):
-                            return vista.obtener_datos_para_reporte()
+                            datos_especificos = vista.obtener_datos_para_reporte()
+                            if isinstance(datos_especificos, dict):
+                                datos.update(datos_especificos)
+                        
+                        break
             
+            # Estadísticas del análisis
+            datos['estadisticas'] = {
+                'archivos_monitoreados': len(datos['archivos_monitoreados']),
+                'alertas_detectadas': len(datos['alertas_integridad']),
+                'monitor_activo': datos['monitor_fim_activo']
+            }
+            
+            # Si no se encontró terminal, marcar como limitado
+            if not datos['terminal_content']:
+                datos['estado'] = 'datos_limitados'
+                datos['info'] = 'Terminal FIM no accesible'
+            
+            return datos
+            
+        except Exception as e:
             return {
                 'timestamp': datetime.datetime.now().isoformat(),
                 'modulo': 'FIM',
-                'estado': 'datos_limitados',
-                'info': 'Monitoreo de integridad de archivos'
+                'error': f'Error obteniendo datos FIM: {str(e)}',
+                'estado': 'error'
             }
-        except Exception as e:
-            return {'error': f'Error obteniendo datos FIM: {str(e)}'}
     
     def _obtener_datos_siem(self):
-        """Obtener datos del módulo SIEM."""
+        """Obtener datos completos del módulo SIEM - Issue 20/24."""
         try:
+            datos = {
+                'timestamp': datetime.datetime.now().isoformat(),
+                'modulo': 'SIEM',
+                'estado': 'captura_completa',
+                'terminal_content': '',
+                'siem_activo': False,
+                'eventos_seguridad': [],
+                'alertas_criticas': []
+            }
+            
+            # Buscar la vista SIEM y capturar su terminal
             if hasattr(self.vista_principal, 'vistas'):
                 for nombre, vista in self.vista_principal.vistas.items():
                     if 'siem' in nombre.lower():
+                        # Capturar contenido del terminal SIEM
+                        if hasattr(vista, 'text_siem'):
+                            try:
+                                contenido_terminal = vista.text_siem.get(1.0, tk.END)
+                                datos['terminal_content'] = contenido_terminal.strip()
+                                datos['terminal_lines'] = len(contenido_terminal.split('\n'))
+                                
+                                # Analizar contenido para extraer eventos de seguridad
+                                lineas = contenido_terminal.split('\n')
+                                for linea in lineas:
+                                    if any(palabra in linea.upper() for palabra in ['CRITICO', 'ALERTA', 'VULNERABILIDAD', 'BACKDOOR', 'MALWARE']):
+                                        datos['alertas_criticas'].append(linea.strip())
+                                    elif any(palabra in linea.upper() for palabra in ['DETECTADO', 'MONITOREO', 'PUERTOS', 'CONEXIONES']):
+                                        datos['eventos_seguridad'].append(linea.strip())
+                                        
+                            except Exception:
+                                datos['terminal_content'] = 'No se pudo capturar terminal SIEM'
+                        
+                        # Capturar estado del SIEM
+                        if hasattr(vista, 'siem_activo'):
+                            datos['siem_activo'] = vista.siem_activo
+                        elif hasattr(vista, 'proceso_siem_activo'):
+                            datos['siem_activo'] = vista.proceso_siem_activo
+                        
+                        # Capturar datos específicos si tiene método
                         if hasattr(vista, 'obtener_datos_para_reporte'):
-                            return vista.obtener_datos_para_reporte()
+                            datos_especificos = vista.obtener_datos_para_reporte()
+                            if isinstance(datos_especificos, dict):
+                                datos.update(datos_especificos)
+                        
+                        break
             
+            # Estadísticas del análisis SIEM
+            datos['estadisticas'] = {
+                'eventos_detectados': len(datos['eventos_seguridad']),
+                'alertas_criticas': len(datos['alertas_criticas']),
+                'siem_activo': datos['siem_activo']
+            }
+            
+            # Si no se encontró terminal, marcar como limitado
+            if not datos['terminal_content']:
+                datos['estado'] = 'datos_limitados'
+                datos['info'] = 'Terminal SIEM no accesible'
+            
+            return datos
+            
+        except Exception as e:
             return {
                 'timestamp': datetime.datetime.now().isoformat(),
                 'modulo': 'SIEM',
-                'estado': 'datos_limitados',
-                'info': 'Eventos de seguridad y análisis'
+                'error': f'Error obteniendo datos SIEM: {str(e)}',
+                'estado': 'error'
             }
-        except Exception as e:
-            return {'error': f'Error obteniendo datos SIEM: {str(e)}'}
     
     def _obtener_datos_cuarentena(self):
-        """Obtener datos del módulo Cuarentena."""
+        """Obtener datos completos del módulo de cuarentena - Issue 20/24."""
         try:
+            datos = {
+                'timestamp': datetime.datetime.now().isoformat(),
+                'modulo': 'Cuarentena',
+                'estado': 'captura_completa',
+                'terminal_content': '',
+                'archivos_cuarentena': [],
+                'alertas_cuarentena': [],
+                'procesos_monitoreados': []
+            }
+            
+            # Buscar la vista de cuarentena y capturar su terminal
             if hasattr(self.vista_principal, 'vistas'):
                 for nombre, vista in self.vista_principal.vistas.items():
                     if 'cuarentena' in nombre.lower():
+                        # Capturar contenido del terminal de cuarentena
+                        if hasattr(vista, 'text_terminal'):
+                            try:
+                                contenido_terminal = vista.text_terminal.get(1.0, tk.END)
+                                datos['terminal_content'] = contenido_terminal.strip()
+                                datos['terminal_lines'] = len(contenido_terminal.split('\n'))
+                                
+                                # Analizar contenido para extraer datos de cuarentena
+                                lineas = contenido_terminal.split('\n')
+                                for linea in lineas:
+                                    if any(palabra in linea.upper() for palabra in ['CUARENTENA', 'AISLADO', 'BLOQUEADO']):
+                                        datos['archivos_cuarentena'].append(linea.strip())
+                                    elif any(palabra in linea.upper() for palabra in ['ALERTA', 'SOSPECHOSO', 'MALWARE']):
+                                        datos['alertas_cuarentena'].append(linea.strip())
+                                    elif any(palabra in linea.upper() for palabra in ['PROCESO', 'PID', 'MONITOREO']):
+                                        datos['procesos_monitoreados'].append(linea.strip())
+                                        
+                            except Exception:
+                                datos['terminal_content'] = 'No se pudo capturar terminal cuarentena'
+                        
+                        # Capturar estado específico de cuarentena
+                        if hasattr(vista, 'cuarentena_activa'):
+                            datos['cuarentena_activa'] = vista.cuarentena_activa
+                        
+                        # Capturar datos específicos si tiene método
                         if hasattr(vista, 'obtener_datos_para_reporte'):
-                            return vista.obtener_datos_para_reporte()
+                            datos_especificos = vista.obtener_datos_para_reporte()
+                            if isinstance(datos_especificos, dict):
+                                datos.update(datos_especificos)
+                        
+                        break
             
+            # Estadísticas del análisis de cuarentena
+            datos['estadisticas'] = {
+                'archivos_en_cuarentena': len(datos['archivos_cuarentena']),
+                'alertas_activas': len(datos['alertas_cuarentena']),
+                'procesos_monitoreados': len(datos['procesos_monitoreados'])
+            }
+            
+            # Si no se encontró terminal, marcar como limitado
+            if not datos['terminal_content']:
+                datos['estado'] = 'datos_limitados'
+                datos['info'] = 'Terminal de cuarentena no accesible'
+            
+            return datos
+            
+        except Exception as e:
             return {
                 'timestamp': datetime.datetime.now().isoformat(),
                 'modulo': 'Cuarentena',
-                'estado': 'datos_limitados',
-                'info': 'Archivos en cuarentena y análisis'
+                'error': f'Error obteniendo datos cuarentena: {str(e)}',
+                'estado': 'error'
             }
+    
+    def _obtener_terminal_principal(self):
+        """Obtener contenido del terminal principal de Aresitos - Issue 20/24."""
+        try:
+            datos = {
+                'timestamp': datetime.datetime.now().isoformat(),
+                'modulo': 'Terminal_Principal',
+                'estado': 'captura_completa',
+                'terminal_content': '',
+                'comandos_ejecutados': [],
+                'eventos_sistema': []
+            }
+            
+            # Buscar el terminal principal
+            if hasattr(self.vista_principal, 'text_terminal'):
+                try:
+                    contenido_terminal = self.vista_principal.text_terminal.get(1.0, tk.END)
+                    datos['terminal_content'] = contenido_terminal.strip()
+                    datos['terminal_lines'] = len(contenido_terminal.split('\n'))
+                    
+                    # Analizar contenido del terminal principal
+                    lineas = contenido_terminal.split('\n')
+                    for linea in lineas:
+                        if any(palabra in linea.upper() for palabra in ['COMANDO', 'EJECUTANDO', 'INICIANDO']):
+                            datos['comandos_ejecutados'].append(linea.strip())
+                        elif any(palabra in linea.upper() for palabra in ['ARESITOS', 'SISTEMA', 'CARGANDO']):
+                            datos['eventos_sistema'].append(linea.strip())
+                            
+                except Exception:
+                    datos['terminal_content'] = 'No se pudo capturar terminal principal'
+            
+            # Si tiene terminal alterno
+            elif hasattr(self.vista_principal, 'terminal_frame') and hasattr(self.vista_principal.terminal_frame, 'text_terminal'):
+                try:
+                    contenido_terminal = self.vista_principal.terminal_frame.text_terminal.get(1.0, tk.END)
+                    datos['terminal_content'] = contenido_terminal.strip()
+                    datos['terminal_lines'] = len(contenido_terminal.split('\n'))
+                except Exception:
+                    datos['terminal_content'] = 'Terminal principal no accesible'
+            
+            # Estadísticas del terminal principal
+            datos['estadisticas'] = {
+                'comandos_ejecutados': len(datos['comandos_ejecutados']),
+                'eventos_sistema': len(datos['eventos_sistema']),
+                'lineas_terminal': datos.get('terminal_lines', 0)
+            }
+            
+            # Si no se encontró terminal, marcar como limitado
+            if not datos['terminal_content']:
+                datos['estado'] = 'datos_limitados'
+                datos['info'] = 'Terminal principal no accesible'
+            
+            return datos
+            
         except Exception as e:
-            return {'error': f'Error obteniendo datos cuarentena: {str(e)}'}
+            return {
+                'timestamp': datetime.datetime.now().isoformat(),
+                'modulo': 'Terminal_Principal',
+                'error': f'Error obteniendo terminal principal: {str(e)}',
+                'estado': 'error'
+            }
     
     def abrir_logs_reportes(self):
         """Abrir carpeta de logs Reportes."""
