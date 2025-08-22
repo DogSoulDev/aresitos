@@ -3000,98 +3000,22 @@ class VistaSIEM(tk.Frame):
         threading.Thread(target=ejecutar_monitoreo, daemon=True).start()
 
     def parar_monitoreo(self):
-        """Detener el monitoreo en tiempo real de manera robusta."""
-        def ejecutar_detencion():
-            try:
-                self._actualizar_texto_forense("=== DETENIENDO MONITOREO FORENSE ===\n")
-                import subprocess
-                import os
-                
-                # Detener variable de control
-                self.monitoreo_activo = False
-                
-                # Terminar procesos de monitoreo conocidos
-                procesos_monitoreo = ['osquery', 'osqueryd', 'auditd', 'syslog-ng', 
-                                    'rsyslog', 'tcpdump', 'wireshark', 'tshark']
-                procesos_terminados = 0
-                
-                for proceso in procesos_monitoreo:
-                    try:
-                        # Buscar procesos activos
-                        resultado = subprocess.run(['pgrep', '-f', proceso], 
-                                                capture_output=True, text=True)
-                        if resultado.returncode == 0 and resultado.stdout.strip():
-                            pids = resultado.stdout.strip().split('\n')
-                            for pid in pids:
-                                if pid.strip():
-                                    try:
-                                        # Terminar proceso específico
-                                        subprocess.run(['kill', '-TERM', pid.strip()], 
-                                                    capture_output=True)
-                                        self._actualizar_texto_forense(f"✓ Terminado proceso {proceso} (PID: {pid.strip()})\n")
-                                        procesos_terminados += 1
-                                    except Exception:
-                                        continue
-                    except Exception:
-                        continue
-                
-                # Terminar procesos Python de monitoreo
-                try:
-                    resultado = subprocess.run(['pgrep', '-f', 'python.*siem'], 
-                                            capture_output=True, text=True)
-                    if resultado.returncode == 0 and resultado.stdout.strip():
-                        pids = resultado.stdout.strip().split('\n')
-                        for pid in pids:
-                            if pid.strip() and pid.strip() != str(os.getpid()):
-                                try:
-                                    subprocess.run(['kill', '-TERM', pid.strip()], 
-                                                capture_output=True)
-                                    self._actualizar_texto_forense(f"✓ Terminado monitoreo Python (PID: {pid.strip()})\n")
-                                    procesos_terminados += 1
-                                except Exception:
-                                    continue
-                except Exception:
-                    pass
-                
-                # Limpiar archivos temporales de monitoreo
-                archivos_temp = [
-                    '/tmp/osquery_monitor.log',
-                    '/tmp/siem_alerts.log',
-                    '/tmp/network_monitor.pcap',
-                    '/var/log/siem_temp.log'
-                ]
-                
-                for archivo in archivos_temp:
-                    try:
-                        if os.path.exists(archivo):
-                            os.remove(archivo)
-                            self._actualizar_texto_forense(f"✓ Limpiado archivo temporal: {archivo}\n")
-                    except Exception:
-                        pass
-                
-                # Detener captura de red si está activa
-                try:
-                    subprocess.run(['pkill', '-f', 'tcpdump.*siem'], capture_output=True)
-                    subprocess.run(['pkill', '-f', 'tshark.*monitor'], capture_output=True)
-                except Exception:
-                    pass
-                
-                if procesos_terminados > 0:
-                    self._actualizar_texto_forense(f"✓ COMPLETADO: {procesos_terminados} procesos de monitoreo terminados\n")
-                else:
-                    self._actualizar_texto_forense("• INFO: No se encontraron procesos de monitoreo activos\n")
-                
-                self._actualizar_texto_forense("✓ Limpieza de archivos temporales completada\n")
-                self._actualizar_texto_forense("=== MONITOREO FORENSE DETENIDO COMPLETAMENTE ===\n\n")
-                
-                # Log al terminal
-                self._log_terminal("Monitoreo SIEM detenido completamente", "SIEM", "INFO")
-                
-            except Exception as e:
-                self._actualizar_texto_forense(f"ERROR durante detención: {str(e)}\n")
+        """Detener el monitoreo en tiempo real usando sistema unificado."""
+        # Detener variable de control
+        self.monitoreo_activo = False
         
-        import threading
-        threading.Thread(target=ejecutar_detencion, daemon=True).start()
+        # Importar sistema unificado
+        from ..utils.detener_procesos import detener_procesos
+        
+        # Callbacks para la vista
+        def callback_actualizacion(mensaje):
+            self._actualizar_texto_forense(mensaje)
+        
+        def callback_habilitar():
+            self._log_terminal("Monitoreo SIEM detenido completamente", "SIEM", "INFO")
+        
+        # Usar sistema unificado
+        detener_procesos.detener_monitoreo(callback_actualizacion, callback_habilitar)
 
     def integrar_osquery_kali(self):
         """Integración avanzada con osquery para monitoreo en Kali Linux."""

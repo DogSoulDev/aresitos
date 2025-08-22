@@ -574,91 +574,22 @@ class VistaEscaneo(tk.Frame):
         self.thread_escaneo = None
     
     def cancelar_escaneo(self):
-        """Cancelar el escaneo en curso de manera robusta."""
-        def ejecutar_cancelacion():
-            try:
-                self.text_resultados.insert(tk.END, "\n=== CANCELANDO ESCANEO EN CURSO ===\n")
-                import subprocess
-                import os
-                
-                # Detener variable de control
-                self.proceso_activo = False
-                
-                # Terminar procesos de escaneo conocidos
-                procesos_escaneo = ['nmap', 'masscan', 'rustscan', 'nikto', 'gobuster', 
-                                  'feroxbuster', 'dirb', 'wfuzz', 'sqlmap', 'nuclei', 'httpx']
-                procesos_terminados = 0
-                
-                for proceso in procesos_escaneo:
-                    try:
-                        # Buscar procesos activos
-                        resultado = subprocess.run(['pgrep', '-f', proceso], 
-                                                capture_output=True, text=True)
-                        if resultado.returncode == 0 and resultado.stdout.strip():
-                            pids = resultado.stdout.strip().split('\n')
-                            for pid in pids:
-                                if pid.strip():
-                                    try:
-                                        # Terminar proceso específico
-                                        subprocess.run(['kill', '-TERM', pid.strip()], 
-                                                    capture_output=True)
-                                        self.text_resultados.insert(tk.END, f"✓ Terminado proceso {proceso} (PID: {pid.strip()})\n")
-                                        procesos_terminados += 1
-                                    except Exception:
-                                        continue
-                    except Exception:
-                        continue
-                
-                # Terminar procesos Python de escaneo
-                try:
-                    resultado = subprocess.run(['pgrep', '-f', 'python.*escan'], 
-                                            capture_output=True, text=True)
-                    if resultado.returncode == 0 and resultado.stdout.strip():
-                        pids = resultado.stdout.strip().split('\n')
-                        for pid in pids:
-                            if pid.strip() and pid.strip() != str(os.getpid()):
-                                try:
-                                    subprocess.run(['kill', '-TERM', pid.strip()], 
-                                                capture_output=True)
-                                    self.text_resultados.insert(tk.END, f"✓ Terminado escaneo Python (PID: {pid.strip()})\n")
-                                    procesos_terminados += 1
-                                except Exception:
-                                    continue
-                except Exception:
-                    pass
-                
-                # Limpiar archivos temporales de escaneo
-                archivos_temp = [
-                    '/tmp/nmap_scan.xml',
-                    '/tmp/masscan_output.txt',
-                    '/tmp/nikto_output.txt',
-                    '/tmp/gobuster_output.txt',
-                    '/tmp/escaneo_temp.log'
-                ]
-                
-                for archivo in archivos_temp:
-                    try:
-                        if os.path.exists(archivo):
-                            os.remove(archivo)
-                            self.text_resultados.insert(tk.END, f"✓ Limpiado archivo temporal: {archivo}\n")
-                    except Exception:
-                        pass
-                
-                if procesos_terminados > 0:
-                    self.text_resultados.insert(tk.END, f"✓ COMPLETADO: {procesos_terminados} procesos de escaneo terminados\n")
-                else:
-                    self.text_resultados.insert(tk.END, "• INFO: No se encontraron procesos de escaneo activos\n")
-                
-                self.text_resultados.insert(tk.END, "=== CANCELACIÓN DE ESCANEO COMPLETADA ===\n\n")
-                
-                # Log al terminal
-                self._log_terminal("Escaneo cancelado completamente", "ESCANEADOR", "INFO")
-                
-            except Exception as e:
-                self.text_resultados.insert(tk.END, f"ERROR durante cancelación: {str(e)}\n")
+        """Cancelar escaneo usando sistema unificado."""
+        # Detener variable de control
+        self.proceso_activo = False
         
-        import threading
-        threading.Thread(target=ejecutar_cancelacion, daemon=True).start()
+        # Importar sistema unificado
+        from ..utils.detener_procesos import detener_procesos
+        
+        # Callbacks para la vista
+        def callback_actualizacion(mensaje):
+            self.text_resultados.insert(tk.END, mensaje)
+        
+        def callback_habilitar():
+            self._log_terminal("Escaneo cancelado completamente", "ESCANEADOR", "INFO")
+        
+        # Usar sistema unificado
+        detener_procesos.cancelar_escaneo(callback_actualizacion, callback_habilitar)
 
     def _verificar_herramientas_kali(self):
         """Verificar herramientas esenciales de Kali Linux."""
