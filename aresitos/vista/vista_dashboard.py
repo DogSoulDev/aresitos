@@ -701,17 +701,35 @@ class VistaDashboard(tk.Frame):
                             # Mostrar contenido de la carpeta
                             try:
                                 archivos = os.listdir(carpeta_encontrada)
-                                cheatsheets = [f for f in archivos if f.endswith('.txt')]
+                                cheatsheets = [f for f in archivos if f.endswith(('.txt', '.md'))]
                                 if cheatsheets:
-                                    self.escribir_terminal(f"INFO {len(cheatsheets)} cheatsheets disponibles:", "[CHEATSHEETS]")
-                                    for cs in cheatsheets[:5]:  # Mostrar los primeros 5
-                                        self.escribir_terminal(f"   • {cs}", "[CHEATSHEETS]")
-                                    if len(cheatsheets) > 5:
-                                        self.escribir_terminal(f"   ... y {len(cheatsheets)-5} más", "[CHEATSHEETS]")
+                                    self.escribir_terminal(f"INFO {len(cheatsheets)} cheatsheets disponibles (.txt/.md):", "[CHEATSHEETS]")
+                                    for cs in sorted(cheatsheets)[:8]:  # Mostrar los primeros 8 ordenados
+                                        extension = "📝" if cs.endswith('.txt') else "📄"
+                                        self.escribir_terminal(f"   {extension} {cs}", "[CHEATSHEETS]")
+                                    if len(cheatsheets) > 8:
+                                        self.escribir_terminal(f"   ... y {len(cheatsheets)-8} cheatsheets más", "[CHEATSHEETS]")
+                                    
+                                    # Mostrar estadísticas
+                                    txt_count = len([f for f in cheatsheets if f.endswith('.txt')])
+                                    md_count = len([f for f in cheatsheets if f.endswith('.md')])
+                                    self.escribir_terminal(f"   Tipos: {txt_count} archivos .txt, {md_count} archivos .md", "[CHEATSHEETS]")
+                                    
+                                    # Refrescar la lista de categorías de cheatsheets
+                                    self.escribir_terminal("🔄 Actualizando lista de cheatsheets...", "[CHEATSHEETS]")
+                                    self.cargar_categorias_cheatsheets()
                                 else:
-                                    self.escribir_terminal("INFO Carpeta vacía - puede agregar cheatsheets .txt", "[CHEATSHEETS]")
-                            except:
-                                pass
+                                    self.escribir_terminal("INFO Carpeta encontrada pero sin cheatsheets .txt/.md", "[CHEATSHEETS]")
+                                    # Mostrar qué archivos hay
+                                    otros_archivos = [f for f in archivos if not f.startswith('.')][:5]
+                                    if otros_archivos:
+                                        self.escribir_terminal(f"   Archivos encontrados: {', '.join(otros_archivos)}", "[CHEATSHEETS]")
+                                    
+                                    # Refrescar la lista de categorías de cheatsheets incluso si está vacía
+                                    self.escribir_terminal("🔄 Actualizando lista de cheatsheets...", "[CHEATSHEETS]")
+                                    self.cargar_categorias_cheatsheets()
+                            except Exception as e:
+                                self.escribir_terminal(f"ERROR listando contenido: {str(e)}", "[CHEATSHEETS]")
                             
                             return
                             
@@ -758,6 +776,233 @@ class VistaDashboard(tk.Frame):
         except Exception as e:
             self.escribir_terminal(f"ERROR abriendo cheatsheets: {e}", "[ERROR]")
             self.escribir_terminal("SOLUCION Verifique que existe data/cheatsheets/", "[HELP]")
+    
+    def mostrar_cheatsheet(self, nombre_archivo=None):
+        """Mostrar contenido de un cheatsheet específico en el terminal."""
+        import os
+        
+        try:
+            # Obtener directorio de cheatsheets
+            directorio_proyecto = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+            cheatsheets_dir = os.path.join(directorio_proyecto, "data", "cheatsheets")
+            
+            if not os.path.exists(cheatsheets_dir):
+                self.escribir_terminal("ERROR Carpeta de cheatsheets no encontrada", "[CHEATSHEETS]")
+                return
+            
+            # Si no se especifica archivo, mostrar lista
+            if not nombre_archivo:
+                archivos = os.listdir(cheatsheets_dir)
+                cheatsheets = [f for f in archivos if f.endswith(('.txt', '.md'))]
+                
+                if cheatsheets:
+                    self.escribir_terminal("=== CHEATSHEETS DISPONIBLES ===", "[CHEATSHEETS]")
+                    for i, cs in enumerate(sorted(cheatsheets), 1):
+                        extension = "📝" if cs.endswith('.txt') else "📄"
+                        self.escribir_terminal(f"{i:2d}. {extension} {cs}", "[CHEATSHEETS]")
+                    self.escribir_terminal("\nUso: Click en 'Ver Cheat' o escriba nombre del archivo", "[HELP]")
+                else:
+                    self.escribir_terminal("INFO No hay cheatsheets disponibles", "[CHEATSHEETS]")
+                return
+            
+            # Buscar archivo específico
+            archivo_path = os.path.join(cheatsheets_dir, nombre_archivo)
+            
+            # Si no existe con el nombre exacto, buscar parcialmente
+            if not os.path.exists(archivo_path):
+                archivos = os.listdir(cheatsheets_dir)
+                coincidencias = [f for f in archivos if nombre_archivo.lower() in f.lower() and f.endswith(('.txt', '.md'))]
+                
+                if len(coincidencias) == 1:
+                    archivo_path = os.path.join(cheatsheets_dir, coincidencias[0])
+                    nombre_archivo = coincidencias[0]
+                elif len(coincidencias) > 1:
+                    self.escribir_terminal(f"MÚLTIPLES ARCHIVOS encontrados para '{nombre_archivo}':", "[CHEATSHEETS]")
+                    for cs in coincidencias:
+                        self.escribir_terminal(f"  • {cs}", "[CHEATSHEETS]")
+                    return
+                else:
+                    self.escribir_terminal(f"ERROR Cheatsheet '{nombre_archivo}' no encontrado", "[CHEATSHEETS]")
+                    return
+            
+            # Leer y mostrar contenido
+            try:
+                with open(archivo_path, 'r', encoding='utf-8') as f:
+                    contenido = f.read()
+                
+                self.escribir_terminal(f"=== CHEATSHEET: {nombre_archivo} ===", "[CHEATSHEETS]")
+                
+                # Procesar contenido línea por línea para mejor formato
+                lineas = contenido.split('\n')
+                
+                for i, linea in enumerate(lineas):
+                    if i > 80:  # Limitar a 80 líneas para no saturar el terminal
+                        self.escribir_terminal("... (contenido truncado - use editor externo para ver completo)", "[INFO]")
+                        break
+                    
+                    # Formato especial para diferentes tipos de líneas
+                    if linea.strip().startswith('#'):
+                        # Títulos/headers
+                        self.escribir_terminal(f"🔵 {linea.strip()}", "[TÍTULO]")
+                    elif linea.strip().startswith('```') or linea.strip().startswith('~~~'):
+                        # Bloques de código
+                        self.escribir_terminal(f"💻 {linea.strip()}", "[CÓDIGO]")
+                    elif linea.strip().startswith('-') or linea.strip().startswith('*'):
+                        # Listas
+                        self.escribir_terminal(f"📌 {linea.strip()}", "[LISTA]")
+                    elif 'nmap' in linea.lower() or 'sudo' in linea.lower() or linea.strip().startswith('/'):
+                        # Comandos específicos
+                        self.escribir_terminal(f"⚡ {linea.strip()}", "[COMANDO]")
+                    elif linea.strip() and not linea.startswith(' '):
+                        # Líneas de texto normal
+                        self.escribir_terminal(f"   {linea.strip()}", "[CHEATSHEETS]")
+                    else:
+                        # Líneas con formato especial (código, ejemplos)
+                        if linea.strip():
+                            self.escribir_terminal(f"💡 {linea}", "[EJEMPLO]")
+                        else:
+                            self.escribir_terminal("", "[CHEATSHEETS]")
+                
+                # Información del archivo
+                stat_info = os.stat(archivo_path)
+                tamaño_kb = stat_info.st_size / 1024
+                from datetime import datetime
+                mod_time = datetime.fromtimestamp(stat_info.st_mtime).strftime("%Y-%m-%d %H:%M")
+                
+                self.escribir_terminal(f"📊 Archivo: {tamaño_kb:.1f} KB, modificado: {mod_time}", "[INFO]")
+                
+            except UnicodeDecodeError:
+                # Intentar con diferentes encodings
+                encodings = ['latin-1', 'cp1252', 'iso-8859-1']
+                contenido = None
+                
+                for encoding in encodings:
+                    try:
+                        with open(archivo_path, 'r', encoding=encoding) as f:
+                            contenido = f.read()
+                        break
+                    except:
+                        continue
+                
+                if contenido:
+                    self.escribir_terminal(f"=== CHEATSHEET: {nombre_archivo} (encoding: {encoding}) ===", "[CHEATSHEETS]")
+                    lineas = contenido.split('\n')[:50]  # Solo primeras 50 líneas
+                    for linea in lineas:
+                        if linea.strip():
+                            self.escribir_terminal(f"   {linea.strip()}", "[CHEATSHEETS]")
+                else:
+                    self.escribir_terminal(f"ERROR No se pudo leer {nombre_archivo} (problema de encoding)", "[ERROR]")
+                    
+        except Exception as e:
+            self.escribir_terminal(f"ERROR mostrando cheatsheet: {str(e)}", "[ERROR]")
+    
+    def _buscar_cheatsheet_interactivo(self):
+        """Función interactiva para buscar y mostrar cheatsheets."""
+        import tkinter.simpledialog
+        
+        try:
+            # Obtener directorio de cheatsheets
+            directorio_proyecto = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+            cheatsheets_dir = os.path.join(directorio_proyecto, "data", "cheatsheets")
+            
+            if not os.path.exists(cheatsheets_dir):
+                self.escribir_terminal("ERROR Carpeta de cheatsheets no encontrada", "[CHEATSHEETS]")
+                return
+            
+            # Obtener lista de cheatsheets
+            archivos = os.listdir(cheatsheets_dir)
+            cheatsheets = sorted([f for f in archivos if f.endswith(('.txt', '.md'))])
+            
+            if not cheatsheets:
+                self.escribir_terminal("INFO No hay cheatsheets disponibles", "[CHEATSHEETS]")
+                return
+            
+            # Mostrar opciones en el terminal
+            self.escribir_terminal("=== BUSCAR CHEATSHEET ===", "[CHEATSHEETS]")
+            
+            # Crear lista con números para selección
+            for i, cs in enumerate(cheatsheets, 1):
+                extension = "📝" if cs.endswith('.txt') else "📄"
+                nombre_sin_ext = cs.replace('.txt', '').replace('.md', '')
+                self.escribir_terminal(f"{i:2d}. {extension} {nombre_sin_ext}", "[LISTA]")
+            
+            # Pedir entrada al usuario
+            self.escribir_terminal("\n💡 OPCIONES DE BÚSQUEDA:", "[HELP]")
+            self.escribir_terminal("• Escriba el número (ej: 1, 2, 3...)", "[HELP]")
+            self.escribir_terminal("• Escriba parte del nombre (ej: nmap, metasploit)", "[HELP]")
+            self.escribir_terminal("• Escriba palabras clave (ej: network, sql, linux)", "[HELP]")
+            
+            # Crear ventana de diálogo simple
+            busqueda = tkinter.simpledialog.askstring(
+                "Buscar Cheatsheet",
+                "Ingrese número, nombre o palabra clave:",
+                parent=self
+            )
+            
+            if not busqueda:
+                return
+            
+            busqueda = busqueda.strip()
+            
+            # Verificar si es un número
+            try:
+                numero = int(busqueda)
+                if 1 <= numero <= len(cheatsheets):
+                    archivo_seleccionado = cheatsheets[numero - 1]
+                    self.escribir_terminal(f"📖 Mostrando cheatsheet #{numero}: {archivo_seleccionado}", "[CHEATSHEETS]")
+                    self.mostrar_cheatsheet(archivo_seleccionado)
+                    return
+                else:
+                    self.escribir_terminal(f"ERROR Número {numero} fuera de rango (1-{len(cheatsheets)})", "[ERROR]")
+                    return
+            except ValueError:
+                pass
+            
+            # Buscar por nombre o palabra clave
+            coincidencias = []
+            busqueda_lower = busqueda.lower()
+            
+            for cs in cheatsheets:
+                if busqueda_lower in cs.lower():
+                    coincidencias.append(cs)
+            
+            if len(coincidencias) == 1:
+                self.escribir_terminal(f"📖 Encontrado: {coincidencias[0]}", "[CHEATSHEETS]")
+                self.mostrar_cheatsheet(coincidencias[0])
+            elif len(coincidencias) > 1:
+                self.escribir_terminal(f"🔍 Encontradas {len(coincidencias)} coincidencias:", "[CHEATSHEETS]")
+                for i, cs in enumerate(coincidencias, 1):
+                    self.escribir_terminal(f"  {i}. {cs}", "[LISTA]")
+                self.escribir_terminal("💡 Sea más específico en la búsqueda", "[HELP]")
+            else:
+                # Búsqueda en contenido
+                self.escribir_terminal(f"🔍 Buscando '{busqueda}' en contenido de archivos...", "[CHEATSHEETS]")
+                archivos_con_contenido = []
+                
+                for cs in cheatsheets[:10]:  # Buscar en los primeros 10 archivos
+                    try:
+                        archivo_path = os.path.join(cheatsheets_dir, cs)
+                        with open(archivo_path, 'r', encoding='utf-8', errors='ignore') as f:
+                            contenido = f.read().lower()
+                            if busqueda_lower in contenido:
+                                archivos_con_contenido.append(cs)
+                    except:
+                        continue
+                
+                if archivos_con_contenido:
+                    self.escribir_terminal(f"📚 Encontrada palabra '{busqueda}' en:", "[CHEATSHEETS]")
+                    for cs in archivos_con_contenido:
+                        self.escribir_terminal(f"  • {cs}", "[LISTA]")
+                    
+                    if len(archivos_con_contenido) == 1:
+                        self.escribir_terminal(f"📖 Mostrando: {archivos_con_contenido[0]}", "[CHEATSHEETS]")
+                        self.mostrar_cheatsheet(archivos_con_contenido[0])
+                else:
+                    self.escribir_terminal(f"❌ No se encontró '{busqueda}' en ningún cheatsheet", "[ERROR]")
+                    self.escribir_terminal("💡 Intente con: nmap, metasploit, burp, sql, linux, windows", "[HELP]")
+                    
+        except Exception as e:
+            self.escribir_terminal(f"ERROR en búsqueda: {str(e)}", "[ERROR]")
     
     def obtener_terminal_integrado(self):
         """Obtener referencia al terminal integrado global."""
@@ -1148,13 +1393,44 @@ class VistaDashboard(tk.Frame):
         # Botón cargar cheatsheets
         btn_cargar_cheatsheets = tk.Button(
             buttons_frame,
-            text="CHEATSHEETS Cargar Cheatsheets",
+            text="📁 Abrir Carpeta",
             command=self.abrir_carpeta_cheatsheets,
             bg='#007acc',
             fg='white',
             font=('Arial', 9)
         )
-        btn_cargar_cheatsheets.pack(side="right", padx=5)
+        btn_cargar_cheatsheets.pack(side="right", padx=2)
+        
+        # Botón refrescar lista
+        btn_refrescar = tk.Button(
+            buttons_frame,
+            text="🔄 Refrescar",
+            command=self.cargar_categorias_cheatsheets,
+            bg='#17a2b8',
+            fg='white',
+            font=('Arial', 9)
+        )
+        btn_refrescar.pack(side="right", padx=2)
+        
+        btn_ver_cheatsheets = tk.Button(
+            buttons_frame,
+            text="📝 Ver Lista",
+            command=lambda: self.mostrar_cheatsheet(),
+            bg='#28a745',
+            fg='white',
+            font=('Arial', 9)
+        )
+        btn_ver_cheatsheets.pack(side="right", padx=2)
+        
+        btn_buscar_cheat = tk.Button(
+            buttons_frame,
+            text="🔍 Buscar",
+            command=self._buscar_cheatsheet_interactivo,
+            bg='#ffc107',
+            fg='black',
+            font=('Arial', 9)
+        )
+        btn_buscar_cheat.pack(side="right", padx=2)
         
         # Área de texto para comandos
         self.cheatsheet_text = scrolledtext.ScrolledText(
@@ -1174,53 +1450,41 @@ class VistaDashboard(tk.Frame):
             self.cargar_cheatsheet(None)
     
     def cargar_categorias_cheatsheets(self):
-        """Cargar categorías desde el archivo de configuración."""
+        """Cargar categorías dinámicamente desde los archivos disponibles en la carpeta cheatsheets."""
         try:
-            import json
             import os
             
-            config_path = os.path.join("data", "cheatsheets", "cheatsheets_config.json")
+            # Limpiar lista actual
+            self.categorias_chuletas.delete(0, tk.END)
             
-            if os.path.exists(config_path):
-                with open(config_path, 'r', encoding='utf-8') as f:
-                    config = json.load(f)
-                    
-                for categoria in config['cheatsheets_config']['categorias']:
-                    self.categorias_chuletas.insert(tk.END, categoria['nombre'])
-            else:
-                # Categorías por defecto si no existe el archivo
-                categorias_default = [
-                    "Nmap - Escaneo de Puertos",
-                    "Metasploit Framework",
-                    "Comandos Linux Seguridad",
-                    "Shells Inversas",
-                    "John the Ripper",
-                    "Burp Suite",
-                    "Análisis de Logs",
-                    "OSINT Básico",
-                    "Hydra - Brute Force",
-                    "SQLMap - SQL Injection",
-                    "Nikto - Web Scanner",
-                    "Gobuster - Directory",
-                    "Hashcat - Password Cracking",
-                    "Aircrack-ng - WiFi Audit",
-                    "Volatility - Memory Forensics",
-                    "Wireshark - Network Analysis",
-                    "Netcat - Networking"
-                ]
-                for categoria in categorias_default:
-                    self.categorias_chuletas.insert(tk.END, categoria)
+            # Obtener directorio de cheatsheets
+            directorio_proyecto = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+            cheatsheets_dir = os.path.join(directorio_proyecto, "data", "cheatsheets")
+            
+            if not os.path.exists(cheatsheets_dir):
+                self.categorias_chuletas.insert(tk.END, "📁 Carpeta cheatsheets no encontrada")
+                return
+            
+            # Obtener lista de archivos disponibles
+            archivos = os.listdir(cheatsheets_dir)
+            cheatsheets = sorted([f for f in archivos if f.endswith(('.txt', '.md'))])
+            
+            if not cheatsheets:
+                self.categorias_chuletas.insert(tk.END, "📋 No hay cheatsheets disponibles")
+                return
+            
+            # Agregar cada archivo como categoría
+            for archivo in cheatsheets:
+                # Quitar extensión y formatear nombre
+                nombre_sin_ext = archivo.replace('.txt', '').replace('.md', '')
+                extension_icon = "📝" if archivo.endswith('.txt') else "📄"
+                nombre_formateado = f"{extension_icon} {nombre_sin_ext}"
+                self.categorias_chuletas.insert(tk.END, nombre_formateado)
                     
         except Exception as e:
             print(f"Error cargando categorías de cheatsheets: {e}")
-            # Categorías de respaldo
-            categorias_backup = [
-                "Nmap - Escaneo de Puertos",
-                "Metasploit Framework",
-                "Comandos Linux Seguridad"
-            ]
-            for categoria in categorias_backup:
-                self.categorias_chuletas.insert(tk.END, categoria)
+            # Mensaje de error
+            self.categorias_chuletas.insert(tk.END, "❌ Error cargando cheatsheets")
     
     def _crear_cheatsheets_database(self):
         """Crear base de datos de cheatsheets."""
@@ -1590,42 +1854,50 @@ journalctl -u ssh                # Logs de servicio específico
                 categoria = self.categorias_chuletas.get(selection[0])
                 self.categoria_actual = categoria
                 
-                # Mapear nombre de categoría a archivo
-                archivo_map = {
-                    "Nmap - Escaneo de Puertos": "nmap_basico.txt",
-                    "Metasploit Framework": "metasploit_framework.txt",
-                    "Comandos Linux Seguridad": "comandos_linux.txt",
-                    "Shells Inversas": "shells_inversas.txt",
-                    "John the Ripper": "john_the_ripper.txt",
-                    "Burp Suite": "burp_suite.txt",
-                    "Análisis de Logs": "analisis_logs.txt",
-                    "OSINT Básico": "osint_basico.txt",
-                    "Hydra - Brute Force": "hydra_bruteforce.txt",
-                    "SQLMap - SQL Injection": "sqlmap_injection.txt",
-                    "Nikto - Web Scanner": "nikto_web_scanner.txt",
-                    "Gobuster - Directory": "gobuster_directory.txt",
-                    "Hashcat - Password Cracking": "hashcat_password_cracking.txt",
-                    "Aircrack-ng - WiFi Audit": "aircrack_wifi_audit.txt",
-                    "Volatility - Memory Forensics": "volatility_memory_forensics.txt",
-                    "Wireshark - Network Analysis": "wireshark_analisis.txt",
-                    "Netcat - Networking": "netcat_networking.txt"
-                }
+                # Verificar si es un mensaje de error o vacío
+                if categoria.startswith("📁") or categoria.startswith("📋") or categoria.startswith("❌"):
+                    self.cheatsheet_text.delete(1.0, tk.END)
+                    self.cheatsheet_text.insert(1.0, f"# CHEATSHEETS\n\n{categoria}\n\nPor favor, revise la carpeta de cheatsheets.")
+                    return
                 
-                archivo = archivo_map.get(categoria, None)
-                if archivo:
-                    archivo_path = os.path.join("data", "cheatsheets", archivo)
-                    
+                # Extraer nombre del archivo (quitar emoji y espacios)
+                nombre_archivo = categoria.split(" ", 1)[1] if " " in categoria else categoria
+                nombre_archivo = nombre_archivo.replace("📝 ", "").replace("📄 ", "")
+                
+                # Obtener directorio de cheatsheets
+                directorio_proyecto = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+                cheatsheets_dir = os.path.join(directorio_proyecto, "data", "cheatsheets")
+                
+                # Buscar archivo con extensión .txt o .md
+                archivos_posibles = [
+                    f"{nombre_archivo}.txt",
+                    f"{nombre_archivo}.md"
+                ]
+                
+                archivo_encontrado = None
+                for archivo in archivos_posibles:
+                    archivo_path = os.path.join(cheatsheets_dir, archivo)
                     if os.path.exists(archivo_path):
-                        with open(archivo_path, 'r', encoding='utf-8') as f:
-                            contenido = f.read()
-                            self.cheatsheet_text.delete(1.0, tk.END)
-                            self.cheatsheet_text.insert(1.0, contenido)
-                    else:
+                        archivo_encontrado = archivo_path
+                        break
+                
+                # Buscar archivos que contengan el nombre parcialmente
+                if not archivo_encontrado:
+                    if os.path.exists(cheatsheets_dir):
+                        archivos = os.listdir(cheatsheets_dir)
+                        for archivo in archivos:
+                            if archivo.endswith(('.txt', '.md')) and nombre_archivo.lower() in archivo.lower():
+                                archivo_encontrado = os.path.join(cheatsheets_dir, archivo)
+                                break
+                
+                if archivo_encontrado:
+                    with open(archivo_encontrado, 'r', encoding='utf-8', errors='ignore') as f:
+                        contenido = f.read()
                         self.cheatsheet_text.delete(1.0, tk.END)
-                        self.cheatsheet_text.insert(1.0, f"# CHEATSHEET: {categoria}\n\nArchivo no encontrado: {archivo_path}\n\nPuedes crear este cheatsheet editando este contenido y guardando.")
+                        self.cheatsheet_text.insert(1.0, contenido)
                 else:
                     self.cheatsheet_text.delete(1.0, tk.END)
-                    self.cheatsheet_text.insert(1.0, f"# CHEATSHEET: {categoria}\n\nCheatsheet personalizado - añade tu contenido aquí.\n\nGuarda los cambios para crear el archivo.")
+                    self.cheatsheet_text.insert(1.0, f"# CHEATSHEET: {nombre_archivo}\n\nArchivo no encontrado en la carpeta cheatsheets.\n\nPuedes crear este cheatsheet editando este contenido y guardando.")
                     
         except Exception as e:
             print(f"Error cargando cheatsheet: {e}")

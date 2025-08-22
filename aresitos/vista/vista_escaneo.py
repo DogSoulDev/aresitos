@@ -358,6 +358,18 @@ class VistaEscaneo(tk.Frame):
             self._log_terminal("FASE 7: Escaneando vulnerabilidades conocidas", "ESCANEADOR", "ERROR")
             self._escanear_vulnerabilidades()
             
+            # FASE 8: Análisis avanzado con herramientas Kali
+            self._log_terminal("FASE 8: Análisis con herramientas especializadas de Kali", "ESCANEADOR", "WARNING")
+            self._escaneo_avanzado_kali()
+            
+            # FASE 9: Verificación de configuraciones de seguridad
+            self._log_terminal("FASE 9: Verificando configuraciones de seguridad del sistema", "ESCANEADOR", "INFO")
+            self._verificar_configuraciones_seguridad()
+            
+            # FASE 10: Detección de rootkits con herramientas nativas
+            self._log_terminal("FASE 10: Detección avanzada de rootkits y backdoors", "ESCANEADOR", "ERROR")
+            self._detectar_rootkits_avanzado()
+            
             self._log_terminal("Escaneo completo del sistema finalizado", "ESCANEADOR", "SUCCESS")
             
         except Exception as e:
@@ -1192,9 +1204,10 @@ class VistaEscaneo(tk.Frame):
             self._log_terminal(f"Error verificando usuarios: {str(e)}", "ESCANEADOR", "WARNING")
 
     def _escanear_vulnerabilidades(self):
-        """Escanear vulnerabilidades conocidas del sistema."""
+        """Escanear vulnerabilidades conocidas del sistema con información detallada."""
         import subprocess
         import os
+        from datetime import datetime
         
         try:
             # Verificar versión del kernel
@@ -1203,33 +1216,169 @@ class VistaEscaneo(tk.Frame):
             kernel_version = resultado.stdout.strip()
             self._log_terminal(f"Kernel version: {kernel_version}", "ESCANEADOR", "INFO")
             
-            # Verificar paquetes desactualizados
+            # Verificar paquetes desactualizados con información detallada
             self._log_terminal("Verificando actualizaciones disponibles...", "ESCANEADOR", "INFO")
             try:
                 resultado = subprocess.run(['apt', 'list', '--upgradable'], 
                                          capture_output=True, text=True, timeout=20)
-                actualizaciones = len(resultado.stdout.strip().split('\n')) - 1
+                lineas = resultado.stdout.strip().split('\n')[1:]  # Skip header
+                actualizaciones = len(lineas)
+                
                 if actualizaciones > 0:
                     self._log_terminal(f"ATENCION: {actualizaciones} paquetes pueden actualizarse", "ESCANEADOR", "WARNING")
+                    
+                    # Mostrar paquetes críticos de seguridad
+                    paquetes_criticos = []
+                    for linea in lineas[:10]:  # Primeros 10 paquetes
+                        if linea.strip():
+                            partes = linea.split()
+                            if len(partes) >= 2:
+                                paquete = partes[0].split('/')[0]
+                                version_nueva = partes[1]
+                                # Identificar paquetes críticos de seguridad
+                                if any(critico in paquete.lower() for critico in ['kernel', 'openssl', 'openssh', 'sudo', 'libc']):
+                                    paquetes_criticos.append((paquete, version_nueva))
+                                    self._log_terminal(f"PAQUETE CRÍTICO: {paquete} -> {version_nueva}", "SEGURIDAD", "ERROR")
+                                else:
+                                    self._log_terminal(f"Actualización disponible: {paquete} -> {version_nueva}", "ESCANEADOR", "INFO")
                 else:
                     self._log_terminal("Sistema actualizado", "ESCANEADOR", "INFO")
             except:
                 self._log_terminal("No se pudo verificar actualizaciones", "ESCANEADOR", "WARNING")
+            
+            # Verificar archivos sospechosos con información detallada
+            self._log_terminal("Verificando archivos sospechosos en el sistema...", "ARCHIVOS", "INFO")
+            try:
+                directorios_criticos = ['/tmp', '/var/tmp', '/dev/shm', '/home']
+                extensiones_sospechosas = ['.sh', '.py', '.pl', '.bin', '.exe']
                 
-            # Verificar servicios críticos
-            servicios_criticos = ['ssh', 'ufw', 'fail2ban']
-            for servicio in servicios_criticos:
+                for directorio in directorios_criticos:
+                    if os.path.exists(directorio):
+                        # Buscar archivos ejecutables recientes
+                        resultado = subprocess.run(['find', directorio, '-type', 'f', '-executable', '-mtime', '-7'], 
+                                                 capture_output=True, text=True, timeout=30)
+                        if resultado.returncode == 0 and resultado.stdout.strip():
+                            archivos = resultado.stdout.strip().split('\n')
+                            for archivo in archivos[:5]:  # Primeros 5 archivos
+                                if archivo.strip():
+                                    try:
+                                        stat_info = os.stat(archivo)
+                                        tamaño = stat_info.st_size
+                                        mod_time = datetime.fromtimestamp(stat_info.st_mtime).strftime("%Y-%m-%d %H:%M")
+                                        
+                                        # Obtener propietario del archivo
+                                        try:
+                                            # Usar comando ls para obtener el propietario
+                                            resultado_ls = subprocess.run(['ls', '-l', archivo], 
+                                                                        capture_output=True, text=True, timeout=5)
+                                            if resultado_ls.returncode == 0:
+                                                partes_ls = resultado_ls.stdout.split()
+                                                propietario = partes_ls[2] if len(partes_ls) > 2 else f"UID:{stat_info.st_uid}"
+                                            else:
+                                                propietario = f"UID:{stat_info.st_uid}"
+                                        except:
+                                            propietario = f"UID:{stat_info.st_uid}"
+                                        
+                                        # Obtener permisos
+                                        permisos = oct(stat_info.st_mode)[-3:]
+                                        
+                                        self._log_terminal(f"ARCHIVO EJECUTABLE: {archivo}", "ARCHIVOS", "WARNING")
+                                        self._log_terminal(f"  Propietario: {propietario}, Tamaño: {tamaño} bytes, Permisos: {permisos}", "ARCHIVOS", "INFO")
+                                        self._log_terminal(f"  Fecha modificación: {mod_time}", "ARCHIVOS", "INFO")
+                                        
+                                        # Verificar hash del archivo si es pequeño
+                                        if tamaño < 1024 * 1024:  # Menos de 1MB
+                                            resultado_hash = subprocess.run(['sha256sum', archivo], 
+                                                                           capture_output=True, text=True, timeout=10)
+                                            if resultado_hash.returncode == 0:
+                                                hash_value = resultado_hash.stdout.split()[0][:16]  # Primeros 16 caracteres
+                                                self._log_terminal(f"  SHA256 (parcial): {hash_value}...", "ARCHIVOS", "INFO")
+                                                
+                                    except Exception as e:
+                                        self._log_terminal(f"ARCHIVO EJECUTABLE: {archivo} (error leyendo info)", "ARCHIVOS", "WARNING")
+                        
+                        # Buscar archivos con extensiones sospechosas
+                        for extension in extensiones_sospechosas:
+                            resultado = subprocess.run(['find', directorio, '-name', f'*{extension}', '-mtime', '-7'], 
+                                                     capture_output=True, text=True, timeout=20)
+                            if resultado.returncode == 0 and resultado.stdout.strip():
+                                archivos = resultado.stdout.strip().split('\n')
+                                for archivo in archivos[:3]:  # Primeros 3 por extensión
+                                    if archivo.strip():
+                                        try:
+                                            stat_info = os.stat(archivo)
+                                            mod_time = datetime.fromtimestamp(stat_info.st_mtime).strftime("%Y-%m-%d %H:%M")
+                                            self._log_terminal(f"SCRIPT RECIENTE: {archivo} (mod: {mod_time})", "ARCHIVOS", "WARNING")
+                                        except:
+                                            self._log_terminal(f"SCRIPT RECIENTE: {archivo}", "ARCHIVOS", "WARNING")
+                        
+            except Exception as e:
+                self._log_terminal(f"Error verificando archivos sospechosos: {str(e)}", "ARCHIVOS", "WARNING")
+                
+            # Verificar servicios críticos con información adicional
+            self._log_terminal("Verificando servicios críticos de seguridad...", "SERVICIOS", "INFO")
+            servicios_criticos = {
+                'ssh': 'Servicio SSH para conexiones remotas',
+                'ufw': 'Firewall no complicado',
+                'fail2ban': 'Protección contra ataques de fuerza bruta',
+                'cron': 'Programador de tareas',
+                'rsyslog': 'Sistema de logs'
+            }
+            
+            for servicio, descripcion in servicios_criticos.items():
                 try:
                     resultado = subprocess.run(['systemctl', 'is-active', servicio], 
                                              capture_output=True, text=True, timeout=5)
                     estado = resultado.stdout.strip()
-                    if estado == 'active':
-                        self._log_terminal(f"Servicio de seguridad activo: {servicio}", "ESCANEADOR", "INFO")
-                    else:
-                        self._log_terminal(f"RIESGO: Servicio de seguridad {servicio} no activo", "ESCANEADOR", "WARNING")
-                except:
-                    self._log_terminal(f"No se pudo verificar servicio: {servicio}", "ESCANEADOR", "WARNING")
                     
+                    if estado == 'active':
+                        self._log_terminal(f"SERVICIO ACTIVO: {servicio} - {descripcion}", "SERVICIOS", "INFO")
+                        
+                        # Obtener información adicional del servicio
+                        resultado_status = subprocess.run(['systemctl', 'status', servicio, '--no-pager', '-l'], 
+                                                        capture_output=True, text=True, timeout=5)
+                        if resultado_status.returncode == 0:
+                            lineas = resultado_status.stdout.split('\n')
+                            for linea in lineas[:5]:  # Primeras 5 líneas del status
+                                if 'Active:' in linea or 'Main PID:' in linea:
+                                    info = linea.strip()
+                                    self._log_terminal(f"  {info}", "SERVICIOS", "INFO")
+                                    break
+                    else:
+                        self._log_terminal(f"RIESGO: Servicio {servicio} no activo - {descripcion}", "SERVICIOS", "WARNING")
+                        
+                except Exception as e:
+                    self._log_terminal(f"No se pudo verificar servicio {servicio}: {str(e)}", "SERVICIOS", "WARNING")
+            
+            # Verificar logs de seguridad recientes
+            self._log_terminal("Verificando logs de seguridad recientes...", "LOGS", "INFO")
+            try:
+                logs_seguridad = ['/var/log/auth.log', '/var/log/secure', '/var/log/syslog']
+                for log_file in logs_seguridad:
+                    if os.path.exists(log_file):
+                        # Buscar intentos de login fallidos
+                        resultado = subprocess.run(['grep', '-i', r'failed\|failure\|invalid', log_file], 
+                                                 capture_output=True, text=True, timeout=10)
+                        if resultado.returncode == 0:
+                            lineas = resultado.stdout.strip().split('\n')
+                            fallos_recientes = len(lineas)
+                            if fallos_recientes > 0:
+                                self._log_terminal(f"INTENTOS FALLIDOS: {fallos_recientes} intentos de login fallidos en {log_file}", "LOGS", "WARNING")
+                                
+                                # Mostrar las últimas 3 líneas más recientes
+                                for linea in lineas[-3:]:
+                                    if linea.strip():
+                                        # Extraer timestamp y información relevante
+                                        partes = linea.split()
+                                        if len(partes) >= 3:
+                                            timestamp = ' '.join(partes[:3])
+                                            mensaje = ' '.join(partes[3:])[:50]  # Limitar longitud
+                                            self._log_terminal(f"  {timestamp}: {mensaje}...", "LOGS", "WARNING")
+                        break  # Solo verificar el primer log que exista
+                        
+            except Exception as e:
+                self._log_terminal(f"Error verificando logs de seguridad: {str(e)}", "LOGS", "WARNING")
+                
         except Exception as e:
             self._log_terminal(f"Error escaneando vulnerabilidades: {str(e)}", "ESCANEADOR", "WARNING")
 
@@ -1398,6 +1547,378 @@ class VistaEscaneo(tk.Frame):
             
         except Exception as e:
             self._actualizar_texto_seguro(f"ERROR EN ANÁLISIS DE SERVICIOS: {str(e)}\n\n")
+    
+    def _escaneo_avanzado_kali(self):
+        """Análisis avanzado con herramientas especializadas de Kali Linux."""
+        import subprocess
+        import os
+        
+        try:
+            self._log_terminal("Iniciando análisis avanzado con herramientas Kali", "ESCANEADOR", "INFO")
+            
+            # 1. Verificar disponibilidad de herramientas de Kali
+            herramientas_kali = {
+                'nmap': 'Escaneador de puertos y servicios',
+                'ss': 'Análisis de sockets y conexiones',
+                'netstat': 'Estadísticas de red',
+                'lsof': 'Archivos y conexiones abiertas',
+                'chkrootkit': 'Detector de rootkits',
+                'lynis': 'Auditor de seguridad del sistema',
+                'rkhunter': 'Cazador de rootkits',
+                'clamav': 'Antivirus'
+            }
+            
+            herramientas_disponibles = []
+            for herramienta, descripcion in herramientas_kali.items():
+                try:
+                    resultado = subprocess.run(['which', herramienta], 
+                                             capture_output=True, text=True, timeout=5)
+                    if resultado.returncode == 0:
+                        herramientas_disponibles.append(herramienta)
+                        self._log_terminal(f"HERRAMIENTA DISPONIBLE: {herramienta} - {descripcion}", "KALI", "INFO")
+                except:
+                    pass
+            
+            # 2. Escaneo de puertos con nmap si está disponible
+            if 'nmap' in herramientas_disponibles:
+                self._log_terminal("Ejecutando escaneo de puertos con nmap...", "NMAP", "INFO")
+                try:
+                    # Escaneo básico de puertos comunes
+                    resultado = subprocess.run(['nmap', '-sS', '-F', 'localhost'], 
+                                             capture_output=True, text=True, timeout=60)
+                    if resultado.returncode == 0:
+                        lineas = resultado.stdout.split('\n')
+                        puertos_abiertos = []
+                        for linea in lineas:
+                            if '/tcp' in linea and 'open' in linea:
+                                puerto = linea.split('/')[0].strip()
+                                servicio = linea.split()[-1] if len(linea.split()) > 2 else 'unknown'
+                                puertos_abiertos.append((puerto, servicio))
+                                
+                        if puertos_abiertos:
+                            self._log_terminal(f"PUERTOS ABIERTOS DETECTADOS: {len(puertos_abiertos)}", "NMAP", "WARNING")
+                            for puerto, servicio in puertos_abiertos[:10]:  # Mostrar primeros 10
+                                self._log_terminal(f"  Puerto {puerto}: {servicio}", "NMAP", "INFO")
+                        else:
+                            self._log_terminal("No se detectaron puertos abiertos", "NMAP", "INFO")
+                except Exception as e:
+                    self._log_terminal(f"Error en escaneo nmap: {str(e)}", "NMAP", "WARNING")
+            
+            # 3. Análisis de procesos con comportamiento sospechoso
+            self._log_terminal("Analizando procesos con alta actividad de red...", "PROCESO", "INFO")
+            try:
+                # Buscar procesos con muchas conexiones abiertas
+                if 'lsof' in herramientas_disponibles:
+                    resultado = subprocess.run(['lsof', '-i', '-n'], 
+                                             capture_output=True, text=True, timeout=15)
+                    if resultado.returncode == 0:
+                        lineas = resultado.stdout.split('\n')[1:]  # Skip header
+                        procesos_red = {}
+                        
+                        for linea in lineas:
+                            if linea.strip():
+                                partes = linea.split()
+                                if len(partes) >= 2:
+                                    proceso = partes[0]
+                                    if proceso in procesos_red:
+                                        procesos_red[proceso] += 1
+                                    else:
+                                        procesos_red[proceso] = 1
+                        
+                        # Identificar procesos con muchas conexiones
+                        for proceso, conexiones in procesos_red.items():
+                            if conexiones > 5:
+                                self._log_terminal(f"PROCESO CON ALTA ACTIVIDAD DE RED: {proceso} ({conexiones} conexiones)", "PROCESO", "WARNING")
+                
+            except Exception as e:
+                self._log_terminal(f"Error analizando procesos de red: {str(e)}", "PROCESO", "WARNING")
+            
+            # 4. Verificación de archivos binarios sospechosos
+            self._log_terminal("Buscando archivos binarios en ubicaciones sospechosas...", "ARCHIVOS", "INFO")
+            try:
+                directorios_sospechosos = ['/tmp', '/var/tmp', '/dev/shm', '/home']
+                for directorio in directorios_sospechosos:
+                    if os.path.exists(directorio):
+                        resultado = subprocess.run(['find', directorio, '-type', 'f', '-executable', 
+                                                  '-newer', '/etc/passwd'], 
+                                                 capture_output=True, text=True, timeout=30)
+                        if resultado.returncode == 0 and resultado.stdout.strip():
+                            archivos = resultado.stdout.strip().split('\n')
+                            for archivo in archivos[:5]:  # Mostrar primeros 5
+                                if archivo.strip():
+                                    try:
+                                        stat_info = os.stat(archivo)
+                                        tamaño = stat_info.st_size
+                                        from datetime import datetime
+                                        mod_time = datetime.fromtimestamp(stat_info.st_mtime).strftime("%Y-%m-%d %H:%M")
+                                        self._log_terminal(f"BINARIO SOSPECHOSO: {archivo} (tamaño: {tamaño} bytes, mod: {mod_time})", "ARCHIVOS", "WARNING")
+                                    except:
+                                        self._log_terminal(f"BINARIO SOSPECHOSO: {archivo}", "ARCHIVOS", "WARNING")
+                        
+            except Exception as e:
+                self._log_terminal(f"Error buscando archivos sospechosos: {str(e)}", "ARCHIVOS", "WARNING")
+            
+            # 5. Verificación de servicios críticos del sistema
+            self._log_terminal("Verificando estado de servicios críticos...", "SERVICIOS", "INFO")
+            try:
+                servicios_criticos = ['ssh', 'cron', 'rsyslog', 'systemd']
+                for servicio in servicios_criticos:
+                    resultado = subprocess.run(['systemctl', 'is-active', servicio], 
+                                             capture_output=True, text=True, timeout=5)
+                    estado = resultado.stdout.strip()
+                    if estado == 'active':
+                        self._log_terminal(f"SERVICIO CRÍTICO: {servicio} está ACTIVO", "SERVICIOS", "INFO")
+                    else:
+                        self._log_terminal(f"SERVICIO CRÍTICO: {servicio} está {estado}", "SERVICIOS", "WARNING")
+                        
+            except Exception as e:
+                self._log_terminal(f"Error verificando servicios: {str(e)}", "SERVICIOS", "WARNING")
+                
+        except Exception as e:
+            self._log_terminal(f"Error en análisis avanzado Kali: {str(e)}", "ESCANEADOR", "ERROR")
+    
+    def _verificar_configuraciones_seguridad(self):
+        """Verificar configuraciones críticas de seguridad del sistema."""
+        import subprocess
+        import os
+        
+        try:
+            self._log_terminal("Verificando configuraciones críticas de seguridad", "SEGURIDAD", "INFO")
+            
+            # 1. Verificar configuración SSH
+            ssh_config = '/etc/ssh/sshd_config'
+            if os.path.exists(ssh_config):
+                self._log_terminal("Analizando configuración SSH...", "SSH", "INFO")
+                try:
+                    with open(ssh_config, 'r') as f:
+                        contenido = f.read()
+                        
+                    # Verificar configuraciones críticas
+                    if 'PermitRootLogin no' in contenido or 'PermitRootLogin yes' not in contenido:
+                        self._log_terminal("SSH: PermitRootLogin configurado correctamente", "SSH", "INFO")
+                    else:
+                        self._log_terminal("SSH: ADVERTENCIA - PermitRootLogin puede estar habilitado", "SSH", "WARNING")
+                        
+                    if 'PasswordAuthentication no' in contenido:
+                        self._log_terminal("SSH: Autenticación por contraseña deshabilitada (seguro)", "SSH", "INFO")
+                    else:
+                        self._log_terminal("SSH: Autenticación por contraseña habilitada", "SSH", "WARNING")
+                        
+                except Exception as e:
+                    self._log_terminal(f"Error leyendo configuración SSH: {str(e)}", "SSH", "WARNING")
+            
+            # 2. Verificar firewall
+            self._log_terminal("Verificando estado del firewall...", "FIREWALL", "INFO")
+            try:
+                # Verificar iptables
+                resultado = subprocess.run(['iptables', '-L'], 
+                                         capture_output=True, text=True, timeout=10)
+                if resultado.returncode == 0:
+                    lineas = resultado.stdout.split('\n')
+                    reglas = len([l for l in lineas if l.strip() and not l.startswith('Chain') and not l.startswith('target')])
+                    self._log_terminal(f"FIREWALL: {reglas} reglas iptables activas", "FIREWALL", "INFO")
+                    
+                    # Verificar si hay reglas DROP
+                    if 'DROP' in resultado.stdout:
+                        self._log_terminal("FIREWALL: Políticas de bloqueo detectadas", "FIREWALL", "INFO")
+                    else:
+                        self._log_terminal("FIREWALL: ADVERTENCIA - No se detectan políticas de bloqueo", "FIREWALL", "WARNING")
+                        
+            except Exception as e:
+                self._log_terminal(f"Error verificando firewall: {str(e)}", "FIREWALL", "WARNING")
+            
+            # 3. Verificar permisos de archivos críticos
+            self._log_terminal("Verificando permisos de archivos críticos...", "PERMISOS", "INFO")
+            archivos_criticos = {
+                '/etc/passwd': '644',
+                '/etc/shadow': '640',
+                '/etc/sudoers': '440',
+                '/boot': '755'
+            }
+            
+            for archivo, permisos_esperados in archivos_criticos.items():
+                if os.path.exists(archivo):
+                    try:
+                        stat_info = os.stat(archivo)
+                        permisos_actuales = oct(stat_info.st_mode)[-3:]
+                        
+                        if permisos_actuales == permisos_esperados:
+                            self._log_terminal(f"PERMISOS: {archivo} correcto ({permisos_actuales})", "PERMISOS", "INFO")
+                        else:
+                            self._log_terminal(f"PERMISOS: {archivo} INCORRECTO ({permisos_actuales}, esperado {permisos_esperados})", "PERMISOS", "WARNING")
+                            
+                    except Exception as e:
+                        self._log_terminal(f"Error verificando permisos de {archivo}: {str(e)}", "PERMISOS", "WARNING")
+            
+            # 4. Verificar usuarios con privilegios
+            self._log_terminal("Verificando usuarios con privilegios especiales...", "USUARIOS", "INFO")
+            try:
+                # Usuarios con UID 0 (root)
+                resultado = subprocess.run(['awk', '-F:', '$3==0{print $1}', '/etc/passwd'], 
+                                         capture_output=True, text=True, timeout=5)
+                if resultado.returncode == 0:
+                    usuarios_root = resultado.stdout.strip().split('\n')
+                    for usuario in usuarios_root:
+                        if usuario.strip():
+                            if usuario == 'root':
+                                self._log_terminal(f"USUARIO ROOT: {usuario} (normal)", "USUARIOS", "INFO")
+                            else:
+                                self._log_terminal(f"USUARIO ROOT: {usuario} (SOSPECHOSO)", "USUARIOS", "ERROR")
+                
+                # Usuarios en grupo sudo
+                if os.path.exists('/etc/group'):
+                    resultado = subprocess.run(['grep', '^sudo:', '/etc/group'], 
+                                             capture_output=True, text=True, timeout=5)
+                    if resultado.returncode == 0:
+                        linea_sudo = resultado.stdout.strip()
+                        if ':' in linea_sudo:
+                            usuarios_sudo = linea_sudo.split(':')[-1].split(',') if linea_sudo.split(':')[-1] else []
+                            for usuario in usuarios_sudo:
+                                if usuario.strip():
+                                    self._log_terminal(f"USUARIO SUDO: {usuario.strip()}", "USUARIOS", "INFO")
+                        
+            except Exception as e:
+                self._log_terminal(f"Error verificando usuarios: {str(e)}", "USUARIOS", "WARNING")
+                
+        except Exception as e:
+            self._log_terminal(f"Error verificando configuraciones de seguridad: {str(e)}", "SEGURIDAD", "ERROR")
+    
+    def _detectar_rootkits_avanzado(self):
+        """Detección avanzada de rootkits y backdoors usando múltiples métodos."""
+        import subprocess
+        import os
+        
+        try:
+            self._log_terminal("Iniciando detección avanzada de rootkits y backdoors", "ROOTKIT", "WARNING")
+            
+            # 1. Verificar herramientas de detección disponibles
+            herramientas_deteccion = ['chkrootkit', 'rkhunter', 'clamav']
+            herramientas_disponibles = []
+            
+            for herramienta in herramientas_deteccion:
+                try:
+                    resultado = subprocess.run(['which', herramienta], 
+                                             capture_output=True, text=True, timeout=5)
+                    if resultado.returncode == 0:
+                        herramientas_disponibles.append(herramienta)
+                        self._log_terminal(f"DETECTOR DISPONIBLE: {herramienta}", "ROOTKIT", "INFO")
+                except:
+                    pass
+            
+            # 2. Verificar archivos de sistema modificados recientemente
+            self._log_terminal("Verificando archivos de sistema modificados recientemente...", "ROOTKIT", "INFO")
+            try:
+                directorios_sistema = ['/bin', '/sbin', '/usr/bin', '/usr/sbin']
+                for directorio in directorios_sistema:
+                    if os.path.exists(directorio):
+                        # Buscar archivos modificados en las últimas 24 horas
+                        resultado = subprocess.run(['find', directorio, '-type', 'f', '-mtime', '-1'], 
+                                                 capture_output=True, text=True, timeout=30)
+                        if resultado.returncode == 0 and resultado.stdout.strip():
+                            archivos_modificados = resultado.stdout.strip().split('\n')
+                            for archivo in archivos_modificados[:5]:  # Mostrar primeros 5
+                                if archivo.strip():
+                                    try:
+                                        stat_info = os.stat(archivo)
+                                        from datetime import datetime
+                                        mod_time = datetime.fromtimestamp(stat_info.st_mtime).strftime("%Y-%m-%d %H:%M")
+                                        self._log_terminal(f"SISTEMA MODIFICADO: {archivo} (mod: {mod_time})", "ROOTKIT", "WARNING")
+                                    except:
+                                        pass
+                        
+            except Exception as e:
+                self._log_terminal(f"Error verificando archivos de sistema: {str(e)}", "ROOTKIT", "WARNING")
+            
+            # 3. Buscar procesos ocultos o sospechosos
+            self._log_terminal("Buscando procesos ocultos o con nombres sospechosos...", "ROOTKIT", "INFO")
+            try:
+                resultado = subprocess.run(['ps', 'aux'], 
+                                         capture_output=True, text=True, timeout=15)
+                if resultado.returncode == 0:
+                    lineas = resultado.stdout.split('\n')[1:]  # Skip header
+                    procesos_sospechosos = []
+                    
+                    patrones_sospechosos = [
+                        'kthreadd', 'ksoftirqd', '[', ']', 'migration', 'watchdog',
+                        'rcu_', 'systemd', 'kworker', 'ksoftirqd'
+                    ]
+                    
+                    for linea in lineas:
+                        if linea.strip():
+                            partes = linea.split()
+                            if len(partes) >= 11:
+                                proceso = ' '.join(partes[10:])
+                                
+                                # Buscar patrones anómalos
+                                if any(patron in proceso.lower() for patron in ['backdoor', 'rootkit', 'trojan']):
+                                    procesos_sospechosos.append(proceso)
+                                    self._log_terminal(f"PROCESO SOSPECHOSO: {proceso}", "ROOTKIT", "ERROR")
+                                
+                                # Procesos con nombres muy cortos o extraños
+                                nombre_proceso = partes[10] if len(partes) > 10 else ''
+                                if len(nombre_proceso) == 1 and nombre_proceso.isalpha():
+                                    self._log_terminal(f"PROCESO NOMBRE EXTRAÑO: {proceso}", "ROOTKIT", "WARNING")
+                
+            except Exception as e:
+                self._log_terminal(f"Error analizando procesos: {str(e)}", "ROOTKIT", "WARNING")
+            
+            # 4. Verificar conexiones de red sospechosas
+            self._log_terminal("Verificando conexiones de red sospechosas...", "ROOTKIT", "INFO")
+            try:
+                resultado = subprocess.run(['ss', '-tupln'], 
+                                         capture_output=True, text=True, timeout=10)
+                if resultado.returncode == 0:
+                    lineas = resultado.stdout.split('\n')[1:]  # Skip header
+                    puertos_sospechosos = ['1337', '31337', '12345', '54321', '9999']
+                    
+                    for linea in lineas:
+                        if linea.strip():
+                            partes = linea.split()
+                            if len(partes) >= 4:
+                                direccion_local = partes[3]
+                                puerto = direccion_local.split(':')[-1]
+                                
+                                if puerto in puertos_sospechosos:
+                                    self._log_terminal(f"PUERTO SOSPECHOSO ABIERTO: {puerto} ({direccion_local})", "ROOTKIT", "ERROR")
+                                
+                                # Verificar puertos altos poco comunes
+                                try:
+                                    puerto_num = int(puerto)
+                                    if puerto_num > 49152 and 'LISTEN' in linea:
+                                        self._log_terminal(f"PUERTO ALTO EN ESCUCHA: {puerto}", "ROOTKIT", "WARNING")
+                                except:
+                                    pass
+                
+            except Exception as e:
+                self._log_terminal(f"Error verificando conexiones: {str(e)}", "ROOTKIT", "WARNING")
+            
+            # 5. Verificar cargas del kernel sospechosas
+            self._log_terminal("Verificando módulos del kernel cargados...", "ROOTKIT", "INFO")
+            try:
+                resultado = subprocess.run(['lsmod'], 
+                                         capture_output=True, text=True, timeout=10)
+                if resultado.returncode == 0:
+                    lineas = resultado.stdout.split('\n')[1:]  # Skip header
+                    modulos_sospechosos = []
+                    
+                    for linea in lineas[:20]:  # Primeros 20 módulos
+                        if linea.strip():
+                            partes = linea.split()
+                            if len(partes) >= 1:
+                                modulo = partes[0]
+                                # Buscar módulos con nombres extraños
+                                if any(char in modulo.lower() for char in ['rootkit', 'backdoor', 'hide']):
+                                    modulos_sospechosos.append(modulo)
+                                    self._log_terminal(f"MÓDULO SOSPECHOSO: {modulo}", "ROOTKIT", "ERROR")
+                    
+                    total_modulos = len(lineas)
+                    self._log_terminal(f"MÓDULOS KERNEL: {total_modulos} módulos cargados", "ROOTKIT", "INFO")
+                
+            except Exception as e:
+                self._log_terminal(f"Error verificando módulos kernel: {str(e)}", "ROOTKIT", "WARNING")
+                
+        except Exception as e:
+            self._log_terminal(f"Error en detección de rootkits: {str(e)}", "ROOTKIT", "ERROR")
 
 
 # RESUMEN: Interfaz de escaneo de vulnerabilidades con opciones básicas y avanzadas.

@@ -181,13 +181,29 @@ class VistaHerramientasKali(tk.Frame):
             "ARESITOS v2.0 - Configurador de Herramientas Kali\n" +
             "=" * 50 + "\n\n" +
             "Sistema optimizado para Kali Linux con comandos nativos integrados:\n\n" +
-            "• Comandos del sistema: ps, ss, lsof, grep, awk, find, stat\n" +
-            "• Herramientas de red: nmap, netcat, ip, route, ss\n" +
-            "• Monitoreo: inotifywait, auditd, systemctl, top, free\n" +
-            "• Análisis forense: binwalk, strings, hexdump, volatility\n" +
-            "• Seguridad: chkrootkit, rkhunter, lynis, fail2ban\n\n" +
-            "Haga clic en 'Verificar Herramientas Kali' para verificar disponibilidad.\n" +
-            "Nota: Los comandos básicos ya están integrados en el sistema.\n\n"
+            "🔧 COMANDOS BÁSICOS:\n" +
+            "• Sistema: ps, ss, lsof, grep, awk, find, stat, lsmod, iptables\n" +
+            "• Red: nmap, netcat, ip, route, ss, hping3, curl, wget\n" +
+            "• Archivos: ls, chmod, chown, cat, sha256sum, md5sum\n\n" +
+            "🛡️ SEGURIDAD Y DETECCIÓN:\n" +
+            "• Anti-rootkit: chkrootkit, rkhunter, lynis, unhide, tiger\n" +
+            "• Malware: clamav, yara, binwalk, strings, exiftool\n" +
+            "• Monitoreo: inotifywait, auditd, systemctl, pspy, aide\n" +
+            "• Firewall: iptables, fail2ban-client\n\n" +
+            "🔍 ANÁLISIS FORENSE:\n" +
+            "• Forense: volatility3, foremost, sleuthkit, autopsy\n" +
+            "• Memoria: hexdump, strings, file, binwalk\n" +
+            "• Logs: journalctl, aureport, logwatch, rsyslog\n\n" +
+            "🌐 PENETRACIÓN Y AUDITORÍA:\n" +
+            "• Escaneadores: nmap, masscan, nuclei, nikto, gobuster, feroxbuster\n" +
+            "• Cracking: hashcat, john, hydra, medusa, patator, crunch\n" +
+            "• Web: sqlmap, whatweb, wfuzz, ffuf, dirb\n" +
+            "• Bases de datos: sqlite3, mysql, psql\n\n" +
+            "📁 INTERFAZ Y VISUALIZACIÓN:\n" +
+            "• Gestores: thunar, nautilus, dolphin, xdg-open\n" +
+            "• Editores: nano, vim, gedit, mousepad\n\n" +
+            "Haga clic en 'Verificar Herramientas' para comprobar disponibilidad.\n" +
+            "NOTA: Los comandos básicos del sistema ya están integrados.\n\n"
         )
         
         # Centrar ventana
@@ -342,24 +358,38 @@ LISTO PARA: Producción en entornos Kali Linux
                 # Comandos básicos del sistema (nativos)
                 'ps', 'ss', 'lsof', 'netstat', 'top', 'free', 'df', 'uname', 'who', 'last',
                 'find', 'stat', 'grep', 'awk', 'sort', 'uniq', 'wc', 'tail', 'head',
-                'systemctl', 'ip', 'route', 'wget', 'curl', 'diff',
-                # Herramientas de monitoreo y análisis del sistema
-                'inotifywait', 'chkrootkit', 'rkhunter', 'lynis', 'auditd', 'ausearch',
-                # Escaneadores de red
+                'systemctl', 'ip', 'route', 'wget', 'curl', 'diff', 'ls', 'chmod', 'chown',
+                # Comandos para nuevas funcionalidades implementadas
+                'lsmod', 'kill', 'pgrep', 'pkill', 'sha256sum', 'md5sum', 'iptables',
+                'cat', 'less', 'more', 'pwd', 'mkdir', 'rm', 'cp', 'mv',
+                # Herramientas de monitoreo y análisis del sistema (para FIM y SIEM)
+                'inotifywait', 'auditd', 'ausearch', 'aide', 'samhain', 'tripwire',
+                # Anti-rootkit y detección (usadas en escaneador avanzado)
+                'chkrootkit', 'rkhunter', 'lynis', 'unhide', 'tiger', 'maldet',
+                # Escaneadores de red y puertos (usados en SIEM y Escaneador)
                 'nmap', 'masscan', 'rustscan', 'gobuster', 'feroxbuster', 'nikto', 'nuclei', 'httpx',
-                # Análisis de servicios
+                'zmap', 'unicornscan', 'hping3',
+                # Análisis de servicios y red
                 'netcat', 'netcat-traditional', 'whatweb', 'wfuzz', 'ffuf', 'dirb',
+                'enum4linux', 'smbclient', 'rpcclient', 'ldapsearch',
                 # Cracking y fuerza bruta
-                'hashcat', 'john', 'hydra', 'medusa', 'patator',
+                'hashcat', 'john', 'hydra', 'medusa', 'patator', 'crunch', 'cewl',
                 # Bases de datos y SQL
-                'sqlmap', 'sqlninja',
-                # Cuarentena y análisis de malware
-                'clamav', 'clamscan', 'yara', 'binwalk', 'strings', 'file', 'exiftool',
-                'volatility3', 'vol', 'hexdump', 'foremost', 'sleuthkit',
-                # FIM y monitoreo
-                'pspy', 'pspy64', 'linpeas', 'logger', 'fail2ban-client',
+                'sqlmap', 'sqlninja', 'sqlite3', 'mysql', 'psql',
+                # Análisis de malware (expandido para FIM y cuarentena)
+                'clamav', 'clamscan', 'freshclam', 'yara', 'binwalk', 'strings', 'file', 'exiftool',
+                'volatility3', 'vol', 'hexdump', 'foremost', 'sleuthkit', 'autopsy',
+                # FIM y monitoreo avanzado
+                'pspy', 'pspy64', 'linpeas', 'logger', 'fail2ban-client', 'logwatch',
+                'incron', 'fswatch', 'entr',
+                # Análisis forense y auditoría (usadas en SIEM)
+                'logrotate', 'rsyslog', 'journalctl', 'aureport',
+                # Gestores de archivos para cheatsheets
+                'thunar', 'nautilus', 'dolphin', 'pcmanfm', 'caja', 'nemo', 'xdg-open',
+                # Editores de texto para visualización
+                'nano', 'vim', 'vi', 'gedit', 'mousepad',
                 # Herramientas base de verificación
-                'which'
+                'which', 'whereis', 'type', 'command'
             ]
             
             herramientas_faltantes = []

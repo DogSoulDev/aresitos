@@ -821,8 +821,12 @@ class VistaMonitoreo(tk.Frame):
                 self._log_terminal("FASE 3: Verificando conexiones de red activas", "MONITOREO-RED", "INFO")
                 self._monitorear_conexiones_activas()
                 
-                # FASE 4: Monitorear tráfico de red
-                self._log_terminal("FASE 4: Monitoreando trafico de red", "MONITOREO-RED", "INFO")
+                # FASE 4: Verificar puertos abiertos del sistema local
+                self._log_terminal("FASE 4: Verificando puertos abiertos del sistema local", "MONITOREO-RED", "INFO")
+                self._verificar_puertos_abiertos()
+                
+                # FASE 5: Monitorear tráfico de red
+                self._log_terminal("FASE 5: Monitoreando trafico de red", "MONITOREO-RED", "INFO")
                 self._monitorear_trafico_red_detallado()
                 
                 # FASE 5: Detectar servicios de red
@@ -1363,6 +1367,71 @@ class VistaMonitoreo(tk.Frame):
             
         except Exception as e:
             self.after(0, self._actualizar_texto_monitor, f"ERROR GENERAL EN MONITOREO: {str(e)}\n")
+    
+    def _verificar_puertos_abiertos(self):
+        """Verificar puertos abiertos del sistema local usando herramientas nativas de Kali."""
+        import subprocess
+        try:
+            # Verificar puertos TCP abiertos con ss (sucesor de netstat)
+            self.after(0, self._actualizar_texto_monitor, "   - Verificando puertos TCP abiertos:\n")
+            result = subprocess.run(['ss', '-tlnp'], capture_output=True, text=True, timeout=10)
+            if result.returncode == 0:
+                lineas = result.stdout.strip().split('\n')
+                puertos_tcp = []
+                for linea in lineas[1:]:  # Saltar cabecera
+                    if 'LISTEN' in linea:
+                        partes = linea.split()
+                        if len(partes) >= 4:
+                            direccion = partes[3]
+                            if ':' in direccion:
+                                puerto = direccion.split(':')[-1]
+                                proceso = partes[-1] if len(partes) > 4 else "N/A"
+                                puertos_tcp.append((puerto, proceso))
+                                self.after(0, self._actualizar_texto_monitor, f"     Puerto TCP {puerto} ABIERTO - Proceso: {proceso}\n")
+                
+                if puertos_tcp:
+                    self.log_to_terminal(f"Detectados {len(puertos_tcp)} puertos TCP abiertos")
+                else:
+                    self.after(0, self._actualizar_texto_monitor, "     No se detectaron puertos TCP en escucha\n")
+            
+            # Verificar puertos UDP abiertos
+            self.after(0, self._actualizar_texto_monitor, "   - Verificando puertos UDP abiertos:\n")
+            result = subprocess.run(['ss', '-ulnp'], capture_output=True, text=True, timeout=10)
+            if result.returncode == 0:
+                lineas = result.stdout.strip().split('\n')
+                puertos_udp = []
+                for linea in lineas[1:]:  # Saltar cabecera
+                    if 'UNCONN' in linea:
+                        partes = linea.split()
+                        if len(partes) >= 4:
+                            direccion = partes[3]
+                            if ':' in direccion:
+                                puerto = direccion.split(':')[-1]
+                                proceso = partes[-1] if len(partes) > 4 else "N/A"
+                                puertos_udp.append((puerto, proceso))
+                                self.after(0, self._actualizar_texto_monitor, f"     Puerto UDP {puerto} ABIERTO - Proceso: {proceso}\n")
+                
+                if puertos_udp:
+                    self.log_to_terminal(f"Detectados {len(puertos_udp)} puertos UDP abiertos")
+                else:
+                    self.after(0, self._actualizar_texto_monitor, "     No se detectaron puertos UDP en escucha\n")
+            
+            # Verificar puertos específicos de servicios comunes con nmap
+            self.after(0, self._actualizar_texto_monitor, "   - Verificando servicios en puertos comunes:\n")
+            puertos_comunes = ['22', '80', '443', '21', '25', '53', '110', '143', '993', '995']
+            for puerto in puertos_comunes:
+                try:
+                    result = subprocess.run(['nmap', '-p', puerto, 'localhost'], 
+                                          capture_output=True, text=True, timeout=5)
+                    if 'open' in result.stdout:
+                        self.after(0, self._actualizar_texto_monitor, f"     Puerto {puerto} detectado como ABIERTO\n")
+                        self.log_to_terminal(f"ALERTA: Puerto común {puerto} abierto")
+                except:
+                    pass
+                    
+        except Exception as e:
+            self.after(0, self._actualizar_texto_monitor, f"ERROR verificando puertos: {str(e)}\n")
+            self.log_to_terminal(f"ERROR en verificación de puertos: {e}")
     
     def _actualizar_texto_monitor(self, texto):
         """Actualizar texto de monitoreo de forma segura."""

@@ -1,8 +1,8 @@
 # Índice de Diccionarios Cargados - Aresitos
 
-**Generado el:** 2025-08-22 03:38:24
+**Generado el:** 2025-08-22 04:17:29
 
-**Total de categorías:** 17
+**Total de categorías:** 18
 
 ## vulnerabilidades_comunes
 - **Entradas:** 4
@@ -61,6 +61,10 @@
 - **Ejemplos:** tipo, descripcion, datos
 
 ## terminos_forense
+- **Entradas:** 4
+- **Ejemplos:** tipo, descripcion, datos
+
+## test_dinamico_test_dinamico
 - **Entradas:** 4
 - **Ejemplos:** tipo, descripcion, datos
 

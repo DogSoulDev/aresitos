@@ -149,7 +149,7 @@ def iniciar_aplicacion_clasica():
         
         # Crear aplicación principal con tema Burp Suite
         root = tk.Tk()
-        root.title("Aresitos - Sistema de Seguridad Cibernética")
+        root.title("Aresitos")
         root.geometry("1400x900")
         
         # Configurar icono de la ventana si existe

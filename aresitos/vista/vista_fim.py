@@ -481,6 +481,171 @@ class VistaFIM(tk.Frame):
                             archivos_problema += 1
                             self.after(0, self._actualizar_texto_fim, f"ERROR verificando {archivo}: {str(e)}\n\n")
                     
+                    # FASE 2.5: Monitoreo avanzado con herramientas de Kali
+                    self._log_terminal("FASE 2.5: Análisis avanzado con herramientas especializadas de Kali", "FIM", "INFO")
+                    self.after(0, self._actualizar_texto_fim, "\nFASE 2.5: ANÁLISIS AVANZADO CON HERRAMIENTAS KALI\n")
+                    self.after(0, self._actualizar_texto_fim, "PROPÓSITO: Análisis forense profundo usando toolkit de Kali Linux\n\n")
+                    
+                    # 1. Análisis de procesos ocultos con ps avanzado
+                    self.after(0, self._actualizar_texto_fim, "HERRAMIENTA: ps auxf | grep -v grep\n")
+                    self.after(0, self._actualizar_texto_fim, "FUNCIÓN: Detectar procesos ocultos y jerarquías sospechosas\n")
+                    try:
+                        result = subprocess.run(['ps', 'auxf'], capture_output=True, text=True, timeout=10)
+                        if result.returncode == 0:
+                            procesos = result.stdout.strip().split('\n')
+                            procesos_sospechosos = []
+                            for proceso in procesos:
+                                if any(sospechoso in proceso.lower() for sospechoso in 
+                                      ['backdoor', 'rootkit', 'trojan', 'keylog', 'rat']):
+                                    procesos_sospechosos.append(proceso)
+                            
+                            if procesos_sospechosos:
+                                self.after(0, self._actualizar_texto_fim, f"ALERTA: {len(procesos_sospechosos)} procesos sospechosos detectados\n")
+                                for proc in procesos_sospechosos[:3]:
+                                    self.after(0, self._actualizar_texto_fim, f"  SOSPECHOSO: {proc[:60]}...\n")
+                                self._log_terminal(f"ALERTA: {len(procesos_sospechosos)} procesos sospechosos en el sistema", "FIM", "WARNING")
+                            else:
+                                self.after(0, self._actualizar_texto_fim, f"OK: {len(procesos)} procesos verificados, ninguno sospechoso\n")
+                        else:
+                            self.after(0, self._actualizar_texto_fim, "ERROR: No se pudo ejecutar análisis de procesos\n")
+                    except:
+                        self.after(0, self._actualizar_texto_fim, "ERROR: Comando ps no disponible\n")
+                    
+                    self.after(0, self._actualizar_texto_fim, "\n")
+                    
+                    # 2. Verificación de módulos del kernel con lsmod
+                    self.after(0, self._actualizar_texto_fim, "HERRAMIENTA: lsmod | head -20\n")
+                    self.after(0, self._actualizar_texto_fim, "FUNCIÓN: Detectar módulos del kernel maliciosos o rootkits\n")
+                    try:
+                        result = subprocess.run(['lsmod'], capture_output=True, text=True, timeout=5)
+                        if result.returncode == 0:
+                            modulos = result.stdout.strip().split('\n')[1:21]  # Primeros 20 módulos
+                            modulos_sospechosos = []
+                            for modulo in modulos:
+                                partes = modulo.split()
+                                if len(partes) >= 1:
+                                    nombre_modulo = partes[0]
+                                    if any(sospechoso in nombre_modulo.lower() for sospechoso in 
+                                          ['rootkit', 'hide', 'stealth', 'keylog']):
+                                        modulos_sospechosos.append(nombre_modulo)
+                            
+                            if modulos_sospechosos:
+                                self.after(0, self._actualizar_texto_fim, f"ALERTA: {len(modulos_sospechosos)} módulos kernel sospechosos\n")
+                                for mod in modulos_sospechosos:
+                                    self.after(0, self._actualizar_texto_fim, f"  MÓDULO SOSPECHOSO: {mod}\n")
+                                self._log_terminal(f"ALERTA: Módulos kernel sospechosos detectados", "FIM", "ERROR")
+                            else:
+                                self.after(0, self._actualizar_texto_fim, f"OK: {len(modulos)} módulos kernel verificados\n")
+                        else:
+                            self.after(0, self._actualizar_texto_fim, "ERROR: No se pudo verificar módulos del kernel\n")
+                    except:
+                        self.after(0, self._actualizar_texto_fim, "ERROR: lsmod no disponible\n")
+                    
+                    self.after(0, self._actualizar_texto_fim, "\n")
+                    
+                    # 3. Análisis de conexiones de red sospechosas con ss
+                    self.after(0, self._actualizar_texto_fim, "HERRAMIENTA: ss -tupnl | grep -E ':(4444|5555|6666|7777|8888|9999|31337)'\n")
+                    self.after(0, self._actualizar_texto_fim, "FUNCIÓN: Detectar backdoors en puertos comúnmente usados por atacantes\n")
+                    try:
+                        result = subprocess.run(['ss', '-tupnl'], capture_output=True, text=True, timeout=10)
+                        if result.returncode == 0:
+                            lineas = result.stdout.strip().split('\n')
+                            puertos_backdoor = ['4444', '5555', '6666', '7777', '8888', '9999', '31337', '12345', '54321']
+                            backdoors_detectados = []
+                            
+                            for linea in lineas:
+                                for puerto in puertos_backdoor:
+                                    if f':{puerto}' in linea:
+                                        backdoors_detectados.append((puerto, linea))
+                            
+                            if backdoors_detectados:
+                                self.after(0, self._actualizar_texto_fim, f"CRÍTICO: {len(backdoors_detectados)} posibles backdoors detectados\n")
+                                for puerto, linea in backdoors_detectados:
+                                    self.after(0, self._actualizar_texto_fim, f"  BACKDOOR PUERTO {puerto}: {linea[:50]}...\n")
+                                self._log_terminal(f"CRÍTICO: {len(backdoors_detectados)} backdoors detectados", "FIM", "ERROR")
+                            else:
+                                self.after(0, self._actualizar_texto_fim, "OK: No se detectaron puertos de backdoor conocidos\n")
+                        else:
+                            self.after(0, self._actualizar_texto_fim, "ERROR: No se pudo verificar conexiones de red\n")
+                    except:
+                        self.after(0, self._actualizar_texto_fim, "ERROR: ss no disponible\n")
+                    
+                    self.after(0, self._actualizar_texto_fim, "\n")
+                    
+                    # 4. Verificación de archivos en directorios temporales
+                    self.after(0, self._actualizar_texto_fim, "HERRAMIENTA: find /tmp /var/tmp -type f -executable -mtime -1\n")
+                    self.after(0, self._actualizar_texto_fim, "FUNCIÓN: Detectar ejecutables sospechosos en directorios temporales\n")
+                    try:
+                        directorios_tmp = ['/tmp', '/var/tmp', '/dev/shm']
+                        ejecutables_sospechosos = []
+                        
+                        for directorio in directorios_tmp:
+                            if os.path.exists(directorio):
+                                result = subprocess.run(['find', directorio, '-type', 'f', '-executable', '-mtime', '-1'], 
+                                                      capture_output=True, text=True, timeout=15)
+                                if result.returncode == 0 and result.stdout.strip():
+                                    archivos = result.stdout.strip().split('\n')
+                                    ejecutables_sospechosos.extend(archivos)
+                        
+                        if ejecutables_sospechosos:
+                            self.after(0, self._actualizar_texto_fim, f"ALERTA: {len(ejecutables_sospechosos)} ejecutables recientes en /tmp\n")
+                            for ejecutable in ejecutables_sospechosos[:5]:  # Primeros 5
+                                if ejecutable.strip():
+                                    try:
+                                        stat_info = os.stat(ejecutable)
+                                        # Usar comando ls para obtener propietario
+                                        resultado_ls = subprocess.run(['ls', '-l', ejecutable], 
+                                                                     capture_output=True, text=True, timeout=5)
+                                        if resultado_ls.returncode == 0:
+                                            partes_ls = resultado_ls.stdout.split()
+                                            propietario = partes_ls[2] if len(partes_ls) > 2 else f"UID:{stat_info.st_uid}"
+                                        else:
+                                            propietario = f"UID:{stat_info.st_uid}"
+                                        tamaño = stat_info.st_size
+                                        self.after(0, self._actualizar_texto_fim, f"  EJECUTABLE: {ejecutable} (owner: {propietario}, size: {tamaño})\n")
+                                    except:
+                                        self.after(0, self._actualizar_texto_fim, f"  EJECUTABLE: {ejecutable}\n")
+                            self._log_terminal(f"ALERTA: {len(ejecutables_sospechosos)} ejecutables sospechosos en directorios temporales", "FIM", "WARNING")
+                        else:
+                            self.after(0, self._actualizar_texto_fim, "OK: No se encontraron ejecutables recientes en directorios temporales\n")
+                    except Exception as e:
+                        self.after(0, self._actualizar_texto_fim, f"ERROR: {str(e)}\n")
+                    
+                    self.after(0, self._actualizar_texto_fim, "\n")
+                    
+                    # 5. Verificación de logs de autenticación recientes
+                    self.after(0, self._actualizar_texto_fim, "HERRAMIENTA: grep -i 'failed\\|error\\|invalid' /var/log/auth.log | tail -10\n")
+                    self.after(0, self._actualizar_texto_fim, "FUNCIÓN: Detectar intentos de autenticación sospechosos o ataques\n")
+                    try:
+                        logs_auth = ['/var/log/auth.log', '/var/log/secure']
+                        intentos_sospechosos = 0
+                        
+                        for log_file in logs_auth:
+                            if os.path.exists(log_file):
+                                result = subprocess.run(['grep', '-i', r'failed\|error\|invalid', log_file], 
+                                                      capture_output=True, text=True, timeout=10)
+                                if result.returncode == 0:
+                                    lineas = result.stdout.strip().split('\n')
+                                    intentos_sospechosos = len(lineas)
+                                    if intentos_sospechosos > 10:
+                                        self.after(0, self._actualizar_texto_fim, f"ALERTA: {intentos_sospechosos} intentos de autenticación fallidos\n")
+                                        # Mostrar últimos 3 intentos
+                                        for linea in lineas[-3:]:
+                                            if linea.strip():
+                                                timestamp = ' '.join(linea.split()[:3])
+                                                self.after(0, self._actualizar_texto_fim, f"  FALLO: {timestamp}\n")
+                                        self._log_terminal(f"ALERTA: {intentos_sospechosos} intentos de autenticación fallidos", "FIM", "WARNING")
+                                    else:
+                                        self.after(0, self._actualizar_texto_fim, f"OK: {intentos_sospechosos} fallos de autenticación (normal)\n")
+                                break  # Solo verificar el primer log disponible
+                        
+                        if intentos_sospechosos == 0:
+                            self.after(0, self._actualizar_texto_fim, "OK: No se encontraron fallos de autenticación\n")
+                    except:
+                        self.after(0, self._actualizar_texto_fim, "ERROR: No se pudieron verificar logs de autenticación\n")
+                    
+                    self.after(0, self._actualizar_texto_fim, "\n")
+                    
                     # FASE 3: Resumen del análisis
                     self._log_terminal("FASE 3: Generando resumen de seguridad", "FIM", "INFO")
                     self.after(0, self._actualizar_texto_fim, "FASE 3: RESUMEN DEL ANÁLISIS FIM\n")

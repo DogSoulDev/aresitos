@@ -780,60 +780,268 @@ class VistaSIEM(tk.Frame):
             self._log_terminal(f"Error monitoreando trafico: {str(e)}", "SIEM", "WARNING")
 
     def _monitorear_puertos_criticos(self):
-        """Monitorear los 50 puertos más vulnerables a ciberataques."""
+        """Monitorear los 50 puertos más vulnerables a ciberataques con protección avanzada."""
         import subprocess
         
-        # Los 50 puertos más críticos para ciberataques
-        puertos_criticos = [
-            '21', '22', '23', '25', '53', '80', '110', '111', '135', '139',
-            '143', '443', '445', '993', '995', '1723', '3306', '3389', '5900', '6000',
-            '6001', '6002', '6003', '6004', '6005', '6006', '8080', '8443', '8888', '9000',
-            '1433', '1434', '1521', '2049', '2121', '2375', '3000', '4444', '5432', '5555',
-            '5984', '6379', '7001', '8000', '8001', '8081', '9001', '9090', '9200', '27017'
-        ]
+        # Los 50 puertos más críticos para ciberataques organizados por categoría
+        puertos_criticos = {
+            'acceso_remoto': {
+                '22': 'SSH - Secure Shell',
+                '23': 'Telnet (inseguro)',
+                '3389': 'RDP - Remote Desktop Protocol',
+                '5900': 'VNC - Virtual Network Computing',
+                '5901': 'VNC alternativo',
+                '1723': 'PPTP VPN'
+            },
+            'web_servicios': {
+                '80': 'HTTP - Hypertext Transfer Protocol',
+                '443': 'HTTPS - HTTP Secure',
+                '8080': 'HTTP alternativo',
+                '8443': 'HTTPS alternativo',
+                '8000': 'HTTP desarrollo',
+                '8001': 'HTTP alternativo',
+                '8081': 'HTTP proxy',
+                '9000': 'Servidor web alternativo',
+                '9090': 'Panel de administración web'
+            },
+            'bases_datos': {
+                '1433': 'Microsoft SQL Server',
+                '1434': 'Microsoft SQL Monitor',
+                '3306': 'MySQL/MariaDB',
+                '5432': 'PostgreSQL',
+                '5984': 'CouchDB',
+                '6379': 'Redis',
+                '9200': 'Elasticsearch',
+                '27017': 'MongoDB'
+            },
+            'email_ftp': {
+                '21': 'FTP - File Transfer Protocol',
+                '25': 'SMTP - Simple Mail Transfer Protocol',
+                '110': 'POP3 - Post Office Protocol',
+                '143': 'IMAP - Internet Message Access Protocol',
+                '993': 'IMAPS - IMAP over SSL',
+                '995': 'POP3S - POP3 over SSL',
+                '2121': 'FTP alternativo'
+            },
+            'backdoors_sospechosos': {
+                '4444': 'Puerto backdoor común',
+                '5555': 'Puerto backdoor común',
+                '6666': 'Puerto sospechoso',
+                '7777': 'Puerto sospechoso',
+                '8888': 'Puerto sospechoso alternativo',
+                '9999': 'Puerto backdoor común',
+                '31337': 'Puerto hacker clásico',
+                '12345': 'Puerto backdoor típico',
+                '54321': 'Puerto backdoor típico'
+            },
+            'sistema_red': {
+                '53': 'DNS - Domain Name System',
+                '111': 'RPC - Remote Procedure Call',
+                '135': 'MS RPC Endpoint Mapper',
+                '139': 'NetBIOS Session Service',
+                '445': 'SMB - Server Message Block',
+                '2049': 'NFS - Network File System',
+                '2375': 'Docker API',
+                '6000': 'X11 forwarding',
+                '6001': 'X11 forwarding alternativo',
+                '7001': 'Servidor de aplicaciones'
+            }
+        }
         
         try:
-            # Verificar qué puertos están abiertos
+            self._log_terminal("Iniciando monitoreo avanzado de puertos críticos...", "SIEM", "INFO")
+            
+            # Verificar qué puertos están abiertos usando ss
             resultado = subprocess.run(['ss', '-tuln'], 
                                      capture_output=True, text=True, timeout=15)
             
-            puertos_abiertos = []
-            puertos_criticos_abiertos = []
+            puertos_abiertos_tcp = []
+            puertos_abiertos_udp = []
+            puertos_criticos_detectados = {}
             
             for linea in resultado.stdout.split('\n'):
-                if 'LISTEN' in linea:
+                if linea.strip():
                     partes = linea.split()
                     if len(partes) >= 4:
+                        protocolo = partes[0]
                         direccion = partes[3]
                         puerto = direccion.split(':')[-1]
-                        puertos_abiertos.append(puerto)
                         
-                        if puerto in puertos_criticos:
-                            puertos_criticos_abiertos.append(puerto)
-                            # Identificar nivel de criticidad
-                            if puerto in ['22', '23', '3389', '5900']:  # Acceso remoto
-                                self._log_terminal(f"PUERTO CRITICO ABIERTO: {puerto} (Acceso Remoto)", "SIEM", "ERROR")
-                            elif puerto in ['80', '443', '8080', '8443']:  # Web
-                                self._log_terminal(f"PUERTO WEB ABIERTO: {puerto} (Servidor Web)", "SIEM", "WARNING")
-                            elif puerto in ['21', '25', '110', '143', '993', '995']:  # Servicios de archivos/email
-                                self._log_terminal(f"PUERTO SERVICIO ABIERTO: {puerto} (FTP/Email)", "SIEM", "WARNING")
-                            elif puerto in ['1433', '3306', '5432', '27017']:  # Bases de datos
-                                self._log_terminal(f"PUERTO BD CRITICO: {puerto} (Base de Datos)", "SIEM", "ERROR")
-                            elif puerto in ['4444', '5555', '6666', '7777', '8888', '9999']:  # Puertos sospechosos
-                                self._log_terminal(f"PUERTO SOSPECHOSO: {puerto} (Posible Backdoor)", "SIEM", "ERROR")
-                            else:
-                                self._log_terminal(f"PUERTO CRITICO: {puerto} monitoreado", "SIEM", "WARNING")
+                        if protocolo.startswith('tcp') and 'LISTEN' in linea:
+                            puertos_abiertos_tcp.append(puerto)
+                        elif protocolo.startswith('udp'):
+                            puertos_abiertos_udp.append(puerto)
+                        
+                        # Verificar si es un puerto crítico
+                        for categoria, puertos_cat in puertos_criticos.items():
+                            if puerto in puertos_cat:
+                                descripcion = puertos_cat[puerto]
+                                if categoria not in puertos_criticos_detectados:
+                                    puertos_criticos_detectados[categoria] = []
+                                puertos_criticos_detectados[categoria].append((puerto, descripcion, protocolo))
+            
+            # Reportar hallazgos por categoría
+            total_criticos = 0
+            for categoria, puertos_detectados in puertos_criticos_detectados.items():
+                if puertos_detectados:
+                    total_criticos += len(puertos_detectados)
+                    
+                    if categoria == 'acceso_remoto':
+                        self._log_terminal(f"ACCESO REMOTO: {len(puertos_detectados)} puertos críticos detectados", "SIEM", "ERROR")
+                    elif categoria == 'bases_datos':
+                        self._log_terminal(f"BASES DE DATOS: {len(puertos_detectados)} puertos expuestos", "SIEM", "ERROR")
+                    elif categoria == 'backdoors_sospechosos':
+                        self._log_terminal(f"BACKDOORS DETECTADOS: {len(puertos_detectados)} puertos sospechosos", "SIEM", "ERROR")
+                    elif categoria == 'web_servicios':
+                        self._log_terminal(f"SERVICIOS WEB: {len(puertos_detectados)} puertos activos", "SIEM", "WARNING")
+                    elif categoria == 'email_ftp':
+                        self._log_terminal(f"EMAIL/FTP: {len(puertos_detectados)} servicios detectados", "SIEM", "WARNING")
+                    elif categoria == 'sistema_red':
+                        self._log_terminal(f"SERVICIOS SISTEMA: {len(puertos_detectados)} puertos activos", "SIEM", "INFO")
+                    
+                    # Mostrar detalles de cada puerto
+                    for puerto, descripcion, protocolo in puertos_detectados:
+                        nivel = "ERROR" if categoria in ['acceso_remoto', 'bases_datos', 'backdoors_sospechosos'] else "WARNING"
+                        self._log_terminal(f"  Puerto {puerto}/{protocolo}: {descripcion}", "SIEM", nivel)
+            
+            # Resumen general
+            total_tcp = len(puertos_abiertos_tcp)
+            total_udp = len(puertos_abiertos_udp)
+            
+            self._log_terminal(f"RESUMEN: {total_tcp} TCP, {total_udp} UDP abiertos, {total_criticos} críticos", "SIEM", "INFO")
+            
+            # Alertas de seguridad basadas en el análisis
+            if total_criticos > 15:
+                self._log_terminal("ALERTA MÁXIMA: Demasiados puertos críticos expuestos", "SIEM", "ERROR")
+            elif total_criticos > 10:
+                self._log_terminal("ALERTA ALTA: Múltiples puertos críticos detectados", "SIEM", "WARNING")
+            elif total_criticos > 5:
+                self._log_terminal("ALERTA MEDIA: Varios puertos críticos abiertos", "SIEM", "WARNING")
+            
+            # Verificar conexiones establecidas en puertos críticos
+            self._verificar_conexiones_criticas(puertos_criticos_detectados)
+            
+            # Monitoreo de IPs sospechosas
+            self._monitorear_ips_sospechosas()
                                 
-            total_abiertos = len(puertos_abiertos)
-            criticos_abiertos = len(puertos_criticos_abiertos)
+        except Exception as e:
+            self._log_terminal(f"Error monitoreando puertos críticos: {str(e)}", "SIEM", "ERROR")
+    
+    def _verificar_conexiones_criticas(self, puertos_criticos_detectados):
+        """Verificar conexiones activas en puertos críticos."""
+        import subprocess
+        
+        try:
+            self._log_terminal("Verificando conexiones activas en puertos críticos...", "SIEM", "INFO")
             
-            self._log_terminal(f"Puertos monitoreados: {total_abiertos} abiertos, {criticos_abiertos} criticos", "SIEM", "INFO")
+            # Obtener conexiones establecidas
+            resultado = subprocess.run(['ss', '-tupn'], 
+                                     capture_output=True, text=True, timeout=10)
             
-            if criticos_abiertos > 10:
-                self._log_terminal(f"ALERTA: Demasiados puertos criticos abiertos ({criticos_abiertos})", "SIEM", "ERROR")
+            conexiones_sospechosas = []
+            if resultado.returncode == 0:
+                for linea in resultado.stdout.split('\n'):
+                    if 'ESTAB' in linea or 'ESTABLISHED' in linea:
+                        partes = linea.split()
+                        if len(partes) >= 5:
+                            local_addr = partes[3]
+                            remote_addr = partes[4]
+                            puerto_local = local_addr.split(':')[-1]
+                            ip_remota = remote_addr.split(':')[0]
+                            
+                            # Verificar si el puerto local es crítico
+                            for categoria, puertos_detectados in puertos_criticos_detectados.items():
+                                for puerto, descripcion, protocolo in puertos_detectados:
+                                    if puerto == puerto_local:
+                                        # Verificar si la IP remota es sospechosa
+                                        if not self._es_ip_local(ip_remota):
+                                            conexiones_sospechosas.append((puerto, ip_remota, descripcion))
+                                            self._log_terminal(f"CONEXIÓN EXTERNA: Puerto {puerto} ({descripcion}) ← {ip_remota}", "SIEM", "WARNING")
+            
+            if conexiones_sospechosas:
+                self._log_terminal(f"DETECTADAS: {len(conexiones_sospechosas)} conexiones externas en puertos críticos", "SIEM", "WARNING")
+            else:
+                self._log_terminal("Sin conexiones externas sospechosas detectadas", "SIEM", "INFO")
                 
         except Exception as e:
-            self._log_terminal(f"Error monitoreando puertos: {str(e)}", "SIEM", "WARNING")
+            self._log_terminal(f"Error verificando conexiones críticas: {str(e)}", "SIEM", "WARNING")
+    
+    def _es_ip_local(self, ip):
+        """Verificar si una IP es local/privada."""
+        try:
+            import ipaddress
+            ip_obj = ipaddress.ip_address(ip)
+            return ip_obj.is_private or ip_obj.is_loopback or ip_obj.is_link_local
+        except:
+            # Verificación manual para IPs comunes
+            return (ip.startswith('192.168.') or 
+                   ip.startswith('10.') or 
+                   ip.startswith('172.') or 
+                   ip.startswith('127.') or 
+                   ip == 'localhost')
+    
+    def _monitorear_ips_sospechosas(self):
+        """Monitorear IPs sospechosas y bloquear ataques comunes."""
+        import subprocess
+        
+        try:
+            self._log_terminal("Monitoreando IPs sospechosas y patrones de ataque...", "SIEM", "INFO")
+            
+            # Verificar intentos de conexión recientes en logs
+            logs_a_verificar = ['/var/log/auth.log', '/var/log/secure', '/var/log/syslog']
+            
+            for log_file in logs_a_verificar:
+                if os.path.exists(log_file):
+                    try:
+                        # Buscar intentos de fuerza bruta SSH
+                        resultado = subprocess.run(['grep', '-i', 'failed password', log_file], 
+                                                 capture_output=True, text=True, timeout=10)
+                        if resultado.returncode == 0:
+                            lineas = resultado.stdout.strip().split('\n')
+                            if len(lineas) > 5:  # Más de 5 intentos fallidos
+                                self._log_terminal(f"FUERZA BRUTA DETECTADA: {len(lineas)} intentos fallidos en SSH", "SIEM", "ERROR")
+                                
+                                # Extraer IPs más frecuentes
+                                ips_atacantes = {}
+                                for linea in lineas[-10:]:  # Últimos 10 intentos
+                                    if 'from' in linea:
+                                        partes = linea.split('from')
+                                        if len(partes) > 1:
+                                            ip_parte = partes[1].split()[0]
+                                            if ip_parte in ips_atacantes:
+                                                ips_atacantes[ip_parte] += 1
+                                            else:
+                                                ips_atacantes[ip_parte] = 1
+                                
+                                # Reportar IPs más agresivas
+                                for ip, intentos in sorted(ips_atacantes.items(), key=lambda x: x[1], reverse=True)[:3]:
+                                    self._log_terminal(f"IP AGRESIVA: {ip} ({intentos} intentos)", "SIEM", "ERROR")
+                    except:
+                        pass
+                    break  # Solo verificar el primer log disponible
+            
+            # Verificar conexiones de puertos no estándar
+            resultado = subprocess.run(['ss', '-tupn'], 
+                                     capture_output=True, text=True, timeout=10)
+            if resultado.returncode == 0:
+                puertos_altos = []
+                for linea in resultado.stdout.split('\n'):
+                    if 'ESTAB' in linea:
+                        partes = linea.split()
+                        if len(partes) >= 4:
+                            remote_addr = partes[4]
+                            try:
+                                puerto_remoto = int(remote_addr.split(':')[-1])
+                                if puerto_remoto > 50000:  # Puertos muy altos
+                                    puertos_altos.append(puerto_remoto)
+                            except:
+                                pass
+                
+                if len(puertos_altos) > 10:
+                    self._log_terminal(f"ACTIVIDAD SOSPECHOSA: {len(puertos_altos)} conexiones en puertos altos", "SIEM", "WARNING")
+                    
+        except Exception as e:
+            self._log_terminal(f"Error monitoreando IPs sospechosas: {str(e)}", "SIEM", "WARNING")
 
     def _detectar_anomalias(self):
         """Detectar anomalías en el sistema en tiempo real."""

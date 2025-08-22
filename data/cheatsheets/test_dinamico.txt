@@ -1,0 +1,18 @@
+# CHEATSHEET DE PRUEBA - DINAMICO
+
+## Descripción
+Este es un archivo de prueba para verificar que la lista de cheatsheets se actualiza dinámicamente.
+
+## Comandos de ejemplo
+```bash
+# Comando de prueba
+ls -la
+
+# Verificar sistema
+uname -a
+```
+
+## Notas
+- Este archivo se creó para probar la funcionalidad dinámica
+- Debería aparecer en la lista de cheatsheets al refrescar
+- Se puede eliminar para probar que también desaparezca de la lista

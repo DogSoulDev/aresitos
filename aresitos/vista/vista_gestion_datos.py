@@ -221,6 +221,30 @@ class VistaGestionDatos(tk.Frame):
                 btn = ttk.Button(btn_frame, text=texto, command=comando)
                 btn.pack(side=tk.LEFT, padx=(0, 5))
         
+        # Frame adicional para gestión de archivos
+        if self.theme:
+            gestion_frame = tk.Frame(right_frame, bg='#2b2b2b')
+        else:
+            gestion_frame = tk.Frame(right_frame)
+        gestion_frame.pack(fill=tk.X, pady=(5, 10))
+        
+        # Botones de gestión de archivos
+        gestión_acciones = [
+            ("🔄 Refrescar", self.cargar_archivos, '#17a2b8'),
+            ("📁 Abrir Carpeta", self.abrir_carpeta_actual, '#007acc'),
+            ("📊 Estadísticas", self.obtener_estadisticas_datos, '#6c757d')
+        ]
+        
+        for texto, comando, color in gestión_acciones:
+            if self.theme:
+                btn = tk.Button(gestion_frame, text=texto, command=comando,
+                              bg=color, fg='white', font=('Arial', 9),
+                              relief='flat', padx=10, pady=3)
+                btn.pack(side=tk.LEFT, padx=(0, 5))
+            else:
+                btn = ttk.Button(gestion_frame, text=texto, command=comando)
+                btn.pack(side=tk.LEFT, padx=(0, 5))
+        
         # Frame adicional para herramientas de Kali
         if self.theme:
             kali_frame = tk.Frame(right_frame, bg='#2b2b2b')
@@ -303,9 +327,11 @@ class VistaGestionDatos(tk.Frame):
         if self.tipo_actual == "wordlists":
             ruta = self.ruta_wordlists
             extensiones = ['.txt', '.json']
+            tipo_str = "wordlists"
         else:
             ruta = self.ruta_diccionarios
             extensiones = ['.json']
+            tipo_str = "diccionarios"
         
         if ruta.exists():
             archivos = []
@@ -315,13 +341,24 @@ class VistaGestionDatos(tk.Frame):
             # Ordenar archivos
             archivos.sort(key=lambda x: x.name.lower())
             
+            # Mostrar información de refresco
+            self._log_terminal(f"🔄 Actualizando lista de {tipo_str}... Encontrados {len(archivos)} archivos", "GESTION")
+            
             for archivo in archivos:
                 # Mostrar nombre del archivo con icono según tipo
                 if archivo.suffix == '.json':
-                    icono = ""
+                    icono = "📄"
                 else:
-                    icono = ""
+                    icono = "📝"
                 self.lista_archivos.insert(tk.END, f"{icono} {archivo.name}")
+            
+            # Mensaje de confirmación
+            if archivos:
+                self._log_terminal(f"✓ Lista de {tipo_str} actualizada correctamente", "GESTION")
+            else:
+                self._log_terminal(f"⚠️ No se encontraron {tipo_str} en la carpeta", "GESTION", "WARNING")
+        else:
+            self._log_terminal(f"❌ Carpeta de {tipo_str} no encontrada: {ruta}", "GESTION", "ERROR")
     
     def on_archivo_seleccionado(self, event):
         """Manejar selección de archivo."""
@@ -930,6 +967,96 @@ class VistaGestionDatos(tk.Frame):
                 self.terminal_output.insert(tk.END, "LOG Terminal Gestión Datos reiniciado\n\n")
         except Exception as e:
             print(f"Error limpiando terminal Gestión Datos: {e}")
+    
+    def abrir_carpeta_actual(self):
+        """Abrir carpeta actual (wordlists o diccionarios) según el tipo seleccionado."""
+        try:
+            import os
+            import platform
+            import subprocess
+            
+            # Determinar carpeta según tipo actual
+            if self.tipo_actual == "wordlists":
+                carpeta_path = str(self.ruta_wordlists.resolve())
+                tipo_carpeta = "wordlists"
+            else:
+                carpeta_path = str(self.ruta_diccionarios.resolve())
+                tipo_carpeta = "diccionarios"
+            
+            if os.path.exists(carpeta_path):
+                # Comandos específicos para Kali Linux
+                if platform.system() == "Linux":
+                    comandos_kali = [
+                        ["thunar", carpeta_path],       # XFCE (predeterminado Kali)
+                        ["nautilus", carpeta_path],     # GNOME
+                        ["dolphin", carpeta_path],      # KDE
+                        ["pcmanfm", carpeta_path],      # LXDE
+                        ["xdg-open", carpeta_path]      # Genérico Linux
+                    ]
+                    
+                    for comando in comandos_kali:
+                        try:
+                            subprocess.run(["which", comando[0]], check=True, 
+                                         stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+                            subprocess.Popen(comando, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+                            self._log_terminal(f"OK Carpeta {tipo_carpeta} abierta con {comando[0]}: {carpeta_path}", "GESTION")
+                            break
+                        except subprocess.CalledProcessError:
+                            continue
+                    else:
+                        self._log_terminal(f"ERROR No se encontró gestor de archivos en Kali", "GESTION", "ERROR")
+                else:
+                    # Windows
+                    subprocess.run(["explorer", carpeta_path], check=False)
+                    self._log_terminal(f"OK Carpeta {tipo_carpeta} abierta: {carpeta_path}", "GESTION")
+                
+                # Mostrar contenido de la carpeta y refrescar lista
+                self._mostrar_contenido_carpeta(carpeta_path, tipo_carpeta)
+                self.cargar_archivos()  # Refrescar lista automáticamente
+                
+            else:
+                self._log_terminal(f"ERROR Carpeta {tipo_carpeta} no encontrada: {carpeta_path}", "GESTION", "ERROR")
+                
+        except Exception as e:
+            self._log_terminal(f"ERROR abriendo carpeta {tipo_carpeta}: {e}", "GESTION", "ERROR")
+    
+    def _mostrar_contenido_carpeta(self, carpeta_path, tipo_carpeta):
+        """Mostrar estadísticas del contenido de la carpeta."""
+        try:
+            import os
+            archivos = os.listdir(carpeta_path)
+            
+            if tipo_carpeta == "wordlists":
+                archivos_validos = [f for f in archivos if f.endswith(('.txt', '.json'))]
+                extensiones_msg = "(.txt/.json)"
+            else:
+                archivos_validos = [f for f in archivos if f.endswith('.json')]
+                extensiones_msg = "(.json)"
+            
+            if archivos_validos:
+                self._log_terminal(f"INFO {len(archivos_validos)} {tipo_carpeta} disponibles {extensiones_msg}:", "GESTION")
+                for archivo in sorted(archivos_validos)[:8]:  # Mostrar primeros 8
+                    extension_icon = "📄" if archivo.endswith('.json') else "📝"
+                    self._log_terminal(f"   {extension_icon} {archivo}", "GESTION")
+                
+                if len(archivos_validos) > 8:
+                    self._log_terminal(f"   ... y {len(archivos_validos)-8} archivos más", "GESTION")
+                
+                # Estadísticas por tipo
+                if tipo_carpeta == "wordlists":
+                    txt_count = len([f for f in archivos_validos if f.endswith('.txt')])
+                    json_count = len([f for f in archivos_validos if f.endswith('.json')])
+                    self._log_terminal(f"   Tipos: {txt_count} archivos .txt, {json_count} archivos .json", "GESTION")
+                else:
+                    self._log_terminal(f"   Total diccionarios JSON: {len(archivos_validos)}", "GESTION")
+            else:
+                self._log_terminal(f"INFO Carpeta encontrada pero sin {tipo_carpeta} válidos {extensiones_msg}", "GESTION")
+                otros_archivos = [f for f in archivos if not f.startswith('.')][:5]
+                if otros_archivos:
+                    self._log_terminal(f"   Otros archivos: {', '.join(otros_archivos)}", "GESTION")
+                    
+        except Exception as e:
+            self._log_terminal(f"ERROR leyendo contenido de carpeta: {e}", "GESTION", "ERROR")
     
     def abrir_logs_gestion(self):
         """Abrir carpeta de logs Gestión Datos."""
