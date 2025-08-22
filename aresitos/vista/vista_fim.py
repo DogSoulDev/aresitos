@@ -801,6 +801,291 @@ class VistaFIM(tk.Frame):
         
         # Realizar verificación básica
         self._realizar_analisis_basico()
+        
+        # NUEVO: Análisis completo de rutas sensibles para Issue 18
+        self._analisis_completo_rutas_sensibles()
+    
+    def _analisis_completo_rutas_sensibles(self):
+        """Análisis completo de rutas sensibles críticas de Kali Linux - Issue 18/24."""
+        try:
+            self._actualizar_texto_fim("\n" + "="*60 + "\n")
+            self._actualizar_texto_fim("ANÁLISIS COMPLETO DE RUTAS SENSIBLES KALI LINUX\n")
+            self._actualizar_texto_fim("="*60 + "\n")
+            
+            # Definir rutas sensibles categorizadas
+            rutas_sensibles = {
+                'autenticacion': {
+                    '/etc/passwd': 'Lista de usuarios del sistema',
+                    '/etc/shadow': 'Hashes de contraseñas',
+                    '/etc/group': 'Definiciones de grupos',
+                    '/etc/sudoers': 'Configuración de privilegios sudo',
+                    '/etc/security/': 'Configuraciones de seguridad PAM',
+                    '/etc/login.defs': 'Configuración de login del sistema'
+                },
+                'ssh_acceso_remoto': {
+                    '/etc/ssh/sshd_config': 'Configuración principal SSH',
+                    '/etc/ssh/ssh_config': 'Configuración cliente SSH',
+                    '/root/.ssh/': 'Claves SSH del root',
+                    '/home/*/.ssh/': 'Claves SSH de usuarios',
+                    '/etc/hosts.allow': 'Hosts permitidos',
+                    '/etc/hosts.deny': 'Hosts denegados'
+                },
+                'sistema_kernel': {
+                    '/boot/': 'Archivos de arranque del sistema',
+                    '/lib/modules/': 'Módulos del kernel',
+                    '/proc/modules': 'Módulos cargados actualmente',
+                    '/sys/module/': 'Información de módulos del kernel',
+                    '/etc/modules': 'Módulos a cargar al inicio',
+                    '/etc/modprobe.d/': 'Configuración de módulos'
+                },
+                'red_dns': {
+                    '/etc/hosts': 'Resolución DNS local',
+                    '/etc/resolv.conf': 'Configuración DNS',
+                    '/etc/network/interfaces': 'Configuración de red',
+                    '/etc/iptables/': 'Reglas de firewall',
+                    '/etc/ufw/': 'Configuración UFW firewall'
+                },
+                'servicios_criticos': {
+                    '/etc/systemd/system/': 'Servicios del sistema',
+                    '/etc/init.d/': 'Scripts de inicialización',
+                    '/etc/cron.d/': 'Tareas programadas del sistema',
+                    '/etc/crontab': 'Archivo principal de cron',
+                    '/var/spool/cron/': 'Crontabs de usuarios',
+                    '/etc/anacrontab': 'Configuración anacron'
+                },
+                'logs_auditoria': {
+                    '/var/log/auth.log': 'Log de autenticación',
+                    '/var/log/syslog': 'Log principal del sistema',
+                    '/var/log/kern.log': 'Log del kernel',
+                    '/var/log/secure': 'Log de seguridad',
+                    '/var/log/wtmp': 'Log de logins',
+                    '/var/log/btmp': 'Log de intentos fallidos'
+                },
+                'ejecutables_sistema': {
+                    '/bin/': 'Binarios esenciales del sistema',
+                    '/sbin/': 'Binarios de administración',
+                    '/usr/bin/': 'Binarios de aplicaciones',
+                    '/usr/sbin/': 'Binarios administrativos',
+                    '/usr/local/bin/': 'Binarios locales'
+                },
+                'configuracion_kali': {
+                    '/etc/apt/sources.list': 'Repositorios APT',
+                    '/etc/apt/sources.list.d/': 'Repositorios adicionales',
+                    '/etc/default/': 'Configuraciones por defecto',
+                    '/opt/': 'Software adicional instalado',
+                    '/usr/share/kali-*': 'Herramientas específicas Kali'
+                }
+            }
+            
+            # Análisis por categorías
+            total_archivos_verificados = 0
+            total_problemas_detectados = 0
+            
+            for categoria, rutas in rutas_sensibles.items():
+                self._actualizar_texto_fim(f"\nCATEGORÍA: {categoria.upper().replace('_', ' ')}\n")
+                self._actualizar_texto_fim("-" * 50 + "\n")
+                
+                archivos_categoria = 0
+                problemas_categoria = 0
+                
+                for ruta, descripcion in rutas.items():
+                    if not self.proceso_monitoreo_activo:
+                        break
+                    
+                    # Análisis específico por tipo de ruta
+                    if '*' in ruta:
+                        # Ruta con wildcard - usar glob
+                        resultado = self._analizar_ruta_wildcard(ruta, descripcion)
+                    elif os.path.isdir(ruta):
+                        # Directorio - analizar contenido
+                        resultado = self._analizar_directorio_sensible(ruta, descripcion)
+                    elif os.path.isfile(ruta):
+                        # Archivo individual - análisis detallado
+                        resultado = self._analizar_archivo_sensible(ruta, descripcion)
+                    else:
+                        # Ruta no existe
+                        self._actualizar_texto_fim(f"  WARNING: {ruta} no encontrado - {descripcion}\n")
+                        continue
+                    
+                    archivos_categoria += resultado.get('archivos_verificados', 0)
+                    problemas_categoria += resultado.get('problemas_detectados', 0)
+                
+                self._actualizar_texto_fim(f"RESUMEN {categoria}: {archivos_categoria} archivos, {problemas_categoria} problemas\n")
+                total_archivos_verificados += archivos_categoria
+                total_problemas_detectados += problemas_categoria
+            
+            # Resumen final del análisis
+            self._actualizar_texto_fim(f"\n" + "="*60 + "\n")
+            self._actualizar_texto_fim("RESUMEN ANÁLISIS COMPLETO DE RUTAS SENSIBLES\n")
+            self._actualizar_texto_fim("="*60 + "\n")
+            self._actualizar_texto_fim(f"Total archivos verificados: {total_archivos_verificados}\n")
+            self._actualizar_texto_fim(f"Total problemas detectados: {total_problemas_detectados}\n")
+            
+            if total_problemas_detectados == 0:
+                self._actualizar_texto_fim("ESTADO: OK - No se detectaron problemas críticos\n")
+                self._log_terminal("FIM: Análisis completo completado - Sin problemas críticos", "FIM", "INFO")
+            elif total_problemas_detectados <= 5:
+                self._actualizar_texto_fim("ESTADO: WARNING - Problemas menores detectados\n")
+                self._log_terminal(f"FIM: {total_problemas_detectados} problemas menores detectados", "FIM", "WARNING")
+            else:
+                self._actualizar_texto_fim("ESTADO: CRITICO - Múltiples problemas detectados\n")
+                self._log_terminal(f"FIM: {total_problemas_detectados} problemas críticos detectados", "FIM", "ERROR")
+            
+        except Exception as e:
+            self._actualizar_texto_fim(f"ERROR en análisis completo: {str(e)}\n")
+            self._log_terminal(f"Error en análisis FIM: {str(e)}", "FIM", "ERROR")
+    
+    def _analizar_archivo_sensible(self, archivo, descripcion):
+        """Analizar un archivo sensible específico."""
+        try:
+            resultado = {'archivos_verificados': 1, 'problemas_detectados': 0}
+            
+            # Información básica del archivo
+            stat_info = os.stat(archivo)
+            permisos = oct(stat_info.st_mode)[-3:]
+            tamaño = stat_info.st_size
+            uid = stat_info.st_uid
+            gid = stat_info.st_gid
+            
+            self._actualizar_texto_fim(f"  ARCHIVO: {archivo}\n")
+            self._actualizar_texto_fim(f"    Descripción: {descripcion}\n")
+            self._actualizar_texto_fim(f"    Permisos: {permisos} | Tamaño: {tamaño} bytes | UID: {uid} | GID: {gid}\n")
+            
+            # Verificar permisos apropiados para archivos críticos
+            permisos_esperados = {
+                '/etc/passwd': '644',
+                '/etc/shadow': '640',
+                '/etc/sudoers': '440',
+                '/etc/ssh/sshd_config': '644',
+                '/etc/hosts': '644'
+            }
+            
+            if archivo in permisos_esperados:
+                if permisos != permisos_esperados[archivo]:
+                    self._actualizar_texto_fim(f"    PROBLEMA: Permisos incorrectos (esperado {permisos_esperados[archivo]})\n")
+                    resultado['problemas_detectados'] += 1
+                else:
+                    self._actualizar_texto_fim(f"    OK: Permisos correctos\n")
+            
+            # Verificar propietario para archivos críticos
+            if uid != 0 and archivo.startswith('/etc/'):
+                self._actualizar_texto_fim(f"    WARNING: Archivo crítico no pertenece a root (UID: {uid})\n")
+                resultado['problemas_detectados'] += 1
+            
+            # Calcular checksum SHA-256
+            try:
+                resultado_sha = subprocess.run(['sha256sum', archivo], 
+                                             capture_output=True, text=True, timeout=5)
+                if resultado_sha.returncode == 0:
+                    checksum = resultado_sha.stdout.split()[0]
+                    self._actualizar_texto_fim(f"    SHA-256: {checksum[:16]}...\n")
+                else:
+                    self._actualizar_texto_fim(f"    WARNING: No se pudo calcular checksum\n")
+            except Exception:
+                pass
+            
+            return resultado
+            
+        except Exception as e:
+            self._actualizar_texto_fim(f"  ERROR analizando {archivo}: {str(e)}\n")
+            return {'archivos_verificados': 0, 'problemas_detectados': 1}
+    
+    def _analizar_directorio_sensible(self, directorio, descripcion):
+        """Analizar un directorio sensible y su contenido."""
+        try:
+            resultado = {'archivos_verificados': 0, 'problemas_detectados': 0}
+            
+            self._actualizar_texto_fim(f"  DIRECTORIO: {directorio}\n")
+            self._actualizar_texto_fim(f"    Descripción: {descripcion}\n")
+            
+            # Contar archivos en el directorio
+            try:
+                archivos = os.listdir(directorio)
+                self._actualizar_texto_fim(f"    Contiene: {len(archivos)} elementos\n")
+                
+                # Verificar permisos del directorio
+                stat_info = os.stat(directorio)
+                permisos = oct(stat_info.st_mode)[-3:]
+                self._actualizar_texto_fim(f"    Permisos directorio: {permisos}\n")
+                
+                # Análisis específico para ciertos directorios
+                if directorio == '/etc/ssh/':
+                    # Verificar archivos de configuración SSH
+                    archivos_ssh_criticos = ['sshd_config', 'ssh_config']
+                    for archivo_ssh in archivos_ssh_criticos:
+                        ruta_completa = os.path.join(directorio, archivo_ssh)
+                        if os.path.exists(ruta_completa):
+                            sub_resultado = self._analizar_archivo_sensible(ruta_completa, f"Configuración SSH: {archivo_ssh}")
+                            resultado['archivos_verificados'] += sub_resultado['archivos_verificados']
+                            resultado['problemas_detectados'] += sub_resultado['problemas_detectados']
+                
+                elif directorio.endswith('/.ssh/'):
+                    # Verificar claves SSH
+                    archivos_ssh_keys = [f for f in archivos if f.endswith(('.pub', '_rsa', '_ed25519', '_ecdsa'))]
+                    if archivos_ssh_keys:
+                        self._actualizar_texto_fim(f"    Claves SSH encontradas: {len(archivos_ssh_keys)}\n")
+                        for key_file in archivos_ssh_keys[:3]:  # Limitar para no saturar
+                            ruta_key = os.path.join(directorio, key_file)
+                            if os.path.isfile(ruta_key):
+                                stat_key = os.stat(ruta_key)
+                                permisos_key = oct(stat_key.st_mode)[-3:]
+                                self._actualizar_texto_fim(f"      {key_file}: permisos {permisos_key}\n")
+                                if permisos_key not in ['600', '644']:
+                                    resultado['problemas_detectados'] += 1
+                
+                elif directorio.startswith('/var/log/'):
+                    # Verificar logs críticos
+                    logs_criticos = [f for f in archivos if f in ['auth.log', 'syslog', 'kern.log']]
+                    if logs_criticos:
+                        self._actualizar_texto_fim(f"    Logs críticos: {', '.join(logs_criticos)}\n")
+                
+                resultado['archivos_verificados'] = len(archivos)
+                
+            except PermissionError:
+                self._actualizar_texto_fim(f"    ERROR: Sin permisos para acceder\n")
+                resultado['problemas_detectados'] += 1
+                
+            return resultado
+            
+        except Exception as e:
+            self._actualizar_texto_fim(f"  ERROR analizando directorio {directorio}: {str(e)}\n")
+            return {'archivos_verificados': 0, 'problemas_detectados': 1}
+    
+    def _analizar_ruta_wildcard(self, patron, descripcion):
+        """Analizar rutas con wildcards usando glob."""
+        try:
+            import glob
+            resultado = {'archivos_verificados': 0, 'problemas_detectados': 0}
+            
+            self._actualizar_texto_fim(f"  PATRÓN: {patron}\n")
+            self._actualizar_texto_fim(f"    Descripción: {descripcion}\n")
+            
+            # Expandir el patrón
+            rutas_encontradas = glob.glob(patron)
+            if rutas_encontradas:
+                self._actualizar_texto_fim(f"    Encontradas: {len(rutas_encontradas)} coincidencias\n")
+                
+                # Analizar primeras 3 coincidencias para no saturar
+                for ruta in rutas_encontradas[:3]:
+                    if os.path.isfile(ruta):
+                        sub_resultado = self._analizar_archivo_sensible(ruta, descripcion)
+                        resultado['archivos_verificados'] += sub_resultado['archivos_verificados']
+                        resultado['problemas_detectados'] += sub_resultado['problemas_detectados']
+                    elif os.path.isdir(ruta):
+                        sub_resultado = self._analizar_directorio_sensible(ruta, descripcion)
+                        resultado['archivos_verificados'] += sub_resultado['archivos_verificados']
+                        resultado['problemas_detectados'] += sub_resultado['problemas_detectados']
+                
+                if len(rutas_encontradas) > 3:
+                    self._actualizar_texto_fim(f"    ... y {len(rutas_encontradas) - 3} más\n")
+            else:
+                self._actualizar_texto_fim(f"    No se encontraron coincidencias\n")
+                
+            return resultado
+            
+        except Exception as e:
+            self._actualizar_texto_fim(f"  ERROR con patrón {patron}: {str(e)}\n")
+            return {'archivos_verificados': 0, 'problemas_detectados': 1}
     
     def iniciar_monitoreo_tiempo_real(self):
         """Iniciar monitoreo en tiempo real usando inotify de Linux."""
@@ -1101,16 +1386,19 @@ class VistaFIM(tk.Frame):
     def monitoreo_avanzado_kali(self):
         """Monitoreo avanzado utilizando herramientas específicas de Kali Linux."""
         try:
-            self._actualizar_texto_fim("🔍 INICIANDO MONITOREO AVANZADO FIM PARA KALI LINUX\n")
+            self._actualizar_texto_fim("INFO INICIANDO MONITOREO AVANZADO FIM PARA KALI LINUX\n")
             self._actualizar_texto_fim("=" * 70 + "\n")
             
             # Verificar que estamos en Linux
             import platform
             if platform.system() != 'Linux':
-                self._actualizar_texto_fim("⚠️ ADVERTENCIA: Funcionalidad completa solo disponible en Kali Linux\n")
+                self._actualizar_texto_fim("WARNING ADVERTENCIA: Funcionalidad completa solo disponible en Kali Linux\n")
                 self._actualizar_texto_fim("Ejecutando análisis básico...\n\n")
                 self.verificar_integridad()
                 return
+            
+            # ISSUE 18/24: Análisis completo de rutas sensibles
+            self._analisis_completo_rutas_sensibles()
             
             # 1. Monitoreo con inotify (nativo de Linux)
             self._monitoreo_inotify()
@@ -1127,18 +1415,21 @@ class VistaFIM(tk.Frame):
             # 5. Monitoreo de logs de sistema en tiempo real
             self._monitoreo_logs_sistema()
             
-            self._actualizar_texto_fim("\n✅ MONITOREO AVANZADO FIM COMPLETADO\n")
+            # 6. Verificación de firmas de archivos críticos
+            self._verificacion_firmas()
+            
+            self._actualizar_texto_fim("\nOK MONITOREO AVANZADO FIM COMPLETADO\n")
             self._log_terminal("Monitoreo avanzado FIM completado", "FIM", "SUCCESS")
             
         except Exception as e:
             error_msg = f"Error en monitoreo avanzado FIM: {str(e)}"
-            self._actualizar_texto_fim(f"❌ ERROR: {error_msg}\n")
+            self._actualizar_texto_fim(f"ERROR: {error_msg}\n")
             self._log_terminal(error_msg, "FIM", "ERROR")
     
     def _monitoreo_inotify(self):
         """Configurar monitoreo en tiempo real con inotify."""
         try:
-            self._actualizar_texto_fim("\n📁 1. CONFIGURACIÓN DE MONITOREO INOTIFY\n")
+            self._actualizar_texto_fim("\nINFO 1. CONFIGURACIÓN DE MONITOREO INOTIFY\n")
             self._actualizar_texto_fim("-" * 50 + "\n")
             
             import subprocess
@@ -1149,35 +1440,35 @@ class VistaFIM(tk.Frame):
                                          capture_output=True, text=True, timeout=5)
                 
                 if resultado.returncode == 0:
-                    self._actualizar_texto_fim("✅ inotify-tools disponible\n")
+                    self._actualizar_texto_fim("OK inotify-tools disponible\n")
                     
                     # Configurar monitoreo de directorios críticos
                     directorios_criticos = ['/etc', '/usr/bin', '/usr/sbin', '/home']
                     
-                    self._actualizar_texto_fim("🎯 Configurando monitoreo en tiempo real para:\n")
+                    self._actualizar_texto_fim("INFO Configurando monitoreo en tiempo real para:\n")
                     for directorio in directorios_criticos:
                         if os.path.exists(directorio):
-                            self._actualizar_texto_fim(f"  📂 {directorio}\n")
+                            self._actualizar_texto_fim(f"  DIR {directorio}\n")
                     
                     # Mostrar comando de monitoreo que se ejecutaría
                     cmd_inotify = "inotifywait -m -r -e modify,create,delete,move"
-                    self._actualizar_texto_fim(f"\n💡 Comando de monitoreo: {cmd_inotify}\n")
-                    self._actualizar_texto_fim("📊 Eventos monitoreados: modify, create, delete, move\n")
+                    self._actualizar_texto_fim(f"\nCOMMAND Comando de monitoreo: {cmd_inotify}\n")
+                    self._actualizar_texto_fim("INFO Eventos monitoreados: modify, create, delete, move\n")
                     
                 else:
-                    self._actualizar_texto_fim("⚠️ inotify-tools no disponible\n")
-                    self._actualizar_texto_fim("💡 Para instalar: apt-get install inotify-tools\n")
+                    self._actualizar_texto_fim("WARNING inotify-tools no disponible\n")
+                    self._actualizar_texto_fim("INFO Para instalar: apt-get install inotify-tools\n")
                     
             except subprocess.TimeoutExpired:
-                self._actualizar_texto_fim("⏱️ Timeout verificando inotify-tools\n")
+                self._actualizar_texto_fim("WARNING Timeout verificando inotify-tools\n")
                 
         except Exception as e:
-            self._actualizar_texto_fim(f"❌ Error configurando inotify: {str(e)}\n")
+            self._actualizar_texto_fim(f"ERROR configurando inotify: {str(e)}\n")
     
     def _verificacion_checksums_avanzada(self):
         """Verificación avanzada de checksums usando múltiples algoritmos."""
         try:
-            self._actualizar_texto_fim("\n🔐 2. VERIFICACIÓN AVANZADA DE CHECKSUMS\n")
+            self._actualizar_texto_fim("\nINFO 2. VERIFICACIÓN AVANZADA DE CHECKSUMS\n")
             self._actualizar_texto_fim("-" * 50 + "\n")
             
             import subprocess
@@ -1192,7 +1483,7 @@ class VistaFIM(tk.Frame):
             algoritmos = ['md5', 'sha1', 'sha256', 'sha512']
             checksums_calculados = 0
             
-            self._actualizar_texto_fim("🔍 Calculando checksums con múltiples algoritmos:\n")
+            self._actualizar_texto_fim("INFO Calculando checksums con múltiples algoritmos:\n")
             
             for archivo in archivos_criticos:
                 if os.path.exists(archivo) and os.path.isfile(archivo):
