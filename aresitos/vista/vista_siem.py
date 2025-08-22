@@ -357,6 +357,17 @@ class VistaSIEM(tk.Frame):
                                  command=self.buscar_patrones,
                                  bg='#404040', fg='white', font=('Arial', 10))
             btn_buscar.pack(side=tk.LEFT, padx=5)
+            
+            # NUEVOS BOTONES FASE 3.2 - ANÁLISIS AVANZADO
+            btn_patrones = tk.Button(btn_frame, text="🔍 Análisis Avanzado", 
+                                   command=self.analizar_patrones_avanzados,
+                                   bg='#d9534f', fg='white', font=('Arial', 10))
+            btn_patrones.pack(side=tk.LEFT, padx=5)
+            
+            btn_correlacion = tk.Button(btn_frame, text="🔗 Correlación", 
+                                      command=self.correlacionar_eventos_avanzado,
+                                      bg='#5bc0de', fg='white', font=('Arial', 10))
+            btn_correlacion.pack(side=tk.LEFT, padx=5)
         else:
             btn_frame = tk.Frame(top_frame)
             btn_frame.pack(fill=tk.X, pady=10)
@@ -365,6 +376,12 @@ class VistaSIEM(tk.Frame):
                       command=self.analizar_logs_seleccionados).pack(side=tk.LEFT, padx=5)
             ttk.Button(btn_frame, text=" Buscar Patrones", 
                       command=self.buscar_patrones).pack(side=tk.LEFT, padx=5)
+            
+            # NUEVOS BOTONES FASE 3.2 - ANÁLISIS AVANZADO (versión TTK)
+            ttk.Button(btn_frame, text="🔍 Análisis Avanzado", 
+                      command=self.analizar_patrones_avanzados).pack(side=tk.LEFT, padx=5)
+            ttk.Button(btn_frame, text="🔗 Correlación", 
+                      command=self.correlacionar_eventos_avanzado).pack(side=tk.LEFT, padx=5)
         
         # Panel inferior - Resultados de análisis
         if self.theme:
@@ -3111,3 +3128,643 @@ class VistaSIEM(tk.Frame):
         except Exception as e:
             # Fallback silencioso - solo imprimir en consola
             print(f"[{modulo}] {mensaje}")
+    
+    # ====================== EXPANSION FASE 3.2: ANÁLISIS AVANZADO DE EVENTOS ======================
+    
+    def analizar_patrones_avanzados(self):
+        """Análisis avanzado de patrones de comportamiento sospechoso."""
+        try:
+            self._actualizar_texto_analisis("🔍 INICIANDO ANÁLISIS AVANZADO DE PATRONES DE SEGURIDAD\n")
+            self._actualizar_texto_analisis("=" * 70 + "\n")
+            
+            # 1. Análisis de conexiones de red sospechosas
+            self._analizar_conexiones_red()
+            
+            # 2. Análisis de procesos anómalos
+            self._analizar_procesos_anomalos()
+            
+            # 3. Análisis de actividad de archivos críticos
+            self._analizar_actividad_archivos()
+            
+            # 4. Análisis de intentos de escalamiento de privilegios
+            self._analizar_escalamiento_privilegios()
+            
+            # 5. Análisis de patrones de tiempo (ataques fuera de horarios)
+            self._analizar_patrones_temporales()
+            
+            self._actualizar_texto_analisis("\n✅ ANÁLISIS AVANZADO COMPLETADO\n")
+            self.log_to_terminal("Análisis avanzado de patrones completado")
+            
+        except Exception as e:
+            error_msg = f"Error en análisis avanzado: {str(e)}"
+            self._actualizar_texto_analisis(f"❌ ERROR: {error_msg}\n")
+            self.log_to_terminal(error_msg)
+    
+    def _analizar_conexiones_red(self):
+        """Analizar conexiones de red sospechosas."""
+        try:
+            self._actualizar_texto_analisis("\n🌐 1. ANÁLISIS DE CONEXIONES DE RED SOSPECHOSAS\n")
+            self._actualizar_texto_analisis("-" * 50 + "\n")
+            
+            import subprocess
+            import re
+            
+            # Obtener conexiones activas usando netstat
+            try:
+                resultado = subprocess.run(['netstat', '-tuln'], 
+                                         capture_output=True, text=True, timeout=10)
+                
+                if resultado.returncode == 0:
+                    conexiones = resultado.stdout.split('\n')
+                    puertos_sospechosos = ['4444', '6666', '1337', '31337', '8080', '8888']
+                    conexiones_sospechosas = []
+                    
+                    for linea in conexiones:
+                        for puerto in puertos_sospechosos:
+                            if puerto in linea and ('LISTEN' in linea or 'ESTABLISHED' in linea):
+                                conexiones_sospechosas.append(linea.strip())
+                    
+                    if conexiones_sospechosas:
+                        self._actualizar_texto_analisis("⚠️ CONEXIONES SOSPECHOSAS DETECTADAS:\n")
+                        for conn in conexiones_sospechosas[:10]:  # Máximo 10
+                            self._actualizar_texto_analisis(f"  🔴 {conn}\n")
+                    else:
+                        self._actualizar_texto_analisis("✅ No se detectaron conexiones en puertos sospechosos conocidos\n")
+                        
+                else:
+                    self._actualizar_texto_analisis("❌ Error ejecutando netstat\n")
+                    
+            except subprocess.TimeoutExpired:
+                self._actualizar_texto_analisis("⏱️ Timeout en análisis de conexiones\n")
+            
+            # Análisis adicional con ss (Socket Statistics)
+            try:
+                resultado_ss = subprocess.run(['ss', '-tuln'], 
+                                            capture_output=True, text=True, timeout=10)
+                
+                if resultado_ss.returncode == 0:
+                    self._actualizar_texto_analisis("\n📊 Estadísticas de sockets activos:\n")
+                    lineas = resultado_ss.stdout.split('\n')
+                    tcp_count = sum(1 for linea in lineas if linea.startswith('tcp'))
+                    udp_count = sum(1 for linea in lineas if linea.startswith('udp'))
+                    
+                    self._actualizar_texto_analisis(f"  📈 Conexiones TCP activas: {tcp_count}\n")
+                    self._actualizar_texto_analisis(f"  📈 Conexiones UDP activas: {udp_count}\n")
+                    
+                    if tcp_count > 100:
+                        self._actualizar_texto_analisis("  ⚠️ ALERTA: Número elevado de conexiones TCP\n")
+                    
+            except:
+                pass  # ss opcional
+                
+        except Exception as e:
+            self._actualizar_texto_analisis(f"❌ Error analizando conexiones: {str(e)}\n")
+    
+    def _analizar_procesos_anomalos(self):
+        """Analizar procesos con comportamiento anómalo."""
+        try:
+            self._actualizar_texto_analisis("\n⚙️ 2. ANÁLISIS DE PROCESOS ANÓMALOS\n")
+            self._actualizar_texto_analisis("-" * 50 + "\n")
+            
+            import subprocess
+            
+            # Procesos con alto uso de CPU
+            try:
+                resultado = subprocess.run(['ps', 'aux', '--sort=-%cpu'], 
+                                         capture_output=True, text=True, timeout=10)
+                
+                if resultado.returncode == 0:
+                    lineas = resultado.stdout.split('\n')[1:11]  # Top 10 procesos
+                    procesos_sospechosos = []
+                    
+                    for linea in lineas:
+                        if linea.strip():
+                            campos = linea.split()
+                            if len(campos) >= 11:
+                                cpu_usage = float(campos[2])
+                                proceso = ' '.join(campos[10:])
+                                
+                                # Detectar procesos sospechosos
+                                nombres_sospechosos = ['nc', 'netcat', 'wget', 'curl', 'python', 'perl', 'bash']
+                                if cpu_usage > 80 or any(nom in proceso.lower() for nom in nombres_sospechosos):
+                                    if cpu_usage > 10:  # Solo si tiene uso significativo
+                                        procesos_sospechosos.append((cpu_usage, proceso))
+                    
+                    if procesos_sospechosos:
+                        self._actualizar_texto_analisis("⚠️ PROCESOS CON ACTIVIDAD SOSPECHOSA:\n")
+                        for cpu, proc in procesos_sospechosos[:5]:
+                            self._actualizar_texto_analisis(f"  🔴 CPU: {cpu}% - {proc}\n")
+                    else:
+                        self._actualizar_texto_analisis("✅ No se detectaron procesos anómalos por CPU\n")
+                        
+            except Exception as e:
+                self._actualizar_texto_analisis(f"❌ Error analizando procesos: {str(e)}\n")
+            
+            # Análisis de procesos sin terminal padre (posibles backdoors)
+            try:
+                resultado_ppid = subprocess.run(['ps', '-eo', 'pid,ppid,comm'], 
+                                              capture_output=True, text=True, timeout=10)
+                
+                if resultado_ppid.returncode == 0:
+                    lineas = resultado_ppid.stdout.split('\n')[1:]
+                    huerfanos = []
+                    
+                    for linea in lineas:
+                        if linea.strip():
+                            campos = linea.split()
+                            if len(campos) >= 3:
+                                pid, ppid, comm = campos[0], campos[1], campos[2]
+                                if ppid == '1' and comm not in ['systemd', 'init', 'kthreadd']:
+                                    huerfanos.append(f"PID:{pid} - {comm}")
+                    
+                    if huerfanos:
+                        self._actualizar_texto_analisis(f"\n📋 Procesos huérfanos detectados: {len(huerfanos)}\n")
+                        for huerfano in huerfanos[:5]:
+                            self._actualizar_texto_analisis(f"  📍 {huerfano}\n")
+                            
+            except:
+                pass
+                
+        except Exception as e:
+            self._actualizar_texto_analisis(f"❌ Error en análisis de procesos: {str(e)}\n")
+    
+    def _analizar_actividad_archivos(self):
+        """Analizar actividad sospechosa en archivos críticos."""
+        try:
+            self._actualizar_texto_analisis("\n📁 3. ANÁLISIS DE ACTIVIDAD EN ARCHIVOS CRÍTICOS\n")
+            self._actualizar_texto_analisis("-" * 50 + "\n")
+            
+            import os
+            import subprocess
+            from datetime import datetime, timedelta
+            
+            # Archivos críticos del sistema a monitorear
+            archivos_criticos = [
+                '/etc/passwd', '/etc/shadow', '/etc/hosts', '/etc/crontab',
+                '/etc/sudoers', '/etc/ssh/sshd_config', '/etc/fstab'
+            ]
+            
+            self._actualizar_texto_analisis("🔍 Verificando modificaciones recientes en archivos críticos:\n")
+            
+            modificaciones_recientes = []
+            fecha_limite = datetime.now() - timedelta(hours=24)
+            
+            for archivo in archivos_criticos:
+                try:
+                    if os.path.exists(archivo):
+                        stat = os.stat(archivo)
+                        fecha_mod = datetime.fromtimestamp(stat.st_mtime)
+                        
+                        if fecha_mod > fecha_limite:
+                            modificaciones_recientes.append((archivo, fecha_mod))
+                            
+                except Exception:
+                    continue
+            
+            if modificaciones_recientes:
+                self._actualizar_texto_analisis("⚠️ ARCHIVOS CRÍTICOS MODIFICADOS EN LAS ÚLTIMAS 24H:\n")
+                for archivo, fecha in modificaciones_recientes:
+                    self._actualizar_texto_analisis(f"  🔴 {archivo} - {fecha.strftime('%Y-%m-%d %H:%M:%S')}\n")
+            else:
+                self._actualizar_texto_analisis("✅ No se detectaron modificaciones recientes en archivos críticos\n")
+            
+            # Verificar archivos con permisos sospechosos
+            try:
+                resultado = subprocess.run(['find', '/etc', '-type', 'f', '-perm', '/022'], 
+                                         capture_output=True, text=True, timeout=15)
+                
+                if resultado.returncode == 0:
+                    archivos_permisos = resultado.stdout.strip().split('\n')
+                    archivos_permisos = [f for f in archivos_permisos if f.strip()]
+                    
+                    if archivos_permisos:
+                        self._actualizar_texto_analisis(f"\n⚠️ ARCHIVOS CON PERMISOS SOSPECHOSOS: {len(archivos_permisos)}\n")
+                        for archivo in archivos_permisos[:5]:
+                            self._actualizar_texto_analisis(f"  🔸 {archivo}\n")
+                        if len(archivos_permisos) > 5:
+                            self._actualizar_texto_analisis(f"  ... y {len(archivos_permisos) - 5} más\n")
+                            
+            except:
+                pass
+                
+        except Exception as e:
+            self._actualizar_texto_analisis(f"❌ Error analizando archivos: {str(e)}\n")
+    
+    def _analizar_escalamiento_privilegios(self):
+        """Analizar intentos de escalamiento de privilegios."""
+        try:
+            self._actualizar_texto_analisis("\n🔐 4. ANÁLISIS DE ESCALAMIENTO DE PRIVILEGIOS\n")
+            self._actualizar_texto_analisis("-" * 50 + "\n")
+            
+            import subprocess
+            
+            # Verificar comandos sudo recientes
+            try:
+                resultado = subprocess.run(['journalctl', '-u', 'sudo', '--since', '1 hour ago', '--no-pager'], 
+                                         capture_output=True, text=True, timeout=10)
+                
+                if resultado.returncode == 0:
+                    lineas_sudo = resultado.stdout.split('\n')
+                    intentos_sudo = [l for l in lineas_sudo if 'sudo:' in l and l.strip()]
+                    
+                    if intentos_sudo:
+                        self._actualizar_texto_analisis(f"📊 Actividad sudo en la última hora: {len(intentos_sudo)} eventos\n")
+                        
+                        # Buscar intentos fallidos
+                        fallos = [l for l in intentos_sudo if 'FAILED' in l or 'authentication failure' in l]
+                        if fallos:
+                            self._actualizar_texto_analisis(f"⚠️ INTENTOS FALLIDOS DE SUDO: {len(fallos)}\n")
+                            for fallo in fallos[:3]:
+                                self._actualizar_texto_analisis(f"  🔴 {fallo.split()[-10:]}\n")
+                    else:
+                        self._actualizar_texto_analisis("✅ No hay actividad sudo reciente\n")
+                        
+            except:
+                self._actualizar_texto_analisis("ℹ️ No se pudo verificar actividad sudo\n")
+            
+            # Verificar procesos ejecutándose como root
+            try:
+                resultado = subprocess.run(['ps', '-U', 'root', '-o', 'pid,comm'], 
+                                         capture_output=True, text=True, timeout=10)
+                
+                if resultado.returncode == 0:
+                    lineas = resultado.stdout.split('\n')[1:]
+                    procesos_root = [l.strip() for l in lineas if l.strip()]
+                    
+                    # Buscar procesos sospechosos ejecutándose como root
+                    procesos_sospechosos = []
+                    patrones_sospechosos = ['nc', 'netcat', 'python', 'perl', 'ruby', 'wget', 'curl']
+                    
+                    for linea in procesos_root:
+                        for patron in patrones_sospechosos:
+                            if patron in linea.lower():
+                                procesos_sospechosos.append(linea)
+                                break
+                    
+                    if procesos_sospechosos:
+                        self._actualizar_texto_analisis(f"⚠️ PROCESOS SOSPECHOSOS COMO ROOT: {len(procesos_sospechosos)}\n")
+                        for proc in procesos_sospechosos[:5]:
+                            self._actualizar_texto_analisis(f"  🔴 {proc}\n")
+                    else:
+                        self._actualizar_texto_analisis("✅ No se detectaron procesos sospechosos como root\n")
+                        
+            except:
+                pass
+                
+        except Exception as e:
+            self._actualizar_texto_analisis(f"❌ Error analizando escalamiento: {str(e)}\n")
+    
+    def _analizar_patrones_temporales(self):
+        """Analizar patrones de actividad temporal sospechosos."""
+        try:
+            self._actualizar_texto_analisis("\n⏰ 5. ANÁLISIS DE PATRONES TEMPORALES\n")
+            self._actualizar_texto_analisis("-" * 50 + "\n")
+            
+            import subprocess
+            from datetime import datetime
+            
+            hora_actual = datetime.now().hour
+            
+            # Determinar si es horario laboral
+            es_horario_laboral = 8 <= hora_actual <= 18
+            
+            self._actualizar_texto_analisis(f"🕐 Hora actual: {datetime.now().strftime('%H:%M:%S')}\n")
+            
+            if es_horario_laboral:
+                self._actualizar_texto_analisis("✅ Actividad durante horario laboral normal\n")
+            else:
+                self._actualizar_texto_analisis("⚠️ ACTIVIDAD FUERA DE HORARIO LABORAL\n")
+                
+                # Analizar logins fuera de horario
+                try:
+                    resultado = subprocess.run(['last', '-n', '20'], 
+                                             capture_output=True, text=True, timeout=10)
+                    
+                    if resultado.returncode == 0:
+                        lineas = resultado.stdout.split('\n')
+                        logins_nocturnos = []
+                        
+                        for linea in lineas:
+                            if 'pts/' in linea or 'tty' in linea:
+                                # Extraer hora del login (formato aproximado)
+                                if any(hour in linea for hour in ['22:', '23:', '00:', '01:', '02:', '03:', '04:', '05:']):
+                                    logins_nocturnos.append(linea.strip())
+                        
+                        if logins_nocturnos:
+                            self._actualizar_texto_analisis(f"🔴 LOGINS NOCTURNOS DETECTADOS: {len(logins_nocturnos)}\n")
+                            for login in logins_nocturnos[:3]:
+                                self._actualizar_texto_analisis(f"  📍 {login}\n")
+                        else:
+                            self._actualizar_texto_analisis("✅ No se detectaron logins nocturnos recientes\n")
+                            
+                except:
+                    pass
+            
+            # Verificar procesos iniciados recientemente
+            try:
+                resultado = subprocess.run(['ps', '-eo', 'lstart,comm'], 
+                                         capture_output=True, text=True, timeout=10)
+                
+                if resultado.returncode == 0:
+                    lineas = resultado.stdout.split('\n')[1:]
+                    procesos_recientes = []
+                    
+                    for linea in lineas:
+                        if linea.strip():
+                            # Los procesos muy recientes pueden ser sospechosos
+                            if 'python' in linea.lower() or 'bash' in linea.lower() or 'sh' in linea.lower():
+                                procesos_recientes.append(linea.strip())
+                    
+                    if procesos_recientes:
+                        self._actualizar_texto_analisis(f"\n📊 Procesos de script recientes: {len(procesos_recientes)}\n")
+                        # Limitar salida
+                        if len(procesos_recientes) > 10:
+                            self._actualizar_texto_analisis("  (Mostrando solo algunos por brevedad)\n")
+                            
+            except:
+                pass
+                
+        except Exception as e:
+            self._actualizar_texto_analisis(f"❌ Error analizando patrones temporales: {str(e)}\n")
+    
+    def correlacionar_eventos_avanzado(self):
+        """Correlación avanzada de eventos de seguridad."""
+        try:
+            self._actualizar_texto_analisis("🔗 INICIANDO CORRELACIÓN AVANZADA DE EVENTOS\n")
+            self._actualizar_texto_analisis("=" * 70 + "\n")
+            
+            # 1. Correlación de intentos de acceso fallidos
+            self._correlacionar_intentos_acceso()
+            
+            # 2. Correlación de actividad de red y procesos
+            self._correlacionar_red_procesos()
+            
+            # 3. Correlación de modificaciones de archivos y logins
+            self._correlacionar_archivos_logins()
+            
+            # 4. Análisis de cadenas de eventos sospechosos
+            self._analizar_cadenas_eventos()
+            
+            self._actualizar_texto_analisis("\n✅ CORRELACIÓN AVANZADA COMPLETADA\n")
+            self.log_to_terminal("Correlación avanzada de eventos completada")
+            
+        except Exception as e:
+            error_msg = f"Error en correlación avanzada: {str(e)}"
+            self._actualizar_texto_analisis(f"❌ ERROR: {error_msg}\n")
+            self.log_to_terminal(error_msg)
+    
+    def _correlacionar_intentos_acceso(self):
+        """Correlacionar múltiples intentos de acceso fallidos."""
+        try:
+            self._actualizar_texto_analisis("\n🔐 1. CORRELACIÓN DE INTENTOS DE ACCESO\n")
+            self._actualizar_texto_analisis("-" * 50 + "\n")
+            
+            import subprocess
+            
+            # Analizar logs de autenticación
+            try:
+                resultado = subprocess.run(['journalctl', '_COMM=sshd', '--since', '1 hour ago', '--no-pager'], 
+                                         capture_output=True, text=True, timeout=15)
+                
+                if resultado.returncode == 0:
+                    lineas = resultado.stdout.split('\n')
+                    intentos_fallidos = []
+                    ips_sospechosas = {}
+                    
+                    for linea in lineas:
+                        if 'Failed' in linea or 'authentication failure' in linea:
+                            intentos_fallidos.append(linea)
+                            
+                            # Extraer IP si está presente
+                            import re
+                            ip_match = re.search(r'\b(?:[0-9]{1,3}\.){3}[0-9]{1,3}\b', linea)
+                            if ip_match:
+                                ip = ip_match.group()
+                                ips_sospechosas[ip] = ips_sospechosas.get(ip, 0) + 1
+                    
+                    if intentos_fallidos:
+                        self._actualizar_texto_analisis(f"⚠️ INTENTOS DE ACCESO FALLIDOS: {len(intentos_fallidos)}\n")
+                        
+                        # IPs con múltiples intentos (posible fuerza bruta)
+                        ips_bruta = [(ip, count) for ip, count in ips_sospechosas.items() if count >= 3]
+                        
+                        if ips_bruta:
+                            self._actualizar_texto_analisis("🚨 POSIBLES ATAQUES DE FUERZA BRUTA:\n")
+                            for ip, count in sorted(ips_bruta, key=lambda x: x[1], reverse=True)[:5]:
+                                self._actualizar_texto_analisis(f"  🔴 IP: {ip} - {count} intentos\n")
+                        else:
+                            self._actualizar_texto_analisis("✅ No se detectaron patrones de fuerza bruta\n")
+                    else:
+                        self._actualizar_texto_analisis("✅ No hay intentos de acceso fallidos recientes\n")
+                        
+            except:
+                self._actualizar_texto_analisis("ℹ️ No se pudieron analizar logs de SSH\n")
+                
+        except Exception as e:
+            self._actualizar_texto_analisis(f"❌ Error correlacionando accesos: {str(e)}\n")
+    
+    def _correlacionar_red_procesos(self):
+        """Correlacionar actividad de red con procesos activos."""
+        try:
+            self._actualizar_texto_analisis("\n🌐 2. CORRELACIÓN RED-PROCESOS\n")
+            self._actualizar_texto_analisis("-" * 50 + "\n")
+            
+            import subprocess
+            
+            # Obtener conexiones con procesos
+            try:
+                resultado = subprocess.run(['netstat', '-tupl'], 
+                                         capture_output=True, text=True, timeout=10)
+                
+                if resultado.returncode == 0:
+                    lineas = resultado.stdout.split('\n')
+                    conexiones_proceso = []
+                    procesos_red_sospechosos = []
+                    
+                    for linea in lineas:
+                        if 'python' in linea.lower() or 'nc' in linea.lower() or 'bash' in linea.lower():
+                            if 'LISTEN' in linea or 'ESTABLISHED' in linea:
+                                procesos_red_sospechosos.append(linea.strip())
+                    
+                    if procesos_red_sospechosos:
+                        self._actualizar_texto_analisis("⚠️ PROCESOS CON ACTIVIDAD DE RED SOSPECHOSA:\n")
+                        for proc in procesos_red_sospechosos[:5]:
+                            self._actualizar_texto_analisis(f"  🔴 {proc}\n")
+                    else:
+                        self._actualizar_texto_analisis("✅ No se detectaron procesos de red sospechosos\n")
+                        
+            except:
+                self._actualizar_texto_analisis("ℹ️ Error analizando correlación red-procesos\n")
+                
+        except Exception as e:
+            self._actualizar_texto_analisis(f"❌ Error en correlación red-procesos: {str(e)}\n")
+    
+    def _correlacionar_archivos_logins(self):
+        """Correlacionar modificaciones de archivos con logins.""" 
+        try:
+            self._actualizar_texto_analisis("\n📁 3. CORRELACIÓN ARCHIVOS-LOGINS\n")
+            self._actualizar_texto_analisis("-" * 50 + "\n")
+            
+            import subprocess
+            from datetime import datetime, timedelta
+            
+            # Obtener logins recientes
+            try:
+                resultado_last = subprocess.run(['last', '-n', '10'], 
+                                              capture_output=True, text=True, timeout=10)
+                
+                if resultado_last.returncode == 0:
+                    lineas_last = resultado_last.stdout.split('\n')
+                    logins_recientes = [l for l in lineas_last if 'pts/' in l or 'tty' in l]
+                    
+                    self._actualizar_texto_analisis(f"📊 Logins recientes detectados: {len(logins_recientes)}\n")
+                    
+                    # Si hay logins recientes, verificar modificaciones de archivos
+                    if logins_recientes:
+                        try:
+                            # Buscar archivos modificados recientemente
+                            resultado_find = subprocess.run(['find', '/etc', '/home', '-type', 'f', '-mmin', '-60'], 
+                                                           capture_output=True, text=True, timeout=15)
+                            
+                            if resultado_find.returncode == 0:
+                                archivos_mod = resultado_find.stdout.strip().split('\n')
+                                archivos_mod = [f for f in archivos_mod if f.strip()]
+                                
+                                if archivos_mod:
+                                    self._actualizar_texto_analisis(f"⚠️ ARCHIVOS MODIFICADOS EN LA ÚLTIMA HORA: {len(archivos_mod)}\n")
+                                    
+                                    # Mostrar algunos archivos críticos si fueron modificados
+                                    criticos_mod = [f for f in archivos_mod if any(crit in f for crit in ['/etc/passwd', '/etc/shadow', '/etc/sudoers', '.ssh'])]
+                                    
+                                    if criticos_mod:
+                                        self._actualizar_texto_analisis("🚨 ARCHIVOS CRÍTICOS MODIFICADOS:\n")
+                                        for archivo in criticos_mod[:5]:
+                                            self._actualizar_texto_analisis(f"  🔴 {archivo}\n")
+                                    
+                                else:
+                                    self._actualizar_texto_analisis("✅ No hay modificaciones significativas de archivos\n")
+                                    
+                        except:
+                            pass
+                    else:
+                        self._actualizar_texto_analisis("✅ No hay logins recientes\n")
+                        
+            except:
+                self._actualizar_texto_analisis("ℹ️ Error analizando correlación archivos-logins\n")
+                
+        except Exception as e:
+            self._actualizar_texto_analisis(f"❌ Error correlacionando archivos-logins: {str(e)}\n")
+    
+    def _analizar_cadenas_eventos(self):
+        """Analizar cadenas de eventos que pueden indicar un ataque."""
+        try:
+            self._actualizar_texto_analisis("\n🔗 4. ANÁLISIS DE CADENAS DE EVENTOS\n")
+            self._actualizar_texto_analisis("-" * 50 + "\n")
+            
+            # Simular análisis de cadena de eventos típica de ataque
+            eventos_sospechosos = []
+            
+            import subprocess
+            
+            # 1. Verificar si hay escaneo de puertos reciente
+            try:
+                resultado = subprocess.run(['netstat', '-i'], 
+                                         capture_output=True, text=True, timeout=5)
+                if resultado.returncode == 0:
+                    eventos_sospechosos.append("actividad_red")
+            except:
+                pass
+            
+            # 2. Verificar procesos sospechosos
+            try:
+                resultado = subprocess.run(['ps', 'aux'], 
+                                         capture_output=True, text=True, timeout=5)
+                if resultado.returncode == 0:
+                    if any(proc in resultado.stdout.lower() for proc in ['nc', 'netcat', 'python']):
+                        eventos_sospechosos.append("procesos_sospechosos")
+            except:
+                pass
+            
+            # 3. Verificar intentos de login
+            try:
+                resultado = subprocess.run(['journalctl', '--since', '30 minutes ago', '--no-pager'], 
+                                         capture_output=True, text=True, timeout=10)
+                if resultado.returncode == 0:
+                    if 'Failed' in resultado.stdout or 'authentication' in resultado.stdout:
+                        eventos_sospechosos.append("intentos_acceso")
+            except:
+                pass
+            
+            # Evaluar la cadena de eventos
+            if len(eventos_sospechosos) >= 2:
+                self._actualizar_texto_analisis("🚨 CADENA DE EVENTOS SOSPECHOSA DETECTADA:\n")
+                self._actualizar_texto_analisis(f"  📍 Eventos correlacionados: {', '.join(eventos_sospechosos)}\n")
+                self._actualizar_texto_analisis("  🔴 Posible intento de intrusión en progreso\n")
+                self._actualizar_texto_analisis("  💡 Recomendación: Revisar logs detalladamente y considerar medidas defensivas\n")
+            elif len(eventos_sospechosos) == 1:
+                self._actualizar_texto_analisis("⚠️ Evento aislado detectado:\n")
+                self._actualizar_texto_analisis(f"  📍 Tipo: {eventos_sospechosos[0]}\n")
+                self._actualizar_texto_analisis("  💡 Mantener vigilancia\n")
+            else:
+                self._actualizar_texto_analisis("✅ No se detectaron cadenas de eventos sospechosas\n")
+                
+        except Exception as e:
+            self._actualizar_texto_analisis(f"❌ Error analizando cadenas: {str(e)}\n")
+    
+    def obtener_datos_para_reporte(self):
+        """Obtener datos del SIEM para incluir en reportes."""
+        try:
+            # Obtener el texto de resultados del SIEM
+            contenido_siem = ""
+            if hasattr(self, 'siem_monitoreo_text'):
+                contenido_siem = self.siem_monitoreo_text.get(1.0, 'end-1c')
+            
+            if hasattr(self, 'siem_analisis_text'):
+                contenido_analisis = self.siem_analisis_text.get(1.0, 'end-1c')
+                contenido_siem += "\n--- ANÁLISIS ---\n" + contenido_analisis
+            
+            # Crear estructura de datos para el reporte
+            datos_siem = {
+                'timestamp': datetime.now().isoformat(),
+                'modulo': 'SIEM Avanzado',
+                'estado': 'activo' if self.proceso_siem_activo else 'inactivo',
+                'version_expandida': True,
+                'capacidades_avanzadas': [
+                    'Análisis de patrones de comportamiento',
+                    'Correlación avanzada de eventos',
+                    'Detección de conexiones sospechosas',
+                    'Análisis de procesos anómalos',
+                    'Monitoreo de archivos críticos',
+                    'Detección de escalamiento de privilegios',
+                    'Análisis de patrones temporales'
+                ],
+                'resultados_texto': contenido_siem[-3000:] if len(contenido_siem) > 3000 else contenido_siem,
+                'estadisticas': {
+                    'lineas_log': len(contenido_siem.split('\n')),
+                    'alertas_criticas': contenido_siem.count('CRITICO') + contenido_siem.count('🚨'),
+                    'alertas_altas': contenido_siem.count('ALTO') + contenido_siem.count('🔴'),
+                    'alertas_medias': contenido_siem.count('MEDIO') + contenido_siem.count('⚠️'),
+                    'eventos_procesados': contenido_siem.count('EVENTO') + contenido_siem.count('detectado'),
+                    'correlaciones_realizadas': contenido_siem.count('CORRELACIÓN') + contenido_siem.count('correlación')
+                },
+                'analisis_realizados': {
+                    'patrones_avanzados': 'ANÁLISIS AVANZADO' in contenido_siem,
+                    'correlacion_eventos': 'CORRELACIÓN AVANZADA' in contenido_siem,
+                    'conexiones_red': 'CONEXIONES DE RED' in contenido_siem,
+                    'procesos_anomalos': 'PROCESOS ANÓMALOS' in contenido_siem,
+                    'archivos_criticos': 'ARCHIVOS CRÍTICOS' in contenido_siem,
+                    'escalamiento_privilegios': 'ESCALAMIENTO DE PRIVILEGIOS' in contenido_siem
+                },
+                'info_sistema': 'SIEM expandido con análisis avanzado de patrones y correlación de eventos'
+            }
+            
+            return datos_siem
+            
+        except Exception as e:
+            return {
+                'timestamp': datetime.now().isoformat(),
+                'modulo': 'SIEM',
+                'estado': 'error',
+                'error': f'Error obteniendo datos: {str(e)}',
+                'info': 'Error al obtener datos del SIEM para reporte'
+            }

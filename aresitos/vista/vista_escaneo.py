@@ -1560,133 +1560,636 @@ class VistaEscaneo(tk.Frame):
             self._actualizar_texto_seguro(f"ERROR EN ANÁLISIS DE SERVICIOS: {str(e)}\n\n")
     
     def _escaneo_avanzado_kali(self):
-        """Análisis avanzado con herramientas especializadas de Kali Linux."""
+        """Análisis avanzado con herramientas especializadas de Kali Linux expandidas."""
         import subprocess
         import os
         
         try:
-            self._log_terminal("Iniciando análisis avanzado con herramientas Kali", "ESCANEADOR", "INFO")
+            self._log_terminal("Iniciando análisis avanzado EXPANDIDO con herramientas Kali", "ESCANEADOR", "INFO")
             
-            # 1. Verificar disponibilidad de herramientas de Kali
+            # 1. HERRAMIENTAS KALI EXPANDIDAS
             herramientas_kali = {
-                'nmap': 'Escaneador de puertos y servicios',
+                # Escaneo de red
+                'nmap': 'Escaneador de puertos y servicios avanzado',
+                'masscan': 'Escaneador masivo de puertos ultra-rápido',
+                'zmap': 'Escaneador de Internet de alta velocidad',
+                'rustscan': 'Escaneador de puertos moderno en Rust',
+                
+                # Análisis de red
                 'ss': 'Análisis de sockets y conexiones',
                 'netstat': 'Estadísticas de red',
                 'lsof': 'Archivos y conexiones abiertas',
+                'iftop': 'Monitor de ancho de banda por conexión',
+                'nethogs': 'Monitor de ancho de banda por proceso',
+                
+                # Escaneo web
+                'nikto': 'Escaneador de vulnerabilidades web',
+                'dirb': 'Escaneador de directorios web',
+                'gobuster': 'Escaneador de directorios/DNS rápido',
+                'ffuf': 'Fuzzer web rápido',
+                'whatweb': 'Identificador de tecnologías web',
+                'httpx': 'Kit de herramientas HTTP',
+                
+                # Seguridad y análisis
                 'chkrootkit': 'Detector de rootkits',
                 'lynis': 'Auditor de seguridad del sistema',
                 'rkhunter': 'Cazador de rootkits',
-                'clamav': 'Antivirus'
+                'clamav': 'Antivirus',
+                'yara': 'Motor de detección de malware',
+                
+                # Análisis forense
+                'volatility': 'Análisis de memoria forense',
+                'binwalk': 'Análisis de firmware y archivos binarios',
+                'foremost': 'Recuperación de archivos',
+                'strings': 'Extractor de cadenas de texto',
+                
+                # Análisis de procesos
+                'pspy': 'Monitor de procesos sin root',
+                'htop': 'Monitor avanzado de procesos',
+                'iotop': 'Monitor de E/S de procesos'
             }
             
             herramientas_disponibles = []
+            categorias_disponibles = {'red': [], 'web': [], 'seguridad': [], 'forense': [], 'procesos': []}
+            
             for herramienta, descripcion in herramientas_kali.items():
                 try:
                     resultado = subprocess.run(['which', herramienta], 
                                              capture_output=True, text=True, timeout=5)
                     if resultado.returncode == 0:
                         herramientas_disponibles.append(herramienta)
-                        self._log_terminal(f"HERRAMIENTA DISPONIBLE: {herramienta} - {descripcion}", "KALI", "INFO")
+                        
+                        # Categorizar herramientas
+                        if herramienta in ['nmap', 'masscan', 'zmap', 'rustscan', 'ss', 'netstat', 'lsof', 'iftop', 'nethogs']:
+                            categorias_disponibles['red'].append(herramienta)
+                        elif herramienta in ['nikto', 'dirb', 'gobuster', 'ffuf', 'whatweb', 'httpx']:
+                            categorias_disponibles['web'].append(herramienta)
+                        elif herramienta in ['chkrootkit', 'lynis', 'rkhunter', 'clamav', 'yara']:
+                            categorias_disponibles['seguridad'].append(herramienta)
+                        elif herramienta in ['volatility', 'binwalk', 'foremost', 'strings']:
+                            categorias_disponibles['forense'].append(herramienta)
+                        elif herramienta in ['pspy', 'htop', 'iotop']:
+                            categorias_disponibles['procesos'].append(herramienta)
+                            
+                        self._log_terminal(f"✓ DISPONIBLE: {herramienta} - {descripcion}", "KALI", "SUCCESS")
                 except:
                     pass
             
-            # 2. Escaneo de puertos con nmap si está disponible
-            if 'nmap' in herramientas_disponibles:
-                self._log_terminal("Ejecutando escaneo de puertos con nmap...", "NMAP", "INFO")
+            total_herramientas = len(herramientas_disponibles)
+            self._log_terminal(f"RESUMEN: {total_herramientas} herramientas Kali disponibles", "KALI", "INFO")
+            
+            # 2. ESCANEO DE RED AVANZADO
+            if categorias_disponibles['red']:
+                self._log_terminal("=== ESCANEO DE RED AVANZADO ===", "RED", "INFO")
+                
+                # Nmap avanzado si está disponible
+                if 'nmap' in herramientas_disponibles:
+                    self._ejecutar_nmap_avanzado()
+                
+                # Masscan si está disponible
+                if 'masscan' in herramientas_disponibles:
+                    self._ejecutar_masscan()
+                
+                # Rustscan si está disponible
+                if 'rustscan' in herramientas_disponibles:
+                    self._ejecutar_rustscan()
+            
+            # 3. ESCANEO WEB AVANZADO
+            if categorias_disponibles['web']:
+                self._log_terminal("=== ESCANEO WEB AVANZADO ===", "WEB", "INFO")
+                
+                # Detectar servicios web locales primero
+                servicios_web = self._detectar_servicios_web()
+                
+                if servicios_web:
+                    for servicio in servicios_web:
+                        self._log_terminal(f"SERVICIO WEB DETECTADO: {servicio}", "WEB", "WARNING")
+                        
+                        # Nikto si está disponible
+                        if 'nikto' in herramientas_disponibles:
+                            self._ejecutar_nikto(servicio)
+                        
+                        # Whatweb si está disponible
+                        if 'whatweb' in herramientas_disponibles:
+                            self._ejecutar_whatweb(servicio)
+                
+            # 4. ANÁLISIS DE SEGURIDAD PROFUNDO
+            if categorias_disponibles['seguridad']:
+                self._log_terminal("=== ANÁLISIS DE SEGURIDAD PROFUNDO ===", "SEGURIDAD", "WARNING")
+                
+                # Chkrootkit
+                if 'chkrootkit' in herramientas_disponibles:
+                    self._ejecutar_chkrootkit()
+                
+                # Rkhunter
+                if 'rkhunter' in herramientas_disponibles:
+                    self._ejecutar_rkhunter()
+                
+                # ClamAV
+                if 'clamav' in herramientas_disponibles:
+                    self._ejecutar_clamav()
+            
+            # 5. ANÁLISIS FORENSE BÁSICO
+            if categorias_disponibles['forense']:
+                self._log_terminal("=== ANÁLISIS FORENSE BÁSICO ===", "FORENSE", "INFO")
+                
+                # Strings en archivos sospechosos
+                if 'strings' in herramientas_disponibles:
+                    self._analizar_strings_sospechosos()
+                
+                # Binwalk en archivos críticos
+                if 'binwalk' in herramientas_disponibles:
+                    self._analizar_binwalk()
+            
+            # 6. MONITOREO DE PROCESOS AVANZADO
+            if categorias_disponibles['procesos']:
+                self._log_terminal("=== MONITOREO DE PROCESOS AVANZADO ===", "PROCESOS", "INFO")
+                
+                # Pspy si está disponible
+                if 'pspy' in herramientas_disponibles:
+                    self._ejecutar_pspy()
+                
+                # Análisis con lsof
+                if 'lsof' in herramientas_disponibles:
+                    self._analizar_lsof_avanzado()
+            
+            self._log_terminal("ANÁLISIS AVANZADO KALI COMPLETADO", "ESCANEADOR", "SUCCESS")
+            
+        except Exception as e:
+            self._log_terminal(f"ERROR en análisis avanzado: {str(e)}", "ESCANEADOR", "ERROR")
+    
+    # MÉTODOS DE HERRAMIENTAS ESPECÍFICAS DE KALI LINUX
+    
+    def _ejecutar_nmap_avanzado(self):
+        """Ejecutar escaneo Nmap avanzado."""
+        import subprocess
+        try:
+            self._log_terminal("Ejecutando Nmap avanzado...", "NMAP", "INFO")
+            
+            # Escaneo completo con detección de servicios y OS
+            comandos_nmap = [
+                ['nmap', '-sV', '-O', '--script=default', 'localhost'],
+                ['nmap', '-sS', '--top-ports', '1000', 'localhost'],
+                ['nmap', '-sU', '--top-ports', '100', 'localhost']  # UDP scan
+            ]
+            
+            for i, cmd in enumerate(comandos_nmap, 1):
                 try:
-                    # Escaneo básico de puertos comunes
-                    resultado = subprocess.run(['nmap', '-sS', '-F', 'localhost'], 
-                                             capture_output=True, text=True, timeout=60)
+                    resultado = subprocess.run(cmd, capture_output=True, text=True, timeout=120)
                     if resultado.returncode == 0:
                         lineas = resultado.stdout.split('\n')
-                        puertos_abiertos = []
+                        puertos_importantes = []
+                        
                         for linea in lineas:
-                            if '/tcp' in linea and 'open' in linea:
-                                puerto = linea.split('/')[0].strip()
-                                servicio = linea.split()[-1] if len(linea.split()) > 2 else 'unknown'
-                                puertos_abiertos.append((puerto, servicio))
-                                
-                        if puertos_abiertos:
-                            self._log_terminal(f"PUERTOS ABIERTOS DETECTADOS: {len(puertos_abiertos)}", "NMAP", "WARNING")
-                            for puerto, servicio in puertos_abiertos[:10]:  # Mostrar primeros 10
-                                self._log_terminal(f"  Puerto {puerto}: {servicio}", "NMAP", "INFO")
+                            if 'open' in linea and ('tcp' in linea or 'udp' in linea):
+                                puertos_importantes.append(linea.strip())
+                        
+                        if puertos_importantes:
+                            self._log_terminal(f"NMAP SCAN {i}: {len(puertos_importantes)} puertos detectados", "NMAP", "WARNING")
+                            for puerto in puertos_importantes[:5]:  # Mostrar primeros 5
+                                self._log_terminal(f"  {puerto}", "NMAP", "INFO")
                         else:
-                            self._log_terminal("No se detectaron puertos abiertos", "NMAP", "INFO")
-                except Exception as e:
-                    self._log_terminal(f"Error en escaneo nmap: {str(e)}", "NMAP", "WARNING")
-            
-            # 3. Análisis de procesos con comportamiento sospechoso
-            self._log_terminal("Analizando procesos con alta actividad de red...", "PROCESO", "INFO")
-            try:
-                # Buscar procesos con muchas conexiones abiertas
-                if 'lsof' in herramientas_disponibles:
-                    resultado = subprocess.run(['lsof', '-i', '-n'], 
-                                             capture_output=True, text=True, timeout=15)
-                    if resultado.returncode == 0:
-                        lineas = resultado.stdout.split('\n')[1:]  # Skip header
-                        procesos_red = {}
-                        
-                        for linea in lineas:
-                            if linea.strip():
-                                partes = linea.split()
-                                if len(partes) >= 2:
-                                    proceso = partes[0]
-                                    if proceso in procesos_red:
-                                        procesos_red[proceso] += 1
-                                    else:
-                                        procesos_red[proceso] = 1
-                        
-                        # Identificar procesos con muchas conexiones
-                        for proceso, conexiones in procesos_red.items():
-                            if conexiones > 5:
-                                self._log_terminal(f"PROCESO CON ALTA ACTIVIDAD DE RED: {proceso} ({conexiones} conexiones)", "PROCESO", "WARNING")
-                
-            except Exception as e:
-                self._log_terminal(f"Error analizando procesos de red: {str(e)}", "PROCESO", "WARNING")
-            
-            # 4. Verificación de archivos binarios sospechosos
-            self._log_terminal("Buscando archivos binarios en ubicaciones sospechosas...", "ARCHIVOS", "INFO")
-            try:
-                directorios_sospechosos = ['/tmp', '/var/tmp', '/dev/shm', '/home']
-                for directorio in directorios_sospechosos:
-                    if os.path.exists(directorio):
-                        resultado = subprocess.run(['find', directorio, '-type', 'f', '-executable', 
-                                                  '-newer', '/etc/passwd'], 
-                                                 capture_output=True, text=True, timeout=30)
-                        if resultado.returncode == 0 and resultado.stdout.strip():
-                            archivos = resultado.stdout.strip().split('\n')
-                            for archivo in archivos[:5]:  # Mostrar primeros 5
-                                if archivo.strip():
-                                    try:
-                                        stat_info = os.stat(archivo)
-                                        tamaño = stat_info.st_size
-                                        from datetime import datetime
-                                        mod_time = datetime.fromtimestamp(stat_info.st_mtime).strftime("%Y-%m-%d %H:%M")
-                                        self._log_terminal(f"BINARIO SOSPECHOSO: {archivo} (tamaño: {tamaño} bytes, mod: {mod_time})", "ARCHIVOS", "WARNING")
-                                    except:
-                                        self._log_terminal(f"BINARIO SOSPECHOSO: {archivo}", "ARCHIVOS", "WARNING")
-                        
-            except Exception as e:
-                self._log_terminal(f"Error buscando archivos sospechosos: {str(e)}", "ARCHIVOS", "WARNING")
-            
-            # 5. Verificación de servicios críticos del sistema
-            self._log_terminal("Verificando estado de servicios críticos...", "SERVICIOS", "INFO")
-            try:
-                servicios_criticos = ['ssh', 'cron', 'rsyslog', 'systemd']
-                for servicio in servicios_criticos:
-                    resultado = subprocess.run(['systemctl', 'is-active', servicio], 
-                                             capture_output=True, text=True, timeout=5)
-                    estado = resultado.stdout.strip()
-                    if estado == 'active':
-                        self._log_terminal(f"SERVICIO CRÍTICO: {servicio} está ACTIVO", "SERVICIOS", "INFO")
+                            self._log_terminal(f"NMAP SCAN {i}: Sin puertos abiertos detectados", "NMAP", "INFO")
                     else:
-                        self._log_terminal(f"SERVICIO CRÍTICO: {servicio} está {estado}", "SERVICIOS", "WARNING")
+                        self._log_terminal(f"NMAP SCAN {i}: Error en ejecución", "NMAP", "WARNING")
+                
+                except subprocess.TimeoutExpired:
+                    self._log_terminal(f"NMAP SCAN {i}: Timeout - escaneo muy lento", "NMAP", "WARNING")
+                except Exception as e:
+                    self._log_terminal(f"NMAP SCAN {i}: Error {str(e)}", "NMAP", "ERROR")
+                    
+        except Exception as e:
+            self._log_terminal(f"Error en Nmap avanzado: {str(e)}", "NMAP", "ERROR")
+    
+    def _ejecutar_masscan(self):
+        """Ejecutar Masscan para escaneo rápido."""
+        import subprocess
+        try:
+            self._log_terminal("Ejecutando Masscan (escaneador ultra-rápido)...", "MASSCAN", "INFO")
+            
+            # Masscan en red local
+            resultado = subprocess.run(['masscan', '127.0.0.1', '-p1-1000', '--rate=1000'], 
+                                     capture_output=True, text=True, timeout=60)
+            
+            if resultado.returncode == 0 and resultado.stdout.strip():
+                lineas = resultado.stdout.strip().split('\n')
+                puertos_masivos = []
+                
+                for linea in lineas:
+                    if 'open' in linea.lower():
+                        puertos_masivos.append(linea.strip())
+                
+                if puertos_masivos:
+                    self._log_terminal(f"MASSCAN: {len(puertos_masivos)} puertos encontrados", "MASSCAN", "WARNING")
+                    for puerto in puertos_masivos[:10]:
+                        self._log_terminal(f"  {puerto}", "MASSCAN", "INFO")
+                else:
+                    self._log_terminal("MASSCAN: No se encontraron puertos abiertos", "MASSCAN", "INFO")
+            else:
+                self._log_terminal("MASSCAN: Sin resultados o error en ejecución", "MASSCAN", "WARNING")
+                
+        except subprocess.TimeoutExpired:
+            self._log_terminal("MASSCAN: Timeout - escaneo interrumpido", "MASSCAN", "WARNING")
+        except Exception as e:
+            self._log_terminal(f"Error en Masscan: {str(e)}", "MASSCAN", "ERROR")
+    
+    def _ejecutar_rustscan(self):
+        """Ejecutar RustScan para escaneo moderno."""
+        import subprocess
+        try:
+            self._log_terminal("Ejecutando RustScan (escaneador moderno)...", "RUSTSCAN", "INFO")
+            
+            resultado = subprocess.run(['rustscan', '-a', '127.0.0.1', '--', '-sV'], 
+                                     capture_output=True, text=True, timeout=90)
+            
+            if resultado.returncode == 0 and resultado.stdout.strip():
+                lineas = resultado.stdout.strip().split('\n')
+                puertos_rust = []
+                
+                for linea in lineas:
+                    if 'open' in linea.lower() or 'tcp' in linea.lower():
+                        puertos_rust.append(linea.strip())
+                
+                if puertos_rust:
+                    self._log_terminal(f"RUSTSCAN: {len(puertos_rust)} servicios detectados", "RUSTSCAN", "WARNING")
+                    for puerto in puertos_rust[:8]:
+                        self._log_terminal(f"  {puerto}", "RUSTSCAN", "INFO")
+                else:
+                    self._log_terminal("RUSTSCAN: No se detectaron servicios", "RUSTSCAN", "INFO")
+            else:
+                self._log_terminal("RUSTSCAN: Sin resultados disponibles", "RUSTSCAN", "WARNING")
+                
+        except subprocess.TimeoutExpired:
+            self._log_terminal("RUSTSCAN: Timeout - escaneo interrumpido", "RUSTSCAN", "WARNING")
+        except Exception as e:
+            self._log_terminal(f"Error en RustScan: {str(e)}", "RUSTSCAN", "ERROR")
+    
+    def _detectar_servicios_web(self):
+        """Detectar servicios web en el sistema."""
+        import subprocess
+        servicios_web = []
+        
+        try:
+            # Buscar puertos web comunes
+            puertos_web = ['80', '443', '8080', '8443', '3000', '5000', '8000', '9000']
+            
+            for puerto in puertos_web:
+                try:
+                    # Verificar si el puerto está abierto
+                    resultado = subprocess.run(['ss', '-tuln'], capture_output=True, text=True, timeout=10)
+                    if resultado.returncode == 0 and f':{puerto} ' in resultado.stdout:
+                        servicios_web.append(f'http://localhost:{puerto}')
                         
-            except Exception as e:
-                self._log_terminal(f"Error verificando servicios: {str(e)}", "SERVICIOS", "WARNING")
+                except Exception:
+                    continue
+            
+            # También buscar servicios web conocidos
+            try:
+                resultado_ps = subprocess.run(['ps', 'aux'], capture_output=True, text=True, timeout=10)
+                if resultado_ps.returncode == 0:
+                    if any(serv in resultado_ps.stdout.lower() for serv in ['apache', 'nginx', 'httpd']):
+                        if 'http://localhost:80' not in servicios_web:
+                            servicios_web.append('http://localhost:80')
+                            
+            except Exception:
+                pass
                 
         except Exception as e:
-            self._log_terminal(f"Error en análisis avanzado Kali: {str(e)}", "ESCANEADOR", "ERROR")
+            self._log_terminal(f"Error detectando servicios web: {str(e)}", "WEB", "ERROR")
+        
+        return servicios_web
+    
+    def _ejecutar_nikto(self, url):
+        """Ejecutar Nikto contra un servicio web."""
+        import subprocess
+        try:
+            self._log_terminal(f"Ejecutando Nikto contra {url}...", "NIKTO", "INFO")
+            
+            resultado = subprocess.run(['nikto', '-h', url, '-maxtime', '60'], 
+                                     capture_output=True, text=True, timeout=90)
+            
+            if resultado.returncode == 0 and resultado.stdout.strip():
+                lineas = resultado.stdout.split('\n')
+                vulnerabilidades = []
+                
+                for linea in lineas:
+                    if any(palabra in linea.lower() for palabra in ['vulnerability', 'vuln', 'risk', 'warning']):
+                        vulnerabilidades.append(linea.strip())
+                
+                if vulnerabilidades:
+                    self._log_terminal(f"NIKTO: {len(vulnerabilidades)} posibles problemas en {url}", "NIKTO", "WARNING")
+                    for vuln in vulnerabilidades[:5]:
+                        if vuln:
+                            self._log_terminal(f"  {vuln[:100]}...", "NIKTO", "WARNING")
+                else:
+                    self._log_terminal(f"NIKTO: No se encontraron problemas evidentes en {url}", "NIKTO", "INFO")
+            else:
+                self._log_terminal(f"NIKTO: Sin resultados para {url}", "NIKTO", "WARNING")
+                
+        except subprocess.TimeoutExpired:
+            self._log_terminal(f"NIKTO: Timeout escaneando {url}", "NIKTO", "WARNING")
+        except Exception as e:
+            self._log_terminal(f"Error en Nikto: {str(e)}", "NIKTO", "ERROR")
+    
+    def _ejecutar_whatweb(self, url):
+        """Ejecutar Whatweb para identificar tecnologías."""
+        import subprocess
+        try:
+            self._log_terminal(f"Identificando tecnologías en {url} con Whatweb...", "WHATWEB", "INFO")
+            
+            resultado = subprocess.run(['whatweb', url, '--log-brief=-'], 
+                                     capture_output=True, text=True, timeout=30)
+            
+            if resultado.returncode == 0 and resultado.stdout.strip():
+                tecnologias = resultado.stdout.strip()
+                if tecnologias:
+                    self._log_terminal(f"WHATWEB: Tecnologías detectadas en {url}", "WHATWEB", "INFO")
+                    # Parsear tecnologías
+                    if '[' in tecnologias and ']' in tecnologias:
+                        tech_list = tecnologias.split('[')[1].split(']')[0].split(',')
+                        for tech in tech_list[:8]:  # Mostrar primeras 8
+                            if tech.strip():
+                                self._log_terminal(f"  {tech.strip()}", "WHATWEB", "INFO")
+                    else:
+                        self._log_terminal(f"  {tecnologias[:200]}...", "WHATWEB", "INFO")
+                else:
+                    self._log_terminal(f"WHATWEB: No se identificaron tecnologías en {url}", "WHATWEB", "WARNING")
+            else:
+                self._log_terminal(f"WHATWEB: Error analizando {url}", "WHATWEB", "WARNING")
+                
+        except subprocess.TimeoutExpired:
+            self._log_terminal(f"WHATWEB: Timeout analizando {url}", "WHATWEB", "WARNING")
+        except Exception as e:
+            self._log_terminal(f"Error en Whatweb: {str(e)}", "WHATWEB", "ERROR")
+    
+    def _ejecutar_chkrootkit(self):
+        """Ejecutar Chkrootkit para detectar rootkits."""
+        import subprocess
+        try:
+            self._log_terminal("Ejecutando Chkrootkit (detector de rootkits)...", "CHKROOTKIT", "WARNING")
+            
+            resultado = subprocess.run(['chkrootkit'], capture_output=True, text=True, timeout=180)
+            
+            if resultado.returncode == 0:
+                lineas = resultado.stdout.split('\n')
+                sospechas = []
+                
+                for linea in lineas:
+                    if any(palabra in linea.upper() for palabra in ['INFECTED', 'SUSPECT', 'WARNING']):
+                        sospechas.append(linea.strip())
+                
+                if sospechas:
+                    self._log_terminal(f"CHKROOTKIT: {len(sospechas)} elementos sospechosos detectados", "CHKROOTKIT", "ERROR")
+                    for sospecha in sospechas[:10]:
+                        if sospecha:
+                            self._log_terminal(f"  {sospecha}", "CHKROOTKIT", "ERROR")
+                else:
+                    self._log_terminal("CHKROOTKIT: No se detectaron rootkits conocidos", "CHKROOTKIT", "SUCCESS")
+            else:
+                self._log_terminal("CHKROOTKIT: Error en ejecución o resultados inconclusos", "CHKROOTKIT", "WARNING")
+                
+        except subprocess.TimeoutExpired:
+            self._log_terminal("CHKROOTKIT: Timeout - análisis muy lento", "CHKROOTKIT", "WARNING")
+        except Exception as e:
+            self._log_terminal(f"Error en Chkrootkit: {str(e)}", "CHKROOTKIT", "ERROR")
+    
+    def _ejecutar_rkhunter(self):
+        """Ejecutar RKHunter para caza de rootkits."""
+        import subprocess
+        try:
+            self._log_terminal("Ejecutando RKHunter (cazador de rootkits)...", "RKHUNTER", "WARNING")
+            
+            # RKHunter con chequeos básicos y rápidos
+            resultado = subprocess.run(['rkhunter', '--check', '--skip-keypress', '--report-warnings-only'], 
+                                     capture_output=True, text=True, timeout=120)
+            
+            if resultado.stdout.strip():
+                lineas = resultado.stdout.split('\n')
+                advertencias = []
+                
+                for linea in lineas:
+                    if any(palabra in linea.upper() for palabra in ['WARNING', 'SUSPECT', 'INFECTION']):
+                        advertencias.append(linea.strip())
+                
+                if advertencias:
+                    self._log_terminal(f"RKHUNTER: {len(advertencias)} advertencias encontradas", "RKHUNTER", "WARNING")
+                    for adv in advertencias[:8]:
+                        if adv:
+                            self._log_terminal(f"  {adv}", "RKHUNTER", "WARNING")
+                else:
+                    self._log_terminal("RKHUNTER: Análisis completado sin advertencias críticas", "RKHUNTER", "SUCCESS")
+            else:
+                self._log_terminal("RKHUNTER: Análisis silencioso - sin problemas detectados", "RKHUNTER", "INFO")
+                
+        except subprocess.TimeoutExpired:
+            self._log_terminal("RKHUNTER: Timeout - análisis interrumpido", "RKHUNTER", "WARNING")
+        except Exception as e:
+            self._log_terminal(f"Error en RKHunter: {str(e)}", "RKHUNTER", "ERROR")
+    
+    def _ejecutar_clamav(self):
+        """Ejecutar ClamAV para escaneo de malware."""
+        import subprocess
+        import os
+        try:
+            self._log_terminal("Ejecutando ClamAV (escaneo de malware)...", "CLAMAV", "WARNING")
+            
+            # Escanear directorios críticos con ClamAV
+            directorios_criticos = ['/tmp', '/var/tmp', '/home']
+            
+            for directorio in directorios_criticos:
+                if os.path.exists(directorio):
+                    try:
+                        self._log_terminal(f"Escaneando {directorio} con ClamAV...", "CLAMAV", "INFO")
+                        resultado = subprocess.run(['clamscan', '-r', '--bell', directorio], 
+                                                 capture_output=True, text=True, timeout=120)
+                        
+                        if 'FOUND' in resultado.stdout.upper():
+                            lineas = resultado.stdout.split('\n')
+                            malware_encontrado = []
+                            
+                            for linea in lineas:
+                                if 'FOUND' in linea.upper():
+                                    malware_encontrado.append(linea.strip())
+                            
+                            if malware_encontrado:
+                                self._log_terminal(f"CLAMAV: {len(malware_encontrado)} archivos sospechosos en {directorio}", "CLAMAV", "ERROR")
+                                for malware in malware_encontrado[:5]:
+                                    self._log_terminal(f"  {malware}", "CLAMAV", "ERROR")
+                        else:
+                            self._log_terminal(f"CLAMAV: {directorio} limpio", "CLAMAV", "SUCCESS")
+                            
+                    except subprocess.TimeoutExpired:
+                        self._log_terminal(f"CLAMAV: Timeout escaneando {directorio}", "CLAMAV", "WARNING")
+                    except Exception as e:
+                        self._log_terminal(f"CLAMAV: Error en {directorio}: {str(e)}", "CLAMAV", "WARNING")
+                        
+        except Exception as e:
+            self._log_terminal(f"Error en ClamAV: {str(e)}", "CLAMAV", "ERROR")
+    
+    def _analizar_strings_sospechosos(self):
+        """Analizar strings en archivos sospechosos."""
+        import subprocess
+        import os
+        try:
+            self._log_terminal("Analizando strings en archivos sospechosos...", "STRINGS", "INFO")
+            
+            # Buscar archivos binarios recientes en ubicaciones sospechosas
+            directorios_sospechosos = ['/tmp', '/var/tmp', '/dev/shm']
+            
+            for directorio in directorios_sospechosos:
+                if os.path.exists(directorio):
+                    try:
+                        # Buscar archivos ejecutables recientes
+                        resultado = subprocess.run(['find', directorio, '-type', 'f', '-executable', '-mtime', '-1'], 
+                                                 capture_output=True, text=True, timeout=30)
+                        
+                        if resultado.returncode == 0 and resultado.stdout.strip():
+                            archivos = resultado.stdout.strip().split('\n')[:3]  # Primeros 3
+                            
+                            for archivo in archivos:
+                                if archivo.strip():
+                                    try:
+                                        # Analizar strings del archivo
+                                        strings_result = subprocess.run(['strings', archivo], 
+                                                                      capture_output=True, text=True, timeout=15)
+                                        
+                                        if strings_result.returncode == 0:
+                                            strings_sospechosos = []
+                                            for string in strings_result.stdout.split('\n'):
+                                                # Buscar strings sospechosos
+                                                if any(sospechoso in string.lower() for sospechoso in 
+                                                      ['password', 'backdoor', 'shell', 'exploit', 'payload']):
+                                                    strings_sospechosos.append(string.strip())
+                                            
+                                            if strings_sospechosos:
+                                                self._log_terminal(f"STRINGS SOSPECHOSOS en {archivo}:", "STRINGS", "WARNING")
+                                                for s in strings_sospechosos[:3]:
+                                                    if s:
+                                                        self._log_terminal(f"  {s[:50]}...", "STRINGS", "WARNING")
+                                                        
+                                    except Exception:
+                                        continue
+                                        
+                    except Exception:
+                        continue
+                        
+        except Exception as e:
+            self._log_terminal(f"Error analizando strings: {str(e)}", "STRINGS", "ERROR")
+    
+    def _analizar_binwalk(self):
+        """Analizar archivos con Binwalk."""
+        import subprocess
+        import os
+        try:
+            self._log_terminal("Ejecutando análisis Binwalk en archivos críticos...", "BINWALK", "INFO")
+            
+            # Analizar algunos archivos del sistema con binwalk
+            archivos_criticos = ['/usr/bin/python3', '/bin/bash', '/bin/sh']
+            
+            for archivo in archivos_criticos:
+                if os.path.exists(archivo):
+                    try:
+                        resultado = subprocess.run(['binwalk', archivo], 
+                                                 capture_output=True, text=True, timeout=30)
+                        
+                        if resultado.returncode == 0 and resultado.stdout.strip():
+                            lineas = resultado.stdout.split('\n')
+                            hallazgos = []
+                            
+                            for linea in lineas:
+                                if any(palabra in linea.lower() for palabra in ['compressed', 'encrypted', 'archive']):
+                                    hallazgos.append(linea.strip())
+                            
+                            if hallazgos:
+                                self._log_terminal(f"BINWALK: Hallazgos en {archivo}", "BINWALK", "INFO")
+                                for hallazgo in hallazgos[:3]:
+                                    if hallazgo:
+                                        self._log_terminal(f"  {hallazgo}", "BINWALK", "INFO")
+                                        
+                    except subprocess.TimeoutExpired:
+                        self._log_terminal(f"BINWALK: Timeout analizando {archivo}", "BINWALK", "WARNING")
+                    except Exception:
+                        continue
+                        
+        except Exception as e:
+            self._log_terminal(f"Error en Binwalk: {str(e)}", "BINWALK", "ERROR")
+    
+    def _ejecutar_pspy(self):
+        """Ejecutar Pspy para monitoreo de procesos sin root."""
+        import subprocess
+        try:
+            self._log_terminal("Ejecutando Pspy (monitor de procesos sin root)...", "PSPY", "INFO")
+            
+            # Ejecutar pspy por tiempo limitado
+            resultado = subprocess.run(['timeout', '30', 'pspy64'], 
+                                     capture_output=True, text=True, timeout=35)
+            
+            if resultado.stdout.strip():
+                lineas = resultado.stdout.split('\n')
+                procesos_interesantes = []
+                
+                for linea in lineas:
+                    if any(palabra in linea.lower() for palabra in ['exec', 'cron', 'shell', 'script']):
+                        procesos_interesantes.append(linea.strip())
+                
+                if procesos_interesantes:
+                    self._log_terminal(f"PSPY: {len(procesos_interesantes)} procesos interesantes detectados", "PSPY", "WARNING")
+                    for proceso in procesos_interesantes[:8]:
+                        if proceso:
+                            self._log_terminal(f"  {proceso[:100]}...", "PSPY", "INFO")
+                else:
+                    self._log_terminal("PSPY: Actividad de procesos normal", "PSPY", "INFO")
+            else:
+                self._log_terminal("PSPY: Sin salida o herramienta no disponible", "PSPY", "WARNING")
+                
+        except subprocess.TimeoutExpired:
+            self._log_terminal("PSPY: Monitoreo completado (timeout esperado)", "PSPY", "INFO")
+        except Exception as e:
+            self._log_terminal(f"Error en Pspy: {str(e)}", "PSPY", "ERROR")
+    
+    def _analizar_lsof_avanzado(self):
+        """Análisis avanzado con lsof."""
+        import subprocess
+        try:
+            self._log_terminal("Ejecutando análisis avanzado con lsof...", "LSOF", "INFO")
+            
+            # Análisis de archivos abiertos por procesos sospechosos
+            comandos_lsof = [
+                ['lsof', '+L1'],  # Archivos borrados pero aún en uso
+                ['lsof', '-i'],   # Conexiones de red
+                ['lsof', '-U']    # Sockets Unix
+            ]
+            
+            nombres_analisis = ['Archivos borrados en uso', 'Conexiones de red', 'Sockets Unix']
+            
+            for i, (cmd, nombre) in enumerate(zip(comandos_lsof, nombres_analisis)):
+                try:
+                    resultado = subprocess.run(cmd, capture_output=True, text=True, timeout=20)
+                    
+                    if resultado.returncode == 0 and resultado.stdout.strip():
+                        lineas = resultado.stdout.split('\n')[1:]  # Skip header
+                        elementos_relevantes = []
+                        
+                        for linea in lineas[:20]:  # Primeros 20
+                            if linea.strip():
+                                elementos_relevantes.append(linea.strip())
+                        
+                        if elementos_relevantes:
+                            self._log_terminal(f"LSOF {nombre}: {len(elementos_relevantes)} elementos detectados", "LSOF", "INFO")
+                            for elemento in elementos_relevantes[:5]:
+                                self._log_terminal(f"  {elemento[:80]}...", "LSOF", "INFO")
+                        else:
+                            self._log_terminal(f"LSOF {nombre}: Sin elementos relevantes", "LSOF", "INFO")
+                    else:
+                        self._log_terminal(f"LSOF {nombre}: Sin resultados", "LSOF", "WARNING")
+                        
+                except subprocess.TimeoutExpired:
+                    self._log_terminal(f"LSOF {nombre}: Timeout", "LSOF", "WARNING")
+                except Exception as e:
+                    self._log_terminal(f"LSOF {nombre}: Error {str(e)}", "LSOF", "ERROR")
+                    
+        except Exception as e:
+            self._log_terminal(f"Error en análisis lsof avanzado: {str(e)}", "LSOF", "ERROR")
     
     def _verificar_configuraciones_seguridad(self):
         """Verificar configuraciones críticas de seguridad del sistema."""
@@ -1930,6 +2433,93 @@ class VistaEscaneo(tk.Frame):
                 
         except Exception as e:
             self._log_terminal(f"Error en detección de rootkits: {str(e)}", "ROOTKIT", "ERROR")
+    
+    def obtener_datos_para_reporte(self):
+        """Obtener datos del escaneador para incluir en reportes."""
+        try:
+            # Obtener el texto de resultados del escaneador
+            if hasattr(self, 'text_resultados'):
+                contenido_escaneo = self.text_resultados.get(1.0, 'end-1c')
+            else:
+                contenido_escaneo = "No hay resultados de escaneo disponibles"
+            
+            # Crear estructura de datos para el reporte
+            datos_escaneo = {
+                'timestamp': datetime.datetime.now().isoformat(),
+                'modulo': 'Escaneador Avanzado',
+                'estado': 'activo' if self.proceso_activo else 'inactivo',
+                'version_expandida': True,
+                'herramientas_disponibles': self._verificar_herramientas_disponibles(),
+                'resultados_texto': contenido_escaneo[-2000:] if len(contenido_escaneo) > 2000 else contenido_escaneo,  # Últimos 2000 caracteres
+                'estadisticas': {
+                    'lineas_resultados': len(contenido_escaneo.split('\n')),
+                    'palabras_clave_seguridad': self._contar_palabras_clave_seguridad(contenido_escaneo),
+                    'alertas_detectadas': contenido_escaneo.count('WARNING') + contenido_escaneo.count('ERROR'),
+                    'escaneos_exitosos': contenido_escaneo.count('SUCCESS') + contenido_escaneo.count('completada exitosamente')
+                },
+                'resumen_herramientas': {
+                    'nmap': 'NMAP' in contenido_escaneo,
+                    'masscan': 'MASSCAN' in contenido_escaneo,
+                    'nikto': 'NIKTO' in contenido_escaneo,
+                    'chkrootkit': 'CHKROOTKIT' in contenido_escaneo,
+                    'clamav': 'CLAMAV' in contenido_escaneo,
+                    'lsof': 'LSOF' in contenido_escaneo
+                },
+                'info_sistema': 'Escaneador expandido con 25+ herramientas de Kali Linux integradas'
+            }
+            
+            return datos_escaneo
+            
+        except Exception as e:
+            return {
+                'timestamp': datetime.datetime.now().isoformat(),
+                'modulo': 'Escaneador',
+                'estado': 'error',
+                'error': f'Error obteniendo datos: {str(e)}',
+                'info': 'Error al obtener datos del escaneador para reporte'
+            }
+    
+    def _verificar_herramientas_disponibles(self):
+        """Verificar qué herramientas de Kali están disponibles."""
+        import subprocess
+        herramientas_kali = [
+            'nmap', 'masscan', 'rustscan', 'nikto', 'dirb', 'gobuster', 
+            'whatweb', 'httpx', 'chkrootkit', 'rkhunter', 'clamav',
+            'binwalk', 'strings', 'lsof', 'pspy'
+        ]
+        
+        disponibles = []
+        for herramienta in herramientas_kali:
+            try:
+                resultado = subprocess.run(['which', herramienta], 
+                                         capture_output=True, text=True, timeout=3)
+                if resultado.returncode == 0:
+                    disponibles.append(herramienta)
+            except:
+                pass
+        
+        return {
+            'total_disponibles': len(disponibles),
+            'total_posibles': len(herramientas_kali),
+            'porcentaje_disponibilidad': round((len(disponibles) / len(herramientas_kali)) * 100, 1),
+            'herramientas': disponibles
+        }
+    
+    def _contar_palabras_clave_seguridad(self, texto):
+        """Contar palabras clave relacionadas con seguridad en el texto."""
+        palabras_clave = [
+            'vulnerability', 'exploit', 'malware', 'rootkit', 'backdoor',
+            'suspicious', 'warning', 'error', 'infected', 'threat',
+            'puerto', 'servicio', 'proceso', 'conexion', 'archivo'
+        ]
+        
+        texto_lower = texto.lower()
+        conteo = {}
+        
+        for palabra in palabras_clave:
+            conteo[palabra] = texto_lower.count(palabra)
+        
+        return conteo
 
 
 # RESUMEN: Interfaz de escaneo de vulnerabilidades con opciones básicas y avanzadas.

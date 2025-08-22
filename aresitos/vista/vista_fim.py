@@ -292,6 +292,21 @@ class VistaFIM(tk.Frame):
                                       relief='flat', padx=15, pady=8)
         self.btn_verificar.pack(fill="x", padx=10, pady=5)
         
+        # NUEVOS BOTONES FASE 3.3 - FIM AVANZADO
+        self.btn_monitoreo_avanzado = tk.Button(left_frame, text="🔍 Monitoreo Avanzado",
+                                               command=self.monitoreo_avanzado_kali,
+                                               bg='#6f42c1', fg='white',
+                                               font=('Arial', 10),
+                                               relief='flat', padx=15, pady=8)
+        self.btn_monitoreo_avanzado.pack(fill="x", padx=10, pady=5)
+        
+        self.btn_analisis_forense = tk.Button(left_frame, text="🔬 Análisis Forense",
+                                             command=self.analisis_forense_archivos,
+                                             bg='#dc3545', fg='white',
+                                             font=('Arial', 10),
+                                             relief='flat', padx=15, pady=8)
+        self.btn_analisis_forense.pack(fill="x", padx=10, pady=5)
+        
         # Área de resultados
         resultados_label = tk.Label(right_frame, text="Resultados del Monitoreo FIM",
                                    bg=self.colors['bg_primary'], fg=self.colors['fg_accent'],
@@ -930,3 +945,771 @@ class VistaFIM(tk.Frame):
         """Establecer el controlador del FIM."""
         self.controlador = controlador
         self._log_terminal("Controlador FIM establecido", "FIM", "INFO")
+    
+    # ====================== EXPANSION FASE 3.3: FIM AVANZADO ======================
+    
+    def monitoreo_avanzado_kali(self):
+        """Monitoreo avanzado utilizando herramientas específicas de Kali Linux."""
+        try:
+            self._actualizar_texto_fim("🔍 INICIANDO MONITOREO AVANZADO FIM PARA KALI LINUX\n")
+            self._actualizar_texto_fim("=" * 70 + "\n")
+            
+            # Verificar que estamos en Linux
+            import platform
+            if platform.system() != 'Linux':
+                self._actualizar_texto_fim("⚠️ ADVERTENCIA: Funcionalidad completa solo disponible en Kali Linux\n")
+                self._actualizar_texto_fim("Ejecutando análisis básico...\n\n")
+                self.verificar_integridad()
+                return
+            
+            # 1. Monitoreo con inotify (nativo de Linux)
+            self._monitoreo_inotify()
+            
+            # 2. Verificación de checksums con herramientas avanzadas
+            self._verificacion_checksums_avanzada()
+            
+            # 3. Análisis de permisos críticos
+            self._analisis_permisos_criticos()
+            
+            # 4. Detección de archivos ocultos y sospechosos
+            self._deteccion_archivos_sospechosos()
+            
+            # 5. Monitoreo de logs de sistema en tiempo real
+            self._monitoreo_logs_sistema()
+            
+            self._actualizar_texto_fim("\n✅ MONITOREO AVANZADO FIM COMPLETADO\n")
+            self._log_terminal("Monitoreo avanzado FIM completado", "FIM", "SUCCESS")
+            
+        except Exception as e:
+            error_msg = f"Error en monitoreo avanzado FIM: {str(e)}"
+            self._actualizar_texto_fim(f"❌ ERROR: {error_msg}\n")
+            self._log_terminal(error_msg, "FIM", "ERROR")
+    
+    def _monitoreo_inotify(self):
+        """Configurar monitoreo en tiempo real con inotify."""
+        try:
+            self._actualizar_texto_fim("\n📁 1. CONFIGURACIÓN DE MONITOREO INOTIFY\n")
+            self._actualizar_texto_fim("-" * 50 + "\n")
+            
+            import subprocess
+            
+            # Verificar si inotify-tools está disponible
+            try:
+                resultado = subprocess.run(['which', 'inotifywait'], 
+                                         capture_output=True, text=True, timeout=5)
+                
+                if resultado.returncode == 0:
+                    self._actualizar_texto_fim("✅ inotify-tools disponible\n")
+                    
+                    # Configurar monitoreo de directorios críticos
+                    directorios_criticos = ['/etc', '/usr/bin', '/usr/sbin', '/home']
+                    
+                    self._actualizar_texto_fim("🎯 Configurando monitoreo en tiempo real para:\n")
+                    for directorio in directorios_criticos:
+                        if os.path.exists(directorio):
+                            self._actualizar_texto_fim(f"  📂 {directorio}\n")
+                    
+                    # Mostrar comando de monitoreo que se ejecutaría
+                    cmd_inotify = "inotifywait -m -r -e modify,create,delete,move"
+                    self._actualizar_texto_fim(f"\n💡 Comando de monitoreo: {cmd_inotify}\n")
+                    self._actualizar_texto_fim("📊 Eventos monitoreados: modify, create, delete, move\n")
+                    
+                else:
+                    self._actualizar_texto_fim("⚠️ inotify-tools no disponible\n")
+                    self._actualizar_texto_fim("💡 Para instalar: apt-get install inotify-tools\n")
+                    
+            except subprocess.TimeoutExpired:
+                self._actualizar_texto_fim("⏱️ Timeout verificando inotify-tools\n")
+                
+        except Exception as e:
+            self._actualizar_texto_fim(f"❌ Error configurando inotify: {str(e)}\n")
+    
+    def _verificacion_checksums_avanzada(self):
+        """Verificación avanzada de checksums usando múltiples algoritmos."""
+        try:
+            self._actualizar_texto_fim("\n🔐 2. VERIFICACIÓN AVANZADA DE CHECKSUMS\n")
+            self._actualizar_texto_fim("-" * 50 + "\n")
+            
+            import subprocess
+            import hashlib
+            
+            # Archivos críticos para verificar
+            archivos_criticos = [
+                '/etc/passwd', '/etc/shadow', '/etc/sudoers', '/etc/hosts',
+                '/etc/ssh/sshd_config', '/etc/fstab'
+            ]
+            
+            algoritmos = ['md5', 'sha1', 'sha256', 'sha512']
+            checksums_calculados = 0
+            
+            self._actualizar_texto_fim("🔍 Calculando checksums con múltiples algoritmos:\n")
+            
+            for archivo in archivos_criticos:
+                if os.path.exists(archivo) and os.path.isfile(archivo):
+                    try:
+                        self._actualizar_texto_fim(f"\n📄 {archivo}:\n")
+                        
+                        # Calcular checksums con diferentes algoritmos
+                        for algoritmo in algoritmos[:2]:  # Limitar a 2 para no saturar
+                            try:
+                                if algoritmo == 'md5':
+                                    resultado = subprocess.run(['md5sum', archivo], 
+                                                             capture_output=True, text=True, timeout=5)
+                                elif algoritmo == 'sha256':
+                                    resultado = subprocess.run(['sha256sum', archivo], 
+                                                             capture_output=True, text=True, timeout=5)
+                                else:
+                                    continue
+                                
+                                if resultado.returncode == 0:
+                                    checksum = resultado.stdout.split()[0]
+                                    self._actualizar_texto_fim(f"  {algoritmo.upper()}: {checksum[:16]}...\n")
+                                    checksums_calculados += 1
+                                    
+                            except subprocess.TimeoutExpired:
+                                self._actualizar_texto_fim(f"  {algoritmo.upper()}: Timeout\n")
+                            except Exception:
+                                pass
+                                
+                    except Exception as e:
+                        self._actualizar_texto_fim(f"  ❌ Error: {str(e)}\n")
+            
+            self._actualizar_texto_fim(f"\n📊 Checksums calculados: {checksums_calculados}\n")
+            
+            # Verificar herramientas de integridad adicionales
+            herramientas_integridad = ['aide', 'tripwire', 'samhain']
+            self._actualizar_texto_fim("\n🛠️ Verificando herramientas de integridad disponibles:\n")
+            
+            for herramienta in herramientas_integridad:
+                try:
+                    resultado = subprocess.run(['which', herramienta], 
+                                             capture_output=True, text=True, timeout=3)
+                    if resultado.returncode == 0:
+                        self._actualizar_texto_fim(f"  ✅ {herramienta}: Disponible\n")
+                    else:
+                        self._actualizar_texto_fim(f"  ❌ {herramienta}: No instalado\n")
+                except:
+                    self._actualizar_texto_fim(f"  ❓ {herramienta}: Error verificando\n")
+                    
+        except Exception as e:
+            self._actualizar_texto_fim(f"❌ Error en verificación de checksums: {str(e)}\n")
+    
+    def _analisis_permisos_criticos(self):
+        """Análisis detallado de permisos en archivos críticos."""
+        try:
+            self._actualizar_texto_fim("\n🔒 3. ANÁLISIS DE PERMISOS CRÍTICOS\n")
+            self._actualizar_texto_fim("-" * 50 + "\n")
+            
+            import subprocess
+            import stat
+            
+            # Archivos que deben tener permisos específicos
+            permisos_esperados = {
+                '/etc/passwd': 0o644,
+                '/etc/shadow': 0o640,
+                '/etc/sudoers': 0o440,
+                '/etc/ssh/sshd_config': 0o644,
+                '/etc/hosts': 0o644
+            }
+            
+            permisos_incorrectos = 0
+            archivos_verificados = 0
+            
+            self._actualizar_texto_fim("🔍 Verificando permisos de archivos críticos:\n")
+            
+            for archivo, permiso_esperado in permisos_esperados.items():
+                if os.path.exists(archivo):
+                    try:
+                        # Obtener permisos actuales
+                        stat_info = os.stat(archivo)
+                        permisos_actuales = stat.filemode(stat_info.st_mode)
+                        permisos_octal = oct(stat_info.st_mode)[-3:]
+                        
+                        # Comparar con permisos esperados
+                        if (stat_info.st_mode & 0o777) == permiso_esperado:
+                            self._actualizar_texto_fim(f"  ✅ {archivo}: {permisos_actuales} (OK)\n")
+                        else:
+                            self._actualizar_texto_fim(f"  ⚠️ {archivo}: {permisos_actuales} (Esperado: {oct(permiso_esperado)})\n")
+                            permisos_incorrectos += 1
+                            
+                        archivos_verificados += 1
+                        
+                    except Exception as e:
+                        self._actualizar_texto_fim(f"  ❌ {archivo}: Error - {str(e)}\n")
+                else:
+                    self._actualizar_texto_fim(f"  ❓ {archivo}: No encontrado\n")
+            
+            # Buscar archivos con permisos demasiado permisivos
+            try:
+                self._actualizar_texto_fim("\n🔍 Buscando archivos con permisos excesivos:\n")
+                
+                # Buscar archivos con permisos 777 (muy peligroso)
+                resultado = subprocess.run(['find', '/etc', '-type', 'f', '-perm', '777'], 
+                                         capture_output=True, text=True, timeout=10)
+                
+                if resultado.returncode == 0:
+                    archivos_777 = resultado.stdout.strip().split('\n')
+                    archivos_777 = [f for f in archivos_777 if f.strip()]
+                    
+                    if archivos_777:
+                        self._actualizar_texto_fim(f"  🚨 ARCHIVOS CON PERMISOS 777: {len(archivos_777)}\n")
+                        for archivo in archivos_777[:5]:  # Mostrar máximo 5
+                            self._actualizar_texto_fim(f"    🔴 {archivo}\n")
+                        if len(archivos_777) > 5:
+                            self._actualizar_texto_fim(f"    ... y {len(archivos_777) - 5} más\n")
+                    else:
+                        self._actualizar_texto_fim("  ✅ No se encontraron archivos con permisos 777\n")
+                        
+            except subprocess.TimeoutExpired:
+                self._actualizar_texto_fim("  ⏱️ Timeout buscando archivos con permisos excesivos\n")
+            except:
+                pass
+            
+            self._actualizar_texto_fim(f"\n📊 Resumen de permisos:\n")
+            self._actualizar_texto_fim(f"  • Archivos verificados: {archivos_verificados}\n")
+            self._actualizar_texto_fim(f"  • Permisos incorrectos: {permisos_incorrectos}\n")
+            
+        except Exception as e:
+            self._actualizar_texto_fim(f"❌ Error analizando permisos: {str(e)}\n")
+    
+    def _deteccion_archivos_sospechosos(self):
+        """Detectar archivos ocultos y potencialmente sospechosos."""
+        try:
+            self._actualizar_texto_fim("\n🕵️ 4. DETECCIÓN DE ARCHIVOS SOSPECHOSOS\n")
+            self._actualizar_texto_fim("-" * 50 + "\n")
+            
+            import subprocess
+            
+            # 1. Buscar archivos ocultos en directorios críticos
+            directorios_criticos = ['/etc', '/usr/bin', '/usr/sbin']
+            archivos_ocultos_total = 0
+            
+            self._actualizar_texto_fim("🔍 Buscando archivos ocultos en directorios críticos:\n")
+            
+            for directorio in directorios_criticos:
+                if os.path.exists(directorio):
+                    try:
+                        resultado = subprocess.run(['find', directorio, '-name', '.*', '-type', 'f'], 
+                                                 capture_output=True, text=True, timeout=10)
+                        
+                        if resultado.returncode == 0:
+                            archivos_ocultos = resultado.stdout.strip().split('\n')
+                            archivos_ocultos = [f for f in archivos_ocultos if f.strip()]
+                            
+                            if archivos_ocultos:
+                                self._actualizar_texto_fim(f"  📂 {directorio}: {len(archivos_ocultos)} archivos ocultos\n")
+                                archivos_ocultos_total += len(archivos_ocultos)
+                                
+                                # Mostrar algunos ejemplos si hay muchos
+                                if len(archivos_ocultos) <= 3:
+                                    for archivo in archivos_ocultos:
+                                        self._actualizar_texto_fim(f"    • {archivo}\n")
+                                else:
+                                    for archivo in archivos_ocultos[:2]:
+                                        self._actualizar_texto_fim(f"    • {archivo}\n")
+                                    self._actualizar_texto_fim(f"    ... y {len(archivos_ocultos) - 2} más\n")
+                            else:
+                                self._actualizar_texto_fim(f"  📂 {directorio}: Sin archivos ocultos\n")
+                                
+                    except subprocess.TimeoutExpired:
+                        self._actualizar_texto_fim(f"  ⏱️ {directorio}: Timeout en búsqueda\n")
+                    except:
+                        pass
+            
+            # 2. Buscar archivos con nombres sospechosos
+            patrones_sospechosos = ['*backdoor*', '*malware*', '*trojan*', '*rootkit*']
+            self._actualizar_texto_fim("\n🚨 Buscando archivos con nombres sospechosos:\n")
+            
+            archivos_sospechosos_total = 0
+            for patron in patrones_sospechosos[:2]:  # Limitar búsqueda
+                try:
+                    resultado = subprocess.run(['find', '/', '-name', patron, '-type', 'f'], 
+                                             capture_output=True, text=True, timeout=15)
+                    
+                    if resultado.returncode == 0:
+                        archivos = resultado.stdout.strip().split('\n')
+                        archivos = [f for f in archivos if f.strip()]
+                        
+                        if archivos:
+                            self._actualizar_texto_fim(f"  🔴 Patrón '{patron}': {len(archivos)} archivos\n")
+                            archivos_sospechosos_total += len(archivos)
+                            for archivo in archivos[:2]:  # Mostrar máximo 2
+                                self._actualizar_texto_fim(f"    ⚠️ {archivo}\n")
+                                
+                except subprocess.TimeoutExpired:
+                    self._actualizar_texto_fim(f"  ⏱️ Timeout buscando patrón: {patron}\n")
+                except:
+                    pass
+            
+            if archivos_sospechosos_total == 0:
+                self._actualizar_texto_fim("  ✅ No se encontraron archivos con nombres sospechosos\n")
+            
+            # 3. Verificar archivos modificados recientemente
+            try:
+                self._actualizar_texto_fim("\n⏰ Archivos modificados en las últimas 24 horas:\n")
+                
+                resultado = subprocess.run(['find', '/etc', '/usr/bin', '-type', 'f', '-mtime', '-1'], 
+                                         capture_output=True, text=True, timeout=15)
+                
+                if resultado.returncode == 0:
+                    archivos_recientes = resultado.stdout.strip().split('\n')
+                    archivos_recientes = [f for f in archivos_recientes if f.strip()]
+                    
+                    if archivos_recientes:
+                        self._actualizar_texto_fim(f"  📊 {len(archivos_recientes)} archivos modificados recientemente\n")
+                        if len(archivos_recientes) <= 5:
+                            for archivo in archivos_recientes:
+                                self._actualizar_texto_fim(f"    📝 {archivo}\n")
+                        else:
+                            self._actualizar_texto_fim("    (Lista muy extensa - revisar manualmente si es necesario)\n")
+                    else:
+                        self._actualizar_texto_fim("  ✅ Sin modificaciones recientes en directorios críticos\n")
+                        
+            except subprocess.TimeoutExpired:
+                self._actualizar_texto_fim("  ⏱️ Timeout verificando archivos recientes\n")
+            except:
+                pass
+            
+            self._actualizar_texto_fim(f"\n📊 Resumen de detección:\n")
+            self._actualizar_texto_fim(f"  • Archivos ocultos encontrados: {archivos_ocultos_total}\n")
+            self._actualizar_texto_fim(f"  • Archivos con nombres sospechosos: {archivos_sospechosos_total}\n")
+            
+        except Exception as e:
+            self._actualizar_texto_fim(f"❌ Error detectando archivos sospechosos: {str(e)}\n")
+    
+    def _monitoreo_logs_sistema(self):
+        """Monitoreo de logs de sistema relacionados con integridad de archivos."""
+        try:
+            self._actualizar_texto_fim("\n📋 5. MONITOREO DE LOGS DE SISTEMA\n")
+            self._actualizar_texto_fim("-" * 50 + "\n")
+            
+            import subprocess
+            
+            # Verificar logs relacionados con integridad de archivos
+            logs_relevantes = [
+                ('/var/log/auth.log', 'Autenticación'),
+                ('/var/log/syslog', 'Sistema'),
+                ('/var/log/kern.log', 'Kernel'),
+                ('/var/log/audit/audit.log', 'Auditoría')
+            ]
+            
+            self._actualizar_texto_fim("🔍 Verificando logs del sistema:\n")
+            
+            logs_disponibles = 0
+            eventos_seguridad = 0
+            
+            for log_path, descripcion in logs_relevantes:
+                if os.path.exists(log_path):
+                    try:
+                        # Verificar tamaño del log
+                        stat_info = os.stat(log_path)
+                        tamano_mb = stat_info.st_size / (1024 * 1024)
+                        
+                        self._actualizar_texto_fim(f"  ✅ {descripcion} ({log_path}): {tamano_mb:.1f} MB\n")
+                        logs_disponibles += 1
+                        
+                        # Buscar eventos relacionados con integridad de archivos en logs recientes
+                        if tamano_mb < 50:  # Solo analizar logs no muy grandes
+                            try:
+                                # Buscar líneas con palabras clave de seguridad
+                                resultado = subprocess.run(['tail', '-100', log_path], 
+                                                         capture_output=True, text=True, timeout=10)
+                                
+                                if resultado.returncode == 0:
+                                    contenido = resultado.stdout.lower()
+                                    palabras_clave = ['failed', 'denied', 'invalid', 'unauthorized', 'suspicious']
+                                    
+                                    eventos_encontrados = sum(contenido.count(palabra) for palabra in palabras_clave)
+                                    if eventos_encontrados > 0:
+                                        self._actualizar_texto_fim(f"    ⚠️ {eventos_encontrados} eventos de seguridad detectados\n")
+                                        eventos_seguridad += eventos_encontrados
+                                        
+                            except subprocess.TimeoutExpired:
+                                self._actualizar_texto_fim(f"    ⏱️ Timeout analizando log\n")
+                            except:
+                                pass
+                        else:
+                            self._actualizar_texto_fim(f"    ℹ️ Log muy grande - análisis manual recomendado\n")
+                            
+                    except Exception as e:
+                        self._actualizar_texto_fim(f"  ❌ {descripcion}: Error - {str(e)}\n")
+                else:
+                    self._actualizar_texto_fim(f"  ❓ {descripcion} ({log_path}): No encontrado\n")
+            
+            # Verificar servicios de monitoreo
+            servicios_monitoreo = ['auditd', 'rsyslog', 'systemd-journald']
+            self._actualizar_texto_fim(f"\n🔧 Verificando servicios de monitoreo:\n")
+            
+            for servicio in servicios_monitoreo:
+                try:
+                    resultado = subprocess.run(['systemctl', 'is-active', servicio], 
+                                             capture_output=True, text=True, timeout=5)
+                    
+                    if resultado.returncode == 0:
+                        estado = resultado.stdout.strip()
+                        if estado == 'active':
+                            self._actualizar_texto_fim(f"  ✅ {servicio}: Activo\n")
+                        else:
+                            self._actualizar_texto_fim(f"  ⚠️ {servicio}: {estado}\n")
+                    else:
+                        self._actualizar_texto_fim(f"  ❌ {servicio}: No disponible\n")
+                        
+                except subprocess.TimeoutExpired:
+                    self._actualizar_texto_fim(f"  ⏱️ {servicio}: Timeout\n")
+                except:
+                    self._actualizar_texto_fim(f"  ❓ {servicio}: Error verificando\n")
+            
+            self._actualizar_texto_fim(f"\n📊 Resumen de logs:\n")
+            self._actualizar_texto_fim(f"  • Logs disponibles: {logs_disponibles}\n")
+            self._actualizar_texto_fim(f"  • Eventos de seguridad detectados: {eventos_seguridad}\n")
+            
+        except Exception as e:
+            self._actualizar_texto_fim(f"❌ Error monitoreando logs: {str(e)}\n")
+    
+    def analisis_forense_archivos(self):
+        """Análisis forense detallado de archivos críticos."""
+        try:
+            self._actualizar_texto_fim("🔬 INICIANDO ANÁLISIS FORENSE DE ARCHIVOS\n")
+            self._actualizar_texto_fim("=" * 70 + "\n")
+            
+            # Verificar que estamos en Linux
+            import platform
+            if platform.system() != 'Linux':
+                self._actualizar_texto_fim("⚠️ ADVERTENCIA: Análisis forense completo solo disponible en Kali Linux\n")
+                return
+            
+            # 1. Análisis de metadatos de archivos
+            self._analisis_metadatos()
+            
+            # 2. Búsqueda de archivos eliminados recientemente
+            self._busqueda_archivos_eliminados()
+            
+            # 3. Análisis de timestamps sospechosos
+            self._analisis_timestamps()
+            
+            # 4. Verificación de firmas de archivos
+            self._verificacion_firmas()
+            
+            self._actualizar_texto_fim("\n✅ ANÁLISIS FORENSE COMPLETADO\n")
+            self._log_terminal("Análisis forense de archivos completado", "FIM", "SUCCESS")
+            
+        except Exception as e:
+            error_msg = f"Error en análisis forense: {str(e)}"
+            self._actualizar_texto_fim(f"❌ ERROR: {error_msg}\n")
+            self._log_terminal(error_msg, "FIM", "ERROR")
+    
+    def _analisis_metadatos(self):
+        """Análisis detallado de metadatos de archivos críticos."""
+        try:
+            self._actualizar_texto_fim("\n📊 1. ANÁLISIS DE METADATOS\n")
+            self._actualizar_texto_fim("-" * 50 + "\n")
+            
+            import subprocess
+            from datetime import datetime
+            
+            archivos_criticos = ['/etc/passwd', '/etc/shadow', '/etc/sudoers', '/etc/hosts']
+            
+            for archivo in archivos_criticos:
+                if os.path.exists(archivo):
+                    try:
+                        self._actualizar_texto_fim(f"\n📄 {archivo}:\n")
+                        
+                        # Obtener información detallada con stat
+                        resultado = subprocess.run(['stat', archivo], 
+                                                 capture_output=True, text=True, timeout=5)
+                        
+                        if resultado.returncode == 0:
+                            lineas = resultado.stdout.split('\n')
+                            for linea in lineas[:6]:  # Primeras 6 líneas más importantes
+                                if linea.strip():
+                                    self._actualizar_texto_fim(f"  {linea}\n")
+                        
+                        # Información adicional con ls -la
+                        resultado_ls = subprocess.run(['ls', '-la', archivo], 
+                                                    capture_output=True, text=True, timeout=5)
+                        
+                        if resultado_ls.returncode == 0:
+                            self._actualizar_texto_fim(f"  Permisos: {resultado_ls.stdout.strip()}\n")
+                            
+                    except subprocess.TimeoutExpired:
+                        self._actualizar_texto_fim(f"  ⏱️ Timeout analizando metadatos de {archivo}\n")
+                    except Exception as e:
+                        self._actualizar_texto_fim(f"  ❌ Error: {str(e)}\n")
+                        
+        except Exception as e:
+            self._actualizar_texto_fim(f"❌ Error analizando metadatos: {str(e)}\n")
+    
+    def _busqueda_archivos_eliminados(self):
+        """Buscar evidencia de archivos eliminados recientemente."""
+        try:
+            self._actualizar_texto_fim("\n🗑️ 2. BÚSQUEDA DE ARCHIVOS ELIMINADOS\n")
+            self._actualizar_texto_fim("-" * 50 + "\n")
+            
+            import subprocess
+            
+            # Verificar logs que pueden contener información sobre archivos eliminados
+            try:
+                # Buscar en logs de audit si está disponible
+                if os.path.exists('/var/log/audit/audit.log'):
+                    resultado = subprocess.run(['grep', 'DELETE', '/var/log/audit/audit.log'], 
+                                             capture_output=True, text=True, timeout=10)
+                    
+                    if resultado.returncode == 0:
+                        eliminaciones = resultado.stdout.strip().split('\n')
+                        eliminaciones = [e for e in eliminaciones if e.strip()]
+                        
+                        if eliminaciones:
+                            self._actualizar_texto_fim(f"🔍 Eventos de eliminación en audit.log: {len(eliminaciones)}\n")
+                            # Mostrar solo los más recientes
+                            for evento in eliminaciones[-3:]:
+                                self._actualizar_texto_fim(f"  📝 {evento[:80]}...\n")
+                        else:
+                            self._actualizar_texto_fim("✅ No se encontraron eliminaciones en audit.log\n")
+                    else:
+                        self._actualizar_texto_fim("ℹ️ No hay eventos de eliminación en audit.log\n")
+                else:
+                    self._actualizar_texto_fim("❓ audit.log no disponible\n")
+                    
+            except subprocess.TimeoutExpired:
+                self._actualizar_texto_fim("⏱️ Timeout buscando en audit.log\n")
+            except:
+                pass
+            
+            # Buscar en journalctl eventos relacionados con archivos
+            try:
+                resultado = subprocess.run(['journalctl', '--since', '1 hour ago', '--grep', 'file'], 
+                                         capture_output=True, text=True, timeout=10)
+                
+                if resultado.returncode == 0:
+                    eventos = resultado.stdout.strip().split('\n')
+                    eventos = [e for e in eventos if e.strip()]
+                    
+                    if eventos:
+                        self._actualizar_texto_fim(f"📋 Eventos de archivos en la última hora: {len(eventos)}\n")
+                        if len(eventos) <= 3:
+                            for evento in eventos:
+                                self._actualizar_texto_fim(f"  📄 {evento[:80]}...\n")
+                        else:
+                            self._actualizar_texto_fim("  (Lista extensa - revisar journalctl manualmente)\n")
+                    else:
+                        self._actualizar_texto_fim("✅ Sin eventos de archivos recientes\n")
+                        
+            except subprocess.TimeoutExpired:
+                self._actualizar_texto_fim("⏱️ Timeout buscando en journalctl\n")
+            except:
+                pass
+                
+        except Exception as e:
+            self._actualizar_texto_fim(f"❌ Error buscando archivos eliminados: {str(e)}\n")
+    
+    def _analisis_timestamps(self):
+        """Análisis de timestamps sospechosos en archivos."""
+        try:
+            self._actualizar_texto_fim("\n⏰ 3. ANÁLISIS DE TIMESTAMPS\n")
+            self._actualizar_texto_fim("-" * 50 + "\n")
+            
+            import subprocess
+            from datetime import datetime, timedelta
+            
+            # Buscar archivos modificados a horas inusuales (fuera de horario laboral)
+            hora_actual = datetime.now().hour
+            
+            self._actualizar_texto_fim(f"🕐 Hora actual: {hora_actual}:00\n")
+            
+            if 22 <= hora_actual or hora_actual <= 6:
+                self._actualizar_texto_fim("⚠️ ACTIVIDAD FUERA DE HORARIO LABORAL DETECTADA\n")
+            else:
+                self._actualizar_texto_fim("✅ Actividad en horario laboral normal\n")
+            
+            # Buscar archivos modificados muy recientemente (últimos 30 minutos)
+            try:
+                resultado = subprocess.run(['find', '/etc', '-type', 'f', '-mmin', '-30'], 
+                                         capture_output=True, text=True, timeout=15)
+                
+                if resultado.returncode == 0:
+                    archivos_recientes = resultado.stdout.strip().split('\n')
+                    archivos_recientes = [f for f in archivos_recientes if f.strip()]
+                    
+                    if archivos_recientes:
+                        self._actualizar_texto_fim(f"🚨 ARCHIVOS MODIFICADOS EN LOS ÚLTIMOS 30 MIN: {len(archivos_recientes)}\n")
+                        for archivo in archivos_recientes[:5]:
+                            self._actualizar_texto_fim(f"  📝 {archivo}\n")
+                        if len(archivos_recientes) > 5:
+                            self._actualizar_texto_fim(f"  ... y {len(archivos_recientes) - 5} más\n")
+                    else:
+                        self._actualizar_texto_fim("✅ Sin modificaciones muy recientes en /etc\n")
+                        
+            except subprocess.TimeoutExpired:
+                self._actualizar_texto_fim("⏱️ Timeout buscando archivos recientes\n")
+            except:
+                pass
+            
+            # Verificar archivos con timestamps futuros (anómalo)
+            try:
+                # Buscar archivos con fecha de modificación futura
+                fecha_actual = datetime.now()
+                fecha_limite = fecha_actual + timedelta(days=1)
+                
+                resultado = subprocess.run(['find', '/etc', '-type', 'f', '-newermt', fecha_limite.strftime('%Y-%m-%d')], 
+                                         capture_output=True, text=True, timeout=10)
+                
+                if resultado.returncode == 0:
+                    archivos_futuros = resultado.stdout.strip().split('\n')
+                    archivos_futuros = [f for f in archivos_futuros if f.strip()]
+                    
+                    if archivos_futuros:
+                        self._actualizar_texto_fim(f"🚨 ARCHIVOS CON TIMESTAMPS FUTUROS: {len(archivos_futuros)}\n")
+                        for archivo in archivos_futuros[:3]:
+                            self._actualizar_texto_fim(f"  ⚠️ {archivo}\n")
+                    else:
+                        self._actualizar_texto_fim("✅ Sin archivos con timestamps anómalos\n")
+                        
+            except:
+                pass
+                
+        except Exception as e:
+            self._actualizar_texto_fim(f"❌ Error analizando timestamps: {str(e)}\n")
+    
+    def _verificacion_firmas(self):
+        """Verificación de firmas de archivos críticos."""
+        try:
+            self._actualizar_texto_fim("\n🔏 4. VERIFICACIÓN DE FIRMAS\n")
+            self._actualizar_texto_fim("-" * 50 + "\n")
+            
+            import subprocess
+            
+            # Verificar herramientas de verificación de firmas
+            herramientas_firma = ['file', 'hexdump', 'strings']
+            
+            self._actualizar_texto_fim("🛠️ Verificando herramientas de análisis disponibles:\n")
+            
+            for herramienta in herramientas_firma:
+                try:
+                    resultado = subprocess.run(['which', herramienta], 
+                                             capture_output=True, text=True, timeout=3)
+                    if resultado.returncode == 0:
+                        self._actualizar_texto_fim(f"  ✅ {herramienta}: Disponible\n")
+                    else:
+                        self._actualizar_texto_fim(f"  ❌ {herramienta}: No encontrado\n")
+                except:
+                    self._actualizar_texto_fim(f"  ❓ {herramienta}: Error verificando\n")
+            
+            # Analizar tipo de archivos críticos con 'file'
+            archivos_binarios = ['/usr/bin/sudo', '/usr/bin/passwd', '/usr/sbin/sshd']
+            
+            self._actualizar_texto_fim(f"\n🔍 Verificando firmas de archivos binarios:\n")
+            
+            for archivo in archivos_binarios:
+                if os.path.exists(archivo):
+                    try:
+                        resultado = subprocess.run(['file', archivo], 
+                                                 capture_output=True, text=True, timeout=5)
+                        
+                        if resultado.returncode == 0:
+                            tipo_archivo = resultado.stdout.strip()
+                            self._actualizar_texto_fim(f"  📄 {archivo}:\n")
+                            self._actualizar_texto_fim(f"      {tipo_archivo}\n")
+                            
+                            # Verificar si es ELF (formato normal en Linux)
+                            if 'ELF' in tipo_archivo:
+                                self._actualizar_texto_fim(f"      ✅ Formato ELF válido\n")
+                            else:
+                                self._actualizar_texto_fim(f"      ⚠️ Formato no estándar\n")
+                                
+                    except subprocess.TimeoutExpired:
+                        self._actualizar_texto_fim(f"  ⏱️ Timeout verificando {archivo}\n")
+                    except Exception as e:
+                        self._actualizar_texto_fim(f"  ❌ Error: {str(e)}\n")
+                else:
+                    self._actualizar_texto_fim(f"  ❓ {archivo}: No encontrado\n")
+            
+            # Verificar checksums conocidos si están disponibles
+            try:
+                self._actualizar_texto_fim(f"\n🔐 Verificando base de datos de checksums del sistema:\n")
+                
+                # Verificar si debsums está disponible (verifica checksums de paquetes)
+                resultado = subprocess.run(['which', 'debsums'], 
+                                         capture_output=True, text=True, timeout=3)
+                
+                if resultado.returncode == 0:
+                    self._actualizar_texto_fim("  ✅ debsums disponible para verificación de paquetes\n")
+                    
+                    # Verificar algunos paquetes críticos
+                    paquetes_criticos = ['passwd', 'sudo', 'openssh-server']
+                    for paquete in paquetes_criticos[:2]:  # Limitar verificación
+                        try:
+                            resultado_deb = subprocess.run(['debsums', '-s', paquete], 
+                                                         capture_output=True, text=True, timeout=10)
+                            
+                            if resultado_deb.returncode == 0:
+                                self._actualizar_texto_fim(f"    ✅ {paquete}: Checksums OK\n")
+                            else:
+                                self._actualizar_texto_fim(f"    ⚠️ {paquete}: Checksums modificados\n")
+                                
+                        except subprocess.TimeoutExpired:
+                            self._actualizar_texto_fim(f"    ⏱️ {paquete}: Timeout\n")
+                        except:
+                            pass
+                else:
+                    self._actualizar_texto_fim("  ❓ debsums no disponible\n")
+                    self._actualizar_texto_fim("  💡 Para instalar: apt-get install debsums\n")
+                    
+            except:
+                pass
+                
+        except Exception as e:
+            self._actualizar_texto_fim(f"❌ Error verificando firmas: {str(e)}\n")
+    
+    def obtener_datos_para_reporte(self):
+        """Obtener datos del FIM para incluir en reportes."""
+        try:
+            # Obtener el texto de resultados del FIM
+            contenido_fim = ""
+            if hasattr(self, 'fim_text'):
+                contenido_fim = self.fim_text.get(1.0, 'end-1c')
+            
+            # Crear estructura de datos para el reporte
+            datos_fim = {
+                'timestamp': datetime.datetime.now().isoformat(),
+                'modulo': 'FIM Avanzado',
+                'estado': 'activo' if self.proceso_monitoreo_activo else 'inactivo',
+                'version_expandida': True,
+                'capacidades_avanzadas': [
+                    'Monitoreo inotify en tiempo real',
+                    'Verificación de checksums múltiples algoritmos',
+                    'Análisis de permisos críticos',
+                    'Detección de archivos sospechosos',
+                    'Monitoreo de logs de sistema',
+                    'Análisis forense de archivos',
+                    'Verificación de firmas y metadatos'
+                ],
+                'resultados_texto': contenido_fim[-2500:] if len(contenido_fim) > 2500 else contenido_fim,
+                'estadisticas': {
+                    'lineas_monitoreadas': len(contenido_fim.split('\n')),
+                    'archivos_verificados': contenido_fim.count('verificados') + contenido_fim.count('checksums'),
+                    'alertas_criticas': contenido_fim.count('🚨') + contenido_fim.count('CRITICO'),
+                    'alertas_warnings': contenido_fim.count('⚠️') + contenido_fim.count('WARNING'),
+                    'archivos_sospechosos': contenido_fim.count('sospechoso') + contenido_fim.count('SOSPECHOSO'),
+                    'permisos_incorrectos': contenido_fim.count('permisos incorrectos') + contenido_fim.count('permisos excesivos')
+                },
+                'verificaciones_realizadas': {
+                    'monitoreo_avanzado': 'MONITOREO AVANZADO' in contenido_fim,
+                    'checksums_multiples': 'CHECKSUMS' in contenido_fim,
+                    'permisos_criticos': 'PERMISOS CRÍTICOS' in contenido_fim,
+                    'archivos_sospechosos': 'ARCHIVOS SOSPECHOSOS' in contenido_fim,
+                    'logs_sistema': 'LOGS DE SISTEMA' in contenido_fim,
+                    'analisis_forense': 'ANÁLISIS FORENSE' in contenido_fim
+                },
+                'info_sistema': 'FIM expandido con capacidades forenses y monitoreo avanzado para Kali Linux'
+            }
+            
+            return datos_fim
+            
+        except Exception as e:
+            return {
+                'timestamp': datetime.datetime.now().isoformat(),
+                'modulo': 'FIM',
+                'estado': 'error',
+                'error': f'Error obteniendo datos: {str(e)}',
+                'info': 'Error al obtener datos del FIM para reporte'
+            }

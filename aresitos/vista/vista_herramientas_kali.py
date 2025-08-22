@@ -360,30 +360,34 @@ LISTO PARA: Producción en entornos Kali Linux
                 'find', 'stat', 'grep', 'awk', 'sort', 'uniq', 'wc', 'tail', 'head',
                 'systemctl', 'ip', 'route', 'wget', 'curl', 'diff', 'ls', 'chmod', 'chown',
                 # Comandos para nuevas funcionalidades implementadas
-                'lsmod', 'kill', 'pgrep', 'pkill', 'sha256sum', 'md5sum', 'iptables',
-                'cat', 'less', 'more', 'pwd', 'mkdir', 'rm', 'cp', 'mv',
+                'lsmod', 'kill', 'pgrep', 'pkill', 'sha256sum', 'md5sum', 'sha1sum', 'sha512sum',
+                'iptables', 'cat', 'less', 'more', 'pwd', 'mkdir', 'rm', 'cp', 'mv',
                 # Herramientas de monitoreo y análisis del sistema (para FIM y SIEM)
-                'inotifywait', 'auditd', 'ausearch', 'aide', 'samhain', 'tripwire',
-                # Anti-rootkit y detección (usadas en escaneador avanzado)
+                'inotifywait', 'inotify-tools', 'auditd', 'ausearch', 'aide', 'samhain', 'tripwire',
+                'debsums', 'dpkg', 'rpm', 'synaptic',
+                # Anti-rootkit y detección (usadas en escaneador avanzado FASE 3.1)
                 'chkrootkit', 'rkhunter', 'lynis', 'unhide', 'tiger', 'maldet',
-                # Escaneadores de red y puertos (usados en SIEM y Escaneador)
+                # Escaneadores de red y puertos (usados en SIEM y Escaneador FASE 3.1)
                 'nmap', 'masscan', 'rustscan', 'gobuster', 'feroxbuster', 'nikto', 'nuclei', 'httpx',
-                'zmap', 'unicornscan', 'hping3',
-                # Análisis de servicios y red
+                'zmap', 'unicornscan', 'hping3', 'dirb', 'dirbuster',
+                # Análisis de servicios y red (expandido FASE 3.1)
                 'netcat', 'netcat-traditional', 'whatweb', 'wfuzz', 'ffuf', 'dirb',
                 'enum4linux', 'smbclient', 'rpcclient', 'ldapsearch',
                 # Cracking y fuerza bruta
                 'hashcat', 'john', 'hydra', 'medusa', 'patator', 'crunch', 'cewl',
                 # Bases de datos y SQL
                 'sqlmap', 'sqlninja', 'sqlite3', 'mysql', 'psql',
-                # Análisis de malware (expandido para FIM y cuarentena)
-                'clamav', 'clamscan', 'freshclam', 'yara', 'binwalk', 'strings', 'file', 'exiftool',
-                'volatility3', 'vol', 'hexdump', 'foremost', 'sleuthkit', 'autopsy',
-                # FIM y monitoreo avanzado
-                'pspy', 'pspy64', 'linpeas', 'logger', 'fail2ban-client', 'logwatch',
-                'incron', 'fswatch', 'entr',
-                # Análisis forense y auditoría (usadas en SIEM)
-                'logrotate', 'rsyslog', 'journalctl', 'aureport',
+                # Análisis de malware (expandido para FIM y cuarentena FASE 3.3)
+                'clamav', 'clamscan', 'freshclam', 'clamav-daemon', 'yara', 'binwalk', 'strings', 'file', 'exiftool',
+                'volatility3', 'volatility', 'vol', 'hexdump', 'foremost', 'sleuthkit', 'autopsy',
+                # FIM y monitoreo avanzado (FASE 3.2 y 3.3)
+                'pspy', 'pspy64', 'pspy32', 'linpeas', 'logger', 'fail2ban-client', 'logwatch',
+                'incron', 'fswatch', 'entr', 'watchman',
+                # Análisis forense y auditoría (usadas en SIEM FASE 3.2)
+                'logrotate', 'rsyslog', 'journalctl', 'aureport', 'auditctl',
+                # Herramientas adicionales para análisis avanzado (FASE 3)
+                'osquery', 'osqueryi', 'tcpdump', 'wireshark', 'tshark',
+                'strace', 'ltrace', 'gdb', 'objdump', 'readelf',
                 # Gestores de archivos para cheatsheets
                 'thunar', 'nautilus', 'dolphin', 'pcmanfm', 'caja', 'nemo', 'xdg-open',
                 # Editores de texto para visualización
@@ -486,31 +490,39 @@ LISTO PARA: Producción en entornos Kali Linux
                 # Comandos básicos del sistema (ya incluidos en Kali por defecto)
                 'procps', 'iproute2', 'net-tools', 'util-linux', 'findutils', 'grep', 'gawk',
                 'coreutils', 'systemd', 'wget', 'curl', 'diffutils',
-                # Herramientas de monitoreo y análisis sistema
-                'inotify-tools', 'chkrootkit', 'rkhunter', 'lynis', 'auditd',
-                # Escaneadores básicos
+                # Herramientas de monitoreo y análisis sistema (FASE 3.2 y 3.3)
+                'inotify-tools', 'chkrootkit', 'rkhunter', 'lynis', 'auditd', 'debsums',
+                'rsyslog', 'logrotate', 'logwatch',
+                # Escaneadores básicos (FASE 3.1 - Escaneador Expandido)
                 'nmap', 'masscan', 'nikto', 'gobuster', 'feroxbuster', 'dirb',
-                # Servicios de red 
+                # Servicios de red (FASE 3.1)
                 'netcat-traditional', 'whatweb', 'wfuzz', 'ffuf',
                 # Cracking y passwords
                 'hashcat', 'john', 'hydra', 'medusa', 'patator',
                 # Análisis SQL
                 'sqlmap', 'sqlninja',
-                # Cuarentena y malware (paquetes APT disponibles)
-                'clamav', 'clamav-daemon', 'yara', 'binwalk', 'exiftool',
-                'foremost', 'sleuthkit',
-                # SIEM y auditoría
-                'fail2ban', 'aide'
+                # Cuarentena y malware (FASE 3.3 - FIM expandido)
+                'clamav', 'clamav-daemon', 'clamav-freshclam', 'yara', 'binwalk', 'exiftool',
+                'foremost', 'sleuthkit', 'autopsy', 'volatility',
+                # SIEM y auditoría (FASE 3.2)
+                'fail2ban', 'aide', 'tripwire', 'samhain',
+                # Herramientas de análisis avanzado (FASE 3)
+                'tcpdump', 'wireshark', 'tshark', 'strace', 'ltrace', 'gdb',
+                'osquery', 'file', 'hexdump'
             ]
             
             # Herramientas que requieren instalación manual (se informará al usuario):
             herramientas_manuales = [
                 'volatility3: pip3 install volatility3',
-                'rustscan: cargo install rustscan',
-                'httpx: go install github.com/projectdiscovery/httpx/cmd/httpx@latest',
-                'nuclei: go install github.com/projectdiscovery/nuclei/v2/cmd/nuclei@latest',
+                'rustscan: cargo install rustscan (requiere Rust)',
+                'httpx: go install github.com/projectdiscovery/httpx/cmd/httpx@latest (requiere Go)',
+                'nuclei: go install github.com/projectdiscovery/nuclei/v2/cmd/nuclei@latest (requiere Go)',
                 'linpeas: wget https://github.com/carlospolop/PEASS-ng/releases/latest/download/linpeas.sh',
-                'pspy64: wget https://github.com/DominicBreuker/pspy/releases/latest/download/pspy64'
+                'pspy64: wget https://github.com/DominicBreuker/pspy/releases/latest/download/pspy64',
+                'pspy32: wget https://github.com/DominicBreuker/pspy/releases/latest/download/pspy32',
+                'dirbuster: Ya incluido en Kali en /usr/share/dirbuster/',
+                'strings: Parte del paquete binutils (generalmente ya instalado)',
+                'volatility: apt install volatility (versión 2) o pip3 install volatility3 (versión 3)'
             ]
             
             # Actualizar repositorios
@@ -567,14 +579,39 @@ LISTO PARA: Producción en entornos Kali Linux
             if len(paquetes_exitosos) >= len(paquetes) * 0.7:
                 self.after(0, self._actualizar_texto, "\n✓ Instalación completada exitosamente\n")
                 
+                # Mostrar información sobre herramientas de la FASE 3
+                self.after(0, self._actualizar_texto, "\n" + "="*60 + "\n")
+                self.after(0, self._actualizar_texto, "🚀 HERRAMIENTAS FASE 3 - EXPANSIONES AVANZADAS\n")
+                self.after(0, self._actualizar_texto, "="*60 + "\n")
+                self.after(0, self._actualizar_texto, "✅ ESCANEADOR EXPANDIDO (Fase 3.1):\n")
+                self.after(0, self._actualizar_texto, "   • nmap, masscan, rustscan (escaneo de red)\n")
+                self.after(0, self._actualizar_texto, "   • nikto, whatweb (análisis web)\n")
+                self.after(0, self._actualizar_texto, "   • chkrootkit, rkhunter (detección rootkits)\n")
+                self.after(0, self._actualizar_texto, "   • binwalk, strings (análisis forense)\n")
+                self.after(0, self._actualizar_texto, "   • clamav (antivirus integrado)\n\n")
+                
+                self.after(0, self._actualizar_texto, "✅ SIEM AVANZADO (Fase 3.2):\n")
+                self.after(0, self._actualizar_texto, "   • auditd, rsyslog (auditoría y logs)\n")
+                self.after(0, self._actualizar_texto, "   • fail2ban (protección contra fuerza bruta)\n")
+                self.after(0, self._actualizar_texto, "   • logwatch (análisis de logs)\n")
+                self.after(0, self._actualizar_texto, "   • tcpdump, wireshark (análisis de red)\n\n")
+                
+                self.after(0, self._actualizar_texto, "✅ FIM OPTIMIZADO (Fase 3.3):\n")
+                self.after(0, self._actualizar_texto, "   • inotify-tools (monitoreo tiempo real)\n")
+                self.after(0, self._actualizar_texto, "   • aide, tripwire (integridad archivos)\n")
+                self.after(0, self._actualizar_texto, "   • debsums (verificación checksums)\n")
+                self.after(0, self._actualizar_texto, "   • volatility, autopsy (análisis forense)\n\n")
+                
                 # Mostrar información sobre herramientas de instalación manual
-                self.after(0, self._actualizar_texto, "\n" + "="*50 + "\n")
-                self.after(0, self._actualizar_texto, "HERRAMIENTAS DE INSTALACIÓN MANUAL\n")
-                self.after(0, self._actualizar_texto, "="*50 + "\n")
+                self.after(0, self._actualizar_texto, "=" * 60 + "\n")
+                self.after(0, self._actualizar_texto, "📦 HERRAMIENTAS DE INSTALACIÓN MANUAL\n")
+                self.after(0, self._actualizar_texto, "="*60 + "\n")
                 for herramienta in herramientas_manuales:
-                    self.after(0, self._actualizar_texto, f"📦 {herramienta}\n")
+                    self.after(0, self._actualizar_texto, f"� {herramienta}\n")
                 self.after(0, self._actualizar_texto, "\nEstas herramientas se pueden instalar manualmente\n")
-                self.after(0, self._actualizar_texto, "si se necesitan funcionalidades específicas.\n")
+                self.after(0, self._actualizar_texto, "para funcionalidades específicas adicionales.\n")
+                self.after(0, self._actualizar_texto, "\n💡 NOTA: Las capacidades avanzadas de la Fase 3 funcionan\n")
+                self.after(0, self._actualizar_texto, "   con las herramientas instaladas automáticamente.\n")
                 
                 self.after(0, self._habilitar_continuar)
             else:
