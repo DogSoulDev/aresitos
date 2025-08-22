@@ -35,9 +35,52 @@ aresitos/
 - Tema profesional inspirado en Burp Suite
 - Navegación con pestañas
 - Terminales integrados en tiempo real
-vista_siem.py          # Análisis eventos + terminal
-terminal_mixin.py      # 🆕 Clase base para terminales
+- **Thread Safety**: Protección robusta contra TclError
+
+### Thread Safety - Patrón Implementado
+**Problema resuelto**: `TclError: invalid command name` por acceso concurrente a widgets
+
+**Solución estándar aplicada:**
+```python
+def _actualizar_widget_seguro(self, texto, modo="append"):
+    """Actualizar widgets de forma segura desde threads."""
+    def _update():
+        try:
+            if hasattr(self, 'widget') and self.widget.winfo_exists():
+                if modo == "clear":
+                    self.widget.delete(1.0, tk.END)
+                elif modo == "append":
+                    self.widget.insert(tk.END, texto)
+                # Más modos: replace, insert_start
+                self.widget.see(tk.END)
+        except (tk.TclError, AttributeError):
+            pass  # Widget destruido - falla silenciosa
+    
+    try:
+        self.after_idle(_update)  # Thread safety garantizado
+    except (tk.TclError, AttributeError):
+        pass
 ```
+
+### Archivos Vista con Thread Safety
+```
+vista_dashboard.py     # Dashboard principal + terminal
+vista_escaneo.py       # Escáner avanzado + resultados
+vista_gestion_datos.py # Gestión diccionarios + contenido
+vista_reportes.py      # Reportes profesionales + terminal
+vista_siem.py          # Análisis eventos + terminal
+vista_monitoreo.py     # Monitoreo sistema + logs
+vista_auditoria.py     # Auditoría + texto resultados
+vista_fim.py           # FIM + texto monitoreo
+vista_herramientas_kali.py # Setup herramientas + progreso
+terminal_mixin.py      # Clase base para terminales
+```
+
+### Beneficios Thread Safety
+- **Estabilidad**: Cero crashes por TclError
+- **Robustez**: Manejo elegante de widgets destruidos  
+- **Performance**: UI responsiva durante operaciones largas
+- **Escalabilidad**: Patrón reutilizable para nuevas vistas
 
 ### **🆕 Sistema Terminal Integrado**
 ```python

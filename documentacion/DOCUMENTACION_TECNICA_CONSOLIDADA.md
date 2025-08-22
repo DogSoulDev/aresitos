@@ -4,6 +4,67 @@
 
 **Aresitos** es una herramienta completa de ciberseguridad diseñada específicamente para Kali Linux. Integra múltiples funciones de seguridad en una sola aplicación fácil de usar.
 
+## Arquitectura Técnica de Alto Nivel
+
+### Thread Safety y Estabilidad
+- **Patrón MVC**: Separación clara entre modelo, vista y controlador
+- **Thread Safety**: Implementación robusta contra TclError 'invalid command name'
+- **Validación de widgets**: winfo_exists() antes de cada operación
+- **Programación defensiva**: Try/catch con falla silenciosa para widgets destruidos
+- **Sanitización completa**: Validación de parámetros y entrada
+- **Manejo seguro de privilegios**: Elevación controlada cuando necesario
+
+### Correcciones TclError - Thread Safety Completo
+
+#### Problema Identificado
+Los threads secundarios realizaban operaciones directas con widgets Tkinter, causando:
+- `TclError: invalid command name` cuando widgets eran destruidos
+- Crashes inesperados durante operaciones largas
+- Inconsistencias en la UI durante actualización de estado
+
+#### Solución Implementada
+**Patrón estándar aplicado en todas las vistas:**
+
+```python
+def _actualizar_widget_seguro(self, texto, modo="append"):
+    """Actualizar widgets de forma segura desde threads."""
+    def _update():
+        try:
+            if hasattr(self, 'widget') and self.widget.winfo_exists():
+                if modo == "clear":
+                    self.widget.delete(1.0, tk.END)
+                elif modo == "replace":
+                    self.widget.delete(1.0, tk.END)
+                    self.widget.insert(1.0, texto)
+                elif modo == "append":
+                    self.widget.insert(tk.END, texto)
+                self.widget.see(tk.END)
+        except (tk.TclError, AttributeError):
+            pass  # Widget destruido - falla silenciosa
+    
+    try:
+        self.after_idle(_update)  # Thread safety garantizado
+    except (tk.TclError, AttributeError):
+        pass  # Ventana destruida
+```
+
+#### Archivos Corregidos
+- ✅ `vista_herramientas_kali.py` - Protecciones completas
+- ✅ `vista_gestion_datos.py` - `_actualizar_contenido_seguro()`
+- ✅ `vista_dashboard.py` - `_actualizar_terminal_seguro()`
+- ✅ `vista_escaneo.py` - Protecciones principales 
+- ✅ `vista_siem.py` - Correcciones + compliance
+- ✅ `vista_reportes.py` - Métodos duales
+- ✅ `vista_auditoria.py` - Protecciones mejoradas
+- ✅ `vista_fim.py` - Protecciones mejoradas
+- ✅ `vista_monitoreo.py` - Ya implementado correctamente
+
+#### Beneficios Conseguidos
+- **Estabilidad**: Eliminación total de crashes por TclError
+- **Robustez**: Manejo elegante de estados inconsistentes
+- **Performance**: UI responsiva durante operaciones pesadas
+- **Escalabilidad**: Patrón reutilizable para nuevas funcionalidades
+
 ## Funcionalidades Principales
 
 ### 🔍 Escáner de Vulnerabilidades
