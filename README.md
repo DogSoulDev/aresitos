@@ -1,7 +1,6 @@
 ![ARESITOS](aresitos/recursos/Aresitos.ico)
 
-# ARESITOS v2.0 - Suite Avanzada de Ciberseguridad
-**Plataforma Profesional de Ciberseguridad Exclusiva para Kali Linux 2025**
+# ARESITOS - Herramienta de Ciberseguridad
 
 [![Versión](https://img.shields.io/badge/versión-v2.0%20Professional-brightgreen.svg)](https://github.com/DogSoulDev/Aresitos)
 [![Kali Linux](https://img.shields.io/badge/Kali%20Linux-2025-blue.svg)](https://www.kali.org/)
@@ -377,18 +376,4 @@ python3 main.py --verbose
 
 ### En Memoria de Ares
 *25 de Abril 2013 - 5 de Agosto 2025*
-
-**ARESITOS v2.0** se dedica con amor infinito a mi compañero, guardián, y mejor amigo, **Ares**. Un Golden Retriever que durante 12 años fue mi inspiración constante, mi motivación para crear, y mi recordatorio diario de que la lealtad y el amor incondicional son las fuerzas más poderosas del universo.
-
-Cada línea de código en este proyecto lleva su espíritu: la persistencia para nunca rendirse, la curiosidad para explorar lo desconocido, y la protección feroz de lo que más valoramos.
-
-**ARESITOS** no es solo una herramienta de ciberseguridad; es un legado de amor convertido en código, una manera de asegurar que su memoria viva para siempre ayudando a proteger lo que otros aman.
-
-*"Hasta que volvamos a vernos en los campos infinitos donde corren todos los buenos perros."*
-
-**Con amor eterno,**
-**DogSoulDev**
-
----
-
-*© 2025 DogSoulDev - ARESITOS v2.0 - Open Source Non-Commercial License*
+Hasta que volvamos a vernos.
