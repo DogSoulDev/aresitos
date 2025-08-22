@@ -114,6 +114,11 @@ install_tools() {
         "iftop"
         "netcat-openbsd"
         
+        # Herramientas forense VERIFICADAS para Kali 2025
+        "wireshark"
+        "autopsy"
+        "sleuthkit"
+        
         # Utilidades del sistema ESTABLES
         "htop"
         "lsof"
@@ -574,7 +579,7 @@ verify_setup() {
     print_header "🧪 Verificando configuración..."
     
     # Verificar herramientas
-    TOOLS_TO_CHECK=("nmap" "netstat" "ss" "tcpdump")
+    TOOLS_TO_CHECK=("nmap" "netstat" "ss" "tcpdump" "wireshark" "autopsy" "fls")
     
     for tool in "${TOOLS_TO_CHECK[@]}"; do
         if command -v "$tool" >/dev/null 2>&1; then

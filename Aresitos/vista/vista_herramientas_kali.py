@@ -207,7 +207,7 @@ class VistaHerramientasKali(tk.Frame):
             "• Monitoreo: inotifywait, auditd, systemctl, pspy, aide\n" +
             "• Firewall: iptables, fail2ban-client\n\n" +
             "🔍 ANÁLISIS FORENSE:\n" +
-            "• Forense: volatility3, foremost, sleuthkit, autopsy\n" +
+            "• Forense: sleuthkit, autopsy, foremost\n" +
             "• Memoria: hexdump, strings, file, binwalk\n" +
             "• Logs: journalctl, aureport, logwatch, rsyslog\n\n" +
             "🌐 PENETRACIÓN Y AUDITORÍA:\n" +
@@ -330,7 +330,7 @@ HERRAMIENTAS PRINCIPALES UTILIZADAS:
    • Red: ip, route, netstat, nmap, netcat
    • Sistema: systemctl, top, free, df, uname, who, last
    • Seguridad: chkrootkit, rkhunter, auditd, fail2ban
-   • Análisis: strings, hexdump, binwalk, volatility
+   • Análisis: strings, hexdump, binwalk, sleuthkit
    • Procesamiento: sort, uniq, wc, tail, head, diff
 
 BENEFICIOS:
@@ -400,7 +400,7 @@ LISTO PARA: Producción en entornos Kali Linux
                 'sqlmap', 'sqlninja', 'sqlite3', 'mysql', 'psql',
                 # Análisis de malware (expandido para FIM y cuarentena FASE 3.3)
                 'clamav', 'clamscan', 'freshclam', 'clamav-daemon', 'yara', 'binwalk', 'strings', 'file', 'exiftool',
-                'volatility3', 'volatility', 'vol', 'hexdump', 'foremost', 'sleuthkit', 'autopsy',
+                'hexdump', 'foremost', 'sleuthkit', 'autopsy',
                 # FIM y monitoreo avanzado (FASE 3.2 y 3.3)
                 'pspy', 'pspy64', 'pspy32', 'linpeas', 'logger', 'fail2ban-client', 'logwatch',
                 'incron', 'fswatch', 'entr', 'watchman',
@@ -556,7 +556,7 @@ LISTO PARA: Producción en entornos Kali Linux
                 'sqlmap', 'sqlninja',
                 # Cuarentena y malware (FASE 3.3 - FIM expandido)
                 'clamav', 'clamav-daemon', 'clamav-freshclam', 'yara', 'binwalk', 'exiftool',
-                'foremost', 'sleuthkit', 'autopsy', 'volatility',
+                'foremost', 'sleuthkit', 'autopsy',
                 # SIEM y auditoría (FASE 3.2)
                 'fail2ban', 'aide', 'tripwire', 'samhain',
                 # Herramientas de análisis avanzado (FASE 3)
@@ -566,7 +566,6 @@ LISTO PARA: Producción en entornos Kali Linux
             
             # Herramientas que requieren instalación manual (se informará al usuario):
             herramientas_manuales = [
-                'volatility3: pip3 install volatility3',
                 'rustscan: cargo install rustscan (requiere Rust)',
                 'httpx: go install github.com/projectdiscovery/httpx/cmd/httpx@latest (requiere Go)',
                 'nuclei: go install github.com/projectdiscovery/nuclei/v2/cmd/nuclei@latest (requiere Go)',
@@ -574,8 +573,7 @@ LISTO PARA: Producción en entornos Kali Linux
                 'pspy64: wget https://github.com/DominicBreuker/pspy/releases/latest/download/pspy64',
                 'pspy32: wget https://github.com/DominicBreuker/pspy/releases/latest/download/pspy32',
                 'dirbuster: Ya incluido en Kali en /usr/share/dirbuster/',
-                'strings: Parte del paquete binutils (generalmente ya instalado)',
-                'volatility: apt install volatility (versión 2) o pip3 install volatility3 (versión 3)'
+                'strings: Parte del paquete binutils (generalmente ya instalado)'
             ]
             
             # Actualizar repositorios usando SudoManager
@@ -686,7 +684,7 @@ LISTO PARA: Producción en entornos Kali Linux
                 self.after(0, self._actualizar_texto, "   • inotify-tools (monitoreo tiempo real)\n")
                 self.after(0, self._actualizar_texto, "   • aide, tripwire (integridad archivos)\n")
                 self.after(0, self._actualizar_texto, "   • debsums (verificación checksums)\n")
-                self.after(0, self._actualizar_texto, "   • volatility, autopsy (análisis forense)\n\n")
+                self.after(0, self._actualizar_texto, "   • sleuthkit, autopsy (análisis forense)\n\n")
                 
                 # Mostrar información sobre herramientas de instalación manual
                 self.after(0, self._actualizar_texto, "=" * 60 + "\n")

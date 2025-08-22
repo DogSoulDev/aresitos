@@ -669,7 +669,6 @@ class VistaSIEM(tk.Frame):
             tools_frame.pack(fill=tk.X)
             
             tools_forenses = [
-                (" Volatility", self.usar_volatility),
                 (" Autopsy", self.usar_autopsy),
                 (" Sleuth Kit", self.usar_sleuthkit),
                 (" Binwalk", self.usar_binwalk),
@@ -692,7 +691,6 @@ class VistaSIEM(tk.Frame):
             tools_frame.pack(fill=tk.X)
             
             tools_forenses = [
-                (" Volatility", self.usar_volatility),
                 (" Autopsy", self.usar_autopsy),
                 (" Sleuth Kit", self.usar_sleuthkit),
                 (" Binwalk", self.usar_binwalk),
@@ -2405,54 +2403,6 @@ class VistaSIEM(tk.Frame):
         self._actualizar_texto_alertas("OK Honeypots operativos\n\n")
     
     # Métodos de la pestaña Forense
-    def usar_volatility(self):
-        """Usar Volatility para análisis de memoria."""
-        def ejecutar():
-            try:
-                self.after(0, self._actualizar_texto_forense, "🧠 VOLATILITY - Análisis de Memoria RAM\n")
-                self.after(0, self._actualizar_texto_forense, "="*50 + "\n")
-                
-                import subprocess
-                try:
-                    # Verificar Volatility 3 (preferido)
-                    resultado = subprocess.run(['vol', '--help'], capture_output=True, text=True, timeout=10)
-                    if resultado.returncode == 0:
-                        self.after(0, self._actualizar_texto_forense, "OK Volatility 3 disponible\n\n")
-                        self.after(0, self._actualizar_texto_forense, "ANÁLISIS COMANDOS KALI LINUX:\n")
-                        self.after(0, self._actualizar_texto_forense, "  vol -f memory.dump windows.info\n")
-                        self.after(0, self._actualizar_texto_forense, "  vol -f memory.dump windows.pslist\n") 
-                        self.after(0, self._actualizar_texto_forense, "  vol -f memory.dump windows.psscan\n")
-                        self.after(0, self._actualizar_texto_forense, "  vol -f memory.dump windows.malfind\n")
-                        self.after(0, self._actualizar_texto_forense, "  vol -f memory.dump windows.netscan\n\n")
-                    else:
-                        # Probar Volatility 2
-                        resultado2 = subprocess.run(['volatility', '--info'], capture_output=True, text=True, timeout=10)
-                        if resultado2.returncode == 0:
-                            self.after(0, self._actualizar_texto_forense, "OK Volatility 2 disponible\n\n")
-                            self.after(0, self._actualizar_texto_forense, "ANÁLISIS COMANDOS KALI LINUX:\n")
-                            self.after(0, self._actualizar_texto_forense, "  volatility -f memory.dump imageinfo\n")
-                            self.after(0, self._actualizar_texto_forense, "  volatility -f memory.dump --profile=Win7SP1x64 pslist\n")
-                            self.after(0, self._actualizar_texto_forense, "  volatility -f memory.dump --profile=Win7SP1x64 netscan\n\n")
-                        else:
-                            self.after(0, self._actualizar_texto_forense, "ERROR ejecutando Volatility\n")
-                            
-                except FileNotFoundError:
-                    self.after(0, self._actualizar_texto_forense, "ERROR Volatility no encontrado\n")
-                    self.after(0, self._actualizar_texto_forense, "📦 INSTALACIÓN KALI:\n")
-                    self.after(0, self._actualizar_texto_forense, "  sudo apt update\n")
-                    self.after(0, self._actualizar_texto_forense, "  sudo apt install volatility3 volatility -y\n\n")
-                    
-                self.after(0, self._actualizar_texto_forense, " CASOS DE USO:\n")
-                self.after(0, self._actualizar_texto_forense, "  • Análisis de malware en memoria\n")
-                self.after(0, self._actualizar_texto_forense, "  • Forense de incidents response\n")
-                self.after(0, self._actualizar_texto_forense, "  • Detección de rootkits\n")
-                self.after(0, self._actualizar_texto_forense, "  • Extracción de passwords\n\n")
-                
-            except Exception as e:
-                self.after(0, self._actualizar_texto_forense, f"ERROR usando Volatility: {str(e)}\n")
-        
-        threading.Thread(target=ejecutar, daemon=True).start()
-    
     def usar_autopsy(self):
         """Usar Autopsy para análisis forense."""
         self._actualizar_texto_forense(" Iniciando Autopsy...\n")
