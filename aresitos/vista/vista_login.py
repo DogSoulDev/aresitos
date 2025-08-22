@@ -194,8 +194,8 @@ HERRAMIENTAS_REQUERIDAS = [
     'hydra', 'medusa', 'ncrack', 'john', 'hashcat', 'aircrack-ng',
     'crunch', 'cewl', 'cupp', 'patator',
     
-    # Forense y análisis
-    'volatility', 'autopsy', 'sleuthkit', 'binwalk', 'foremost',
+    # Forense y análisis (herramientas que funcionan en Kali 2025)
+    'sleuthkit', 'binwalk', 'foremost',
     'strings', 'hexdump', 'xxd', 'file', 'exiftool',
     
     # Utilidades del sistema
@@ -205,6 +205,16 @@ HERRAMIENTAS_REQUERIDAS = [
     # Herramientas adicionales modernizadas
     'burpsuite', 'owasp-zap', 'nuclei', 'xsser', 'weevely',
     'backdoor-factory', 'shellter', 'veil', 'empire'
+]
+
+# Herramientas que requieren instalación manual o tienen problemas de timeout
+HERRAMIENTAS_PROBLEMATICAS = [
+    'volatility',      # No disponible en repositorios estándar
+    'autopsy',         # Requiere descarga grande
+    'tripwire',        # Timeout frecuente
+    'samhain',         # Timeout frecuente  
+    'wireshark',       # Instalación interactiva
+    'tshark'           # Parte de wireshark
 ]
 
 # Puertos criticos de seguridad para monitoreo (Kali Linux especializado)
@@ -919,28 +929,52 @@ class LoginAresitos:
             else:
                 self.escribir_log("WARNING al actualizar repositorios")
             
-            # Instalar herramientas una por una
-            for herramienta in herramientas[:5]:  # Limitamos a 5 para no sobrecargar
+            # Filtrar herramientas problemáticas
+            herramientas_seguras = [h for h in herramientas if h not in HERRAMIENTAS_PROBLEMATICAS]
+            herramientas_problematicas = [h for h in herramientas if h in HERRAMIENTAS_PROBLEMATICAS]
+            
+            if herramientas_problematicas:
+                self.escribir_log(f"⚠️  Omitiendo herramientas problemáticas: {', '.join(herramientas_problematicas)}")
+                self.escribir_log("💡 Instale manualmente con: sudo apt install <herramienta>")
+            
+            # Instalar herramientas seguras una por una
+            for herramienta in herramientas_seguras[:8]:  # Aumentamos a 8 pero solo seguras
                 self.escribir_log(f" Instalando {herramienta}...")
                 
                 cmd_install = f"echo '{password}' | sudo -S apt install -y {herramienta}"
                 
-                result = subprocess.run(
-                    cmd_install,
-                    shell=True,
-                    capture_output=True,
-                    text=True,
-                    timeout=120
-                )
+                # Timeout diferencial basado en el tipo de herramienta
+                timeout_herramienta = 60  # Por defecto 60 segundos
+                if herramienta in ['nmap', 'wireshark', 'burpsuite']:
+                    timeout_herramienta = 180  # Herramientas grandes: 3 minutos
+                elif herramienta in ['python3', 'curl', 'wget', 'git']:
+                    timeout_herramienta = 30   # Herramientas básicas: 30 segundos
                 
-                if result.returncode == 0:
-                    self.escribir_log(f"OK {herramienta} instalado correctamente")
-                    # Remover de la lista de faltantes
-                    if herramienta in self.herramientas_faltantes:
-                        self.herramientas_faltantes.remove(herramienta)
-                else:
-                    self.escribir_log(f"ERROR instalando {herramienta}")
-            
+                try:
+                    result = subprocess.run(
+                        cmd_install,
+                        shell=True,
+                        capture_output=True,
+                        text=True,
+                        timeout=timeout_herramienta
+                    )
+                    
+                    if result.returncode == 0:
+                        self.escribir_log(f"✅ {herramienta} instalado correctamente")
+                        # Remover de la lista de faltantes
+                        if herramienta in self.herramientas_faltantes:
+                            self.herramientas_faltantes.remove(herramienta)
+                    else:
+                        self.escribir_log(f"❌ Error instalando {herramienta}")
+                        if "package not found" in result.stderr.lower():
+                            self.escribir_log(f"💡 {herramienta} no disponible en repositorios")
+                        elif "timeout" in str(result.stderr).lower():
+                            self.escribir_log(f"⏱️  {herramienta} timeout - requiere instalación manual")
+                            
+                except subprocess.TimeoutExpired:
+                    self.escribir_log(f"⏱️  Timeout instalando {herramienta} - continuando...")
+                except Exception as e:
+                    self.escribir_log(f"❌ Error inesperado con {herramienta}: {e}")
             self.escribir_log(" Instalación automática completada")
             
             # Limpiar password de memoria

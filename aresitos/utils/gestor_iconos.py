@@ -75,9 +75,30 @@ class GestorIconos:
             ruta_icono = cls.obtener_ruta_icono()
             
             if ruta_icono and os.path.exists(ruta_icono):
-                # Método 1: Usar iconbitmap (recomendado para .ico)
+                # En Linux, usar PhotoImage primero (más compatible)
+                import platform
+                if platform.system() == "Linux":
+                    try:
+                        # Buscar PNG alternativo (más compatible en Linux)
+                        ruta_png = ruta_icono.replace('.ico', '.png')
+                        if os.path.exists(ruta_png):
+                            icono_img = tk.PhotoImage(file=ruta_png)
+                            ventana.iconphoto(True, icono_img)
+                            # Mantener referencia
+                            if hasattr(ventana, '__dict__'):
+                                ventana.__dict__['_icono_ref'] = icono_img
+                            else:
+                                setattr(ventana, '_icono_ref', icono_img)
+                            cls._icono_cargado = True
+                            print(f"[GestorIconos] Icono PNG aplicado en Linux: {ruta_png}")
+                            return True
+                    except Exception as e:
+                        print(f"[GestorIconos] PNG falló, intentando ICO: {e}")
+                
+                # Método tradicional con iconbitmap
                 ventana.iconbitmap(ruta_icono)
                 cls._icono_cargado = True
+                print(f"[GestorIconos] Icono ICO aplicado: {ruta_icono}")
                 return True
             else:
                 print(f"[GestorIconos] No se pudo aplicar icono - archivo no encontrado: {ruta_icono}")
@@ -85,7 +106,8 @@ class GestorIconos:
                 
         except tk.TclError as e:
             print(f"[GestorIconos] Error Tkinter aplicando icono: {e}")
-            return False
+            # Intentar método alternativo
+            return cls.aplicar_icono_photoimage(ventana)
         except Exception as e:
             print(f"[GestorIconos] Error general aplicando icono: {e}")
             return False

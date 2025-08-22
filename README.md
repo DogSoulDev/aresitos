@@ -29,6 +29,18 @@ python3 main.py
 > ```
 > El script ahora establece automáticamente el directorio de trabajo correcto.
 
+> **⚠️ HERRAMIENTAS PROBLEMÁTICAS**: Algunas herramientas requieren instalación manual:
+> ```bash
+> # Volatility (análisis de memoria)
+> sudo apt install volatility3 python3-volatility3
+> 
+> # Wireshark (análisis de tráfico)
+> sudo apt install wireshark
+> 
+> # Autopsy (forense)
+> sudo apt install autopsy
+> ```
+
 ### 🔧 **Método Manual - Control Total**
 ```bash
 # 1. Descargar ARESITOS
