@@ -1,4 +1,4 @@
-![ARESITOS](aresitos/recursos/Aresitos.ico)
+![ARESITOS](Aresitos/recursos/Aresitos.ico)
 
 # ARESITOS - Herramienta de Ciberseguridad
 
@@ -68,7 +68,7 @@ python3 main.py --dev
 ## 🖼️ **CAPTURAS DE PANTALLA DETALLADAS**
 
 ### 1. Sistema de Autenticación - Primera Impresión
-![Vista Login](aresitos/recursos/vista_login.png)
+![Vista Login](Aresitos/recursos/vista_login.png)
 
 **¿Qué es esta pantalla?**
 La primera ventana que ves al iniciar Aresitos. No es solo un login normal, es un sistema inteligente que verifica automáticamente que tu sistema Kali Linux esté configurado correctamente.
@@ -80,7 +80,7 @@ La primera ventana que ves al iniciar Aresitos. No es solo un login normal, es u
 - **Acceso seguro**: Controla quién puede usar el sistema con autenticación robusta
 
 ### 2. Vista de Herramientas - Configuración Automática
-![Vista Herramientas](aresitos/recursos/vista_herramientas.png)
+![Vista Herramientas](Aresitos/recursos/vista_herramientas.png)
 
 **¿Qué es esta pantalla?**
 Una ventana especial que aparece solo la primera vez que usas Aresitos. Su trabajo es configurar automáticamente todas las herramientas de seguridad que necesitas.
@@ -92,7 +92,7 @@ Una ventana especial que aparece solo la primera vez que usas Aresitos. Su traba
 - **Prepara el entorno**: Deja todo listo para que puedas empezar a trabajar inmediatamente
 
 ### 3. Vista Principal - Centro de Comando
-![Vista Aresitos](aresitos/recursos/vista_aresitos.png)
+![Vista Aresitos](Aresitos/recursos/vista_aresitos.png)
 
 **¿Qué es esta pantalla?**
 El corazón de Aresitos. Una vez configurado todo, esta es tu central de operaciones de ciberseguridad. Aquí tienes acceso a todas las funcionalidades del programa.
