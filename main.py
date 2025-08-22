@@ -106,7 +106,7 @@ def main():
     
     # Verificar si existe vista login
     directorio_actual = Path(__file__).parent
-    vista_login_path = directorio_actual / 'aresitos' / 'vista' / 'vista_login.py'
+    vista_login_path = directorio_actual / 'Aresitos' / 'vista' / 'vista_login.py'
     
     if vista_login_path.exists():
         print("Iniciando con interfaz de login...")
