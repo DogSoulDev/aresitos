@@ -313,7 +313,7 @@ class SIEMAvanzadoNativo:
                 # Verificar alertas
                 self._verificar_alertas()
                 
-                time.sleep(30)  # Procesar cada 30 segundos
+                time.sleep(25)  # Issue 21/24: Optimizado de 30 a 25 segundos - Procesar cada 25 segundos
                 
             except Exception as e:
                 self.logger.error(f"Error en loop de procesamiento: {e}")

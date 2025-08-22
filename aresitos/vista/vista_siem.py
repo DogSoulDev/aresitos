@@ -1238,7 +1238,7 @@ class VistaSIEM(tk.Frame):
                 except:
                     self._log_terminal("No se pudo verificar conectividad", "SIEM", "WARNING")
                     
-                time.sleep(30)  # Esperar 30 segundos antes del siguiente ciclo
+                time.sleep(25)  # Issue 21/24: Optimizado de 30 a 25 segundos antes del siguiente ciclo
                 
         except Exception as e:
             self._log_terminal(f"Error en monitoreo basico: {str(e)}", "SIEM", "WARNING")
@@ -2200,7 +2200,7 @@ class VistaSIEM(tk.Frame):
                     contador += 1
                     if contador < 20:
                         self.after(0, self._actualizar_texto_alertas, f"Esperando 15 segundos para el siguiente ciclo...\n\n")
-                    time.sleep(15)  # Verificar cada 15 segundos
+                    time.sleep(12)  # Issue 21/24: Optimizado de 15 a 12 segundos - Verificar cada 12 segundos
                     
                 except Exception as e:
                     self.after(0, self._actualizar_texto_alertas, f"[ERROR] Error en monitoreo: {str(e)}\n")

@@ -1,11 +1,13 @@
 # -*- coding: utf-8 -*-
 """
 Terminal Mixin para integrar terminal en todas las vistas de ARESITOS.
+Issue 21/24: Optimizado para rendimiento y gestión de memoria.
 """
 
 import tkinter as tk
 from tkinter import scrolledtext
 import datetime
+import gc  # Issue 21/24 - Optimización de memoria
 
 class TerminalMixin:
     """Mixin para agregar funcionalidad de terminal a las vistas."""
@@ -143,3 +145,42 @@ class TerminalMixin:
             pass  # Si falla, usar posición por defecto
         
         return contenido_frame
+    
+    def optimizar_terminal_memoria(self):
+        """Optimizar memoria del terminal - Issue 21/24"""
+        """Limpiar buffer del terminal cuando excede límites y optimizar memoria"""
+        try:
+            # Buscar el terminal en diferentes atributos posibles
+            terminal = None
+            for attr_name in ['text_terminal', 'terminal_text', 'text_siem', 'text_monitor', 'text_fim']:
+                if hasattr(self, attr_name):
+                    terminal = getattr(self, attr_name)
+                    break
+            
+            if terminal and hasattr(terminal, 'get'):
+                # Obtener contenido actual
+                contenido = terminal.get(1.0, tk.END)
+                lineas = contenido.split('\n')
+                
+                # Si hay más de 1000 líneas, mantener solo las últimas 500
+                if len(lineas) > 1000:
+                    lineas_recientes = lineas[-500:]
+                    nuevo_contenido = '\n'.join(lineas_recientes)
+                    
+                    # Limpiar y actualizar terminal
+                    terminal.delete(1.0, tk.END)
+                    terminal.insert(1.0, nuevo_contenido)
+                    terminal.see(tk.END)
+                    
+                    # Forzar garbage collection
+                    del contenido, lineas, lineas_recientes
+                    gc.collect()
+                    
+                    # Log de optimización
+                    timestamp = datetime.datetime.now().strftime("%H:%M:%S")
+                    terminal.insert(tk.END, f"\n[{timestamp}] MEMORIA: Buffer optimizado - líneas reducidas\n")
+                    terminal.see(tk.END)
+                    
+        except Exception as e:
+            # Silencioso para no interrumpir operación
+            pass

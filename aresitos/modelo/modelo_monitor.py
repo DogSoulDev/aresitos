@@ -255,7 +255,7 @@ class MonitorAvanzadoNativo:
                 self._analizar_anomalias()
                 
                 # Esperar antes del siguiente ciclo
-                time.sleep(5)  # Monitoreo cada 5 segundos
+                time.sleep(4)  # Issue 21/24: Optimizado de 5 a 4 segundos - Monitoreo cada 4 segundos
                 
             except Exception as e:
                 self.logger.error(f"Error en loop de monitoreo: {e}")

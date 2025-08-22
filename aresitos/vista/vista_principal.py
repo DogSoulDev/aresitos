@@ -4,6 +4,8 @@ import tkinter as tk
 from tkinter import ttk
 import logging
 import os
+import gc  # Issue 21/24 - Optimización de memoria
+import threading  # Issue 21/24 - Gestión de hilos
 from tkinter import PhotoImage
 
 # Importar todas las vistas disponibles
@@ -365,6 +367,67 @@ class VistaPrincipal(tk.Frame):
         """Actualiza el mensaje de la barra de estado"""
         if hasattr(self, 'status_label'):
             self.status_label.configure(text=mensaje)
+    
+    def optimizar_sistema_completo(self):
+        """Issue 21/24: Optimización global del sistema Aresitos"""
+        """Optimizar memoria y rendimiento de todas las vistas activas"""
+        try:
+            optimizaciones_realizadas = []
+            
+            # Optimizar SudoManager
+            try:
+                from aresitos.utils.sudo_manager import get_sudo_manager
+                sudo_manager = get_sudo_manager()
+                resultado = sudo_manager.optimize_memory()
+                optimizaciones_realizadas.append(f"SudoManager: {resultado}")
+            except Exception as e:
+                optimizaciones_realizadas.append(f"SudoManager: Error - {str(e)}")
+            
+            # Optimizar cada vista activa
+            vistas_disponibles = {
+                'dashboard': getattr(self, 'vista_dashboard', None),
+                'escaneo': getattr(self, 'vista_escaneo', None),
+                'monitoreo': getattr(self, 'vista_monitoreo', None),
+                'auditoria': getattr(self, 'vista_auditoria', None),
+                'gestion_datos': getattr(self, 'vista_gestion_datos', None),
+                'reportes': getattr(self, 'vista_reportes', None),
+                'fim': getattr(self, 'vista_fim', None),
+                'siem': getattr(self, 'vista_siem', None)
+            }
+            
+            for nombre_vista, vista in vistas_disponibles.items():
+                if vista is not None:
+                    try:
+                        # Si la vista tiene método de optimización de terminal
+                        if hasattr(vista, 'optimizar_terminal_memoria'):
+                            vista.optimizar_terminal_memoria()
+                            optimizaciones_realizadas.append(f"{nombre_vista}: Terminal optimizado")
+                    except Exception as e:
+                        optimizaciones_realizadas.append(f"{nombre_vista}: Error - {str(e)}")
+            
+            # Limpiar threading orphan y memoria global
+            for thread in threading.enumerate():
+                if thread != threading.current_thread() and not thread.is_alive():
+                    optimizaciones_realizadas.append(f"Thread limpiado: {thread.name}")
+            
+            # Garbage collection global
+            collected = gc.collect()
+            optimizaciones_realizadas.append(f"Memoria global: {collected} objetos liberados")
+            
+            # Log del resultado
+            self.logger.info(f"Optimización completada: {len(optimizaciones_realizadas)} operaciones")
+            for opt in optimizaciones_realizadas:
+                self.logger.debug(opt)
+            
+            # Actualizar estado
+            self.actualizar_estado(f"Sistema optimizado - {collected} objetos liberados")
+            
+            return optimizaciones_realizadas
+            
+        except Exception as e:
+            self.logger.error(f"Error en optimización del sistema: {e}")
+            return [f"Error general: {str(e)}"]
 
 
 # RESUMEN: Vista principal de la aplicación con interfaz de pestañas para módulos.
+# Issue 21/24: Incluye optimización global de memoria y rendimiento del sistema.

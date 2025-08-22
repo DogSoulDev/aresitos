@@ -1900,7 +1900,7 @@ class VistaMonitoreo(tk.Frame):
                         self.after(0, self._actualizar_texto_monitor, "ERROR: No se pudo verificar logins recientes\n")
                     
                     contador += 1
-                    time.sleep(3)  # Esperar 3 segundos entre ciclos
+                    time.sleep(2)  # Issue 21/24: Optimizado de 3 a 2 segundos entre ciclos
                     
                 except Exception as e:
                     self.after(0, self._actualizar_texto_monitor, f"ERROR EN CICLO: {str(e)}\n")
@@ -1917,7 +1917,7 @@ class VistaMonitoreo(tk.Frame):
         try:
             # Verificar puertos TCP abiertos con ss (sucesor de netstat)
             self.after(0, self._actualizar_texto_monitor, "   - Verificando puertos TCP abiertos:\n")
-            result = subprocess.run(['ss', '-tlnp'], capture_output=True, text=True, timeout=10)
+            result = subprocess.run(['ss', '-tlnp'], capture_output=True, text=True, timeout=8)  # Issue 21/24: Optimizado de 10 a 8 segundos
             if result.returncode == 0:
                 lineas = result.stdout.strip().split('\n')
                 puertos_tcp = []

@@ -7,6 +7,7 @@ import json
 import os
 import logging
 import datetime
+import gc  # Issue 21/24 - Optimización de memoria
 
 try:
     from aresitos.vista.burp_theme import burp_theme
@@ -277,9 +278,13 @@ class VistaReportes(tk.Frame):
             except Exception as e:
                 self.reporte_text.insert(tk.END, f" Error durante la generación: {str(e)}")
         
-        thread = threading.Thread(target=generar)
+        # Issue 21/24: Threading optimizado con gestión de memoria
+        thread = threading.Thread(target=generar, name="ReporteCompleto")
         thread.daemon = True
         thread.start()
+        
+        # Optimización de memoria después del threading
+        gc.collect()
     
     def mostrar_reporte(self, reporte):
         self.reporte_text.delete(1.0, tk.END)
@@ -528,7 +533,7 @@ class VistaReportes(tk.Frame):
                 
                 # Procesos activos
                 try:
-                    result = subprocess.run(['ps', 'aux', '--sort=-%cpu'], capture_output=True, text=True, timeout=5)
+                    result = subprocess.run(['ps', 'aux', '--sort=-%cpu'], capture_output=True, text=True, timeout=8)  # Issue 21/24: Optimizado de 5 a 8 segundos
                     estadisticas["procesos"]["top_cpu"] = result.stdout.split('\n')[:10]
                 except:
                     estadisticas["procesos"]["top_cpu"] = ["Error obteniendo procesos"]
