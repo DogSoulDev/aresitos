@@ -347,75 +347,181 @@ class VistaAuditoria(tk.Frame):
             btn.pack(fill=tk.X, pady=2)
     
     def ejecutar_lynis(self):
+        """Ejecutar auditoría completa del sistema con Lynis - auditor de seguridad profesional."""
         if self.proceso_auditoria_activo:
+            self._actualizar_texto_auditoria("ERROR Auditoría Lynis ya en ejecución\n")
             return
             
-        self.proceso_auditoria_activo = True
-        self._habilitar_cancelar(True)
-        self.log_to_terminal("Iniciando auditoría completa con Lynis...")
-        
-        self.auditoria_text.config(state=tk.NORMAL)
-        self.auditoria_text.insert(tk.END, "Iniciando auditoría Lynis en Kali Linux...\n")
-        self.auditoria_text.config(state=tk.DISABLED)
+        def ejecutar_lynis_worker():
+            try:
+                self.proceso_auditoria_activo = True
+                self._actualizar_texto_auditoria("=== INICIANDO AUDITORÍA LYNIS PROFESIONAL ===\n")
+                import subprocess
+                import os
+                import time
+                
+                # Importar SudoManager para operaciones privilegiadas
+                try:
+                    from aresitos.utils.sudo_manager import SudoManager
+                    sudo_manager = SudoManager()
+                    if sudo_manager.is_sudo_active():
+                        self._actualizar_texto_auditoria("✓ SudoManager activo para auditoría completa\n")
+                    else:
+                        self._actualizar_texto_auditoria("⚠ SudoManager no activo - algunas verificaciones pueden fallar\n")
+                except ImportError:
+                    sudo_manager = None
+                    self._actualizar_texto_auditoria("⚠ SudoManager no disponible\n")
+                
+                try:
+                    # Verificar si Lynis está instalado
+                    resultado = subprocess.run(['which', 'lynis'], capture_output=True, text=True, timeout=10)
+                    if resultado.returncode == 0:
+                        self._actualizar_texto_auditoria("✓ Lynis encontrado en sistema\n")
+                        
+                        # Verificar y crear directorios de logs
+                        log_dir = "/var/log/lynis"
+                        self._actualizar_texto_auditoria(f"• Verificando directorio de logs: {log_dir}\n")
+                        
+                        # Ejecutar Lynis con configuración profesional
+                        self._actualizar_texto_auditoria("• Ejecutando auditoría completa del sistema (puede tardar 5-10 minutos)...\n")
+                        
+                        # Comando Lynis mejorado con más verificaciones
+                        cmd = [
+                            'lynis', 
+                            'audit', 
+                            'system',
+                            '--verbose',  # Salida detallada
+                            '--quick',    # Omitir algunos tests lentos
+                            '--warning',  # Mostrar advertencias
+                            '--no-colors' # Sin colores para mejor parsing
+                        ]
+                        
+                        # Usar SudoManager si está disponible para acceso completo
+                        if sudo_manager and sudo_manager.is_sudo_active():
+                            self._actualizar_texto_auditoria("• Ejecutando con privilegios elevados para verificaciones completas\n")
+                            comando_str = ' '.join(cmd)
+                            proceso_result = sudo_manager.execute_sudo_command(comando_str, timeout=600)  # 10 minutos
+                            
+                            if proceso_result.returncode == 0:
+                                salida = proceso_result.stdout
+                                errores = proceso_result.stderr
+                            else:
+                                salida = proceso_result.stdout
+                                errores = proceso_result.stderr
+                                self._actualizar_texto_auditoria(f"⚠ Lynis terminó con código: {proceso_result.returncode}\n")
+                        else:
+                            # Ejecutar sin sudo
+                            self._actualizar_texto_auditoria("• Ejecutando sin privilegios elevados - algunas verificaciones limitadas\n")
+                            proceso = subprocess.run(cmd, capture_output=True, text=True, timeout=600)
+                            salida = proceso.stdout
+                            errores = proceso.stderr
+                        
+                        # Procesar y mostrar resultados
+                        self._actualizar_texto_auditoria("\n=== PROCESANDO RESULTADOS LYNIS ===\n")
+                        
+                        if salida:
+                            # Filtrar líneas importantes
+                            lineas_importantes = []
+                            warnings_count = 0
+                            suggestions_count = 0
+                            
+                            for linea in salida.split('\n'):
+                                linea = linea.strip()
+                                
+                                # Filtrar información importante
+                                if any(keyword in linea.lower() for keyword in [
+                                    'warning', 'suggestion', 'found', 'missing', 'weak', 
+                                    'vulnerable', 'security', 'hardening', 'firewall',
+                                    'password', 'permission', 'root', 'sudo', 'ssh'
+                                ]):
+                                    if 'warning' in linea.lower():
+                                        warnings_count += 1
+                                        lineas_importantes.append(f"⚠ {linea}")
+                                    elif 'suggestion' in linea.lower():
+                                        suggestions_count += 1
+                                        lineas_importantes.append(f"💡 {linea}")
+                                    elif any(critical in linea.lower() for critical in ['vulnerable', 'weak', 'missing']):
+                                        lineas_importantes.append(f"🚨 {linea}")
+                                    else:
+                                        lineas_importantes.append(f"ℹ {linea}")
+                            
+                            # Mostrar resumen de hallazgos
+                            self._actualizar_texto_auditoria(f"✓ Auditoría completada - Procesando {len(lineas_importantes)} hallazgos\n")
+                            self._actualizar_texto_auditoria(f"⚠ Advertencias encontradas: {warnings_count}\n")
+                            self._actualizar_texto_auditoria(f"💡 Sugerencias de mejora: {suggestions_count}\n\n")
+                            
+                            # Mostrar hallazgos más importantes (primeros 30)
+                            self._actualizar_texto_auditoria("=== HALLAZGOS PRINCIPALES ===\n")
+                            for i, linea in enumerate(lineas_importantes[:30], 1):
+                                self._actualizar_texto_auditoria(f"{i:2d}. {linea}\n")
+                            
+                            if len(lineas_importantes) > 30:
+                                self._actualizar_texto_auditoria(f"... y {len(lineas_importantes) - 30} hallazgos adicionales\n")
+                            
+                            # Buscar archivo de reporte de Lynis
+                            self._actualizar_texto_auditoria("\n=== ARCHIVOS DE REPORTE ===\n")
+                            posibles_reportes = [
+                                "/var/log/lynis.log",
+                                "/var/log/lynis-report.dat",
+                                "/tmp/lynis.log"
+                            ]
+                            
+                            for reporte in posibles_reportes:
+                                if os.path.exists(reporte):
+                                    try:
+                                        stat_info = os.stat(reporte)
+                                        size_kb = stat_info.st_size / 1024
+                                        self._actualizar_texto_auditoria(f"✓ Reporte disponible: {reporte} ({size_kb:.1f} KB)\n")
+                                    except:
+                                        self._actualizar_texto_auditoria(f"✓ Reporte disponible: {reporte}\n")
+                        
+                        # Recomendaciones específicas para Kali Linux
+                        self._actualizar_texto_auditoria("\n=== RECOMENDACIONES KALI LINUX ===\n")
+                        self._actualizar_texto_auditoria("• Revisar configuración SSH: /etc/ssh/sshd_config\n")
+                        self._actualizar_texto_auditoria("• Verificar permisos de archivos críticos: /etc/passwd, /etc/shadow\n")
+                        self._actualizar_texto_auditoria("• Actualizar sistema: apt update && apt upgrade\n")
+                        self._actualizar_texto_auditoria("• Configurar firewall: ufw enable\n")
+                        self._actualizar_texto_auditoria("• Revisar servicios activos: systemctl list-units --type=service\n")
+                        
+                        # Comandos útiles de seguimiento
+                        self._actualizar_texto_auditoria("\n=== COMANDOS LYNIS ÚTILES ===\n")
+                        self._actualizar_texto_auditoria("• lynis audit system --verbose\n")
+                        self._actualizar_texto_auditoria("• lynis show profiles\n")
+                        self._actualizar_texto_auditoria("• lynis show groups\n")
+                        self._actualizar_texto_auditoria("• lynis audit system --tests-from-group authentication\n")
+                        self._actualizar_texto_auditoria("• lynis audit system --tests-from-group networking\n")
+                        
+                        if errores and errores.strip():
+                            self._actualizar_texto_auditoria(f"\n⚠ Errores reportados:\n{errores[:500]}\n")
+                        
+                    else:
+                        self._actualizar_texto_auditoria("ERROR Lynis no encontrado en sistema\n")
+                        self._actualizar_texto_auditoria("INSTALACIÓN REQUERIDA:\n")
+                        self._actualizar_texto_auditoria("• apt update && apt install lynis\n")
+                        self._actualizar_texto_auditoria("• O desde fuente: wget https://cisofy.com/files/lynis-x.x.x.tar.gz\n")
+                        self._actualizar_texto_auditoria("• Verificar: lynis --version\n")
+                        
+                except subprocess.TimeoutExpired:
+                    self._actualizar_texto_auditoria("ERROR Timeout en auditoría Lynis - proceso muy lento (>10 minutos)\n")
+                except FileNotFoundError as e:
+                    self._actualizar_texto_auditoria(f"ERROR Comando no encontrado: {str(e)}\n")
+                except PermissionError as e:
+                    self._actualizar_texto_auditoria(f"ERROR Sin permisos: {str(e)}\n")
+                    if sudo_manager:
+                        self._actualizar_texto_auditoria("• Intentar con SudoManager activo en otras ventanas\n")
+                except Exception as e:
+                    self._actualizar_texto_auditoria(f"ERROR en auditoría Lynis: {str(e)}\n")
+                
+                self._actualizar_texto_auditoria("=== AUDITORÍA LYNIS PROFESIONAL COMPLETADA ===\n\n")
+                
+            except Exception as e:
+                self._actualizar_texto_auditoria(f"ERROR CRÍTICO en auditoría Lynis: {str(e)}\n")
+            finally:
+                self.proceso_auditoria_activo = False
         
         # Ejecutar en thread separado
-        self.thread_auditoria = threading.Thread(target=self._ejecutar_lynis_async)
-        self.thread_auditoria.daemon = True
+        self.thread_auditoria = threading.Thread(target=ejecutar_lynis_worker, daemon=True)
         self.thread_auditoria.start()
-    
-    def _ejecutar_lynis_async(self):
-        """Ejecutar Lynis en thread separado."""
-        try:
-            # Actualizar UI
-            self.after(0, self._actualizar_texto_auditoria, " Ejecutando auditoría Lynis (puede tardar varios minutos)...\n")
-            
-            if self.controlador:
-                # Usar el controlador
-                resultado = self.controlador.ejecutar_auditoria_completa("lynis")
-                if resultado.get('exito'):
-                    self.after(0, self._actualizar_texto_auditoria, "OK Auditoría Lynis completada exitosamente\n")
-                    if 'salida' in resultado:
-                        self.after(0, self._actualizar_texto_auditoria, resultado['salida'])
-                else:
-                    self.after(0, self._actualizar_texto_auditoria, f"ERROR en auditoría: {resultado.get('error', 'Error desconocido')}\n")
-            else:
-                # Fallback: ejecución directa
-                import subprocess
-                try:
-                    proceso = subprocess.Popen(['lynis', 'audit', 'system'], 
-                                             stdout=subprocess.PIPE, 
-                                             stderr=subprocess.PIPE, 
-                                             text=True)
-                
-                    # Verificar periódicamente si fue cancelado
-                    while proceso.poll() is None and self.proceso_auditoria_activo:
-                        import time
-                        time.sleep(1)
-                    
-                    if not self.proceso_auditoria_activo:
-                        # Fue cancelado, terminar el proceso
-                        proceso.terminate()
-                        proceso.wait()
-                        self.after(0, self._actualizar_texto_auditoria, "\nERROR Auditoría Lynis cancelada por el usuario.\n")
-                        return
-                    
-                    stdout, stderr = proceso.communicate()
-                    
-                    if proceso.returncode == 0:
-                        self.after(0, self._actualizar_texto_auditoria, "OK Auditoría Lynis completada\n")
-                        self.after(0, self._actualizar_texto_auditoria, stdout[-2000:])  # Últimas 2000 caracteres
-                    else:
-                        self.after(0, self._actualizar_texto_auditoria, f"ERROR en Lynis: {stderr}\n")
-                        
-                except FileNotFoundError:
-                    self.after(0, self._actualizar_texto_auditoria, "ERROR Lynis no encontrado. Instale con: apt install lynis\n")
-                except Exception as e:
-                    self.after(0, self._actualizar_texto_auditoria, f"ERROR ejecutando Lynis: {str(e)}\n")
-                
-        except Exception as e:
-            self.after(0, self._actualizar_texto_auditoria, f"ERROR general: {str(e)}\n")
-        finally:
-            self.after(0, self._finalizar_auditoria)
     
     def _actualizar_texto_auditoria(self, texto):
         """Actualizar texto de auditoría en el hilo principal."""
@@ -845,97 +951,273 @@ class VistaAuditoria(tk.Frame):
         threading.Thread(target=ejecutar, daemon=True).start()
     
     def ejecutar_nuclei(self):
-        """Ejecutar auditoría completa con nuclei - escáner de vulnerabilidades moderno."""
-        def ejecutar():
+        """Ejecutar auditoría completa con nuclei - escáner de vulnerabilidades profesional mejorado."""
+        if self.proceso_auditoria_activo:
+            self._actualizar_texto_auditoria("ERROR Auditoría nuclei ya en ejecución\n")
+            return
+            
+        def ejecutar_nuclei_worker():
             try:
-                self._actualizar_texto_auditoria("=== INICIANDO AUDITORÍA NUCLEI ===\n")
+                self.proceso_auditoria_activo = True
+                self._actualizar_texto_auditoria("=== INICIANDO AUDITORÍA NUCLEI PROFESIONAL ===\n")
                 import subprocess
                 import os
+                import time
+                
+                # Importar SudoManager para operaciones privilegiadas
+                try:
+                    from aresitos.utils.sudo_manager import SudoManager
+                    sudo_manager = SudoManager()
+                    if sudo_manager.is_sudo_active():
+                        self._actualizar_texto_auditoria("✓ SudoManager activo para escaneo completo\n")
+                    else:
+                        self._actualizar_texto_auditoria("⚠ SudoManager no activo - algunas detecciones pueden fallar\n")
+                except ImportError:
+                    sudo_manager = None
+                    self._actualizar_texto_auditoria("⚠ SudoManager no disponible\n")
                 
                 try:
                     # Verificar si nuclei está instalado
-                    resultado = subprocess.run(['which', 'nuclei'], capture_output=True, text=True)
+                    resultado = subprocess.run(['which', 'nuclei'], capture_output=True, text=True, timeout=10)
                     if resultado.returncode == 0:
                         self._actualizar_texto_auditoria("✓ nuclei encontrado en sistema\n")
                         
-                        # Verificar templates actualizados
-                        self._actualizar_texto_auditoria("• Verificando templates nuclei...\n")
+                        # Verificar y actualizar templates con timeout extendido
+                        self._actualizar_texto_auditoria("• Actualizando templates nuclei (puede tardar varios minutos)...\n")
                         update_result = subprocess.run(['nuclei', '-update-templates'], 
-                                                     capture_output=True, text=True, timeout=30)
+                                                     capture_output=True, text=True, timeout=300)
                         if update_result.returncode == 0:
-                            self._actualizar_texto_auditoria("✓ Templates nuclei actualizados\n")
+                            self._actualizar_texto_auditoria("✓ Templates nuclei actualizados exitosamente\n")
+                        else:
+                            self._actualizar_texto_auditoria("⚠ Error actualizando templates, usando existentes\n")
                         
-                        # Ejecutar escaneo en localhost y red local detectada automáticamente
-                        self._actualizar_texto_auditoria("• Detectando objetivos para escaneo nuclei...\n")
+                        # Detectar objetivos expandidos
+                        self._actualizar_texto_auditoria("• Detectando objetivos para escaneo nuclei avanzado...\n")
                         
-                        # Objetivos por defecto
-                        targets = ['127.0.0.1', 'localhost']
+                        targets = []
                         
-                        # Detectar IP local del usuario
+                        # 1. Localhost y servicios locales
+                        local_targets = ['127.0.0.1', 'localhost']
+                        for target in local_targets:
+                            targets.append(target)
+                            self._actualizar_texto_auditoria(f"  ✓ Objetivo local: {target}\n")
+                        
+                        # 2. Detectar IPs locales con múltiples métodos
                         try:
-                            # Método 1: Usar hostname -I
-                            ip_result = subprocess.run(['hostname', '-I'], capture_output=True, text=True, timeout=5)
+                            # Método hostname -I más robusto
+                            ip_result = subprocess.run(['hostname', '-I'], capture_output=True, text=True, timeout=10)
                             if ip_result.returncode == 0 and ip_result.stdout.strip():
                                 ips_locales = ip_result.stdout.strip().split()
                                 for ip in ips_locales:
-                                    if ip.startswith(('192.168.', '10.', '172.')) and ip not in targets:
+                                    # Rango de IPs privadas completo
+                                    if (ip.startswith(('192.168.', '10.', '172.16.', '172.17.', '172.18.', '172.19.', 
+                                                      '172.20.', '172.21.', '172.22.', '172.23.', '172.24.', '172.25.', 
+                                                      '172.26.', '172.27.', '172.28.', '172.29.', '172.30.', '172.31.')) 
+                                        and ip not in targets):
                                         targets.append(ip)
                                         self._actualizar_texto_auditoria(f"  ✓ IP local detectada: {ip}\n")
                                         
-                            # Método 2: Usar ip route para gateway
+                            # Método gateway
                             route_result = subprocess.run(['ip', 'route', 'show', 'default'], 
-                                                        capture_output=True, text=True, timeout=5)
+                                                        capture_output=True, text=True, timeout=10)
                             if route_result.returncode == 0 and 'via' in route_result.stdout:
                                 gateway = route_result.stdout.split('via')[1].split()[0]
                                 if gateway not in targets:
                                     targets.append(gateway)
                                     self._actualizar_texto_auditoria(f"  ✓ Gateway detectado: {gateway}\n")
-                                    
+                            
+                            # 3. Detectar servicios web activos localmente
+                            common_ports = ['80', '443', '8080', '8443', '3000', '5000', '8000', '9000']
+                            for port in common_ports:
+                                for local_ip in ['127.0.0.1', 'localhost']:
+                                    try:
+                                        import socket
+                                        sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+                                        sock.settimeout(1)
+                                        result = sock.connect_ex((local_ip if local_ip != 'localhost' else '127.0.0.1', int(port)))
+                                        sock.close()
+                                        if result == 0:
+                                            web_target = f"http://{local_ip}:{port}"
+                                            if web_target not in targets:
+                                                targets.append(web_target)
+                                                self._actualizar_texto_auditoria(f"  ✓ Servicio web detectado: {web_target}\n")
+                                    except:
+                                        pass
+                                        
                         except Exception as e:
-                            self._actualizar_texto_auditoria(f"  ⚠ Error detectando IPs: {str(e)}\n")
+                            self._actualizar_texto_auditoria(f"  ⚠ Error detectando objetivos: {str(e)}\n")
                         
-                        self._actualizar_texto_auditoria(f"• Objetivos finales: {', '.join(targets)}\n")
+                        # Valor por defecto si no hay objetivos
+                        if not targets:
+                            targets = ['127.0.0.1']
+                            self._actualizar_texto_auditoria("  ⚠ Usando objetivo por defecto: 127.0.0.1\n")
                         
-                        for target in targets:
-                            self._actualizar_texto_auditoria(f"  → Escaneando {target}...\n")
-                            
-                            # Escaneo básico con nuclei
-                            cmd = ['nuclei', '-u', target, '-severity', 'high,critical', 
-                                  '-timeout', '10', '-no-color', '-silent']
-                            
-                            proceso = subprocess.run(cmd, capture_output=True, 
-                                                   text=True, timeout=60)
-                            
-                            if proceso.stdout and proceso.stdout.strip():
-                                self._actualizar_texto_auditoria(f"VULNERABILIDADES ENCONTRADAS en {target}:\n")
-                                for linea in proceso.stdout.strip().split('\n'):
-                                    if linea.strip():
-                                        self._actualizar_texto_auditoria(f"  • {linea}\n")
-                            else:
-                                self._actualizar_texto_auditoria(f"✓ No se encontraron vulnerabilidades críticas en {target}\n")
+                        self._actualizar_texto_auditoria(f"• Total objetivos para auditoría: {len(targets)}\n")
                         
-                        # Mostrar comandos útiles
-                        self._actualizar_texto_auditoria("\n=== COMANDOS NUCLEI ÚTILES ===\n")
-                        self._actualizar_texto_auditoria("• nuclei -u <target> -severity critical: Solo críticas\n")
-                        self._actualizar_texto_auditoria("• nuclei -l targets.txt -o resultados.txt: Múltiples targets\n")
-                        self._actualizar_texto_auditoria("• nuclei -t vulnerabilities/ -u <target>: Solo vulnerabilidades\n")
-                        self._actualizar_texto_auditoria("• nuclei -t exposures/ -u <target>: Exposiciones\n")
+                        # Escaneos profesionales por severidad expandidos
+                        severidades = [
+                            ('critical', 'CRÍTICAS'),
+                            ('high', 'ALTAS'), 
+                            ('medium', 'MEDIAS'),
+                            ('low', 'BAJAS'),
+                            ('info', 'INFORMATIVAS')
+                        ]
+                        
+                        vulnerabilidades_totales = 0
+                        
+                        for severidad, descripcion in severidades:
+                            self._actualizar_texto_auditoria(f"\n=== ESCANEO VULNERABILIDADES {descripcion} ===\n")
+                            
+                            for target in targets:
+                                self._actualizar_texto_auditoria(f"  → Escaneando {target} [{descripcion}]...\n")
+                                
+                                # Comando nuclei mejorado con más opciones
+                                cmd = [
+                                    'nuclei', 
+                                    '-u', target, 
+                                    '-severity', severidad,
+                                    '-timeout', '45',  # Timeout aumentado significativamente
+                                    '-rate-limit', '150',  # Velocidad aumentada
+                                    '-retries', '2',  # Reintentos
+                                    '-no-color', 
+                                    '-silent',
+                                    '-stats',  # Estadísticas
+                                    '-include-tags', 'exposure,misconfiguration,rce,sqli,xss,lfi,rfi,ssrf,cve,oob,dns,ssl,tls'
+                                ]
+                                
+                                try:
+                                    proceso = subprocess.run(cmd, capture_output=True, 
+                                                           text=True, timeout=420)  # 7 minutos
+                                    
+                                    if proceso.stdout and proceso.stdout.strip():
+                                        vulnerabilidades_encontradas = proceso.stdout.strip().split('\n')
+                                        vuln_count = len([v for v in vulnerabilidades_encontradas if v.strip() and '[' in v])
+                                        vulnerabilidades_totales += vuln_count
+                                        
+                                        if vuln_count > 0:
+                                            self._actualizar_texto_auditoria(f"VULNERABILIDADES {descripcion} ENCONTRADAS en {target} ({vuln_count}):\n")
+                                            for linea in vulnerabilidades_encontradas:
+                                                if linea.strip() and '[' in linea:  # Filtrar líneas válidas
+                                                    self._actualizar_texto_auditoria(f"  • {linea}\n")
+                                        else:
+                                            self._actualizar_texto_auditoria(f"✓ Sin vulnerabilidades {descripcion.lower()} en {target}\n")
+                                    else:
+                                        self._actualizar_texto_auditoria(f"✓ Sin vulnerabilidades {descripcion.lower()} en {target}\n")
+                                        
+                                    time.sleep(2)  # Pausa entre escaneos
+                                    
+                                except subprocess.TimeoutExpired:
+                                    self._actualizar_texto_auditoria(f"⚠ Timeout escaneando {target} [{descripcion}] - escáner tomó más de 7 minutos\n")
+                                except Exception as e:
+                                    self._actualizar_texto_auditoria(f"⚠ Error escaneando {target}: {str(e)}\n")
+                        
+                        # Escaneo con templates especializados mejorado
+                        self._actualizar_texto_auditoria(f"\n=== ESCANEO CON TEMPLATES ESPECIALIZADOS ===\n")
+                        
+                        templates_especializados = [
+                            ('vulnerabilities/', 'Vulnerabilidades conocidas'),
+                            ('exposures/', 'Exposiciones de información'),
+                            ('misconfiguration/', 'Configuraciones incorrectas'),
+                            ('technologies/', 'Detección de tecnologías'),
+                            ('cves/', 'CVEs específicos'),
+                            ('takeovers/', 'Subdomain takeovers'),
+                            ('network/', 'Vulnerabilidades de red'),
+                            ('default-logins/', 'Credenciales por defecto')
+                        ]
+                        
+                        for template_path, descripcion in templates_especializados:
+                            self._actualizar_texto_auditoria(f"  → Templates {descripcion}...\n")
+                            
+                            # Usar todos los objetivos para templates críticos
+                            targets_template = targets if template_path in ['vulnerabilities/', 'cves/', 'exposures/'] else targets[:2]
+                            
+                            for target in targets_template:
+                                cmd_template = [
+                                    'nuclei',
+                                    '-u', target,
+                                    '-t', template_path,
+                                    '-timeout', '60',  # Timeout aumentado para templates
+                                    '-rate-limit', '100',
+                                    '-retries', '1',
+                                    '-no-color',
+                                    '-silent'
+                                ]
+                                
+                                try:
+                                    proceso = subprocess.run(cmd_template, capture_output=True, 
+                                                           text=True, timeout=300)  # 5 minutos
+                                    
+                                    if proceso.stdout and proceso.stdout.strip():
+                                        resultados = [r for r in proceso.stdout.strip().split('\n') if r.strip() and '[' in r]
+                                        result_count = len(resultados)
+                                        vulnerabilidades_totales += result_count
+                                        
+                                        if result_count > 0:
+                                            self._actualizar_texto_auditoria(f"  • {descripcion} en {target}: {result_count} encontradas\n")
+                                            for resultado in resultados[:5]:  # Mostrar primeros 5
+                                                self._actualizar_texto_auditoria(f"    - {resultado}\n")
+                                            if len(resultados) > 5:
+                                                self._actualizar_texto_auditoria(f"    ... y {len(resultados) - 5} más\n")
+                                        else:
+                                            self._actualizar_texto_auditoria(f"  ✓ Sin {descripcion.lower()} en {target}\n")
+                                    
+                                except subprocess.TimeoutExpired:
+                                    self._actualizar_texto_auditoria(f"    ⚠ Timeout template {descripcion} en {target}\n")
+                                except Exception as e:
+                                    self._actualizar_texto_auditoria(f"    ⚠ Error template {descripcion}: {str(e)}\n")
+                        
+                        # Resumen final mejorado
+                        self._actualizar_texto_auditoria(f"\n=== RESUMEN AUDITORÍA NUCLEI PROFESIONAL ===\n")
+                        self._actualizar_texto_auditoria(f"✓ Objetivos escaneados: {len(targets)}\n")
+                        self._actualizar_texto_auditoria(f"✓ Templates ejecutados: {len(templates_especializados)}\n")
+                        self._actualizar_texto_auditoria(f"✓ Total vulnerabilidades encontradas: {vulnerabilidades_totales}\n")
+                        
+                        if vulnerabilidades_totales > 20:
+                            self._actualizar_texto_auditoria(f"🚨 ALERTA: Sistema altamente vulnerable ({vulnerabilidades_totales} issues)\n")
+                        elif vulnerabilidades_totales > 5:
+                            self._actualizar_texto_auditoria(f"⚠ REVISAR: Vulnerabilidades encontradas requieren atención\n")
+                        elif vulnerabilidades_totales > 0:
+                            self._actualizar_texto_auditoria(f"⚠ MENOR: Pocas vulnerabilidades detectadas\n")
+                        else:
+                            self._actualizar_texto_auditoria(f"✓ SEGURO: Sistema sin vulnerabilidades detectables con nuclei\n")
+                        
+                        # Comandos útiles mejorados
+                        self._actualizar_texto_auditoria("\n=== COMANDOS NUCLEI AVANZADOS RECOMENDADOS ===\n")
+                        self._actualizar_texto_auditoria("• nuclei -u <target> -severity critical,high -o resultados.txt\n")
+                        self._actualizar_texto_auditoria("• nuclei -l targets.txt -t vulnerabilities/ -json -o vuln.json\n")
+                        self._actualizar_texto_auditoria("• nuclei -u <target> -include-tags sqli,xss,rce,ssrf -rate-limit 200\n")
+                        self._actualizar_texto_auditoria("• nuclei -u <target> -t cves/ -severity critical,high\n")
+                        self._actualizar_texto_auditoria("• nuclei -u <target> -exclude-tags intrusive -timeout 60\n")
                         
                     else:
-                        self._actualizar_texto_auditoria("WARNING nuclei no encontrado\n")
-                        self._actualizar_texto_auditoria("INSTALACIÓN: apt install nuclei\n")
-                        self._actualizar_texto_auditoria("O desde Go: go install github.com/projectdiscovery/nuclei/v2/cmd/nuclei@latest\n")
+                        self._actualizar_texto_auditoria("ERROR nuclei no encontrado en sistema\n")
+                        self._actualizar_texto_auditoria("INSTALACIÓN REQUERIDA:\n")
+                        self._actualizar_texto_auditoria("• apt update && apt install nuclei\n")
+                        self._actualizar_texto_auditoria("• O desde Go: go install github.com/projectdiscovery/nuclei/v3/cmd/nuclei@latest\n")
+                        self._actualizar_texto_auditoria("• Verificar: nuclei -version\n")
+                        self._actualizar_texto_auditoria("• Actualizar templates: nuclei -update-templates\n")
                         
                 except subprocess.TimeoutExpired:
-                    self._actualizar_texto_auditoria("WARNING Timeout en nuclei - proceso demasiado lento\n")
+                    self._actualizar_texto_auditoria("ERROR Timeout verificando nuclei - comando muy lento\n")
+                except FileNotFoundError as e:
+                    self._actualizar_texto_auditoria(f"ERROR Comando no encontrado: {str(e)}\n")
+                except PermissionError as e:
+                    self._actualizar_texto_auditoria(f"ERROR Sin permisos: {str(e)}\n")
+                    if sudo_manager:
+                        self._actualizar_texto_auditoria("• Intentar con SudoManager activo en otras ventanas\n")
                 except Exception as e:
-                    self._actualizar_texto_auditoria(f"ERROR verificando nuclei: {str(e)}\n")
+                    self._actualizar_texto_auditoria(f"ERROR en auditoría nuclei: {str(e)}\n")
                 
-                self._actualizar_texto_auditoria("=== AUDITORÍA NUCLEI COMPLETADA ===\n\n")
+                self._actualizar_texto_auditoria("=== AUDITORÍA NUCLEI PROFESIONAL COMPLETADA ===\n\n")
+                
             except Exception as e:
-                self._actualizar_texto_auditoria(f"ERROR en nuclei: {str(e)}\n")
+                self._actualizar_texto_auditoria(f"ERROR CRÍTICO en auditoría nuclei: {str(e)}\n")
+            finally:
+                self.proceso_auditoria_activo = False
         
-        threading.Thread(target=ejecutar, daemon=True).start()
+        # Ejecutar en thread separado
+        self.thread_auditoria = threading.Thread(target=ejecutar_nuclei_worker, daemon=True)
+        self.thread_auditoria.start()
     
     def ejecutar_httpx(self):
         """Ejecutar escaneo web completo con httpx - probe HTTP avanzado."""
