@@ -133,85 +133,123 @@ class VistaAuditoria(tk.Frame):
         self.crear_terminal_integrado()
     
     def crear_terminal_integrado(self):
-        """Crear terminal integrado en la vista Auditoría."""
+        """Crear terminal integrado Auditoría con diseño estándar coherente."""
         try:
-            # Frame del terminal en el PanedWindow
-            terminal_frame = tk.Frame(self.paned_window, bg=self.colors['bg_secondary'])
-            self.paned_window.add(terminal_frame, minsize=150)
+            # Frame del terminal estilo dashboard
+            terminal_frame = tk.LabelFrame(
+                self.paned_window,
+                text="Terminal ARESITOS - Auditoría",
+                bg=self.colors['bg_secondary'],
+                fg=self.colors['fg_primary'],
+                font=("Arial", 10, "bold")
+            )
+            self.paned_window.add(terminal_frame, minsize=120)
             
-            # Título del terminal
-            terminal_titulo = tk.Label(terminal_frame, text="Terminal Auditoría", 
-                                     font=('Arial', 10, 'bold'),
-                                     bg=self.colors['bg_secondary'], 
-                                     fg=self.colors['fg_primary'])
-            terminal_titulo.pack(pady=5)
+            # Frame para controles del terminal (compacto)
+            controles_frame = tk.Frame(terminal_frame, bg=self.colors['bg_secondary'])
+            controles_frame.pack(fill="x", padx=5, pady=2)
             
-            # Verificar si existe terminal en la vista principal
-            if hasattr(self.vista_principal, 'terminal_widget') and self.vista_principal.terminal_widget:
-                # Usar terminal global existente
-                self.terminal_widget = self.vista_principal.terminal_widget
-                # Crear referencia local si es necesario
-                terminal_local = tk.Text(terminal_frame, height=8, 
-                                       bg='black', fg='green',
-                                       font=('Consolas', 9),
-                                       state='disabled')
-                terminal_local.pack(fill="both", expand=True, padx=5, pady=5)
-                self.terminal_local = terminal_local
-                
-                # Sincronizar con terminal global
-                self.sincronizar_terminal()
-            else:
-                # Crear terminal local
-                self.terminal_widget = tk.Text(terminal_frame, height=8, 
-                                             bg='black', fg='green',
-                                             font=('Consolas', 9),
-                                             state='disabled')
-                self.terminal_widget.pack(fill="both", expand=True, padx=5, pady=5)
-                self.terminal_local = self.terminal_widget
+            # Botón limpiar terminal (estilo dashboard, compacto)
+            btn_limpiar = tk.Button(
+                controles_frame,
+                text="LIMPIAR",
+                command=self.limpiar_terminal_auditoria,
+                bg='#ffaa00',
+                fg='white',
+                font=("Arial", 8, "bold"),
+                height=1
+            )
+            btn_limpiar.pack(side="left", padx=2, fill="x", expand=True)
+            
+            # Botón ver logs (estilo dashboard, compacto)
+            btn_logs = tk.Button(
+                controles_frame,
+                text="VER LOGS",
+                command=self.abrir_logs_auditoria,
+                bg='#007acc',
+                fg='white',
+                font=("Arial", 8, "bold"),
+                height=1
+            )
+            btn_logs.pack(side="left", padx=2, fill="x", expand=True)
+            
+            # Área de terminal (misma estética que dashboard, más pequeña)
+            self.terminal_output = scrolledtext.ScrolledText(
+                terminal_frame,
+                height=6,  # Más pequeño que dashboard
+                bg='#000000',  # Fondo negro como dashboard
+                fg='#00ff00',  # Texto verde como dashboard
+                font=("Consolas", 8),  # Fuente menor que dashboard
+                insertbackground='#00ff00',
+                selectbackground='#333333'
+            )
+            self.terminal_output.pack(fill="both", expand=True, padx=5, pady=5)
+            
+            # Mensaje inicial estilo dashboard
+            import datetime
+            self.terminal_output.insert(tk.END, "="*60 + "\n")
+            self.terminal_output.insert(tk.END, "Terminal ARESITOS - Auditoría v2.0\n")
+            self.terminal_output.insert(tk.END, f"Iniciado: {datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')}\n")
+            self.terminal_output.insert(tk.END, f"Sistema: Kali Linux - Security Audit Tools\n")
+            self.terminal_output.insert(tk.END, "="*60 + "\n")
+            self.terminal_output.insert(tk.END, "LOG Auditoría de seguridad\n\n")
             
             self.log_to_terminal("Terminal Auditoría iniciado correctamente")
             
         except Exception as e:
             print(f"Error creando terminal integrado en Vista Auditoría: {e}")
     
-    def log_to_terminal(self, mensaje):
-        """Registrar mensaje en el terminal."""
+    def limpiar_terminal_auditoria(self):
+        """Limpiar terminal Auditoría manteniendo cabecera."""
         try:
+            import datetime
+            if hasattr(self, 'terminal_output'):
+                self.terminal_output.delete(1.0, tk.END)
+                # Recrear cabecera estándar
+                self.terminal_output.insert(tk.END, "="*60 + "\n")
+                self.terminal_output.insert(tk.END, "Terminal ARESITOS - Auditoría v2.0\n")
+                self.terminal_output.insert(tk.END, f"Limpiado: {datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')}\n")
+                self.terminal_output.insert(tk.END, "Sistema: Kali Linux - Security Audit Tools\n")
+                self.terminal_output.insert(tk.END, "="*60 + "\n")
+                self.terminal_output.insert(tk.END, "LOG Terminal Auditoría reiniciado\n\n")
+        except Exception as e:
+            print(f"Error limpiando terminal Auditoría: {e}")
+    
+    def abrir_logs_auditoria(self):
+        """Abrir carpeta de logs Auditoría."""
+        try:
+            import os
+            import platform
+            import subprocess
+            logs_path = "logs/"
+            if os.path.exists(logs_path):
+                if platform.system() == "Linux":
+                    subprocess.run(["xdg-open", logs_path], check=False)
+                else:
+                    subprocess.run(["explorer", logs_path], check=False)
+                self.log_to_terminal("Carpeta de logs Auditoría abierta")
+            else:
+                self.log_to_terminal("WARNING: Carpeta de logs no encontrada")
+        except Exception as e:
+            self.log_to_terminal(f"ERROR abriendo logs Auditoría: {e}")
+    
+    def log_to_terminal(self, mensaje):
+        """Registrar mensaje en el terminal con formato estándar."""
+        try:
+            import datetime
             timestamp = datetime.datetime.now().strftime("%H:%M:%S")
             mensaje_completo = f"[{timestamp}] {mensaje}\n"
             
-            # Log al terminal local
-            if hasattr(self, 'terminal_local'):
-                self.terminal_local.config(state='normal')
-                self.terminal_local.insert(tk.END, mensaje_completo)
-                self.terminal_local.see(tk.END)
-                self.terminal_local.config(state='disabled')
-            
-            # Log al terminal global si existe
-            if hasattr(self.vista_principal, 'terminal_widget') and self.vista_principal.terminal_widget:
-                try:
-                    self.vista_principal.terminal_widget.config(state='normal')
-                    self.vista_principal.terminal_widget.insert(tk.END, f"[AUDIT] {mensaje_completo}")
-                    self.vista_principal.terminal_widget.see(tk.END)
-                    self.vista_principal.terminal_widget.config(state='disabled')
-                except:
-                    pass
-                    
+            # Log al terminal integrado estándar
+            if hasattr(self, 'terminal_output'):
+                self.terminal_output.insert(tk.END, mensaje_completo)
+                self.terminal_output.see(tk.END)
         except Exception as e:
             print(f"Error en log_to_terminal: {e}")
     
     def sincronizar_terminal(self):
-        """Sincronizar terminal local con global."""
-        try:
-            if hasattr(self.vista_principal, 'terminal_widget') and self.vista_principal.terminal_widget:
-                contenido_global = self.vista_principal.terminal_widget.get("1.0", tk.END)
-                if hasattr(self, 'terminal_local'):
-                    self.terminal_local.config(state='normal')
-                    self.terminal_local.delete("1.0", tk.END)
-                    self.terminal_local.insert("1.0", contenido_global)
-                    self.terminal_local.config(state='disabled')
-        except Exception as e:
-            print(f"Error sincronizando terminal: {e}")
+        """Función de compatibilidad - ya no necesaria con terminal estándar."""
+        pass
     
     def _crear_seccion_auditoria_sistema(self, parent):
         """Crear sección de auditorías generales del sistema."""
