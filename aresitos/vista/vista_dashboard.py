@@ -968,7 +968,7 @@ class VistaDashboard(tk.Frame):
                         if len(parts) >= 2:
                             current_interface = parts[1].split(':')[0]
                             flags = line.split('<')[1].split('>')[0]
-                            estado = "✓ UP" if "UP" in flags else "ERROR DOWN"
+                            estado = "OK UP" if "UP" in flags else "ERROR DOWN"
                             self.interfaces_text.insert(tk.END, f"> {current_interface}:\n")
                             self.interfaces_text.insert(tk.END, f"   Estado: {estado}\n")
                     

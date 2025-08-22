@@ -633,17 +633,80 @@ class VistaMonitoreo(tk.Frame):
             self.after(5000, self._actualizar_monitoreo_basico)
     
     def detener_monitoreo(self):
-        self.log_to_terminal("Deteniendo monitoreo del sistema...")
-        if not self.controlador:
-            return
-            
-        self.controlador.detener_monitoreo()
-        self.monitor_activo = False
-        self.btn_iniciar_monitor.config(state="normal")
-        self.btn_detener_monitor.config(state="disabled")
-        self.label_estado.config(text="Estado: Detenido")
-        self.text_monitor.insert(tk.END, "Monitoreo detenido.\n")
-        self.log_to_terminal("✓ Monitoreo detenido correctamente")
+        """Detener monitoreo del sistema de manera robusta."""
+        def ejecutar_detencion():
+            try:
+                self.log_to_terminal("Deteniendo monitoreo del sistema...")
+                import subprocess
+                import os
+                
+                # Detener controlador si existe
+                if self.controlador:
+                    self.controlador.detener_monitoreo()
+                
+                self.monitor_activo = False
+                
+                # Terminar procesos de monitoreo del sistema
+                procesos_monitoreo = ['htop', 'top', 'vmstat', 'iostat', 'sar', 
+                                    'nethogs', 'iftop', 'nload', 'bmon']
+                procesos_terminados = 0
+                
+                for proceso in procesos_monitoreo:
+                    try:
+                        # Buscar procesos activos
+                        resultado = subprocess.run(['pgrep', '-f', proceso], 
+                                                capture_output=True, text=True)
+                        if resultado.returncode == 0 and resultado.stdout.strip():
+                            pids = resultado.stdout.strip().split('\n')
+                            for pid in pids:
+                                if pid.strip():
+                                    try:
+                                        # Terminar proceso específico
+                                        subprocess.run(['kill', '-TERM', pid.strip()], 
+                                                    capture_output=True)
+                                        self.log_to_terminal(f"Terminado proceso {proceso} (PID: {pid.strip()})")
+                                        procesos_terminados += 1
+                                    except Exception:
+                                        continue
+                    except Exception:
+                        continue
+                
+                # Terminar procesos Python de monitoreo
+                try:
+                    resultado = subprocess.run(['pgrep', '-f', 'python.*monitor'], 
+                                            capture_output=True, text=True)
+                    if resultado.returncode == 0 and resultado.stdout.strip():
+                        pids = resultado.stdout.strip().split('\n')
+                        for pid in pids:
+                            if pid.strip() and pid.strip() != str(os.getpid()):
+                                try:
+                                    subprocess.run(['kill', '-TERM', pid.strip()], 
+                                                capture_output=True)
+                                    self.log_to_terminal(f"Terminado monitoreo Python (PID: {pid.strip()})")
+                                    procesos_terminados += 1
+                                except Exception:
+                                    continue
+                except Exception:
+                    pass
+                
+                # Actualizar interfaz
+                self.btn_iniciar_monitor.config(state="normal")
+                self.btn_detener_monitor.config(state="disabled")
+                self.label_estado.config(text="Estado: Detenido")
+                self.text_monitor.insert(tk.END, "Monitoreo detenido completamente.\n")
+                
+                if procesos_terminados > 0:
+                    self.log_to_terminal(f"COMPLETADO: {procesos_terminados} procesos de monitoreo terminados")
+                else:
+                    self.log_to_terminal("INFO: No se encontraron procesos de monitoreo activos")
+                    
+                self.log_to_terminal("MONITOREO Monitoreo detenido correctamente")
+                
+            except Exception as e:
+                self.log_to_terminal(f"ERROR durante detención de monitoreo: {str(e)}")
+        
+        import threading
+        threading.Thread(target=ejecutar_detencion, daemon=True).start()
     
     def actualizar_monitoreo(self):
         if not self.monitor_activo or not self.controlador:

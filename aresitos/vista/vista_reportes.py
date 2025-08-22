@@ -257,10 +257,10 @@ class VistaReportes(tk.Frame):
                 if self.reporte_actual:
                     self.log_to_terminal("✅ Reporte generado correctamente")
                     self.mostrar_reporte(self.reporte_actual)
-                    self.log_to_terminal("📋 Reporte mostrado en pantalla")
+                    self.log_to_terminal("REPORTE Reporte mostrado en pantalla")
                 else:
                     self.reporte_text.insert(tk.END, " Error al generar el reporte")
-                    self.log_to_terminal("❌ Error al generar el reporte")
+                    self.log_to_terminal("ERROR Error al generar el reporte")
                     
             except Exception as e:
                 self.reporte_text.insert(tk.END, f" Error durante la generación: {str(e)}")

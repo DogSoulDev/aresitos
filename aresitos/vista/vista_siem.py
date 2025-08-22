@@ -230,7 +230,6 @@ class VistaSIEM(tk.Frame):
         buttons_monitoreo = [
             ("Iniciar SIEM", self.iniciar_siem, self.colors['success']),
             ("Detener SIEM", self.detener_siem, self.colors['danger']),
-            ("Verificar Sistema", self.verificar_kali, self.colors['info']),
             ("Actualizar Dashboard", self.actualizar_dashboard, self.colors['button_bg']),
             ("Ver Estadísticas", self.mostrar_estadisticas, self.colors['button_bg']),
             ("Configurar Alertas", self.configurar_alertas, self.colors['button_bg']),
