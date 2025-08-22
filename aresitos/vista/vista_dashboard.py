@@ -242,7 +242,7 @@ class VistaDashboard(tk.Frame):
         
         titulo_label = tk.Label(
             titulo_frame,
-            text=" ARES AEGIS - Dashboard de Ciberseguridad",
+            text=" Dashboard de Ciberseguridad - Aresitos",
             font=("Arial", 16, "bold"),
             fg=self.colors['fg_accent'],
             bg=self.colors['bg_secondary']
@@ -440,16 +440,16 @@ class VistaDashboard(tk.Frame):
         
         # Botones de comandos rápidos optimizados para Kali Linux
         comandos_rapidos = [
-            ("ss -tuln 2>/dev/null || netstat -tuln 2>/dev/null", "RED Conexiones"),
+            ("echo '=== CONEXIONES DE RED ACTIVAS ===' && (ss -tuln 2>/dev/null | grep -E ':(22|80|443|21|25|53|993|995|587|143|110|993|8080|8443)' || netstat -tuln 2>/dev/null | grep -E ':(22|80|443|21|25|53|993|995|587|143|110|993|8080|8443)') && echo '=== RESUMEN ===' && (ss -tuln 2>/dev/null | wc -l || netstat -tuln 2>/dev/null | wc -l) | awk '{print \"Total conexiones: \" $1-1}'", "RED Conexiones"),
             ("ps aux --sort=-%cpu | head -15", "SISTEMA Top CPU"),
             ("ip addr show", "RED Interfaces"),
-            ("nmap --version && nmap --help | head -5", "ESCANEO Nmap"),
+            ("which nmap >/dev/null 2>&1 && echo 'Nmap disponible en Kali' && nmap --version | head -2 || echo 'Nmap no encontrado - verificar instalacion'", "ESCANEO Nmap"),
             ("df -h", "DISCO Espacio"),
             ("free -h", "MEMORIA Uso"),
             ("whoami && id", "USUARIO Permisos"),
             ("uname -a", "INFO Sistema"),
-            ("ss -tlnp 2>/dev/null | grep LISTEN || netstat -tlnp 2>/dev/null | grep LISTEN", "RED Servicios"),
-            ("lsof -i 2>/dev/null | head -15 || ss -tulpn 2>/dev/null | head -15", "RED Archivos"),
+            ("echo '=== SERVICIOS EN ESCUCHA ===' && (ss -tlnp 2>/dev/null | grep LISTEN | head -10 || netstat -tlnp 2>/dev/null | grep LISTEN | head -10) && echo '=== TOTAL SERVICIOS ===' && (ss -tlnp 2>/dev/null | grep LISTEN | wc -l || netstat -tlnp 2>/dev/null | grep LISTEN | wc -l)", "RED Servicios"),
+            ("echo '=== ARCHIVOS DE RED ABIERTOS ===' && (lsof -i 2>/dev/null | head -15 || echo 'lsof requiere permisos root') && echo '=== ALTERNATIVO ===' && (ss -tulpn 2>/dev/null | head -10)", "RED Archivos"),
             ("arp -a 2>/dev/null || ip neigh show", "RED ARP"),
             ("route -n 2>/dev/null || ip route show", "RED Rutas"),
             ("cat /proc/cpuinfo | grep 'model name' | head -1", "CPU Info"),

@@ -1029,40 +1029,58 @@ class VistaSIEM(tk.Frame):
     def detener_siem(self):
         """Detener sistema SIEM."""
         try:
-            if hasattr(self, 'proceso_siem_activo') and self.proceso_siem_activo:
-                self.proceso_siem_activo = False
-                self._actualizar_texto_monitoreo("⏹️ Deteniendo sistema SIEM...\n")
-                
-                # Detener el hilo de monitoreo si existe
-                if hasattr(self, 'thread_siem') and self.thread_siem and self.thread_siem.is_alive():
-                    # Enviar señal para detener el hilo
-                    self.proceso_siem_activo = False
-                    
-                # Detener controlador si existe
-                if self.controlador:
-                    try:
-                        resultado = self.controlador.detener_monitoreo_eventos()
-                        if resultado.get('exito'):
-                            self._actualizar_texto_monitoreo("✅ SIEM detenido correctamente\n")
-                        else:
-                            self._actualizar_texto_monitoreo(f"⚠️ Advertencia deteniendo SIEM: {resultado.get('error', 'Parcialmente detenido')}\n")
-                    except Exception as e:
-                        self._actualizar_texto_monitoreo(f"⚠️ SIEM detenido (error en controlador): {e}\n")
-                
-                # Actualizar estado de botones
-                self._habilitar_botones_siem(True)  # True = SIEM no activo, habilitar iniciar
-                self._actualizar_texto_monitoreo("🔴 Sistema SIEM DETENIDO\n\n")
-                
-            else:
-                self._actualizar_texto_monitoreo("ℹ️ SIEM no estaba activo\n")
-                self._habilitar_botones_siem(True)  # Asegurar estado correcto
-                
-        except Exception as e:
-            self._actualizar_texto_monitoreo(f"❌ ERROR deteniendo SIEM: {e}\n")
-            # Aún así, intentar restablecer el estado
+            self._log_terminal("🛑 Solicitando detención del sistema SIEM", "SIEM", "WARNING")
+            self._actualizar_texto_monitoreo("⏹️ Deteniendo sistema SIEM...\n")
+            
+            # Detener proceso activo
             if hasattr(self, 'proceso_siem_activo'):
                 self.proceso_siem_activo = False
+                self._log_terminal("✓ Proceso SIEM marcado para detención", "SIEM", "INFO")
+            
+            # Detener el hilo de monitoreo si existe
+            if hasattr(self, 'thread_siem') and self.thread_siem and self.thread_siem.is_alive():
+                self.proceso_siem_activo = False
+                self._log_terminal("✓ Hilo de monitoreo detenido", "SIEM", "INFO")
+                
+            # Detener controlador si existe
+            siem_detenido = False
+            if self.controlador:
+                try:
+                    resultado = self.controlador.detener_monitoreo_eventos()
+                    if resultado.get('exito'):
+                        self._actualizar_texto_monitoreo("✅ Controlador SIEM detenido correctamente\n")
+                        self._log_terminal("✓ Controlador SIEM detenido", "SIEM", "SUCCESS")
+                        siem_detenido = True
+                    else:
+                        self._actualizar_texto_monitoreo(f"⚠️ Advertencia deteniendo controlador: {resultado.get('error', 'Parcialmente detenido')}\n")
+                        self._log_terminal(f"⚠ Advertencia controlador: {resultado.get('error')}", "SIEM", "WARNING")
+                        siem_detenido = True  # Considerado detenido aunque con advertencias
+                except Exception as e:
+                    self._actualizar_texto_monitoreo(f"⚠️ Error deteniendo controlador: {e}\n")
+                    self._log_terminal(f"❌ Error controlador: {e}", "SIEM", "ERROR")
+                    siem_detenido = True  # Forzar detención en caso de error
+            else:
+                self._log_terminal("ℹ Controlador SIEM no disponible", "SIEM", "INFO")
+                siem_detenido = True
+            
+            # SIEMPRE actualizar estado de botones independientemente del resultado
+            self._habilitar_botones_siem(True)  # True = SIEM detenido, habilitar "Iniciar"
+            
+            if siem_detenido:
+                self._actualizar_texto_monitoreo("🔴 Sistema SIEM DETENIDO completamente\n\n")
+                self._log_terminal("🔴 Sistema SIEM detenido completamente", "SIEM", "SUCCESS")
+            else:
+                self._actualizar_texto_monitoreo("🟡 SIEM detenido con advertencias\n\n")
+                self._log_terminal("🟡 SIEM detenido con advertencias", "SIEM", "WARNING")
+                
+        except Exception as e:
+            error_msg = f"Error deteniendo SIEM: {str(e)}"
+            self._actualizar_texto_monitoreo(f"❌ {error_msg}\n")
+            self._log_terminal(error_msg, "SIEM", "ERROR")
+            
+            # SIEMPRE habilitar botones en caso de error
             self._habilitar_botones_siem(True)
+            self._actualizar_texto_monitoreo("🔴 SIEM forzado a detenerse tras error\n\n")
     
     def _finalizar_siem(self):
         """Finalizar proceso SIEM."""

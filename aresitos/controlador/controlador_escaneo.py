@@ -752,27 +752,46 @@ class ControladorEscaneo(ControladorBase):
                 import subprocess
                 red_base = red_obj['red'].rsplit('.', 1)[0]  # Obtener 192.168.1
                 
-                # Limitar a máximo 20 hosts para no sobrecargar
-                max_hosts = min(20, 2 ** (32 - red_obj['prefijo']))
+                # SOLO escanear hosts comunes primero para evitar falsos positivos
+                hosts_comunes = [1, 2, 10, 100, 254]  # IPs más comunes en redes domésticas
                 
-                for i in range(1, max_hosts + 1):
-                    host_ip = f"{red_base}.{i}"
+                for host_num in hosts_comunes:
+                    host_ip = f"{red_base}.{host_num}"
                     try:
-                        # Validar IP antes de usar en comando (CVE-2021-44228 style prevention)
+                        # Validar IP antes de usar en comando
                         if not self._validar_ip_segura(host_ip):
                             continue
                         
-                        # Ping rápido con timeout corto
+                        # Ping con timeout muy corto para verificación real
                         result = subprocess.run(['ping', '-c', '1', '-W', '1', host_ip], 
-                                              capture_output=True, timeout=2)
-                        if result.returncode == 0:
+                                              capture_output=True, text=True, timeout=2)
+                        
+                        # SOLO agregar si realmente responde
+                        if result.returncode == 0 and 'bytes from' in result.stdout:
                             hosts_activos.append(host_ip)
-                            if len(hosts_activos) >= 10:  # Limitar resultados
-                                break
-                    except subprocess.TimeoutExpired:
-                        continue
+                            self.logger.info(f"Host activo confirmado: {host_ip}")
+                        else:
+                            self.logger.debug(f"Host no responde: {host_ip}")
+                            
                     except (subprocess.TimeoutExpired, subprocess.CalledProcessError, FileNotFoundError):
+                        self.logger.debug(f"Error ping host: {host_ip}")
                         continue
+                
+                # Si encontramos pocos hosts, expandir búsqueda gradualmente
+                if len(hosts_activos) < 3:
+                    hosts_adicionales = [11, 12, 20, 50, 101, 102, 200]
+                    for host_num in hosts_adicionales:
+                        if len(hosts_activos) >= 10:  # Límite estricto
+                            break
+                        host_ip = f"{red_base}.{host_num}"
+                        try:
+                            result = subprocess.run(['ping', '-c', '1', '-W', '1', host_ip], 
+                                                  capture_output=True, text=True, timeout=2)
+                            if result.returncode == 0 and 'bytes from' in result.stdout:
+                                hosts_activos.append(host_ip)
+                                self.logger.info(f"Host adicional encontrado: {host_ip}")
+                        except:
+                            continue
             else:
                 # Para redes grandes, usar nmap para descubrir hosts reales
                 import subprocess
