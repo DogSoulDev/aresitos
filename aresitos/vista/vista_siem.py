@@ -708,8 +708,8 @@ class VistaSIEM(tk.Frame):
                     self.after(0, self._actualizar_texto_monitoreo, f"ESTADO GENERAL: ✓ TODAS LAS FASES COMPLETADAS EXITOSAMENTE\n")
                     self._log_terminal("✓ SIEM: Todas las fases completadas exitosamente", "SIEM", "SUCCESS")
                 else:
-                    self.after(0, self._actualizar_texto_monitoreo, f"ESTADO GENERAL: ⚠ {fases_completadas} fases exitosas, {fases_con_error} con errores\n")
-                    self._log_terminal(f"⚠ SIEM: {fases_completadas} fases exitosas, {fases_con_error} con errores", "SIEM", "WARNING")
+                    self.after(0, self._actualizar_texto_monitoreo, f"ESTADO GENERAL: {fases_completadas} fases exitosas, {fases_con_error} con errores\n")
+                    self._log_terminal(f"SIEM: {fases_completadas} fases exitosas, {fases_con_error} con errores", "SIEM", "WARNING")
                 
                 self.after(0, self._actualizar_texto_monitoreo, f"RESULTADO: SIEM ejecutado de forma resiliente\n")
                 self.after(0, self._actualizar_texto_monitoreo, f"{'='*50}\n")
@@ -1356,60 +1356,80 @@ class VistaSIEM(tk.Frame):
         self.after(0, self._actualizar_texto_monitoreo, evento_msg)
     
     def detener_siem(self):
-        """Detener sistema SIEM."""
+        """Detener sistema SIEM de forma robusta."""
         try:
-            self._log_terminal("🛑 Solicitando detención del sistema SIEM", "SIEM", "WARNING")
-            self._actualizar_texto_monitoreo("⏹️ Deteniendo sistema SIEM...\n")
+            self._log_terminal("🛑 Iniciando detención del sistema SIEM", "SIEM", "WARNING")
+            self._actualizar_texto_monitoreo("DETENIENDO Sistema SIEM...\n")
             
-            # Detener proceso activo
-            if hasattr(self, 'proceso_siem_activo'):
-                self.proceso_siem_activo = False
-                self._log_terminal("✓ Proceso SIEM marcado para detención", "SIEM", "INFO")
+            # 1. Marcar proceso como inactivo INMEDIATAMENTE
+            self.proceso_siem_activo = False
+            self._log_terminal("✓ Proceso SIEM marcado como inactivo", "SIEM", "INFO")
             
-            # Detener el hilo de monitoreo si existe
+            # 2. Esperar a que el hilo termine (máximo 3 segundos)
             if hasattr(self, 'thread_siem') and self.thread_siem and self.thread_siem.is_alive():
-                self.proceso_siem_activo = False
-                self._log_terminal("✓ Hilo de monitoreo detenido", "SIEM", "INFO")
-                
-            # Detener controlador si existe
-            siem_detenido = False
+                self._log_terminal("⏳ Esperando finalización del hilo SIEM...", "SIEM", "INFO")
+                self.thread_siem.join(timeout=3.0)  # Esperar máximo 3 segundos
+                if self.thread_siem.is_alive():
+                    self._log_terminal("Hilo SIEM no respondió en tiempo esperado", "SIEM", "WARNING")
+                else:
+                    self._log_terminal("✓ Hilo SIEM finalizado correctamente", "SIEM", "SUCCESS")
+            
+            # 3. Detener controlador si existe
+            controlador_detenido = False
             if self.controlador:
                 try:
+                    self._log_terminal("🔧 Deteniendo controlador SIEM...", "SIEM", "INFO")
                     resultado = self.controlador.detener_monitoreo_eventos()
-                    if resultado.get('exito'):
-                        self._actualizar_texto_monitoreo("OK Controlador SIEM detenido correctamente\n")
+                    if resultado and resultado.get('exito'):
+                        self._actualizar_texto_monitoreo("✓ Controlador SIEM detenido correctamente\n")
                         self._log_terminal("✓ Controlador SIEM detenido", "SIEM", "SUCCESS")
-                        siem_detenido = True
+                        controlador_detenido = True
                     else:
-                        self._actualizar_texto_monitoreo(f"WARNING Advertencia deteniendo controlador: {resultado.get('error', 'Parcialmente detenido')}\n")
-                        self._log_terminal(f"WARNING Advertencia controlador: {resultado.get('error')}", "SIEM", "WARNING")
-                        siem_detenido = True  # Considerado detenido aunque con advertencias
+                        error_msg = resultado.get('error', 'Respuesta inesperada') if resultado else 'Sin respuesta'
+                        self._actualizar_texto_monitoreo(f"Controlador: {error_msg}\n")
+                        self._log_terminal(f"Controlador: {error_msg}", "SIEM", "WARNING")
+                        controlador_detenido = True  # Continuar aunque haya advertencias
                 except Exception as e:
-                    self._actualizar_texto_monitoreo(f"WARNING Error deteniendo controlador: {e}\n")
-                    self._log_terminal(f"ERROR Error controlador: {e}", "SIEM", "ERROR")
-                    siem_detenido = True  # Forzar detención en caso de error
+                    self._actualizar_texto_monitoreo(f"Error en controlador: {str(e)}\n")
+                    self._log_terminal(f"ERROR en controlador: {str(e)}", "SIEM", "ERROR")
+                    controlador_detenido = True  # Forzar detención
             else:
-                self._log_terminal("ℹ Controlador SIEM no disponible", "SIEM", "INFO")
-                siem_detenido = True
+                self._log_terminal("Sin controlador SIEM disponible", "SIEM", "INFO")
+                controlador_detenido = True
             
-            # SIEMPRE actualizar estado de botones independientemente del resultado
-            self._habilitar_botones_siem(True)  # True = SIEM detenido, habilitar "Iniciar"
+            # 4. Limpiar variables de estado
+            self.thread_siem = None
             
-            if siem_detenido:
-                self._actualizar_texto_monitoreo("🔴 Sistema SIEM DETENIDO completamente\n\n")
-                self._log_terminal("🔴 Sistema SIEM detenido completamente", "SIEM", "SUCCESS")
+            # 5. SIEMPRE actualizar interfaz (crítico para que funcione el botón)
+            try:
+                self._habilitar_botones_siem(True)  # True = SIEM detenido, habilitar "Iniciar"
+                self._log_terminal("✓ Interfaz actualizada - botones habilitados", "SIEM", "SUCCESS")
+            except Exception as e:
+                self._log_terminal(f"ERROR actualizando interfaz: {str(e)}", "SIEM", "ERROR")
+            
+            # 6. Mensaje final
+            if controlador_detenido:
+                self._actualizar_texto_monitoreo("SISTEMA SIEM DETENIDO COMPLETAMENTE\n\n")
+                self._log_terminal("Sistema SIEM detenido completamente", "SIEM", "SUCCESS")
             else:
-                self._actualizar_texto_monitoreo("🟡 SIEM detenido con advertencias\n\n")
-                self._log_terminal("🟡 SIEM detenido con advertencias", "SIEM", "WARNING")
+                self._actualizar_texto_monitoreo("SIEM detenido con advertencias\n\n")
+                self._log_terminal("SIEM detenido con advertencias", "SIEM", "WARNING")
                 
         except Exception as e:
-            error_msg = f"Error deteniendo SIEM: {str(e)}"
-            self._actualizar_texto_monitoreo(f"ERROR {error_msg}\n")
+            error_msg = f"Error crítico deteniendo SIEM: {str(e)}"
+            self._actualizar_texto_monitoreo(f"ERROR: {error_msg}\n")
             self._log_terminal(error_msg, "SIEM", "ERROR")
             
-            # SIEMPRE habilitar botones en caso de error
-            self._habilitar_botones_siem(True)
-            self._actualizar_texto_monitoreo("🔴 SIEM forzado a detenerse tras error\n\n")
+            # FORZAR detención en caso de error crítico
+            self.proceso_siem_activo = False
+            self.thread_siem = None
+            
+            try:
+                self._habilitar_botones_siem(True)  # Forzar habilitación de botones
+                self._actualizar_texto_monitoreo("SIEM detenido forzosamente tras error\n\n")
+                self._log_terminal("SIEM detenido forzosamente", "SIEM", "ERROR")
+            except:
+                self._log_terminal("ERROR CRÍTICO: No se pudo actualizar interfaz", "SIEM", "ERROR")
     
     def _finalizar_siem(self):
         """Finalizar proceso SIEM."""
@@ -1606,139 +1626,190 @@ class VistaSIEM(tk.Frame):
     
     # Métodos de la pestaña Análisis
     def analizar_logs_seleccionados(self):
-        """Analizar logs seleccionados con comandos avanzados de Linux."""
-        self.log_to_terminal("Iniciando análisis de logs seleccionados...")
+        """Analizar logs seleccionados con comandos avanzados de Linux - VERSION ORGANIZADA."""
+        self.log_to_terminal("Iniciando análisis estructurado de logs...")
         def ejecutar():
             try:
                 logs_seleccionados = [path for path, var in self.logs_vars.items() if var.get()]
                 
                 if not logs_seleccionados:
-                    self.after(0, self._actualizar_texto_analisis, "WARNING No se seleccionaron logs para analizar\n")
-                    self.after(0, lambda: self.log_to_terminal("⚠ Advertencia: No hay logs seleccionados"))
+                    self.after(0, self._actualizar_texto_analisis, "WARNING: No se seleccionaron logs para analizar\n")
+                    self.after(0, lambda: self.log_to_terminal("Advertencia: No hay logs seleccionados"))
                     return
                 
-                self.after(0, self._actualizar_texto_analisis, "ANÁLISIS DE LOGS CON COMANDOS LINUX AVANZADOS\n\n")
-                self.after(0, lambda: self.log_to_terminal(f"Analizando {len(logs_seleccionados)} archivos de log..."))
+                # HEADER PRINCIPAL
+                self.after(0, self._actualizar_texto_analisis, "="*80 + "\n")
+                self.after(0, self._actualizar_texto_analisis, "              ANÁLISIS PROFESIONAL DE LOGS DE SEGURIDAD\n")
+                self.after(0, self._actualizar_texto_analisis, "="*80 + "\n\n")
+                self.after(0, lambda: self.log_to_terminal(f"Iniciando análisis de {len(logs_seleccionados)} archivos de log..."))
                 
-                for log_path in logs_seleccionados:
-                    self.after(0, self._actualizar_texto_analisis, f"ANALIZANDO: {log_path}\n")
+                total_eventos_criticos = 0
+                resumen_alertas = {}
+                
+                for idx, log_path in enumerate(logs_seleccionados, 1):
+                    # SEPARADOR POR ARCHIVO
+                    self.after(0, self._actualizar_texto_analisis, f"\n[{idx}/{len(logs_seleccionados)}] " + "-"*60 + "\n")
+                    self.after(0, self._actualizar_texto_analisis, f"ARCHIVO: {log_path}\n")
+                    self.after(0, self._actualizar_texto_analisis, "-"*60 + "\n")
                     
-                    # Verificar si el archivo existe
                     if os.path.exists(log_path):
                         try:
                             import subprocess
+                            alertas_archivo = 0
                             
-                            # 1. Análisis básico con wc y tail
-                            self.after(0, self._actualizar_texto_analisis, f"COMANDO: wc -l {log_path}\n")
+                            # 1. INFORMACIÓN BÁSICA DEL ARCHIVO
+                            self.after(0, self._actualizar_texto_analisis, "\n1. INFORMACIÓN BÁSICA:\n")
                             resultado_wc = subprocess.run(['wc', '-l', log_path], 
                                                         capture_output=True, text=True, timeout=5)
                             if resultado_wc.returncode == 0:
                                 lineas_total = resultado_wc.stdout.strip().split()[0]
-                                self.after(0, self._actualizar_texto_analisis, f"TOTAL: {lineas_total} líneas en el log\n")
+                                self.after(0, self._actualizar_texto_analisis, f"   • Total de líneas: {lineas_total}\n")
+                                
+                                # Tamaño del archivo
+                                tamano = os.path.getsize(log_path)
+                                tamano_mb = tamano / (1024 * 1024)
+                                self.after(0, self._actualizar_texto_analisis, f"   • Tamaño: {tamano_mb:.2f} MB\n")
+                                
+                                # Fecha de modificación
+                                import time
+                                mtime = os.path.getmtime(log_path)
+                                fecha_mod = time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(mtime))
+                                self.after(0, self._actualizar_texto_analisis, f"   • Última modificación: {fecha_mod}\n")
                             
-                            # 2. Buscar patrones de seguridad con grep
+                            # 2. ANÁLISIS DE PATRONES DE SEGURIDAD
+                            self.after(0, self._actualizar_texto_analisis, "\n2. ANÁLISIS DE SEGURIDAD:\n")
                             patrones_seguridad = [
-                                ('Failed password', 'Intentos de login fallidos'),
-                                ('Invalid user', 'Usuarios inválidos'),
-                                ('authentication failure', 'Fallos de autenticación'),
-                                ('sudo.*COMMAND', 'Comandos ejecutados con sudo'),
-                                ('sshd.*Connection.*closed', 'Conexiones SSH cerradas'),
-                                ('kernel.*killed process', 'Procesos terminados por el kernel')
+                                ('Failed password', 'Intentos de login fallidos', 'HIGH'),
+                                ('Invalid user', 'Usuarios inválidos', 'MEDIUM'),
+                                ('authentication failure', 'Fallos de autenticación', 'HIGH'),
+                                ('sudo.*COMMAND', 'Comandos sudo ejecutados', 'MEDIUM'),
+                                ('sshd.*Connection.*closed', 'Conexiones SSH cerradas', 'LOW'),
+                                ('kernel.*killed process', 'Procesos terminados', 'MEDIUM'),
+                                ('denied', 'Accesos denegados', 'MEDIUM'),
+                                ('attack', 'Ataques detectados', 'CRITICAL'),
+                                ('breach', 'Violaciones detectadas', 'CRITICAL')
                             ]
                             
-                            for patron, descripcion in patrones_seguridad:
+                            for patron, descripcion, nivel in patrones_seguridad:
                                 try:
-                                    self.after(0, self._actualizar_texto_analisis, f"PATRÓN: grep -i '{patron}' {log_path}\n")
                                     resultado_grep = subprocess.run(['grep', '-i', patron, log_path], 
                                                                   capture_output=True, text=True, timeout=10)
                                     if resultado_grep.returncode == 0 and resultado_grep.stdout.strip():
                                         coincidencias = resultado_grep.stdout.strip().split('\n')
+                                        count = len(coincidencias)
+                                        alertas_archivo += count
+                                        
+                                        # Indicador de nivel
+                                        indicador = {
+                                            'CRITICAL': '[!!!]',
+                                            'HIGH': '[!!]',
+                                            'MEDIUM': '[!]',
+                                            'LOW': '[·]'
+                                        }.get(nivel, '[·]')
+                                        
                                         self.after(0, self._actualizar_texto_analisis, 
-                                                 f"ENCONTRADO: {len(coincidencias)} eventos de {descripcion}\n")
-                                        # Mostrar las últimas 3 coincidencias
-                                        for linea in coincidencias[-3:]:
-                                            timestamp = ' '.join(linea.split()[:3])
-                                            evento = ' '.join(linea.split()[3:8])
-                                            self.after(0, self._actualizar_texto_analisis, f"  {timestamp}: {evento}...\n")
+                                                 f"   {indicador} {descripcion}: {count} eventos\n")
+                                        
+                                        if count > 0:
+                                            resumen_alertas[descripcion] = resumen_alertas.get(descripcion, 0) + count
+                                            
+                                            # Mostrar muestras de eventos críticos
+                                            if nivel in ['CRITICAL', 'HIGH'] and count > 0:
+                                                self.after(0, self._actualizar_texto_analisis, f"       Muestras de eventos:\n")
+                                                for i, linea in enumerate(coincidencias[-3:], 1):
+                                                    timestamp = ' '.join(linea.split()[:3])
+                                                    evento = ' '.join(linea.split()[3:10])
+                                                    self.after(0, self._actualizar_texto_analisis, 
+                                                             f"       [{i}] {timestamp}: {evento}...\n")
                                     else:
-                                        self.after(0, self._actualizar_texto_analisis, f"OK: No se encontraron eventos de {descripcion}\n")
+                                        self.after(0, self._actualizar_texto_analisis, 
+                                                 f"   [OK] {descripcion}: Sin eventos\n")
                                 except subprocess.TimeoutExpired:
-                                    self.after(0, self._actualizar_texto_analisis, f"TIMEOUT: Búsqueda de {descripcion} excedió tiempo límite\n")
+                                    self.after(0, self._actualizar_texto_analisis, 
+                                             f"   [TIMEOUT] {descripcion}: Análisis excedió tiempo límite\n")
                                 except:
-                                    self.after(0, self._actualizar_texto_analisis, f"ERROR: No se pudo buscar {descripcion}\n")
+                                    self.after(0, self._actualizar_texto_analisis, 
+                                             f"   [ERROR] {descripcion}: No se pudo analizar\n")
                             
-                            # 3. Análisis de frecuencia de IPs con awk
+                            # 3. ANÁLISIS DE IPs SOSPECHOSAS (solo para logs de auth)
                             if 'auth.log' in log_path or 'secure' in log_path:
+                                self.after(0, self._actualizar_texto_analisis, "\n3. ANÁLISIS DE IPs SOSPECHOSAS:\n")
                                 try:
-                                    self.after(0, self._actualizar_texto_analisis, "COMANDO: awk '/Failed password/ {print $(NF-3)}' | sort | uniq -c | sort -nr\n")
-                                    # Extraer IPs de intentos fallidos
                                     resultado_ips = subprocess.run(['bash', '-c', 
                                                                    f"grep 'Failed password' {log_path} | awk '{{print $(NF-3)}}' | sort | uniq -c | sort -nr | head -5"], 
                                                                  capture_output=True, text=True, timeout=15)
                                     if resultado_ips.returncode == 0 and resultado_ips.stdout.strip():
-                                        self.after(0, self._actualizar_texto_analisis, "TOP IPs con intentos fallidos:\n")
+                                        self.after(0, self._actualizar_texto_analisis, "   TOP 5 IPs con intentos fallidos:\n")
                                         for linea in resultado_ips.stdout.strip().split('\n'):
                                             if linea.strip():
-                                                self.after(0, self._actualizar_texto_analisis, f"  {linea.strip()}\n")
+                                                partes = linea.strip().split()
+                                                if len(partes) >= 2:
+                                                    intentos = partes[0]
+                                                    ip = ' '.join(partes[1:])
+                                                    self.after(0, self._actualizar_texto_analisis, 
+                                                             f"       • {ip}: {intentos} intentos\n")
                                     else:
-                                        self.after(0, self._actualizar_texto_analisis, "OK: No hay intentos de login fallidos recientes\n")
+                                        self.after(0, self._actualizar_texto_analisis, "   [OK] No hay intentos de login fallidos\n")
                                 except:
-                                    self.after(0, self._actualizar_texto_analisis, "ERROR: No se pudo analizar IPs sospechosas\n")
+                                    self.after(0, self._actualizar_texto_analisis, "   [ERROR] No se pudo analizar IPs\n")
                             
-                            # 4. Últimas entradas del log
-                            self.after(0, self._actualizar_texto_analisis, f"COMANDO: tail -n 5 {log_path}\n")
+                            # 4. EVENTOS RECIENTES
+                            self.after(0, self._actualizar_texto_analisis, "\n4. EVENTOS RECIENTES (Últimas 5 entradas):\n")
                             resultado = subprocess.run(['tail', '-n', '5', log_path], 
                                                      capture_output=True, text=True, timeout=10)
                             if resultado.returncode == 0 and resultado.stdout.strip():
                                 lineas = resultado.stdout.strip().split('\n')
-                                self.after(0, self._actualizar_texto_analisis, "ÚLTIMAS ENTRADAS:\n")
-                                for linea in lineas:
+                                for i, linea in enumerate(lineas, 1):
                                     if linea.strip():
                                         timestamp = ' '.join(linea.split()[:3])
-                                        mensaje = ' '.join(linea.split()[3:12])
-                                        self.after(0, self._actualizar_texto_analisis, f"  {timestamp}: {mensaje}...\n")
-                                        self.after(0, self._actualizar_texto_analisis, f"    {timestamp}: {mensaje}...\n")
-                                
-                                # Buscar patrones sospechosos en las líneas
-                                patrones_sospechosos = ["failed", "error", "denied", "invalid", "attack", "breach"]
-                                alertas_encontradas = 0
-                                for linea in lineas:
-                                    linea_lower = linea.lower()
-                                    for patron in patrones_sospechosos:
-                                        if patron in linea_lower:
-                                            alertas_encontradas += 1
-                                            if alertas_encontradas <= 3:  # Mostrar máximo 3 alertas por archivo
-                                                self.after(0, self._actualizar_texto_analisis, f"    ALERTA: {patron.upper()} encontrado\n")
-                                
-                                if alertas_encontradas > 0:
-                                    self.after(0, self._actualizar_texto_analisis, f"  TOTAL ALERTAS: {alertas_encontradas}\n")
-                                else:
-                                    self.after(0, self._actualizar_texto_analisis, "  Sin patrones sospechosos detectados\n")
+                                        mensaje = ' '.join(linea.split()[3:15])
+                                        self.after(0, self._actualizar_texto_analisis, 
+                                                 f"   [{i}] {timestamp}: {mensaje}...\n")
+                            
+                            # RESUMEN DEL ARCHIVO
+                            total_eventos_criticos += alertas_archivo
+                            nivel_riesgo = "BAJO" if alertas_archivo < 10 else "MEDIO" if alertas_archivo < 50 else "ALTO"
+                            self.after(0, self._actualizar_texto_analisis, f"\n   RESUMEN: {alertas_archivo} eventos detectados - Riesgo: {nivel_riesgo}\n")
                                     
-                            else:
-                                # Fallback: leer archivo directamente
-                                with open(log_path, 'r', encoding='utf-8', errors='ignore') as f:
-                                    lines = f.readlines()
-                                    self.after(0, self._actualizar_texto_analisis, 
-                                             f"  OK {len(lines)} líneas analizadas\n")
-                                    if lines:
-                                        self.after(0, self._actualizar_texto_analisis, "  ÚLTIMAS LÍNEAS:\n")
-                                        for linea in lines[-3:]:
-                                            if linea.strip():
-                                                self.after(0, self._actualizar_texto_analisis, f"    {linea.strip()[:100]}...\n")
-                        except subprocess.TimeoutExpired:
-                            self.after(0, self._actualizar_texto_analisis, 
-                                     f"  WARNING Timeout leyendo archivo\n")
                         except Exception as e:
                             self.after(0, self._actualizar_texto_analisis, 
-                                     f"  ERROR leyendo archivo: {str(e)}\n")
+                                     f"   [ERROR] Error procesando archivo: {str(e)}\n")
                     else:
                         self.after(0, self._actualizar_texto_analisis, 
-                                 f"  WARNING Archivo no encontrado\n")
+                                 f"   [WARNING] Archivo no encontrado\n")
                 
-                self.after(0, self._actualizar_texto_analisis, "OK Análisis completado\n\n")
+                # RESUMEN GLOBAL
+                self.after(0, self._actualizar_texto_analisis, "\n" + "="*80 + "\n")
+                self.after(0, self._actualizar_texto_analisis, "                        RESUMEN GLOBAL DEL ANÁLISIS\n")
+                self.after(0, self._actualizar_texto_analisis, "="*80 + "\n")
+                self.after(0, self._actualizar_texto_analisis, f"• Archivos analizados: {len(logs_seleccionados)}\n")
+                self.after(0, self._actualizar_texto_analisis, f"• Total eventos detectados: {total_eventos_criticos}\n\n")
+                
+                if resumen_alertas:
+                    self.after(0, self._actualizar_texto_analisis, "TIPOS DE EVENTOS ENCONTRADOS:\n")
+                    for tipo, cantidad in sorted(resumen_alertas.items(), key=lambda x: x[1], reverse=True):
+                        self.after(0, self._actualizar_texto_analisis, f"   • {tipo}: {cantidad} eventos\n")
+                else:
+                    self.after(0, self._actualizar_texto_analisis, "No se detectaron eventos de seguridad críticos.\n")
+                
+                # RECOMENDACIONES
+                self.after(0, self._actualizar_texto_analisis, "\nRECOMENDACIONES:\n")
+                if total_eventos_criticos > 100:
+                    self.after(0, self._actualizar_texto_analisis, "   • CRÍTICO: Revisar inmediatamente los eventos detectados\n")
+                    self.after(0, self._actualizar_texto_analisis, "   • Implementar medidas de seguridad adicionales\n")
+                elif total_eventos_criticos > 20:
+                    self.after(0, self._actualizar_texto_analisis, "   • MEDIO: Monitorear actividad sospechosa\n")
+                    self.after(0, self._actualizar_texto_analisis, "   • Revisar configuraciones de seguridad\n")
+                else:
+                    self.after(0, self._actualizar_texto_analisis, "   • Sistema con actividad normal\n")
+                    self.after(0, self._actualizar_texto_analisis, "   • Mantener monitoreo rutinario\n")
+                
+                self.after(0, self._actualizar_texto_analisis, "\n" + "="*80 + "\n")
+                self.after(0, self._actualizar_texto_analisis, "ANÁLISIS COMPLETADO\n")
+                self.after(0, lambda: self.log_to_terminal("Análisis de logs completado exitosamente"))
+                
             except Exception as e:
-                self.after(0, self._actualizar_texto_analisis, f"ERROR en análisis: {str(e)}\n")
+                self.after(0, self._actualizar_texto_analisis, f"ERROR CRÍTICO en análisis: {str(e)}\n")
         
         threading.Thread(target=ejecutar, daemon=True).start()
     
@@ -2177,7 +2248,7 @@ class VistaSIEM(tk.Frame):
                         self.after(0, self._actualizar_texto_forense, "✓ Strings disponible en el sistema\n\n")
                     
                         # ANÁLISIS AUTOMÁTICO DE ARCHIVOS CRÍTICOS DEL SISTEMA
-                        self.after(0, self._actualizar_texto_forense, "🔍 ANÁLISIS AUTOMÁTICO - ARCHIVOS CRÍTICOS DEL SISTEMA:\n")
+                        self.after(0, self._actualizar_texto_forense, "ANÁLISIS AUTOMÁTICO - ARCHIVOS CRÍTICOS DEL SISTEMA:\n")
                         self.after(0, self._actualizar_texto_forense, "-" * 50 + "\n")
                         
                         archivos_criticos = [
@@ -2206,7 +2277,7 @@ class VistaSIEM(tk.Frame):
                                                 self.after(0, self._actualizar_texto_forense, f"    {i:2d}: {line[:80]}...\n")
                                         
                                         # Búsqueda de patrones sospechosos
-                                        self.after(0, self._actualizar_texto_forense, "  🔍 BÚSQUEDA DE PATRONES SOSPECHOSOS:\n")
+                                        self.after(0, self._actualizar_texto_forense, "  BÚSQUEDA DE PATRONES SOSPECHOSOS:\n")
                                         patrones = ['password', 'admin', 'root', 'key', 'token', 'secret']
                                         
                                         for patron in patrones:
@@ -2218,15 +2289,15 @@ class VistaSIEM(tk.Frame):
                                                 matches = [line for line in grep_result.stdout.split('\n') 
                                                          if patron.lower() in line.lower()]
                                                 if matches:
-                                                    self.after(0, self._actualizar_texto_forense, f"    🚨 PATRÓN '{patron}': {len(matches)} coincidencias\n")
+                                                    self.after(0, self._actualizar_texto_forense, f"    PATRÓN '{patron}': {len(matches)} coincidencias\n")
                                     
                                 except subprocess.TimeoutExpired:
-                                    self.after(0, self._actualizar_texto_forense, f"    ⚠️ Timeout analizando {archivo}\n")
+                                    self.after(0, self._actualizar_texto_forense, f"    Timeout analizando {archivo}\n")
                                 except Exception as e:
-                                    self.after(0, self._actualizar_texto_forense, f"    ❌ Error: {str(e)[:50]}\n")
+                                    self.after(0, self._actualizar_texto_forense, f"    Error: {str(e)[:50]}\n")
                         
                         # COMANDOS PROFESIONALES DE KALI LINUX
-                        self.after(0, self._actualizar_texto_forense, "\n🛠️ COMANDOS PROFESIONALES KALI LINUX:\n")
+                        self.after(0, self._actualizar_texto_forense, "\nCOMANDOS PROFESIONALES KALI LINUX:\n")
                         self.after(0, self._actualizar_texto_forense, "-" * 50 + "\n")
                         comandos_profesionales = [
                             ("Análisis Completo", "strings -a -t x archivo.bin | head -100"),
@@ -2240,7 +2311,7 @@ class VistaSIEM(tk.Frame):
                         ]
                         
                         for descripcion, comando in comandos_profesionales:
-                            self.after(0, self._actualizar_texto_forense, f"  📋 {descripcion}:\n")
+                            self.after(0, self._actualizar_texto_forense, f"  {descripcion}:\n")
                             self.after(0, self._actualizar_texto_forense, f"      {comando}\n\n")
                         
                         # CREAR SCRIPT DE ANÁLISIS AUTOMATIZADO
@@ -2282,26 +2353,26 @@ ls -la "$OUTPUT_DIR/"
                             with open(script_path, 'w') as f:
                                 f.write(script_content)
                             os.chmod(script_path, 0o755)
-                            self.after(0, self._actualizar_texto_forense, f"📝 SCRIPT CREADO: {script_path}\n")
+                            self.after(0, self._actualizar_texto_forense, f"SCRIPT CREADO: {script_path}\n")
                             self.after(0, self._actualizar_texto_forense, f"   Uso: {script_path} <archivo>\n\n")
                         except Exception as e:
-                            self.after(0, self._actualizar_texto_forense, f"⚠️ Error creando script: {e}\n")
+                            self.after(0, self._actualizar_texto_forense, f"Error creando script: {e}\n")
                         
                     else:
-                        self.after(0, self._actualizar_texto_forense, "❌ Error ejecutando strings\n")
+                        self.after(0, self._actualizar_texto_forense, "Error ejecutando strings\n")
                         
                 except FileNotFoundError:
-                    self.after(0, self._actualizar_texto_forense, "❌ Strings no encontrado en el sistema\n")
+                    self.after(0, self._actualizar_texto_forense, "Strings no encontrado en el sistema\n")
                     self.after(0, self._actualizar_texto_forense, "📦 INSTALACIÓN EN KALI LINUX:\n")
                     self.after(0, self._actualizar_texto_forense, "  sudo apt update && sudo apt install binutils -y\n\n")
                     
                 # CASOS DE USO PROFESIONALES
-                self.after(0, self._actualizar_texto_forense, "🎯 CASOS DE USO PROFESIONALES:\n")
+                self.after(0, self._actualizar_texto_forense, "CASOS DE USO PROFESIONALES:\n")
                 self.after(0, self._actualizar_texto_forense, "-" * 40 + "\n")
                 casos_uso = [
                     "🦠 Análisis de malware y detección de IoCs",
-                    "🔍 Ingeniería inversa de binarios sospechosos", 
-                    "🔐 Búsqueda de credenciales hardcodeadas",
+                    "Ingeniería inversa de binarios sospechosos", 
+                    "Búsqueda de credenciales hardcodeadas",
                     "🌐 Extracción de URLs y dominios maliciosos",
                     "📧 Identificación de direcciones de email",
                     "🏠 Descubrimiento de direcciones IP internas",
@@ -2313,10 +2384,10 @@ ls -la "$OUTPUT_DIR/"
                     self.after(0, self._actualizar_texto_forense, f"  {caso}\n")
                 
                 self.after(0, self._actualizar_texto_forense, f"\n📁 DIRECTORIO DE LOGS: /tmp/aresitos_logs/strings_analysis/\n")
-                self.after(0, self._actualizar_texto_forense, "✅ ANÁLISIS COMPLETADO\n\n")
+                self.after(0, self._actualizar_texto_forense, "ANÁLISIS COMPLETADO\n\n")
                 
             except Exception as e:
-                self.after(0, self._actualizar_texto_forense, f"❌ ERROR en análisis con strings: {str(e)}\n")
+                self.after(0, self._actualizar_texto_forense, f"ERROR en análisis con strings: {str(e)}\n")
         
         threading.Thread(target=ejecutar, daemon=True).start()
     
@@ -3299,7 +3370,7 @@ ls -la "$OUTPUT_DIR/"
     def analizar_patrones_avanzados(self):
         """Análisis avanzado de patrones de comportamiento sospechoso."""
         try:
-            self._actualizar_texto_analisis("🔍 INICIANDO ANÁLISIS AVANZADO DE PATRONES DE SEGURIDAD\n")
+            self._actualizar_texto_analisis("INICIANDO ANÁLISIS AVANZADO DE PATRONES DE SEGURIDAD\n")
             self._actualizar_texto_analisis("=" * 70 + "\n")
             
             # 1. Análisis de conexiones de red sospechosas
@@ -3317,12 +3388,12 @@ ls -la "$OUTPUT_DIR/"
             # 5. Análisis de patrones de tiempo (ataques fuera de horarios)
             self._analizar_patrones_temporales()
             
-            self._actualizar_texto_analisis("\n✅ ANÁLISIS AVANZADO COMPLETADO\n")
+            self._actualizar_texto_analisis("\nANÁLISIS AVANZADO COMPLETADO\n")
             self.log_to_terminal("Análisis avanzado de patrones completado")
             
         except Exception as e:
             error_msg = f"Error en análisis avanzado: {str(e)}"
-            self._actualizar_texto_analisis(f"❌ ERROR: {error_msg}\n")
+            self._actualizar_texto_analisis(f"ERROR: {error_msg}\n")
             self.log_to_terminal(error_msg)
     
     def _analizar_conexiones_red(self):
@@ -3350,17 +3421,17 @@ ls -la "$OUTPUT_DIR/"
                                 conexiones_sospechosas.append(linea.strip())
                     
                     if conexiones_sospechosas:
-                        self._actualizar_texto_analisis("⚠️ CONEXIONES SOSPECHOSAS DETECTADAS:\n")
+                        self._actualizar_texto_analisis("CONEXIONES SOSPECHOSAS DETECTADAS:\n")
                         for conn in conexiones_sospechosas[:10]:  # Máximo 10
-                            self._actualizar_texto_analisis(f"  🔴 {conn}\n")
+                            self._actualizar_texto_analisis(f"  {conn}\n")
                     else:
-                        self._actualizar_texto_analisis("✅ No se detectaron conexiones en puertos sospechosos conocidos\n")
+                        self._actualizar_texto_analisis("No se detectaron conexiones en puertos sospechosos conocidos\n")
                         
                 else:
-                    self._actualizar_texto_analisis("❌ Error ejecutando netstat\n")
+                    self._actualizar_texto_analisis("Error ejecutando netstat\n")
                     
             except subprocess.TimeoutExpired:
-                self._actualizar_texto_analisis("⏱️ Timeout en análisis de conexiones\n")
+                self._actualizar_texto_analisis("Timeout en análisis de conexiones\n")
             
             # Análisis adicional con ss (Socket Statistics)
             try:
@@ -3368,27 +3439,27 @@ ls -la "$OUTPUT_DIR/"
                                             capture_output=True, text=True, timeout=10)
                 
                 if resultado_ss.returncode == 0:
-                    self._actualizar_texto_analisis("\n📊 Estadísticas de sockets activos:\n")
+                    self._actualizar_texto_analisis("\nEstadísticas de sockets activos:\n")
                     lineas = resultado_ss.stdout.split('\n')
                     tcp_count = sum(1 for linea in lineas if linea.startswith('tcp'))
                     udp_count = sum(1 for linea in lineas if linea.startswith('udp'))
                     
-                    self._actualizar_texto_analisis(f"  📈 Conexiones TCP activas: {tcp_count}\n")
-                    self._actualizar_texto_analisis(f"  📈 Conexiones UDP activas: {udp_count}\n")
+                    self._actualizar_texto_analisis(f"  Conexiones TCP activas: {tcp_count}\n")
+                    self._actualizar_texto_analisis(f"  Conexiones UDP activas: {udp_count}\n")
                     
                     if tcp_count > 100:
-                        self._actualizar_texto_analisis("  ⚠️ ALERTA: Número elevado de conexiones TCP\n")
+                        self._actualizar_texto_analisis("  ALERTA: Número elevado de conexiones TCP\n")
                     
             except:
                 pass  # ss opcional
                 
         except Exception as e:
-            self._actualizar_texto_analisis(f"❌ Error analizando conexiones: {str(e)}\n")
+            self._actualizar_texto_analisis(f"Error analizando conexiones: {str(e)}\n")
     
     def _analizar_procesos_anomalos(self):
         """Analizar procesos con comportamiento anómalo."""
         try:
-            self._actualizar_texto_analisis("\n⚙️ 2. ANÁLISIS DE PROCESOS ANÓMALOS\n")
+            self._actualizar_texto_analisis("\n2. ANÁLISIS DE PROCESOS ANÓMALOS\n")
             self._actualizar_texto_analisis("-" * 50 + "\n")
             
             import subprocess
@@ -3416,14 +3487,14 @@ ls -la "$OUTPUT_DIR/"
                                         procesos_sospechosos.append((cpu_usage, proceso))
                     
                     if procesos_sospechosos:
-                        self._actualizar_texto_analisis("⚠️ PROCESOS CON ACTIVIDAD SOSPECHOSA:\n")
+                        self._actualizar_texto_analisis("PROCESOS CON ACTIVIDAD SOSPECHOSA:\n")
                         for cpu, proc in procesos_sospechosos[:5]:
-                            self._actualizar_texto_analisis(f"  🔴 CPU: {cpu}% - {proc}\n")
+                            self._actualizar_texto_analisis(f"  CPU: {cpu}% - {proc}\n")
                     else:
-                        self._actualizar_texto_analisis("✅ No se detectaron procesos anómalos por CPU\n")
+                        self._actualizar_texto_analisis("No se detectaron procesos anómalos por CPU\n")
                         
             except Exception as e:
-                self._actualizar_texto_analisis(f"❌ Error analizando procesos: {str(e)}\n")
+                self._actualizar_texto_analisis(f"Error analizando procesos: {str(e)}\n")
             
             # Análisis de procesos sin terminal padre (posibles backdoors)
             try:
@@ -3443,7 +3514,7 @@ ls -la "$OUTPUT_DIR/"
                                     huerfanos.append(f"PID:{pid} - {comm}")
                     
                     if huerfanos:
-                        self._actualizar_texto_analisis(f"\n📋 Procesos huérfanos detectados: {len(huerfanos)}\n")
+                        self._actualizar_texto_analisis(f"\nProcesos huérfanos detectados: {len(huerfanos)}\n")
                         for huerfano in huerfanos[:5]:
                             self._actualizar_texto_analisis(f"  📍 {huerfano}\n")
                             
@@ -3451,7 +3522,7 @@ ls -la "$OUTPUT_DIR/"
                 pass
                 
         except Exception as e:
-            self._actualizar_texto_analisis(f"❌ Error en análisis de procesos: {str(e)}\n")
+            self._actualizar_texto_analisis(f"Error en análisis de procesos: {str(e)}\n")
     
     def _analizar_actividad_archivos(self):
         """Analizar actividad sospechosa en archivos críticos."""
@@ -3469,7 +3540,7 @@ ls -la "$OUTPUT_DIR/"
                 '/etc/sudoers', '/etc/ssh/sshd_config', '/etc/fstab'
             ]
             
-            self._actualizar_texto_analisis("🔍 Verificando modificaciones recientes en archivos críticos:\n")
+            self._actualizar_texto_analisis("Verificando modificaciones recientes en archivos críticos:\n")
             
             modificaciones_recientes = []
             fecha_limite = datetime.now() - timedelta(hours=24)
@@ -3487,11 +3558,11 @@ ls -la "$OUTPUT_DIR/"
                     continue
             
             if modificaciones_recientes:
-                self._actualizar_texto_analisis("⚠️ ARCHIVOS CRÍTICOS MODIFICADOS EN LAS ÚLTIMAS 24H:\n")
+                self._actualizar_texto_analisis("ARCHIVOS CRÍTICOS MODIFICADOS EN LAS ÚLTIMAS 24H:\n")
                 for archivo, fecha in modificaciones_recientes:
-                    self._actualizar_texto_analisis(f"  🔴 {archivo} - {fecha.strftime('%Y-%m-%d %H:%M:%S')}\n")
+                    self._actualizar_texto_analisis(f"  {archivo} - {fecha.strftime('%Y-%m-%d %H:%M:%S')}\n")
             else:
-                self._actualizar_texto_analisis("✅ No se detectaron modificaciones recientes en archivos críticos\n")
+                self._actualizar_texto_analisis("No se detectaron modificaciones recientes en archivos críticos\n")
             
             # Verificar archivos con permisos sospechosos
             try:
@@ -3503,7 +3574,7 @@ ls -la "$OUTPUT_DIR/"
                     archivos_permisos = [f for f in archivos_permisos if f.strip()]
                     
                     if archivos_permisos:
-                        self._actualizar_texto_analisis(f"\n⚠️ ARCHIVOS CON PERMISOS SOSPECHOSOS: {len(archivos_permisos)}\n")
+                        self._actualizar_texto_analisis(f"\nARCHIVOS CON PERMISOS SOSPECHOSOS: {len(archivos_permisos)}\n")
                         for archivo in archivos_permisos[:5]:
                             self._actualizar_texto_analisis(f"  🔸 {archivo}\n")
                         if len(archivos_permisos) > 5:
@@ -3513,12 +3584,12 @@ ls -la "$OUTPUT_DIR/"
                 pass
                 
         except Exception as e:
-            self._actualizar_texto_analisis(f"❌ Error analizando archivos: {str(e)}\n")
+            self._actualizar_texto_analisis(f"Error analizando archivos: {str(e)}\n")
     
     def _analizar_escalamiento_privilegios(self):
         """Analizar intentos de escalamiento de privilegios."""
         try:
-            self._actualizar_texto_analisis("\n🔐 4. ANÁLISIS DE ESCALAMIENTO DE PRIVILEGIOS\n")
+            self._actualizar_texto_analisis("\n4. ANÁLISIS DE ESCALAMIENTO DE PRIVILEGIOS\n")
             self._actualizar_texto_analisis("-" * 50 + "\n")
             
             import subprocess
@@ -3533,19 +3604,19 @@ ls -la "$OUTPUT_DIR/"
                     intentos_sudo = [l for l in lineas_sudo if 'sudo:' in l and l.strip()]
                     
                     if intentos_sudo:
-                        self._actualizar_texto_analisis(f"📊 Actividad sudo en la última hora: {len(intentos_sudo)} eventos\n")
+                        self._actualizar_texto_analisis(f"Actividad sudo en la última hora: {len(intentos_sudo)} eventos\n")
                         
                         # Buscar intentos fallidos
                         fallos = [l for l in intentos_sudo if 'FAILED' in l or 'authentication failure' in l]
                         if fallos:
-                            self._actualizar_texto_analisis(f"⚠️ INTENTOS FALLIDOS DE SUDO: {len(fallos)}\n")
+                            self._actualizar_texto_analisis(f"INTENTOS FALLIDOS DE SUDO: {len(fallos)}\n")
                             for fallo in fallos[:3]:
-                                self._actualizar_texto_analisis(f"  🔴 {fallo.split()[-10:]}\n")
+                                self._actualizar_texto_analisis(f"  {fallo.split()[-10:]}\n")
                     else:
-                        self._actualizar_texto_analisis("✅ No hay actividad sudo reciente\n")
+                        self._actualizar_texto_analisis("No hay actividad sudo reciente\n")
                         
             except:
-                self._actualizar_texto_analisis("ℹ️ No se pudo verificar actividad sudo\n")
+                self._actualizar_texto_analisis("No se pudo verificar actividad sudo\n")
             
             # Verificar procesos ejecutándose como root
             try:
@@ -3567,17 +3638,17 @@ ls -la "$OUTPUT_DIR/"
                                 break
                     
                     if procesos_sospechosos:
-                        self._actualizar_texto_analisis(f"⚠️ PROCESOS SOSPECHOSOS COMO ROOT: {len(procesos_sospechosos)}\n")
+                        self._actualizar_texto_analisis(f"PROCESOS SOSPECHOSOS COMO ROOT: {len(procesos_sospechosos)}\n")
                         for proc in procesos_sospechosos[:5]:
-                            self._actualizar_texto_analisis(f"  🔴 {proc}\n")
+                            self._actualizar_texto_analisis(f"  {proc}\n")
                     else:
-                        self._actualizar_texto_analisis("✅ No se detectaron procesos sospechosos como root\n")
+                        self._actualizar_texto_analisis("No se detectaron procesos sospechosos como root\n")
                         
             except:
                 pass
                 
         except Exception as e:
-            self._actualizar_texto_analisis(f"❌ Error analizando escalamiento: {str(e)}\n")
+            self._actualizar_texto_analisis(f"Error analizando escalamiento: {str(e)}\n")
     
     def _analizar_patrones_temporales(self):
         """Analizar patrones de actividad temporal sospechosos."""
@@ -3596,9 +3667,9 @@ ls -la "$OUTPUT_DIR/"
             self._actualizar_texto_analisis(f"🕐 Hora actual: {datetime.now().strftime('%H:%M:%S')}\n")
             
             if es_horario_laboral:
-                self._actualizar_texto_analisis("✅ Actividad durante horario laboral normal\n")
+                self._actualizar_texto_analisis("Actividad durante horario laboral normal\n")
             else:
-                self._actualizar_texto_analisis("⚠️ ACTIVIDAD FUERA DE HORARIO LABORAL\n")
+                self._actualizar_texto_analisis("ACTIVIDAD FUERA DE HORARIO LABORAL\n")
                 
                 # Analizar logins fuera de horario
                 try:
@@ -3616,11 +3687,11 @@ ls -la "$OUTPUT_DIR/"
                                     logins_nocturnos.append(linea.strip())
                         
                         if logins_nocturnos:
-                            self._actualizar_texto_analisis(f"🔴 LOGINS NOCTURNOS DETECTADOS: {len(logins_nocturnos)}\n")
+                            self._actualizar_texto_analisis(f"LOGINS NOCTURNOS DETECTADOS: {len(logins_nocturnos)}\n")
                             for login in logins_nocturnos[:3]:
                                 self._actualizar_texto_analisis(f"  📍 {login}\n")
                         else:
-                            self._actualizar_texto_analisis("✅ No se detectaron logins nocturnos recientes\n")
+                            self._actualizar_texto_analisis("No se detectaron logins nocturnos recientes\n")
                             
                 except:
                     pass
@@ -3641,7 +3712,7 @@ ls -la "$OUTPUT_DIR/"
                                 procesos_recientes.append(linea.strip())
                     
                     if procesos_recientes:
-                        self._actualizar_texto_analisis(f"\n📊 Procesos de script recientes: {len(procesos_recientes)}\n")
+                        self._actualizar_texto_analisis(f"\nProcesos de script recientes: {len(procesos_recientes)}\n")
                         # Limitar salida
                         if len(procesos_recientes) > 10:
                             self._actualizar_texto_analisis("  (Mostrando solo algunos por brevedad)\n")
@@ -3650,7 +3721,7 @@ ls -la "$OUTPUT_DIR/"
                 pass
                 
         except Exception as e:
-            self._actualizar_texto_analisis(f"❌ Error analizando patrones temporales: {str(e)}\n")
+            self._actualizar_texto_analisis(f"Error analizando patrones temporales: {str(e)}\n")
     
     def correlacionar_eventos_avanzado(self):
         """Correlación avanzada de eventos de seguridad."""
@@ -3670,18 +3741,18 @@ ls -la "$OUTPUT_DIR/"
             # 4. Análisis de cadenas de eventos sospechosos
             self._analizar_cadenas_eventos()
             
-            self._actualizar_texto_analisis("\n✅ CORRELACIÓN AVANZADA COMPLETADA\n")
+            self._actualizar_texto_analisis("\nCORRELACIÓN AVANZADA COMPLETADA\n")
             self.log_to_terminal("Correlación avanzada de eventos completada")
             
         except Exception as e:
             error_msg = f"Error en correlación avanzada: {str(e)}"
-            self._actualizar_texto_analisis(f"❌ ERROR: {error_msg}\n")
+            self._actualizar_texto_analisis(f"ERROR: {error_msg}\n")
             self.log_to_terminal(error_msg)
     
     def _correlacionar_intentos_acceso(self):
         """Correlacionar múltiples intentos de acceso fallidos."""
         try:
-            self._actualizar_texto_analisis("\n🔐 1. CORRELACIÓN DE INTENTOS DE ACCESO\n")
+            self._actualizar_texto_analisis("\n1. CORRELACIÓN DE INTENTOS DE ACCESO\n")
             self._actualizar_texto_analisis("-" * 50 + "\n")
             
             import subprocess
@@ -3708,25 +3779,25 @@ ls -la "$OUTPUT_DIR/"
                                 ips_sospechosas[ip] = ips_sospechosas.get(ip, 0) + 1
                     
                     if intentos_fallidos:
-                        self._actualizar_texto_analisis(f"⚠️ INTENTOS DE ACCESO FALLIDOS: {len(intentos_fallidos)}\n")
+                        self._actualizar_texto_analisis(f"INTENTOS DE ACCESO FALLIDOS: {len(intentos_fallidos)}\n")
                         
                         # IPs con múltiples intentos (posible fuerza bruta)
                         ips_bruta = [(ip, count) for ip, count in ips_sospechosas.items() if count >= 3]
                         
                         if ips_bruta:
-                            self._actualizar_texto_analisis("🚨 POSIBLES ATAQUES DE FUERZA BRUTA:\n")
+                            self._actualizar_texto_analisis("POSIBLES ATAQUES DE FUERZA BRUTA:\n")
                             for ip, count in sorted(ips_bruta, key=lambda x: x[1], reverse=True)[:5]:
-                                self._actualizar_texto_analisis(f"  🔴 IP: {ip} - {count} intentos\n")
+                                self._actualizar_texto_analisis(f"  IP: {ip} - {count} intentos\n")
                         else:
-                            self._actualizar_texto_analisis("✅ No se detectaron patrones de fuerza bruta\n")
+                            self._actualizar_texto_analisis("No se detectaron patrones de fuerza bruta\n")
                     else:
-                        self._actualizar_texto_analisis("✅ No hay intentos de acceso fallidos recientes\n")
+                        self._actualizar_texto_analisis("No hay intentos de acceso fallidos recientes\n")
                         
             except:
-                self._actualizar_texto_analisis("ℹ️ No se pudieron analizar logs de SSH\n")
+                self._actualizar_texto_analisis("No se pudieron analizar logs de SSH\n")
                 
         except Exception as e:
-            self._actualizar_texto_analisis(f"❌ Error correlacionando accesos: {str(e)}\n")
+            self._actualizar_texto_analisis(f"Error correlacionando accesos: {str(e)}\n")
     
     def _correlacionar_red_procesos(self):
         """Correlacionar actividad de red con procesos activos."""
@@ -3752,17 +3823,17 @@ ls -la "$OUTPUT_DIR/"
                                 procesos_red_sospechosos.append(linea.strip())
                     
                     if procesos_red_sospechosos:
-                        self._actualizar_texto_analisis("⚠️ PROCESOS CON ACTIVIDAD DE RED SOSPECHOSA:\n")
+                        self._actualizar_texto_analisis("PROCESOS CON ACTIVIDAD DE RED SOSPECHOSA:\n")
                         for proc in procesos_red_sospechosos[:5]:
-                            self._actualizar_texto_analisis(f"  🔴 {proc}\n")
+                            self._actualizar_texto_analisis(f"  {proc}\n")
                     else:
-                        self._actualizar_texto_analisis("✅ No se detectaron procesos de red sospechosos\n")
+                        self._actualizar_texto_analisis("No se detectaron procesos de red sospechosos\n")
                         
             except:
-                self._actualizar_texto_analisis("ℹ️ Error analizando correlación red-procesos\n")
+                self._actualizar_texto_analisis("Error analizando correlación red-procesos\n")
                 
         except Exception as e:
-            self._actualizar_texto_analisis(f"❌ Error en correlación red-procesos: {str(e)}\n")
+            self._actualizar_texto_analisis(f"Error en correlación red-procesos: {str(e)}\n")
     
     def _correlacionar_archivos_logins(self):
         """Correlacionar modificaciones de archivos con logins.""" 
@@ -3782,7 +3853,7 @@ ls -la "$OUTPUT_DIR/"
                     lineas_last = resultado_last.stdout.split('\n')
                     logins_recientes = [l for l in lineas_last if 'pts/' in l or 'tty' in l]
                     
-                    self._actualizar_texto_analisis(f"📊 Logins recientes detectados: {len(logins_recientes)}\n")
+                    self._actualizar_texto_analisis(f"Logins recientes detectados: {len(logins_recientes)}\n")
                     
                     # Si hay logins recientes, verificar modificaciones de archivos
                     if logins_recientes:
@@ -3796,29 +3867,29 @@ ls -la "$OUTPUT_DIR/"
                                 archivos_mod = [f for f in archivos_mod if f.strip()]
                                 
                                 if archivos_mod:
-                                    self._actualizar_texto_analisis(f"⚠️ ARCHIVOS MODIFICADOS EN LA ÚLTIMA HORA: {len(archivos_mod)}\n")
+                                    self._actualizar_texto_analisis(f"ARCHIVOS MODIFICADOS EN LA ÚLTIMA HORA: {len(archivos_mod)}\n")
                                     
                                     # Mostrar algunos archivos críticos si fueron modificados
                                     criticos_mod = [f for f in archivos_mod if any(crit in f for crit in ['/etc/passwd', '/etc/shadow', '/etc/sudoers', '.ssh'])]
                                     
                                     if criticos_mod:
-                                        self._actualizar_texto_analisis("🚨 ARCHIVOS CRÍTICOS MODIFICADOS:\n")
+                                        self._actualizar_texto_analisis("ARCHIVOS CRÍTICOS MODIFICADOS:\n")
                                         for archivo in criticos_mod[:5]:
-                                            self._actualizar_texto_analisis(f"  🔴 {archivo}\n")
+                                            self._actualizar_texto_analisis(f"  {archivo}\n")
                                     
                                 else:
-                                    self._actualizar_texto_analisis("✅ No hay modificaciones significativas de archivos\n")
+                                    self._actualizar_texto_analisis("No hay modificaciones significativas de archivos\n")
                                     
                         except:
                             pass
                     else:
-                        self._actualizar_texto_analisis("✅ No hay logins recientes\n")
+                        self._actualizar_texto_analisis("No hay logins recientes\n")
                         
             except:
-                self._actualizar_texto_analisis("ℹ️ Error analizando correlación archivos-logins\n")
+                self._actualizar_texto_analisis("Error analizando correlación archivos-logins\n")
                 
         except Exception as e:
-            self._actualizar_texto_analisis(f"❌ Error correlacionando archivos-logins: {str(e)}\n")
+            self._actualizar_texto_analisis(f"Error correlacionando archivos-logins: {str(e)}\n")
     
     def _analizar_cadenas_eventos(self):
         """Analizar cadenas de eventos que pueden indicar un ataque."""
@@ -3862,19 +3933,19 @@ ls -la "$OUTPUT_DIR/"
             
             # Evaluar la cadena de eventos
             if len(eventos_sospechosos) >= 2:
-                self._actualizar_texto_analisis("🚨 CADENA DE EVENTOS SOSPECHOSA DETECTADA:\n")
+                self._actualizar_texto_analisis("CADENA DE EVENTOS SOSPECHOSA DETECTADA:\n")
                 self._actualizar_texto_analisis(f"  📍 Eventos correlacionados: {', '.join(eventos_sospechosos)}\n")
-                self._actualizar_texto_analisis("  🔴 Posible intento de intrusión en progreso\n")
-                self._actualizar_texto_analisis("  💡 Recomendación: Revisar logs detalladamente y considerar medidas defensivas\n")
+                self._actualizar_texto_analisis("  Posible intento de intrusión en progreso\n")
+                self._actualizar_texto_analisis("  Recomendación: Revisar logs detalladamente y considerar medidas defensivas\n")
             elif len(eventos_sospechosos) == 1:
-                self._actualizar_texto_analisis("⚠️ Evento aislado detectado:\n")
+                self._actualizar_texto_analisis("Evento aislado detectado:\n")
                 self._actualizar_texto_analisis(f"  📍 Tipo: {eventos_sospechosos[0]}\n")
-                self._actualizar_texto_analisis("  💡 Mantener vigilancia\n")
+                self._actualizar_texto_analisis("  Mantener vigilancia\n")
             else:
-                self._actualizar_texto_analisis("✅ No se detectaron cadenas de eventos sospechosas\n")
+                self._actualizar_texto_analisis("No se detectaron cadenas de eventos sospechosas\n")
                 
         except Exception as e:
-            self._actualizar_texto_analisis(f"❌ Error analizando cadenas: {str(e)}\n")
+            self._actualizar_texto_analisis(f"Error analizando cadenas: {str(e)}\n")
     
     def obtener_datos_para_reporte(self):
         """Obtener datos del SIEM para incluir en reportes."""
@@ -3906,9 +3977,9 @@ ls -la "$OUTPUT_DIR/"
                 'resultados_texto': contenido_siem[-3000:] if len(contenido_siem) > 3000 else contenido_siem,
                 'estadisticas': {
                     'lineas_log': len(contenido_siem.split('\n')),
-                    'alertas_criticas': contenido_siem.count('CRITICO') + contenido_siem.count('🚨'),
-                    'alertas_altas': contenido_siem.count('ALTO') + contenido_siem.count('🔴'),
-                    'alertas_medias': contenido_siem.count('MEDIO') + contenido_siem.count('⚠️'),
+                    'alertas_criticas': contenido_siem.count('CRITICO') + contenido_siem.count(''),
+                    'alertas_altas': contenido_siem.count('ALTO') + contenido_siem.count(''),
+                    'alertas_medias': contenido_siem.count('MEDIO') + contenido_siem.count(''),
                     'eventos_procesados': contenido_siem.count('EVENTO') + contenido_siem.count('detectado'),
                     'correlaciones_realizadas': contenido_siem.count('CORRELACIÓN') + contenido_siem.count('correlación')
                 },
