@@ -31,19 +31,22 @@ python3 main.py
 
 > **⚠️ HERRAMIENTAS OPCIONALES**: Si necesitas herramientas adicionales:
 > ```bash
-> # Esperar a que termine el configurador automático
-> # Solo ejecutar si configurar_kali.sh ya terminó
+> # IMPORTANTE: Ejecutar cada comando POR SEPARADO
+> # Esperar a que cada uno termine antes del siguiente
 > 
-> # Volatility (análisis de memoria)
-> sudo apt update && sudo apt install -y volatility3
+> # 1. Actualizar repositorios (ejecutar solo)
+> sudo apt update
 > 
-> # Wireshark (análisis de tráfico) 
+> # 2. Volatility (ejecutar cuando termine el anterior)
+> sudo apt install -y volatility3
+> 
+> # 3. Wireshark (ejecutar cuando termine el anterior)
 > sudo apt install -y wireshark
 > 
-> # Autopsy (forense digital)
+> # 4. Autopsy (ejecutar cuando termine el anterior)
 > sudo apt install -y sleuthkit autopsy
 > ```
-> **IMPORTANTE**: Ejecutar solo UNA herramienta por vez para evitar bloqueos de apt
+> **CRÍTICO**: NO ejecutar todos los comandos de una vez. Uno por uno.
 
 ### 🔧 **Método Manual - Control Total**
 ```bash
