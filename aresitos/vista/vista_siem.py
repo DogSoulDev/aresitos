@@ -359,12 +359,12 @@ class VistaSIEM(tk.Frame):
             btn_buscar.pack(side=tk.LEFT, padx=5)
             
             # NUEVOS BOTONES FASE 3.2 - ANÁLISIS AVANZADO
-            btn_patrones = tk.Button(btn_frame, text="🔍 Análisis Avanzado", 
+            btn_patrones = tk.Button(btn_frame, text="Análisis Avanzado", 
                                    command=self.analizar_patrones_avanzados,
                                    bg='#d9534f', fg='white', font=('Arial', 10))
             btn_patrones.pack(side=tk.LEFT, padx=5)
             
-            btn_correlacion = tk.Button(btn_frame, text="🔗 Correlación", 
+            btn_correlacion = tk.Button(btn_frame, text="Correlación", 
                                       command=self.correlacionar_eventos_avanzado,
                                       bg='#5bc0de', fg='white', font=('Arial', 10))
             btn_correlacion.pack(side=tk.LEFT, padx=5)
@@ -378,9 +378,9 @@ class VistaSIEM(tk.Frame):
                       command=self.buscar_patrones).pack(side=tk.LEFT, padx=5)
             
             # NUEVOS BOTONES FASE 3.2 - ANÁLISIS AVANZADO (versión TTK)
-            ttk.Button(btn_frame, text="🔍 Análisis Avanzado", 
+            ttk.Button(btn_frame, text="Análisis Avanzado", 
                       command=self.analizar_patrones_avanzados).pack(side=tk.LEFT, padx=5)
-            ttk.Button(btn_frame, text="🔗 Correlación", 
+            ttk.Button(btn_frame, text="Correlación", 
                       command=self.correlacionar_eventos_avanzado).pack(side=tk.LEFT, padx=5)
         
         # Panel inferior - Resultados de análisis

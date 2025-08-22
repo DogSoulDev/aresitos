@@ -315,149 +315,571 @@ class VistaEscaneo(tk.Frame):
             pass  # Si no se puede programar, ignorar
     
     def _ejecutar_escaneo_async(self):
-        """Ejecutar escaneo completo del sistema usando herramientas nativas de Kali Linux."""
+        """Ejecutar escaneo completo del sistema usando el escaneador avanzado Kali 2025."""
         try:
             if not self.proceso_activo:
                 return
             
-            self._log_terminal("Iniciando escaneo completo con herramientas nativas de Kali Linux", "ESCANEADOR", "INFO")
+            self._log_terminal("Iniciando ESCANEO COMPLETO KALI 2025 - Aresitos Aegis", "ESCANEADOR", "INFO")
+            self._actualizar_texto_seguro("=== ARESITOS AEGIS - ESCANEO AVANZADO KALI 2025 ===\n\n")
             
-            # Contador de fases completadas y errores
+            # Verificar controlador con logs detallados
+            self._log_terminal(f"Verificando controlador: {self.controlador is not None}", "ESCANEADOR", "DEBUG")
+            if self.controlador:
+                self._log_terminal(f"Métodos disponibles: {[m for m in dir(self.controlador) if 'escaneo' in m.lower()]}", "ESCANEADOR", "DEBUG")
+            
+            # Forzar uso del controlador de escaneo avanzado
+            if self.controlador:
+                self._log_terminal("✓ Controlador disponible - Iniciando escaneo Kali 2025", "ESCANEADOR", "SUCCESS")
+                self._actualizar_texto_seguro("MODO: Escaneador Avanzado Kali 2025\n")
+                self._actualizar_texto_seguro("HERRAMIENTAS: masscan, nmap, nuclei, gobuster, ffuf, rustscan\n\n")
+                
+                # Determinar objetivo (localhost + red local)
+                objetivos = ["127.0.0.1"]  # Siempre incluir localhost
+                
+                # Detectar red local
+                try:
+                    import subprocess
+                    resultado = subprocess.run(['ip', 'route', 'show', 'default'], 
+                                             capture_output=True, text=True, timeout=5)
+                    if resultado.returncode == 0 and resultado.stdout.strip():
+                        gateway_line = resultado.stdout.strip()
+                        if 'via' in gateway_line:
+                            gateway = gateway_line.split('via')[1].split()[0]
+                            octetos = gateway.split('.')
+                            if len(octetos) >= 3:
+                                red_local = f"{octetos[0]}.{octetos[1]}.{octetos[2]}.0/24"
+                                objetivos.append(red_local)
+                                self._actualizar_texto_seguro(f"RED LOCAL DETECTADA: {red_local}\n")
+                except Exception as e:
+                    self._log_terminal(f"Error detectando red: {str(e)}", "ESCANEADOR", "WARNING")
+                
+                self._actualizar_texto_seguro(f"OBJETIVOS: {', '.join(objetivos)}\n\n")
+                
+                # Ejecutar escaneo para cada objetivo
+                resultados_totales = {"exito": True, "resultados": []}
+                for objetivo in objetivos:
+                    self._log_terminal(f"Escaneando objetivo: {objetivo}", "ESCANEADOR", "INFO")
+                    self._actualizar_texto_seguro(f"ESCANEANDO: {objetivo}\n")
+                    
+                    try:
+                        # Intentar método Kali 2025 primero
+                        if hasattr(self.controlador, 'escaneo_completo_kali2025'):
+                            resultado = self.controlador.escaneo_completo_kali2025(objetivo)
+                        # Fallback a método genérico
+                        elif hasattr(self.controlador, 'escaneo_completo'):
+                            resultado = self.controlador.escaneo_completo(objetivo)
+                        # Fallback a escaneo básico del controlador
+                        elif hasattr(self.controlador, 'escanear_sistema'):
+                            resultado = self.controlador.escanear_sistema(objetivo)
+                        else:
+                            self._log_terminal("Métodos de escaneo no encontrados en controlador", "ESCANEADOR", "ERROR")
+                            raise Exception("Controlador sin métodos de escaneo")
+                        
+                        if resultado and resultado.get("exito"):
+                            resultados_totales["resultados"].append(resultado)
+                            self._log_terminal(f"✓ Escaneo de {objetivo} completado", "ESCANEADOR", "SUCCESS")
+                        else:
+                            self._log_terminal(f"✗ Error en escaneo de {objetivo}: {resultado.get('error', 'Error desconocido')}", "ESCANEADOR", "ERROR")
+                            
+                    except Exception as e:
+                        self._log_terminal(f"✗ Excepción escaneando {objetivo}: {str(e)}", "ESCANEADOR", "ERROR")
+                        continue
+                
+                # Mostrar resultados consolidados
+                if resultados_totales["resultados"]:
+                    self._mostrar_resultados_consolidados(resultados_totales)
+                else:
+                    self._actualizar_texto_seguro("ERROR: No se pudo completar ningún escaneo\n")
+                    self._ejecutar_escaneo_emergencia()
+                    
+            else:
+                self._log_terminal("✗ Controlador no disponible - Ejecutando escaneo de emergencia", "ESCANEADOR", "ERROR")
+                self._ejecutar_escaneo_emergencia()
+                
+        except Exception as e:
+            self._log_terminal(f"ERROR CRÍTICO en escaneo: {str(e)}", "ESCANEADOR", "ERROR")
+            self._actualizar_texto_seguro(f"\nERROR CRÍTICO: {str(e)}\n")
+            self._ejecutar_escaneo_emergencia()
+        finally:
+            # Finalizar proceso
+            self.proceso_activo = False
+            self.after_idle(self._finalizar_escaneo)
+    
+    def _mostrar_resultados_consolidados(self, resultados_totales):
+        """Mostrar resultados consolidados de todos los escaneos."""
+        try:
+            self._actualizar_texto_seguro("\n" + "=" * 70 + "\n")
+            self._actualizar_texto_seguro("    RESULTADOS CONSOLIDADOS - ESCANEO KALI 2025\n")
+            self._actualizar_texto_seguro("=" * 70 + "\n\n")
+            
+            total_vulnerabilidades = 0
+            total_puertos = 0
+            total_servicios = 0
+            
+            for i, resultado in enumerate(resultados_totales["resultados"], 1):
+                datos = resultado.get("resultado", {})
+                objetivo = datos.get("objetivo", f"Objetivo {i}")
+                
+                self._actualizar_texto_seguro(f"--- OBJETIVO {i}: {objetivo} ---\n")
+                
+                # Resumen ejecutivo por objetivo
+                resumen = datos.get("resumen", {})
+                if resumen:
+                    puertos = resumen.get('puertos_abiertos', 0)
+                    servicios = resumen.get('servicios_detectados', 0)
+                    vulnerabilidades = resumen.get('vulnerabilidades_encontradas', 0)
+                    
+                    self._actualizar_texto_seguro(f"  Puertos abiertos: {puertos}\n")
+                    self._actualizar_texto_seguro(f"  Servicios: {servicios}\n")
+                    self._actualizar_texto_seguro(f"  Vulnerabilidades: {vulnerabilidades}\n")
+                    
+                    total_puertos += puertos
+                    total_servicios += servicios
+                    total_vulnerabilidades += vulnerabilidades
+                
+                # Mostrar algunos detalles importantes
+                fases = datos.get("fases", {})
+                if "nmap" in fases and fases["nmap"].get("exito"):
+                    servicios_importantes = fases["nmap"].get("servicios", [])[:3]
+                    for servicio in servicios_importantes:
+                        puerto = servicio.get("puerto", "N/A")
+                        nombre = servicio.get("servicio", "desconocido")
+                        self._actualizar_texto_seguro(f"    ├─ Puerto {puerto}: {nombre}\n")
+                
+                if "nuclei" in fases and fases["nuclei"].get("exito"):
+                    vulnerabilidades = fases["nuclei"].get("vulnerabilidades", [])[:2]
+                    for vuln in vulnerabilidades:
+                        template = vuln.get("template", "N/A")
+                        self._actualizar_texto_seguro(f"    ⚠─ VULNERABILIDAD: {template}\n")
+                
+                self._actualizar_texto_seguro("\n")
+            
+            # Resumen global
+            self._actualizar_texto_seguro("--- RESUMEN GLOBAL ---\n")
+            self._actualizar_texto_seguro(f"Total objetivos escaneados: {len(resultados_totales['resultados'])}\n")
+            self._actualizar_texto_seguro(f"Total puertos abiertos: {total_puertos}\n")
+            self._actualizar_texto_seguro(f"Total servicios detectados: {total_servicios}\n")
+            self._actualizar_texto_seguro(f"Total vulnerabilidades: {total_vulnerabilidades}\n\n")
+            
+            # Recomendaciones
+            self._actualizar_texto_seguro("--- RECOMENDACIONES ---\n")
+            if total_vulnerabilidades > 0:
+                self._actualizar_texto_seguro("🔴 CRÍTICO: Se encontraron vulnerabilidades - Revisar inmediatamente\n")
+            if total_puertos > 20:
+                self._actualizar_texto_seguro("🟡 ATENCIÓN: Muchos puertos abiertos - Revisar superficie de ataque\n")
+            self._actualizar_texto_seguro("🔵 Revisar logs detallados en el módulo SIEM\n")
+            self._actualizar_texto_seguro("🔵 Considerar monitoreo FIM de archivos críticos\n\n")
+            
+            self._actualizar_texto_seguro("=" * 70 + "\n")
+            self._actualizar_texto_seguro("        ESCANEO KALI 2025 COMPLETADO EXITOSAMENTE\n")
+            self._actualizar_texto_seguro("=" * 70 + "\n")
+            
+            self._log_terminal("✓ Escaneo Kali 2025 completado con éxito", "ESCANEADOR", "SUCCESS")
+            
+        except Exception as e:
+            self._actualizar_texto_seguro(f"Error mostrando resultados consolidados: {str(e)}\n")
+            self._log_terminal(f"Error mostrando resultados: {str(e)}", "ESCANEADOR", "ERROR")
+    
+    def _ejecutar_escaneo_emergencia(self):
+        """Escaneo de emergencia cuando el controlador no está disponible."""
+        try:
+            self._actualizar_texto_seguro("\n=== MODO EMERGENCIA - ESCANEO DIRECTO ===\n\n")
+            self._log_terminal("Ejecutando escaneo de emergencia", "ESCANEADOR", "WARNING")
+            
+            import subprocess
+            import os
+            
+            # 1. Información del sistema
+            self._actualizar_texto_seguro("--- INFORMACIÓN DEL SISTEMA ---\n")
+            try:
+                resultado = subprocess.run(['uname', '-a'], capture_output=True, text=True, timeout=10)
+                if resultado.returncode == 0:
+                    self._actualizar_texto_seguro(f"Sistema: {resultado.stdout.strip()}\n")
+            except:
+                pass
+            
+            try:
+                resultado = subprocess.run(['whoami'], capture_output=True, text=True, timeout=5)
+                if resultado.returncode == 0:
+                    self._actualizar_texto_seguro(f"Usuario: {resultado.stdout.strip()}\n")
+            except:
+                pass
+            
+            # 2. Red y conectividad
+            self._actualizar_texto_seguro("\n--- ANÁLISIS DE RED ---\n")
+            try:
+                resultado = subprocess.run(['ip', 'addr', 'show'], capture_output=True, text=True, timeout=10)
+                if resultado.returncode == 0:
+                    lineas = resultado.stdout.split('\n')
+                    interfaces = [l.strip() for l in lineas if 'inet ' in l and '127.0.0.1' not in l][:3]
+                    for interfaz in interfaces:
+                        self._actualizar_texto_seguro(f"Interfaz: {interfaz}\n")
+            except:
+                pass
+            
+            # 3. Puertos locales
+            try:
+                resultado = subprocess.run(['ss', '-tuln'], capture_output=True, text=True, timeout=10)
+                if resultado.returncode == 0:
+                    lineas = [l for l in resultado.stdout.split('\n') if 'LISTEN' in l][:5]
+                    if lineas:
+                        self._actualizar_texto_seguro(f"\nPuertos en escucha: {len(lineas)}\n")
+                        for linea in lineas:
+                            self._actualizar_texto_seguro(f"  {linea.strip()}\n")
+            except:
+                pass
+            
+            # 4. Procesos críticos
+            self._actualizar_texto_seguro("\n--- PROCESOS DEL SISTEMA ---\n")
+            try:
+                resultado = subprocess.run(['ps', 'aux', '--sort=-%cpu'], capture_output=True, text=True, timeout=10)
+                if resultado.returncode == 0:
+                    lineas = resultado.stdout.split('\n')[1:6]  # Primeros 5 procesos
+                    for linea in lineas:
+                        if linea.strip():
+                            campos = linea.split()
+                            if len(campos) >= 11:
+                                usuario = campos[0]
+                                cpu = campos[2]
+                                comando = ' '.join(campos[10:])[:50]
+                                self._actualizar_texto_seguro(f"  {usuario} ({cpu}% CPU): {comando}\n")
+            except:
+                pass
+            
+            self._actualizar_texto_seguro("\n--- ESCANEO DE EMERGENCIA COMPLETADO ---\n")
+            self._actualizar_texto_seguro("NOTA: Para un análisis completo, verifique la conexión del controlador\n")
+            
+            self._log_terminal("Escaneo de emergencia completado", "ESCANEADOR", "INFO")
+            
+        except Exception as e:
+            self._actualizar_texto_seguro(f"Error en escaneo de emergencia: {str(e)}\n")
+            self._log_terminal(f"Error en escaneo de emergencia: {str(e)}", "ESCANEADOR", "ERROR")
+        """Mostrar resultados del escaneo Kali 2025 de forma organizada."""
+        try:
+            datos = resultado.get("resultado", {})
+            objetivo = datos.get("objetivo", "N/A")
+            
+            self._actualizar_texto_seguro("=" * 60 + "\n")
+            self._actualizar_texto_seguro("           RESULTADOS DEL ESCANEO KALI 2025\n")
+            self._actualizar_texto_seguro("=" * 60 + "\n\n")
+            
+            # Información general
+            self._actualizar_texto_seguro(f"OBJETIVO ESCANEADO: {objetivo}\n")
+            self._actualizar_texto_seguro(f"TIMESTAMP: {datos.get('timestamp', 'N/A')}\n")
+            
+            herramientas = datos.get("herramientas_utilizadas", [])
+            self._actualizar_texto_seguro(f"HERRAMIENTAS UTILIZADAS: {', '.join(herramientas)}\n\n")
+            
+            # Resumen de resultados
+            resumen = datos.get("resumen", {})
+            if resumen:
+                self._actualizar_texto_seguro("--- RESUMEN EJECUTIVO ---\n")
+                self._actualizar_texto_seguro(f"Puertos Abiertos: {resumen.get('puertos_abiertos', 0)}\n")
+                self._actualizar_texto_seguro(f"Servicios Detectados: {resumen.get('servicios_detectados', 0)}\n")
+                self._actualizar_texto_seguro(f"Vulnerabilidades: {resumen.get('vulnerabilidades_encontradas', 0)}\n")
+                self._actualizar_texto_seguro(f"Herramientas Utilizadas: {resumen.get('herramientas_utilizadas', 0)}\n\n")
+            
+            # Resultados por fase
+            fases = datos.get("fases", {})
+            
+            # FASE 1: Masscan
+            if "masscan" in fases:
+                masscan_data = fases["masscan"]
+                self._actualizar_texto_seguro("--- FASE 1: MASSCAN (Reconocimiento Rápido) ---\n")
+                if masscan_data.get("exito"):
+                    puertos = masscan_data.get("puertos_abiertos", [])
+                    self._actualizar_texto_seguro(f"PUERTOS ENCONTRADOS: {len(puertos)}\n")
+                    for puerto in puertos[:10]:  # Mostrar primeros 10
+                        self._actualizar_texto_seguro(f"  - {puerto['ip']}:{puerto['puerto']}/{puerto['protocolo']}\n")
+                    if len(puertos) > 10:
+                        self._actualizar_texto_seguro(f"  ... y {len(puertos) - 10} puertos más\n")
+                else:
+                    self._actualizar_texto_seguro("ERROR en masscan o no ejecutado\n")
+                self._actualizar_texto_seguro("\n")
+            
+            # FASE 2: Nmap
+            if "nmap" in fases:
+                nmap_data = fases["nmap"]
+                self._actualizar_texto_seguro("--- FASE 2: NMAP (Análisis Detallado) ---\n")
+                if nmap_data.get("exito"):
+                    servicios = nmap_data.get("servicios", [])
+                    self._actualizar_texto_seguro(f"SERVICIOS IDENTIFICADOS: {len(servicios)}\n")
+                    for servicio in servicios[:8]:  # Mostrar primeros 8
+                        puerto = servicio.get("puerto", "N/A")
+                        protocolo = servicio.get("protocolo", "N/A")
+                        servicio_name = servicio.get("servicio", "desconocido")
+                        version = servicio.get("version", "")
+                        self._actualizar_texto_seguro(f"  - Puerto {puerto}/{protocolo}: {servicio_name} {version}\n")
+                    if len(servicios) > 8:
+                        self._actualizar_texto_seguro(f"  ... y {len(servicios) - 8} servicios más\n")
+                    
+                    # Información del sistema
+                    if "sistema_operativo" in nmap_data:
+                        self._actualizar_texto_seguro(f"SISTEMA OPERATIVO: {nmap_data['sistema_operativo']}\n")
+                else:
+                    self._actualizar_texto_seguro("ERROR en nmap o no ejecutado\n")
+                self._actualizar_texto_seguro("\n")
+            
+            # FASE 3: Nuclei
+            if "nuclei" in fases:
+                nuclei_data = fases["nuclei"]
+                self._actualizar_texto_seguro("--- FASE 3: NUCLEI (Detección de Vulnerabilidades) ---\n")
+                if nuclei_data.get("exito"):
+                    vulnerabilidades = nuclei_data.get("vulnerabilidades", [])
+                    if vulnerabilidades:
+                        self._actualizar_texto_seguro(f"VULNERABILIDADES ENCONTRADAS: {len(vulnerabilidades)}\n")
+                        for vuln in vulnerabilidades[:5]:  # Mostrar primeras 5
+                            self._actualizar_texto_seguro(f"  - {vuln.get('template', 'N/A')}: {vuln.get('descripcion', 'Sin descripción')}\n")
+                        if len(vulnerabilidades) > 5:
+                            self._actualizar_texto_seguro(f"  ... y {len(vulnerabilidades) - 5} vulnerabilidades más\n")
+                    else:
+                        self._actualizar_texto_seguro("No se encontraron vulnerabilidades conocidas\n")
+                else:
+                    self._actualizar_texto_seguro("ERROR en nuclei o no ejecutado\n")
+                self._actualizar_texto_seguro("\n")
+            
+            # Fases web (Gobuster, FFUF)
+            fases_web = [k for k in fases.keys() if k.startswith(("gobuster_", "ffuf_"))]
+            if fases_web:
+                self._actualizar_texto_seguro("--- FASES WEB: GOBUSTER & FFUF ---\n")
+                for fase_web in fases_web[:3]:  # Mostrar primeras 3
+                    data = fases[fase_web]
+                    self._actualizar_texto_seguro(f"{fase_web.upper()}: ")
+                    if data.get("exito"):
+                        directorios = data.get("directorios_encontrados", [])
+                        self._actualizar_texto_seguro(f"{len(directorios)} elementos encontrados\n")
+                    else:
+                        self._actualizar_texto_seguro("No ejecutado o error\n")
+                self._actualizar_texto_seguro("\n")
+            
+            # Recomendaciones finales
+            self._actualizar_texto_seguro("--- RECOMENDACIONES ---\n")
+            if resumen.get("vulnerabilidades_encontradas", 0) > 0:
+                self._actualizar_texto_seguro("• PRIORIDAD ALTA: Revisar vulnerabilidades encontradas\n")
+            if resumen.get("puertos_abiertos", 0) > 10:
+                self._actualizar_texto_seguro("• REVISAR: Gran cantidad de puertos abiertos detectados\n")
+            self._actualizar_texto_seguro("• Revisar logs completos en el módulo SIEM\n")
+            self._actualizar_texto_seguro("• Considerar análisis de archivos críticos en FIM\n\n")
+            
+            self._actualizar_texto_seguro("=" * 60 + "\n")
+            self._actualizar_texto_seguro("           ESCANEO KALI 2025 COMPLETADO\n")
+            self._actualizar_texto_seguro("=" * 60 + "\n")
+            
+            self._log_terminal("✓ Escaneo Kali 2025 completado exitosamente", "ESCANEADOR", "SUCCESS")
+            
+        except Exception as e:
+            self._actualizar_texto_seguro(f"Error mostrando resultados: {str(e)}\n")
+            self._log_terminal(f"Error mostrando resultados: {str(e)}", "ESCANEADOR", "ERROR")
+    
+    def _ejecutar_escaneo_basico_fallback(self):
+        """Escaneo básico como fallback cuando el controlador avanzado no está disponible."""
+        try:
+            self._actualizar_texto_seguro("\n=== MODO FALLBACK: ESCANEO DIRECTO ===\n\n")
+            self._log_terminal("Ejecutando escaneo básico directo", "ESCANEADOR", "WARNING")
+            
+            import subprocess
+            import os
+            
+            # Variables para contar fases
             fases_completadas = 0
             fases_con_error = 0
-            total_fases = 10
+            total_fases = 7
             
-            # FASE 1: Escaneo de red local con herramientas de Kali
+            # FASE 1: Información del sistema
             try:
-                self._log_terminal("FASE 1: Reconocimiento de red con herramientas de Kali", "ESCANEADOR", "INFO")
-                self._escaneo_red_kali()
+                self._log_terminal("FASE 1: Recopilando información del sistema", "ESCANEADOR", "INFO")
+                self._actualizar_texto_seguro("--- FASE 1: INFORMACIÓN DEL SISTEMA ---\n")
+                
+                resultado = subprocess.run(['uname', '-a'], capture_output=True, text=True, timeout=10)
+                if resultado.returncode == 0:
+                    self._actualizar_texto_seguro(f"Sistema: {resultado.stdout.strip()}\n")
+                
+                resultado = subprocess.run(['whoami'], capture_output=True, text=True, timeout=5)
+                if resultado.returncode == 0:
+                    self._actualizar_texto_seguro(f"Usuario actual: {resultado.stdout.strip()}\n")
+                
                 fases_completadas += 1
-                self._log_terminal("✓ FASE 1 completada exitosamente", "ESCANEADOR", "SUCCESS")
+                self._log_terminal("✓ FASE 1 completada", "ESCANEADOR", "SUCCESS")
+                
             except Exception as e:
                 fases_con_error += 1
                 self._log_terminal(f"✗ ERROR en FASE 1: {str(e)}", "ESCANEADOR", "ERROR")
-                self._log_terminal("Continuando con la siguiente fase...", "ESCANEADOR", "WARNING")
             
-            # FASE 2: Verificación de servicios y puertos
+            # FASE 2: Análisis de red básico
             try:
-                self._log_terminal("FASE 2: Análisis de servicios con ss y netstat", "ESCANEADOR", "INFO")
-                self._escanear_servicios_kali()
+                self._log_terminal("FASE 2: Análisis básico de red", "ESCANEADOR", "INFO")
+                self._actualizar_texto_seguro("\n--- FASE 2: ANÁLISIS DE RED ---\n")
+                
+                # Interfaces de red
+                resultado = subprocess.run(['ip', 'addr', 'show'], capture_output=True, text=True, timeout=10)
+                if resultado.returncode == 0:
+                    lineas = resultado.stdout.split('\n')
+                    interfaces_activas = [l.strip() for l in lineas if 'inet ' in l and '127.0.0.1' not in l]
+                    self._actualizar_texto_seguro(f"Interfaces activas: {len(interfaces_activas)}\n")
+                    for interfaz in interfaces_activas[:3]:
+                        self._actualizar_texto_seguro(f"  {interfaz}\n")
+                
+                # Gateway
+                resultado = subprocess.run(['ip', 'route', 'show', 'default'], capture_output=True, text=True, timeout=5)
+                if resultado.returncode == 0 and resultado.stdout.strip():
+                    self._actualizar_texto_seguro(f"Gateway: {resultado.stdout.strip()}\n")
+                
                 fases_completadas += 1
-                self._log_terminal("✓ FASE 2 completada exitosamente", "ESCANEADOR", "SUCCESS")
+                self._log_terminal("✓ FASE 2 completada", "ESCANEADOR", "SUCCESS")
+                
             except Exception as e:
                 fases_con_error += 1
                 self._log_terminal(f"✗ ERROR en FASE 2: {str(e)}", "ESCANEADOR", "ERROR")
-                self._log_terminal("Continuando con la siguiente fase...", "ESCANEADOR", "WARNING")
             
-            # FASE 3: Escaneo de archivos críticos del sistema
+            # FASE 3: Puertos en escucha
             try:
-                self._log_terminal("FASE 3: Verificando archivos críticos del sistema", "ESCANEADOR", "INFO")
-                self._escanear_archivos_criticos()
+                self._log_terminal("FASE 3: Verificando puertos en escucha", "ESCANEADOR", "INFO")
+                self._actualizar_texto_seguro("\n--- FASE 3: PUERTOS EN ESCUCHA ---\n")
+                
+                resultado = subprocess.run(['ss', '-tuln'], capture_output=True, text=True, timeout=10)
+                if resultado.returncode == 0:
+                    lineas = [l for l in resultado.stdout.split('\n') if 'LISTEN' in l]
+                    self._actualizar_texto_seguro(f"Puertos TCP en escucha: {len(lineas)}\n")
+                    for linea in lineas[:5]:  # Mostrar primeros 5
+                        self._actualizar_texto_seguro(f"  {linea.strip()}\n")
+                    if len(lineas) > 5:
+                        self._actualizar_texto_seguro(f"  ... y {len(lineas) - 5} puertos más\n")
+                
                 fases_completadas += 1
-                self._log_terminal("✓ FASE 3 completada exitosamente", "ESCANEADOR", "SUCCESS")
+                self._log_terminal("✓ FASE 3 completada", "ESCANEADOR", "SUCCESS")
+                
             except Exception as e:
                 fases_con_error += 1
                 self._log_terminal(f"✗ ERROR en FASE 3: {str(e)}", "ESCANEADOR", "ERROR")
-                self._log_terminal("Continuando con la siguiente fase...", "ESCANEADOR", "WARNING")
             
-            # FASE 4: Verificación de permisos sospechosos
+            # FASE 4: Procesos activos
             try:
-                self._log_terminal("FASE 4: Analizando permisos sospechosos", "ESCANEADOR", "WARNING")
-                self._escanear_permisos_sospechosos()
+                self._log_terminal("FASE 4: Analizando procesos activos", "ESCANEADOR", "INFO")
+                self._actualizar_texto_seguro("\n--- FASE 4: PROCESOS CRÍTICOS ---\n")
+                
+                resultado = subprocess.run(['ps', 'aux', '--sort=-%cpu'], capture_output=True, text=True, timeout=10)
+                if resultado.returncode == 0:
+                    lineas = resultado.stdout.split('\n')[1:8]  # Primeros 7 procesos
+                    self._actualizar_texto_seguro("Top procesos por CPU:\n")
+                    for linea in lineas:
+                        if linea.strip():
+                            campos = linea.split()
+                            if len(campos) >= 11:
+                                usuario = campos[0]
+                                cpu = campos[2]
+                                comando = ' '.join(campos[10:])[:40]
+                                self._actualizar_texto_seguro(f"  {usuario} ({cpu}%): {comando}\n")
+                
                 fases_completadas += 1
-                self._log_terminal("✓ FASE 4 completada exitosamente", "ESCANEADOR", "SUCCESS")
+                self._log_terminal("✓ FASE 4 completada", "ESCANEADOR", "SUCCESS")
+                
             except Exception as e:
                 fases_con_error += 1
                 self._log_terminal(f"✗ ERROR en FASE 4: {str(e)}", "ESCANEADOR", "ERROR")
-                self._log_terminal("Continuando con la siguiente fase...", "ESCANEADOR", "WARNING")
             
-            # FASE 5: Búsqueda de malware y rootkits
+            # FASE 5: Servicios del sistema
             try:
-                self._log_terminal("FASE 5: Escaneando en busca de malware y rootkits", "ESCANEADOR", "WARNING")
-                self._escanear_malware_rootkits()
+                self._log_terminal("FASE 5: Verificando servicios del sistema", "ESCANEADOR", "INFO")
+                self._actualizar_texto_seguro("\n--- FASE 5: SERVICIOS ACTIVOS ---\n")
+                
+                resultado = subprocess.run(['systemctl', 'list-units', '--type=service', '--state=running', '--no-pager'], 
+                                         capture_output=True, text=True, timeout=15)
+                if resultado.returncode == 0:
+                    lineas = [l for l in resultado.stdout.split('\n') if '.service' in l and 'running' in l]
+                    self._actualizar_texto_seguro(f"Servicios activos: {len(lineas)}\n")
+                    for linea in lineas[:6]:  # Mostrar primeros 6
+                        servicio = linea.split()[0] if linea.split() else linea.strip()
+                        self._actualizar_texto_seguro(f"  {servicio}\n")
+                    if len(lineas) > 6:
+                        self._actualizar_texto_seguro(f"  ... y {len(lineas) - 6} servicios más\n")
+                
                 fases_completadas += 1
-                self._log_terminal("✓ FASE 5 completada exitosamente", "ESCANEADOR", "SUCCESS")
+                self._log_terminal("✓ FASE 5 completada", "ESCANEADOR", "SUCCESS")
+                
             except Exception as e:
                 fases_con_error += 1
                 self._log_terminal(f"✗ ERROR en FASE 5: {str(e)}", "ESCANEADOR", "ERROR")
-                self._log_terminal("Continuando con la siguiente fase...", "ESCANEADOR", "WARNING")
             
-            # FASE 6: Verificación de procesos sospechosos
+            # FASE 6: Verificación de herramientas de seguridad
             try:
-                self._log_terminal("FASE 6: Analizando procesos en ejecución", "ESCANEADOR", "INFO")
-                self._escanear_procesos_sospechosos()
+                self._log_terminal("FASE 6: Verificando herramientas de seguridad disponibles", "ESCANEADOR", "INFO")
+                self._actualizar_texto_seguro("\n--- FASE 6: HERRAMIENTAS DE SEGURIDAD ---\n")
+                
+                herramientas = ['nmap', 'masscan', 'gobuster', 'nuclei', 'nikto', 'rustscan']
+                disponibles = []
+                
+                for herramienta in herramientas:
+                    try:
+                        resultado = subprocess.run(['which', herramienta], capture_output=True, text=True, timeout=3)
+                        if resultado.returncode == 0:
+                            disponibles.append(herramienta)
+                            self._actualizar_texto_seguro(f"  ✓ {herramienta}: {resultado.stdout.strip()}\n")
+                        else:
+                            self._actualizar_texto_seguro(f"  ✗ {herramienta}: No disponible\n")
+                    except:
+                        self._actualizar_texto_seguro(f"  ? {herramienta}: Error verificando\n")
+                
+                self._actualizar_texto_seguro(f"\nHerramientas disponibles: {len(disponibles)}/{len(herramientas)}\n")
+                
                 fases_completadas += 1
-                self._log_terminal("✓ FASE 6 completada exitosamente", "ESCANEADOR", "SUCCESS")
+                self._log_terminal("✓ FASE 6 completada", "ESCANEADOR", "SUCCESS")
+                
             except Exception as e:
                 fases_con_error += 1
                 self._log_terminal(f"✗ ERROR en FASE 6: {str(e)}", "ESCANEADOR", "ERROR")
-                self._log_terminal("Continuando con la siguiente fase...", "ESCANEADOR", "WARNING")
             
-            # FASE 7: Análisis de conexiones de red
+            # FASE 7: Resumen de seguridad
             try:
-                self._log_terminal("FASE 7: Verificando conexiones de red", "ESCANEADOR", "INFO")
-                self._escanear_conexiones_red()
+                self._log_terminal("FASE 7: Generando resumen de seguridad", "ESCANEADOR", "INFO")
+                self._actualizar_texto_seguro("\n--- FASE 7: RESUMEN DE SEGURIDAD ---\n")
+                
+                # Verificar si es Kali Linux
+                try:
+                    resultado = subprocess.run(['cat', '/etc/os-release'], capture_output=True, text=True, timeout=5)
+                    if 'kali' in resultado.stdout.lower():
+                        self._actualizar_texto_seguro("✓ Sistema: Kali Linux detectado\n")
+                    else:
+                        self._actualizar_texto_seguro("⚠ Sistema: No es Kali Linux\n")
+                except:
+                    pass
+                
+                # Estado general
+                self._actualizar_texto_seguro(f"✓ Fases completadas: {fases_completadas}/{total_fases}\n")
+                if fases_con_error > 0:
+                    self._actualizar_texto_seguro(f"⚠ Fases con errores: {fases_con_error}\n")
+                
                 fases_completadas += 1
-                self._log_terminal("✓ FASE 7 completada exitosamente", "ESCANEADOR", "SUCCESS")
+                self._log_terminal("✓ FASE 7 completada", "ESCANEADOR", "SUCCESS")
+                
             except Exception as e:
                 fases_con_error += 1
                 self._log_terminal(f"✗ ERROR en FASE 7: {str(e)}", "ESCANEADOR", "ERROR")
-                self._log_terminal("Continuando con la siguiente fase...", "ESCANEADOR", "WARNING")
             
-            # FASE 8: Análisis avanzado con herramientas Kali
-            try:
-                self._log_terminal("FASE 8: Análisis con herramientas especializadas de Kali", "ESCANEADOR", "WARNING")
-                self._escaneo_avanzado_kali()
-                fases_completadas += 1
-                self._log_terminal("✓ FASE 8 completada exitosamente", "ESCANEADOR", "SUCCESS")
-            except Exception as e:
-                fases_con_error += 1
-                self._log_terminal(f"✗ ERROR en FASE 8: {str(e)}", "ESCANEADOR", "ERROR")
-                self._log_terminal("Continuando con la siguiente fase...", "ESCANEADOR", "WARNING")
-            
-            # FASE 9: Verificación de configuraciones de seguridad
-            try:
-                self._log_terminal("FASE 9: Verificando configuraciones de seguridad del sistema", "ESCANEADOR", "INFO")
-                self._verificar_configuraciones_seguridad()
-                fases_completadas += 1
-                self._log_terminal("✓ FASE 9 completada exitosamente", "ESCANEADOR", "SUCCESS")
-            except Exception as e:
-                fases_con_error += 1
-                self._log_terminal(f"✗ ERROR en FASE 9: {str(e)}", "ESCANEADOR", "ERROR")
-                self._log_terminal("Continuando con la siguiente fase...", "ESCANEADOR", "WARNING")
-            
-            # FASE 10: Detección de rootkits con herramientas nativas
-            try:
-                self._log_terminal("FASE 10: Detección avanzada de rootkits y backdoors", "ESCANEADOR", "ERROR")
-                self._detectar_rootkits_avanzado()
-                fases_completadas += 1
-                self._log_terminal("✓ FASE 10 completada exitosamente", "ESCANEADOR", "SUCCESS")
-            except Exception as e:
-                fases_con_error += 1
-                self._log_terminal(f"✗ ERROR en FASE 10: {str(e)}", "ESCANEADOR", "ERROR")
-            
-            # Resumen final del escaneo
-            self._log_terminal("=" * 60, "ESCANEADOR", "INFO")
-            self._log_terminal("RESUMEN DE ESCANEO COMPLETO:", "ESCANEADOR", "INFO")
-            self._log_terminal(f"📊 Total de fases: {total_fases}", "ESCANEADOR", "INFO")
-            self._log_terminal(f"✅ Fases completadas: {fases_completadas}", "ESCANEADOR", "SUCCESS")
-            self._log_terminal(f"❌ Fases con errores: {fases_con_error}", "ESCANEADOR", "ERROR")
+            # Resumen final
+            self._actualizar_texto_seguro("\n" + "=" * 60 + "\n")
+            self._actualizar_texto_seguro("RESUMEN DEL ESCANEO BÁSICO\n")
+            self._actualizar_texto_seguro("=" * 60 + "\n")
+            self._actualizar_texto_seguro(f"Total de fases: {total_fases}\n")
+            self._actualizar_texto_seguro(f"Fases completadas: {fases_completadas}\n")
+            self._actualizar_texto_seguro(f"Fases con errores: {fases_con_error}\n\n")
             
             if fases_con_error == 0:
-                self._log_terminal("🎉 Escaneo completado sin errores", "ESCANEADOR", "SUCCESS")
+                self._actualizar_texto_seguro("✅ ESCANEO COMPLETADO SIN ERRORES\n")
+                self._log_terminal("🎉 Escaneo básico completado exitosamente", "ESCANEADOR", "SUCCESS")
             elif fases_completadas > fases_con_error:
-                self._log_terminal("⚠️ Escaneo completado con algunos errores", "ESCANEADOR", "WARNING")
+                self._actualizar_texto_seguro("⚠️ ESCANEO COMPLETADO CON ADVERTENCIAS\n")
+                self._log_terminal("⚠️ Escaneo básico completado con advertencias", "ESCANEADOR", "WARNING")
             else:
-                self._log_terminal("🚨 Escaneo completado con múltiples errores", "ESCANEADOR", "ERROR")
+                self._actualizar_texto_seguro("❌ ESCANEO COMPLETADO CON ERRORES\n")
+                self._log_terminal("🚨 Escaneo básico completado con errores", "ESCANEADOR", "ERROR")
             
-            self._log_terminal("=" * 60, "ESCANEADOR", "INFO")
+            self._actualizar_texto_seguro("\nNOTA: Para análisis completo, use el escaneador avanzado Kali 2025\n")
+            self._actualizar_texto_seguro("=" * 60 + "\n")
             
         except Exception as e:
-            if self.proceso_activo:
-                self._log_terminal(f"Error durante el escaneo completo: {str(e)}", "ESCANEADOR", "ERROR")
-                self.after(0, self._mostrar_error_escaneo, str(e))
-        finally:
-            self.after(0, self._finalizar_escaneo)
+            self._log_terminal(f"Error crítico en escaneo básico: {str(e)}", "ESCANEADOR", "ERROR")
+            self._actualizar_texto_seguro(f"ERROR CRÍTICO: {str(e)}\n")
     
     def _analizar_amenazas_detectadas(self, resultados):
         """Analizar resultados en busca de amenazas y vulnerabilidades."""
