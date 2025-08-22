@@ -1,83 +1,100 @@
-# 📚 Documentación ARESITOS v2.0
+# Documentación ARESITOS v2.0
 
-## **Guías Disponibles**
+## Guías Disponibles
 
-### **📖 [DOCUMENTACION_TECNICA_CONSOLIDADA.md](DOCUMENTACION_TECNICA_CONSOLIDADA.md)**
-Documentación técnica completa del sistema:
-- 🏗️ Arquitectura MVC
-- 🔒 Seguridad implementada  
-- 🚀 Módulos principales
-- 📊 Bases de datos
-- ⚙️ Configuración
-- 🔧 Desarrollo y mantenimiento
+### [DOCUMENTACION_TECNICA_CONSOLIDADA.md](DOCUMENTACION_TECNICA_CONSOLIDADA.md)
+**Documentación técnica completa del sistema**
+- Arquitectura MVC y componentes principales
+- Consideraciones de seguridad y validación
+- Gestión de bases de datos y configuración
+- Principios de desarrollo y mantenimiento
 
-### **🏗️ [ARQUITECTURA_DESARROLLO.md](ARQUITECTURA_DESARROLLO.md)**
-Arquitectura y guía de desarrollo:
-- 📊 Capa Modelo (19 archivos)
-- 🎨 Capa Vista (12 archivos + terminal_mixin)
-- ⚙️ Capa Controlador (15 archivos)
-- 🧵 Threading y concurrencia
-- 🔒 Seguridad implementada
-- 📈 Optimización rendimiento
+### [ARQUITECTURA_DESARROLLO.md](ARQUITECTURA_DESARROLLO.md)
+**Arquitectura y guía de desarrollo**
+- Capa Modelo: Gestión de datos (19 archivos)
+- Capa Vista: Interfaces de usuario (12 archivos)
+- Capa Controlador: Lógica de negocio (15 archivos)
+- Threading, concurrencia y optimización
+- Patrones de seguridad implementados
 
-### **🚀 [GUIA_INSTALACION.md](GUIA_INSTALACION.md)**
-Instalación y configuración paso a paso:
-- ⚡ Instalación zero-config
-- ⚙️ Configuración automática Kali
-- 🔧 Modos ejecución (producción/desarrollo)
-- ✅ Verificación instalación
-- 🐛 Solución problemas
+### [GUIA_INSTALACION.md](GUIA_INSTALACION.md)
+**Instalación y configuración paso a paso**
+- Proceso de instalación automatizada
+- Configuración para entornos Kali Linux
+- Modos de ejecución (producción/desarrollo)
+- Verificación y solución de problemas
 
-### **🔒 [AUDITORIA_SEGURIDAD_ARESITOS.md](AUDITORIA_SEGURIDAD_ARESITOS.md)**
-Auditoría completa de seguridad:
-- ✅ Estado: CÓDIGO SEGURO
-- 🔴 Vulnerabilidades corregidas (2 críticas → 0)
-- 🛡️ Medidas seguridad implementadas
-- 📊 Análisis por archivos
-- 🎯 Recomendaciones aplicadas
+### [AUDITORIA_SEGURIDAD_ARESITOS.md](AUDITORIA_SEGURIDAD_ARESITOS.md)
+**Auditoría completa de seguridad**
+- Estado actual: Código seguro y validado
+- Vulnerabilidades identificadas y corregidas
+- Medidas de seguridad implementadas
+- Análisis por módulos y recomendaciones
 
-### **🖥️ [TERMINAL_INTEGRADO.md](TERMINAL_INTEGRADO.md)** ⭐ **NUEVO**
-Sistema de terminales integrados:
-- 📱 48 terminales activos en tiempo real
-- 🔄 Logs dinámicos por módulo
-- 🎯 Layout PanedWindow optimizado
-- 💻 Experiencia tipo IDE profesional
-- 🛠️ TerminalMixin reutilizable
+### [SANITIZACION_ARCHIVOS.md](SANITIZACION_ARCHIVOS.md)
+**Sistema de sanitización de archivos**
+- Implementación de seguridad para carga de archivos
+- Múltiples capas de validación
+- Protección contra ataques de archivos maliciosos
+- Interfaces de usuario para validación
 
-## **🎯 Uso Rápido Documentación**
+### [TERMINAL_INTEGRADO.md](TERMINAL_INTEGRADO.md)
+**Sistema de terminales integrados**
+- Terminales embebidos en tiempo real
+- Logs dinámicos por módulo
+- Layout PanedWindow optimizado
+- Experiencia de usuario tipo IDE
 
-### **Para Desarrolladores**
-1. **Inicio**: [GUIA_INSTALACION.md](GUIA_INSTALACION.md) → Instalación completa
-2. **Arquitectura**: [ARQUITECTURA_DESARROLLO.md](ARQUITECTURA_DESARROLLO.md) → Entender MVC
-3. **Terminales**: [TERMINAL_INTEGRADO.md](TERMINAL_INTEGRADO.md) → Sistema logs tiempo real ⭐
-4. **Técnica**: [DOCUMENTACION_TECNICA_CONSOLIDADA.md](DOCUMENTACION_TECNICA_CONSOLIDADA.md) → Detalles implementación
+## Guías de Uso por Perfil
 
-### **Para Auditores Seguridad**
-1. **Seguridad**: [AUDITORIA_SEGURIDAD_ARESITOS.md](AUDITORIA_SEGURIDAD_ARESITOS.md) → Estado código
-2. **Técnica**: [DOCUMENTACION_TECNICA_CONSOLIDADA.md](DOCUMENTACION_TECNICA_CONSOLIDADA.md) → Validaciones implementadas
+### Para Desarrolladores
+1. **Inicio**: [GUIA_INSTALACION.md](GUIA_INSTALACION.md) - Configuración del entorno
+2. **Arquitectura**: [ARQUITECTURA_DESARROLLO.md](ARQUITECTURA_DESARROLLO.md) - Comprensión del sistema
+3. **Terminales**: [TERMINAL_INTEGRADO.md](TERMINAL_INTEGRADO.md) - Sistema de interfaz avanzado
+4. **Técnica**: [DOCUMENTACION_TECNICA_CONSOLIDADA.md](DOCUMENTACION_TECNICA_CONSOLIDADA.md) - Detalles de implementación
 
-### **Para Usuarios Finales**
-1. **Instalación**: [GUIA_INSTALACION.md](GUIA_INSTALACION.md) → Setup completo
-2. **Terminales**: [TERMINAL_INTEGRADO.md](TERMINAL_INTEGRADO.md) → Uso interfaz mejorada ⭐
-3. **Referencia**: [DOCUMENTACION_TECNICA_CONSOLIDADA.md](DOCUMENTACION_TECNICA_CONSOLIDADA.md) → Funcionalidades
+### Para Auditores de Seguridad
+1. **Seguridad**: [AUDITORIA_SEGURIDAD_ARESITOS.md](AUDITORIA_SEGURIDAD_ARESITOS.md) - Estado de seguridad
+2. **Sanitización**: [SANITIZACION_ARCHIVOS.md](SANITIZACION_ARCHIVOS.md) - Validación de archivos
+3. **Técnica**: [DOCUMENTACION_TECNICA_CONSOLIDADA.md](DOCUMENTACION_TECNICA_CONSOLIDADA.md) - Validaciones implementadas
 
-## **📊 Resumen Técnico v2.0**
+### Para Usuarios Finales
+1. **Instalación**: [GUIA_INSTALACION.md](GUIA_INSTALACION.md) - Configuración completa
+2. **Interfaz**: [TERMINAL_INTEGRADO.md](TERMINAL_INTEGRADO.md) - Uso de la interfaz mejorada
+3. **Referencia**: [DOCUMENTACION_TECNICA_CONSOLIDADA.md](DOCUMENTACION_TECNICA_CONSOLIDADA.md) - Funcionalidades disponibles
 
-| Aspecto | Estado | Documentación |
-|---------|--------|---------------|
-| **Arquitectura** | ✅ MVC Sólida | ARQUITECTURA_DESARROLLO.md |
-| **Instalación** | ✅ Zero-Config | GUIA_INSTALACION.md |
-| **Seguridad** | ✅ Auditado | AUDITORIA_SEGURIDAD_ARESITOS.md |
-| **Técnica** | ✅ Completa | DOCUMENTACION_TECNICA_CONSOLIDADA.md |
-| **Terminales** | ✅ Integrados | TERMINAL_INTEGRADO.md ⭐ |
+## Resumen Técnico v2.0
 
-### **🆕 Novedades v2.0**
-- **🖥️ 48 Terminales integrados** en tiempo real
-- **🎨 Tema Burp Suite** consistente
-- **📱 Layout PanedWindow** optimizado
-- **🔧 TerminalMixin** reutilizable
-- **💻 Experiencia IDE** profesional
+| Componente | Estado | Documentación |
+|------------|--------|---------------|
+| **Arquitectura MVC** | ✅ Implementada | ARQUITECTURA_DESARROLLO.md |
+| **Instalación** | ✅ Automatizada | GUIA_INSTALACION.md |
+| **Seguridad** | ✅ Auditada | AUDITORIA_SEGURIDAD_ARESITOS.md |
+| **Sanitización** | ✅ Implementada | SANITIZACION_ARCHIVOS.md |
+| **Documentación** | ✅ Completa | DOCUMENTACION_TECNICA_CONSOLIDADA.md |
+| **Terminales** | ✅ Integrados | TERMINAL_INTEGRADO.md |
+
+### Características Principales v2.0
+- **Terminales integrados** en tiempo real para cada módulo
+- **Tema visual profesional** inspirado en Burp Suite
+- **Layout PanedWindow** optimizado para productividad
+- **Sistema de sanitización** de archivos multi-capa
+- **Documentación técnica** completa y profesional
+
+## Estructura de la Documentación
+
+```
+documentacion/
+├── README.md                           # Este archivo - Índice general
+├── DOCUMENTACION_TECNICA_CONSOLIDADA.md # Documentación técnica completa
+├── ARQUITECTURA_DESARROLLO.md          # Guía de desarrollo y arquitectura
+├── GUIA_INSTALACION.md                 # Proceso de instalación
+├── AUDITORIA_SEGURIDAD_ARESITOS.md     # Auditoría de seguridad
+├── SANITIZACION_ARCHIVOS.md            # Sistema de sanitización
+└── TERMINAL_INTEGRADO.md               # Sistema de terminales
+```
 
 ---
 
-*Documentación ARESITOS v2.0 - DogSoulDev*
+**ARESITOS v2.0 - Documentación Técnica**
+*Desarrollado por DogSoulDev para la comunidad de ciberseguridad*

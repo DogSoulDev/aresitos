@@ -208,7 +208,8 @@ class VistaGestionDatos(tk.Frame):
             (" Guardar", self.guardar_archivo, '#FF9800'),
             (" Eliminar", self.eliminar_archivo, '#f44336'),
             (" Exportar", self.exportar_archivo, '#9C27B0'),
-            (" Análisis Kali", self.analizar_con_kali, '#FF5722')
+            (" Análisis Kali", self.analizar_con_kali, '#FF5722'),
+            ("🛡️ Formatos", self.mostrar_ayuda_formatos, '#607D8B')
         ]
         
         for i, (texto, comando, color) in enumerate(acciones):
@@ -414,12 +415,20 @@ class VistaGestionDatos(tk.Frame):
             messagebox.showerror("Error", f"Error al cargar archivo: {str(e)}")
     
     def cargar_archivo(self):
-        """Cargar archivo externo."""
+        """Cargar archivo externo con validación de seguridad."""
+        from aresitos.utils.sanitizador_archivos import SanitizadorArchivos
+        from aresitos.utils.helper_seguridad import HelperSeguridad
+        
+        # Mostrar información de seguridad al usuario
+        if not HelperSeguridad.mostrar_info_carga_archivo(self.tipo_actual):
+            self.log_to_terminal("CANCEL Usuario canceló la carga por información de seguridad")
+            return
+        
         self.log_to_terminal(f"Cargando archivo {self.tipo_actual}...")
-        if self.tipo_actual == "wordlists":
-            filetypes = [("Archivos de texto", "*.txt"), ("Archivos JSON", "*.json"), ("Todos los archivos", "*.*")]
-        else:
-            filetypes = [("Archivos JSON", "*.json"), ("Todos los archivos", "*.*")]
+        
+        # Obtener filtros seguros para el diálogo
+        sanitizador = SanitizadorArchivos()
+        filetypes = sanitizador.generar_filtros_dialogo(self.tipo_actual)
         
         archivo = filedialog.askopenfilename(
             title=f"Cargar {self.tipo_actual.capitalize()}",
@@ -428,6 +437,18 @@ class VistaGestionDatos(tk.Frame):
         
         if archivo:
             try:
+                # VALIDACIÓN DE SEGURIDAD
+                self.log_to_terminal(f"SECURE Validando archivo: {os.path.basename(archivo)}")
+                
+                resultado_validacion = sanitizador.validar_archivo(archivo, self.tipo_actual)
+                
+                # Usar helper para mostrar resultado de validación
+                if not HelperSeguridad.mostrar_resultado_validacion(resultado_validacion):
+                    self.log_to_terminal("CANCEL Carga cancelada por validación de seguridad")
+                    return
+                
+                self.log_to_terminal(f"SECURE Archivo validado correctamente")
+                
                 # Copiar archivo a la carpeta correspondiente
                 archivo_origen = Path(archivo)
                 if self.tipo_actual == "wordlists":
@@ -453,6 +474,13 @@ class VistaGestionDatos(tk.Frame):
             except Exception as e:
                 self.log_to_terminal(f"ERROR Error al cargar archivo: {str(e)}")
                 messagebox.showerror("Error", f"Error al cargar archivo: {str(e)}")
+    
+    def mostrar_ayuda_formatos(self):
+        """Mostrar ayuda sobre formatos de archivo soportados."""
+        from aresitos.utils.helper_seguridad import HelperSeguridad
+        
+        self.log_to_terminal(f"INFO Mostrando ayuda de formatos para {self.tipo_actual}")
+        HelperSeguridad.mostrar_ayuda_formatos(self.tipo_actual)
     
     def editar_archivo(self):
         """Habilitar edición del archivo actual."""

@@ -3,6 +3,7 @@
 import tkinter as tk
 from tkinter import ttk, scrolledtext, filedialog, messagebox
 import time
+import os
 import logging
 import threading
 import datetime
@@ -1164,18 +1165,61 @@ class VistaMonitoreo(tk.Frame):
             self._finalizar_monitoreo_red()
     
     def agregar_a_cuarentena(self):
-        archivo = filedialog.askopenfilename(title="Seleccionar archivo para cuarentena")
+        """Agregar archivo a cuarentena con validación de seguridad."""
+        from aresitos.utils.sanitizador_archivos import SanitizadorArchivos
+        from aresitos.utils.helper_seguridad import HelperSeguridad
+        
+        # Mostrar advertencia especial para cuarentena
+        if not HelperSeguridad.mostrar_advertencia_cuarentena():
+            self.text_cuarentena.insert(tk.END, "CANCEL Usuario canceló la operación de cuarentena\n")
+            return
+        
+        # Usar filtros de seguridad más amplios para cuarentena (cualquier archivo puede ser sospechoso)
+        archivo = filedialog.askopenfilename(
+            title="Seleccionar archivo para cuarentena",
+            filetypes=[
+                ("Todos los archivos", "*.*"),
+                ("Archivos ejecutables", "*.exe;*.bat;*.sh;*.py"),
+                ("Archivos de script", "*.js;*.vbs;*.ps1"),
+                ("Archivos de documento", "*.pdf;*.doc;*.docx")
+            ]
+        )
         if not archivo:
             return
-            
-        # Crear controlador de cuarentena directamente si no está disponible
+        
         try:
+            # VALIDACIÓN BÁSICA DE SEGURIDAD (menos restrictiva para cuarentena)
+            sanitizador = SanitizadorArchivos()
+            
+            # Solo verificar ruta y nombre seguro, no contenido (puede ser malicioso)
+            if not sanitizador._validar_ruta_segura(archivo):
+                error_msg = "Ruta de archivo no segura"
+                self.text_cuarentena.insert(tk.END, f"✗ Error de seguridad: {error_msg}\n")
+                messagebox.showerror("Error de Seguridad", error_msg)
+                return
+            
+            if not sanitizador._validar_nombre_archivo(archivo):
+                error_msg = "Nombre de archivo contiene caracteres peligrosos"
+                self.text_cuarentena.insert(tk.END, f"✗ Error de seguridad: {error_msg}\n")
+                messagebox.showerror("Error de Seguridad", error_msg)
+                return
+            
+            # Verificar tamaño razonable
+            if not sanitizador._validar_tamano(archivo):
+                error_msg = "Archivo demasiado grande para cuarentena"
+                self.text_cuarentena.insert(tk.END, f"✗ Error: {error_msg}\n")
+                messagebox.showerror("Error", error_msg)
+                return
+            
+            self.text_cuarentena.insert(tk.END, f"SECURE Archivo validado para cuarentena: {os.path.basename(archivo)}\n")
+            
+            # Crear controlador de cuarentena directamente si no está disponible
             from aresitos.controlador.controlador_cuarentena import ControladorCuarentena
             controlador_cuarentena = ControladorCuarentena()
             resultado = controlador_cuarentena.poner_archivo_en_cuarentena(archivo)
             
             if resultado["exito"]:
-                self.text_cuarentena.insert(tk.END, f"✓ Archivo agregado a cuarentena: {archivo}\n")
+                self.text_cuarentena.insert(tk.END, f"✓ Archivo agregado a cuarentena: {os.path.basename(archivo)}\n")
                 messagebox.showinfo("Éxito", "Archivo enviado a cuarentena correctamente")
             else:
                 self.text_cuarentena.insert(tk.END, f"ERROR: {resultado['error']}\n")

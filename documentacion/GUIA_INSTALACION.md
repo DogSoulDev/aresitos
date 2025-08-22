@@ -1,15 +1,20 @@
 # ARESITOS v2.0 - Guía de Instalación
 
-## 🚀 **Instalación Rápida**
+## Requisitos del Sistema
 
-### **Requisitos Sistema**
-- **SO**: Kali Linux 2024.x+ (recomendado)
-- **Python**: 3.8+ (incluido en Kali)
-- **RAM**: 4GB mínimo, 8GB recomendado (para 48 terminales)
-- **Disco**: 10GB libres
-- **Terminal**: Soporte para colores y threading
+### Sistema Operativo Soportado
+- **Kali Linux 2024.x o superior** (recomendado)
+- **Parrot Security OS** (versiones recientes)
+- **BlackArch Linux** (con adaptaciones menores)
+- **Ubuntu/Debian** (modo desarrollo limitado)
 
-### **Instalación Zero-Config**
+### Requisitos Técnicos
+- **Python**: 3.8 o superior (incluido en Kali Linux)
+- **Espacio en disco**: 500MB mínimo para instalación completa
+- **RAM**: 512MB mínimo (2GB recomendado para operaciones intensivas)
+- **Permisos**: Acceso sudo para herramientas del sistema
+
+### Herramientas de Kali Linux Necesarias
 ```bash
 # 1. Crear carpeta Ares y clonar repositorio dentro
 mkdir -p ~/Ares && cd ~/Ares
@@ -28,107 +33,118 @@ sudo ./configurar_kali.sh
 python3 main.py
 ```
 
-## ⚙️ **Configuración Automática**
+## Configuración Automática
 
-### **Script configurar_kali.sh**
-El script de configuración instala y verifica automáticamente:
+### Script de Configuración
+El script `configurar_kali.sh` instala y verifica automáticamente las herramientas necesarias:
 
-#### **Escaneadores Red**
-- `nmap` - Network mapper avanzado
-- `masscan` - Scanner puertos alta velocidad
-- `gobuster` - Brute-force directorios/archivos
-- `nuclei` - Scanner vulnerabilidades
-- `ffuf` - Web fuzzer moderno
+#### Herramientas de Escaneado de Red
+- **nmap**: Network mapper para descubrimiento y análisis de puertos
+- **masscan**: Scanner de puertos de alta velocidad para redes grandes
+- **gobuster**: Enumeración de directorios y archivos web mediante fuerza bruta
+- **nuclei**: Scanner de vulnerabilidades basado en plantillas
+- **ffuf**: Web fuzzer moderno para descubrimiento de contenido
 
-#### **Monitoreo Sistema**
-- `inotifywait` - Monitoreo archivos tiempo real
-- `auditd` - Auditoría sistema Linux
-- `pspy` - Monitor procesos sin root
+#### Herramientas de Monitoreo del Sistema
+- **inotifywait**: Monitoreo de archivos en tiempo real
+- **auditd**: Sistema de auditoría de eventos del kernel Linux
+- **pspy**: Monitor de procesos que no requiere privilegios root
 
-#### **Análisis Forense**
-- `volatility3` - Análisis memoria
-- `binwalk` - Análisis firmware
-- `strings` - Extracción strings
-- `file` - Identificación tipos archivo
-- `exiftool` - Metadatos archivos
+#### Herramientas de Análisis Forense
+- **volatility3**: Framework de análisis forense de memoria
+- **binwalk**: Análisis y extracción de firmware
+- **strings**: Extracción de cadenas de texto de archivos binarios
+- **file**: Identificación de tipos de archivo por contenido
+- **exiftool**: Lectura y escritura de metadatos de archivos
 
-#### **Seguridad Malware**
-- `clamscan` - Antivirus ClamAV
-- `yara` - Detección patrones malware
-- `chkrootkit` - Detector rootkits
-- `rkhunter` - Hunter rootkits
+#### Herramientas de Seguridad Anti-Malware
+- **clamscan**: Motor antivirus ClamAV para detección de malware
+- **yara**: Engine de detección de patrones de malware
+- **chkrootkit**: Detector de rootkits para sistemas Unix
+- **rkhunter**: Herramienta de verificación de rootkits y backdoors
 
-## 🔧 **Modos de Ejecución**
+## Modos de Ejecución
 
-### **Producción (Kali Linux)**
+### Modo Producción (Kali Linux)
 ```bash
-# Ejecución estándar con todas las funcionalidades
+# Ejecución estándar con funcionalidades completas
 python3 main.py
 ```
 
-### **Desarrollo (Windows/otros SO)**
+### Modo Desarrollo (Otros Sistemas)
 ```bash
-# Modo desarrollo para testing y desarrollo
+# Modo desarrollo para testing y desarrollo en sistemas no-Kali
 python3 main.py --dev
 ```
 
-## � **Estructura Post-Instalación**
+## Estructura Post-Instalación
+
 ```
 Aresitos/
-├── main.py                     # Punto entrada
-├── configurar_kali.sh          # Setup automático
-├── aresitos/                   # Core aplicación
-│   ├── controlador/            # 15 controladores
-│   ├── modelo/                 # 19 modelos datos
-│   ├── vista/                  # 12 vistas GUI + terminales integrados
-│   │   ├── terminal_mixin.py   # Funcionalidad terminales reutilizable
-│   │   └── vista_*.py          # Vistas con PanedWindow layout
-│   └── utils/                  # 4 utilidades
-├── data/                       # Bases datos + recursos
-│   ├── *.db                    # SQLite databases
-│   ├── wordlists/              # Diccionarios pentesting
-│   └── cheatsheets/            # Comandos Kali
-├── logs/                       # Logs sistema
-└── documentacion/              # Guías técnicas
+├── main.py                     # Punto de entrada principal
+├── configurar_kali.sh          # Script de configuración automática
+├── aresitos/                   # Módulo principal de la aplicación
+│   ├── controlador/            # Lógica de negocio (15 controladores)
+│   ├── modelo/                 # Gestión de datos y persistencia (19 modelos)
+│   ├── vista/                  # Interfaces de usuario (12 vistas)
+│   │   ├── terminal_mixin.py   # Funcionalidad de terminales reutilizable
+│   │   ├── burp_theme.py       # Tema visual profesional
+│   │   └── vista_*.py          # Vistas con layout PanedWindow
+│   └── utils/                  # Utilidades del sistema (4 módulos)
+├── data/                       # Datos y recursos del sistema
+│   ├── *.db                    # Bases de datos SQLite
+│   ├── wordlists/              # Diccionarios para pentesting
+│   ├── diccionarios/           # Diccionarios de términos técnicos
+│   └── cheatsheets/            # Guías de comandos de Kali Linux
+├── logs/                       # Sistema de logs centralizado
+├── configuración/             # Archivos de configuración JSON
+└── documentacion/              # Documentación técnica completa
 ```
+## Verificación de Instalación
 
-## ✅ **Verificación Instalación**
-
-### **Test Automático**
+### Verificación Automática
 ```bash
-# Verificar todos los componentes
+# Verificar integridad de todos los componentes
 python3 verificacion_final.py
 
-# Verificar herramientas Kali específicas
+# Verificar herramientas específicas de Kali Linux
 python3 -c "from aresitos.utils.verificar_kali import verificar_herramientas; verificar_herramientas()"
 ```
 
-### **Test Manual Interface**
+### Verificación Manual de la Interfaz
 ```bash
-# Iniciar aplicación
+# Iniciar la aplicación
 python3 main.py
+```
 
-# Verificar pestañas disponibles con terminales integrados:
-# 1. Dashboard - Métricas sistema + terminal monitoreo
-# 2. Escaneo - Análisis vulnerabilidades + terminal nmap/nuclei
-# 3. Monitoreo y Cuarentena - Vigilancia malware + terminal clamscan
-# 4. Auditoría - Evaluación seguridad + terminal linpeas/chkrootkit
-# 5. Wordlists y Diccionarios - Recursos + terminal generación
-# 6. Reportes - Exportación resultados + terminal exportación
-# 7. FIM - Integridad archivos + terminal inotifywait
-# 8. SIEM - Correlación eventos + terminal volatility/binwalk
+#### Módulos Disponibles
+Al ejecutar Aresitos, debe tener acceso a los siguientes módulos:
 
-# Cada vista debe mostrar:
-# - Controles en panel izquierdo
-# - Terminal integrado en panel derecho
+1. **Dashboard**: Métricas del sistema con terminal de monitoreo
+2. **Escaneado**: Análisis de vulnerabilidades con terminales integrados (nmap/nuclei)
+3. **Monitoreo y Cuarentena**: Vigilancia de malware con terminal ClamAV
+4. **Auditoría**: Evaluación de seguridad con terminales LinPEAS/chkrootkit
+5. **Gestión de Datos**: Wordlists y diccionarios con terminal de generación
+6. **Reportes**: Exportación de resultados con terminal de análisis
+7. **FIM**: Monitoreo de integridad con terminal inotifywait
+8. **SIEM**: Correlación de eventos con terminales Volatility/Binwalk
+
+#### Verificación de Interfaz
+Cada vista debe mostrar:
+- **Panel izquierdo**: Controles y configuración del módulo
+- **Panel derecho**: Terminal integrado con salida en tiempo real
+- **Navegación**: Pestañas o botones para cambiar entre módulos
+- **Tema visual**: Interfaz profesional estilo Burp Suite
 # - 48 terminales activos en total
 ```
 
 ## 🔒 **Permisos y Seguridad**
 
-### **Configuración Permisos**
+## Configuración de Permisos y Seguridad
+
+### Configuración de Permisos Básicos
 ```bash
-# Permisos básicos necesarios
+# Permisos necesarios para archivos ejecutables
 chmod +x configurar_kali.sh
 chmod +x verificacion_final.py
 chmod +x main.py
@@ -140,116 +156,168 @@ find . -name "*.py" -exec chmod +x {} \;
 chmod -R 755 data/
 chmod -R 755 logs/
 chmod -R 755 configuración/
-
-# El script configurar_kali.sh configura automáticamente:
-# - Permisos sudo para herramientas específicas
-# - Grupos usuario para acceso herramientas
-# - Configuración paths sistema
-# - Verificación integridad herramientas
 ```
 
-### **Gestión Segura**
-- **GestorPermisosSeguro**: Control granular sudo/root
-- **Validación entradas**: Sanitización completa inputs
-- **Logging completo**: Trazabilidad todas operaciones
-- **Subprocess seguro**: Timeouts y validación comandos
+### Configuración Automática de Seguridad
+El script `configurar_kali.sh` establece automáticamente:
+- **Permisos sudo**: Configuración granular para herramientas específicas
+- **Grupos de usuario**: Acceso controlado a herramientas del sistema
+- **Rutas del sistema**: Configuración de PATH para herramientas
+- **Verificación de integridad**: Validación de herramientas instaladas
 
-## 🐛 **Solución Problemas**
+### Características de Seguridad
+- **Gestor de permisos**: Control granular de acceso sudo/root
+- **Validación de entrada**: Sanitización completa de inputs
+- **Logging de auditoría**: Trazabilidad de todas las operaciones
+- **Ejecución segura**: Timeouts y validación de comandos
 
-### **Errores Comunes**
+## Solución de Problemas Comunes
 
-#### **"ARESITOS requiere Kali Linux"**
+### Errores de Compatibilidad
+
+#### "ARESITOS requiere Kali Linux"
 ```bash
-# Usar modo desarrollo en otros SO
+# Utilizar modo desarrollo en otros sistemas operativos
 python3 main.py --dev
 ```
 
-#### **"Herramienta X no encontrada"**
+#### "Herramienta X no encontrada"
 ```bash
 # Reinstalar herramientas automáticamente
 sudo ./configurar_kali.sh
+
+# Verificar instalación específica
+which nmap
+which clamscan
 ```
 
-#### **"Error permisos"**
+#### "Error de permisos"
 ```bash
-# Verificar usuario en grupos correctos
+# Verificar que el usuario pertenece a los grupos correctos
 sudo usermod -a -G sudo,adm $USER
-sudo ./configurar_kali.sh
-```
 
-#### **"Base datos no encontrada"**
+# Reiniciar sesión para aplicar cambios de grupo
+#### "Base de datos no encontrada"
 ```bash
-# Recrear bases datos automáticamente
+# Recrear bases de datos automáticamente
 python3 -c "from aresitos.modelo.modelo_principal import ModeloPrincipal; ModeloPrincipal()"
 ```
 
-## 📊 **Verificación Estado**
+#### "Error de dependencias Python"
+```bash
+# Verificar versión de Python
+python3 --version
 
-### **Comandos Útiles**
+# Verificar módulos disponibles
+python3 -c "import tkinter, sqlite3, subprocess, threading; print('Módulos OK')"
+```
+
+### Problemas de Rendimiento
+
+#### "Aplicación lenta"
+```bash
+# Verificar recursos del sistema
+free -h
+df -h
+
+# Limpiar archivos temporales
+find /tmp -name "*aresitos*" -delete
+```
+
+#### "Terminales no responden"
+```bash
+# Verificar procesos colgados
+ps aux | grep python3
+killall python3  # Si es necesario
+```
+
+## Verificación del Estado del Sistema
+
+### Comandos de Diagnóstico
 ```bash
 # Estado herramientas Kali
 which nmap masscan gobuster nuclei ffuf
 
-# Estado bases datos
+```bash
+# Verificar estado de las bases de datos
 ls -la data/*.db
 
-# Estado logs
+# Monitorear logs en tiempo real
 tail -f logs/aresitos.log
 
-# Estado procesos
-ps aux | grep python
+# Verificar procesos de Aresitos activos
+ps aux | grep python3 | grep aresitos
 ```
 
-### **Indicadores Salud Sistema**
-- ✅ **Todas herramientas**: Disponibles y funcionales
-- ✅ **Bases datos**: Creadas y accesibles
-- ✅ **Permisos**: Configurados correctamente
-- ✅ **Interfaz**: 8 pestañas cargando sin errores
-- ✅ **Terminales**: 48 terminales integrados funcionando
-- ✅ **PanedWindow**: Layout dividido controles/terminal
+### Indicadores de Salud del Sistema
+Verificar que estén operativos:
+- ✅ **Herramientas de Kali**: Todas disponibles y funcionales
+- ✅ **Bases de datos**: Creadas y accesibles en directorio data/
+- ✅ **Permisos**: Configurados correctamente para ejecución
+- ✅ **Interfaz**: Todos los módulos cargan sin errores
+- ✅ **Terminales**: Terminales integrados funcionando en cada vista
+- ✅ **Layout**: Diseño PanedWindow con división controles/terminal
 - ✅ **Threading**: Operaciones no bloqueantes activas
-- ✅ **Logs**: Generándose en directorio logs/
+- ✅ **Logs**: Archivo de logs generándose en directorio logs/
 
-## 🚀 **Primer Uso Recomendado**
+## Guía de Primer Uso
 
-### **Flujo Inicial**
-1. **Verificar entorno**: Dashboard → Métricas sistema OK → Terminal monitoreo activo
-2. **Test básico**: Escaneo → IP: 127.0.0.1 → "Escanear Sistema" → Ver output en terminal
-3. **Configurar FIM**: FIM → "Crear Baseline" → "Iniciar Monitoreo" → Terminal inotifywait
-4. **Activar SIEM**: SIEM → "Iniciar Monitoreo" → Dashboard eventos → Terminal análisis
-5. **Explorar**: Wordlists, Reportes, Auditoría → Verificar terminales integrados funcionando
+### Flujo de Trabajo Inicial Recomendado
+
+1. **Verificar el entorno**
+   - Acceder al Dashboard
+   - Verificar métricas del sistema
+   - Confirmar que el terminal de monitoreo está activo
+
+2. **Realizar test básico**
+   - Ir al módulo de Escaneo
+   - Configurar IP objetivo: `127.0.0.1`
+   - Ejecutar "Escanear Sistema"
+   - Observar salida en terminal integrado
+
+3. **Configurar monitoreo FIM**
+   - Acceder al módulo FIM
+   - Ejecutar "Crear Baseline"
+   - Iniciar "Monitoreo Continuo"
+   - Verificar terminal inotifywait funcionando
+
+4. **Activar sistema SIEM**
+   - Ir al módulo SIEM
+   - Iniciar "Monitoreo de Puertos"
+   - Verificar eventos en dashboard
+   - Confirmar terminal de análisis activo
+
+5. **Explorar módulos adicionales**
+   - Gestión de Datos: Wordlists y diccionarios
+   - Reportes: Generación y análisis
+   - Auditoría: Herramientas de verificación
+   - Verificar que todos los terminales integrados funcionan correctamente
+
+## Mantenimiento y Actualizaciones
+
+### Actualización del Sistema
+```bash
+# Actualizar Aresitos desde el repositorio
+cd ~/Ares/Aresitos
+git pull origin main
+
+# Ejecutar verificación post-actualización
+python3 verificacion_final.py
+```
+
+### Limpieza Periódica
+```bash
+# Limpiar logs antiguos (opcional)
+find logs/ -name "*.log" -mtime +30 -delete
+
+# Limpiar archivos temporales
+find /tmp -name "*aresitos*" -delete
+```
 
 ---
 
-*Guía instalación ARESITOS v2.0 - DogSoulDev*
-- `binwalk` - Firmware analysis
-- `sleuthkit` - File system analysis
-- `foremost` - File carving
-- `exiftool` - Metadata extraction
-
-#### Antimalware
-- `clamav` - Antivirus engine
-- `yara` - Pattern matching
-
-#### Monitoreo
-- `inotify-tools` - File monitoring
-- `pspy` - Process monitoring
-
-#### Auditoría
-- `chkrootkit` - Rootkit detector
-- `rkhunter` - Rootkit hunter
-
-### Configuración Automática
-```bash
-# Actualizar repositorios
-apt update && apt upgrade -y
-
-# Instalar herramientas faltantes
-apt install -y nmap masscan gobuster nuclei ffuf
-apt install -y volatility3 binwalk sleuthkit foremost exiftool
-apt install -y clamav clamav-daemon yara
-apt install -y inotify-tools
-apt install -y chkrootkit rkhunter
+**ARESITOS v2.0 - Guía de Instalación**
+*Desarrollado por DogSoulDev para la comunidad de ciberseguridad*
 
 # Actualizar bases de datos
 freshclam

@@ -4,6 +4,7 @@ import tkinter as tk
 from tkinter import ttk, scrolledtext, messagebox, filedialog
 import threading
 import json
+import os
 import logging
 import datetime
 
@@ -331,13 +332,45 @@ class VistaReportes(tk.Frame):
             messagebox.showerror("Error", f"Error al guardar texto: {str(e)}")
     
     def cargar_reporte(self):
+        """Cargar reporte con validación de seguridad."""
+        from aresitos.utils.sanitizador_archivos import SanitizadorArchivos
+        
         try:
+            # Obtener filtros seguros para el diálogo
+            sanitizador = SanitizadorArchivos()
+            filetypes = sanitizador.generar_filtros_dialogo('reportes')
+            
             archivo = filedialog.askopenfilename(
                 title="Cargar Reporte",
-                filetypes=[("Archivo JSON", "*.json"), ("Archivo de texto", "*.txt"), ("Todos los archivos", "*.*")]
+                filetypes=filetypes
             )
             
             if archivo:
+                # VALIDACIÓN DE SEGURIDAD
+                resultado_validacion = sanitizador.validar_archivo(archivo, 'reportes')
+                
+                if not resultado_validacion['valido']:
+                    error_msg = f"Archivo rechazado por seguridad:\n{resultado_validacion['mensaje']}"
+                    messagebox.showerror("Archivo No Válido", error_msg)
+                    return
+                
+                # Mostrar advertencias si las hay
+                if resultado_validacion['advertencias']:
+                    advertencias = resultado_validacion['advertencias']
+                    if isinstance(advertencias, list):
+                        advertencia_msg = f"Advertencias:\n{'; '.join(advertencias)}"
+                    else:
+                        advertencia_msg = f"Advertencias:\n{advertencias}"
+                    
+                    # Preguntar si continuar con advertencias
+                    continuar = messagebox.askyesno(
+                        "Advertencias de Seguridad", 
+                        f"{advertencia_msg}\n\n¿Desea continuar cargando el archivo?"
+                    )
+                    if not continuar:
+                        return
+                
+                # Cargar archivo validado
                 if archivo.endswith('.json'):
                     with open(archivo, 'r', encoding='utf-8') as f:
                         self.reporte_actual = json.load(f)
@@ -348,7 +381,7 @@ class VistaReportes(tk.Frame):
                     self.reporte_text.delete(1.0, tk.END)
                     self.reporte_text.insert(tk.END, contenido)
                 
-                messagebox.showinfo("Éxito", f"Reporte cargado desde {archivo}")
+                messagebox.showinfo("Éxito", f"Reporte cargado y validado desde {os.path.basename(archivo)}")
                 
         except Exception as e:
             messagebox.showerror("Error", f"Error al cargar reporte: {str(e)}")
@@ -591,22 +624,42 @@ class VistaReportes(tk.Frame):
         thread.start()
     
     def comparar_reportes_kali(self):
-        """Comparar reportes usando herramientas de línea de comandos."""
+        """Comparar reportes usando herramientas de línea de comandos con validación de seguridad."""
+        from aresitos.utils.sanitizador_archivos import SanitizadorArchivos
+        
         try:
+            # Obtener filtros seguros
+            sanitizador = SanitizadorArchivos()
+            filetypes = sanitizador.generar_filtros_dialogo('reportes')
+            
             archivo1 = filedialog.askopenfilename(
                 title="Seleccionar primer reporte",
-                filetypes=[("Archivo JSON", "*.json"), ("Archivo de texto", "*.txt")]
+                filetypes=filetypes
             )
             
             if not archivo1:
                 return
             
+            # VALIDAR PRIMER ARCHIVO
+            resultado1 = sanitizador.validar_archivo(archivo1, 'reportes')
+            if not resultado1['valido']:
+                error_msg = f"Primer archivo rechazado:\n{resultado1['mensaje']}"
+                messagebox.showerror("Archivo No Válido", error_msg)
+                return
+            
             archivo2 = filedialog.askopenfilename(
                 title="Seleccionar segundo reporte",
-                filetypes=[("Archivo JSON", "*.json"), ("Archivo de texto", "*.txt")]
+                filetypes=filetypes
             )
             
             if not archivo2:
+                return
+            
+            # VALIDAR SEGUNDO ARCHIVO
+            resultado2 = sanitizador.validar_archivo(archivo2, 'reportes')
+            if not resultado2['valido']:
+                error_msg = f"Segundo archivo rechazado:\n{resultado2['mensaje']}"
+                messagebox.showerror("Archivo No Válido", error_msg)
                 return
             
             def realizar_comparacion():

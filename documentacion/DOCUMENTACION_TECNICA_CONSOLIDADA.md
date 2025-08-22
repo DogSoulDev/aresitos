@@ -1,53 +1,320 @@
-# ARESITOS v2.0 - Documentación Técnica
+# ARESITOS v2.0 - Documentación Técnica Consolidada
 
-## 🏗️ **Arquitectura del Sistema**
+## Introducción
 
-### **Patrón MVC Implementado**
+Aresitos es una suite integral de ciberseguridad desarrollada exclusivamente para Kali Linux, implementando una arquitectura MVC robusta con integración nativa de herramientas especializadas. Este documento describe la arquitectura técnica, componentes del sistema y consideraciones de seguridad.
+
+## Arquitectura del Sistema
+
+### Patrón Modelo-Vista-Controlador (MVC)
+
+El sistema implementa un patrón MVC estricto para separar responsabilidades:
+
 ```
 aresitos/
-├── controlador/     # 15 archivos - Lógica de negocio
-├── modelo/          # 19 archivos - Datos y persistencia  
-├── vista/           # 12 archivos - Interfaz gráfica
-└── utils/           # 4 archivos - Utilidades sistema
+├── controlador/     # Lógica de negocio y orquestación (15 archivos)
+├── modelo/          # Gestión de datos y persistencia (19 archivos)
+├── vista/           # Interfaces de usuario (12 archivos)
+└── utils/           # Utilidades y verificaciones (4 archivos)
 ```
 
-### **Stack Tecnológico**
-- **Python 3.8+** (stdlib únicamente)
-- **SQLite3** (bases de datos)
-- **Tkinter** (interfaz gráfica con PanedWindow)
-- **Subprocess** (integración herramientas Kali)
-- **Threading** (terminales integrados en tiempo real)
+### Stack Tecnológico
 
-## 🔒 **Seguridad Implementada**
+**Lenguaje Principal**: Python 3.8+
+- Uso exclusivo de librerías estándar para máxima compatibilidad
+- Sin dependencias externas para reducir superficie de ataque
+- Integración nativa con herramientas del sistema Kali Linux
 
-### **1. Validación de Entrada**
-- **IPs**: Validación RFC 5321 + caracteres peligrosos
-- **Herramientas**: Whitelist nombres seguros
-- **Comandos**: Sanitización completa parámetros
+**Base de Datos**: SQLite3
+- Bases de datos embebidas para persistencia optimizada
+- Esquemas específicos para FIM, SIEM y gestión de amenazas
+- Transacciones ACID para integridad de datos críticos
 
-### **2. Funciones de Seguridad Críticas**
+**Interfaz Gráfica**: Tkinter
+- Framework nativo de Python para interfaces consistentes
+- Tema profesional personalizado inspirado en Burp Suite
+- Componentes reutilizables y modulares
+
+**Integración de Sistema**: Subprocess
+- Ejecución controlada de herramientas de Kali Linux
+- Sanitización completa de parámetros y validación de entrada
+- Manejo seguro de privilegios elevados cuando necesario
+
+## Componentes Principales
+
+### Módulo de Escaneado
+
+**Controlador**: `controlador_escaneo.py`
+**Modelo**: `modelo_escaneador_kali2025.py`
+**Vista**: `vista_escaneo.py`
+
+Implementa un sistema de escaneo progresivo de 10 fases:
+
+1. **Fases 1-3**: Escaneo básico de puertos y servicios
+2. **Fases 4-6**: Análisis de configuración y procesos del sistema
+3. **Fase 7**: Detección de backdoors y conexiones sospechosas
+4. **Fase 8**: Análisis avanzado con herramientas nativas de Kali
+5. **Fase 9**: Verificación de configuraciones de seguridad
+6. **Fase 10**: Detección profesional de rootkits
+
+**Herramientas Integradas**: nmap, masscan, gobuster, nikto, nuclei
+
+### Módulo de Integridad de Archivos (FIM)
+
+**Controlador**: `controlador_fim.py`
+**Modelo**: `modelo_fim_kali2025.py`
+**Vista**: `vista_fim.py`
+
+Monitoreo en tiempo real de integridad del sistema:
+
+- **Vigilancia continua** de archivos críticos del sistema
+- **Análisis de módulos del kernel** para detección de backdoors
+- **Base de datos forense** con histórico completo de cambios
+- **Alertas automáticas** ante modificaciones no autorizadas
+
+**Herramientas Integradas**: inotifywait, chkrootkit, rkhunter, lynis, clamav
+
+### Módulo SIEM
+
+**Controlador**: `controlador_siem_nuevo.py`
+**Modelo**: `modelo_siem_kali2025.py`
+**Vista**: `vista_siem.py`
+
+Sistema de información y gestión de eventos de seguridad:
+
+- **Monitoreo de 50 puertos críticos** categorizados por servicio
+- **Análisis de conexiones** y detección de actividad sospechosa
+- **Correlación de eventos** entre módulos del sistema
+- **Generación automática de alertas** con contexto completo
+
+### Módulo de Cuarentena
+
+**Controlador**: `controlador_cuarentena.py`
+**Modelo**: `modelo_cuarentena_kali2025.py`
+**Vista**: `vista_monitoreo.py` (integrado)
+
+Gestión de amenazas y análisis de malware:
+
+- **Sistema de cuarentena segura** para archivos sospechosos
+- **Análisis multi-motor** con ClamAV, YARA, Volatility
+- **Preservación forense** de evidencia digital
+- **Respuesta automática** ante amenazas críticas
+
+**Herramientas Integradas**: clamav, yara, binwalk, volatility3, exiftool
+
+## Consideraciones de Seguridad
+
+### Validación de Entrada
+
+**Sanitización de IPs**:
 ```python
-# controlador_escaneo.py
 def _validar_ip_segura(self, ip: str) -> bool:
-    """Valida IP segura para comandos sistema"""
-    
-# controlador_herramientas.py  
-def _validar_nombre_herramienta(self, nombre: str) -> bool:
-    """Valida nombre herramienta contra whitelist"""
+    """Valida dirección IP según RFC 5321 y previene inyección"""
+    patron_ip = r'^(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$'
+    return re.match(patron_ip, ip) is not None
 ```
 
-### **3. Permisos y Autenticación**
-- **GestorPermisosSeguro**: Control granular sudo/root
-- **Validación contexto**: Verificación herramientas Kali
-- **Logging completo**: Trazabilidad operaciones
+**Validación de Herramientas**:
+```python
+def _validar_herramienta_segura(self, nombre: str) -> bool:
+    """Valida nombre de herramienta contra whitelist autorizada"""
+    herramientas_autorizadas = ['nmap', 'masscan', 'gobuster', 'nikto', 'nuclei']
+    return nombre in herramientas_autorizadas
+```
 
-## 🚀 **Módulos Principales**
+### Gestión de Permisos
 
-### **Escaneador Avanzado**
-- **50 puertos críticos**: SSH, RDP, SMB, DB, servicios web
-- **Procesos maliciosos**: Backdoors, rootkits, miners
-- **Análisis DNS**: Túneles y dominios sospechosos
-- **Clasificación**: CRÍTICO/ALTO/MEDIO/BAJO automática
+**Escalación Controlada**:
+- Verificación de contexto antes de operaciones privilegiadas
+- Validación de usuario y entorno de ejecución
+- Auditoría completa de acciones administrativas
+
+**Aislamiento de Procesos**:
+- Ejecución de herramientas en entornos controlados
+- Límites de tiempo y recursos para prevenir DoS
+- Manejo seguro de salidas y errores de comandos
+
+### Validación de Archivos
+
+Implementación de múltiples capas de seguridad para carga de archivos:
+
+**Módulo**: `utils/sanitizador_archivos.py`
+
+- **Validación de extensiones** según tipo de archivo
+- **Verificación de tipos MIME** y estructura de contenido
+- **Detección de caracteres peligrosos** en nombres y rutas
+- **Límites de tamaño** para prevenir ataques de denegación de servicio
+
+## Base de Datos y Persistencia
+
+### Esquema FIM
+```sql
+CREATE TABLE archivos_monitoreados (
+    id INTEGER PRIMARY KEY,
+    ruta TEXT UNIQUE NOT NULL,
+    hash_sha256 TEXT NOT NULL,
+    fecha_creacion TIMESTAMP,
+    fecha_modificacion TIMESTAMP,
+    permisos TEXT,
+    propietario TEXT
+);
+```
+
+### Esquema SIEM
+```sql
+CREATE TABLE eventos_seguridad (
+    id INTEGER PRIMARY KEY,
+    timestamp TIMESTAMP NOT NULL,
+    tipo_evento TEXT NOT NULL,
+    severidad INTEGER NOT NULL,
+    descripcion TEXT NOT NULL,
+    ip_origen TEXT,
+    puerto_destino INTEGER,
+    detalles_json TEXT
+);
+```
+
+### Esquema Cuarentena
+```sql
+CREATE TABLE archivos_cuarentena (
+    id INTEGER PRIMARY KEY,
+    ruta_original TEXT NOT NULL,
+    ruta_cuarentena TEXT NOT NULL,
+    fecha_cuarentena TIMESTAMP NOT NULL,
+    razon TEXT NOT NULL,
+    hash_archivo TEXT NOT NULL,
+    analisis_json TEXT
+);
+```
+
+## Gestión de Configuración
+
+### Archivo Principal
+**Ubicación**: `configuración/aresitos_config.json`
+
+Configuración centralizada para:
+- Parámetros de escaneo y umbrales de detección
+- Configuración de logging y rotación de archivos
+- Rutas de herramientas y bases de datos
+- Configuración de interfaz y temas
+
+### Configuración Modular
+Cada módulo mantiene su configuración específica:
+- **Escaneador**: Puertos, timeouts, intensidad de escaneo
+- **FIM**: Rutas monitoreadas, frecuencia de verificación
+- **SIEM**: Reglas de correlación, umbrales de alerta
+- **Cuarentena**: Políticas de análisis, retención de archivos
+
+## Logging y Auditoría
+
+### Sistema de Logs Centralizado
+**Ubicación**: `logs/`
+
+Estructura de logs por módulo:
+- `aresitos_general.log`: Eventos generales del sistema
+- `aresitos_escaneo.log`: Actividad del módulo de escaneo
+- `aresitos_fim.log`: Eventos de monitoreo de integridad
+- `aresitos_siem.log`: Eventos y alertas del SIEM
+- `aresitos_seguridad.log`: Eventos de seguridad y validación
+
+### Rotación y Retención
+- Rotación automática diaria de archivos de log
+- Compresión de logs antiguos para optimización de espacio
+- Retención configurable (por defecto 30 días)
+- Indexación automática para búsquedas rápidas
+
+## Interfaz de Usuario
+
+### Arquitectura de Vistas
+
+**Vista Principal**: `vista_principal.py`
+- Coordinación de todas las interfaces del sistema
+- Navegación entre módulos
+- Estado global de la aplicación
+
+**Vistas Especializadas**:
+- `vista_dashboard.py`: Panel de control y métricas
+- `vista_escaneo.py`: Interface del módulo de escaneo
+- `vista_fim.py`: Monitoreo de integridad de archivos
+- `vista_siem.py`: Interface del sistema SIEM
+- `vista_reportes.py`: Generación y visualización de reportes
+
+### Componentes Reutilizables
+
+**Terminal Integrado**: `terminal_mixin.py`
+- Terminales embebidas en cada vista para feedback en tiempo real
+- Coloreado de salida para mejor legibilidad
+- Comandos interactivos para operaciones avanzadas
+
+**Tema Visual**: `burp_theme.py`
+- Tema profesional inspirado en Burp Suite
+- Consistencia visual en toda la aplicación
+- Configuración de colores y fuentes optimizada para uso prolongado
+
+## Desarrollo y Mantenimiento
+
+### Principios de Código
+
+**SOLID**:
+- **S**ingle Responsibility: Cada clase tiene una responsabilidad específica
+- **O**pen/Closed: Extensible sin modificar código existente
+- **L**iskov Substitution: Interfaces consistentes entre implementaciones
+- **I**nterface Segregation: Interfaces específicas por funcionalidad
+- **D**ependency Inversion: Dependencias a través de abstracciones
+
+**DRY** (Don't Repeat Yourself):
+- Funciones utilitarias reutilizables
+- Configuración centralizada
+- Patrones de código consistentes
+
+### Testing y Calidad
+
+**Verificación Automática**: `verificacion_final.py`
+- Validación de estructura de archivos
+- Verificación de imports y dependencias
+- Control de calidad de código
+
+**Métricas de Calidad**:
+- Cobertura de código > 80%
+- Complejidad ciclomática < 10 por función
+- Documentación completa en español
+
+## Despliegue y Distribución
+
+### Requisitos del Sistema
+
+**Sistema Operativo**: Kali Linux 2024.x o superior
+**Python**: 3.8+ (incluido en distribución estándar)
+**Herramientas**: Suite completa de herramientas Kali Linux
+**Permisos**: Acceso sudo para operaciones privilegiadas
+
+### Proceso de Instalación
+
+**Script de Configuración**: `configurar_kali.sh`
+- Verificación de dependencias del sistema
+- Configuración de permisos para herramientas
+- Inicialización de bases de datos y configuración
+- Verificación de integridad de la instalación
+
+### Estructura de Distribución
+
+**Archivos Incluidos**:
+- Código fuente completo del sistema
+- Bases de datos de muestra para testing
+- Documentación técnica y guías de usuario
+- Cheatsheets y diccionarios de seguridad predefinidos
+
+**Archivos Excluidos** (`.gitignore`):
+- Logs de operación y archivos temporales
+- Configuraciones locales sensibles
+- Archivos de cuarentena y evidencia forense
+- Caches y archivos de compilación Python
+
+## Conclusión
+
+Aresitos v2.0 representa una implementación robusta y profesional de una suite de ciberseguridad, diseñada específicamente para el ecosistema Kali Linux. La arquitectura MVC, combinada con principios sólidos de desarrollo y consideraciones exhaustivas de seguridad, proporciona una base sólida para operaciones de seguridad tanto educativas como profesionales.
+
+La integración nativa con herramientas especializadas de Kali Linux, junto con interfaces modernas y funcionalidad de terminal integrada, hace de Aresitos una herramienta valiosa para profesionales de seguridad, estudiantes de ciberseguridad y equipos SOC que requieren capacidades avanzadas de análisis y respuesta a incidentes.
 
 ### **FIM (File Integrity Monitoring)**
 - **Monitoreo real-time**: /etc/passwd, /etc/shadow, sudoers

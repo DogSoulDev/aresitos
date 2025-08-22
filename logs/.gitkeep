@@ -1,0 +1,11 @@
+# Aresitos - Directorio de Logs
+# ===============================
+# 
+# Este directorio es necesario para el funcionamiento correcto de Aresitos.
+# Los logs del sistema se almacenan aquí durante la ejecución.
+# 
+# IMPORTANTE: No eliminar este directorio
+# Los archivos .log se ignoran automáticamente por .gitignore
+#
+# Autor: DogSoulDev
+# Sistema: Aresitos v2.0
