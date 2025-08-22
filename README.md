@@ -1,6 +1,6 @@
 ![ARESITOS](aresitos/recursos/Aresitos.png)
 
-# Aresitos Beta 12 Estable
+# Aresitos - Herramienta de Ciberseguridad
 **Suite Profesional de Ciberseguridad para Kali Linux**
 
 [![Versión](https://img.shields.io/badge/versión-Beta%2012%20Estable-brightgreen.svg)](https://github.com/DogSoulDev/Aresitos)
