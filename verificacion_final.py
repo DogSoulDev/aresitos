@@ -18,7 +18,7 @@ def verificar_tokens_problemáticos():
     pattern = r'\[(EMOJI|SCAN|STOP|METADATA|SECURE|SUCCESS|STATS|CONFIG|UPDATE|SAVE|LOAD|FILE|SETTINGS|QUARANTINE|UTILS|CLEAN|SYSTEM)\]'
     found_tokens = []
     
-    for root, dirs, files in os.walk('aresitos'):
+    for root, dirs, files in os.walk('Aresitos'):
         for file in files:
             if file.endswith('.py'):
                 filepath = os.path.join(root, file)
@@ -57,7 +57,7 @@ def verificar_herramientas_modernas():
     
     herramientas_encontradas = set()
     
-    for root, dirs, files in os.walk('aresitos'):
+    for root, dirs, files in os.walk('Aresitos'):
         for file in files:
             if file.endswith('.py'):
                 filepath = os.path.join(root, file)
@@ -80,7 +80,7 @@ def verificar_importaciones():
     importaciones_prohibidas = ['requests', 'pandas', 'numpy', 'matplotlib']
     problemas = []
     
-    for root, dirs, files in os.walk('aresitos'):
+    for root, dirs, files in os.walk('Aresitos'):
         for file in files:
             if file.endswith('.py'):
                 filepath = os.path.join(root, file)
@@ -108,9 +108,9 @@ def verificar_sintaxis():
     
     archivos_principales = [
         'main.py',
-        'aresitos/vista/vista_principal.py',
-        'aresitos/vista/vista_login.py',
-        'aresitos/controlador/controlador_principal_nuevo.py'
+        'Aresitos/vista/vista_principal.py',
+        'Aresitos/vista/vista_login.py',
+        'Aresitos/controlador/controlador_principal_nuevo.py'
     ]
     
     errores = []
@@ -141,11 +141,11 @@ def verificar_estructura_archivos():
     archivos_esenciales = [
         'main.py',
         'requirements.txt',
-        'aresitos/__init__.py',
-        'aresitos/vista/vista_principal.py',
-        'aresitos/vista/vista_login.py',
-        'aresitos/controlador/controlador_principal_nuevo.py',
-        'aresitos/modelo/modelo_siem_kali2025.py',
+        'Aresitos/__init__.py',
+        'Aresitos/vista/vista_principal.py',
+        'Aresitos/vista/vista_login.py',
+        'Aresitos/controlador/controlador_principal_nuevo.py',
+        'Aresitos/modelo/modelo_siem_kali2025.py',
         'configuración/aresitos_config.json'
     ]
     

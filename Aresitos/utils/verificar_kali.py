@@ -123,8 +123,8 @@ def verificar_compatibilidad_kali():
     archivos_criticos = [
         'login.py',
         'main.py',
-        'aresitos/utils/gestor_permisos.py',
-        'aresitos/controlador/controlador_principal.py',
+        'Aresitos/utils/gestor_permisos.py',
+        'Aresitos/controlador/controlador_principal.py',
         'configurar_kali.sh'
     ]
     

@@ -157,7 +157,7 @@ def crear_icono_fallback():
         canvas.create_text(16, 16, text="A", fill="white", font=("Arial", 16, "bold"))
         
         # Intentar guardar como PostScript y convertir
-        fallback_path = recursos_dir / "aresitos_fallback.ps"
+        fallback_path = recursos_dir / "Aresitos_fallback.ps"
         canvas.postscript(file=str(fallback_path))
         
         root.destroy()

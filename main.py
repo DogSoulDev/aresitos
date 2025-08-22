@@ -238,11 +238,11 @@ def verificacion_estabilidad_sistema():
     
     # Verificar estructura de archivos críticos
     archivos_criticos = [
-        "aresitos/vista/vista_principal.py",
-        "aresitos/controlador/controlador_principal_nuevo.py", 
-        "aresitos/modelo/modelo_principal.py",
-        "aresitos/utils/sudo_manager.py",
-        "aresitos/vista/terminal_mixin.py"
+        "Aresitos/vista/vista_principal.py",
+        "Aresitos/controlador/controlador_principal_nuevo.py", 
+        "Aresitos/modelo/modelo_principal.py",
+        "Aresitos/utils/sudo_manager.py",
+        "Aresitos/vista/terminal_mixin.py"
     ]
     
     for archivo in archivos_criticos:
