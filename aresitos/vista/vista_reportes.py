@@ -237,9 +237,8 @@ class VistaReportes(tk.Frame):
                     messagebox.showerror("Error", "Controlador no configurado")
                     return
                 
-                self.reporte_text.delete(1.0, tk.END)
-                self.reporte_text.insert(tk.END, " Generando reporte completo...\n\n")
-                self.reporte_text.update()
+                self._actualizar_reporte_seguro("", "clear")
+                self._actualizar_reporte_seguro(" Generando reporte completo...\n\n")
                 
                 self.log_to_terminal("DATOS Recopilando datos del sistema...")
                 
@@ -272,11 +271,11 @@ class VistaReportes(tk.Frame):
                     self.mostrar_reporte(self.reporte_actual)
                     self.log_to_terminal("REPORTE Reporte mostrado en pantalla")
                 else:
-                    self.reporte_text.insert(tk.END, " Error al generar el reporte")
+                    self._actualizar_reporte_seguro(" Error al generar el reporte")
                     self.log_to_terminal("ERROR Error al generar el reporte")
                     
             except Exception as e:
-                self.reporte_text.insert(tk.END, f" Error durante la generación: {str(e)}")
+                self._actualizar_reporte_seguro(f" Error durante la generación: {str(e)}")
         
         # Issue 21/24: Threading optimizado con gestión de memoria
         thread = threading.Thread(target=generar, name="ReporteCompleto")
@@ -287,7 +286,7 @@ class VistaReportes(tk.Frame):
         gc.collect()
     
     def mostrar_reporte(self, reporte):
-        self.reporte_text.delete(1.0, tk.END)
+        self._actualizar_reporte_seguro("", "clear")
         
         try:
             if isinstance(reporte, dict):
@@ -295,9 +294,9 @@ class VistaReportes(tk.Frame):
                 texto_reporte = json.dumps(reporte, indent=2, ensure_ascii=False)
             else:
                 texto_reporte = str(reporte)
-            self.reporte_text.insert(tk.END, texto_reporte)
+            self._actualizar_reporte_seguro(texto_reporte, "replace")
         except Exception as e:
-            self.reporte_text.insert(tk.END, f"Error al mostrar reporte: {str(e)}")
+            self._actualizar_reporte_seguro(f"Error al mostrar reporte: {str(e)}")
     
     def actualizar_reporte(self):
         if self.reporte_actual:
@@ -394,8 +393,8 @@ class VistaReportes(tk.Frame):
                 else:
                     with open(archivo, 'r', encoding='utf-8') as f:
                         contenido = f.read()
-                    self.reporte_text.delete(1.0, tk.END)
-                    self.reporte_text.insert(tk.END, contenido)
+                    self._actualizar_reporte_seguro("", "clear")
+                    self._actualizar_reporte_seguro(contenido, "replace")
                 
                 messagebox.showinfo("Éxito", f"Reporte cargado y validado desde {os.path.basename(archivo)}")
                 
@@ -410,15 +409,15 @@ class VistaReportes(tk.Frame):
             
             reportes = self.controlador.listar_reportes_guardados()
             
-            self.reporte_text.delete(1.0, tk.END)
-            self.reporte_text.insert(tk.END, " REPORTES GUARDADOS\n")
-            self.reporte_text.insert(tk.END, "=" * 50 + "\n\n")
+            self._actualizar_reporte_seguro("", "clear")
+            self._actualizar_reporte_seguro(" REPORTES GUARDADOS\n")
+            self._actualizar_reporte_seguro("=" * 50 + "\n\n")
             
             if reportes:
                 for i, reporte in enumerate(reportes, 1):
-                    self.reporte_text.insert(tk.END, f"{i}. {reporte}\n")
+                    self._actualizar_reporte_seguro(f"{i}. {reporte}\n")
             else:
-                self.reporte_text.insert(tk.END, "No se encontraron reportes guardados.\n")
+                self._actualizar_reporte_seguro("No se encontraron reportes guardados.\n")
                 
         except Exception as e:
             messagebox.showerror("Error", f"Error al listar reportes: {str(e)}")
@@ -1392,22 +1391,70 @@ class VistaReportes(tk.Frame):
             
             info = validador_comandos.obtener_info_seguridad()
             
-            self.terminal_output.insert(tk.END, "\n" + "="*60 + "\n")
-            self.terminal_output.insert(tk.END, "🔐 INFORMACIÓN DE SEGURIDAD ARESITOS - REPORTES\n")
-            self.terminal_output.insert(tk.END, "="*60 + "\n\n")
+            self._actualizar_terminal_seguro("\n" + "="*60 + "\n")
+            self._actualizar_terminal_seguro("INFORMACIÓN DE SEGURIDAD ARESITOS - REPORTES\n")
+            self._actualizar_terminal_seguro("="*60 + "\n\n")
             
-            estado_seguridad = "✅ SEGURO" if info['es_usuario_kali'] else "❌ INSEGURO"
+            estado_seguridad = "SEGURO" if info['es_usuario_kali'] else "INSEGURO"
             
-            self.terminal_output.insert(tk.END, f"Estado: {estado_seguridad}\n")
-            self.terminal_output.insert(tk.END, f"Usuario: {info['usuario_actual']}\n")
-            self.terminal_output.insert(tk.END, f"Sistema: {info['sistema']}\n")
-            self.terminal_output.insert(tk.END, f"Usuario Kali válido: {info['es_usuario_kali']}\n")
-            self.terminal_output.insert(tk.END, f"Comandos permitidos: {info['total_comandos_permitidos']}\n")
-            self.terminal_output.insert(tk.END, f"Comandos prohibidos: {info['total_comandos_prohibidos']}\n")
-            self.terminal_output.insert(tk.END, f"Patrones de seguridad: {info['patrones_seguridad']}\n\n")
-            self.terminal_output.insert(tk.END, "="*60 + "\n")
+            self._actualizar_terminal_seguro(f"Estado: {estado_seguridad}\n")
+            self._actualizar_terminal_seguro(f"Usuario: {info['usuario_actual']}\n")
+            self._actualizar_terminal_seguro(f"Sistema: {info['sistema']}\n")
+            self._actualizar_terminal_seguro(f"Usuario Kali válido: {info['es_usuario_kali']}\n")
+            self._actualizar_terminal_seguro(f"Comandos permitidos: {info['total_comandos_permitidos']}\n")
+            self._actualizar_terminal_seguro(f"Comandos prohibidos: {info['total_comandos_prohibidos']}\n")
+            self._actualizar_terminal_seguro(f"Patrones de seguridad: {info['patrones_seguridad']}\n\n")
+            self._actualizar_terminal_seguro("="*60 + "\n")
             
         except Exception as e:
-            self.terminal_output.insert(tk.END, f"Error mostrando info seguridad: {e}\n")
+            self._actualizar_terminal_seguro(f"Error mostrando info seguridad: {e}\n")
+    
+    def _actualizar_reporte_seguro(self, texto, modo="append"):
+        """Actualizar reporte_text de forma segura desde threads."""
+        def _update():
+            try:
+                if hasattr(self, 'reporte_text') and self.reporte_text.winfo_exists():
+                    if modo == "clear":
+                        self.reporte_text.delete(1.0, tk.END)
+                    elif modo == "replace":
+                        self.reporte_text.delete(1.0, tk.END)
+                        self.reporte_text.insert(1.0, texto)
+                    elif modo == "append":
+                        self.reporte_text.insert(tk.END, texto)
+                    elif modo == "insert_start":
+                        self.reporte_text.insert(1.0, texto)
+                    self.reporte_text.see(tk.END)
+                    if hasattr(self.reporte_text, 'update'):
+                        self.reporte_text.update()
+            except (tk.TclError, AttributeError):
+                pass
         
-        self.terminal_output.see(tk.END)
+        try:
+            self.after_idle(_update)
+        except (tk.TclError, AttributeError):
+            pass
+    
+    def _actualizar_terminal_seguro(self, texto, modo="append"):
+        """Actualizar terminal_output de forma segura desde threads."""
+        def _update():
+            try:
+                if hasattr(self, 'terminal_output') and self.terminal_output.winfo_exists():
+                    if modo == "clear":
+                        self.terminal_output.delete(1.0, tk.END)
+                    elif modo == "replace":
+                        self.terminal_output.delete(1.0, tk.END)
+                        self.terminal_output.insert(1.0, texto)
+                    elif modo == "append":
+                        self.terminal_output.insert(tk.END, texto)
+                    elif modo == "insert_start":
+                        self.terminal_output.insert(1.0, texto)
+                    self.terminal_output.see(tk.END)
+                    if hasattr(self.terminal_output, 'update'):
+                        self.terminal_output.update()
+            except (tk.TclError, AttributeError):
+                pass
+        
+        try:
+            self.after_idle(_update)
+        except (tk.TclError, AttributeError):
+            pass
