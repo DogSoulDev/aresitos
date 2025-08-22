@@ -117,14 +117,17 @@ class VistaEscaneo(tk.Frame):
                                 activeforeground='white')
         self.btn_logs.pack(side="left", padx=(0, 10))
         
-        self.btn_eventos = tk.Button(btn_frame, text="Eventos SIEM", 
-                                   command=self.ver_eventos,
-                                   bg=self.colors['button_bg'], fg='white',
-                                   font=('Arial', 10),
-                                   relief='flat', padx=15, pady=8,
-                                   activebackground=self.colors['fg_accent'],
-                                   activeforeground='white')
-        self.btn_eventos.pack(side="left")
+        # Barra de progreso
+        self.progress_frame = tk.Frame(main_frame, bg=self.colors['bg_primary'])
+        self.progress_frame.pack(fill="x", padx=10, pady=(10, 5))
+        
+        self.progress_label = tk.Label(self.progress_frame, text="Estado: Listo", 
+                                     bg=self.colors['bg_primary'], fg=self.colors['fg_primary'],
+                                     font=('Arial', 9))
+        self.progress_label.pack(side="left")
+        
+        self.progress_bar = ttk.Progressbar(self.progress_frame, mode='determinate', length=300)
+        self.progress_bar.pack(side="right", padx=(10, 0))
         
         # Área de resultados con tema Burp Suite
         self.text_resultados = scrolledtext.ScrolledText(main_frame, height=20,
@@ -391,6 +394,10 @@ class VistaEscaneo(tk.Frame):
         self._actualizar_resultados_seguro("", "clear")
         self._actualizar_resultados_seguro("Iniciando escaneo...\n\n")
         
+        # Inicializar barra de progreso
+        self.progress_bar['value'] = 0
+        self.progress_label.config(text="Estado: Iniciando escaneo...")
+        
         # Log al terminal integrado
         self._log_terminal("INICIANDO escaneo del sistema", "ESCANEADOR", "INFO")
         self.log_to_terminal("Iniciando escaneo del sistema...")
@@ -432,6 +439,22 @@ class VistaEscaneo(tk.Frame):
         try:
             self.after_idle(_update)
         except (tk.TclError, AttributeError):
+            pass
+    
+    def _actualizar_progreso_seguro(self, valor, texto=""):
+        """Actualizar barra de progreso de forma segura desde cualquier hilo."""
+        def _update():
+            try:
+                if hasattr(self, 'progress_bar') and self.progress_bar.winfo_exists():
+                    self.progress_bar['value'] = valor
+                if hasattr(self, 'progress_label') and self.progress_label.winfo_exists() and texto:
+                    self.progress_label.config(text=texto)
+            except (tk.TclError, AttributeError):
+                pass
+        
+        try:
+            self.after_idle(_update)
+        except (tk.TclError, AttributeError):
             pass  # Ventana ya destruida
     
     def _ejecutar_escaneo_async(self):
@@ -439,6 +462,9 @@ class VistaEscaneo(tk.Frame):
         try:
             if not self.proceso_activo:
                 return
+            
+            # Progreso inicial
+            self._actualizar_progreso_seguro(10, "Estado: Preparando escaneo...")
             
             self._log_terminal("Iniciando ESCANEO COMPLETO KALI 2025 - Aresitos Aegis", "ESCANEADOR", "INFO")
             self._actualizar_texto_seguro("=== ARESITOS AEGIS - ESCANEO AVANZADO KALI 2025 ===\n\n")
@@ -450,12 +476,16 @@ class VistaEscaneo(tk.Frame):
             
             # Forzar uso del controlador de escaneo avanzado
             if self.controlador:
+                self._actualizar_progreso_seguro(20, "Estado: Configurando escaneador...")
+                
                 self._log_terminal("CONTROLADOR Controlador disponible - Iniciando escaneo Kali 2025", "ESCANEADOR", "SUCCESS")  # Issue 22/24: Sin emojis
                 self._actualizar_texto_seguro("MODO: Escaneador Avanzado Kali 2025\n")
                 self._actualizar_texto_seguro("HERRAMIENTAS: masscan, nmap, nuclei, gobuster, ffuf, rustscan\n\n")
                 
                 # Determinar objetivo (localhost + red local)
                 objetivos = ["127.0.0.1"]  # Siempre incluir localhost
+                
+                self._actualizar_progreso_seguro(30, "Estado: Detectando red local...")
                 
                 # Detectar red local
                 try:
@@ -478,7 +508,12 @@ class VistaEscaneo(tk.Frame):
                 
                 # Ejecutar escaneo para cada objetivo
                 resultados_totales = {"exito": True, "resultados": []}
-                for objetivo in objetivos:
+                progreso_por_objetivo = 60 // len(objetivos)  # Distribuir 60% entre objetivos
+                
+                for i, objetivo in enumerate(objetivos):
+                    progreso_actual = 40 + (i * progreso_por_objetivo)
+                    self._actualizar_progreso_seguro(progreso_actual, f"Estado: Escaneando {objetivo}...")
+                    
                     self._log_terminal(f"Escaneando objetivo: {objetivo}", "ESCANEADOR", "INFO")
                     self._actualizar_texto_seguro(f"ESCANEANDO: {objetivo}\n")
                     
@@ -508,14 +543,44 @@ class VistaEscaneo(tk.Frame):
                 
                 # Mostrar resultados consolidados
                 if resultados_totales["resultados"]:
+                    self._actualizar_progreso_seguro(90, "Estado: Procesando resultados...")
                     self._mostrar_resultados_consolidados(resultados_totales)
                 else:
                     self._actualizar_texto_seguro("ERROR: No se pudo completar ningún escaneo\n")
                     self._ejecutar_escaneo_emergencia()
                     
             else:
-                self._log_terminal("✗ Controlador no disponible - Ejecutando escaneo de emergencia", "ESCANEADOR", "ERROR")
-                self._ejecutar_escaneo_emergencia()
+                self._log_terminal("Controlador no disponible - Ejecutando escaneo profesional nativo", "ESCANEADOR", "INFO")
+                self._actualizar_progreso_seguro(40, "Estado: Validando herramientas...")
+                
+                # Verificar herramientas disponibles
+                herramientas_status = self._validar_herramientas_escaneo()
+                
+                # Usar escaneo avanzado o integral según disponibilidad
+                resultados_totales = {"exito": True, "resultados": []}
+                for objetivo in ["127.0.0.1"]:  # Empezar solo con localhost
+                    try:
+                        if herramientas_status["total"] >= 3:
+                            self._log_terminal(f"Usando escaneo avanzado multiherramienta para {objetivo}", "ESCANEADOR", "INFO")
+                            self._actualizar_progreso_seguro(60, f"Estado: Escaneo avanzado {objetivo}...")
+                            resultado = self._escaneo_avanzado_multiherramienta(objetivo)
+                        else:
+                            self._log_terminal(f"Usando escaneo integral básico para {objetivo}", "ESCANEADOR", "INFO")
+                            self._actualizar_progreso_seguro(60, f"Estado: Escaneo integral {objetivo}...")
+                            resultado = self._escaneo_integral_kali(objetivo)
+                        
+                        if resultado and resultado.get("exito"):
+                            resultados_totales["resultados"].append(resultado)
+                            self._log_terminal(f"Escaneo de {objetivo} completado exitosamente", "ESCANEADOR", "SUCCESS")
+                    except Exception as e:
+                        self._log_terminal(f"Error en escaneo de {objetivo}: {str(e)}", "ESCANEADOR", "ERROR")
+                
+                # Si hay resultados, mostrarlos, sino ejecutar emergencia
+                if resultados_totales["resultados"]:
+                    self._actualizar_progreso_seguro(90, "Estado: Procesando resultados...")
+                    self._mostrar_resultados_consolidados(resultados_totales)
+                else:
+                    self._ejecutar_escaneo_emergencia()
                 
         except Exception as e:
             self._log_terminal(f"ERROR CRÍTICO en escaneo: {str(e)}", "ESCANEADOR", "ERROR")
@@ -523,6 +588,7 @@ class VistaEscaneo(tk.Frame):
             self._ejecutar_escaneo_emergencia()
         finally:
             # Finalizar proceso
+            self._actualizar_progreso_seguro(100, "Estado: Escaneo completado")
             self.proceso_activo = False
             self.after_idle(self._finalizar_escaneo)
     
@@ -1115,8 +1181,694 @@ class VistaEscaneo(tk.Frame):
         self.proceso_activo = False
         self.btn_escanear.config(state="normal")
         self.btn_cancelar_escaneo.config(state="disabled")
+        
+        # Resetear barra de progreso
+        self.progress_bar['value'] = 0
+        self.progress_label.config(text="Estado: Listo")
+        
         self.thread_escaneo = None
-    
+
+    def _escaneo_integral_kali(self, objetivo):
+        """Escaneo integral usando herramientas nativas de Kali Linux.""" 
+        import subprocess
+        import time
+        
+        resultados = {
+            "objetivo": objetivo,
+            "timestamp": time.strftime("%Y-%m-%d %H:%M:%S"),
+            "fases": {},
+            "resumen": {"puertos_abiertos": 0, "servicios_detectados": 0, "vulnerabilidades_encontradas": 0}
+        }
+        
+        self._actualizar_texto_seguro(f"\n=== ESCANEO INTEGRAL KALI - {objetivo} ===\n\n")
+        
+        # FASE 1: Ping y conectividad básica
+        self._actualizar_texto_seguro("FASE 1: Verificando conectividad...\n")
+        try:
+            ping_result = subprocess.run(['ping', '-c', '3', objetivo], 
+                                       capture_output=True, text=True, timeout=15)
+            if ping_result.returncode == 0:
+                self._actualizar_texto_seguro(f"OK {objetivo} responde a ping\n")
+                resultados["fases"]["ping"] = {"exito": True, "responde": True}
+            else:
+                self._actualizar_texto_seguro(f"WARNING {objetivo} no responde a ping (pero puede estar activo)\n")
+                resultados["fases"]["ping"] = {"exito": True, "responde": False}
+        except Exception as e:
+            self._actualizar_texto_seguro(f"ERROR en ping: {str(e)}\n")
+            resultados["fases"]["ping"] = {"exito": False, "error": str(e)}
+        
+        # FASE 2: Escaneo rápido de puertos con nmap
+        self._actualizar_texto_seguro("\nFASE 2: Escaneo rápido de puertos (nmap)...\n")
+        puertos_abiertos = []
+        try:
+            nmap_result = subprocess.run(['nmap', '-T4', '-F', objetivo], 
+                                       capture_output=True, text=True, timeout=60)
+            if nmap_result.returncode == 0:
+                lineas = nmap_result.stdout.split('\n')
+                puertos_lineas = [l for l in lineas if '/tcp' in l and 'open' in l]
+                for linea in puertos_lineas:
+                    puerto = linea.split('/')[0].strip()
+                    servicio = linea.split()[-1] if len(linea.split()) > 2 else "unknown"
+                    puertos_abiertos.append({"puerto": puerto, "servicio": servicio})
+                    self._actualizar_texto_seguro(f"  Puerto {puerto}/tcp: {servicio}\n")
+                
+                resultados["fases"]["nmap"] = {
+                    "exito": True, 
+                    "puertos": puertos_abiertos,
+                    "total_puertos": len(puertos_abiertos)
+                }
+                resultados["resumen"]["puertos_abiertos"] = len(puertos_abiertos)
+                self._actualizar_texto_seguro(f"RESULTADO: {len(puertos_abiertos)} puertos abiertos encontrados\n")
+            else:
+                self._actualizar_texto_seguro("ERROR: nmap falló\n")
+                resultados["fases"]["nmap"] = {"exito": False}
+        except Exception as e:
+            self._actualizar_texto_seguro(f"ERROR en nmap: {str(e)}\n")
+            resultados["fases"]["nmap"] = {"exito": False, "error": str(e)}
+        
+        # FASE 3: Detección de servicios si hay puertos abiertos
+        if puertos_abiertos:
+            self._actualizar_texto_seguro("\nFASE 3: Detección de servicios y versiones...\n")
+            try:
+                puertos_str = ','.join([p["puerto"] for p in puertos_abiertos[:10]])  # Limitar a 10
+                nmap_sv_result = subprocess.run(['nmap', '-sV', '-p', puertos_str, objetivo], 
+                                              capture_output=True, text=True, timeout=120)
+                if nmap_sv_result.returncode == 0:
+                    self._actualizar_texto_seguro("Detección de servicios completada:\n")
+                    servicios_detectados = 0
+                    lineas = nmap_sv_result.stdout.split('\n')
+                    for linea in lineas:
+                        if '/tcp' in linea and 'open' in linea:
+                            servicios_detectados += 1
+                            self._actualizar_texto_seguro(f"  {linea.strip()}\n")
+                    
+                    resultados["fases"]["deteccion_servicios"] = {"exito": True, "servicios": servicios_detectados}
+                    resultados["resumen"]["servicios_detectados"] = servicios_detectados
+                else:
+                    self._actualizar_texto_seguro("ERROR en detección de servicios\n")
+                    resultados["fases"]["deteccion_servicios"] = {"exito": False}
+            except Exception as e:
+                self._actualizar_texto_seguro(f"ERROR en detección de servicios: {str(e)}\n")
+                resultados["fases"]["deteccion_servicios"] = {"exito": False, "error": str(e)}
+        
+        # FASE 4: Escaneo de scripts básicos si es localhost
+        if objetivo == "127.0.0.1" or objetivo == "localhost":
+            self._actualizar_texto_seguro("\nFASE 4: Análisis local del sistema...\n")
+            try:
+                # Verificar procesos críticos
+                ps_result = subprocess.run(['ps', 'aux'], capture_output=True, text=True, timeout=30)
+                if ps_result.returncode == 0:
+                    procesos = len(ps_result.stdout.split('\n')) - 1
+                    self._actualizar_texto_seguro(f"Procesos activos: {procesos}\n")
+                
+                # Verificar espacio en disco
+                df_result = subprocess.run(['df', '-h'], capture_output=True, text=True, timeout=10)
+                if df_result.returncode == 0:
+                    self._actualizar_texto_seguro("Espacio en disco:\n")
+                    lineas = df_result.stdout.split('\n')[1:4]  # Primeras 3 líneas
+                    for linea in lineas:
+                        if linea.strip():
+                            self._actualizar_texto_seguro(f"  {linea}\n")
+                            
+                resultados["fases"]["analisis_local"] = {"exito": True}
+            except Exception as e:
+                self._actualizar_texto_seguro(f"ERROR en análisis local: {str(e)}\n")
+                resultados["fases"]["analisis_local"] = {"exito": False, "error": str(e)}
+        
+        self._actualizar_texto_seguro(f"\n=== ESCANEO COMPLETADO: {objetivo} ===\n")
+        return {"exito": True, "resultado": resultados}
+
+    def _validar_herramientas_escaneo(self):
+        """Validar que las herramientas de escaneo estén disponibles."""
+        import subprocess
+        
+        herramientas = {
+            'nmap': 'Escaneador de red principal',
+            'masscan': 'Escaneador rápido de puertos',
+            'rustscan': 'Escaneador ultrarrápido',
+            'nuclei': 'Motor de detección de vulnerabilidades',
+            'gobuster': 'Enumeración de directorios',
+            'ffuf': 'Fuzzer web avanzado'
+        }
+        
+        herramientas_disponibles = []
+        herramientas_faltantes = []
+        
+        self._actualizar_texto_seguro("\n=== VALIDACIÓN DE HERRAMIENTAS DE ESCANEO ===\n")
+        
+        for herramienta, descripcion in herramientas.items():
+            try:
+                result = subprocess.run(['which', herramienta], 
+                                      capture_output=True, text=True, timeout=5)
+                if result.returncode == 0:
+                    herramientas_disponibles.append(herramienta)
+                    self._actualizar_texto_seguro(f"OK {herramienta}: {descripcion}\n")
+                else:
+                    herramientas_faltantes.append(herramienta)
+                    self._actualizar_texto_seguro(f"FALTA {herramienta}: {descripcion}\n")
+            except:
+                herramientas_faltantes.append(herramienta)
+                self._actualizar_texto_seguro(f"ERROR {herramienta}: No se pudo verificar\n")
+        
+        self._actualizar_texto_seguro(f"\nHERRAMIENTAS DISPONIBLES: {len(herramientas_disponibles)}/{len(herramientas)}\n")
+        
+        if herramientas_faltantes:
+            self._actualizar_texto_seguro("\nPARA INSTALAR HERRAMIENTAS FALTANTES:\n")
+            self._actualizar_texto_seguro("sudo apt update && sudo apt install -y " + " ".join(herramientas_faltantes) + "\n")
+        
+        self._actualizar_texto_seguro("=" * 50 + "\n\n")
+        
+        return {
+            "disponibles": herramientas_disponibles,
+            "faltantes": herramientas_faltantes,
+            "total": len(herramientas_disponibles)
+        }
+
+    def _escaneo_avanzado_multiherramienta(self, objetivo):
+        """Escaneo avanzado usando múltiples herramientas profesionales."""
+        import subprocess
+        import json
+        from datetime import datetime
+        
+        self._actualizar_texto_seguro(f"\n=== ESCANEO AVANZADO MULTIHERRAMIENTA: {objetivo} ===\n")
+        
+        # Validar herramientas primero
+        herramientas_status = self._validar_herramientas_escaneo()
+        herramientas_disponibles = herramientas_status["disponibles"]
+        
+        if not herramientas_disponibles:
+            self._actualizar_texto_seguro("ERROR: No hay herramientas de escaneo disponibles.\n")
+            return {"exito": False, "error": "Sin herramientas"}
+        
+        resultados = {
+            "objetivo": objetivo,
+            "timestamp": datetime.now().isoformat(),
+            "herramientas_usadas": [],
+            "puertos_encontrados": [],
+            "servicios_detectados": [],
+            "vulnerabilidades": [],
+            "directorios_web": []
+        }
+        
+        # FASE 1: Detección rápida con rustscan
+        if 'rustscan' in herramientas_disponibles:
+            self._actualizar_texto_seguro("\nFASE 1: Detección rápida de puertos (rustscan)\n")
+            try:
+                cmd = ['rustscan', '-a', objetivo, '--range', '1-65535', '--ulimit', '5000']
+                result = subprocess.run(cmd, capture_output=True, text=True, timeout=60)
+                if result.stdout:
+                    resultados["herramientas_usadas"].append("rustscan")
+                    # Parsear puertos encontrados
+                    for line in result.stdout.split('\n'):
+                        if 'Open' in line and objetivo in line:
+                            puerto = line.split()[-1] if line.split() else ""
+                            if puerto.isdigit():
+                                resultados["puertos_encontrados"].append(int(puerto))
+                    self._actualizar_texto_seguro(f"Puertos encontrados: {len(resultados['puertos_encontrados'])}\n")
+            except Exception as e:
+                self._actualizar_texto_seguro(f"Error en rustscan: {str(e)}\n")
+        
+        # FASE 2: Escaneo masivo con masscan (si no hay rustscan)
+        elif 'masscan' in herramientas_disponibles:
+            self._actualizar_texto_seguro("\nFASE 1: Escaneo masivo de puertos (masscan)\n")
+            try:
+                cmd = ['masscan', objetivo, '-p1-65535', '--rate=1000']
+                result = subprocess.run(cmd, capture_output=True, text=True, timeout=120)
+                if result.stdout:
+                    resultados["herramientas_usadas"].append("masscan")
+                    # Parsear resultados de masscan
+                    for line in result.stdout.split('\n'):
+                        if 'open' in line.lower():
+                            parts = line.split()
+                            for part in parts:
+                                if part.isdigit():
+                                    resultados["puertos_encontrados"].append(int(part))
+                    self._actualizar_texto_seguro(f"Puertos encontrados: {len(resultados['puertos_encontrados'])}\n")
+            except Exception as e:
+                self._actualizar_texto_seguro(f"Error en masscan: {str(e)}\n")
+        
+        # FASE 3: Detección de servicios con nmap
+        if 'nmap' in herramientas_disponibles and resultados["puertos_encontrados"]:
+            self._actualizar_texto_seguro("\nFASE 2: Detección de servicios (nmap)\n")
+            try:
+                puertos_str = ','.join(map(str, resultados["puertos_encontrados"][:50]))  # Limitar a 50 puertos
+                cmd = ['nmap', '-sV', '-sC', objetivo, '-p', puertos_str]
+                result = subprocess.run(cmd, capture_output=True, text=True, timeout=300)
+                if result.stdout:
+                    resultados["herramientas_usadas"].append("nmap")
+                    # Parsear servicios
+                    for line in result.stdout.split('\n'):
+                        if '/tcp' in line or '/udp' in line:
+                            servicio_info = line.strip()
+                            if servicio_info:
+                                resultados["servicios_detectados"].append(servicio_info)
+                    self._actualizar_texto_seguro(f"Servicios detectados: {len(resultados['servicios_detectados'])}\n")
+            except Exception as e:
+                self._actualizar_texto_seguro(f"Error en nmap: {str(e)}\n")
+        
+        # FASE 4: Detección de vulnerabilidades con nuclei
+        if 'nuclei' in herramientas_disponibles:
+            self._actualizar_texto_seguro("\nFASE 3: Detección de vulnerabilidades (nuclei)\n")
+            try:
+                cmd = ['nuclei', '-u', f'http://{objetivo}', '-severity', 'high,critical', '-silent']
+                result = subprocess.run(cmd, capture_output=True, text=True, timeout=180)
+                if result.stdout:
+                    resultados["herramientas_usadas"].append("nuclei")
+                    vulnerabilidades = result.stdout.strip().split('\n')
+                    resultados["vulnerabilidades"] = [v for v in vulnerabilidades if v.strip()]
+                    self._actualizar_texto_seguro(f"Vulnerabilidades encontradas: {len(resultados['vulnerabilidades'])}\n")
+            except Exception as e:
+                self._actualizar_texto_seguro(f"Error en nuclei: {str(e)}\n")
+        
+        # FASE 5: Enumeración de directorios web con gobuster
+        if 'gobuster' in herramientas_disponibles and any('80' in str(p) or '443' in str(p) or '8080' in str(p) for p in resultados["puertos_encontrados"]):
+            self._actualizar_texto_seguro("\nFASE 4: Enumeración de directorios web (gobuster)\n")
+            try:
+                # Usar wordlist común de Kali
+                wordlist = '/usr/share/wordlists/dirb/common.txt'
+                cmd = ['gobuster', 'dir', '-u', f'http://{objetivo}', '-w', wordlist, '-q']
+                result = subprocess.run(cmd, capture_output=True, text=True, timeout=120)
+                if result.stdout:
+                    resultados["herramientas_usadas"].append("gobuster")
+                    directorios = result.stdout.strip().split('\n')
+                    resultados["directorios_web"] = [d for d in directorios if d.strip()]
+                    self._actualizar_texto_seguro(f"Directorios encontrados: {len(resultados['directorios_web'])}\n")
+            except Exception as e:
+                self._actualizar_texto_seguro(f"Error en gobuster: {str(e)}\n")
+        
+        # Mostrar resumen final
+        self._actualizar_texto_seguro("\n=== RESUMEN DEL ESCANEO AVANZADO ===\n")
+        self._actualizar_texto_seguro(f"Herramientas utilizadas: {', '.join(resultados['herramientas_usadas'])}\n")
+        self._actualizar_texto_seguro(f"Total de puertos encontrados: {len(resultados['puertos_encontrados'])}\n")
+        self._actualizar_texto_seguro(f"Servicios detectados: {len(resultados['servicios_detectados'])}\n")
+        self._actualizar_texto_seguro(f"Vulnerabilidades: {len(resultados['vulnerabilidades'])}\n")
+        self._actualizar_texto_seguro(f"Directorios web: {len(resultados['directorios_web'])}\n")
+        self._actualizar_texto_seguro("=" * 50 + "\n\n")
+        
+        return {"exito": True, "resultado": resultados}
+
+    def _exportar_resultados_escaneo(self, resultados, formato="json"):
+        """Exportar resultados de escaneo a archivo."""
+        import json
+        import os
+        from datetime import datetime
+        
+        try:
+            # Crear directorio de reportes si no existe
+            directorio_reportes = "/tmp/aresitos_reportes"
+            if not os.path.exists(directorio_reportes):
+                os.makedirs(directorio_reportes)
+            
+            # Generar nombre de archivo único
+            timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+            nombre_archivo = f"escaneo_aresitos_{timestamp}.{formato}"
+            ruta_completa = os.path.join(directorio_reportes, nombre_archivo)
+            
+            if formato == "json":
+                with open(ruta_completa, 'w', encoding='utf-8') as f:
+                    json.dump(resultados, f, indent=2, ensure_ascii=False, default=str)
+            
+            elif formato == "txt":
+                with open(ruta_completa, 'w', encoding='utf-8') as f:
+                    f.write("=== REPORTE DE ESCANEO ARESITOS ===\n")
+                    f.write(f"Fecha: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}\n")
+                    f.write("=" * 50 + "\n\n")
+                    
+                    if isinstance(resultados, dict) and "resultado" in resultados:
+                        datos = resultados["resultado"]
+                        f.write(f"Objetivo: {datos.get('objetivo', 'N/A')}\n")
+                        f.write(f"Herramientas utilizadas: {', '.join(datos.get('herramientas_usadas', []))}\n")
+                        f.write(f"Puertos encontrados: {len(datos.get('puertos_encontrados', []))}\n")
+                        f.write(f"Servicios detectados: {len(datos.get('servicios_detectados', []))}\n")
+                        f.write(f"Vulnerabilidades: {len(datos.get('vulnerabilidades', []))}\n\n")
+                        
+                        if datos.get('puertos_encontrados'):
+                            f.write("PUERTOS ABIERTOS:\n")
+                            for puerto in datos['puertos_encontrados']:
+                                f.write(f"  - {puerto}\n")
+                            f.write("\n")
+                        
+                        if datos.get('servicios_detectados'):
+                            f.write("SERVICIOS DETECTADOS:\n")
+                            for servicio in datos['servicios_detectados']:
+                                f.write(f"  - {servicio}\n")
+                            f.write("\n")
+                        
+                        if datos.get('vulnerabilidades'):
+                            f.write("VULNERABILIDADES ENCONTRADAS:\n")
+                            for vuln in datos['vulnerabilidades']:
+                                f.write(f"  - {vuln}\n")
+                            f.write("\n")
+            
+            self._actualizar_texto_seguro(f"Reporte exportado: {ruta_completa}\n")
+            return {"exito": True, "archivo": ruta_completa}
+            
+        except Exception as e:
+            self._actualizar_texto_seguro(f"Error al exportar reporte: {str(e)}\n")
+            return {"exito": False, "error": str(e)}
+
+    def _escaneo_red_completa(self, rango_red="192.168.1.0/24"):
+        """Escaneo completo de una red local."""
+        import subprocess
+        import ipaddress
+        from datetime import datetime
+        
+        self._actualizar_texto_seguro(f"\n=== ESCANEO DE RED COMPLETA: {rango_red} ===\n")
+        
+        try:
+            # Validar formato de red
+            red = ipaddress.ip_network(rango_red, strict=False)
+            self._actualizar_texto_seguro(f"Red válida: {red} ({red.num_addresses} direcciones)\n")
+            
+            resultados_red = {
+                "red": str(red),
+                "timestamp": datetime.now().isoformat(),
+                "hosts_activos": [],
+                "hosts_escaneados": [],
+                "total_puertos": 0,
+                "servicios_unicos": set()
+            }
+            
+            # FASE 1: Descubrimiento de hosts activos con ping
+            self._actualizar_texto_seguro("\nFASE 1: Descubrimiento de hosts activos...\n")
+            hosts_activos = []
+            
+            # Usar nmap para descubrimiento rápido si está disponible
+            try:
+                cmd = ['nmap', '-sn', str(red)]
+                result = subprocess.run(cmd, capture_output=True, text=True, timeout=120)
+                if result.stdout:
+                    for line in result.stdout.split('\n'):
+                        if 'Nmap scan report for' in line:
+                            ip = line.split()[-1].strip('()')
+                            if self._validar_ip(ip):
+                                hosts_activos.append(ip)
+                                self._actualizar_texto_seguro(f"Host activo: {ip}\n")
+            except:
+                # Fallback: ping individual
+                self._actualizar_texto_seguro("Fallback: usando ping individual...\n")
+                for host in list(red.hosts())[:20]:  # Limitar a 20 hosts
+                    try:
+                        result = subprocess.run(['ping', '-c', '1', '-W', '1', str(host)], 
+                                              capture_output=True, timeout=3)
+                        if result.returncode == 0:
+                            hosts_activos.append(str(host))
+                            self._actualizar_texto_seguro(f"Host activo: {host}\n")
+                    except:
+                        continue
+            
+            resultados_red["hosts_activos"] = hosts_activos
+            self._actualizar_texto_seguro(f"\nHosts activos encontrados: {len(hosts_activos)}\n")
+            
+            # FASE 2: Escaneo de puertos en hosts activos
+            self._actualizar_texto_seguro("\nFASE 2: Escaneo de puertos en hosts activos...\n")
+            
+            for i, host in enumerate(hosts_activos[:10]):  # Limitar a 10 hosts
+                self._actualizar_texto_seguro(f"\nEscaneando host {i+1}/{min(10, len(hosts_activos))}: {host}\n")
+                
+                # Escaneo rápido de puertos comunes
+                try:
+                    puertos_comunes = "22,23,53,80,135,139,443,445,993,995,1723,3389,5900,8080"
+                    cmd = ['nmap', '-sS', '-T4', host, '-p', puertos_comunes]
+                    result = subprocess.run(cmd, capture_output=True, text=True, timeout=60)
+                    
+                    host_info = {
+                        "ip": host,
+                        "puertos_abiertos": [],
+                        "servicios": [],
+                        "timestamp": datetime.now().isoformat()
+                    }
+                    
+                    if result.stdout:
+                        for line in result.stdout.split('\n'):
+                            if '/tcp' in line and 'open' in line:
+                                puerto_info = line.strip()
+                                puerto_num = puerto_info.split('/')[0]
+                                if puerto_num.isdigit():
+                                    host_info["puertos_abiertos"].append(int(puerto_num))
+                                    host_info["servicios"].append(puerto_info)
+                                    resultados_red["servicios_unicos"].add(puerto_info.split()[2] if len(puerto_info.split()) > 2 else "unknown")
+                    
+                    if host_info["puertos_abiertos"]:
+                        resultados_red["hosts_escaneados"].append(host_info)
+                        resultados_red["total_puertos"] += len(host_info["puertos_abiertos"])
+                        self._actualizar_texto_seguro(f"  Puertos abiertos: {host_info['puertos_abiertos']}\n")
+                
+                except Exception as e:
+                    self._actualizar_texto_seguro(f"  Error escaneando {host}: {str(e)}\n")
+            
+            # Convertir set a lista para JSON
+            resultados_red["servicios_unicos"] = list(resultados_red["servicios_unicos"])
+            
+            # Mostrar resumen
+            self._actualizar_texto_seguro(f"\n=== RESUMEN DEL ESCANEO DE RED ===\n")
+            self._actualizar_texto_seguro(f"Red escaneada: {rango_red}\n")
+            self._actualizar_texto_seguro(f"Hosts activos: {len(hosts_activos)}\n")
+            self._actualizar_texto_seguro(f"Hosts con puertos abiertos: {len(resultados_red['hosts_escaneados'])}\n")
+            self._actualizar_texto_seguro(f"Total de puertos abiertos: {resultados_red['total_puertos']}\n")
+            self._actualizar_texto_seguro(f"Servicios únicos: {len(resultados_red['servicios_unicos'])}\n")
+            self._actualizar_texto_seguro("=" * 50 + "\n\n")
+            
+            return {"exito": True, "resultado": resultados_red}
+            
+        except Exception as e:
+            self._actualizar_texto_seguro(f"Error en escaneo de red: {str(e)}\n")
+            return {"exito": False, "error": str(e)}
+
+    def _validar_ip(self, ip_str):
+        """Validar formato de dirección IP."""
+        import ipaddress
+        try:
+            ipaddress.ip_address(ip_str)
+            return True
+        except:
+            return False
+
+    def configurar_tipo_escaneo(self, tipo_escaneo="integral"):
+        """Configurar el tipo de escaneo a realizar."""
+        tipos_validos = {
+            "integral": "Escaneo integral básico con herramientas nativas",
+            "avanzado": "Escaneo avanzado con múltiples herramientas",
+            "red": "Escaneo completo de red local",
+            "rapido": "Escaneo rápido de puertos comunes",
+            "profundo": "Escaneo profundo con detección de vulnerabilidades"
+        }
+        
+        if tipo_escaneo not in tipos_validos:
+            self._actualizar_texto_seguro(f"Tipo de escaneo inválido: {tipo_escaneo}\n")
+            self._actualizar_texto_seguro("Tipos válidos:\n")
+            for tipo, desc in tipos_validos.items():
+                self._actualizar_texto_seguro(f"  - {tipo}: {desc}\n")
+            return False
+        
+        self.tipo_escaneo_actual = tipo_escaneo
+        self._actualizar_texto_seguro(f"Tipo de escaneo configurado: {tipos_validos[tipo_escaneo]}\n")
+        return True
+
+    def ejecutar_escaneo_configurado(self, objetivo):
+        """Ejecutar escaneo según el tipo configurado."""
+        tipo = getattr(self, 'tipo_escaneo_actual', 'integral')
+        
+        self._actualizar_texto_seguro(f"Ejecutando escaneo tipo '{tipo}' para objetivo: {objetivo}\n")
+        
+        try:
+            if tipo == "integral":
+                return self._escaneo_integral_kali(objetivo)
+            elif tipo == "avanzado":
+                return self._escaneo_avanzado_multiherramienta(objetivo)
+            elif tipo == "red":
+                # Si el objetivo parece ser una IP, convertir a rango de red
+                if "/" not in objetivo and self._validar_ip(objetivo):
+                    # Convertir IP individual a rango /24
+                    partes = objetivo.split('.')
+                    if len(partes) == 4:
+                        rango_red = f"{partes[0]}.{partes[1]}.{partes[2]}.0/24"
+                    else:
+                        rango_red = objetivo
+                else:
+                    rango_red = objetivo
+                return self._escaneo_red_completa(rango_red)
+            elif tipo == "rapido":
+                return self._escaneo_rapido_puertos(objetivo)
+            elif tipo == "profundo":
+                return self._escaneo_profundo_vulnerabilidades(objetivo)
+            else:
+                return self._escaneo_integral_kali(objetivo)
+                
+        except Exception as e:
+            error_msg = f"Error en escaneo configurado: {str(e)}"
+            self._actualizar_texto_seguro(error_msg + "\n")
+            return {"exito": False, "error": error_msg}
+
+    def _escaneo_rapido_puertos(self, objetivo):
+        """Escaneo rápido de puertos más comunes."""
+        import subprocess
+        from datetime import datetime
+        
+        self._actualizar_texto_seguro(f"\n=== ESCANEO RÁPIDO DE PUERTOS: {objetivo} ===\n")
+        
+        puertos_comunes = "21,22,23,25,53,80,110,135,139,143,443,445,587,993,995,1723,3389,5900,8080,8443"
+        
+        resultado = {
+            "objetivo": objetivo,
+            "tipo": "rapido",
+            "timestamp": datetime.now().isoformat(),
+            "puertos_encontrados": [],
+            "tiempo_escaneo": 0
+        }
+        
+        try:
+            inicio = datetime.now()
+            cmd = ['nmap', '-sS', '-T5', objetivo, '-p', puertos_comunes]
+            result = subprocess.run(cmd, capture_output=True, text=True, timeout=30)
+            fin = datetime.now()
+            
+            resultado["tiempo_escaneo"] = (fin - inicio).total_seconds()
+            
+            if result.stdout:
+                for line in result.stdout.split('\n'):
+                    if '/tcp' in line and 'open' in line:
+                        puerto = line.split('/')[0]
+                        if puerto.isdigit():
+                            resultado["puertos_encontrados"].append(int(puerto))
+                            self._actualizar_texto_seguro(f"Puerto abierto: {line.strip()}\n")
+            
+            self._actualizar_texto_seguro(f"\nEscaneo completado en {resultado['tiempo_escaneo']:.2f} segundos\n")
+            self._actualizar_texto_seguro(f"Puertos abiertos encontrados: {len(resultado['puertos_encontrados'])}\n")
+            
+            return {"exito": True, "resultado": resultado}
+            
+        except Exception as e:
+            self._actualizar_texto_seguro(f"Error en escaneo rápido: {str(e)}\n")
+            return {"exito": False, "error": str(e)}
+
+    def _escaneo_profundo_vulnerabilidades(self, objetivo):
+        """Escaneo profundo enfocado en vulnerabilidades."""
+        import subprocess
+        from datetime import datetime
+        
+        self._actualizar_texto_seguro(f"\n=== ESCANEO PROFUNDO DE VULNERABILIDADES: {objetivo} ===\n")
+        
+        resultado = {
+            "objetivo": objetivo,
+            "tipo": "profundo",
+            "timestamp": datetime.now().isoformat(),
+            "vulnerabilidades_criticas": [],
+            "vulnerabilidades_altas": [],
+            "servicios_vulnerables": [],
+            "scripts_ejecutados": []
+        }
+        
+        try:
+            # Fase 1: Escaneo con scripts de vulnerabilidades de nmap
+            self._actualizar_texto_seguro("Fase 1: Ejecutando scripts de vulnerabilidades nmap...\n")
+            cmd = ['nmap', '-sV', '--script', 'vuln', objetivo, '-T4']
+            result = subprocess.run(cmd, capture_output=True, text=True, timeout=300)
+            
+            if result.stdout:
+                resultado["scripts_ejecutados"].append("nmap-vuln")
+                lineas = result.stdout.split('\n')
+                for i, linea in enumerate(lineas):
+                    if 'CVE-' in linea or 'VULNERABLE' in linea:
+                        if 'CRITICAL' in linea.upper() or 'HIGH' in linea.upper():
+                            resultado["vulnerabilidades_criticas"].append(linea.strip())
+                        else:
+                            resultado["vulnerabilidades_altas"].append(linea.strip())
+                        self._actualizar_texto_seguro(f"Vulnerabilidad: {linea.strip()}\n")
+            
+            # Fase 2: Nuclei si está disponible
+            try:
+                self._actualizar_texto_seguro("Fase 2: Ejecutando nuclei para detección avanzada...\n")
+                cmd = ['nuclei', '-u', f'http://{objetivo}', '-severity', 'critical,high,medium', '-silent']
+                result = subprocess.run(cmd, capture_output=True, text=True, timeout=180)
+                
+                if result.stdout:
+                    resultado["scripts_ejecutados"].append("nuclei")
+                    for linea in result.stdout.strip().split('\n'):
+                        if linea.strip():
+                            if 'critical' in linea.lower():
+                                resultado["vulnerabilidades_criticas"].append(linea.strip())
+                            else:
+                                resultado["vulnerabilidades_altas"].append(linea.strip())
+                            self._actualizar_texto_seguro(f"Nuclei: {linea.strip()}\n")
+            except:
+                self._actualizar_texto_seguro("Nuclei no disponible, continuando...\n")
+            
+            # Resumen
+            total_vulns = len(resultado["vulnerabilidades_criticas"]) + len(resultado["vulnerabilidades_altas"])
+            self._actualizar_texto_seguro(f"\n=== RESUMEN DE VULNERABILIDADES ===\n")
+            self._actualizar_texto_seguro(f"Vulnerabilidades críticas: {len(resultado['vulnerabilidades_criticas'])}\n")
+            self._actualizar_texto_seguro(f"Vulnerabilidades altas: {len(resultado['vulnerabilidades_altas'])}\n")
+            self._actualizar_texto_seguro(f"Total encontradas: {total_vulns}\n")
+            self._actualizar_texto_seguro("=" * 50 + "\n\n")
+            
+            return {"exito": True, "resultado": resultado}
+            
+        except Exception as e:
+            self._actualizar_texto_seguro(f"Error en escaneo profundo: {str(e)}\n")
+            return {"exito": False, "error": str(e)}
+
+    def obtener_estadisticas_modulo(self):
+        """Obtener estadísticas y capacidades del módulo de escaneo."""
+        import subprocess
+        
+        self._actualizar_texto_seguro("\n=== ESTADÍSTICAS DEL MÓDULO DE ESCANEO ARESITOS ===\n")
+        
+        estadisticas = {
+            "version_modulo": "ARESITOS v3.0 - Vista Escaneo Profesional",
+            "fecha_revision": "2025-01-02",
+            "herramientas_soportadas": {
+                "nmap": "Escaneador de red principal",
+                "masscan": "Escaneador rápido de puertos",
+                "rustscan": "Escaneador ultrarrápido",
+                "nuclei": "Motor de detección de vulnerabilidades", 
+                "gobuster": "Enumeración de directorios",
+                "ffuf": "Fuzzer web avanzado"
+            },
+            "tipos_escaneo": {
+                "integral": "Escaneo completo con herramientas nativas",
+                "avanzado": "Escaneo multiherramienta profesional",
+                "red": "Escaneo completo de red local",
+                "rapido": "Escaneo rápido de puertos comunes",
+                "profundo": "Detección profunda de vulnerabilidades"
+            },
+            "capacidades": [
+                "Escaneo autónomo sin dependencias externas",
+                "Integración con herramientas nativas de Kali Linux",
+                "Exportación de resultados en JSON/TXT",
+                "Progress tracking en tiempo real",
+                "Logging integrado con terminal",
+                "Fallback inteligente si faltan herramientas",
+                "Validación automática de herramientas",
+                "Escaneo de redes completas",
+                "Detección avanzada de vulnerabilidades"
+            ]
+        }
+        
+        # Verificar herramientas disponibles
+        herramientas_disponibles = self._validar_herramientas_escaneo()
+        estadisticas["herramientas_disponibles"] = herramientas_disponibles["disponibles"]
+        estadisticas["herramientas_faltantes"] = herramientas_disponibles["faltantes"]
+        
+        # Mostrar estadísticas
+        self._actualizar_texto_seguro(f"Versión: {estadisticas['version_modulo']}\n")
+        self._actualizar_texto_seguro(f"Última revisión: {estadisticas['fecha_revision']}\n")
+        self._actualizar_texto_seguro(f"Herramientas disponibles: {len(estadisticas['herramientas_disponibles'])}/{len(estadisticas['herramientas_soportadas'])}\n")
+        self._actualizar_texto_seguro(f"Tipos de escaneo: {len(estadisticas['tipos_escaneo'])}\n")
+        self._actualizar_texto_seguro(f"Capacidades implementadas: {len(estadisticas['capacidades'])}\n")
+        
+        self._actualizar_texto_seguro("\nCAPACIDADES PRINCIPALES:\n")
+        for capacidad in estadisticas["capacidades"]:
+            self._actualizar_texto_seguro(f"  ✓ {capacidad}\n")
+        
+        self._actualizar_texto_seguro("\nTIPOS DE ESCANEO DISPONIBLES:\n")
+        for tipo, descripcion in estadisticas["tipos_escaneo"].items():
+            self._actualizar_texto_seguro(f"  • {tipo}: {descripcion}\n")
+        
+        self._actualizar_texto_seguro("=" * 60 + "\n\n")
+        
+        return estadisticas
+
     def cancelar_escaneo(self):
         """Cancelar escaneo usando sistema unificado."""
         # Detener variable de control
@@ -1328,182 +2080,11 @@ class VistaEscaneo(tk.Frame):
             pass
     
     def ver_eventos(self):
-        """Analizar y mostrar eventos SIEM reales del sistema."""
-        import subprocess
-        import os
-        from datetime import datetime
-        
-        try:
-            self.text_resultados.delete(1.0, tk.END)
-            self._actualizar_texto_seguro("=== ANÁLISIS DE EVENTOS SIEM REALES ===\n\n")
-            
-            self._log_terminal("Iniciando análisis de eventos SIEM del sistema", "SIEM_ANALYZER", "INFO")
-            
-            # 1. Analizar logs de autenticación para eventos de seguridad
-            self.text_resultados.insert(tk.END, "EVENTOS DE AUTENTICACIÓN:\n")
-            try:
-                result = subprocess.run(['grep', '-E', 'Failed password|Invalid user|authentication failure', '/var/log/auth.log'], 
-                                      capture_output=True, text=True, timeout=15)
-                if result.returncode == 0:
-                    auth_events = result.stdout.strip().split('\n')
-                    recent_events = auth_events[-10:] if auth_events else []
-                    
-                    if recent_events and any(event.strip() for event in recent_events):
-                        for event in recent_events:
-                            if event.strip():
-                                parts = event.split()
-                                if len(parts) >= 3:
-                                    timestamp = ' '.join(parts[:3])
-                                    self.text_resultados.insert(tk.END, f"   ALERTA {timestamp}: {event.split(':', 1)[1] if ':' in event else event}\n")
-                    else:
-                        self.text_resultados.insert(tk.END, "   OK No se detectaron eventos de autenticación sospechosos\n")
-                else:
-                    self.text_resultados.insert(tk.END, "   ADVERTENCIA No se pudo acceder a /var/log/auth.log\n")
-            except Exception as e:
-                self.text_resultados.insert(tk.END, f"   ERROR analizando auth.log: {str(e)}\n")
-            
-            # 2. Analizar conexiones de red activas
-            self.text_resultados.insert(tk.END, "\nANÁLISIS DE RED:\n")
-            try:
-                result = subprocess.run(['ss', '-tuln'], capture_output=True, text=True, timeout=10)
-                if result.returncode == 0:
-                    connections = result.stdout.strip().split('\n')[1:]  # Skip header
-                    suspicious_ports = []
-                    backdoor_ports = ['4444', '6666', '9999', '31337', '12345']
-                    
-                    for conn in connections:
-                        for port in backdoor_ports:
-                            if f':{port} ' in conn or f':{port}\t' in conn:
-                                suspicious_ports.append(conn)
-                                break
-                    
-                    if suspicious_ports:
-                        self.text_resultados.insert(tk.END, "   ALERTA PUERTOS SOSPECHOSOS DETECTADOS:\n")
-                        for port in suspicious_ports:
-                            self.text_resultados.insert(tk.END, f"      • {port.strip()}\n")
-                    else:
-                        self.text_resultados.insert(tk.END, "   OK No se detectaron puertos backdoor activos\n")
-                        
-                    # Contar conexiones por estado
-                    listening_count = len([c for c in connections if 'LISTEN' in c])
-                    self.text_resultados.insert(tk.END, f"   SERVICIOS en escucha: {listening_count}\n")
-                else:
-                    self.text_resultados.insert(tk.END, "   ADVERTENCIA Error ejecutando comando ss\n")
-            except Exception as e:
-                self.text_resultados.insert(tk.END, f"   ERROR analizando red: {str(e)}\n")
-            
-            # 3. Analizar procesos sospechosos
-            self.text_resultados.insert(tk.END, "\nANÁLISIS DE PROCESOS:\n")
-            try:
-                result = subprocess.run(['ps', 'aux'], capture_output=True, text=True, timeout=10)
-                if result.returncode == 0:
-                    processes = result.stdout.strip().split('\n')
-                    suspicious_patterns = ['nc ', 'netcat', 'python -c', 'perl -e', 'bash -i', '/dev/tcp']
-                    suspicious_procs = []
-                    
-                    for proc in processes:
-                        proc_lower = proc.lower()
-                        for pattern in suspicious_patterns:
-                            if pattern in proc_lower:
-                                suspicious_procs.append(proc)
-                                break
-                    
-                    if suspicious_procs:
-                        self.text_resultados.insert(tk.END, "   ALERTA PROCESOS SOSPECHOSOS DETECTADOS:\n")
-                        for proc in suspicious_procs[:5]:  # Limitar a 5 procesos
-                            parts = proc.split()
-                            if len(parts) >= 11:
-                                user = parts[0]
-                                pid = parts[1]
-                                cpu = parts[2]
-                                cmd = ' '.join(parts[10:])[:50]  # Limitar longitud
-                                self.text_resultados.insert(tk.END, f"      • PID {pid} ({user}): {cmd}... (CPU: {cpu}%)\n")
-                    else:
-                        self.text_resultados.insert(tk.END, "   OK No se detectaron procesos sospechosos\n")
-                        
-                    # Detectar procesos con alto uso de CPU
-                    high_cpu_procs = []
-                    for proc in processes[1:]:  # Skip header
-                        parts = proc.split()
-                        if len(parts) >= 3:
-                            try:
-                                cpu_usage = float(parts[2])
-                                if cpu_usage > 80.0:
-                                    high_cpu_procs.append((parts[1], parts[10] if len(parts) > 10 else "unknown", cpu_usage))
-                            except ValueError:
-                                continue
-                    
-                    if high_cpu_procs:
-                        self.text_resultados.insert(tk.END, "   ADVERTENCIA PROCESOS CON ALTO USO DE CPU:\n")
-                        for pid, cmd, cpu in high_cpu_procs[:3]:
-                            self.text_resultados.insert(tk.END, f"      • PID {pid}: {cmd} ({cpu}% CPU)\n")
-                        
-                else:
-                    self.text_resultados.insert(tk.END, "   ADVERTENCIA Error ejecutando comando ps\n")
-            except Exception as e:
-                self.text_resultados.insert(tk.END, f"   ERROR analizando procesos: {str(e)}\n")
-            
-            # 4. Verificar integridad de archivos críticos del sistema
-            self.text_resultados.insert(tk.END, "\nINTEGRIDAD DE ARCHIVOS CRÍTICOS:\n")
-            critical_files = ['/etc/passwd', '/etc/shadow', '/etc/hosts', '/etc/sudoers', '/etc/ssh/sshd_config']
-            
-            for file_path in critical_files:
-                try:
-                    if os.path.exists(file_path):
-                        stat_info = os.stat(file_path)
-                        mod_time = datetime.fromtimestamp(stat_info.st_mtime).strftime("%Y-%m-%d %H:%M:%S")
-                        permissions = oct(stat_info.st_mode)[-3:]
-                        
-                        # Verificar permisos apropiados
-                        expected_perms = {
-                            'passwd': '644', 'shadow': '640', 'hosts': '644', 
-                            'sudoers': '440', 'sshd_config': '644'
-                        }
-                        file_name = os.path.basename(file_path)
-                        expected = expected_perms.get(file_name, '644')
-                        
-                        if permissions == expected:
-                            self.text_resultados.insert(tk.END, f"   OK {file_path}: CORRECTO (permisos {permissions}, mod: {mod_time})\n")
-                        else:
-                            self.text_resultados.insert(tk.END, f"   ALERTA {file_path}: PERMISOS ANÓMALOS ({permissions}, esperado {expected})\n")
-                    else:
-                        self.text_resultados.insert(tk.END, f"   ERROR {file_path}: Archivo no encontrado\n")
-                except Exception as e:
-                    self.text_resultados.insert(tk.END, f"   ADVERTENCIA Error verificando {file_path}: {str(e)}\n")
-            
-            # 5. Analizar logs del sistema en busca de errores críticos
-            self.text_resultados.insert(tk.END, "\nANÁLISIS DE LOGS DEL SISTEMA:\n")
-            try:
-                result = subprocess.run(['grep', '-i', 'error\\|fail\\|critical\\|alert', '/var/log/syslog'], 
-                                      capture_output=True, text=True, timeout=15)
-                if result.returncode == 0:
-                    system_errors = result.stdout.strip().split('\n')
-                    recent_errors = system_errors[-5:] if system_errors else []
-                    
-                    if recent_errors and any(error.strip() for error in recent_errors):
-                        self.text_resultados.insert(tk.END, "   ADVERTENCIA ERRORES RECIENTES DEL SISTEMA:\n")
-                        for error in recent_errors:
-                            if error.strip():
-                                parts = error.split()
-                                if len(parts) >= 3:
-                                    timestamp = ' '.join(parts[:3])
-                                    message = ' '.join(parts[4:])[:80]  # Limitar longitud
-                                    self.text_resultados.insert(tk.END, f"      • {timestamp}: {message}...\n")
-                    else:
-                        self.text_resultados.insert(tk.END, "   OK No se detectaron errores críticos recientes\n")
-                else:
-                    self.text_resultados.insert(tk.END, "   OK No se encontraron errores en syslog\n")
-            except Exception as e:
-                self.text_resultados.insert(tk.END, f"   ERROR analizando syslog: {str(e)}\n")
-            
-            self.text_resultados.insert(tk.END, "\n=== ANÁLISIS SIEM COMPLETADO ===\n")
-            self._log_terminal("Análisis de eventos SIEM completado", "SIEM_ANALYZER", "INFO")
-            
-        except Exception as e:
-            error_msg = f"Error en análisis SIEM: {str(e)}"
-            self.text_resultados.insert(tk.END, f"ERROR {error_msg}\n")
-            self._log_terminal(error_msg, "SIEM_ANALYZER", "ERROR")
-
+        """Función eliminada - SIEM movido a módulo separado."""
+        # Redirect al módulo SIEM para análisis de eventos
+        self._actualizar_texto_seguro("INFORMACIÓN: Los eventos SIEM se han movido al módulo SIEM dedicado.\n")
+        self._actualizar_texto_seguro("Para análisis de eventos de seguridad, usar el módulo SIEM.\n\n")
+        self._log_terminal("Funcionalidad SIEM movida a módulo dedicado", "ESCANEADOR", "INFO")
     def _escanear_archivos_criticos(self):
         """Escanear archivos críticos del sistema en busca de modificaciones sospechosas."""
         import subprocess

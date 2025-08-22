@@ -26,6 +26,8 @@ class VistaSIEM(tk.Frame):
         self.proceso_siem_activo = False
         self.thread_siem = None
         self.monitoreo_activo = False  # Para control del monitoreo en tiempo real
+        self.cache_alertas = {}  # Para evitar spam de alertas repetitivas
+        self.ultima_verificacion = {}  # Timestamps de últimas verificaciones
         
         # Configurar tema y colores de manera consistente
         if BURP_THEME_AVAILABLE and burp_theme:
@@ -1420,18 +1422,20 @@ class VistaSIEM(tk.Frame):
             # Detectar eventos reales de seguridad usando comandos Linux
             eventos_detectados = []
             
-            # 1. Verificar intentos de SSH fallidos
+            # 1. Verificar intentos de SSH fallidos RECIENTES (último minuto)
             try:
-                result = subprocess.run(['grep', '-i', 'failed', '/var/log/auth.log'], 
+                # Usar journalctl para obtener solo logs recientes 
+                result = subprocess.run(['journalctl', '_COMM=sshd', '--since', '1 minute ago', '--no-pager'], 
                                       capture_output=True, text=True, timeout=3)
-                if result.stdout:
-                    intentos_ssh = len(result.stdout.strip().split('\n'))
-                    if intentos_ssh > 0:
+                if result.stdout and 'Failed password' in result.stdout:
+                    # Contar solo líneas con "Failed password" en el último minuto
+                    lineas_fallidas = [line for line in result.stdout.split('\n') if 'Failed password' in line]
+                    if len(lineas_fallidas) > 0:
                         eventos_detectados.append({
                             "tipo": "INTRUSIÓN", 
-                            "descripcion": f"SSH: {intentos_ssh} intentos fallidos detectados en auth.log",
+                            "descripcion": f"SSH: {len(lineas_fallidas)} intentos fallidos RECIENTES (último minuto)",
                             "severidad": "HIGH",
-                            "detalles": f"Comando: grep -i failed /var/log/auth.log"
+                            "detalles": f"Comando: journalctl para eventos SSH recientes"
                         })
             except:
                 pass
@@ -1500,6 +1504,10 @@ class VistaSIEM(tk.Frame):
         tipo = evento.get('tipo', 'EVENTO')
         descripcion = evento.get('descripcion', 'Sin descripción')
         detalles = evento.get('detalles', '')
+        
+        # Verificar si es una alerta nueva o repetitiva
+        if not self._es_alerta_nueva(tipo, descripcion):
+            return  # Salir si es una alerta repetitiva
         
         # Indicadores según severidad
         indicator_map = {
@@ -1606,6 +1614,28 @@ class VistaSIEM(tk.Frame):
         self._habilitar_botones_siem(True)
         self.thread_siem = None
         self._actualizar_texto_monitoreo(" Sistema SIEM detenido\n\n")
+        
+        # Limpiar cache de alertas al detener SIEM
+        self.cache_alertas.clear()
+        self.ultima_verificacion.clear()
+    
+    def _es_alerta_nueva(self, tipo_alerta, descripcion, intervalo_minutos=5):
+        """Verificar si una alerta es nueva o ya fue reportada recientemente."""
+        import time
+        tiempo_actual = time.time()
+        clave_alerta = f"{tipo_alerta}:{descripcion}"
+        
+        # Si nunca se reportó o pasó el intervalo, es nueva
+        if clave_alerta not in self.cache_alertas:
+            self.cache_alertas[clave_alerta] = tiempo_actual
+            return True
+        
+        tiempo_anterior = self.cache_alertas[clave_alerta]
+        if tiempo_actual - tiempo_anterior > (intervalo_minutos * 60):
+            self.cache_alertas[clave_alerta] = tiempo_actual
+            return True
+        
+        return False
     
     def _habilitar_botones_siem(self, habilitar):
         """Habilitar/deshabilitar botones SIEM."""
@@ -2404,11 +2434,53 @@ class VistaSIEM(tk.Frame):
     
     # Métodos de la pestaña Forense
     def usar_autopsy(self):
-        """Usar Autopsy para análisis forense."""
-        self._actualizar_texto_forense(" Iniciando Autopsy...\n")
-        self._actualizar_texto_forense(" Herramienta gráfica para análisis forense\n")
-        self._actualizar_texto_forense(" Comando: autopsy\n")
-        self._actualizar_texto_forense(" Interfaz web disponible en localhost:9999\n\n")
+        """Usar Autopsy para análisis forense - Modo seguro con información detallada."""
+        def ejecutar_autopsy_seguro():
+            try:
+                self.after(0, self._actualizar_texto_forense, "AUTOPSY - Plataforma Forense Digital\n")
+                self.after(0, self._actualizar_texto_forense, "="*50 + "\n")
+                
+                import subprocess
+                import os
+                
+                # Verificar si autopsy está instalado SIN ejecutarlo
+                try:
+                    resultado = subprocess.run(['which', 'autopsy'], capture_output=True, text=True, timeout=5)
+                    if resultado.returncode == 0:
+                        self.after(0, self._actualizar_texto_forense, "OK Autopsy detectado en: " + resultado.stdout.strip() + "\n")
+                        
+                        # Verificar versión de forma segura
+                        version_result = subprocess.run(['autopsy', '--help'], capture_output=True, text=True, timeout=5)
+                        self.after(0, self._actualizar_texto_forense, "INFO Autopsy disponible - modo GUI\n\n")
+                        
+                        self.after(0, self._actualizar_texto_forense, "USO RECOMENDADO (modo manual):\n")
+                        self.after(0, self._actualizar_texto_forense, "1. Abrir terminal independiente\n")
+                        self.after(0, self._actualizar_texto_forense, "2. Ejecutar: sudo autopsy\n")
+                        self.after(0, self._actualizar_texto_forense, "3. Acceder via web: localhost:9999/autopsy\n\n")
+                        
+                        self.after(0, self._actualizar_texto_forense, "CAPACIDADES:\n")
+                        self.after(0, self._actualizar_texto_forense, "• Timeline de eventos\n")
+                        self.after(0, self._actualizar_texto_forense, "• Análisis de sistemas de archivos\n")
+                        self.after(0, self._actualizar_texto_forense, "• Recuperación de archivos eliminados\n")
+                        self.after(0, self._actualizar_texto_forense, "• Indexación y búsqueda\n")
+                        self.after(0, self._actualizar_texto_forense, "• Análisis de metadatos\n\n")
+                        
+                        self.after(0, self._actualizar_texto_forense, "NOTA: Autopsy requiere ejecución manual por seguridad\n")
+                        
+                    else:
+                        self.after(0, self._actualizar_texto_forense, "WARNING Autopsy no encontrado\n")
+                        self.after(0, self._actualizar_texto_forense, "INSTALACION: sudo apt install sleuthkit autopsy -y\n\n")
+                        
+                except Exception as e:
+                    self.after(0, self._actualizar_texto_forense, f"INFO Verificación manual requerida: {str(e)}\n")
+                    self.after(0, self._actualizar_texto_forense, "Para usar Autopsy manualmente:\n")
+                    self.after(0, self._actualizar_texto_forense, "1. sudo autopsy en terminal separada\n")
+                    self.after(0, self._actualizar_texto_forense, "2. Navegador: localhost:9999/autopsy\n\n")
+                
+            except Exception as e:
+                self.after(0, self._actualizar_texto_forense, f"ERROR: {str(e)}\n")
+                
+        threading.Thread(target=ejecutar_autopsy_seguro, daemon=True).start()
     
     def usar_sleuthkit(self):
         """Usar Sleuth Kit para análisis forense."""
@@ -2485,39 +2557,67 @@ class VistaSIEM(tk.Frame):
         threading.Thread(target=ejecutar, daemon=True).start()
     
     def usar_foremost(self):
-        """Usar Foremost para recuperación de archivos."""
+        """Usar Foremost para recuperación de archivos - Modo seguro con verificación."""
         def ejecutar():
             try:
                 self.after(0, self._actualizar_texto_forense, "FOREMOST - Recuperación de Archivos\n")
                 self.after(0, self._actualizar_texto_forense, "="*50 + "\n")
                 
                 import subprocess
+                import os
+                
+                # Verificación segura de instalación
                 try:
-                    resultado = subprocess.run(['foremost', '-V'], capture_output=True, text=True, timeout=10)
+                    resultado = subprocess.run(['which', 'foremost'], capture_output=True, text=True, timeout=5)
                     if resultado.returncode == 0:
-                        self.after(0, self._actualizar_texto_forense, "OK Foremost disponible\n\n")
-                        self.after(0, self._actualizar_texto_forense, "ANÁLISIS COMANDOS KALI LINUX:\n")
-                        self.after(0, self._actualizar_texto_forense, "  foremost -i disk.img -o output/       # Recuperar todo\n")
-                        self.after(0, self._actualizar_texto_forense, "  foremost -t jpg,png -i disk.img       # Solo imágenes\n")
-                        self.after(0, self._actualizar_texto_forense, "  foremost -t pdf,doc -i disk.img       # Documentos\n")
-                        self.after(0, self._actualizar_texto_forense, "  foremost -T -i disk.img               # Con timestamp\n\n")
-                    else:
-                        self.after(0, self._actualizar_texto_forense, "ERROR ejecutando Foremost\n")
+                        self.after(0, self._actualizar_texto_forense, "OK Foremost detectado en: " + resultado.stdout.strip() + "\n")
                         
-                except FileNotFoundError:
-                    self.after(0, self._actualizar_texto_forense, "ERROR Foremost no encontrado\n")
-                    self.after(0, self._actualizar_texto_forense, "📦 INSTALACIÓN KALI:\n")
-                    self.after(0, self._actualizar_texto_forense, "  sudo apt install foremost -y\n\n")
+                        # Verificar versión sin ejecutar recuperación
+                        version_result = subprocess.run(['foremost', '-V'], capture_output=True, text=True, timeout=5)
+                        if version_result.returncode == 0:
+                            self.after(0, self._actualizar_texto_forense, "INFO " + version_result.stdout.strip() + "\n\n")
+                        
+                        self.after(0, self._actualizar_texto_forense, "COMANDOS PRINCIPALES:\n")
+                        self.after(0, self._actualizar_texto_forense, "  foremost -i imagen.dd -o salida/      # Recuperar todo\n")
+                        self.after(0, self._actualizar_texto_forense, "  foremost -t jpg,png -i imagen.dd      # Solo imágenes\n")
+                        self.after(0, self._actualizar_texto_forense, "  foremost -t pdf,doc -i imagen.dd      # Documentos\n")
+                        self.after(0, self._actualizar_texto_forense, "  foremost -T -i imagen.dd              # Con timestamp\n")
+                        self.after(0, self._actualizar_texto_forense, "  foremost -w -i imagen.dd              # Solo escritura\n\n")
+                        
+                        self.after(0, self._actualizar_texto_forense, "TIPOS DE ARCHIVO SOPORTADOS:\n")
+                        self.after(0, self._actualizar_texto_forense, "• Imágenes: jpg, gif, png, bmp\n")
+                        self.after(0, self._actualizar_texto_forense, "• Documentos: pdf, doc, xls, ppt\n")
+                        self.after(0, self._actualizar_texto_forense, "• Audio/Video: avi, exe, wav, wmv\n")
+                        self.after(0, self._actualizar_texto_forense, "• Archivos: zip, rar, html, cpp\n\n")
+                        
+                        # Verificar espacio disponible
+                        try:
+                            df_result = subprocess.run(['df', '-h', '.'], capture_output=True, text=True, timeout=3)
+                            if df_result.returncode == 0:
+                                lines = df_result.stdout.strip().split('\n')
+                                if len(lines) > 1:
+                                    space_info = lines[1].split()
+                                    if len(space_info) >= 4:
+                                        self.after(0, self._actualizar_texto_forense, f"ESPACIO DISPONIBLE: {space_info[3]}\n")
+                        except:
+                            pass
+                        
+                    else:
+                        self.after(0, self._actualizar_texto_forense, "WARNING Foremost no encontrado\n")
+                        self.after(0, self._actualizar_texto_forense, "INSTALACION: sudo apt install foremost -y\n\n")
+                        
+                except Exception as e:
+                    self.after(0, self._actualizar_texto_forense, f"ERROR verificando Foremost: {str(e)}\n")
                     
-                self.after(0, self._actualizar_texto_forense, " CASOS DE USO:\n")
-                self.after(0, self._actualizar_texto_forense, "  • Recuperación de archivos borrados\n")
-                self.after(0, self._actualizar_texto_forense, "  • Forense de dispositivos USB\n")
-                self.after(0, self._actualizar_texto_forense, "  • Carving de archivos por signature\n")
-                self.after(0, self._actualizar_texto_forense, "  • Análisis post-incident\n\n")
+                self.after(0, self._actualizar_texto_forense, "CASOS DE USO:\n")
+                self.after(0, self._actualizar_texto_forense, "• Recuperación de archivos borrados\n")
+                self.after(0, self._actualizar_texto_forense, "• Forense de dispositivos USB\n")
+                self.after(0, self._actualizar_texto_forense, "• Carving de archivos por signature\n")
+                self.after(0, self._actualizar_texto_forense, "• Análisis post-incidente\n\n")
                 
             except Exception as e:
                 self.after(0, self._actualizar_texto_forense, f"ERROR usando Foremost: {str(e)}\n")
-        
+                
         threading.Thread(target=ejecutar, daemon=True).start()
     
     def usar_strings(self):

@@ -320,42 +320,6 @@ class VistaDashboard(tk.Frame):
             insertbackground=self.colors['fg_primary']
         )
         self.interfaces_text.pack(fill="both", expand=True, padx=10, pady=5)
-        
-        # Frame para estadísticas de red
-        stats_red_frame = tk.LabelFrame(
-            red_frame,
-            text="Estadísticas de Red",
-            bg=self.colors['bg_secondary'],
-            fg=self.colors['fg_primary'],
-            font=("Arial", 12, "bold")
-        )
-        stats_red_frame.pack(fill="x", padx=10, pady=5)
-        
-        # Conexiones activas
-        conexiones_frame = tk.Frame(stats_red_frame, bg=self.colors['bg_secondary'])
-        conexiones_frame.pack(fill="x", padx=10, pady=2)
-        
-        tk.Label(conexiones_frame, text=" Conexiones Activas:",
-                bg=self.colors['bg_secondary'], fg=self.colors['fg_primary'],
-                font=("Arial", 10, "bold")).pack(side="left")
-        
-        self.conexiones_label = tk.Label(conexiones_frame, text="0",
-                                        bg=self.colors['bg_secondary'], fg=self.colors['fg_accent'],
-                                        font=("Consolas", 10, "bold"))
-        self.conexiones_label.pack(side="right")
-        
-        # Puertos en escucha
-        puertos_frame = tk.Frame(stats_red_frame, bg=self.colors['bg_secondary'])
-        puertos_frame.pack(fill="x", padx=10, pady=2)
-        
-        tk.Label(puertos_frame, text=" Puertos en Escucha:",
-                bg=self.colors['bg_secondary'], fg=self.colors['fg_primary'],
-                font=("Arial", 10, "bold")).pack(side="left")
-        
-        self.puertos_label = tk.Label(puertos_frame, text="0",
-                                     bg=self.colors['bg_secondary'], fg=self.colors['fg_accent'],
-                                     font=("Consolas", 10, "bold"))
-        self.puertos_label.pack(side="right")
     
     def crear_pestana_terminal(self):
         """Crear pestaña de terminal integrado con sistema de logging."""
@@ -448,7 +412,7 @@ class VistaDashboard(tk.Frame):
             ("free -h", "Ver Uso de Memoria"),
             ("whoami && id", "Ver Usuario y Permisos"),
             ("uname -a", "Información del Sistema"),
-            ("echo '=== SERVICIOS EN ESCUCHA ===' && echo && echo 'SERVICIOS ACTIVOS POR PUERTO:' && ss -tlnp 2>/dev/null | awk 'NR==1 {print \"PROTOCOLO  ESTADO     DIRECCION           PROCESO\"; print \"=======================================\"; next} /LISTEN/ {split($4,a,\":\"); puerto=a[length(a)]; split($7,b,\",\"); if(length(b)>1) {split(b[2],c,\"=\"); proceso=c[2]} else proceso=\"N/A\"; printf \"%-10s %-10s %-20s %s\\n\", $1, $2, $4, proceso}' | head -15 && echo && echo '=== PUERTOS CRÍTICOS ACTIVOS ===' && ss -tlnp 2>/dev/null | grep -E ':(22|80|443|21|25|53|993|995|587|143|110|3389|5432|3306)' | awk '{split($4,a,\":\"); printf \"  ⚠️  Puerto %s (%s) - %s\\n\", a[length(a)], $1, $4}' && echo && echo '=== RESUMEN SERVICIOS ===' && echo \"Total en Escucha: $(ss -tlnp 2>/dev/null | grep -c LISTEN)\" && echo \"Puertos Críticos: $(ss -tlnp 2>/dev/null | grep -cE ':(22|80|443|21|25|53|993|995|587|143|110|3389|5432|3306)')\"", "Ver Servicios en Escucha"),
+            ("echo '=== SERVICIOS EN ESCUCHA ===' && echo && ss -tlnp 2>/dev/null | awk 'BEGIN {print \"PUERTO  PROTOCOLO  DIRECCION             PROCESO\"; print \"================================================\"} /LISTEN/ {split($4,a,\":\"); puerto=a[length(a)]; split($7,b,\",\"); if(length(b)>1) {split(b[2],c,\"=\"); proceso=c[2]; if(length(proceso)>20) proceso=substr(proceso,1,20)\"...\"} else proceso=\"N/A\"; printf \"%-8s %-9s %-20s %s\\n\", puerto, $1, $4, proceso}' | head -20 && echo && echo '=== PUERTOS CRITICOS DETECTADOS ===' && ss -tlnp 2>/dev/null | grep -E ':(22|80|443|21|25|53|993|995|587|143|110|3389|5432|3306)' | awk '{split($4,a,\":\"); puerto=a[length(a)]; printf \"  Puerto %s (%s) en %s\\n\", puerto, $1, $4}' && echo && total_listen=$(ss -tlnp 2>/dev/null | grep -c LISTEN) && total_criticos=$(ss -tlnp 2>/dev/null | grep -cE ':(22|80|443|21|25|53|993|995|587|143|110|3389|5432|3306)') && echo \"Total servicios en escucha: $total_listen\" && echo \"Puertos criticos activos: $total_criticos\"", "Ver Servicios en Escucha"),
             ("echo '=== ARCHIVOS DE RED ABIERTOS ===' && echo && echo 'CONEXIONES POR PROCESO:' && if command -v lsof >/dev/null 2>&1; then echo 'Usando LSOF (información detallada):' && sudo lsof -i 2>/dev/null | awk 'NR==1 {print \"PROCESO    PID    USUARIO  PROTOCOLO  DIRECCION\"; print \"=============================================\"; next} NF>=8 {printf \"%-10s %-6s %-8s %-9s %s\\n\", $1, $2, $3, $5, $9}' | head -15; else echo 'LSOF no disponible - usando SS alternativo:'; fi && echo && echo 'ALTERNATIVO CON SS:' && ss -tulpn 2>/dev/null | awk 'NR==1 {print \"PROTOCOLO  ESTADO     DIRECCION_LOCAL      PROCESO\"; print \"===============================================\"; next} NF>=6 {split($7,a,\",\"); if(length(a)>1) {split(a[2],b,\"=\"); proceso=b[2]} else proceso=\"N/A\"; printf \"%-10s %-10s %-20s %s\\n\", $1, $2, $5, proceso}' | head -15 && echo && echo '=== RESUMEN ARCHIVOS DE RED ===' && echo \"Procesos con red: $(ss -tulpn 2>/dev/null | grep -v State | awk '{print $7}' | cut -d, -f2 | sort -u | wc -l)\" && echo \"Conexiones TCP: $(ss -t 2>/dev/null | grep -v State | wc -l)\" && echo \"Conexiones UDP: $(ss -u 2>/dev/null | grep -v State | wc -l)\"", "Ver Archivos de Red Abiertos"),
             ("arp -a 2>/dev/null || ip neigh show", "Ver Tabla ARP"),
             ("route -n 2>/dev/null || ip route show", "Ver Rutas de Red"),
@@ -477,7 +441,27 @@ class VistaDashboard(tk.Frame):
         for i in range(3):
             botones_grid_frame.grid_columnconfigure(i, weight=1)
         
-        # Frame para entrada de comandos
+        # Área de salida del terminal (PRINCIPAL)
+        output_frame = tk.LabelFrame(
+            terminal_frame,
+            text="Terminal ARESITOS - Logs y Comandos en Tiempo Real",
+            bg=self.colors['bg_secondary'],
+            fg=self.colors['fg_primary'],
+            font=("Arial", 12, "bold")
+        )
+        output_frame.pack(fill="both", expand=True, padx=10, pady=5)
+        
+        self.terminal_output = scrolledtext.ScrolledText(
+            output_frame,
+            bg='#000000',  # Fondo negro como terminal
+            fg='#00ff00',  # Texto verde como terminal
+            font=("Consolas", 9),
+            insertbackground='#00ff00',
+            selectbackground='#333333'
+        )
+        self.terminal_output.pack(fill="both", expand=True, padx=5, pady=5)
+        
+        # Frame para entrada de comandos (DEBAJO DEL TERMINAL)
         entrada_frame = tk.Frame(terminal_frame, bg=self.colors['bg_secondary'])
         entrada_frame.pack(fill="x", padx=10, pady=5)
         
@@ -504,26 +488,6 @@ class VistaDashboard(tk.Frame):
             font=("Arial", 10, "bold")
         )
         ejecutar_btn.pack(side="right")
-        
-        # Área de salida del terminal (PRINCIPAL)
-        output_frame = tk.LabelFrame(
-            terminal_frame,
-            text="📺 Terminal ARESITOS - Logs y Comandos en Tiempo Real",
-            bg=self.colors['bg_secondary'],
-            fg=self.colors['fg_primary'],
-            font=("Arial", 12, "bold")
-        )
-        output_frame.pack(fill="both", expand=True, padx=10, pady=5)
-        
-        self.terminal_output = scrolledtext.ScrolledText(
-            output_frame,
-            bg='#000000',  # Fondo negro como terminal
-            fg='#00ff00',  # Texto verde como terminal
-            font=("Consolas", 9),
-            insertbackground='#00ff00',
-            selectbackground='#333333'
-        )
-        self.terminal_output.pack(fill="both", expand=True, padx=5, pady=5)
         
         # REGISTRAR TERMINAL GLOBAL PARA TODAS LAS VISTAS
         VistaDashboard._terminal_widget = self.terminal_output
@@ -1156,9 +1120,6 @@ class VistaDashboard(tk.Frame):
             # Interfaces de red
             self._actualizar_interfaces_red()
             
-            # Estadísticas de red
-            self._actualizar_estadisticas_red()
-            
         except Exception as e:
             print(f"Error actualizando información de red: {e}")
     
@@ -1345,71 +1306,6 @@ class VistaDashboard(tk.Frame):
             self.interfaces_text.insert(tk.END, result.stdout[:1000] + "...\n")
         except:
             self.interfaces_text.insert(tk.END, "ERROR: No se pudo obtener información de interfaces\n")
-    
-    def _actualizar_estadisticas_red(self):
-        """Actualizar estadísticas de red con datos reales."""
-        try:
-            # Obtener conexiones establecidas
-            try:
-                # Usar ss para conexiones establecidas
-                result_conn = subprocess.run(['ss', '-tuan'], capture_output=True, text=True, timeout=5)
-                lines_conn = result_conn.stdout.split('\n')
-                
-                conexiones_establecidas = 0
-                for line in lines_conn:
-                    if 'ESTAB' in line or 'ESTABLISHED' in line:
-                        conexiones_establecidas += 1
-                
-                # Usar ss para puertos en escucha
-                result_listen = subprocess.run(['ss', '-tln'], capture_output=True, text=True, timeout=5)
-                lines_listen = result_listen.stdout.split('\n')
-                
-                puertos_escucha = 0
-                for line in lines_listen:
-                    if 'LISTEN' in line:
-                        puertos_escucha += 1
-                
-                self.conexiones_label.configure(text=str(conexiones_establecidas))
-                self.puertos_label.configure(text=str(puertos_escucha))
-                
-            except (subprocess.SubprocessError, FileNotFoundError):
-                # Fallback usando netstat si ss no está disponible
-                try:
-                    # Conexiones establecidas
-                    result_conn = subprocess.run(['netstat', '-tuan'], capture_output=True, text=True, timeout=5)
-                    conexiones_establecidas = result_conn.stdout.count('ESTABLISHED')
-                    
-                    # Puertos en escucha
-                    result_listen = subprocess.run(['netstat', '-tln'], capture_output=True, text=True, timeout=5)
-                    puertos_escucha = result_listen.stdout.count('LISTEN')
-                    
-                    self.conexiones_label.configure(text=str(conexiones_establecidas))
-                    self.puertos_label.configure(text=str(puertos_escucha))
-                    
-                except (subprocess.SubprocessError, FileNotFoundError):
-                    # Último fallback usando /proc/net
-                    try:
-                        # Leer conexiones TCP del sistema
-                        with open('/proc/net/tcp', 'r') as f:
-                            tcp_lines = f.readlines()
-                        with open('/proc/net/tcp6', 'r') as f:
-                            tcp6_lines = f.readlines()
-                        
-                        # Estado 01 = ESTABLISHED, 0A = LISTEN
-                        establecidas = sum(1 for line in tcp_lines[1:] + tcp6_lines[1:] if ' 01 ' in line)
-                        escuchando = sum(1 for line in tcp_lines[1:] + tcp6_lines[1:] if ' 0A ' in line)
-                        
-                        self.conexiones_label.configure(text=str(establecidas))
-                        self.puertos_label.configure(text=str(escuchando))
-                        
-                    except (FileNotFoundError, PermissionError):
-                        self.conexiones_label.configure(text="N/A")
-                        self.puertos_label.configure(text="N/A")
-            
-        except Exception as e:
-            print(f"Error actualizando estadísticas de red: {e}")
-            self.conexiones_label.configure(text="ERROR")
-            self.puertos_label.configure(text="ERROR")
     
     def _actualizar_estado_servicios(self):
         """Actualizar estado de servicios de seguridad."""
