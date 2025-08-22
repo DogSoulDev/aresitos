@@ -194,7 +194,7 @@ class VistaHerramientasKali(tk.Frame):
         
         # Mensaje inicial
         self.text_resultados.insert(tk.END, 
-            "ARESITOS v2.0 - Configurador de Herramientas Kali\n" +
+            "ARESITOS v3.0 - Configurador de Herramientas Escaneador Profesional\n" +
             "=" * 50 + "\n\n" +
             "Sistema optimizado para Kali Linux con comandos nativos integrados:\n\n" +
             "🔧 COMANDOS BÁSICOS:\n" +
@@ -325,23 +325,23 @@ INTEGRACIÓN NATIVA:
    • Manejo robusto de errores
    • Logging integrado al terminal
 
-HERRAMIENTAS PRINCIPALES UTILIZADAS:
-   • Comandos básicos: ps, ss, lsof, grep, awk, find, stat
-   • Red: ip, route, netstat, nmap, netcat
-   • Sistema: systemctl, top, free, df, uname, who, last
-   • Seguridad: chkrootkit, rkhunter, auditd, fail2ban
-   • Análisis: strings, hexdump, binwalk, sleuthkit
-   • Procesamiento: sort, uniq, wc, tail, head, diff
+HERRAMIENTAS PRINCIPALES DEL ESCANEADOR PROFESIONAL v3.0:
+   • CORE: nmap (scripts NSE), masscan (escaneo masivo), gobuster (directorios)
+   • AVANZADAS: rustscan (velocidad), nuclei (CVE), ffuf (fuzzing), feroxbuster (recursivo)
+   • ANÁLISIS: strings, hexdump, binwalk, sleuthkit, yara
+   • SEGURIDAD: chkrootkit, rkhunter, auditd, fail2ban, lynis
+   • RED: ip, route, netstat, netcat, tcpdump, wireshark
 
-BENEFICIOS:
-   • Rendimiento optimizado en Kali Linux
-   • Sin dependencias externas complejas
-   • Funcionalidad profesional de ciberseguridad
-   • Integración perfecta con el ecosistema Kali
-   • Máximo aprovechamiento de herramientas nativas
+BENEFICIOS DEL ESCANEADOR PROFESIONAL v3.0:
+   • Rendimiento optimizado para Kali Linux 2025
+   • Integración nativa con herramientas de escaneado modernas  
+   • Detección automática de vulnerabilidades CVE actualizadas
+   • Enumeración web avanzada con múltiples métodos
+   • Fallback inteligente según herramientas disponibles
+   • Exportación profesional de resultados de escaneo
 
-OK ESTADO: OPTIMIZACIÓN COMPLETA APLICADA
-LISTO PARA: Producción en entornos Kali Linux
+OK ESTADO: ESCANEADOR PROFESIONAL v3.0 OPTIMIZADO
+LISTO PARA: Escaneos de vulnerabilidades en entornos Kali Linux 2025
 
 """
         

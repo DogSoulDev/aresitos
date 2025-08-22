@@ -1,23 +1,24 @@
 #!/bin/bash
 # -*- coding: utf-8 -*-
 #
-# ARESITOS v2.0 - Script de Configuración para Kali Linux
+# ARESITOS v3.0 - Script de Configuración para Kali Linux
 # =======================================================
 #
 # Script de configuración automática para preparar Kali Linux
-# para ejecutar ARESITOS con todas las funcionalidades.
+# para ejecutar ARESITOS con todas las funcionalidades del escaneador profesional.
 #
 # Funciones principales:
-# - Instalar herramientas de ciberseguridad necesarias
-# - Configurar permisos sudo para herramientas específicas
-# - Configurar permisos de red para escaneo
+# - Instalar herramientas de ciberseguridad avanzadas (nmap, masscan, rustscan, nuclei)
+# - Configurar permisos sudo para herramientas específicas de escaneo
+# - Configurar permisos de red para escaneo multiherramienta
+# - Instalar herramientas forenses y SIEM
 # - Actualizar bases de datos de vulnerabilidades
-# - Verificar funcionamiento completo del sistema
+# - Verificar funcionamiento completo del sistema escaneador
 #
 # Autor: DogSoulDev
-# Fecha: 18 de Agosto de 2025
-# Versión: 2.0
-# Proyecto: ARESITOS - Suite de Ciberseguridad
+# Fecha: 23 de Agosto de 2025
+# Versión: 3.0
+# Proyecto: ARESITOS - Suite de Ciberseguridad Profesional
 #
 # IMPORTANTE: Este script debe ejecutarse como root o con sudo
 # sudo ./configurar_kali.sh
@@ -95,55 +96,70 @@ update_repositories() {
 
 # Instalar herramientas necesarias
 install_tools() {
-    print_header "HERRAMIENTAS Instalando herramientas de ciberseguridad ARESITOS v2.0..."
+    print_header "🔧 Instalando herramientas de escaneador profesional ARESITOS v3.0..."
     
-    # Lista de herramientas ESENCIALES verificadas para Kali Linux 2025
+    # Lista de herramientas ESENCIALES para escaneador profesional
     ESSENTIAL_TOOLS=(
         # Python y herramientas básicas (CRÍTICAS)
         "python3-dev"
-        "python3-venv"
+        "python3-venv" 
         "python3-tk"
         "curl"
         "wget"
         "git"
         
-        # Herramientas de red BÁSICAS que siempre funcionan
-        "nmap"
-        "net-tools"
-        "tcpdump"
-        "iftop"
-        "netcat-openbsd"
+        # Herramientas de escaneador PROFESIONAL (CORE)
+        "nmap"                  # Escaneador principal - CRÍTICO
+        "masscan"              # Escaneo masivo rápido
+        "net-tools"            # netstat, ifconfig
+        "iproute2"             # ss, ip commands
+        "tcpdump"              # Captura de paquetes
+        "iftop"                # Monitor de red
+        "netcat-openbsd"       # Netcat
         
-        # Herramientas forense VERIFICADAS para Kali 2025
-        "wireshark"
-        "autopsy"
-        "sleuthkit"
+        # Herramientas forense y SIEM VERIFICADAS
+        "wireshark"            # Análisis de tráfico
+        "autopsy"              # Forense digital
+        "sleuthkit"            # Toolkit forense
+        "foremost"             # Recuperación de archivos
+        "binwalk"              # Análisis de firmware
+        "strings"              # Extracción de strings
+        "exiftool"             # Metadatos
         
         # Utilidades del sistema ESTABLES
         "htop"
         "lsof"
         "psmisc"
-        "iproute2"
+        "dnsutils"             # dig, nslookup
+        "whois"                # Información WHOIS
     )
     
-    # Lista de herramientas OPCIONALES (si fallan, no es crítico)
-    OPTIONAL_TOOLS=(
-        "masscan" 
-        "gobuster"
-        "nikto"
-        "whatweb"
-        "lynis"
-        "chkrootkit"
-        "foremost"
-        "binwalk"
-        "exiftool"
-        "feroxbuster"
-        "httpx-toolkit"
+    # Lista de herramientas AVANZADAS para escaneador profesional
+    ADVANCED_TOOLS=(
+        # Herramientas de escaneador avanzado (todas disponibles via APT)
+        "ffuf"                 # Fuzzer web rápido (VERIFICADO en repos Kali)
+        "feroxbuster"          # Scanner de directorios Rust (VERIFICADO en repos Kali)
+        "rustscan"             # Scanner ultrarrápido Rust (VERIFICADO en repos Kali)
+        "nuclei"               # Motor de vulnerabilidades (VERIFICADO en repos Kali)
+        "nikto"                # Scanner web
+        "whatweb"              # Identificación web
+        "dirb"                 # Brute force directorios
+        
+        # Herramientas de seguridad adicionales
+        "lynis"                # Auditoría de seguridad
+        "chkrootkit"           # Detección de rootkits
+        "rkhunter"             # Hunter de rootkits
+        "clamav"               # Antivirus
+        
+        # Herramientas forense adicionales
+        "volatility3"          # Análisis de memoria
+        "yara"                 # Pattern matching
     )
     
     # Herramientas especiales que requieren instalación manual
     SPECIAL_TOOLS=(
-        "rustscan"  # Requiere Rust
+        "subfinder"            # Subdomain finder (Go)
+        "httpx"                # HTTP probe (Go)
     )
     
     print_info "Actualizando lista de paquetes..."
@@ -170,12 +186,12 @@ install_tools() {
         fi
     done
     
-    # Instalar herramientas OPCIONALES (si fallan, continuar)
-    print_header "INSTALANDO herramientas OPCIONALES..."
-    FAILED_OPTIONAL=()
+    # Instalar herramientas AVANZADAS para escaneador profesional
+    print_header "🚀 Instalando herramientas AVANZADAS de escaneador..."
+    FAILED_ADVANCED=()
     
-    for tool in "${OPTIONAL_TOOLS[@]}"; do
-        print_info "Instalando herramienta opcional: $tool..."
+    for tool in "${ADVANCED_TOOLS[@]}"; do
+        print_info "Instalando herramienta avanzada: $tool..."
         
         if dpkg -l | grep -q "^ii  $tool "; then
             print_success "$tool ya está instalado"
@@ -186,104 +202,136 @@ install_tools() {
                 print_success "$tool instalado correctamente"
             else
                 print_warning "No se pudo instalar $tool (continuando...)"
-                FAILED_OPTIONAL+=("$tool")
+                FAILED_ADVANCED+=("$tool")
             fi
         fi
     done
     
-    # Instalar herramientas especiales
-    print_header "INSTALANDO herramientas especiales..."
+    # Instalar herramientas especiales para escaneador profesional
+    print_header "⭐ Instalando herramientas especiales del escaneador..."
     
-    # Rustscan - instalación manual via cargo
-    if ! command -v rustscan >/dev/null 2>&1; then
-        print_info "Instalando rustscan via cargo..."
+    # Nuclei - verificar templates actualizados
+    if command -v nuclei >/dev/null 2>&1; then
+        print_info "Actualizando templates de nuclei..."
+        sudo -u "$REAL_USER" nuclei -update-templates >/dev/null 2>&1 &
+        NUCLEI_PID=$!
         
-        # Verificar si cargo está disponible
-        if command -v cargo >/dev/null 2>&1; then
-            # Instalar rustscan como usuario no-root
-            sudo -u "$REAL_USER" cargo install rustscan >/dev/null 2>&1 &
-            CARGO_PID=$!
-            
-            # Esperar máximo 60 segundos
-            timeout=60
-            while kill -0 "$CARGO_PID" 2>/dev/null && [[ $timeout -gt 0 ]]; do
-                sleep 2
-                ((timeout-=2))
-                if [[ $((60-timeout)) -eq 20 ]]; then
-                    print_info "Instalando rustscan... (puede tardar varios minutos)"
-                fi
-            done
-            
-            if kill -0 "$CARGO_PID" 2>/dev/null; then
-                kill "$CARGO_PID" 2>/dev/null
-                print_warning "Timeout instalando rustscan - proceso cancelado"
-                print_info "Para instalar manualmente: cargo install rustscan"
-                FAILED_OPTIONAL+=("rustscan")
+        # Esperar máximo 60 segundos para actualización de templates
+        timeout=60
+        while kill -0 "$NUCLEI_PID" 2>/dev/null && [[ $timeout -gt 0 ]]; do
+            sleep 2
+            ((timeout-=2))
+        done
+        
+        if kill -0 "$NUCLEI_PID" 2>/dev/null; then
+            kill "$NUCLEI_PID" 2>/dev/null
+            print_warning "Timeout actualizando templates nuclei"
+        else
+            print_success "Templates de nuclei actualizados"
+        fi
+    fi
             else
-                if command -v rustscan >/dev/null 2>&1; then
-                    print_success "rustscan instalado via cargo"
-                else
-                    print_warning "rustscan no se instaló correctamente"
-                    FAILED_OPTIONAL+=("rustscan")
-                fi
+                print_warning "nuclei no pudo instalarse via APT"
             fi
         else
-            print_info "cargo no disponible, instalando Rust..."
-            # Instalar Rust para el usuario
-            curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sudo -u "$REAL_USER" sh -s -- -y >/dev/null 2>&1
-            
-            if [[ $? -eq 0 ]]; then
-                print_success "Rust instalado"
-                print_info "Para usar rustscan: source ~/.cargo/env && cargo install rustscan"
-            else
-                print_warning "No se pudo instalar Rust para rustscan"
-            fi
-            FAILED_OPTIONAL+=("rustscan")
+            print_info "nuclei no encontrado en repositorios, instalación manual requerida"
+            print_info "Para instalar nuclei: go install -v github.com/projectdiscovery/nuclei/v2/cmd/nuclei@latest"
         fi
-    else
-        print_success "rustscan ya está disponible"
-    fi
     
-    # Instalar iproute2 específicamente para 'ss' command
-    print_info "Verificando comando 'ss' (reemplaza netstat)..."
-    if ! command -v ss >/dev/null 2>&1; then
-        print_info "Instalando iproute2 para comando 'ss'..."
-        DEBIAN_FRONTEND=noninteractive apt install -y iproute2 >/dev/null 2>&1
+    # Verificar herramientas especiales de Go (subfinder, httpx)
+    if command -v go >/dev/null 2>&1; then
+        print_info "Go detectado, instalando herramientas adicionales..."
         
-        if command -v ss >/dev/null 2>&1; then
-            print_success "Comando 'ss' disponible"
+        # Subfinder para enumeración de subdominios
+        if ! command -v subfinder >/dev/null 2>&1; then
+            print_info "Instalando subfinder..."
+            sudo -u "$REAL_USER" go install -v github.com/projectdiscovery/subfinder/v2/cmd/subfinder@latest >/dev/null 2>&1
+            if command -v subfinder >/dev/null 2>&1; then
+                print_success "subfinder instalado"
+            else
+                print_info "subfinder puede requerir ajuste de PATH: export PATH=\$PATH:~/go/bin"
+            fi
         else
-            print_warning "No se pudo instalar 'ss', usando 'netstat' como alternativa"
+            print_success "subfinder ya está disponible"
+        fi
+        
+        # httpx para verificación HTTP
+        if ! command -v httpx >/dev/null 2>&1; then
+            print_info "Instalando httpx..."
+            sudo -u "$REAL_USER" go install -v github.com/projectdiscovery/httpx/cmd/httpx@latest >/dev/null 2>&1
+            if command -v httpx >/dev/null 2>&1; then
+                print_success "httpx instalado"
+            else
+                print_info "httpx puede requerir ajuste de PATH: export PATH=\$PATH:~/go/bin"
+            fi
+        else
+            print_success "httpx ya está disponible"
         fi
     else
-        print_success "Comando 'ss' ya disponible"
+        print_info "Go no detectado - herramientas adicionales no instaladas"
+        print_info "Para instalar: apt install golang-go"
     fi
     
-    # Verificar herramientas alternativas para rustscan
-    if [[ " ${FAILED_OPTIONAL[@]} " =~ " rustscan " ]]; then
-        print_info "rustscan no disponible, verificando nmap como alternativa..."
-        if command -v nmap >/dev/null 2>&1; then
-            print_success "nmap disponible como alternativa a rustscan"
-        else
-            print_warning "Ni rustscan ni nmap están disponibles para escaneo de puertos"
-        fi
-    fi
-    
-    # Reporte final
+    # Reporte final del escaneador profesional
     echo
-    print_header "REPORTE DE INSTALACIÓN"
+    print_header "📊 REPORTE DE INSTALACIÓN - ESCANEADOR PROFESIONAL v3.0"
     
     if [[ ${#FAILED_ESSENTIAL[@]} -eq 0 ]]; then
-        print_success "Todas las herramientas ESENCIALES instaladas correctamente"
+        print_success "✅ Todas las herramientas ESENCIALES del escaneador instaladas"
     else
-        print_error "HERRAMIENTAS CRÍTICAS FALLIDAS: ${FAILED_ESSENTIAL[*]}"
-        print_warning "ARESITOS puede no funcionar correctamente sin estas herramientas"
+        print_error "❌ HERRAMIENTAS CRÍTICAS FALLIDAS: ${FAILED_ESSENTIAL[*]}"
+        print_warning "⚠️ ARESITOS Escaneador puede no funcionar correctamente"
     fi
     
-    if [[ ${#FAILED_OPTIONAL[@]} -gt 0 ]]; then
-        print_warning "Herramientas opcionales no instaladas: ${FAILED_OPTIONAL[*]}"
-        print_info "ARESITOS funcionará sin estas herramientas, pero con funcionalidad limitada"
+    if [[ ${#FAILED_ADVANCED[@]} -gt 0 ]]; then
+        print_warning "⚠️ Herramientas avanzadas no instaladas: ${FAILED_ADVANCED[*]}"
+        print_info "ℹ️ El escaneador funcionará con funcionalidad básica"
+    else
+        print_success "✅ Todas las herramientas avanzadas del escaneador disponibles"
     fi
+    
+    # Verificar capacidades del escaneador
+    print_info "🔍 Verificando capacidades del escaneador ARESITOS..."
+    
+    SCANNER_CAPABILITIES=()
+    
+    if command -v nmap >/dev/null 2>&1; then
+        SCANNER_CAPABILITIES+=("✓ Escaneo integral con nmap + scripts NSE")
+    fi
+    
+    if command -v masscan >/dev/null 2>&1; then
+        SCANNER_CAPABILITIES+=("✓ Escaneo masivo ultrarrápido con masscan")
+    fi
+    
+    if command -v rustscan >/dev/null 2>&1; then
+        SCANNER_CAPABILITIES+=("✓ Escaneo rápido de puertos con rustscan")
+    fi
+    
+    if command -v nuclei >/dev/null 2>&1; then
+        SCANNER_CAPABILITIES+=("✓ Detección de vulnerabilidades CVE con nuclei")
+    fi
+    
+    if command -v gobuster >/dev/null 2>&1; then
+        SCANNER_CAPABILITIES+=("✓ Enumeración de directorios con gobuster")
+    fi
+    
+    if command -v ffuf >/dev/null 2>&1; then
+        SCANNER_CAPABILITIES+=("✓ Fuzzing web avanzado con ffuf")
+    fi
+    
+    if command -v feroxbuster >/dev/null 2>&1; then
+        SCANNER_CAPABILITIES+=("✓ Enumeración recursiva con feroxbuster")
+    fi
+    
+    # Mostrar capacidades
+    if [[ ${#SCANNER_CAPABILITIES[@]} -gt 0 ]]; then
+        print_success "🎯 CAPACIDADES DEL ESCANEADOR ARESITOS:"
+        for capability in "${SCANNER_CAPABILITIES[@]}"; do
+            echo "    $capability"
+        done
+    fi
+    
+    print_info "📈 Total de herramientas del escaneador profesional: ${#SCANNER_CAPABILITIES[@]}/7"
     
     # Actualizar base de datos de locate
     print_info "Actualizando base de datos del sistema..."
@@ -337,43 +385,60 @@ configure_network_permissions() {
 }
 
 # Configurar sudo sin contraseña para herramientas específicas
+    # Configurar sudo sin contraseña para herramientas del escaneador profesional
 configure_sudo() {
-    print_header "CONFIG Configurando sudo para ARESITOS v2.0..."
+    print_header "🔐 Configurando sudo para ESCANEADOR PROFESIONAL ARESITOS v3.0..."
     
-    SUDO_FILE="/etc/sudoers.d/aresitos-v2"
+    SUDO_FILE="/etc/sudoers.d/aresitos-escaneador-v3"
     
-    # Crear archivo de configuración sudo actualizado
+    # Crear archivo de configuración sudo para escaneador profesional
     cat > "$SUDO_FILE" << EOF
-# Configuración sudo para ARESITOS v2.0
-# Suite de Ciberseguridad para Kali Linux
-# Permite ejecutar herramientas de seguridad sin contraseña
+# Configuración sudo para ARESITOS v3.0 - ESCANEADOR PROFESIONAL
+# Suite de Ciberseguridad para Kali Linux con capacidades de escaneador avanzado
+# Permite ejecutar herramientas de escaneador profesional sin contraseña
 # Generado automáticamente el $(date)
 
 # Usuario: $REAL_USER
-# === HERRAMIENTAS DE ESCANEO ===
+# === HERRAMIENTAS DE ESCANEADOR PRINCIPAL ===
 $REAL_USER ALL=(ALL) NOPASSWD: /usr/bin/nmap
 $REAL_USER ALL=(ALL) NOPASSWD: /usr/bin/masscan
-$REAL_USER ALL=(ALL) NOPASSWD: /usr/bin/nikto
-$REAL_USER ALL=(ALL) NOPASSWD: /usr/bin/gobuster
-$REAL_USER ALL=(ALL) NOPASSWD: /usr/bin/whatweb
-$REAL_USER ALL=(ALL) NOPASSWD: /usr/bin/nuclei
+$REAL_USER ALL=(ALL) NOPASSWD: /usr/bin/rustscan
+$REAL_USER ALL=(ALL) NOPASSWD: /usr/local/bin/rustscan
+$REAL_USER ALL=(ALL) NOPASSWD: /home/$REAL_USER/.cargo/bin/rustscan
 
-# === HERRAMIENTAS DE MONITOREO ===
+# === HERRAMIENTAS DE DETECCIÓN DE VULNERABILIDADES ===
+$REAL_USER ALL=(ALL) NOPASSWD: /usr/bin/nuclei
+$REAL_USER ALL=(ALL) NOPASSWD: /usr/local/bin/nuclei
+$REAL_USER ALL=(ALL) NOPASSWD: /usr/bin/nikto
+$REAL_USER ALL=(ALL) NOPASSWD: /usr/bin/whatweb
+
+# === HERRAMIENTAS DE ENUMERACIÓN WEB ===
+$REAL_USER ALL=(ALL) NOPASSWD: /usr/bin/gobuster
+$REAL_USER ALL=(ALL) NOPASSWD: /usr/bin/dirb
+$REAL_USER ALL=(ALL) NOPASSWD: /usr/bin/ffuf
+$REAL_USER ALL=(ALL) NOPASSWD: /usr/bin/feroxbuster
+
+# === HERRAMIENTAS DE MONITOREO Y RED ===
 $REAL_USER ALL=(ALL) NOPASSWD: /bin/netstat
 $REAL_USER ALL=(ALL) NOPASSWD: /usr/bin/ss
 $REAL_USER ALL=(ALL) NOPASSWD: /usr/bin/lsof
 $REAL_USER ALL=(ALL) NOPASSWD: /usr/bin/tcpdump
 $REAL_USER ALL=(ALL) NOPASSWD: /bin/ps
 $REAL_USER ALL=(ALL) NOPASSWD: /usr/bin/pgrep
+$REAL_USER ALL=(ALL) NOPASSWD: /usr/bin/iftop
+$REAL_USER ALL=(ALL) NOPASSWD: /bin/ping
+$REAL_USER ALL=(ALL) NOPASSWD: /usr/bin/dig
+$REAL_USER ALL=(ALL) NOPASSWD: /usr/bin/nslookup
+$REAL_USER ALL=(ALL) NOPASSWD: /usr/bin/whois
 
-# === HERRAMIENTAS DE SEGURIDAD ===
+# === HERRAMIENTAS DE SEGURIDAD Y AUDITORÍA ===
 $REAL_USER ALL=(ALL) NOPASSWD: /usr/bin/lynis
 $REAL_USER ALL=(ALL) NOPASSWD: /usr/bin/chkrootkit
 $REAL_USER ALL=(ALL) NOPASSWD: /usr/bin/rkhunter
 $REAL_USER ALL=(ALL) NOPASSWD: /usr/bin/clamscan
 $REAL_USER ALL=(ALL) NOPASSWD: /usr/bin/clamdscan
 
-# === HERRAMIENTAS FORENSES ===
+# === HERRAMIENTAS FORENSES AVANZADAS ===
 $REAL_USER ALL=(ALL) NOPASSWD: /usr/bin/wireshark
 $REAL_USER ALL=(ALL) NOPASSWD: /usr/bin/tshark
 $REAL_USER ALL=(ALL) NOPASSWD: /usr/bin/autopsy
@@ -388,8 +453,9 @@ $REAL_USER ALL=(ALL) NOPASSWD: /usr/bin/foremost
 $REAL_USER ALL=(ALL) NOPASSWD: /usr/bin/strings
 $REAL_USER ALL=(ALL) NOPASSWD: /usr/bin/hexdump
 $REAL_USER ALL=(ALL) NOPASSWD: /usr/bin/xxd
+$REAL_USER ALL=(ALL) NOPASSWD: /usr/bin/exiftool
 
-# === ACCESO A LOGS DEL SISTEMA ===
+# === ACCESO A LOGS DEL SISTEMA PARA SIEM ===
 $REAL_USER ALL=(ALL) NOPASSWD: /bin/cat /var/log/auth.log*
 $REAL_USER ALL=(ALL) NOPASSWD: /bin/cat /var/log/syslog*
 $REAL_USER ALL=(ALL) NOPASSWD: /bin/cat /var/log/kern.log*
@@ -397,6 +463,15 @@ $REAL_USER ALL=(ALL) NOPASSWD: /bin/cat /var/log/daemon.log*
 $REAL_USER ALL=(ALL) NOPASSWD: /bin/cat /var/log/mail.log*
 $REAL_USER ALL=(ALL) NOPASSWD: /bin/tail /var/log/*
 $REAL_USER ALL=(ALL) NOPASSWD: /usr/bin/head /var/log/*
+$REAL_USER ALL=(ALL) NOPASSWD: /usr/bin/grep * /var/log/*
+
+# === COMANDOS DE SISTEMA PARA ANÁLISIS ===
+$REAL_USER ALL=(ALL) NOPASSWD: /usr/bin/journalctl
+$REAL_USER ALL=(ALL) NOPASSWD: /bin/dmesg
+$REAL_USER ALL=(ALL) NOPASSWD: /usr/bin/last
+$REAL_USER ALL=(ALL) NOPASSWD: /usr/bin/lastlog
+$REAL_USER ALL=(ALL) NOPASSWD: /usr/bin/who
+$REAL_USER ALL=(ALL) NOPASSWD: /usr/bin/w
 
 # === ACCESO A CONFIGURACIONES DEL SISTEMA ===
 $REAL_USER ALL=(ALL) NOPASSWD: /bin/cat /etc/passwd
@@ -652,27 +727,60 @@ EOF
 verify_setup() {
     print_header "🧪 Verificando configuración..."
     
-    # Verificar herramientas críticas
-    TOOLS_TO_CHECK=("nmap" "netstat" "ss" "tcpdump")
+    # Verificar herramientas críticas del escaneador profesional
+    TOOLS_TO_CHECK=("nmap" "masscan" "ss" "tcpdump" "rustscan" "nuclei" "gobuster")
     
-    for tool in "${TOOLS_TO_CHECK[@]}"; do
+    print_header "🧪 Verificando herramientas del ESCANEADOR PROFESIONAL..."
+    
+    CORE_TOOLS_OK=0
+    ADVANCED_TOOLS_OK=0
+    
+    # Verificar herramientas core
+    for tool in "nmap" "ss" "tcpdump"; do
         if command -v "$tool" >/dev/null 2>&1; then
-            print_success "$tool disponible"
+            print_success "CORE $tool disponible"
+            ((CORE_TOOLS_OK++))
             
-            # Verificar permisos sudo de forma silenciosa
-            sudo -u "$REAL_USER" sudo -n "$tool" --version >/dev/null 2>&1
-            if [[ $? -eq 0 ]]; then
-                print_success "$tool ejecutable sin contraseña"
-            else
-                # Solo mostrar advertencia para herramientas críticas
-                if [[ "$tool" == "nmap" || "$tool" == "tcpdump" ]]; then
-                    print_warning "$tool requiere contraseña (configurar sudoers)"
+            # Verificar permisos sudo de forma silenciosa para herramientas críticas
+            if [[ "$tool" == "nmap" || "$tool" == "tcpdump" ]]; then
+                sudo -u "$REAL_USER" sudo -n "$tool" --version >/dev/null 2>&1
+                if [[ $? -eq 0 ]]; then
+                    print_success "CORE $tool ejecutable sin contraseña"
+                else
+                    print_warning "CORE $tool requiere contraseña"
                 fi
             fi
         else
-            print_error "$tool no encontrado"
+            print_error "CORE $tool no encontrado"
         fi
     done
+    
+    # Verificar herramientas avanzadas
+    for tool in "masscan" "rustscan" "nuclei" "gobuster"; do
+        if command -v "$tool" >/dev/null 2>&1; then
+            print_success "AVANZADO $tool disponible"
+            ((ADVANCED_TOOLS_OK++))
+        else
+            print_info "AVANZADO $tool no disponible"
+        fi
+    done
+    
+    # Mostrar resumen de capacidades del escaneador
+    print_header "📊 RESUMEN ESCANEADOR PROFESIONAL"
+    print_info "Herramientas CORE disponibles: $CORE_TOOLS_OK/3"
+    print_info "Herramientas AVANZADAS disponibles: $ADVANCED_TOOLS_OK/4"
+    
+    if [[ $CORE_TOOLS_OK -eq 3 ]]; then
+        print_success "✅ ESCANEADOR BÁSICO completamente funcional"
+    else
+        print_warning "⚠️ ESCANEADOR BÁSICO con limitaciones"
+    fi
+    
+    if [[ $ADVANCED_TOOLS_OK -ge 2 ]]; then
+        print_success "✅ ESCANEADOR AVANZADO disponible"
+    else
+        print_info "ℹ️ ESCANEADOR AVANZADO con funcionalidad limitada"
+    fi
     
     # Verificar herramientas forenses (opcional - no mostrar errores)
     FORENSIC_TOOLS=("wireshark" "autopsy" "fls")
@@ -827,21 +935,31 @@ EOF
 
 # Función principal
 main() {
-    print_header "🛡️ CONFIGURADOR DE PERMISOS ARES AEGIS PARA KALI LINUX"
-    print_header "=========================================================="
+    print_header "🛡️ CONFIGURADOR ARESITOS v3.0 - ESCANEADOR PROFESIONAL PARA KALI LINUX"
+    print_header "=============================================================================="
     
     check_root
     detect_user
     
     echo
-    print_info "Este script configurará Ares Aegis para funcionar correctamente en Kali Linux"
-    print_info "Se realizarán las siguientes acciones:"
-    echo "  • Actualizar repositorios"
-    echo "  • Instalar herramientas de seguridad necesarias"
-    echo "  • Configurar permisos de red especiales"
-    echo "  • Configurar sudo sin contraseña para herramientas específicas"
-    echo "  • Instalar dependencias Python"
-    echo "  • Verificar configuración"
+    print_info "ARESITOS v3.0 incluye un ESCANEADOR PROFESIONAL con capacidades avanzadas:"
+    echo
+    print_info "🎯 CAPACIDADES DEL ESCANEADOR PROFESIONAL:"
+    echo "  • Escaneo integral con nmap (detección de servicios y scripts)"
+    echo "  • Escaneo masivo rápido con masscan/rustscan" 
+    echo "  • Detección de vulnerabilidades con nuclei"
+    echo "  • Enumeración de directorios web con gobuster/ffuf"
+    echo "  • Escaneo de redes completas con análisis automático"
+    echo "  • Exportación de reportes en JSON/TXT"
+    echo "  • Validación automática de herramientas disponibles"
+    echo "  • Fallback inteligente según herramientas instaladas"
+    echo
+    print_info "🔧 ACCIONES DE CONFIGURACIÓN:"
+    echo "  • Actualizar repositorios e instalar herramientas del escaneador"
+    echo "  • Configurar permisos de red especiales para escaneo avanzado"
+    echo "  • Configurar sudo sin contraseña para herramientas del escaneador"
+    echo "  • Instalar dependencias Python para interfaz gráfica"
+    echo "  • Verificar funcionamiento completo del escaneador profesional"
     echo
     
     read -p "¿Continuar? (y/N): " -n 1 -r

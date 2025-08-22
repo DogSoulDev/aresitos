@@ -2,14 +2,24 @@
 
 # ARESITOS - Herramienta de Ciberseguridad
 
-[![Versión](https://img.shields.io/badge/versión-v2.0%20Professional-brightgreen.svg)](https://github.com/DogSoulDev/Aresitos)
+[![Versión](https://img.shields.io/badge/versión-v3.0%20Professional%20Scanner-brightgreen.svg)](https://github.com/DogSoulDev/Aresitos)
 [![Kali Linux](https://img.shields.io/badge/Kali%20Linux-2025-blue.svg)](https://www.kali.org/)
 [![Python](https://img.shields.io/badge/Python-3.9%2B%20Native-yellow.svg)](https://www.python.org/)
 [![Arquitectura](https://img.shields.io/badge/Arquitectura-MVC%20SOLID-orange.svg)](README.md)
+[![Scanner](https://img.shields.io/badge/Scanner-Professional%20Grade-green.svg)](README.md)
 [![SIEM](https://img.shields.io/badge/SIEM-Integrado-red.svg)](README.md)
 [![FIM](https://img.shields.io/badge/FIM-Real%20Time-purple.svg)](README.md)
 
-**ARESITOS** es una herramienta de ciberseguridad para proteger a los pentesters, los compis del red team o estudiantes que estan aprendiendo a usar kali linux y les viene bien saber que esta pasando en sus equipos.
+**ARESITOS v3.0** es una herramienta de ciberseguridad profesional con un **escaneador de vulnerabilidades de grado empresarial** diseñada para proteger a pentesters, red teams y estudiantes de ciberseguridad. La nueva versión incorpora capacidades avanzadas de escaneo, detección de vulnerabilidades y enumeración automatizada.
+
+### 🎯 **NUEVAS CAPACIDADES v3.0 - ESCANEADOR PROFESIONAL**
+- **🔍 Escaneo Integral**: nmap con detección completa de servicios y scripts NSE
+- **⚡ Escaneo Masivo**: masscan y rustscan para análisis rápido de redes extensas
+- **🛡️ Detección de Vulnerabilidades**: nuclei con templates actualizados automáticamente
+- **🌐 Enumeración Web**: gobuster, ffuf y feroxbuster para discovery completo
+- **📊 Exportación Avanzada**: Reportes en JSON/TXT con análisis detallado
+- **🎛️ Validación Automática**: Verificación inteligente de herramientas disponibles
+- **🔄 Fallback Inteligente**: Adaptación automática según herramientas instaladas
 
 ---
 
@@ -133,13 +143,13 @@ El sistema verifica automáticamente que tengas instaladas +25 herramientas crí
 ### ⚙️ **Configurador Inteligente de Herramientas**
 **Instalación y Configuración Automática de Arsenal Completo**
 
-**Herramientas Instaladas Automáticamente:**
-- 🔍 **Scanners**: nmap, masscan, rustscan, zmap
-- 🌐 **Web**: nuclei, httpx, gobuster, feroxbuster, dirb
-- 🔓 **Exploitation**: sqlmap, nikto, whatweb
-- 📊 **Analysis**: linpeas, pspy, chkrootkit, lynis
-- 🛡️ **Defense**: fail2ban, ufw, aide
-- 🔑 **Passwords**: hydra, john, hashcat, crunch
+**Herramientas del Escaneador Profesional v3.0:**
+- 🔍 **Scanners Core**: nmap, masscan, rustscan con configuraciones optimizadas
+- 🌐 **Web Discovery**: nuclei (CVE detection), gobuster, ffuf, feroxbuster
+- �️ **Vulnerability**: Templates nuclei actualizados, análisis automático
+- 📊 **Analysis**: Análisis de superficie de ataque, correlación de servicios
+- � **Enumeration**: Detección de directorios, archivos, subdominios
+- 🔑 **Intelligence**: Base de datos CVE integrada, fingerprinting avanzado
 
 **Configuraciones Automáticas:**
 - ✅ Permisos CAP_NET_RAW para escaneos SYN
@@ -159,11 +169,14 @@ El sistema verifica automáticamente que tengas instaladas +25 herramientas crí
 - Status de servicios críticos
 - Terminal integrado con historial persistent
 
-🔍 **Escáner** 
-- Integración nuclei con templates actualizados
-- Escaneo masivo con rustscan + nmap
-- Detección de servicios y versiones
-- Análisis de superficie de ataque completo
+🔍 **Escaneador Profesional v3.0**
+- **5 Modos de Escaneo**: Integral, Avanzado, Red, Rápido, Profundo
+- **Detección Automática**: Validación y uso de herramientas disponibles
+- **Integración nuclei**: Templates actualizados, detección de CVEs
+- **Escaneo Masivo**: masscan/rustscan para análisis de redes completas
+- **Enumeración Web**: gobuster/ffuf para discovery de directorios
+- **Exportación Avanzada**: Reportes JSON/TXT con análisis detallado
+- **Fallback Inteligente**: Adaptación según herramientas instaladas
 
 🛡️ **SIEM**
 - Monitoreo de 50+ puertos críticos en tiempo real
@@ -205,15 +218,23 @@ El sistema verifica automáticamente que tengas instaladas +25 herramientas crí
 
 ## 🔧 **INFORMACIÓN TÉCNICA AVANZADA**
 
-### 🏗️ **Arquitectura SOLID + MVC**
+### 🏗️ **Arquitectura SOLID + MVC v3.0**
 ```
-ARESITOS v2.0/
-├── 🎨 Vista (UI Layer)          - 13 interfaces especializadas
-├── 🎮 Controlador (Logic)       - 15 módulos de lógica de negocio
-├── 💾 Modelo (Data)            - 19 módulos de procesamiento
-├── 🔧 Utils (Infrastructure)   - Componentes transversales
-└── 📊 Data (Intelligence)      - Bases de conocimiento
+ARESITOS v3.0 Professional Scanner/
+├── 🎨 Vista (UI Layer)          - 13 interfaces especializadas + Escaneador Pro
+├── 🎮 Controlador (Logic)       - 15 módulos + Controlador Escaneador Avanzado
+├── 💾 Modelo (Data)            - 19 módulos + Modelos de Escaneo Profesional
+├── 🔧 Utils (Infrastructure)   - Componentes + Gestión de Herramientas
+└── 📊 Data (Intelligence)      - Bases de conocimiento + Templates nuclei
 ```
+
+**Nuevas Características v3.0:**
+- ✅ **Escaneador Modular**: 5 tipos de escaneo especializados
+- ✅ **Validación Automática**: Detección inteligente de herramientas
+- ✅ **Fallback System**: Adaptación según disponibilidad de tools
+- ✅ **Export Engine**: Sistema avanzado de exportación de resultados
+- ✅ **Progress Tracking**: Seguimiento detallado de progreso de escaneos
+- ✅ **Tool Integration**: Integración nativa con arsenal Kali 2025
 
 **Principios de Diseño:**
 - ✅ **Single Responsibility**: Cada clase tiene una función específica
@@ -232,12 +253,13 @@ ARESITOS v2.0/
 - ⚠️ **Ubuntu/Debian** - Modo limitado, ideal para desarrollo
 - ❌ **Windows/macOS** - No soportado oficialmente
 
-**Especificaciones Técnicas:**
-- 🐍 **Python**: 3.9+ (optimización async/await)
-- 💾 **RAM**: 4GB mínimo, 8GB recomendado para análisis pesado
-- 💿 **Almacenamiento**: 500MB para instalación completa
-- 🌐 **Red**: Offline capability, internet opcional para updates
-- 🔐 **Permisos**: sudo para configuración inicial únicamente
+**Especificaciones Técnicas v3.0:**
+- 🐍 **Python**: 3.9+ con optimizaciones async para escaneador
+- 💾 **RAM**: 4GB mínimo, 8GB recomendado para escaneos masivos
+- 💿 **Almacenamiento**: 1GB para instalación + templates nuclei
+- 🌐 **Red**: Capacidad offline, internet para updates de nuclei
+- 🔐 **Permisos**: CAP_NET_RAW para escaneos SYN, sudo para configuración
+- ⚡ **Concurrencia**: Soporte para escaneos paralelos masivos
 
 **Dependencias del Sistema:**
 - ✅ **Librerías nativas**: Tkinter, subprocess, threading, json
@@ -249,17 +271,20 @@ ARESITOS v2.0/
 
 ### 🔧 **Comandos Esenciales**
 ```bash
-# Verificar estado completo del sistema
+# Verificar estado completo del sistema + escaneador
 python3 verificacion_final.py
 
 # Modo desarrollo (sistemas no-Kali)
 python3 main.py --dev
 
-# Actualizar configuración
+# Actualizar configuración + herramientas escaneador
 sudo ./configurar_kali.sh --update
 
-# Debug completo
-python3 main.py --verbose
+# Debug escaneador completo
+python3 main.py --verbose --scanner-debug
+
+# Actualizar templates nuclei
+sudo nuclei -update-templates
 ```
 
 ---
