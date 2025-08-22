@@ -223,12 +223,12 @@ class VistaEscaneo(tk.Frame):
             
             # Mensaje inicial estilo dashboard
             import datetime
-            self.terminal_output.insert(tk.END, "="*60 + "\n")
-            self.terminal_output.insert(tk.END, "Terminal ARESITOS - Escaneador v2.0\n")
-            self.terminal_output.insert(tk.END, f"Iniciado: {datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')}\n")
-            self.terminal_output.insert(tk.END, f"Sistema: Kali Linux - Network & Vulnerability Scanner\n")
-            self.terminal_output.insert(tk.END, "="*60 + "\n")
-            self.terminal_output.insert(tk.END, "LOG Escaneador en tiempo real\n\n")
+            self._actualizar_terminal_seguro("="*60 + "\n")
+            self._actualizar_terminal_seguro("Terminal ARESITOS - Escaneador v2.0\n")
+            self._actualizar_terminal_seguro(f"Iniciado: {datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')}\n")
+            self._actualizar_terminal_seguro(f"Sistema: Kali Linux - Network & Vulnerability Scanner\n")
+            self._actualizar_terminal_seguro("="*60 + "\n")
+            self._actualizar_terminal_seguro("LOG Escaneador en tiempo real\n\n")
             
             self.log_to_terminal("Terminal Escaneo iniciado correctamente")
             
@@ -240,14 +240,14 @@ class VistaEscaneo(tk.Frame):
         try:
             import datetime
             if hasattr(self, 'terminal_output'):
-                self.terminal_output.delete(1.0, tk.END)
+                self._actualizar_terminal_seguro("", "clear")
                 # Recrear cabecera estándar
-                self.terminal_output.insert(tk.END, "="*60 + "\n")
-                self.terminal_output.insert(tk.END, "Terminal ARESITOS - Escaneador v2.0\n")
-                self.terminal_output.insert(tk.END, f"Limpiado: {datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')}\n")
-                self.terminal_output.insert(tk.END, "Sistema: Kali Linux - Network & Vulnerability Scanner\n")
-                self.terminal_output.insert(tk.END, "="*60 + "\n")
-                self.terminal_output.insert(tk.END, "LOG Terminal Escaneador reiniciado\n\n")
+                self._actualizar_terminal_seguro("="*60 + "\n")
+                self._actualizar_terminal_seguro("Terminal ARESITOS - Escaneador v2.0\n")
+                self._actualizar_terminal_seguro(f"Limpiado: {datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')}\n")
+                self._actualizar_terminal_seguro("Sistema: Kali Linux - Network & Vulnerability Scanner\n")
+                self._actualizar_terminal_seguro("="*60 + "\n")
+                self._actualizar_terminal_seguro("LOG Terminal Escaneador reiniciado\n\n")
         except Exception as e:
             print(f"Error limpiando terminal Escaneador: {e}")
     
@@ -264,19 +264,17 @@ class VistaEscaneo(tk.Frame):
             es_valido, comando_sanitizado, mensaje = validador_comandos.validar_comando_completo(comando)
             
             # Mostrar el comando original en el terminal
-            self.terminal_output.insert(tk.END, f"\n> {comando}\n")
+            self._actualizar_terminal_seguro(f"\n> {comando}\n")
             
             if not es_valido:
                 # Mostrar error de seguridad
-                self.terminal_output.insert(tk.END, f"{mensaje}\n")
-                self.terminal_output.insert(tk.END, "💡 Use 'ayuda-comandos' para ver comandos disponibles\n")
-                self.terminal_output.see(tk.END)
+                self._actualizar_terminal_seguro(f"{mensaje}\n")
+                self._actualizar_terminal_seguro("💡 Use 'ayuda-comandos' para ver comandos disponibles\n")
                 self.comando_entry.delete(0, tk.END)
                 return
             
             # Mostrar mensaje de autorización
-            self.terminal_output.insert(tk.END, f"{mensaje}\n")
-            self.terminal_output.see(tk.END)
+            self._actualizar_terminal_seguro(f"{mensaje}\n")
             self.comando_entry.delete(0, tk.END)
             
             # Ejecutar comando sanitizado en thread
@@ -390,8 +388,8 @@ class VistaEscaneo(tk.Frame):
             return
         
         # Limpiar resultados anteriores
-        self.text_resultados.delete(1.0, tk.END)
-        self.text_resultados.insert(tk.END, "Iniciando escaneo...\n\n")
+        self._actualizar_resultados_seguro("", "clear")
+        self._actualizar_resultados_seguro("Iniciando escaneo...\n\n")
         
         # Log al terminal integrado
         self._log_terminal("INICIANDO escaneo del sistema", "ESCANEADOR", "INFO")
@@ -426,13 +424,15 @@ class VistaEscaneo(tk.Frame):
                 if hasattr(self, 'text_resultados') and self.text_resultados.winfo_exists():
                     self.text_resultados.insert(tk.END, texto)
                     self.text_resultados.see(tk.END)
-            except tk.TclError:
-                pass  # Widget ya no existe
+                    if hasattr(self.text_resultados, 'update'):
+                        self.text_resultados.update()
+            except (tk.TclError, AttributeError):
+                pass  # Widget ya no existe o ha sido destruido
         
         try:
             self.after_idle(_update)
-        except:
-            pass  # Si no se puede programar, ignorar
+        except (tk.TclError, AttributeError):
+            pass  # Ventana ya destruida
     
     def _ejecutar_escaneo_async(self):
         """Ejecutar escaneo completo del sistema usando el escaneador avanzado Kali 2025."""
@@ -3216,6 +3216,58 @@ class VistaEscaneo(tk.Frame):
             self.terminal_output.insert(tk.END, f"Error mostrando info seguridad: {e}\n")
         
         self.terminal_output.see(tk.END)
+
+    def _actualizar_terminal_seguro(self, texto, modo="append"):
+        """Actualizar terminal_output de forma segura desde threads."""
+        def _update():
+            try:
+                if hasattr(self, 'terminal_output') and self.terminal_output.winfo_exists():
+                    if modo == "clear":
+                        self.terminal_output.delete(1.0, tk.END)
+                    elif modo == "replace":
+                        self.terminal_output.delete(1.0, tk.END)
+                        self.terminal_output.insert(1.0, texto)
+                    elif modo == "append":
+                        self.terminal_output.insert(tk.END, texto)
+                    elif modo == "insert_start":
+                        self.terminal_output.insert(1.0, texto)
+                    self.terminal_output.see(tk.END)
+                    if hasattr(self.terminal_output, 'update'):
+                        self.terminal_output.update()
+            except (tk.TclError, AttributeError):
+                pass  # Widget ya no existe o ha sido destruido
+        
+        # Programar la actualización para el hilo principal
+        try:
+            self.after_idle(_update)
+        except (tk.TclError, AttributeError):
+            pass  # Ventana ya destruida
+
+    def _actualizar_resultados_seguro(self, texto, modo="append"):
+        """Actualizar text_resultados de forma segura desde threads."""
+        def _update():
+            try:
+                if hasattr(self, 'text_resultados') and self.text_resultados.winfo_exists():
+                    if modo == "clear":
+                        self.text_resultados.delete(1.0, tk.END)
+                    elif modo == "replace":
+                        self.text_resultados.delete(1.0, tk.END)
+                        self.text_resultados.insert(1.0, texto)
+                    elif modo == "append":
+                        self.text_resultados.insert(tk.END, texto)
+                    elif modo == "insert_start":
+                        self.text_resultados.insert(1.0, texto)
+                    self.text_resultados.see(tk.END)
+                    if hasattr(self.text_resultados, 'update'):
+                        self.text_resultados.update()
+            except (tk.TclError, AttributeError):
+                pass  # Widget ya no existe o ha sido destruido
+        
+        # Programar la actualización para el hilo principal
+        try:
+            self.after_idle(_update)
+        except (tk.TclError, AttributeError):
+            pass  # Ventana ya destruida
 
 
 # RESUMEN: Interfaz de escaneo de vulnerabilidades con opciones básicas y avanzadas.
