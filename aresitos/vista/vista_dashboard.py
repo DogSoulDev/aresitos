@@ -639,6 +639,72 @@ class VistaDashboard(tk.Frame):
         except Exception as e:
             self.escribir_terminal(f"ERROR abriendo carpeta de logs: {e}", "[ERROR]")
     
+    def abrir_carpeta_cheatsheets(self):
+        """Abrir carpeta de cheatsheets en Kali Linux."""
+        import os
+        import subprocess
+        
+        try:
+            # Rutas posibles de cheatsheets en orden de prioridad
+            rutas_cheatsheets = [
+                "data/cheatsheets/",  # Carpeta cheatsheets del proyecto
+                "./data/cheatsheets/",
+                os.path.expanduser("~/Ares/Aresitos/data/cheatsheets/"),
+                "/opt/aresitos/cheatsheets/",
+                "/usr/share/aresitos/cheatsheets/"
+            ]
+            
+            carpeta_encontrada = None
+            for ruta in rutas_cheatsheets:
+                if os.path.exists(ruta) and os.path.isdir(ruta):
+                    carpeta_encontrada = os.path.abspath(ruta)
+                    break
+            
+            if carpeta_encontrada:
+                # Intentar abrir con gestor de archivos de Kali
+                gestores_archivos = [
+                    "thunar",           # XFCE (Kali predeterminado)
+                    "nautilus",         # GNOME
+                    "dolphin",          # KDE
+                    "pcmanfm",          # LXDE
+                    "caja",             # MATE
+                    "nemo",             # Cinnamon
+                    "xdg-open"          # Genérico
+                ]
+                
+                for gestor in gestores_archivos:
+                    try:
+                        subprocess.run([gestor, carpeta_encontrada], 
+                                     check=True, 
+                                     stdout=subprocess.DEVNULL, 
+                                     stderr=subprocess.DEVNULL)
+                        self.escribir_terminal(f"OK Carpeta de cheatsheets abierta: {carpeta_encontrada}", "[CHEATSHEETS]")
+                        return
+                    except (subprocess.CalledProcessError, FileNotFoundError):
+                        continue
+                
+                # Si no funcionó ningún gestor, mostrar ruta
+                self.escribir_terminal(f"INFO Carpeta de cheatsheets: {carpeta_encontrada}", "[CHEATSHEETS]")
+                self.escribir_terminal("Use: cd " + carpeta_encontrada, "[COMANDO]")
+                
+            else:
+                # Crear carpeta de cheatsheets si no existe
+                cheatsheets_dir = "data/cheatsheets"
+                os.makedirs(cheatsheets_dir, exist_ok=True)
+                self.escribir_terminal(f"CREADO Carpeta de cheatsheets creada: {os.path.abspath(cheatsheets_dir)}", "[CHEATSHEETS]")
+                
+                # Intentar abrirla
+                try:
+                    subprocess.run(["xdg-open", os.path.abspath(cheatsheets_dir)], 
+                                 check=True, 
+                                 stdout=subprocess.DEVNULL, 
+                                 stderr=subprocess.DEVNULL)
+                except:
+                    self.escribir_terminal(f"INFO Acceda manualmente: {os.path.abspath(cheatsheets_dir)}", "[CHEATSHEETS]")
+                    
+        except Exception as e:
+            self.escribir_terminal(f"ERROR abriendo carpeta de cheatsheets: {e}", "[ERROR]")
+    
     def obtener_terminal_integrado(self):
         """Obtener referencia al terminal integrado global."""
         return VistaDashboard._terminal_widget
@@ -1024,6 +1090,17 @@ class VistaDashboard(tk.Frame):
             font=('Arial', 9)
         )
         self.btn_guardar.pack(side="right", padx=5)
+        
+        # Botón cargar cheatsheets
+        btn_cargar_cheatsheets = tk.Button(
+            buttons_frame,
+            text="📁 Cargar Cheatsheets",
+            command=self.abrir_carpeta_cheatsheets,
+            bg='#007acc',
+            fg='white',
+            font=('Arial', 9)
+        )
+        btn_cargar_cheatsheets.pack(side="right", padx=5)
         
         # Área de texto para comandos
         self.cheatsheet_text = scrolledtext.ScrolledText(
