@@ -403,7 +403,7 @@ class VistaDashboard(tk.Frame):
         # Botón para abrir carpeta de logs
         btn_ver_logs = tk.Button(
             botones_control_frame,
-            text="📁 VER LOGS",
+            text="LOGS VER LOGS",
             command=self.abrir_carpeta_logs,
             bg='#007acc',
             fg='white',
@@ -1148,7 +1148,7 @@ class VistaDashboard(tk.Frame):
         # Botón cargar cheatsheets
         btn_cargar_cheatsheets = tk.Button(
             buttons_frame,
-            text="📁 Cargar Cheatsheets",
+            text="CHEATSHEETS Cargar Cheatsheets",
             command=self.abrir_carpeta_cheatsheets,
             bg='#007acc',
             fg='white',

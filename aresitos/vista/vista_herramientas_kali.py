@@ -221,9 +221,9 @@ class VistaHerramientasKali(tk.Frame):
         optimizaciones_texto = """ARESITOS v2.0 - OPTIMIZACIONES KALI LINUX APLICADAS
 =======================================================
 
-✅ SISTEMA COMPLETAMENTE OPTIMIZADO PARA KALI LINUX
+OK SISTEMA COMPLETAMENTE OPTIMIZADO PARA KALI LINUX
 
-📊 VISTA DASHBOARD:
+DATOS VISTA DASHBOARD:
    • 15 comandos Linux avanzados integrados
    • ps aux --sort=-%cpu (procesos por CPU)
    • ip addr show (configuración de red)
@@ -234,62 +234,62 @@ class VistaHerramientasKali(tk.Frame):
    • uname -a (información del kernel)
    • who, last (usuarios conectados/historial)
 
-🔍 VISTA ESCANEO:
+ESCANEO VISTA ESCANEO:
    • Escaneo de red nativo con nmap integrado
    • Análisis de servicios con ss y lsof
    • Detección de procesos de red
    • Monitoreo de servicios systemd
    • Reconnaissance avanzado con herramientas Kali
 
-📁 VISTA FIM (File Integrity Monitoring):
+FIM VISTA FIM (File Integrity Monitoring):
    • find para detección de archivos modificados
    • stat para análisis detallado de permisos
    • lsof para monitoreo de archivos abiertos
    • Detección de binarios SUID
    • Verificación de integridad con comandos nativos
 
-🛡️ VISTA SIEM (Security Information & Event Management):
+SEGURIDAD VISTA SIEM (Security Information & Event Management):
    • grep avanzado para análisis de logs
    • awk para procesamiento de registros
    • Análisis de patrones de seguridad
    • Correlación de eventos con herramientas Linux
    • Detección de anomalías
 
-📈 VISTA MONITOREO:
+MONITOREO VISTA MONITOREO:
    • Monitoreo en tiempo real con top y ps
    • Análisis de red con ss y netstat
    • Supervisión del sistema de archivos
    • Tracking de logins con last y who
    • Monitoreo de recursos del sistema
 
-🔐 VISTA AUDITORÍA:
+AUDITORIA VISTA AUDITORÍA:
    • Detección avanzada de rootkits
    • Comparación /proc vs ps para detección
    • Verificación de integridad de comandos
    • Análisis de módulos del kernel
    • Verificación de procesos sospechosos
 
-📋 VISTA REPORTES:
+REPORTES VISTA REPORTES:
    • Análisis de logs con herramientas Kali
    • Generación de estadísticas del sistema
    • Informes de seguridad automatizados
    • Comparación de reportes con diff
    • Análisis forense de registros
 
-💾 VISTA GESTIÓN DE DATOS:
+DATOS VISTA GESTIÓN DE DATOS:
    • Análisis de wordlists con grep, sort, uniq
    • Estadísticas avanzadas con wc y awk
    • Procesamiento de diccionarios
    • Optimización de datos con herramientas Linux
 
-🔧 INTEGRACIÓN NATIVA:
+INTEGRACION INTEGRACIÓN NATIVA:
    • 60+ comandos Linux nativos integrados
    • Subprocess optimizado para Kali
    • Threading para operaciones no bloqueantes
    • Manejo robusto de errores
    • Logging integrado al terminal
 
-⚡ HERRAMIENTAS PRINCIPALES UTILIZADAS:
+HERRAMIENTAS HERRAMIENTAS PRINCIPALES UTILIZADAS:
    • Comandos básicos: ps, ss, lsof, grep, awk, find, stat
    • Red: ip, route, netstat, nmap, netcat
    • Sistema: systemctl, top, free, df, uname, who, last
@@ -297,14 +297,14 @@ class VistaHerramientasKali(tk.Frame):
    • Análisis: strings, hexdump, binwalk, volatility
    • Procesamiento: sort, uniq, wc, tail, head, diff
 
-🎯 BENEFICIOS:
+BENEFICIOS BENEFICIOS:
    • Rendimiento optimizado en Kali Linux
    • Sin dependencias externas complejas
    • Funcionalidad profesional de ciberseguridad
    • Integración perfecta con el ecosistema Kali
    • Máximo aprovechamiento de herramientas nativas
 
-✅ ESTADO: OPTIMIZACIÓN COMPLETA APLICADA
+OK ESTADO: OPTIMIZACIÓN COMPLETA APLICADA
 🚀 LISTO PARA: Producción en entornos Kali Linux
 
 """

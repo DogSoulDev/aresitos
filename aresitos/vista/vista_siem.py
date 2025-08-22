@@ -1047,16 +1047,16 @@ class VistaSIEM(tk.Frame):
                 try:
                     resultado = self.controlador.detener_monitoreo_eventos()
                     if resultado.get('exito'):
-                        self._actualizar_texto_monitoreo("✅ Controlador SIEM detenido correctamente\n")
+                        self._actualizar_texto_monitoreo("OK Controlador SIEM detenido correctamente\n")
                         self._log_terminal("✓ Controlador SIEM detenido", "SIEM", "SUCCESS")
                         siem_detenido = True
                     else:
-                        self._actualizar_texto_monitoreo(f"⚠️ Advertencia deteniendo controlador: {resultado.get('error', 'Parcialmente detenido')}\n")
-                        self._log_terminal(f"⚠ Advertencia controlador: {resultado.get('error')}", "SIEM", "WARNING")
+                        self._actualizar_texto_monitoreo(f"WARNING Advertencia deteniendo controlador: {resultado.get('error', 'Parcialmente detenido')}\n")
+                        self._log_terminal(f"WARNING Advertencia controlador: {resultado.get('error')}", "SIEM", "WARNING")
                         siem_detenido = True  # Considerado detenido aunque con advertencias
                 except Exception as e:
-                    self._actualizar_texto_monitoreo(f"⚠️ Error deteniendo controlador: {e}\n")
-                    self._log_terminal(f"❌ Error controlador: {e}", "SIEM", "ERROR")
+                    self._actualizar_texto_monitoreo(f"WARNING Error deteniendo controlador: {e}\n")
+                    self._log_terminal(f"ERROR Error controlador: {e}", "SIEM", "ERROR")
                     siem_detenido = True  # Forzar detención en caso de error
             else:
                 self._log_terminal("ℹ Controlador SIEM no disponible", "SIEM", "INFO")
@@ -1074,7 +1074,7 @@ class VistaSIEM(tk.Frame):
                 
         except Exception as e:
             error_msg = f"Error deteniendo SIEM: {str(e)}"
-            self._actualizar_texto_monitoreo(f"❌ {error_msg}\n")
+            self._actualizar_texto_monitoreo(f"ERROR {error_msg}\n")
             self._log_terminal(error_msg, "SIEM", "ERROR")
             
             # SIEMPRE habilitar botones en caso de error

@@ -262,7 +262,7 @@ class VistaFIM(tk.Frame):
         
         # Log al terminal integrado
         self._log_terminal("Iniciando sistema FIM - File Integrity Monitoring", "FIM", "INFO")
-        self.log_to_terminal("🔍 Iniciando monitoreo FIM del sistema...")
+        self.log_to_terminal("FIM Iniciando monitoreo FIM del sistema...")
         self._actualizar_texto_fim("=== INICIANDO MONITOREO FIM - FILE INTEGRITY MONITORING ===\n\n")
         
         # Ejecutar en thread separado
@@ -618,27 +618,27 @@ class VistaFIM(tk.Frame):
                 '/sbin/': 'Binarios de sistema esenciales'
             }
             
-            self.after(0, self._actualizar_texto_fim, "\n🔍 EXPANSIÓN FIM: Monitoreando directorios críticos de Kali Linux\n")
+            self.after(0, self._actualizar_texto_fim, "\nEXPANSION FIM: Monitoreando directorios críticos de Kali Linux\n")
             self.after(0, self._actualizar_texto_fim, "="*70 + "\n")
             
             archivos_encontrados = 0
             
             # 1. Verificar archivos básicos del proyecto
-            self.after(0, self._actualizar_texto_fim, "\n📁 VERIFICANDO ARCHIVOS DEL PROYECTO ARESITOS:\n")
+            self.after(0, self._actualizar_texto_fim, "\nARCHIVOS VERIFICANDO ARCHIVOS DEL PROYECTO ARESITOS:\n")
             for archivo, descripcion in archivos_basicos.items():
                 try:
                     if os.path.exists(archivo):
                         stat_info = os.stat(archivo)
                         if os.path.isfile(archivo):
                             tamaño = stat_info.st_size
-                            self.after(0, self._actualizar_texto_fim, f"✅ {archivo}: {descripcion} (Tamaño: {tamaño} bytes)\n")
+                            self.after(0, self._actualizar_texto_fim, f"OK {archivo}: {descripcion} (Tamaño: {tamaño} bytes)\n")
                         else:
-                            self.after(0, self._actualizar_texto_fim, f"✅ {archivo}: {descripcion} (Directorio)\n")
+                            self.after(0, self._actualizar_texto_fim, f"OK {archivo}: {descripcion} (Directorio)\n")
                         archivos_encontrados += 1
                     else:
-                        self.after(0, self._actualizar_texto_fim, f"❌ {archivo}: {descripcion} (NO ENCONTRADO)\n")
+                        self.after(0, self._actualizar_texto_fim, f"ERROR {archivo}: {descripcion} (NO ENCONTRADO)\n")
                 except Exception as e:
-                    self.after(0, self._actualizar_texto_fim, f"⚠️ Error verificando {archivo}: {e}\n")
+                    self.after(0, self._actualizar_texto_fim, f"WARNING Error verificando {archivo}: {e}\n")
             
             # 2. Verificar directorios críticos de Kali Linux (solo si estamos en Linux)
             import platform
@@ -656,7 +656,7 @@ class VistaFIM(tk.Frame):
                             
                             if os.path.isfile(ruta):
                                 tamaño = stat_info.st_size
-                                self.after(0, self._actualizar_texto_fim, f"🔐 {ruta}: {descripcion} (Archivo: {tamaño}B, Permisos: {permisos})\n")
+                                self.after(0, self._actualizar_texto_fim, f"SEGURIDAD {ruta}: {descripcion} (Archivo: {tamaño}B, Permisos: {permisos})\n")
                                 directorios_criticos += 1
                             elif os.path.isdir(ruta):
                                 try:
@@ -665,7 +665,7 @@ class VistaFIM(tk.Frame):
                                     self.after(0, self._actualizar_texto_fim, f"📂 {ruta}: {descripcion} (Dir: {archivos_en_dir} items, Permisos: {permisos})\n")
                                     directorios_criticos += 1
                                 except PermissionError:
-                                    self.after(0, self._actualizar_texto_fim, f"🔒 {ruta}: {descripcion} (Sin permisos de lectura)\n")
+                                    self.after(0, self._actualizar_texto_fim, f"ACCESO {ruta}: {descripcion} (Sin permisos de lectura)\n")
                                     directorios_criticos += 1
                                     
                             directorios_monitoreados += 1
@@ -673,26 +673,26 @@ class VistaFIM(tk.Frame):
                         else:
                             # Solo mostrar los más importantes si no existen
                             if ruta in ['/etc/passwd', '/etc/shadow', '/etc/hosts', '/usr/share/wordlists/', '/usr/share/nmap/']:
-                                self.after(0, self._actualizar_texto_fim, f"❌ {ruta}: {descripcion} (NO ENCONTRADO)\n")
+                                self.after(0, self._actualizar_texto_fim, f"ERROR {ruta}: {descripcion} (NO ENCONTRADO)\n")
                                 
                     except Exception as e:
                         if ruta in ['/etc/passwd', '/etc/shadow', '/etc/hosts']:  # Solo reportar errores críticos
-                            self.after(0, self._actualizar_texto_fim, f"⚠️ Error accediendo a {ruta}: {e}\n")
+                            self.after(0, self._actualizar_texto_fim, f"WARNING Error accediendo a {ruta}: {e}\n")
                 
-                self.after(0, self._actualizar_texto_fim, f"\n📊 RESUMEN EXPANSIÓN FIM:\n")
+                self.after(0, self._actualizar_texto_fim, f"\nRESUMEN EXPANSIÓN FIM:\n")
                 self.after(0, self._actualizar_texto_fim, f"   • Directorios críticos encontrados: {directorios_criticos}\n")
                 self.after(0, self._actualizar_texto_fim, f"   • Rutas monitoreadas: {directorios_monitoreados}\n")
                 self.after(0, self._actualizar_texto_fim, f"   • Sistema: Kali Linux compatible\n")
                 
             else:
-                self.after(0, self._actualizar_texto_fim, f"\n⚠️ LIMITACIÓN: No estamos en Linux - Monitoreo básico únicamente\n")
+                self.after(0, self._actualizar_texto_fim, f"\nLIMITACION: No estamos en Linux - Monitoreo básico únicamente\n")
                 self.after(0, self._actualizar_texto_fim, f"   Para funcionalidad completa, ejecutar en Kali Linux\n")
             
-            self.after(0, self._actualizar_texto_fim, f"\n📊 RESUMEN TOTAL: {archivos_encontrados} elementos verificados del proyecto\n")
-            self.after(0, self._actualizar_texto_fim, "💡 RECOMENDACIÓN: Ejecutar en Kali Linux para análisis completo de seguridad\n")
+            self.after(0, self._actualizar_texto_fim, f"\nRESUMEN TOTAL: {archivos_encontrados} elementos verificados del proyecto\n")
+            self.after(0, self._actualizar_texto_fim, "RECOMENDACION: Ejecutar en Kali Linux para análisis completo de seguridad\n")
             
         except Exception as e:
-            self.after(0, self._actualizar_texto_fim, f"❌ ERROR en análisis básico: {str(e)}\n")
+            self.after(0, self._actualizar_texto_fim, f"ERROR en análisis básico: {str(e)}\n")
 
     def _habilitar_botones_monitoreo(self, habilitar):
         """Habilitar/deshabilitar botones según estado del monitoreo."""

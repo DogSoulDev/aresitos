@@ -405,16 +405,16 @@ class VistaGestionDatos(tk.Frame):
                 import shutil
                 shutil.copy2(archivo_origen, destino)
                 
-                self.log_to_terminal(f"✅ Archivo copiado a: {destino.name}")
+                self.log_to_terminal(f"OK Archivo copiado a: {destino.name}")
                 
                 # Recargar lista
                 self.cargar_archivos()
                 
-                self.log_to_terminal(f"📋 Lista de {self.tipo_actual} actualizada")
+                self.log_to_terminal(f"LISTA Lista de {self.tipo_actual} actualizada")
                 messagebox.showinfo("Éxito", f"Archivo cargado exitosamente:\n{destino.name}")
                 
             except Exception as e:
-                self.log_to_terminal(f"❌ Error al cargar archivo: {str(e)}")
+                self.log_to_terminal(f"ERROR Error al cargar archivo: {str(e)}")
                 messagebox.showerror("Error", f"Error al cargar archivo: {str(e)}")
     
     def editar_archivo(self):
@@ -465,14 +465,14 @@ class VistaGestionDatos(tk.Frame):
                 with open(self.archivo_seleccionado, 'w', encoding='utf-8') as f:
                     f.write(contenido_final)
             
-            self.log_to_terminal(f"💾 Archivo guardado: {self.archivo_seleccionado.name}")
+            self.log_to_terminal(f"ARCHIVO Archivo guardado: {self.archivo_seleccionado.name}")
             messagebox.showinfo("Éxito", "Archivo guardado exitosamente.")
             
             # Recargar contenido para mostrar información actualizada
             self.mostrar_contenido_archivo()
             
         except Exception as e:
-            self.log_to_terminal(f"❌ Error al guardar: {str(e)}")
+            self.log_to_terminal(f"ERROR Error al guardar: {str(e)}")
             messagebox.showerror("Error", f"Error al guardar archivo: {str(e)}")
     
     def eliminar_archivo(self):
@@ -559,7 +559,7 @@ class VistaGestionDatos(tk.Frame):
                 messagebox.showinfo("Éxito", f"Archivo exportado exitosamente:\n{destino_path.name}")
                 
             except Exception as e:
-                self.log_to_terminal(f"❌ Error al exportar: {str(e)}")
+                self.log_to_terminal(f"ERROR Error al exportar: {str(e)}")
                 messagebox.showerror("Error", f"Error al exportar archivo: {str(e)}")
     
     def actualizar_desde_controlador(self):

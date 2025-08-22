@@ -239,7 +239,7 @@ class VistaReportes(tk.Frame):
                 self.reporte_text.insert(tk.END, " Generando reporte completo...\n\n")
                 self.reporte_text.update()
                 
-                self.log_to_terminal("📊 Recopilando datos del sistema...")
+                self.log_to_terminal("DATOS Recopilando datos del sistema...")
                 
                 incluir_dashboard = {} if self.incluir_dashboard.get() else None
                 incluir_escaneo = {} if self.incluir_escaneo.get() else None
@@ -248,14 +248,14 @@ class VistaReportes(tk.Frame):
                 incluir_siem = {} if self.incluir_siem.get() else None
                 incluir_cuarentena = {} if self.incluir_cuarentena.get() else None
                 
-                self.log_to_terminal("📊 Generando reporte con módulos seleccionados...")
+                self.log_to_terminal("REPORTE Generando reporte con módulos seleccionados...")
                 
                 self.reporte_actual = self.controlador.generar_reporte_completo(
                     incluir_dashboard, incluir_escaneo, incluir_monitoreo, incluir_fim, incluir_siem, incluir_cuarentena
                 )
                 
                 if self.reporte_actual:
-                    self.log_to_terminal("✅ Reporte generado correctamente")
+                    self.log_to_terminal("OK Reporte generado correctamente")
                     self.mostrar_reporte(self.reporte_actual)
                     self.log_to_terminal("REPORTE Reporte mostrado en pantalla")
                 else:
