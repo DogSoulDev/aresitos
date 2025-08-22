@@ -631,7 +631,7 @@ class VistaSIEM(tk.Frame):
                 self._log_terminal("FASE 2: Activando monitoreo y proteccion DNS", "SIEM", "WARNING")
                 self._proteger_dns()
                 fases_completadas += 1
-                self._log_terminal("✓ FASE 2 completada exitosamente", "SIEM", "SUCCESS")
+                self._log_terminal("OK FASE 2 completada exitosamente", "SIEM", "SUCCESS")
             except Exception as e:
                 fases_con_error += 1
                 self._log_terminal(f"✗ ERROR en FASE 2: {str(e)}", "SIEM", "ERROR")
@@ -642,7 +642,7 @@ class VistaSIEM(tk.Frame):
                 self._log_terminal("FASE 3: Iniciando monitoreo de trafico de red", "SIEM", "INFO")
                 self._monitorear_trafico_red()
                 fases_completadas += 1
-                self._log_terminal("✓ FASE 3 completada exitosamente", "SIEM", "SUCCESS")
+                self._log_terminal("OK FASE 3 completada exitosamente", "SIEM", "SUCCESS")
             except Exception as e:
                 fases_con_error += 1
                 self._log_terminal(f"✗ ERROR en FASE 3: {str(e)}", "SIEM", "ERROR")
@@ -653,7 +653,7 @@ class VistaSIEM(tk.Frame):
                 self._log_terminal("FASE 4: Monitoreando 50 puertos mas vulnerables a ciberataques", "SIEM", "ERROR")
                 self._monitorear_puertos_criticos()
                 fases_completadas += 1
-                self._log_terminal("✓ FASE 4 completada exitosamente", "SIEM", "SUCCESS")
+                self._log_terminal("OK FASE 4 completada exitosamente", "SIEM", "SUCCESS")
             except Exception as e:
                 fases_con_error += 1
                 self._log_terminal(f"✗ ERROR en FASE 4: {str(e)}", "SIEM", "ERROR")
@@ -664,7 +664,7 @@ class VistaSIEM(tk.Frame):
                 self._log_terminal("FASE 5: Activando deteccion de anomalias en tiempo real", "SIEM", "WARNING")
                 self._detectar_anomalias()
                 fases_completadas += 1
-                self._log_terminal("✓ FASE 5 completada exitosamente", "SIEM", "SUCCESS")
+                self._log_terminal("OK FASE 5 completada exitosamente", "SIEM", "SUCCESS")
             except Exception as e:
                 fases_con_error += 1
                 self._log_terminal(f"✗ ERROR en FASE 5: {str(e)}", "SIEM", "ERROR")
@@ -681,7 +681,7 @@ class VistaSIEM(tk.Frame):
                         # Iniciar ciclo de detección continua
                         self._monitorear_eventos_continuamente()
                         fases_completadas += 1
-                        self._log_terminal("✓ FASE 6 completada exitosamente", "SIEM", "SUCCESS")
+                        self._log_terminal("OK FASE 6 completada exitosamente", "SIEM", "SUCCESS")
                     else:
                         error_msg = resultado.get('error', 'Error desconocido')
                         self._log_terminal(f"Error iniciando controlador SIEM: {error_msg}", "SIEM", "ERROR")
@@ -691,7 +691,7 @@ class VistaSIEM(tk.Frame):
                     self._log_terminal("Controlador SIEM no disponible - ejecutando monitoreo basico", "SIEM", "WARNING")
                     self._ejecutar_monitoreo_basico()
                     fases_completadas += 1
-                    self._log_terminal("✓ FASE 6 completada con monitoreo básico", "SIEM", "SUCCESS")
+                    self._log_terminal("OK FASE 6 completada con monitoreo básico", "SIEM", "SUCCESS")
             except Exception as e:
                 fases_con_error += 1
                 self._log_terminal(f"✗ ERROR en FASE 6: {str(e)}", "SIEM", "ERROR")
@@ -702,12 +702,12 @@ class VistaSIEM(tk.Frame):
                 self.after(0, self._actualizar_texto_monitoreo, f"\n{'='*50}\n")
                 self.after(0, self._actualizar_texto_monitoreo, f"RESUMEN DE EJECUCIÓN SIEM\n")
                 self.after(0, self._actualizar_texto_monitoreo, f"{'='*50}\n")
-                self.after(0, self._actualizar_texto_monitoreo, f"✓ FASES COMPLETADAS: {fases_completadas}/6\n")
+                self.after(0, self._actualizar_texto_monitoreo, f"OK FASES COMPLETADAS: {fases_completadas}/6\n")
                 self.after(0, self._actualizar_texto_monitoreo, f"✗ FASES CON ERROR: {fases_con_error}/6\n")
                 
                 if fases_con_error == 0:
-                    self.after(0, self._actualizar_texto_monitoreo, f"ESTADO GENERAL: ✓ TODAS LAS FASES COMPLETADAS EXITOSAMENTE\n")
-                    self._log_terminal("✓ SIEM: Todas las fases completadas exitosamente", "SIEM", "SUCCESS")
+                    self.after(0, self._actualizar_texto_monitoreo, f"ESTADO GENERAL: OK TODAS LAS FASES COMPLETADAS EXITOSAMENTE\n")
+                    self._log_terminal("OK SIEM: Todas las fases completadas exitosamente", "SIEM", "SUCCESS")
                 else:
                     self.after(0, self._actualizar_texto_monitoreo, f"ESTADO GENERAL: {fases_completadas} fases exitosas, {fases_con_error} con errores\n")
                     self._log_terminal(f"SIEM: {fases_completadas} fases exitosas, {fases_con_error} con errores", "SIEM", "WARNING")
@@ -1373,17 +1373,17 @@ class VistaSIEM(tk.Frame):
                 if self.thread_siem.is_alive():
                     self._log_terminal("Hilo SIEM no respondió en tiempo esperado", "SIEM", "WARNING")
                 else:
-                    self._log_terminal("✓ Hilo SIEM finalizado correctamente", "SIEM", "SUCCESS")
+                    self._log_terminal("OK Hilo SIEM finalizado correctamente", "SIEM", "SUCCESS")
             
             # 3. Detener controlador si existe
             controlador_detenido = False
             if self.controlador:
                 try:
-                    self._log_terminal("🔧 Deteniendo controlador SIEM...", "SIEM", "INFO")
+                    self._log_terminal("INFO Deteniendo controlador SIEM...", "SIEM", "INFO")
                     resultado = self.controlador.detener_monitoreo_eventos()
                     if resultado and resultado.get('exito'):
-                        self._actualizar_texto_monitoreo("✓ Controlador SIEM detenido correctamente\n")
-                        self._log_terminal("✓ Controlador SIEM detenido", "SIEM", "SUCCESS")
+                        self._actualizar_texto_monitoreo("OK Controlador SIEM detenido correctamente\n")
+                        self._log_terminal("OK Controlador SIEM detenido", "SIEM", "SUCCESS")
                         controlador_detenido = True
                     else:
                         error_msg = resultado.get('error', 'Respuesta inesperada') if resultado else 'Sin respuesta'
@@ -1404,7 +1404,7 @@ class VistaSIEM(tk.Frame):
             # 5. SIEMPRE actualizar interfaz (crítico para que funcione el botón)
             try:
                 self._habilitar_botones_siem(True)  # True = SIEM detenido, habilitar "Iniciar"
-                self._log_terminal("✓ Interfaz actualizada - botones habilitados", "SIEM", "SUCCESS")
+                self._log_terminal("OK Interfaz actualizada - botones habilitados", "SIEM", "SUCCESS")
             except Exception as e:
                 self._log_terminal(f"ERROR actualizando interfaz: {str(e)}", "SIEM", "ERROR")
             
@@ -1848,7 +1848,7 @@ class VistaSIEM(tk.Frame):
         self._actualizar_texto_alertas(" Activando Snort IDS...\n")
         self._actualizar_texto_alertas(" Monitoreando tráfico de red...\n")
         self._actualizar_texto_alertas("OK Sistema de detección activo\n\n")
-        self.log_to_terminal("✓ Sistema de detección de intrusiones activado")
+        self.log_to_terminal("OK Sistema de detección de intrusiones activado")
     
     def activar_ids(self):
         """Activar sistema IDS real con Suricata."""
@@ -2415,7 +2415,7 @@ class VistaSIEM(tk.Frame):
                 try:
                     resultado = subprocess.run(['strings', '--version'], capture_output=True, text=True, timeout=10)
                     if resultado.returncode == 0:
-                        self.after(0, self._actualizar_texto_forense, "✓ Strings disponible en el sistema\n\n")
+                        self.after(0, self._actualizar_texto_forense, "OK Strings disponible en el sistema\n\n")
                     
                         # ANÁLISIS AUTOMÁTICO DE ARCHIVOS CRÍTICOS DEL SISTEMA
                         self.after(0, self._actualizar_texto_forense, "ANÁLISIS AUTOMÁTICO - ARCHIVOS CRÍTICOS DEL SISTEMA:\n")
@@ -2441,7 +2441,7 @@ class VistaSIEM(tk.Frame):
                                     
                                     if resultado_strings.returncode == 0:
                                         lines = resultado_strings.stdout.split('\n')[:10]  # Primeras 10 líneas
-                                        self.after(0, self._actualizar_texto_forense, f"  ✓ {len(lines)} strings encontrados (mostrando primeros 10):\n")
+                                        self.after(0, self._actualizar_texto_forense, f"  OK {len(lines)} strings encontrados (mostrando primeros 10):\n")
                                         for i, line in enumerate(lines, 1):
                                             if line.strip():
                                                 self.after(0, self._actualizar_texto_forense, f"    {i:2d}: {line[:80]}...\n")
@@ -2506,7 +2506,7 @@ echo "Resultados en: $OUTPUT_DIR"
 
 # Análisis básico
 strings -a "$ARCHIVO" > "$OUTPUT_DIR/all_strings.txt"
-echo "✓ Strings básicos extraídos"
+echo "OK Strings básicos extraídos"
 
 # Buscar patrones de interés
 strings "$ARCHIVO" | grep -iE "(pass|pwd|secret|key|token)" > "$OUTPUT_DIR/credentials.txt"
@@ -2514,7 +2514,7 @@ strings "$ARCHIVO" | grep -E "https?://[^\\s]+" > "$OUTPUT_DIR/urls.txt"
 strings "$ARCHIVO" | grep -E "[0-9]{1,3}\\.[0-9]{1,3}\\.[0-9]{1,3}\\.[0-9]{1,3}" > "$OUTPUT_DIR/ips.txt"
 strings "$ARQUIVO" | grep -E "[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}" > "$OUTPUT_DIR/emails.txt"
 
-echo "✓ Análisis completado"
+echo "OK Análisis completado"
 echo "Archivos generados:"
 ls -la "$OUTPUT_DIR/"
 '''
