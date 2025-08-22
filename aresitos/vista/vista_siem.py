@@ -11,6 +11,7 @@ from datetime import datetime
 
 try:
     from aresitos.vista.burp_theme import burp_theme
+    from aresitos.utils.sudo_manager import get_sudo_manager, is_sudo_available
     BURP_THEME_AVAILABLE = True
 except ImportError:
     BURP_THEME_AVAILABLE = False
@@ -1860,12 +1861,20 @@ class VistaSIEM(tk.Frame):
                 import os
                 
                 # Verificar si Suricata está instalado
+                sudo_manager = get_sudo_manager()
                 try:
                     resultado = subprocess.run(['which', 'suricata'], capture_output=True, text=True)
                     if resultado.returncode != 0:
                         self.after(0, self._actualizar_texto_alertas, "ERROR Suricata no encontrado. Instalando...\n")
-                        install = subprocess.run(['sudo', 'apt', 'update'], capture_output=True)
-                        install = subprocess.run(['sudo', 'apt', 'install', '-y', 'suricata'], capture_output=True)
+                        
+                        # Verificar sudo antes de instalar
+                        if not is_sudo_available():
+                            self.after(0, self._actualizar_texto_alertas, "ERROR: No hay permisos sudo disponibles\n")
+                            self.after(0, self._actualizar_texto_alertas, "Reinicie ARESITOS e ingrese contraseña correcta\n")
+                            return
+                        
+                        install = sudo_manager.execute_sudo_command('apt update', timeout=60)
+                        install = sudo_manager.execute_sudo_command('apt install -y suricata', timeout=120)
                         if install.returncode != 0:
                             self.after(0, self._actualizar_texto_alertas, "ERROR instalando Suricata\n")
                             return
@@ -1892,7 +1901,7 @@ class VistaSIEM(tk.Frame):
                 # Actualizar reglas
                 self.after(0, self._actualizar_texto_alertas, " Actualizando reglas de detección...\n")
                 try:
-                    update_rules = subprocess.run(['sudo', 'suricata-update'], capture_output=True, text=True, timeout=30)
+                    update_rules = sudo_manager.execute_sudo_command('suricata-update', timeout=30)
                     if update_rules.returncode == 0:
                         self.after(0, self._actualizar_texto_alertas, "OK Reglas actualizadas correctamente\n")
                     else:
@@ -1944,23 +1953,21 @@ class VistaSIEM(tk.Frame):
                                 else:
                                     # El proceso no existe, remover pidfile obsoleto
                                     self.after(0, self._actualizar_texto_alertas, "INFO Removiendo pidfile obsoleto\n")
-                                    subprocess.run(['sudo', 'rm', '-f', pidfile_path], capture_output=True)
+                                    sudo_manager.execute_sudo_command(f'rm -f {pidfile_path}', timeout=10)
                         except (FileNotFoundError, ValueError, PermissionError):
                             # Si hay error leyendo el pidfile, intentar removerlo
-                            subprocess.run(['sudo', 'rm', '-f', pidfile_path], capture_output=True)
+                            sudo_manager.execute_sudo_command(f'rm -f {pidfile_path}', timeout=10)
                         
                         # Crear directorio para logs si no existe
                         if not os.path.exists(log_dir):
-                            subprocess.run(['sudo', 'mkdir', '-p', log_dir], capture_output=True)
+                            sudo_manager.execute_sudo_command(f'mkdir -p {log_dir}', timeout=10)
                         
-                        # Comando para iniciar Suricata
-                        suricata_cmd = [
-                            'sudo', 'suricata', '-c', '/etc/suricata/suricata.yaml',
-                            '-i', interface, '-D', '--pidfile', pidfile_path
-                        ]
-                        
+                        # Comando para iniciar Suricata usando SudoManager
                         self.after(0, self._actualizar_texto_alertas, f" Ejecutando: suricata -i {interface} -D\n")
-                        resultado_suricata = subprocess.run(suricata_cmd, capture_output=True, text=True)
+                        resultado_suricata = sudo_manager.execute_sudo_command(
+                            f'suricata -c /etc/suricata/suricata.yaml -i {interface} -D --pidfile {pidfile_path}', 
+                            timeout=30
+                        )
                         
                         if resultado_suricata.returncode == 0:
                             self.after(0, self._actualizar_texto_alertas, "OK IDS activado correctamente\n")

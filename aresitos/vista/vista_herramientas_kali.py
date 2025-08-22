@@ -497,9 +497,16 @@ LISTO PARA: Producción en entornos Kali Linux
         thread.start()
     
     def _instalar_herramientas_async(self):
-        """Instalación asíncrona de herramientas"""
+        """Instalación asíncrona de herramientas usando SudoManager"""
         try:
             self.after(0, self._actualizar_texto, "Instalando herramientas de Kali Linux...\n\n")
+            
+            # Verificar que sudo esté disponible
+            sudo_manager = get_sudo_manager()
+            if not is_sudo_available():
+                self.after(0, self._actualizar_texto, "ERROR: No hay permisos sudo disponibles\n")
+                self.after(0, self._actualizar_texto, "Reinicie ARESITOS e ingrese la contraseña correcta\n")
+                return
             
             # Lista de paquetes disponibles en repositorios APT de Kali
             paquetes = [
@@ -541,10 +548,9 @@ LISTO PARA: Producción en entornos Kali Linux
                 'volatility: apt install volatility (versión 2) o pip3 install volatility3 (versión 3)'
             ]
             
-            # Actualizar repositorios
+            # Actualizar repositorios usando SudoManager
             self.after(0, self._actualizar_texto, "Actualizando repositorios...\n")
-            result = subprocess.run(['sudo', 'apt', 'update'], 
-                                  capture_output=True, text=True, timeout=120)
+            result = sudo_manager.execute_sudo_command('apt update', timeout=120)
             
             if result.returncode == 0:
                 self.after(0, self._actualizar_texto, "✓ Repositorios actualizados\n\n")
@@ -561,8 +567,8 @@ LISTO PARA: Producción en entornos Kali Linux
                 try:
                     self.after(0, self._actualizar_texto, f"Instalando {paquete}...\n")
                     
-                    cmd = ['sudo', 'apt', 'install', '-y', paquete]
-                    result = subprocess.run(cmd, capture_output=True, text=True, timeout=120)
+                    # Usar SudoManager en lugar de sudo directo
+                    result = sudo_manager.execute_sudo_command(f'apt install -y {paquete}', timeout=120)
                     
                     if result.returncode == 0:
                         paquetes_exitosos.append(paquete)
