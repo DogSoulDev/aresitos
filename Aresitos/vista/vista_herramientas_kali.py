@@ -30,8 +30,8 @@ import concurrent.futures
 from concurrent.futures import ThreadPoolExecutor
 
 try:
-    from Aresitos.vista.burp_theme import burp_theme
-    from Aresitos.utils.sudo_manager import get_sudo_manager, is_sudo_available
+    from aresitos.vista.burp_theme import burp_theme
+    from aresitos.utils.sudo_manager import get_sudo_manager, is_sudo_available
     BURP_THEME_AVAILABLE = True
 except ImportError:
     BURP_THEME_AVAILABLE = False
@@ -107,6 +107,9 @@ class VistaHerramientasKali(tk.Frame):
             # Acceso dinámico al tema
             if BURP_THEME_AVAILABLE and burp_theme:
                 self.theme = burp_theme
+            # Configurar estilo TTK siguiendo principios ARESITOS
+            self.style = ttk.Style()
+            self.theme.configure_ttk_style(self.style)
                 bg_color = getattr(burp_theme, 'get_color', lambda x: '#2e2e2e')('bg_primary')
                 self.configure(bg=bg_color)
                 
@@ -351,7 +354,7 @@ class VistaHerramientasKali(tk.Frame):
         """Crear botones de herramientas con acceso dinámico (PRINCIPIO ARESITOS V3)."""
         try:
             # Botón verificar herramientas
-            self.btn_verificar = tk.Button(
+            self.btn_verificar = ttk.Button(style="Burp.TButton",
                 botones_frame,
                 text="Verificar Herramientas",
                 command=self.verificar_herramientas,
@@ -366,7 +369,7 @@ class VistaHerramientasKali(tk.Frame):
             self.btn_verificar.grid(row=0, column=0, padx=10, sticky="ew")
             
             # Botón mostrar optimizaciones
-            self.btn_optimizaciones = tk.Button(
+            self.btn_optimizaciones = ttk.Button(style="Burp.TButton",
                 botones_frame,
                 text="Ver Optimizaciones",
                 command=self.mostrar_optimizaciones,
@@ -381,7 +384,7 @@ class VistaHerramientasKali(tk.Frame):
             self.btn_optimizaciones.grid(row=0, column=1, padx=10, sticky="ew")
             
             # Botón instalar herramientas
-            self.btn_instalar = tk.Button(
+            self.btn_instalar = ttk.Button(style="Burp.TButton",
                 botones_frame,
                 text="Instalar Faltantes",
                 command=self.instalar_herramientas,
@@ -406,7 +409,7 @@ class VistaHerramientasKali(tk.Frame):
         """Crear el resto de la interfaz (PRINCIPIO ARESITOS V3)."""
         try:
             # Botón continuar (habilitado por defecto en modo desarrollo)
-            self.btn_continuar = tk.Button(
+            self.btn_continuar = ttk.Button(style="Burp.TButton",
                 botones_frame,
                 text="Continuar a ARESITOS",
                 command=self.continuar_aplicacion,
@@ -1101,7 +1104,7 @@ LISTO PARA: Escaneos de vulnerabilidades en entornos Kali Linux 2025
         """Log al terminal integrado de manera segura."""
         try:
             # Importar terminal global
-            from Aresitos.vista.vista_dashboard import VistaDashboard
+            from aresitos.vista.vista_dashboard import VistaDashboard
             if hasattr(VistaDashboard, '_terminal_widget') and VistaDashboard._terminal_widget is not None:
                 def _update_terminal():
                     try:

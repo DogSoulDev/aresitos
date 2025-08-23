@@ -36,7 +36,7 @@ def verificar_gestor_permisos():
     
     try:
         # Importar el gestor de permisos
-        from Aresitos.utils.gestor_permisos import GestorPermisosSeguro
+        from aresitos.utils.gestor_permisos import GestorPermisosSeguro
         
         logger.info("[OK] Gestor de permisos importado correctamente")
         

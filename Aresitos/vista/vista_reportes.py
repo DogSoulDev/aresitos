@@ -10,13 +10,38 @@ import datetime
 import gc  # Issue 21/24 - Optimización de memoria
 
 try:
-    from Aresitos.vista.burp_theme import burp_theme
+    from aresitos.vista.burp_theme import burp_theme
     BURP_THEME_AVAILABLE = True
 except ImportError:
     BURP_THEME_AVAILABLE = False
     burp_theme = None
 
 class VistaReportes(tk.Frame):
+    """
+    VistaReportes para ARESITOS v3.0 - Sistema de Ciberseguridad Integral.
+    
+    Esta vista implementa los 8 principios fundamentales de ARESITOS:
+    
+    1. Automatización: Procesos automatizados de interfaz
+    2. Robustez: Manejo robusto de errores y excepciones
+    3. Eficiencia: Optimización de recursos y rendimiento
+    4. Seguridad: Validación y sanitización de entradas
+    5. Integración: Conexión seamless con controladores
+    6. Transparencia: Feedback claro y comprensible al usuario
+    7. Optimización: Interfaz responsiva y eficiente
+    8. Simplicidad: Diseño intuitivo y fácil de usar
+    
+    Attributes:
+        controlador: Referencia al controlador asociado
+        logger: Sistema de logging integrado
+        componentes_ui: Elementos de interfaz de usuario
+    
+    Methods:
+        configurar_interfaz(): Configura la interfaz inicial
+        conectar_eventos(): Establece conexiones de eventos
+        actualizar_vista(): Actualiza elementos visuales
+        manejar_errores(): Gestiona errores de interfaz
+    """
     
     def __init__(self, parent):
         super().__init__(parent)
@@ -157,7 +182,7 @@ class VistaReportes(tk.Frame):
         ]
         
         for texto, comando in botones_generar:
-            btn = tk.Button(right_frame, text=texto, command=comando,
+            btn = ttk.Button(style="Burp.TButton",right_frame, text=texto, command=comando,
                            bg=self.colors['fg_accent'], fg=self.colors['bg_primary'],
                            font=('Arial', 10, 'bold'),
                            relief='flat', padx=10, pady=5,
@@ -178,7 +203,7 @@ class VistaReportes(tk.Frame):
         ]
         
         for texto, comando in botones_gestion:
-            btn = tk.Button(right_frame, text=texto, command=comando,
+            btn = ttk.Button(style="Burp.TButton",right_frame, text=texto, command=comando,
                            bg=self.colors['bg_primary'], fg=self.colors['fg_primary'],
                            font=('Arial', 10),
                            relief='flat', padx=10, pady=5,
@@ -219,7 +244,7 @@ class VistaReportes(tk.Frame):
         ]
         
         for texto, comando in botones_kali:
-            btn = tk.Button(kali_frame, text=texto, command=comando,
+            btn = ttk.Button(style="Burp.TButton",kali_frame, text=texto, command=comando,
                            bg=self.colors['info'], fg=self.colors['bg_primary'],
                            font=('Arial', 9, 'bold'),
                            relief='flat', padx=8, pady=3,
@@ -348,7 +373,7 @@ class VistaReportes(tk.Frame):
     
     def cargar_reporte(self):
         """Cargar reporte con validación de seguridad."""
-        from Aresitos.utils.sanitizador_archivos import SanitizadorArchivos
+        from aresitos.utils.sanitizador_archivos import SanitizadorArchivos
         
         try:
             # Obtener filtros seguros para el diálogo
@@ -432,7 +457,7 @@ class VistaReportes(tk.Frame):
         """Registrar mensaje en el terminal integrado global."""
         try:
             # Usar el terminal global de VistaDashboard
-            from Aresitos.vista.vista_dashboard import VistaDashboard
+            from aresitos.vista.vista_dashboard import VistaDashboard
             VistaDashboard.log_actividad_global(mensaje, modulo, nivel)
             
         except Exception as e:
@@ -640,7 +665,7 @@ class VistaReportes(tk.Frame):
     
     def comparar_reportes_kali(self):
         """Comparar reportes usando herramientas de línea de comandos con validación de seguridad."""
-        from Aresitos.utils.sanitizador_archivos import SanitizadorArchivos
+        from aresitos.utils.sanitizador_archivos import SanitizadorArchivos
         
         try:
             # Obtener filtros seguros
@@ -843,7 +868,7 @@ class VistaReportes(tk.Frame):
         
         # Validar comando con el módulo de seguridad
         try:
-            from Aresitos.utils.seguridad_comandos import validador_comandos
+            from aresitos.utils.seguridad_comandos import validador_comandos
             
             es_valido, comando_sanitizado, mensaje = validador_comandos.validar_comando_completo(comando)
             
@@ -1362,7 +1387,7 @@ class VistaReportes(tk.Frame):
     def _mostrar_ayuda_comandos(self):
         """Mostrar ayuda de comandos disponibles."""
         try:
-            from Aresitos.utils.seguridad_comandos import validador_comandos
+            from aresitos.utils.seguridad_comandos import validador_comandos
             
             comandos = validador_comandos.obtener_comandos_disponibles()
             
@@ -1387,7 +1412,7 @@ class VistaReportes(tk.Frame):
     def _mostrar_info_seguridad(self):
         """Mostrar información de seguridad actual."""
         try:
-            from Aresitos.utils.seguridad_comandos import validador_comandos
+            from aresitos.utils.seguridad_comandos import validador_comandos
             
             info = validador_comandos.obtener_info_seguridad()
             

@@ -48,7 +48,7 @@ La **Fase 3** ha expandido exitosamente las capacidades de ARESITOS con funciona
 - Conteo de alertas y eventos de seguridad
 
 ### Archivos Modificados
-- `Aresitos/vista/vista_escaneo.py`: **+400 líneas** de código expandido
+- `aresitos/vista/vista_escaneo.py`: **+400 líneas** de código expandido
 
 ---
 
@@ -83,7 +83,7 @@ La **Fase 3** ha expandido exitosamente las capacidades de ARESITOS con funciona
 - Resumen de capacidades avanzadas utilizadas
 
 ### Archivos Modificados
-- `Aresitos/vista/vista_siem.py`: **+600 líneas** de código expandido
+- `aresitos/vista/vista_siem.py`: **+600 líneas** de código expandido
 - Nuevos botones en interfaz: "SCAN Análisis Avanzado" y "🔗 Correlación"
 
 ---
@@ -120,7 +120,7 @@ La **Fase 3** ha expandido exitosamente las capacidades de ARESITOS con funciona
 - Resumen de capacidades forenses utilizadas
 
 ### Archivos Modificados
-- `Aresitos/vista/vista_fim.py`: **+750 líneas** de código expandido
+- `aresitos/vista/vista_fim.py`: **+750 líneas** de código expandido
 - Nuevos botones en interfaz: "SCAN Monitoreo Avanzado" y "FORENSIC Análisis Forense"
 
 ---

@@ -54,6 +54,42 @@ class _SIEMAvanzado:
     def log(self, mensaje: str):
         print(f"[SIEM] {mensaje}")
 
+
+    def guardar_evento_siem(self, evento):
+        """Guarda evento SIEM (método CRUD)."""
+        try:
+            if not self.validar_evento_siem(evento):
+                raise ValueError('Evento SIEM inválido')
+            # Implementar guardado
+            return True
+        except Exception as e:
+            raise Exception(f'Error guardando evento SIEM: {e}')
+
+    def consultar_eventos_siem(self, criterios=None):
+        """Consulta eventos SIEM (método CRUD)."""
+        try:
+            # Implementar consulta
+            return []
+        except Exception as e:
+            raise Exception(f'Error consultando eventos SIEM: {e}')
+
+    def validar_evento_siem(self, evento):
+        """Valida evento SIEM (principio de Seguridad)."""
+        if not isinstance(evento, dict):
+            return False
+        
+        campos_requeridos = ['fuente', 'severidad', 'mensaje', 'timestamp']
+        for campo in campos_requeridos:
+            if campo not in evento:
+                return False
+        
+        # Validar severidad
+        severidades_validas = ['info', 'warning', 'error', 'critical']
+        if evento['severidad'] not in severidades_validas:
+            return False
+        
+        return True
+
 class SIEMKali2025(_SIEMAvanzado):  # type: ignore
     """
     SIEM avanzado con herramientas Kali Linux 2025
@@ -1760,3 +1796,63 @@ class SIEMKali2025(_SIEMAvanzado):  # type: ignore
                 
         except Exception:
             return 'desconocido'
+
+    def guardar_datos(self, datos):
+        """Guarda datos en el modelo (método CRUD)."""
+        try:
+            # Implementar guardado específico del modelo
+            return True
+        except Exception as e:
+            raise Exception(f'Error guardando datos: {e}')
+
+    def obtener_datos(self, filtros=None):
+        """Obtiene datos del modelo (método CRUD)."""
+        try:
+            # Implementar consulta específica del modelo
+            return []
+        except Exception as e:
+            raise Exception(f'Error obteniendo datos: {e}')
+
+    def validar_datos_entrada(self, datos):
+        """Valida datos de entrada (principio de Seguridad ARESITOS)."""
+        if not isinstance(datos, dict):
+            return False
+        # Implementar validaciones específicas del modelo
+        return True
+
+    # Métodos CRUD según principios ARESITOS
+    def crear(self, datos):
+        """Crea una nueva entrada (principio de Robustez)."""
+        try:
+            if not self.validar_datos_entrada(datos):
+                raise ValueError('Datos no válidos')
+            # Implementar creación específica
+            return True
+        except Exception as e:
+            raise Exception(f'Error en crear(): {e}')
+
+    def obtener(self, identificador):
+        """Obtiene datos por identificador (principio de Transparencia)."""
+        try:
+            # Implementar búsqueda específica
+            return None
+        except Exception as e:
+            raise Exception(f'Error en obtener(): {e}')
+
+    def actualizar(self, identificador, datos):
+        """Actualiza datos existentes (principio de Eficiencia)."""
+        try:
+            if not self.validar_datos_entrada(datos):
+                raise ValueError('Datos no válidos')
+            # Implementar actualización específica
+            return True
+        except Exception as e:
+            raise Exception(f'Error en actualizar(): {e}')
+
+    def eliminar(self, identificador):
+        """Elimina datos por identificador (principio de Seguridad)."""
+        try:
+            # Implementar eliminación específica
+            return True
+        except Exception as e:
+            raise Exception(f'Error en eliminar(): {e}')

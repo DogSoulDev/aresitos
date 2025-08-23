@@ -10,14 +10,39 @@ import platform
 from datetime import datetime
 
 try:
-    from Aresitos.vista.burp_theme import burp_theme
-    from Aresitos.utils.sudo_manager import get_sudo_manager, is_sudo_available
+    from aresitos.vista.burp_theme import burp_theme
+    from aresitos.utils.sudo_manager import get_sudo_manager, is_sudo_available
     BURP_THEME_AVAILABLE = True
 except ImportError:
     BURP_THEME_AVAILABLE = False
     burp_theme = None
 
 class VistaSIEM(tk.Frame):
+    """
+    VistaSIEM para ARESITOS v3.0 - Sistema de Ciberseguridad Integral.
+    
+    Esta vista implementa los 8 principios fundamentales de ARESITOS:
+    
+    1. Automatización: Procesos automatizados de interfaz
+    2. Robustez: Manejo robusto de errores y excepciones
+    3. Eficiencia: Optimización de recursos y rendimiento
+    4. Seguridad: Validación y sanitización de entradas
+    5. Integración: Conexión seamless con controladores
+    6. Transparencia: Feedback claro y comprensible al usuario
+    7. Optimización: Interfaz responsiva y eficiente
+    8. Simplicidad: Diseño intuitivo y fácil de usar
+    
+    Attributes:
+        controlador: Referencia al controlador asociado
+        logger: Sistema de logging integrado
+        componentes_ui: Elementos de interfaz de usuario
+    
+    Methods:
+        configurar_interfaz(): Configura la interfaz inicial
+        conectar_eventos(): Establece conexiones de eventos
+        actualizar_vista(): Actualiza elementos visuales
+        manejar_errores(): Gestiona errores de interfaz
+    """
     
     def __init__(self, parent):
         super().__init__(parent)
@@ -231,7 +256,7 @@ class VistaSIEM(tk.Frame):
         
         # Validar comando con el módulo de seguridad
         try:
-            from Aresitos.utils.seguridad_comandos import validar_comando_seguro
+            from aresitos.utils.seguridad_comandos import validar_comando_seguro
             
             es_valido, comando_sanitizado, mensaje = validar_comando_seguro(comando)
             
@@ -316,7 +341,7 @@ class VistaSIEM(tk.Frame):
     def _mostrar_ayuda_comandos(self):
         """Mostrar ayuda de comandos disponibles."""
         try:
-            from Aresitos.utils.seguridad_comandos import obtener_comandos_disponibles
+            from aresitos.utils.seguridad_comandos import obtener_comandos_disponibles
             
             comandos = obtener_comandos_disponibles()
             
@@ -341,7 +366,7 @@ class VistaSIEM(tk.Frame):
     def _mostrar_info_seguridad(self):
         """Mostrar información de seguridad actual."""
         try:
-            from Aresitos.utils.seguridad_comandos import validador_comandos
+            from aresitos.utils.seguridad_comandos import validador_comandos
             
             info = validador_comandos.obtener_info_seguridad()
             
@@ -480,7 +505,7 @@ class VistaSIEM(tk.Frame):
                                 bg='#2b2b2b', fg='#ff6633', font=('Arial', 12, 'bold'))
             label_logs.pack(anchor=tk.W, pady=(0, 5))
         else:
-            top_frame = ttk.LabelFrame(main_frame, text="Fuentes de Logs", padding=10)
+            top_frame = ttk.LabelFrame(style="Burp.TLabelframe",main_frame, text="Fuentes de Logs", padding=10)
         top_frame.pack(fill=tk.X, pady=(0, 10))
         
         # Lista de archivos de log comunes en Kali
@@ -512,7 +537,7 @@ class VistaSIEM(tk.Frame):
                                   bg='#2b2b2b', fg='#cccccc', selectcolor='#4a4a4a',
                                   activebackground='#3c3c3c', font=('Arial', 9))
             else:
-                cb = ttk.Checkbutton(logs_frame, text=f"{log_name} ({log_path})", variable=var)
+                cb = ttk.Checkbutton(style="Burp.TCheckbutton",logs_frame, text=f"{log_name} ({log_path})", variable=var)
             
             cb.grid(row=i//2, column=i%2, sticky='w', padx=5, pady=2)
         
@@ -545,15 +570,15 @@ class VistaSIEM(tk.Frame):
             btn_frame = tk.Frame(top_frame)
             btn_frame.pack(fill=tk.X, pady=10)
             
-            ttk.Button(btn_frame, text=" Analizar Logs Seleccionados", 
+            ttk.Button(style="Burp.TButton",btn_frame, text=" Analizar Logs Seleccionados", 
                       command=self.analizar_logs_seleccionados).pack(side=tk.LEFT, padx=5)
-            ttk.Button(btn_frame, text=" Buscar Patrones", 
+            ttk.Button(style="Burp.TButton",btn_frame, text=" Buscar Patrones", 
                       command=self.buscar_patrones).pack(side=tk.LEFT, padx=5)
             
             # NUEVOS BOTONES FASE 3.2 - ANÁLISIS AVANZADO (versión TTK)
-            ttk.Button(btn_frame, text="Análisis Avanzado", 
+            ttk.Button(style="Burp.TButton",btn_frame, text="Análisis Avanzado", 
                       command=self.analizar_patrones_avanzados).pack(side=tk.LEFT, padx=5)
-            ttk.Button(btn_frame, text="Correlación", 
+            ttk.Button(style="Burp.TButton",btn_frame, text="Correlación", 
                       command=self.correlacionar_eventos_avanzado).pack(side=tk.LEFT, padx=5)
         
         # Panel inferior - Resultados de análisis
@@ -563,7 +588,7 @@ class VistaSIEM(tk.Frame):
                                    bg='#2b2b2b', fg='#ff6633', font=('Arial', 12, 'bold'))
             label_results.pack(anchor=tk.W, pady=(0, 5))
         else:
-            bottom_frame = ttk.LabelFrame(main_frame, text="Resultados del Análisis", padding=10)
+            bottom_frame = ttk.LabelFrame(style="Burp.TLabelframe",main_frame, text="Resultados del Análisis", padding=10)
         bottom_frame.pack(fill=tk.BOTH, expand=True)
         
         self.siem_analisis_text = scrolledtext.ScrolledText(bottom_frame, height=15,
@@ -595,7 +620,7 @@ class VistaSIEM(tk.Frame):
                                    bg='#2b2b2b', fg='#ff6633', font=('Arial', 12, 'bold'))
             label_alertas.pack(anchor=tk.W, pady=(0, 5))
         else:
-            left_frame = ttk.LabelFrame(main_frame, text="Alertas Activas", padding=10)
+            left_frame = ttk.LabelFrame(style="Burp.TLabelframe",main_frame, text="Alertas Activas", padding=10)
         left_frame.pack(side=tk.LEFT, fill=tk.BOTH, expand=True, padx=(0, 10))
         
         self.siem_alertas_text = scrolledtext.ScrolledText(left_frame, height=20, width=60,
@@ -612,7 +637,7 @@ class VistaSIEM(tk.Frame):
                                   bg='#2b2b2b', fg='#ff6633', font=('Arial', 12, 'bold'))
             label_reglas.pack(anchor=tk.W, pady=(0, 10))
         else:
-            right_frame = ttk.LabelFrame(main_frame, text="Motor de Correlación", padding=10)
+            right_frame = ttk.LabelFrame(style="Burp.TLabelframe",main_frame, text="Motor de Correlación", padding=10)
         right_frame.pack(side=tk.RIGHT, fill=tk.Y)
         
         # Botones de configuración de alertas
@@ -633,11 +658,11 @@ class VistaSIEM(tk.Frame):
                               bg=bg_color, fg='white', font=('Arial', 9))
                 btn.pack(fill=tk.X, pady=2)
         else:
-            ttk.Button(right_frame, text=" Detectar Intrusion", 
+            ttk.Button(style="Burp.TButton",right_frame, text=" Detectar Intrusion", 
                       command=self.detectar_intrusion).pack(fill=tk.X, pady=2)
-            ttk.Button(right_frame, text=" Activar IDS", 
+            ttk.Button(style="Burp.TButton",right_frame, text=" Activar IDS", 
                       command=self.activar_ids).pack(fill=tk.X, pady=2)
-            ttk.Button(right_frame, text=" Monitor Honeypot", 
+            ttk.Button(style="Burp.TButton",right_frame, text=" Monitor Honeypot", 
                       command=self.monitor_honeypot).pack(fill=tk.X, pady=2)
     
     def crear_tab_forense(self):
@@ -662,7 +687,7 @@ class VistaSIEM(tk.Frame):
                                  bg='#2b2b2b', fg='#ff6633', font=('Arial', 12, 'bold'))
             label_tools.pack(anchor=tk.W, pady=(0, 10))
         else:
-            top_frame = ttk.LabelFrame(main_frame, text="Herramientas Forenses", padding=10)
+            top_frame = ttk.LabelFrame(style="Burp.TLabelframe",main_frame, text="Herramientas Forenses", padding=10)
         top_frame.pack(fill=tk.X, pady=(0, 10))
         
         # Botones de herramientas forenses
@@ -707,7 +732,7 @@ class VistaSIEM(tk.Frame):
             ]
             
             for i, (text, command) in enumerate(tools_forenses):
-                ttk.Button(tools_frame, text=text, command=command).grid(
+                ttk.Button(style="Burp.TButton",tools_frame, text=text, command=command).grid(
                     row=i//3, column=i%3, padx=5, pady=2, sticky='ew')
         
         # Panel inferior - Resultados forenses
@@ -717,7 +742,7 @@ class VistaSIEM(tk.Frame):
                                    bg='#2b2b2b', fg='#ff6633', font=('Arial', 12, 'bold'))
             label_forense.pack(anchor=tk.W, pady=(0, 5))
         else:
-            bottom_frame = ttk.LabelFrame(main_frame, text="Resultados Forenses", padding=10)
+            bottom_frame = ttk.LabelFrame(style="Burp.TLabelframe",main_frame, text="Resultados Forenses", padding=10)
         bottom_frame.pack(fill=tk.BOTH, expand=True)
         
         self.siem_forense_text = scrolledtext.ScrolledText(bottom_frame, height=15,
@@ -3739,7 +3764,7 @@ ls -la "$OUTPUT_DIR/"
         """Registrar mensaje en el terminal integrado global y en la interfaz SIEM."""
         try:
             # Registrar en terminal global
-            from Aresitos.vista.vista_dashboard import VistaDashboard
+            from aresitos.vista.vista_dashboard import VistaDashboard
             VistaDashboard.log_actividad_global(mensaje, modulo, nivel)
             
             # También mostrar en la interfaz SIEM para retroalimentación inmediata

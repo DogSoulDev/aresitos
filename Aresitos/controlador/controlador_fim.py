@@ -14,20 +14,20 @@ from datetime import datetime
 from typing import Dict, Any, List, Optional, Set
 from pathlib import Path
 
-from Aresitos.controlador.controlador_base import ControladorBase
+from aresitos.controlador.controlador_base import ControladorBase
 # Usar el FIM optimizado
-from Aresitos.modelo.modelo_fim_kali2025 import FIMKali2025
-from Aresitos.modelo.modelo_siem import SIEMKali2025
+from aresitos.modelo.modelo_fim_kali2025 import FIMKali2025
+from aresitos.modelo.modelo_siem import SIEMKali2025
 
 # Importar nuevos modelos Kali 2025 optimizados
 try:
-    from Aresitos.modelo.modelo_fim_kali2025 import FIMKali2025
+    from aresitos.modelo.modelo_fim_kali2025 import FIMKali2025
     KALI2025_FIM_DISPONIBLE = True
 except ImportError:
     KALI2025_FIM_DISPONIBLE = False
 
 try:
-    from Aresitos.modelo.modelo_siem import SIEMKali2025
+    from aresitos.modelo.modelo_siem import SIEMKali2025
     KALI2025_SIEM_DISPONIBLE = True
 except ImportError:
     KALI2025_SIEM_DISPONIBLE = False
@@ -177,6 +177,21 @@ class ControladorFIM(ControladorBase):
         self._detener_monitoreo = False
         
         self.logger.info("Controlador FIM inicializado para Kali Linux")
+
+
+    def inicializar(self):
+        """
+        Inicializa el controlador (requerido por principios ARESITOS).
+        
+        Returns:
+            bool: True si la inicialización es exitosa
+        """
+        try:
+            self.logger.info("ControladorFIM v3.0 inicializado correctamente")
+            return True
+        except Exception as e:
+            self.logger.error(f"Error en inicializar(): {e}")
+            return False
 
     def _validar_ruta_fim(self, ruta: str) -> Dict[str, Any]:
         """

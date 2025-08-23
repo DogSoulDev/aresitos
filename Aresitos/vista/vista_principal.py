@@ -9,23 +9,48 @@ import threading  # Issue 21/24 - Gestión de hilos
 from tkinter import PhotoImage
 
 # Importar todas las vistas disponibles
-from Aresitos.vista.vista_dashboard import VistaDashboard
-from Aresitos.vista.vista_escaneo import VistaEscaneo
-from Aresitos.vista.vista_monitoreo import VistaMonitoreo
-from Aresitos.vista.vista_auditoria import VistaAuditoria
-from Aresitos.vista.vista_datos import VistaGestionDatos
-from Aresitos.vista.vista_reportes import VistaReportes
-from Aresitos.vista.vista_fim import VistaFIM
-from Aresitos.vista.vista_siem import VistaSIEM
+from aresitos.vista.vista_dashboard import VistaDashboard
+from aresitos.vista.vista_escaneador import VistaEscaneador as VistaEscaneo
+from aresitos.vista.vista_monitoreo import VistaMonitoreo
+from aresitos.vista.vista_auditoria import VistaAuditoria
+from aresitos.vista.vista_datos import VistaGestionDatos
+from aresitos.vista.vista_reportes import VistaReportes
+from aresitos.vista.vista_fim import VistaFIM
+from aresitos.vista.vista_siem import VistaSIEM
 
 try:
-    from Aresitos.vista.burp_theme import burp_theme
+    from aresitos.vista.burp_theme import burp_theme
     BURP_THEME_AVAILABLE = True
 except ImportError:
     BURP_THEME_AVAILABLE = False
     burp_theme = None
 
 class VistaPrincipal(tk.Frame):
+    """
+    VistaPrincipal para ARESITOS v3.0 - Sistema de Ciberseguridad Integral.
+    
+    Esta vista implementa los 8 principios fundamentales de ARESITOS:
+    
+    1. Automatización: Procesos automatizados de interfaz
+    2. Robustez: Manejo robusto de errores y excepciones
+    3. Eficiencia: Optimización de recursos y rendimiento
+    4. Seguridad: Validación y sanitización de entradas
+    5. Integración: Conexión seamless con controladores
+    6. Transparencia: Feedback claro y comprensible al usuario
+    7. Optimización: Interfaz responsiva y eficiente
+    8. Simplicidad: Diseño intuitivo y fácil de usar
+    
+    Attributes:
+        controlador: Referencia al controlador asociado
+        logger: Sistema de logging integrado
+        componentes_ui: Elementos de interfaz de usuario
+    
+    Methods:
+        configurar_interfaz(): Configura la interfaz inicial
+        conectar_eventos(): Establece conexiones de eventos
+        actualizar_vista(): Actualiza elementos visuales
+        manejar_errores(): Gestiona errores de interfaz
+    """
     def __init__(self, parent):
         super().__init__(parent)
         self.controlador = None
@@ -99,7 +124,7 @@ class VistaPrincipal(tk.Frame):
             self.logger.warning("WARN Vista Dashboard no disponible")
             
         if hasattr(self.controlador, 'controlador_escaneador'):
-            self.vista_escaneo.set_controlador(self.controlador.controlador_escaneador)
+            self.vista_escaneo.establecer_controlador(self.controlador.controlador_escaneador)
             self.logger.info("OK Vista Escaneo conectada")
         else:
             self.logger.warning("WARN Controlador Escaneador no disponible")
@@ -146,12 +171,12 @@ class VistaPrincipal(tk.Frame):
     
     def obtener_terminal_integrado(self):
         """Obtener referencia al terminal integrado global del dashboard."""
-        from Aresitos.vista.vista_dashboard import VistaDashboard
+        from aresitos.vista.vista_dashboard import VistaDashboard
         return VistaDashboard.obtener_terminal_global()
     
     def log_actividad(self, mensaje, modulo="GENERAL", nivel="INFO"):
         """Registrar actividad en el terminal integrado global."""
-        from Aresitos.vista.vista_dashboard import VistaDashboard
+        from aresitos.vista.vista_dashboard import VistaDashboard
         VistaDashboard.log_actividad_global(mensaje, modulo, nivel)
 
     def crear_widgets(self):
@@ -393,7 +418,7 @@ class VistaPrincipal(tk.Frame):
             
             # Optimizar SudoManager
             try:
-                from Aresitos.utils.sudo_manager import get_sudo_manager
+                from aresitos.utils.sudo_manager import get_sudo_manager
                 sudo_manager = get_sudo_manager()
                 resultado = sudo_manager.optimize_memory()
                 optimizaciones_realizadas.append(f"SudoManager: {resultado}")

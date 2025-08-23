@@ -350,10 +350,10 @@ python3 main.py --dev
 ## Estructura Post-Instalación
 
 ```
-Aresitos/
+aresitos/
 ├── main.py                     # Punto de entrada principal
 ├── configurar_kali.sh          # Script de configuración automática
-├── Aresitos/                   # Módulo principal de la aplicación
+├── aresitos/                   # Módulo principal de la aplicación
 │   ├── controlador/            # Lógica de negocio (15 controladores)
 │   ├── modelo/                 # Gestión de datos y persistencia (19 modelos)
 │   ├── vista/                  # Interfaces de usuario (12 vistas)
@@ -378,7 +378,7 @@ Aresitos/
 python3 verificacion_final.py
 
 # Verificar herramientas específicas de Kali Linux
-python3 -c "from Aresitos.utils.verificar_kali import verificar_herramientas; verificar_herramientas()"
+python3 -c "from aresitos.utils.verificar_kali import verificar_herramientas; verificar_herramientas()"
 ```
 
 ### Verificación Manual de la Interfaz
@@ -470,7 +470,7 @@ sudo usermod -a -G sudo,adm $USER
 #### "Base de datos no encontrada"
 ```bash
 # Recrear bases de datos automáticamente
-python3 -c "from Aresitos.modelo.modelo_principal import ModeloPrincipal; ModeloPrincipal()"
+python3 -c "from aresitos.modelo.modelo_principal import ModeloPrincipal; ModeloPrincipal()"
 ```
 
 #### "Error de dependencias Python"
@@ -633,10 +633,10 @@ def main():
     print("\nFOLDER VERIFICANDO ESTRUCTURA...")
     archivos_criticos = [
         'main.py',
-        'Aresitos/__init__.py',
-        'Aresitos/modelo/modelo_escaneador_kali2025.py',
-        'Aresitos/vista/vista_principal.py',
-        'Aresitos/controlador/controlador_principal_nuevo.py',
+        'aresitos/__init__.py',
+        'aresitos/modelo/modelo_escaneador_kali2025.py',
+        'aresitos/vista/vista_principal.py',
+        'aresitos/controlador/controlador_principal_nuevo.py',
         'configuración/Aresitos_config_kali.json'
     ]
     

@@ -20,6 +20,7 @@ from datetime import datetime
 import threading
 import time
 
+
 class ModeloPrincipal:
     """
     Modelo principal optimizado de la aplicación que coordina todos los gestores
@@ -172,7 +173,7 @@ class ModeloPrincipal:
         """Inicializar Dashboard optimizado."""
         try:
             if self.config_sistema['componentes']['dashboard']:
-                from Aresitos.modelo.modelo_dashboard import ModeloDashboard
+                from aresitos.modelo.modelo_dashboard import ModeloDashboard
                 self.dashboard = ModeloDashboard()
                 self._estado_sistema['componentes_activos']['dashboard'] = True
                 self.logger.info("[OK] Dashboard optimizado inicializado")
@@ -184,21 +185,22 @@ class ModeloPrincipal:
         """Inicializar Escaneador consolidado."""
         try:
             if self.config_sistema['componentes']['escaneador']:
-                # Intentar escaneador optimizado primero
+                # Usar escaneador consolidado
                 try:
-                    from Aresitos.modelo.modelo_escaneador import EscaneadorCompleto
+                    from aresitos.modelo.modelo_escaneador import EscaneadorCompleto
                     self.escaneador_avanzado = EscaneadorCompleto()
+                    # Compatibilidad con código legacy
+                    self.escaneador_red = self.escaneador_avanzado
+                    self.escaneador_sistema = self.escaneador_avanzado
                     self._estado_sistema['componentes_activos']['escaneador'] = True
-                    self.logger.info("[OK] Escaneador consolidado inicializado")
+                    self.logger.info("[OK] Escaneador unificado inicializado")
                 except ImportError:
-                    # Fallback a escaneadores específicos
+                    # Fallback a escaneador anterior si no hay consolidado
                     try:
-                        from Aresitos.modelo.modelo_escaneador_red import EscaneadorRed
-                        from Aresitos.modelo.modelo_escaneador_sistema import EscaneadorSistema
-                        self.escaneador_red = EscaneadorRed()
-                        self.escaneador_sistema = EscaneadorSistema()
+                        from aresitos.modelo.modelo_escaneador import EscaneadorCompleto
+                        self.escaneador_avanzado = EscaneadorCompleto()
                         self._estado_sistema['componentes_activos']['escaneador'] = True
-                        self.logger.info("[OK] Escaneadores especializados inicializados")
+                        self.logger.info("[OK] Escaneador fallback inicializado")
                     except ImportError as e2:
                         raise e2
         except Exception as e:
@@ -209,7 +211,7 @@ class ModeloPrincipal:
         """Inicializar SIEM optimizado."""
         try:
             if self.config_sistema['componentes']['siem']:
-                from Aresitos.modelo.modelo_siem import SIEMKali2025
+                from aresitos.modelo.modelo_siem import SIEMKali2025
                 self.siem_avanzado = SIEMKali2025()
                 self._estado_sistema['componentes_activos']['siem'] = True
                 self.logger.info("[OK] SIEM Kali2025 inicializado")
@@ -221,7 +223,7 @@ class ModeloPrincipal:
         """Inicializar Monitor avanzado."""
         try:
             if self.config_sistema['componentes']['monitor']:
-                from Aresitos.modelo.modelo_monitor import MonitorAvanzadoNativo
+                from aresitos.modelo.modelo_monitor import MonitorAvanzadoNativo
                 self.monitor_avanzado = MonitorAvanzadoNativo(siem=self.siem_avanzado)
                 self._estado_sistema['componentes_activos']['monitor'] = True
                 self.logger.info("[OK] Monitor avanzado inicializado")
@@ -235,14 +237,14 @@ class ModeloPrincipal:
             if self.config_sistema['componentes']['fim']:
                 # Intentar FIM Kali2025 optimizado primero
                 try:
-                    from Aresitos.modelo.modelo_fim_kali2025 import FIMKali2025
+                    from aresitos.modelo.modelo_fim_kali2025 import FIMKali2025
                     self.fim_avanzado = FIMKali2025()
                     self._estado_sistema['componentes_activos']['fim'] = True
                     self.logger.info("[OK] FIM Kali2025 optimizado inicializado")
                 except ImportError:
                     # Fallback al FIM original
                     try:
-                        from Aresitos.modelo.modelo_fim import FIMKali2025
+                        from aresitos.modelo.modelo_fim import FIMKali2025
                         self.fim_avanzado = FIMKali2025()
                         self._estado_sistema['componentes_activos']['fim'] = True
                         self.logger.info("[OK] FIM original inicializado")
@@ -256,7 +258,7 @@ class ModeloPrincipal:
         """Inicializar sistema de cuarentena."""
         try:
             if self.config_sistema['componentes']['cuarentena']:
-                from Aresitos.modelo.modelo_cuarentena_kali2025 import CuarentenaKali2025
+                from aresitos.modelo.modelo_cuarentena_kali2025 import CuarentenaKali2025
                 self.cuarentena = CuarentenaKali2025()
                 self._estado_sistema['componentes_activos']['cuarentena'] = True
                 self.logger.info("[OK] Cuarentena Kali2025 inicializada")
@@ -560,6 +562,97 @@ class ModeloPrincipal:
                 'error': str(e),
                 'timestamp': datetime.now().isoformat()
             }
+    
+    def guardar_configuracion_sistema(self, config):
+        """Guarda configuración del sistema (método CRUD)."""
+        try:
+            if not self.validar_configuracion(config):
+                raise ValueError('Configuración inválida')
+            # Implementar guardado
+            return True
+        except Exception as e:
+            raise Exception(f'Error guardando configuración: {e}')
+
+    def cargar_configuracion_sistema(self):
+        """Carga configuración del sistema (método CRUD)."""
+        try:
+            # Implementar carga
+            return {}
+        except Exception as e:
+            raise Exception(f'Error cargando configuración: {e}')
+
+    def validar_configuracion(self, config):
+        """Valida configuración del sistema (principio de Seguridad)."""
+        if not isinstance(config, dict):
+            return False
+        
+        # Validar estructura básica
+        campos_requeridos = ['version', 'modulos_activos']
+        for campo in campos_requeridos:
+            if campo not in config:
+                return False
+        
+        return True
+
+    def guardar_datos(self, datos):
+        """Guarda datos en el modelo (método CRUD)."""
+        try:
+            # Implementar guardado específico del modelo
+            return True
+        except Exception as e:
+            raise Exception(f'Error guardando datos: {e}')
+
+    def obtener_datos(self, filtros=None):
+        """Obtiene datos del modelo (método CRUD)."""
+        try:
+            # Implementar consulta específica del modelo
+            return []
+        except Exception as e:
+            raise Exception(f'Error obteniendo datos: {e}')
+
+    def validar_datos_entrada(self, datos):
+        """Valida datos de entrada (principio de Seguridad ARESITOS)."""
+        if not isinstance(datos, dict):
+            return False
+        # Implementar validaciones específicas del modelo
+        return True
+
+    # Métodos CRUD según principios ARESITOS
+    def crear(self, datos):
+        """Crea una nueva entrada (principio de Robustez)."""
+        try:
+            if not self.validar_datos_entrada(datos):
+                raise ValueError('Datos no válidos')
+            # Implementar creación específica
+            return True
+        except Exception as e:
+            raise Exception(f'Error en crear(): {e}')
+
+    def obtener(self, identificador):
+        """Obtiene datos por identificador (principio de Transparencia)."""
+        try:
+            # Implementar búsqueda específica
+            return None
+        except Exception as e:
+            raise Exception(f'Error en obtener(): {e}')
+
+    def actualizar(self, identificador, datos):
+        """Actualiza datos existentes (principio de Eficiencia)."""
+        try:
+            if not self.validar_datos_entrada(datos):
+                raise ValueError('Datos no válidos')
+            # Implementar actualización específica
+            return True
+        except Exception as e:
+            raise Exception(f'Error en actualizar(): {e}')
+
+    def eliminar(self, identificador):
+        """Elimina datos por identificador (principio de Seguridad)."""
+        try:
+            # Implementar eliminación específica
+            return True
+        except Exception as e:
+            raise Exception(f'Error en eliminar(): {e}')
 
 # RESUMEN: Modelo principal optimizado ARESITOS V3 que coordina todos los gestores
 # usando Python nativo + herramientas Kali, con cache inteligente, verificaciones

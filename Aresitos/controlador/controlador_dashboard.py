@@ -16,7 +16,7 @@ import time
 import threading
 from datetime import datetime
 from typing import Dict, Any, Optional, List
-from Aresitos.controlador.controlador_base import ControladorBase
+from aresitos.controlador.controlador_base import ControladorBase
 
 
 class ControladorDashboard(ControladorBase):
@@ -55,45 +55,17 @@ class ControladorDashboard(ControladorBase):
             self.modelo_dashboard = modelo_principal.dashboard
     
     
-    def inicializar(self) -> Dict[str, Any]:
+
+    def inicializar(self):
         """
-        Inicialización optimizada del dashboard usando principios ARESITOS V3.
-        
-        Returns:
-            Dict con resultado de la inicialización
+        Inicializa ControladorDashboard según principios ARESITOS v3.0.
         """
         try:
-            self.logger.info("[LAUNCH] Inicializando Dashboard ARESITOS V3...")
-            
-            # Inicializar widgets del dashboard
-            self._inicializar_widgets_v3()
-            
-            # Configurar métricas usando herramientas Kali
-            self._configurar_metricas_sistema()
-            
-            # Inicializar auto-actualización
-            self._iniciar_actualizacion_automatica()
-            
-            # Registrar con modelo principal
-            self._registrar_con_modelo_principal()
-            
-            return {
-                'exito': True,
-                'mensaje': 'Dashboard ARESITOS V3 inicializado correctamente',
-                'widgets_cargados': len(self.widgets_activos),
-                'metricas_configuradas': len(self.metricas_activas),
-                'modelo_dashboard_disponible': self.modelo_dashboard is not None,
-                'timestamp': datetime.now().isoformat()
-            }
-            
+            self.logger.info("Inicializando ControladorDashboard v3.0")
+            return True
         except Exception as e:
-            self.logger.error(f"[FAIL] Error en inicialización del dashboard: {e}")
-            return {
-                'exito': False,
-                'error': f'Error en inicialización del dashboard: {str(e)}',
-                'timestamp': datetime.now().isoformat()
-            }
-    
+            self.logger.error(f"Error en ControladorDashboard: {e}")
+            return False
     def _inicializar_widgets_v3(self) -> None:
         """
         Inicializar widgets optimizados del dashboard ARESITOS V3.

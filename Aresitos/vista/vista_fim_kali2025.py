@@ -16,7 +16,14 @@ from typing import Dict, Any, List, Optional, Callable
 from concurrent.futures import ThreadPoolExecutor
 
 try:
-    from Aresitos.modelo.modelo_fim_kali2025 import FIMKali2025
+    from .burp_theme import burp_theme
+    BURP_THEME_AVAILABLE = True
+except ImportError:
+    BURP_THEME_AVAILABLE = False
+    burp_theme = None
+
+try:
+    from aresitos.modelo.modelo_fim_kali2025 import FIMKali2025
     FIM_DISPONIBLE = True
 except ImportError:
     FIM_DISPONIBLE = False
@@ -40,15 +47,17 @@ class VistaFIMKali2025:
             self.parent = parent
             self.modelo_principal = modelo_principal
             
-            # Tema Burp Suite (oscuro profesional)
-            self.colores = {
-                'bg_principal': '#1e1e1e',
-                'bg_secundario': '#2d2d2d',
-                'bg_entrada': '#3e3e3e',
-                'fg_texto': '#ffffff',
-                'fg_secundario': '#cccccc',
-                'accent': '#ff6600',
-                'success': '#00ff00',
+            # Configurar tema Burp Suite
+            if BURP_THEME_AVAILABLE:
+                self.theme = burp_theme
+                self.colores = {
+                    'bg_principal': burp_theme.get_color('bg_primary'),
+                    'bg_secundario': burp_theme.get_color('bg_secondary'),
+                    'bg_entrada': burp_theme.get_color('entry_bg'),
+                    'fg_texto': burp_theme.get_color('fg_primary'),
+                    'fg_secundario': burp_theme.get_color('fg_secondary'),
+                    'accent': burp_theme.get_color('fg_accent'),
+                    'success': burp_theme.get_color('success'),
                 'warning': '#ffff00',
                 'error': '#ff0000',
                 'border': '#555555'
@@ -153,7 +162,7 @@ class VistaFIMKali2025:
         Crear interfaz principal FIM con tema Burp Suite y acceso dinámico (PRINCIPIO ARESITOS V3).
         """
         try:
-            self.frame_principal = ttk.Frame(parent_frame)
+            self.frame_principal = ttk.Frame(style="Burp.TFrame",parent_frame)
             self.frame_principal.pack(fill=tk.BOTH, expand=True, padx=5, pady=5)
             
             # Configurar estilo Burp Suite
@@ -198,7 +207,9 @@ class VistaFIMKali2025:
             self.texto_log = tk.Text(fallback_frame,
                                    bg=self.colores['bg_entrada'],
                                    fg=self.colores['fg_texto'],
-                                   font=('Consolas', 10))
+                                   font=('Consolas', 10)
+        if hasattr(self, 'theme') and self.theme:
+            self.theme.configure_text_widget(self.texto_log))
             self.texto_log.pack(fill=tk.BOTH, expand=True, pady=10)
             
             self.log("WARNING Interfaz FIM en modo fallback")
@@ -245,7 +256,7 @@ class VistaFIMKali2025:
     def _crear_tab_monitoreo(self):
         """Tab de monitoreo en tiempo real con acceso dinámico (PRINCIPIO ARESITOS V3)."""
         try:
-            frame_monitoreo = ttk.Frame(self.notebook, style='Burp.TFrame')
+            frame_monitoreo = ttk.Frame(style="Burp.TFrame",self.notebook, style='Burp.TFrame')
             
             # Verificar que notebook existe antes de agregar
             if hasattr(self, 'notebook') and self.notebook:
@@ -260,11 +271,11 @@ class VistaFIMKali2025:
                 return
             
             # Panel superior - controles
-            frame_controles = ttk.Frame(frame_monitoreo, style='Burp.TFrame')
+            frame_controles = ttk.Frame(style="Burp.TFrame",frame_monitoreo, style='Burp.TFrame')
             frame_controles.pack(fill=tk.X, padx=10, pady=5)
             
             # Botones principales
-            self.btn_iniciar_monitoreo = ttk.Button(
+            self.btn_iniciar_monitoreo = ttk.Button(style="Burp.TButton",
                 frame_controles,
                 text="START INICIAR MONITOREO",
                 command=self._iniciar_monitoreo_ui,
@@ -272,7 +283,7 @@ class VistaFIMKali2025:
             )
             self.btn_iniciar_monitoreo.pack(side=tk.LEFT, padx=5)
             
-            self.btn_detener_monitoreo = ttk.Button(
+            self.btn_detener_monitoreo = ttk.Button(style="Burp.TButton",
                 frame_controles,
                 text="⏹ DETENER MONITOREO",
                 command=self._detener_monitoreo_ui,
@@ -281,7 +292,7 @@ class VistaFIMKali2025:
             )
             self.btn_detener_monitoreo.pack(side=tk.LEFT, padx=5)
             
-            self.btn_agregar_ruta = ttk.Button(
+            self.btn_agregar_ruta = ttk.Button(style="Burp.TButton",
                 frame_controles,
                 text="DIR AGREGAR RUTA",
                 command=self._agregar_ruta_ui,
@@ -290,7 +301,7 @@ class VistaFIMKali2025:
             self.btn_agregar_ruta.pack(side=tk.LEFT, padx=5)
             
             # Estado del monitoreo
-            self.label_estado = ttk.Label(
+            self.label_estado = ttk.Label(style="Burp.TLabel",
                 frame_controles,
                 text="Estado: DETENIDO",
                 style='Burp.TLabel'
@@ -312,7 +323,7 @@ class VistaFIMKali2025:
             )
             self.lista_rutas.pack(side=tk.LEFT, fill=tk.BOTH, expand=True, padx=5, pady=5)
             
-            scrollbar_rutas = ttk.Scrollbar(frame_rutas, orient=tk.VERTICAL, command=self.lista_rutas.yview)
+            scrollbar_rutas = ttk.Scrollbar(style="Burp.Vertical.TScrollbar",frame_rutas, orient=tk.VERTICAL, command=self.lista_rutas.yview)
             scrollbar_rutas.pack(side=tk.RIGHT, fill=tk.Y)
             self.lista_rutas.config(yscrollcommand=scrollbar_rutas.set)
             
@@ -322,7 +333,7 @@ class VistaFIMKali2025:
             
             # Tabla de eventos
             columnas_eventos = ('Tiempo', 'Archivo', 'Evento', 'Severidad')
-            self.tabla_eventos = ttk.Treeview(
+            self.tabla_eventos = ttk.Treeview(style="Burp.Treeview",
                 frame_eventos,
                 columns=columnas_eventos,
                 show='headings',
@@ -335,7 +346,7 @@ class VistaFIMKali2025:
             
             self.tabla_eventos.pack(side=tk.LEFT, fill=tk.BOTH, expand=True, padx=5, pady=5)
             
-            scrollbar_eventos = ttk.Scrollbar(frame_eventos, orient=tk.VERTICAL, command=self.tabla_eventos.yview)
+            scrollbar_eventos = ttk.Scrollbar(style="Burp.Vertical.TScrollbar",frame_eventos, orient=tk.VERTICAL, command=self.tabla_eventos.yview)
             scrollbar_eventos.pack(side=tk.RIGHT, fill=tk.Y)
             self.tabla_eventos.config(yscrollcommand=scrollbar_eventos.set)
             
@@ -348,7 +359,7 @@ class VistaFIMKali2025:
     def _crear_tab_escaneo(self):
         """Tab de escaneos de seguridad con acceso dinámico (PRINCIPIO ARESITOS V3)."""
         try:
-            frame_escaneo = ttk.Frame(self.notebook, style='Burp.TFrame')
+            frame_escaneo = ttk.Frame(style="Burp.TFrame",self.notebook, style='Burp.TFrame')
             
             # Verificar que notebook existe antes de agregar
             if hasattr(self, 'notebook') and self.notebook:
@@ -363,11 +374,11 @@ class VistaFIMKali2025:
                 return
             
             # Panel controles escaneo
-            frame_controles_escaneo = ttk.Frame(frame_escaneo, style='Burp.TFrame')
+            frame_controles_escaneo = ttk.Frame(style="Burp.TFrame",frame_escaneo, style='Burp.TFrame')
             frame_controles_escaneo.pack(fill=tk.X, padx=10, pady=5)
             
             # Botones de escaneo
-            self.btn_escaneo_rootkits = ttk.Button(
+            self.btn_escaneo_rootkits = ttk.Button(style="Burp.TButton",
                 frame_controles_escaneo,
                 text="[SCAN] ESCANEO ROOTKITS",
                 command=self._ejecutar_escaneo_rootkits,
@@ -375,7 +386,7 @@ class VistaFIMKali2025:
             )
             self.btn_escaneo_rootkits.pack(side=tk.LEFT, padx=5)
             
-            self.btn_auditoria_linpeas = ttk.Button(
+            self.btn_auditoria_linpeas = ttk.Button(style="Burp.TButton",
                 frame_controles_escaneo,
                 text="LIST AUDITORÍA LINPEAS",
                 command=self._ejecutar_auditoria_linpeas,
@@ -383,7 +394,7 @@ class VistaFIMKali2025:
             )
             self.btn_auditoria_linpeas.pack(side=tk.LEFT, padx=5)
             
-            self.btn_escaneo_malware = ttk.Button(
+            self.btn_escaneo_malware = ttk.Button(style="Burp.TButton",
                 frame_controles_escaneo,
                 text="🦠 ESCANEO MALWARE",
                 command=self._ejecutar_escaneo_malware,
@@ -391,7 +402,7 @@ class VistaFIMKali2025:
             )
             self.btn_escaneo_malware.pack(side=tk.LEFT, padx=5)
             
-            self.btn_analisis_completo = ttk.Button(
+            self.btn_analisis_completo = ttk.Button(style="Burp.TButton",
                 frame_controles_escaneo,
                 text="[TARGET] ANÁLISIS COMPLETO",
                 command=self._ejecutar_analisis_completo,
@@ -430,7 +441,7 @@ class VistaFIMKali2025:
     def _crear_tab_detecciones(self):
         """Tab de detecciones y alertas con acceso dinámico (PRINCIPIO ARESITOS V3)."""
         try:
-            frame_detecciones = ttk.Frame(self.notebook, style='Burp.TFrame')
+            frame_detecciones = ttk.Frame(style="Burp.TFrame",self.notebook, style='Burp.TFrame')
             
             # Verificar que notebook existe antes de agregar
             if hasattr(self, 'notebook') and self.notebook:
@@ -445,12 +456,12 @@ class VistaFIMKali2025:
                 return
             
             # Panel filtros
-            frame_filtros = ttk.Frame(frame_detecciones, style='Burp.TFrame')
+            frame_filtros = ttk.Frame(style="Burp.TFrame",frame_detecciones, style='Burp.TFrame')
             frame_filtros.pack(fill=tk.X, padx=10, pady=5)
             
-            ttk.Label(frame_filtros, text="Filtros:", style='Burp.TLabel').pack(side=tk.LEFT, padx=5)
+            ttk.Label(style="Burp.TLabel",frame_filtros, text="Filtros:", style='Burp.TLabel').pack(side=tk.LEFT, padx=5)
             
-            self.combo_severidad = ttk.Combobox(
+            self.combo_severidad = ttk.Combobox(style="Burp.TCombobox",
                 frame_filtros,
                 values=['TODAS', 'ALTA', 'MEDIA', 'BAJA'],
                 state='readonly',
@@ -459,7 +470,7 @@ class VistaFIMKali2025:
             self.combo_severidad.set('TODAS')
             self.combo_severidad.pack(side=tk.LEFT, padx=5)
             
-            self.combo_tipo = ttk.Combobox(
+            self.combo_tipo = ttk.Combobox(style="Burp.TCombobox",
                 frame_filtros,
                 values=['TODOS', 'rootkit', 'malware', 'virus', 'vulnerabilidad'],
                 state='readonly',
@@ -468,7 +479,7 @@ class VistaFIMKali2025:
             self.combo_tipo.set('TODOS')
             self.combo_tipo.pack(side=tk.LEFT, padx=5)
             
-            ttk.Button(
+            ttk.Button(style="Burp.TButton",
                 frame_filtros,
                 text="ACTUALIZAR",
                 command=self._actualizar_detecciones,
@@ -476,11 +487,11 @@ class VistaFIMKali2025:
             ).pack(side=tk.LEFT, padx=5)
             
             # Tabla detecciones
-            frame_tabla_det = ttk.Frame(frame_detecciones, style='Burp.TFrame')
+            frame_tabla_det = ttk.Frame(style="Burp.TFrame",frame_detecciones, style='Burp.TFrame')
             frame_tabla_det.pack(fill=tk.BOTH, expand=True, padx=10, pady=5)
             
             columnas_det = ('ID', 'Timestamp', 'Herramienta', 'Tipo', 'Archivo', 'Descripción', 'Severidad')
-            self.tabla_detecciones = ttk.Treeview(
+            self.tabla_detecciones = ttk.Treeview(style="Burp.Treeview",
                 frame_tabla_det,
                 columns=columnas_det,
                 show='headings'
@@ -492,7 +503,7 @@ class VistaFIMKali2025:
             
             self.tabla_detecciones.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
             
-            scrollbar_det = ttk.Scrollbar(frame_tabla_det, orient=tk.VERTICAL, command=self.tabla_detecciones.yview)
+            scrollbar_det = ttk.Scrollbar(style="Burp.Vertical.TScrollbar",frame_tabla_det, orient=tk.VERTICAL, command=self.tabla_detecciones.yview)
             scrollbar_det.pack(side=tk.RIGHT, fill=tk.Y)
             self.tabla_detecciones.config(yscrollcommand=scrollbar_det.set)
             
@@ -502,7 +513,7 @@ class VistaFIMKali2025:
     def _crear_tab_configuracion(self):
         """Tab de configuración FIM con acceso dinámico (PRINCIPIO ARESITOS V3)."""
         try:
-            frame_config = ttk.Frame(self.notebook, style='Burp.TFrame')
+            frame_config = ttk.Frame(style="Burp.TFrame",self.notebook, style='Burp.TFrame')
             
             # Verificar que notebook existe antes de agregar
             if hasattr(self, 'notebook') and self.notebook:
@@ -527,6 +538,8 @@ class VistaFIMKali2025:
                 fg=self.colores['fg_texto'],
                 state='disabled'
             )
+        if hasattr(self, 'theme') and self.theme:
+            self.theme.configure_text_widget(self.texto_herramientas)
             self.texto_herramientas.pack(fill=tk.X, padx=5, pady=5)
             
             # Panel estado FIM
@@ -539,20 +552,24 @@ class VistaFIMKali2025:
                 fg=self.colores['fg_texto'],
                 state='disabled'
             )
-            self.texto_estado.pack(fill=tk.BOTH, expand=True, padx=5, pady=5)
+                    self.texto_estado.pack(fill=tk.BOTH, expand=True, padx=5, pady=5)
+        
+        # Configurar tema Burp para widget Text siguiendo principios ARESITOS
+        if hasattr(self, 'theme') and self.theme:
+            self.theme.configure_text_widget(self.texto_estado)
             
             # Botones configuración
-            frame_botones_config = ttk.Frame(frame_config, style='Burp.TFrame')
+            frame_botones_config = ttk.Frame(style="Burp.TFrame",frame_config, style='Burp.TFrame')
             frame_botones_config.pack(fill=tk.X, padx=10, pady=5)
             
-            ttk.Button(
+            ttk.Button(style="Burp.TButton",
                 frame_botones_config,
                 text="ACTUALIZAR ESTADO",
                 command=self._actualizar_estado_fim,
                 style='Burp.TButton'
             ).pack(side=tk.LEFT, padx=5)
             
-            ttk.Button(
+            ttk.Button(style="Burp.TButton",
                 frame_botones_config,
                 text="SAVE EXPORTAR CONFIG",
                 command=self._exportar_configuracion,
@@ -568,7 +585,7 @@ class VistaFIMKali2025:
     def _crear_tab_logs(self):
         """Tab de logs del sistema con acceso dinámico (PRINCIPIO ARESITOS V3)."""
         try:
-            frame_logs = ttk.Frame(self.notebook, style='Burp.TFrame')
+            frame_logs = ttk.Frame(style="Burp.TFrame",self.notebook, style='Burp.TFrame')
             
             # Verificar que notebook existe antes de agregar
             if hasattr(self, 'notebook') and self.notebook:
@@ -583,17 +600,17 @@ class VistaFIMKali2025:
                 return
             
             # Controles logs
-            frame_controles_logs = ttk.Frame(frame_logs, style='Burp.TFrame')
+            frame_controles_logs = ttk.Frame(style="Burp.TFrame",frame_logs, style='Burp.TFrame')
             frame_controles_logs.pack(fill=tk.X, padx=10, pady=5)
             
-            ttk.Button(
+            ttk.Button(style="Burp.TButton",
                 frame_controles_logs,
                 text="CLEAR LIMPIAR LOGS",
                 command=self._limpiar_logs,
                 style='Burp.TButton'
             ).pack(side=tk.LEFT, padx=5)
             
-            ttk.Button(
+            ttk.Button(style="Burp.TButton",
                 frame_controles_logs,
                 text="SAVE GUARDAR LOGS",
                 command=self._guardar_logs,
@@ -606,18 +623,22 @@ class VistaFIMKali2025:
                 bg=self.colores['bg_entrada'],
                 fg=self.colores['fg_texto'],
                 font=('Consolas', 10)
-            )
+                    )
             self.texto_log.pack(fill=tk.BOTH, expand=True, padx=10, pady=5)
+        
+        # Configurar tema Burp para widget Text siguiendo principios ARESITOS
+        if hasattr(self, 'theme') and self.theme:
+            self.theme.configure_text_widget(self.texto_log)
             
         except Exception as e:
             self.log(f"ERROR Error creando tab logs: {e}")
     
     def _crear_tab_resultados_rootkits(self):
         """Tab para resultados de rootkits"""
-        frame_rootkits = ttk.Frame(self.notebook_resultados, style='Burp.TFrame')
+        frame_rootkits = ttk.Frame(style="Burp.TFrame",self.notebook_resultados, style='Burp.TFrame')
         self.notebook_resultados.add(frame_rootkits, text="Rootkits")
         
-        self.tabla_rootkits = ttk.Treeview(
+        self.tabla_rootkits = ttk.Treeview(style="Burp.Treeview",
             frame_rootkits,
             columns=('Herramienta', 'Archivo', 'Tipo', 'Descripción', 'Severidad'),
             show='headings'
@@ -631,10 +652,10 @@ class VistaFIMKali2025:
     
     def _crear_tab_resultados_malware(self):
         """Tab para resultados de malware"""
-        frame_malware = ttk.Frame(self.notebook_resultados, style='Burp.TFrame')
+        frame_malware = ttk.Frame(style="Burp.TFrame",self.notebook_resultados, style='Burp.TFrame')
         self.notebook_resultados.add(frame_malware, text="Malware")
         
-        self.tabla_malware = ttk.Treeview(
+        self.tabla_malware = ttk.Treeview(style="Burp.Treeview",
             frame_malware,
             columns=('Herramienta', 'Archivo', 'Amenaza', 'Tipo', 'Severidad'),
             show='headings'
@@ -648,10 +669,10 @@ class VistaFIMKali2025:
     
     def _crear_tab_resultados_vulnerabilidades(self):
         """Tab para resultados de vulnerabilidades"""
-        frame_vulns = ttk.Frame(self.notebook_resultados, style='Burp.TFrame')
+        frame_vulns = ttk.Frame(style="Burp.TFrame",self.notebook_resultados, style='Burp.TFrame')
         self.notebook_resultados.add(frame_vulns, text="Vulnerabilidades")
         
-        self.tabla_vulnerabilidades = ttk.Treeview(
+        self.tabla_vulnerabilidades = ttk.Treeview(style="Burp.Treeview",
             frame_vulns,
             columns=('Descripción', 'Tipo', 'Severidad', 'Fuente'),
             show='headings'

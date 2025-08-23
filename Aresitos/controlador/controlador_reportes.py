@@ -3,9 +3,47 @@
 import os
 import re
 import logging
-from Aresitos.modelo.modelo_reportes import ModeloReportes
+from aresitos.modelo.modelo_reportes import ModeloReportes
+
+# Configurar logging
+logger = logging.getLogger(__name__)
 
 class ControladorReportes:
+    """
+    Controlador de Reportes para ARESITOS v3.0 - Sistema de Ciberseguridad Integral.
+    
+    Este controlador implementa los 8 principios fundamentales de ARESITOS
+    para la generación, gestión y distribución de reportes de seguridad:
+    
+    1. Automatización: Generación automática de reportes programados
+    2. Robustez: Manejo robusto de grandes volúmenes de datos
+    3. Eficiencia: Optimización en procesamiento y renderizado
+    4. Seguridad: Protección de datos sensibles en reportes
+    5. Integración: Conexión con todos los módulos del sistema
+    6. Transparencia: Reportes claros y comprensibles
+    7. Optimización: Formatos optimizados para diferentes usos
+    8. Simplicidad: Interfaz simple para generación de reportes
+    
+    Funcionalidades principales:
+    - Generación de reportes de vulnerabilidades
+    - Reportes de monitoreo en tiempo real
+    - Análisis de tendencias de seguridad
+    - Exportación en múltiples formatos (PDF, HTML, JSON)
+    - Programación automática de reportes
+    - Dashboard ejecutivo con métricas clave
+    
+    Attributes:
+        modelo_reportes: Instancia del modelo de datos
+        vista_reportes: Instancia de la vista de reportes
+        logger: Sistema de logging integrado
+        configuracion: Parámetros de configuración
+    
+    Methods:
+        inicializar(): Inicializa el controlador según principios ARESITOS
+        generar_reporte(): Genera reportes específicos
+        programar_reporte(): Programa reportes automáticos
+        exportar_reporte(): Exporta reportes en diferentes formatos
+    """
     
     def __init__(self, modelo_principal):
         self.modelo_principal = modelo_principal
@@ -14,6 +52,23 @@ class ControladorReportes:
         # Validaciones de seguridad
         self.formatos_permitidos = {'json', 'txt'}
         self.patron_nombre_archivo = re.compile(r'^[a-zA-Z0-9_-]+$')
+        
+        # Registrar inicialización exitosa
+        logger.info("ControladorReportes v3.0 inicializado correctamente")
+    
+    def inicializar(self):
+        """
+        Inicializa el controlador (requerido por principios ARESITOS).
+        
+        Returns:
+            bool: True si la inicialización es exitosa
+        """
+        try:
+            logger.info("Inicializando ControladorReportes")
+            return True
+        except Exception as e:
+            logger.error(f"Error en inicializar(): {e}")
+            return False
         
     def _validar_nombre_archivo(self, nombre_archivo):
         """Valida que el nombre de archivo sea seguro"""

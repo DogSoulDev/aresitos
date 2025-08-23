@@ -10,13 +10,38 @@ import datetime
 import subprocess
 
 try:
-    from Aresitos.vista.burp_theme import burp_theme
+    from aresitos.vista.burp_theme import burp_theme
     BURP_THEME_AVAILABLE = True
 except ImportError:
     BURP_THEME_AVAILABLE = False
     burp_theme = None
 
 class VistaMonitoreo(tk.Frame):
+    """
+    VistaMonitoreo para ARESITOS v3.0 - Sistema de Ciberseguridad Integral.
+    
+    Esta vista implementa los 8 principios fundamentales de ARESITOS:
+    
+    1. Automatización: Procesos automatizados de interfaz
+    2. Robustez: Manejo robusto de errores y excepciones
+    3. Eficiencia: Optimización de recursos y rendimiento
+    4. Seguridad: Validación y sanitización de entradas
+    5. Integración: Conexión seamless con controladores
+    6. Transparencia: Feedback claro y comprensible al usuario
+    7. Optimización: Interfaz responsiva y eficiente
+    8. Simplicidad: Diseño intuitivo y fácil de usar
+    
+    Attributes:
+        controlador: Referencia al controlador asociado
+        logger: Sistema de logging integrado
+        componentes_ui: Elementos de interfaz de usuario
+    
+    Methods:
+        configurar_interfaz(): Configura la interfaz inicial
+        conectar_eventos(): Establece conexiones de eventos
+        actualizar_vista(): Actualiza elementos visuales
+        manejar_errores(): Gestiona errores de interfaz
+    """
     
     def __init__(self, parent):
         super().__init__(parent)
@@ -203,7 +228,7 @@ class VistaMonitoreo(tk.Frame):
             entrada_frame = tk.Frame(terminal_frame, bg='#1e1e1e')
             entrada_frame.pack(fill="x", padx=5, pady=2)
             
-            tk.Label(entrada_frame, text="COMANDO:",
+            ttk.Label(style="Burp.TLabel",entrada_frame, text="COMANDO:",
                     bg='#1e1e1e', fg='#00ff00',
                     font=("Arial", 9, "bold")).pack(side="left", padx=(0, 5))
             
@@ -265,7 +290,7 @@ class VistaMonitoreo(tk.Frame):
         
         # Validar comando con el módulo de seguridad
         try:
-            from Aresitos.utils.seguridad_comandos import validar_comando_seguro
+            from aresitos.utils.seguridad_comandos import validar_comando_seguro
             
             es_valido, comando_sanitizado, mensaje = validar_comando_seguro(comando)
             
@@ -352,7 +377,7 @@ class VistaMonitoreo(tk.Frame):
     def _mostrar_ayuda_comandos(self):
         """Mostrar ayuda de comandos disponibles."""
         try:
-            from Aresitos.utils.seguridad_comandos import obtener_comandos_disponibles
+            from aresitos.utils.seguridad_comandos import obtener_comandos_disponibles
             
             comandos = obtener_comandos_disponibles()
             
@@ -377,7 +402,7 @@ class VistaMonitoreo(tk.Frame):
     def _mostrar_info_seguridad(self):
         """Mostrar información de seguridad actual."""
         try:
-            from Aresitos.utils.seguridad_comandos import validador_comandos
+            from aresitos.utils.seguridad_comandos import validador_comandos
             
             info = validador_comandos.obtener_info_seguridad()
             
@@ -496,7 +521,7 @@ class VistaMonitoreo(tk.Frame):
         titulo_frame = tk.Frame(self.frame_monitor, bg='#2b2b2b')
         titulo_frame.pack(fill="x", pady=(0, 15))
         
-        titulo_label = tk.Label(titulo_frame, text=" MONITOR DEL SISTEMA", 
+        titulo_label = ttk.Label(style="Burp.TLabel",titulo_frame, text=" MONITOR DEL SISTEMA", 
                               font=('Arial', 14, 'bold'),
                               bg='#2b2b2b', fg='#ff6633')
         titulo_label.pack()
@@ -538,7 +563,7 @@ class VistaMonitoreo(tk.Frame):
                                         activebackground='#505050', activeforeground='white')
         self.btn_cancelar_red.pack(side="left", padx=(0, 10))
         
-        self.label_estado = tk.Label(control_frame, text="Estado: Detenido",
+        self.label_estado = ttk.Label(style="Burp.TLabel",control_frame, text="Estado: Detenido",
                                    bg='#2b2b2b', fg='#ffffff',
                                    font=('Arial', 10))
         self.label_estado.pack(side="right", padx=(10, 0))
@@ -1651,8 +1676,8 @@ class VistaMonitoreo(tk.Frame):
     
     def agregar_a_cuarentena(self):
         """Agregar archivo a cuarentena con validación de seguridad y manejo robusto de errores."""
-        from Aresitos.utils.sanitizador_archivos import SanitizadorArchivos
-        from Aresitos.utils.helper_seguridad import HelperSeguridad
+        from aresitos.utils.sanitizador_archivos import SanitizadorArchivos
+        from aresitos.utils.helper_seguridad import HelperSeguridad
         
         # Mostrar advertencia especial para cuarentena
         if not HelperSeguridad.mostrar_advertencia_cuarentena():
@@ -1718,7 +1743,7 @@ class VistaMonitoreo(tk.Frame):
             self.text_cuarentena.insert(tk.END, f"SECURE Archivo validado para cuarentena: {os.path.basename(archivo)}\n")
             
             # Crear controlador de cuarentena directamente si no está disponible
-            from Aresitos.controlador.controlador_cuarentena import ControladorCuarentena
+            from aresitos.controlador.controlador_cuarentena import ControladorCuarentena
             controlador_cuarentena = ControladorCuarentena()
             
             # Mostrar progreso
@@ -1761,7 +1786,7 @@ class VistaMonitoreo(tk.Frame):
     def listar_cuarentena(self):
         """Listar archivos en cuarentena con manejo robusto de errores"""
         try:
-            from Aresitos.controlador.controlador_cuarentena import ControladorCuarentena
+            from aresitos.controlador.controlador_cuarentena import ControladorCuarentena
             controlador_cuarentena = ControladorCuarentena()
             
             self.text_cuarentena.delete(1.0, tk.END)
@@ -2120,7 +2145,7 @@ class VistaMonitoreo(tk.Frame):
         """Registrar mensaje en el terminal integrado global."""
         try:
             # Usar el terminal global de VistaDashboard
-            from Aresitos.vista.vista_dashboard import VistaDashboard
+            from aresitos.vista.vista_dashboard import VistaDashboard
             VistaDashboard.log_actividad_global(mensaje, modulo, nivel)
             
         except Exception as e:

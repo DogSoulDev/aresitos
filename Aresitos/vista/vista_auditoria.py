@@ -7,7 +7,7 @@ import logging
 import datetime
 
 try:
-    from Aresitos.vista.burp_theme import burp_theme
+    from aresitos.vista.burp_theme import burp_theme
     BURP_THEME_AVAILABLE = True
 except ImportError:
     BURP_THEME_AVAILABLE = False
@@ -29,8 +29,11 @@ class VistaAuditoria(tk.Frame):
     def __init__(self, parent):
         super().__init__(parent)
         self.controlador = None
-        self.logger = logging.getLogger(__name__)
+        self.logger = None
         self.vista_principal = parent  # Referencia al padre para acceder al terminal
+        
+        # Inicializar logger de forma robusta siguiendo principios ARESITOS
+        self._inicializar_logger()
         
         # Estados únicos de auditoría
         self.proceso_auditoria_activo = False
@@ -71,8 +74,77 @@ class VistaAuditoria(tk.Frame):
         
         self.crear_interfaz()
     
+    def _inicializar_logger(self):
+        """
+        Inicializar logger de forma robusta siguiendo principios ARESITOS.
+        
+        Principios aplicados:
+        - Robustez: Manejo de errores en inicialización
+        - Automatización: Configuración automática
+        - Transparencia: Logs claros sobre el estado
+        """
+        try:
+            self.logger = logging.getLogger(__name__)
+            if not self.logger.handlers:
+                # Configurar handler básico si no existe
+                handler = logging.StreamHandler()
+                formatter = logging.Formatter(
+                    '%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+                )
+                handler.setFormatter(formatter)
+                self.logger.addHandler(handler)
+                self.logger.setLevel(logging.INFO)
+            
+            self.logger.info("Logger Vista Auditoría inicializado correctamente")
+            
+        except Exception as e:
+            # Fallback a print si hay problemas con logging
+            print(f"ERROR inicializando logger Vista Auditoría: {e}")
+            self.logger = None
+    
     def set_controlador(self, controlador):
-        self.controlador = controlador
+        """
+        Establecer controlador con validación robusta siguiendo principios ARESITOS.
+        
+        Principios aplicados:
+        - Robustez: Validación completa del controlador
+        - Seguridad: Verificación de métodos requeridos
+        - Transparencia: Logs de estado de configuración
+        """
+        try:
+            if controlador is None:
+                if self.logger:
+                    self.logger.warning("Controlador es None - funcionalidad limitada")
+                self.controlador = None
+                return
+                
+            # Validar métodos esenciales del controlador
+            metodos_requeridos = [
+                'ejecutar_deteccion_rootkits',
+                'analizar_servicios_sistema', 
+                'verificar_permisos_criticos'
+            ]
+            
+            metodos_faltantes = []
+            for metodo in metodos_requeridos:
+                if not hasattr(controlador, metodo):
+                    metodos_faltantes.append(metodo)
+            
+            if metodos_faltantes:
+                if self.logger:
+                    self.logger.warning(f"Controlador sin métodos: {metodos_faltantes}")
+                # Aceptar controlador parcialmente funcional
+                
+            self.controlador = controlador
+            if self.logger:
+                self.logger.info("Controlador establecido correctamente en Vista Auditoría")
+                
+        except Exception as e:
+            if self.logger:
+                self.logger.error(f"Error estableciendo controlador: {e}")
+            else:
+                print(f"ERROR estableciendo controlador Vista Auditoría: {e}")
+            self.controlador = None
     
     def crear_interfaz(self):
         """Crear interfaz especializada para auditorías de seguridad."""
@@ -81,7 +153,7 @@ class VistaAuditoria(tk.Frame):
         self.paned_window.pack(fill="both", expand=True, padx=5, pady=5)
         
         # Frame superior para el contenido principal
-        contenido_frame = tk.Frame(self.paned_window, bg=self.colors['bg_primary'])
+        contenido_frame = ttk.Frame(self.paned_window, style="Burp.TFrame")
         self.paned_window.add(contenido_frame, minsize=400)
         
         # Frame del título con tema Burp Suite
@@ -113,6 +185,10 @@ class VistaAuditoria(tk.Frame):
                                                        font=('Consolas', 10),
                                                        relief='flat', bd=1)
         self.auditoria_text.pack(fill=tk.BOTH, expand=True)
+        
+        # Configurar tema Burp para widget Text siguiendo principios ARESITOS
+        if hasattr(self, 'theme') and self.theme:
+            self.theme.configure_text_widget(self.auditoria_text)
         
         # Panel derecho - Herramientas de Auditoría con tema Burp Suite
         right_frame = tk.Frame(main_frame, bg=self.colors['bg_secondary'])
@@ -150,26 +226,20 @@ class VistaAuditoria(tk.Frame):
             controles_frame.pack(fill="x", padx=5, pady=2)
             
             # Botón limpiar terminal (estilo dashboard, compacto)
-            btn_limpiar = tk.Button(
+            btn_limpiar = ttk.Button(
                 controles_frame,
                 text="LIMPIAR",
                 command=self.limpiar_terminal_auditoria,
-                bg=self.colors.get('warning', '#ffaa00'),
-                fg='white',
-                font=("Arial", 8, "bold"),
-                height=1
+                style="Burp.TButton"
             )
             btn_limpiar.pack(side="left", padx=2, fill="x", expand=True)
             
             # Botón ver logs (estilo dashboard, compacto)
-            btn_logs = tk.Button(
+            btn_logs = ttk.Button(
                 controles_frame,
                 text="VER LOGS",
                 command=self.abrir_logs_auditoria,
-                bg=self.colors.get('info', '#007acc'),
-                fg='white',
-                font=("Arial", 8, "bold"),
-                height=1
+                style="Burp.TButton"
             )
             btn_logs.pack(side="left", padx=2, fill="x", expand=True)
             
@@ -184,6 +254,10 @@ class VistaAuditoria(tk.Frame):
                 selectbackground='#333333'
             )
             self.terminal_output.pack(fill="both", expand=True, padx=5, pady=5)
+            
+            # Configurar tema Burp para widget Text siguiendo principios ARESITOS
+            if hasattr(self, 'theme') and self.theme:
+                self.theme.configure_text_widget(self.terminal_output)
             
             # Frame para entrada de comandos (como Dashboard)
             entrada_frame = tk.Frame(terminal_frame, bg='#1e1e1e')
@@ -251,7 +325,7 @@ class VistaAuditoria(tk.Frame):
         
         # Validar comando con el módulo de seguridad
         try:
-            from Aresitos.utils.seguridad_comandos import validador_comandos
+            from aresitos.utils.seguridad_comandos import validador_comandos
             
             es_valido, comando_sanitizado, mensaje = validador_comandos.validar_comando_completo(comando)
             
@@ -482,7 +556,7 @@ class VistaAuditoria(tk.Frame):
                 
                 # Importar SudoManager para operaciones privilegiadas
                 try:
-                    from Aresitos.utils.sudo_manager import SudoManager
+                    from aresitos.utils.sudo_manager import SudoManager
                     sudo_manager = SudoManager()
                     if sudo_manager.is_sudo_active():
                         self._actualizar_texto_auditoria("OK SudoManager activo para auditoría completa\n")
@@ -847,7 +921,7 @@ class VistaAuditoria(tk.Frame):
                     
                     # Intentar usar SudoManager para permisos elevados
                     try:
-                        from Aresitos.utils.sudo_manager import get_sudo_manager
+                        from aresitos.utils.sudo_manager import get_sudo_manager
                         sudo_manager = get_sudo_manager()
                         sudo_disponible = sudo_manager.is_sudo_active()
                         
@@ -1117,7 +1191,7 @@ class VistaAuditoria(tk.Frame):
                 
                 # Importar SudoManager para operaciones privilegiadas
                 try:
-                    from Aresitos.utils.sudo_manager import SudoManager
+                    from aresitos.utils.sudo_manager import SudoManager
                     sudo_manager = SudoManager()
                     if sudo_manager.is_sudo_active():
                         self._actualizar_texto_auditoria("OK SudoManager activo para escaneo completo\n")
@@ -1609,7 +1683,7 @@ class VistaAuditoria(tk.Frame):
         """Registrar mensaje en el terminal integrado global."""
         try:
             # Usar el terminal global de VistaDashboard
-            from Aresitos.vista.vista_dashboard import VistaDashboard
+            from aresitos.vista.vista_dashboard import VistaDashboard
             VistaDashboard.log_actividad_global(mensaje, modulo, nivel)
             
         except Exception as e:
@@ -1737,7 +1811,7 @@ class VistaAuditoria(tk.Frame):
     def _mostrar_ayuda_comandos(self):
         """Mostrar ayuda de comandos disponibles."""
         try:
-            from Aresitos.utils.seguridad_comandos import validador_comandos
+            from aresitos.utils.seguridad_comandos import validador_comandos
             
             comandos = validador_comandos.obtener_comandos_disponibles()
             
@@ -1762,7 +1836,7 @@ class VistaAuditoria(tk.Frame):
     def _mostrar_info_seguridad(self):
         """Mostrar información de seguridad actual."""
         try:
-            from Aresitos.utils.seguridad_comandos import validador_comandos
+            from aresitos.utils.seguridad_comandos import validador_comandos
             
             info = validador_comandos.obtener_info_seguridad()
             

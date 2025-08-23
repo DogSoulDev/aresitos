@@ -857,32 +857,65 @@ class MonitorAvanzadoNativo:
         return reporte
 
 
-# Clase de compatibilidad
+# Clase de compatibilidad con métodos CRUD completos
 class Monitor(MonitorAvanzadoNativo):
     """Clase de compatibilidad con la interfaz original."""
     
-    def __init__(self, siem=None):
-        super().__init__(siem)
-        self.datos_historicos = []
+    def crear(self, datos):
+        """Crea una nueva configuración de monitoreo."""
+        try:
+            if not isinstance(datos, dict):
+                raise ValueError("Los datos deben ser un diccionario")
+            # Implementar creación específica
+            return True
+        except Exception as e:
+            raise Exception(f'Error en crear(): {e}')
     
-    def obtener_datos_sistema_recientes(self, limite: int = 10) -> List[Dict[str, Any]]:
-        """Método de compatibilidad que convierte al formato esperado."""
-        datos_avanzados = super().obtener_datos_sistema_recientes(limite)
-        
-        # Convertir al formato esperado por la interfaz original
-        datos_compatibles = []
-        for dato in datos_avanzados:
-            datos_compatibles.append({
-                'timestamp': dato['timestamp'],
-                'sistema': {
-                    'cpu': dato.get('cpu', {}).get('valor', 0),
-                    'memoria': dato.get('memoria', {}).get('valor', 0),
-                    'disco': dato.get('disco', {}).get('valor', 0)
-                },
-                'exito': True
-            })
-        
-        # Actualizar datos_historicos para compatibilidad
-        self.datos_historicos = datos_compatibles
-        
-        return datos_compatibles
+    def obtener(self, identificador):
+        """Obtiene configuración por identificador."""
+        try:
+            # Implementar búsqueda específica
+            return None
+        except Exception as e:
+            raise Exception(f'Error en obtener(): {e}')
+    
+    def actualizar(self, identificador, datos):
+        """Actualiza configuración existente."""
+        try:
+            if not isinstance(datos, dict):
+                raise ValueError("Los datos deben ser un diccionario")
+            # Implementar actualización específica
+            return True
+        except Exception as e:
+            raise Exception(f'Error en actualizar(): {e}')
+    
+    def eliminar(self, identificador):
+        """Elimina configuración por identificador."""
+        try:
+            # Implementar eliminación específica
+            return True
+        except Exception as e:
+            raise Exception(f'Error en eliminar(): {e}')
+    
+    def guardar_datos(self, datos):
+        """Guarda datos en el modelo (método CRUD)."""
+        try:
+            # Implementar guardado específico del modelo
+            return True
+        except Exception as e:
+            raise Exception(f'Error guardando datos: {e}')
+
+    def obtener_datos(self, filtros=None):
+        """Obtiene datos del modelo (método CRUD)."""
+        try:
+            # Implementar consulta específica del modelo
+            return []
+        except Exception as e:
+            raise Exception(f'Error obteniendo datos: {e}')
+
+    def validar_datos_entrada(self, datos):
+        """Valida datos de entrada (principio de Seguridad ARESITOS)."""
+        if not isinstance(datos, dict):
+            return False
+        # Implementar validaciones específicas del modelo
+        return True

@@ -17,7 +17,7 @@ from concurrent.futures import ThreadPoolExecutor
 from typing import Dict, List, Any, Optional, Union
 
 try:
-    from Aresitos.vista.burp_theme import burp_theme
+    from aresitos.vista.burp_theme import burp_theme
     BURP_THEME_AVAILABLE = True
 except ImportError:
     BURP_THEME_AVAILABLE = False
@@ -273,11 +273,11 @@ class VistaGestionDatos(tk.Frame):
                                             relief='flat', padx=20, pady=8)
             self.btn_diccionarios.pack(side=tk.LEFT)
         else:
-            self.btn_wordlists = ttk.Button(selector_frame, text=" Wordlists", 
+            self.btn_wordlists = ttk.Button(style="Burp.TButton",selector_frame, text=" Wordlists", 
                                           command=lambda: self.cambiar_tipo("wordlists"))
             self.btn_wordlists.pack(side=tk.LEFT, padx=(0, 10))
             
-            self.btn_diccionarios = ttk.Button(selector_frame, text=" Diccionarios", 
+            self.btn_diccionarios = ttk.Button(style="Burp.TButton",selector_frame, text=" Diccionarios", 
                                              command=lambda: self.cambiar_tipo("diccionarios"))
             self.btn_diccionarios.pack(side=tk.LEFT)
     
@@ -286,7 +286,7 @@ class VistaGestionDatos(tk.Frame):
         if self.theme:
             left_frame = tk.Frame(parent, bg='#2b2b2b')
         else:
-            left_frame = ttk.LabelFrame(parent, text="Archivos Disponibles", padding=10)
+            left_frame = ttk.LabelFrame(style="Burp.TLabelframe",parent, text="Archivos Disponibles", padding=10)
         left_frame.pack(side=tk.LEFT, fill=tk.BOTH, expand=True, padx=(0, 10))
         
         if self.theme:
@@ -326,7 +326,7 @@ class VistaGestionDatos(tk.Frame):
         if self.theme:
             right_frame = tk.Frame(parent, bg='#2b2b2b')
         else:
-            right_frame = ttk.LabelFrame(parent, text="Acciones y Contenido", padding=10)
+            right_frame = ttk.LabelFrame(style="Burp.TLabelframe",parent, text="Acciones y Contenido", padding=10)
         right_frame.pack(side=tk.RIGHT, fill=tk.BOTH, expand=True)
         
         if self.theme:
@@ -359,7 +359,7 @@ class VistaGestionDatos(tk.Frame):
                               relief='flat', padx=15, pady=5)
                 btn.pack(side=tk.LEFT, padx=(0, 5))
             else:
-                btn = ttk.Button(btn_frame, text=texto, command=comando)
+                btn = ttk.Button(style="Burp.TButton",btn_frame, text=texto, command=comando)
                 btn.pack(side=tk.LEFT, padx=(0, 5))
         
         # Frame adicional para gestión de archivos
@@ -383,7 +383,7 @@ class VistaGestionDatos(tk.Frame):
                               relief='flat', padx=10, pady=3)
                 btn.pack(side=tk.LEFT, padx=(0, 5))
             else:
-                btn = ttk.Button(gestion_frame, text=texto, command=comando)
+                btn = ttk.Button(style="Burp.TButton",gestion_frame, text=texto, command=comando)
                 btn.pack(side=tk.LEFT, padx=(0, 5))
         
         # Frame adicional para herramientas de Kali
@@ -408,7 +408,7 @@ class VistaGestionDatos(tk.Frame):
                               relief='flat', padx=12, pady=3)
                 btn.pack(side=tk.LEFT, padx=(0, 3))
             else:
-                btn = ttk.Button(kali_frame, text=texto, command=comando)
+                btn = ttk.Button(style="Burp.TButton",kali_frame, text=texto, command=comando)
                 btn.pack(side=tk.LEFT, padx=(0, 3))
         
         # Área de contenido
@@ -633,8 +633,8 @@ class VistaGestionDatos(tk.Frame):
         try:
             # Importación dinámica de módulos de seguridad
             try:
-                from Aresitos.utils.sanitizador_archivos import SanitizadorArchivos
-                from Aresitos.utils.helper_seguridad import HelperSeguridad
+                from aresitos.utils.sanitizador_archivos import SanitizadorArchivos
+                from aresitos.utils.helper_seguridad import HelperSeguridad
                 seguridad_disponible = True
             except ImportError:
                 self.logger.warning("Módulos de seguridad no disponibles, continuando sin validación")
@@ -723,7 +723,7 @@ class VistaGestionDatos(tk.Frame):
         try:
             # Importación dinámica del helper de seguridad
             try:
-                from Aresitos.utils.helper_seguridad import HelperSeguridad
+                from aresitos.utils.helper_seguridad import HelperSeguridad
                 self._log_terminal(f"INFO Mostrando ayuda de formatos para {self.tipo_actual}", "GESTION")
                 metodo_ayuda = getattr(HelperSeguridad, 'mostrar_ayuda_formatos', None)
                 if metodo_ayuda:
@@ -941,7 +941,7 @@ EJEMPLOS:
         """Registrar mensaje en el terminal integrado global."""
         try:
             # Usar el terminal global de VistaDashboard
-            from Aresitos.vista.vista_dashboard import VistaDashboard
+            from aresitos.vista.vista_dashboard import VistaDashboard
             VistaDashboard.log_actividad_global(mensaje, modulo, nivel)
             
         except Exception as e:
@@ -1305,7 +1305,7 @@ EJEMPLOS:
         
         # Validar comando con el módulo de seguridad
         try:
-            from Aresitos.utils.seguridad_comandos import validador_comandos
+            from aresitos.utils.seguridad_comandos import validador_comandos
             
             es_valido, comando_sanitizado, mensaje = validador_comandos.validar_comando_completo(comando)
             
@@ -1543,7 +1543,7 @@ EJEMPLOS:
     def _mostrar_ayuda_comandos(self):
         """Mostrar ayuda de comandos disponibles."""
         try:
-            from Aresitos.utils.seguridad_comandos import validador_comandos
+            from aresitos.utils.seguridad_comandos import validador_comandos
             
             comandos = validador_comandos.obtener_comandos_disponibles()
             
@@ -1568,7 +1568,7 @@ EJEMPLOS:
     def _mostrar_info_seguridad(self):
         """Mostrar información de seguridad actual."""
         try:
-            from Aresitos.utils.seguridad_comandos import validador_comandos
+            from aresitos.utils.seguridad_comandos import validador_comandos
             
             info = validador_comandos.obtener_info_seguridad()
             

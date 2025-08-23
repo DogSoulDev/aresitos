@@ -12,13 +12,38 @@ import hashlib
 import stat
 
 try:
-    from Aresitos.vista.burp_theme import burp_theme
+    from aresitos.vista.burp_theme import burp_theme
     BURP_THEME_AVAILABLE = True
 except ImportError:
     BURP_THEME_AVAILABLE = False
     burp_theme = None
 
 class VistaFIM(tk.Frame):
+    """
+    VistaFIM para ARESITOS v3.0 - Sistema de Ciberseguridad Integral.
+    
+    Esta vista implementa los 8 principios fundamentales de ARESITOS:
+    
+    1. Automatización: Procesos automatizados de interfaz
+    2. Robustez: Manejo robusto de errores y excepciones
+    3. Eficiencia: Optimización de recursos y rendimiento
+    4. Seguridad: Validación y sanitización de entradas
+    5. Integración: Conexión seamless con controladores
+    6. Transparencia: Feedback claro y comprensible al usuario
+    7. Optimización: Interfaz responsiva y eficiente
+    8. Simplicidad: Diseño intuitivo y fácil de usar
+    
+    Attributes:
+        controlador: Referencia al controlador asociado
+        logger: Sistema de logging integrado
+        componentes_ui: Elementos de interfaz de usuario
+    
+    Methods:
+        configurar_interfaz(): Configura la interfaz inicial
+        conectar_eventos(): Establece conexiones de eventos
+        actualizar_vista(): Actualiza elementos visuales
+        manejar_errores(): Gestiona errores de interfaz
+    """
     
     def __init__(self, parent):
         super().__init__(parent)
@@ -70,7 +95,7 @@ class VistaFIM(tk.Frame):
     def _log_terminal(self, mensaje, modulo="FIM", nivel="INFO"):
         """Registrar actividad en el terminal integrado global."""
         try:
-            from Aresitos.vista.vista_dashboard import VistaDashboard
+            from aresitos.vista.vista_dashboard import VistaDashboard
             VistaDashboard.log_actividad_global(mensaje, modulo, nivel)
         except Exception:
             pass  # Terminal no disponible
@@ -148,7 +173,7 @@ class VistaFIM(tk.Frame):
             controles_frame.pack(fill="x", padx=5, pady=2)
             
             # Botón limpiar terminal (estilo dashboard, compacto)
-            btn_limpiar = tk.Button(
+            btn_limpiar = ttk.Button(style="Burp.TButton", 
                 controles_frame,
                 text="LIMPIAR",
                 command=self.limpiar_terminal_fim,
@@ -246,7 +271,7 @@ class VistaFIM(tk.Frame):
         
         # Validar comando con el módulo de seguridad
         try:
-            from Aresitos.utils.seguridad_comandos import validador_comandos
+            from aresitos.utils.seguridad_comandos import validador_comandos
             
             es_valido, comando_sanitizado, mensaje = validador_comandos.validar_comando_completo(comando)
             
@@ -1281,7 +1306,7 @@ class VistaFIM(tk.Frame):
                 
                 # Intentar instalar inotify-tools
                 try:
-                    from Aresitos.utils.sudo_manager import get_sudo_manager
+                    from aresitos.utils.sudo_manager import get_sudo_manager
                     sudo_manager = get_sudo_manager()
                     install_result = sudo_manager.execute_sudo_command('apt install -y inotify-tools', timeout=60)
                     
@@ -2279,7 +2304,7 @@ class VistaFIM(tk.Frame):
     def _mostrar_ayuda_comandos(self):
         """Mostrar ayuda de comandos disponibles."""
         try:
-            from Aresitos.utils.seguridad_comandos import validador_comandos
+            from aresitos.utils.seguridad_comandos import validador_comandos
             
             comandos = validador_comandos.obtener_comandos_disponibles()
             
@@ -2304,7 +2329,7 @@ class VistaFIM(tk.Frame):
     def _mostrar_info_seguridad(self):
         """Mostrar información de seguridad actual."""
         try:
-            from Aresitos.utils.seguridad_comandos import validador_comandos
+            from aresitos.utils.seguridad_comandos import validador_comandos
             
             info = validador_comandos.obtener_info_seguridad()
             

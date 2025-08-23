@@ -11,7 +11,7 @@ from datetime import datetime, timedelta
 from typing import Dict, Any, Optional, Set, Callable
 from concurrent.futures import ThreadPoolExecutor, as_completed
 
-from Aresitos.controlador.controlador_base import ControladorBase
+from aresitos.controlador.controlador_base import ControladorBase
 
 class GestorComponentes(ControladorBase):
     """
@@ -325,7 +325,7 @@ class GestorComponentes(ControladorBase):
             
             try:
                 # Intentar SIEM estándar que sí existe
-                from Aresitos.modelo.modelo_siem import SIEMKali2025
+                from aresitos.modelo.modelo_siem import SIEMKali2025
                 siem_class = SIEMKali2025
                 version_usada = "estándar"
                 self.logger.info("[SIEM] Usando SIEMKali2025 estándar")
@@ -416,14 +416,14 @@ class GestorComponentes(ControladorBase):
             version_usada = "mock"
             
             try:
-                from Aresitos.modelo.modelo_fim_kali2025 import FIMKali2025
+                from aresitos.modelo.modelo_fim_kali2025 import FIMKali2025
                 fim_class = FIMKali2025
                 version_usada = "Kali2025"
                 self.logger.info("[FIM] Usando FIMKali2025 optimizado")
             except (ImportError, AttributeError, ModuleNotFoundError) as e:
                 self.logger.debug(f"[FIM] FIMKali2025 no disponible: {e}")
                 try:
-                    from Aresitos.modelo.modelo_fim import FIMKali2025
+                    from aresitos.modelo.modelo_fim import FIMKali2025
                     fim_class = FIMKali2025
                     version_usada = "estándar"
                     self.logger.warning("[FIM] Usando FIM estándar")
@@ -565,14 +565,21 @@ class GestorComponentes(ControladorBase):
             version_usada = "mock"
             
             try:
-                # Intentar escaneador estándar que sí existe
-                from Aresitos.modelo.modelo_escaneador import EscaneadorCompleto
+                # Usar escaneador unificado
+                from aresitos.modelo.modelo_escaneador import EscaneadorCompleto
                 escaneador_class = EscaneadorCompleto
-                version_usada = "estándar"
-                self.logger.info("[SCANNER] Usando EscaneadorCompleto estándar")
+                version_usada = "unificado"
+                self.logger.info("[SCANNER] Usando EscaneadorCompleto unificado")
             except (ImportError, AttributeError, ModuleNotFoundError) as e:
-                self.logger.debug(f"[SCANNER] EscaneadorCompleto no disponible: {e}")
-                # Crear mock escaneador para mantener funcionalidad
+                try:
+                    # Fallback a escaneador estándar
+                    from aresitos.modelo.modelo_escaneador import EscaneadorCompleto
+                    escaneador_class = EscaneadorCompleto
+                    version_usada = "estándar"
+                    self.logger.info("[SCANNER] Usando EscaneadorCompleto estándar")
+                except (ImportError, AttributeError, ModuleNotFoundError) as e:
+                    self.logger.debug(f"[SCANNER] EscaneadorCompleto no disponible: {e}")
+                    # Crear mock escaneador para mantener funcionalidad
                 class MockEscaneador:
                     def __init__(self):
                         self.version = "mock_v1.0"
@@ -667,7 +674,7 @@ class GestorComponentes(ControladorBase):
             version_usada = "mock"
             
             try:
-                from Aresitos.modelo.modelo_cuarentena_kali2025 import CuarentenaKali2025
+                from aresitos.modelo.modelo_cuarentena_kali2025 import CuarentenaKali2025
                 cuarentena_instance = CuarentenaKali2025()
                 version_usada = "Kali2025"
                 self.logger.info("[QUARANTINE] Usando CuarentenaKali2025")

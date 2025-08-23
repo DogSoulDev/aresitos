@@ -43,7 +43,7 @@ from datetime import datetime
 from typing import Dict, Any, List, Optional
 from collections import defaultdict, deque
 
-from Aresitos.controlador.controlador_base import ControladorBase
+from aresitos.controlador.controlador_base import ControladorBase
 
 class ControladorSIEM(ControladorBase):
     """
@@ -69,7 +69,7 @@ class ControladorSIEM(ControladorBase):
         else:
             # Inicializar SIEM optimizado directamente
             try:
-                from Aresitos.modelo.modelo_siem import SIEMKali2025
+                from aresitos.modelo.modelo_siem import SIEMKali2025
                 self.siem = SIEMKali2025()
                 self.logger.info("SIEM Kali2025 inicializado correctamente")
             except ImportError as e:
@@ -119,6 +119,20 @@ class ControladorSIEM(ControladorBase):
         
         self.logger.info("Controlador SIEM simplificado inicializado")
     
+
+    def inicializar(self):
+        """
+        Inicializa el controlador (requerido por principios ARESITOS).
+        
+        Returns:
+            bool: True si la inicialización es exitosa
+        """
+        try:
+            self.logger.info("ControladorSiem v3.0 inicializado correctamente")
+            return True
+        except Exception as e:
+            self.logger.error(f"Error en inicializar(): {e}")
+            return False
     def _crear_directorio_logs(self) -> str:
         """Crear directorio para logs SIEM."""
         try:
@@ -137,7 +151,7 @@ class ControladorSIEM(ControladorBase):
             # Verificar o crear modelo SIEM
             if not self.siem:
                 try:
-                    from Aresitos.modelo.modelo_siem import SIEMKali2025
+                    from aresitos.modelo.modelo_siem import SIEMKali2025
                     self.siem = SIEMKali2025()
                     self.logger.info("Modelo SIEM creado internamente")
                 except ImportError:

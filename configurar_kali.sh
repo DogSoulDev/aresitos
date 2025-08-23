@@ -1040,9 +1040,9 @@ configure_aresitos_permissions() {
     chmod -R 755 "$SCRIPT_DIR/logs/" 2>/dev/null
     chmod -R 755 "$SCRIPT_DIR/configuración/" 2>/dev/null
     
-    if [ -d "$SCRIPT_DIR/Aresitos/" ]; then
-        chmod -R 755 "$SCRIPT_DIR/Aresitos/" 2>/dev/null
-        print_success "Permisos configurados para directorio Aresitos/"
+    if [ -d "$SCRIPT_DIR/aresitos/" ]; then
+        chmod -R 755 "$SCRIPT_DIR/aresitos/" 2>/dev/null
+        print_success "Permisos configurados para directorio aresitos/"
     fi
     
     # Permisos específicos para bases de datos

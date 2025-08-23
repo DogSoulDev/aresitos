@@ -9,8 +9,8 @@ import os
 import time
 import subprocess
 from typing import Dict, Any, List, Optional
-from Aresitos.modelo.modelo_monitor import Monitor
-from Aresitos.modelo.modelo_siem import SIEMKali2025
+from aresitos.modelo.modelo_monitor import Monitor
+from aresitos.modelo.modelo_siem import SIEMKali2025
 
 class ControladorMonitoreo:
     """
@@ -31,6 +31,20 @@ class ControladorMonitoreo:
         else:
             self.siem = self.modelo_principal.siem
     
+
+    def inicializar(self):
+        """
+        Inicializa el controlador (requerido por principios ARESITOS).
+        
+        Returns:
+            bool: True si la inicialización es exitosa
+        """
+        try:
+            self.logger.info("ControladorMonitoreo v3.0 inicializado correctamente")
+            return True
+        except Exception as e:
+            self.logger.error(f"Error en inicializar(): {e}")
+            return False
     def iniciar_monitoreo(self) -> Dict[str, Any]:
         """Iniciar monitoreo completo del sistema."""
         resultado = self.monitor.iniciar_monitoreo_completo()

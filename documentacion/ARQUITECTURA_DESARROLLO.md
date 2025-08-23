@@ -6,7 +6,7 @@
 
 ### Estructura del Proyecto
 ```
-Aresitos/
+aresitos/
 ├── controlador/     # Lógica de negocio (15 archivos)
 ├── modelo/          # Gestión de datos (19 archivos)  
 ├── vista/           # Interfaz de usuario (12 archivos)
@@ -277,7 +277,7 @@ controlador.set_modelo(modelo)
 ### **Verificación Sintaxis**
 ```bash
 # Compilación todos los archivos
-find Aresitos/ -name "*.py" -exec python -m py_compile {} \;
+find aresitos/ -name "*.py" -exec python -m py_compile {} \;
 
 # Verificación específica
 python verificacion_final.py
@@ -331,7 +331,7 @@ def test_mvc_integration():
 
 #### CONTROL CONTROLADOR (Coordinación)
 ```python
-Aresitos/controlador/
+aresitos/controlador/
 ├── controlador_principal_nuevo.py     # Coordinador MVC
 ├── controlador_escaneo.py             # Gestión escaneadores
 ├── controlador_fim.py                 # File Integrity Monitor

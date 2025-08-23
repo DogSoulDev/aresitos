@@ -27,10 +27,10 @@ import ctypes
 from typing import Optional, Dict, List
 
 try:
-    from Aresitos.vista.burp_theme import burp_theme
-    from Aresitos.vista.vista_herramientas_kali import VistaHerramientasKali
-    from Aresitos.utils.sudo_manager import SudoManager
-    from Aresitos.utils.gestor_iconos import configurar_icono_ventana
+    from aresitos.vista.burp_theme import burp_theme
+    from aresitos.vista.vista_herramientas_kali import VistaHerramientasKali
+    from aresitos.utils.sudo_manager import SudoManager
+    from aresitos.utils.gestor_iconos import configurar_icono_ventana
     BURP_THEME_AVAILABLE = True
 except ImportError:
     BURP_THEME_AVAILABLE = False
@@ -429,7 +429,7 @@ class LoginAresitos:
             bg=self.bg_secondary
         ).pack(anchor=tk.W, padx=10, pady=(10, 5))
         
-        self.password_entry = tk.Entry(
+        self.password_entry = ttk.Entry(style="Burp.TEntry",
             login_frame,
             show="*",
             font=("Arial", 12),
@@ -446,7 +446,7 @@ class LoginAresitos:
         btn_frame = tk.Frame(login_frame, bg=self.bg_secondary)
         btn_frame.pack(fill=tk.X, padx=10, pady=(0, 10))
         
-        self.login_btn = tk.Button(
+        self.login_btn = ttk.Button(style="Burp.TButton",
             btn_frame,
             text="Verificar Root",
             font=("Arial", 11, "bold"),
@@ -458,7 +458,7 @@ class LoginAresitos:
         )
         self.login_btn.pack(side=tk.LEFT, padx=(0, 10))
         
-        self.skip_btn = tk.Button(
+        self.skip_btn = ttk.Button(style="Burp.TButton",
             btn_frame,
             text="Continuar sin Root",
             font=("Arial", 10),
@@ -1049,9 +1049,9 @@ class LoginAresitos:
         
         try:
             # Importar módulos principales
-            from Aresitos.vista.vista_principal import VistaPrincipal
-            from Aresitos.controlador.controlador_principal import ControladorPrincipal
-            from Aresitos.modelo.modelo_principal import ModeloPrincipal
+            from aresitos.vista.vista_principal import VistaPrincipal
+            from aresitos.controlador.controlador_principal import ControladorPrincipal
+            from aresitos.modelo.modelo_principal import ModeloPrincipal
             
             self.escribir_log("Módulos principales importados correctamente")
             

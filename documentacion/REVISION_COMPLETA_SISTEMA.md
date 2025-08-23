@@ -47,14 +47,14 @@ OK re           - Expresiones regulares (Python stdlib)
 ### **3. VERIFICACIÓN DE SINTAXIS OK SIN ERRORES**
 ```
 OK main.py                                   - Sintaxis correcta
-OK Aresitos/vista/vista_principal.py         - Sintaxis correcta  
-OK Aresitos/vista/vista_dashboard.py         - Sintaxis correcta
-OK Aresitos/vista/vista_escaneo.py           - Sintaxis correcta
-OK Aresitos/vista/vista_siem.py              - Sintaxis correcta
-OK Aresitos/controlador/controlador_principal_nuevo.py - Sintaxis correcta
-OK Aresitos/modelo/modelo_principal.py       - Sintaxis correcta
-OK Aresitos/controlador/controlador_escaneo.py - Sintaxis correcta
-OK Aresitos/controlador/controlador_siem_nuevo.py - Sintaxis correcta
+OK aresitos/vista/vista_principal.py         - Sintaxis correcta  
+OK aresitos/vista/vista_dashboard.py         - Sintaxis correcta
+OK aresitos/vista/vista_escaneo.py           - Sintaxis correcta
+OK aresitos/vista/vista_siem.py              - Sintaxis correcta
+OK aresitos/controlador/controlador_principal_nuevo.py - Sintaxis correcta
+OK aresitos/modelo/modelo_principal.py       - Sintaxis correcta
+OK aresitos/controlador/controlador_escaneo.py - Sintaxis correcta
+OK aresitos/controlador/controlador_siem_nuevo.py - Sintaxis correcta
 ```
 
 ### **4. CONFIGURACIÓN DEL SISTEMA OK VÁLIDA**
@@ -178,7 +178,7 @@ OK Terminal Global             - Logs centralizados
 
 ### **CAMBIOS PENDIENTES EN GIT**
 ```
-Modified: Aresitos/vista/vista_principal.py     (Logging MVC agregado)
+Modified: aresitos/vista/vista_principal.py     (Logging MVC agregado)
 Modified: verificacion_final.py                (Script corregido)  
 Added:    documentacion/REVISION_MVC_ARESITOS.md (Nueva documentación)
 ```

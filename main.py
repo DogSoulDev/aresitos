@@ -365,7 +365,7 @@ def _ejecutar_login_gui(directorio_actual):
             # Fallback Systems - múltiples intentos de importación
             import_attempts = [
                 lambda: __import__('Aresitos.vista.vista_login', fromlist=['LoginAresitos']),
-                lambda: __import__('Aresitos.vista.vista_login'),
+                lambda: __import__(\'aresitos.vista.vista_login'),
             ]
             
             login_module = None
@@ -427,9 +427,9 @@ def iniciar_aplicacion_clasica():
             
             # Fallback Systems para importación de módulos
             module_imports = {
-                'vista': 'Aresitos.vista.vista_principal',
-                'controlador': 'Aresitos.controlador.controlador_principal',
-                'modelo': 'Aresitos.modelo.modelo_principal'
+                'vista': 'aresitos.vista.vista_principal',
+                'controlador': 'aresitos.controlador.controlador_principal',
+                'modelo': 'aresitos.modelo.modelo_principal'
             }
             
             modules = {}
@@ -458,7 +458,7 @@ def iniciar_aplicacion_clasica():
             
             # Dynamic Access para configurar icono
             try:
-                icon_module = __import__('Aresitos.utils.gestor_iconos', fromlist=['configurar_icono_ventana'])
+                icon_module = __import__(\'aresitos.utils.gestor_iconos', fromlist=['configurar_icono_ventana'])
                 configurar_icono = getattr(icon_module, 'configurar_icono_ventana', None)
                 if configurar_icono:
                     configurar_icono(root, "ARESITOS v3.0 - Herramientas de Seguridad")
@@ -592,15 +592,15 @@ def verificacion_estabilidad_sistema():
         # Definir verificaciones en estructura de datos
         verification_data = {
             'archivos_criticos': [
-                "Aresitos/vista/vista_principal.py",
-                "Aresitos/controlador/controlador_principal.py", 
-                "Aresitos/modelo/modelo_principal.py",
-                "Aresitos/modelo/modelo_escaneador_avanzado_real.py",
-                "Aresitos/modelo/modelo_siem.py",
-                "Aresitos/modelo/modelo_fim.py",
-                "Aresitos/modelo/modelo_cuarentena.py",
-                "Aresitos/utils/sudo_manager.py",
-                "Aresitos/vista/terminal_mixin.py"
+                "aresitos/vista/vista_principal.py",
+                "aresitos/controlador/controlador_principal.py", 
+                "aresitos/modelo/modelo_principal.py",
+                "aresitos/modelo/modelo_escaneador_consolidado.py",
+                "aresitos/modelo/modelo_siem.py",
+                "aresitos/modelo/modelo_fim.py",
+                "aresitos/modelo/modelo_cuarentena.py",
+                "aresitos/utils/sudo_manager.py",
+                "aresitos/vista/terminal_mixin.py"
             ],
             'configuraciones': [
                 "configuración/Aresitos_config.json", 

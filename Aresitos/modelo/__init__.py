@@ -7,11 +7,20 @@ Autor: DogSoulDev
 
 # Importaciones principales del sistema de escaneo
 try:
-    from .modelo_escaneador import EscaneadorCompleto
+    # Priorizar el escaneador consolidado
+    from .modelo_escaneador_consolidado import EscaneadorCompleto
     ESCANEADOR_DISPONIBLE = True
+    ESCANEADOR_VERSION = "consolidado"
 except ImportError:
-    EscaneadorCompleto = None
-    ESCANEADOR_DISPONIBLE = False
+    try:
+        # Fallback al escaneador original
+        from .modelo_escaneador import EscaneadorCompleto
+        ESCANEADOR_DISPONIBLE = True
+        ESCANEADOR_VERSION = "original"
+    except ImportError:
+        EscaneadorCompleto = None
+        ESCANEADOR_DISPONIBLE = False
+        ESCANEADOR_VERSION = "ninguno"
 
 # Importar modelo SIEM
 try:

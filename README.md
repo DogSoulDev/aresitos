@@ -116,7 +116,7 @@ python3 main.py --verbose --scanner-debug
 ## **Capturas de Pantalla**
 
 ### Sistema de Autenticación
-![Vista Login](Aresitos/recursos/vista_login.png)
+![Vista Login](aresitos/recursos/vista_login.png)
 
 ### Vista de Herramientas 
 ![Vista Herramientas](Aresitos/recursos/vista_herramientas.png)

@@ -112,10 +112,10 @@ Changelog = "https://github.com/DogSoulDev/Aresitos/blob/master/CHANGELOG.md"
 
 [project.scripts]
 Aresitos = "main:main"
-Aresitos-scanner = "Aresitos.controlador.controlador_escaneo:main"
-Aresitos-fim = "Aresitos.controlador.controlador_fim:main"
-Aresitos-siem = "Aresitos.controlador.controlador_siem_nuevo:main"
-Aresitos-dashboard = "Aresitos.controlador.controlador_dashboard:main"
+Aresitos-scanner = "aresitos.controlador.controlador_escaneo:main"
+Aresitos-fim = "aresitos.controlador.controlador_fim:main"
+Aresitos-siem = "aresitos.controlador.controlador_siem_nuevo:main"
+Aresitos-dashboard = "aresitos.controlador.controlador_dashboard:main"
 
 # ===================================================================
 # HERRAMIENTAS DE DESARROLLO
@@ -150,7 +150,7 @@ profile = "black"
 multi_line_output = 3
 line_length = 88
 skip_gitignore = true
-known_first_party = ["Aresitos"]
+known_first_party = ["aresitos"]
 sections = ["FUTURE", "STDLIB", "THIRDPARTY", "FIRSTPARTY", "LOCALFOLDER"]
 no_lines_before = ["LOCALFOLDER"]
 
@@ -192,7 +192,7 @@ warn_unreachable = true
 strict_equality = true
 
 [tool.pytest.ini_options]
-testpaths = ["tests", "Aresitos/tests"]
+testpaths = ["tests", "aresitos/tests"]
 python_files = ["test_*.py", "*_test.py"]
 python_classes = ["Test*", "*Test", "*Tests"]
 python_functions = ["test_*"]
@@ -211,7 +211,7 @@ markers = [
 ]
 
 [tool.coverage.run]
-source = ["Aresitos"]
+source = ["aresitos"]
 omit = [
     "*/tests/*",
     "*/test_*",
@@ -244,7 +244,7 @@ requires = [
 build-backend = "setuptools.build_meta"
 
 [tool.setuptools]
-packages = ["Aresitos"]
+packages = ["aresitos"]
 include-package-data = true
 
 [tool.setuptools.package-data]

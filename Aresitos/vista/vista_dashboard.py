@@ -20,8 +20,8 @@ import io
 import sys
 
 try:
-    from Aresitos.vista.burp_theme import burp_theme
-    from Aresitos.utils.gestor_iconos import configurar_icono_ventana
+    from aresitos.vista.burp_theme import burp_theme
+    from aresitos.utils.gestor_iconos import configurar_icono_ventana
     BURP_THEME_AVAILABLE = True
 except ImportError:
     BURP_THEME_AVAILABLE = False
@@ -250,7 +250,7 @@ class VistaDashboard(tk.Frame):
         titulo_label.pack()
         
         # Crear notebook para organizar las secciones
-        self.notebook = ttk.Notebook(self)
+        self.notebook = ttk.Notebook(self, style="Custom.TNotebook")
         self.notebook.pack(fill="both", expand=True, padx=10, pady=5)
         
         # ORDEN DE PESTAÑAS:
@@ -320,6 +320,10 @@ class VistaDashboard(tk.Frame):
             insertbackground=self.colors['fg_primary']
         )
         self.interfaces_text.pack(fill="both", expand=True, padx=10, pady=5)
+        
+        # Configurar tema Burp para widget Text siguiendo principios ARESITOS
+        if hasattr(self, 'theme') and self.theme:
+            self.theme.configure_text_widget(self.interfaces_text)
     
     def crear_pestana_terminal(self):
         """Crear pestaña de terminal integrado con sistema de logging."""
@@ -461,6 +465,10 @@ class VistaDashboard(tk.Frame):
         )
         self.terminal_output.pack(fill="both", expand=True, padx=5, pady=5)
         
+        # Configurar tema Burp para widget Text siguiendo principios ARESITOS
+        if hasattr(self, 'theme') and self.theme:
+            self.theme.configure_text_widget(self.terminal_output)
+        
         # Frame para entrada de comandos (DEBAJO DEL TERMINAL)
         entrada_frame = tk.Frame(terminal_frame, bg=self.colors['bg_secondary'])
         entrada_frame.pack(fill="x", padx=10, pady=5)
@@ -547,7 +555,7 @@ class VistaDashboard(tk.Frame):
             rutas_logs = [
                 "logs/",  # Carpeta logs del proyecto
                 "./logs/",
-                os.path.expanduser("~/Ares/Aresitos/logs/"),
+                os.path.expanduser("~/Ares/aresitos/logs/"),
                 "/var/log/aresitos/",
                 "/tmp/aresitos_logs/"
             ]
@@ -619,7 +627,7 @@ class VistaDashboard(tk.Frame):
                 "data/cheatsheets/",
                 "./data/cheatsheets/",
                 os.path.expanduser("~/Desktop/ARESITOS/data/cheatsheets/"),
-                os.path.expanduser("~/Aresitos/data/cheatsheets/"),
+                os.path.expanduser("~/aresitos/data/cheatsheets/"),
                 "/opt/aresitos/data/cheatsheets/",
                 "/usr/share/aresitos/cheatsheets/"
             ]
@@ -1461,6 +1469,10 @@ class VistaDashboard(tk.Frame):
             wrap=tk.WORD
         )
         self.cheatsheet_text.pack(fill="both", expand=True, padx=5, pady=5)
+        
+        # Configurar tema Burp para widget Text siguiendo principios ARESITOS
+        if hasattr(self, 'theme') and self.theme:
+            self.theme.configure_text_widget(self.cheatsheet_text)
         
         # Cargar cheatsheet inicial si hay categorías
         if self.categorias_chuletas.size() > 0:
