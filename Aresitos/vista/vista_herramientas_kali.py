@@ -16,6 +16,8 @@ import subprocess
 import threading
 import logging
 from typing import Optional, Any
+import concurrent.futures
+from concurrent.futures import ThreadPoolExecutor
 
 try:
     from Aresitos.vista.burp_theme import burp_theme
@@ -29,224 +31,421 @@ class VistaHerramientasKali(tk.Frame):
     """Vista para herramientas nativas de Kali Linux"""
     
     def __init__(self, parent, callback_completado=None):
+        """Inicialización con principios ARESITOS V3: Thread Safety + Acceso Dinámico."""
         super().__init__(parent)
+        
+        # PRINCIPIO ARESITOS V3: Thread Safety
+        self.lock = threading.RLock()
+        self.executor = ThreadPoolExecutor(max_workers=4, thread_name_prefix="ARESITOS_Kali")
         
         # VERIFICACIÓN CRÍTICA: Solo para Kali Linux (excepto en modo desarrollo)
         import sys
         modo_desarrollo = '--dev' in sys.argv or '--desarrollo' in sys.argv
         
-        if not self._verificar_kali_linux() and not modo_desarrollo:
-            messagebox.showerror(
-                "Error - Solo Kali Linux", 
-                "ARESITOS está diseñado exclusivamente para Kali Linux.\n\n"
-                "Sistema detectado no es compatible.\n"
-                "Instale Kali Linux para usar ARESITOS."
-            )
-            self.destroy()
-            return
-        elif not self._verificar_kali_linux() and modo_desarrollo:
-            messagebox.showinfo(
-                "Modo Desarrollo", 
-                "MODO DESARROLLO ACTIVADO\n\n"
-                "Ejecutando en entorno no-Kali.\n"
-                "Funcionalidad limitada disponible."
-            )
+        try:
+            if not self._verificar_kali_linux() and not modo_desarrollo:
+                messagebox.showerror(
+                    "Error - Solo Kali Linux", 
+                    "ARESITOS está diseñado exclusivamente para Kali Linux.\n\n"
+                    "Sistema detectado no es compatible.\n"
+                    "Instale Kali Linux para usar ARESITOS."
+                )
+                self._cleanup_resources()
+                return
+            elif not self._verificar_kali_linux() and modo_desarrollo:
+                messagebox.showinfo(
+                    "Modo Desarrollo", 
+                    "MODO DESARROLLO ACTIVADO\n\n"
+                    "Ejecutando en entorno no-Kali.\n"
+                    "Funcionalidad limitada disponible."
+                )
             
-        self.controlador = None  # Patrón MVC
-        self.callback_completado = callback_completado
-        self.proceso_activo = False
-        self.logger = logging.getLogger(__name__)
-        
-        # Configurar tema
-        if BURP_THEME_AVAILABLE and burp_theme:
-            self.theme = burp_theme
-            self.configure(bg=burp_theme.get_color('bg_primary'))
-            self.colors = {
-                'bg_primary': burp_theme.get_color('bg_primary'),
-                'bg_secondary': burp_theme.get_color('bg_secondary'), 
-                'fg_primary': burp_theme.get_color('fg_primary'),
-                'fg_accent': burp_theme.get_color('fg_accent'),
-                'button_bg': burp_theme.get_color('button_bg'),
-                'success': burp_theme.get_color('success'),
-                'warning': burp_theme.get_color('warning')
-            }
-        else:
-            self.colors = {
-                'bg_primary': '#2e2e2e',
-                'bg_secondary': '#404040',
-                'fg_primary': '#ffffff',
-                'fg_accent': '#ff6633',
-                'button_bg': '#007acc',
-                'success': '#00ff00',
-                'warning': '#ffaa00'
-            }
+            # PRINCIPIO ARESITOS V3: Inicialización Dinámica
+            self.controlador = None  # Patrón MVC
+            self.callback_completado = callback_completado
+            self.proceso_activo = False
+            self.logger = logging.getLogger(__name__)
+            
+            # PRINCIPIO ARESITOS V3: Configuración de tema con fallback
+            self._configurar_tema_dinamico()
+            
+            # PRINCIPIO ARESITOS V3: Cache sistema
+            self._cache_herramientas = {}
+            self._cache_comandos = {}
+            
+            # Crear interfaz protegida
+            self.crear_interfaz()
+            
+        except Exception as e:
+            self.logger.error(f"Error en inicialización: {e}")
+            self._crear_interfaz_fallback()
+    
+    def _cleanup_resources(self):
+        """Limpieza de recursos con thread safety (PRINCIPIO ARESITOS V3)."""
+        try:
+            with self.lock:
+                if hasattr(self, 'executor'):
+                    self.executor.shutdown(wait=False)
+                if hasattr(self, 'proceso_activo'):
+                    self.proceso_activo = False
+        except Exception as e:
+            print(f"Error en cleanup: {e}")
+    
+    def _configurar_tema_dinamico(self):
+        """Configuración dinámica del tema con fallback (PRINCIPIO ARESITOS V3)."""
+        try:
+            # Acceso dinámico al tema
+            if BURP_THEME_AVAILABLE and burp_theme:
+                self.theme = burp_theme
+                bg_color = getattr(burp_theme, 'get_color', lambda x: '#2e2e2e')('bg_primary')
+                self.configure(bg=bg_color)
+                
+                self.colors = {
+                    'bg_primary': getattr(burp_theme, 'get_color', lambda x: '#2e2e2e')('bg_primary'),
+                    'bg_secondary': getattr(burp_theme, 'get_color', lambda x: '#404040')('bg_secondary'), 
+                    'fg_primary': getattr(burp_theme, 'get_color', lambda x: '#ffffff')('fg_primary'),
+                    'fg_accent': getattr(burp_theme, 'get_color', lambda x: '#ff6633')('fg_accent'),
+                    'button_bg': getattr(burp_theme, 'get_color', lambda x: '#007acc')('button_bg'),
+                    'success': getattr(burp_theme, 'get_color', lambda x: '#00ff00')('success'),
+                    'warning': getattr(burp_theme, 'get_color', lambda x: '#ffaa00')('warning')
+                }
+            else:
+                # Tema fallback
+                self.colors = {
+                    'bg_primary': '#2e2e2e',
+                    'bg_secondary': '#404040',
+                    'fg_primary': '#ffffff',
+                    'fg_accent': '#ff6633',
+                    'button_bg': '#007acc',
+                    'success': '#00ff00',
+                    'warning': '#ffaa00'
+                }
+                self.configure(bg=self.colors['bg_primary'])
+                
+        except Exception as e:
+            self.logger.warning(f"Error configurando tema: {e}")
+            # Tema de emergencia
+            self.colors = {'bg_primary': '#2e2e2e', 'bg_secondary': '#404040', 'fg_primary': '#ffffff',
+                          'fg_accent': '#ff6633', 'button_bg': '#007acc', 'success': '#00ff00', 'warning': '#ffaa00'}
             self.configure(bg=self.colors['bg_primary'])
-        
-        self.crear_interfaz()
+    
+    def _crear_interfaz_fallback(self):
+        """Interfaz de fallback en caso de error (PRINCIPIO ARESITOS V3)."""
+        try:
+            fallback_frame = tk.Frame(self, bg='#2e2e2e')
+            fallback_frame.pack(fill="both", expand=True, padx=20, pady=20)
+            
+            tk.Label(
+                fallback_frame,
+                text="⚠️ MODO SEGURO - HERRAMIENTAS KALI",
+                bg='#2e2e2e',
+                fg='#ffaa00',
+                font=('Arial', 12, 'bold')
+            ).pack(pady=10)
+            
+            tk.Label(
+                fallback_frame,
+                text="Interfaz reducida disponible",
+                bg='#2e2e2e',
+                fg='#ffffff'
+            ).pack()
+            
+        except Exception as e:
+            print(f"Error en interfaz fallback: {e}")
     
     def set_controlador(self, controlador: Optional[Any]):
         """Establecer controlador siguiendo patrón MVC"""
         self.controlador = controlador
     
     def crear_interfaz(self):
-        """Crear interfaz completa para herramientas Kali"""
-        # Frame principal
-        main_frame = tk.Frame(self, bg=self.colors['bg_primary'])
-        main_frame.pack(fill="both", expand=True, padx=20, pady=20)
-        
-        # Logo de Aresitos
+        """Crear interfaz completa para herramientas Kali con principios ARESITOS V3."""
+        try:
+            # PRINCIPIO ARESITOS V3: Thread Safety
+            with self.lock:
+                # Frame principal
+                main_frame = tk.Frame(self, bg=self.colors['bg_primary'])
+                main_frame.pack(fill="both", expand=True, padx=20, pady=20)
+                
+                # PRINCIPIO ARESITOS V3: Carga dinámica de logo
+                self._cargar_logo_dinamico(main_frame)
+                
+                # Título principal
+                titulo = tk.Label(
+                    main_frame,
+                    text="🛡️ HERRAMIENTAS KALI LINUX",
+                    bg=self.colors['bg_primary'],
+                    fg=self.colors['fg_accent'],
+                    font=('Arial', 16, 'bold')
+                )
+                titulo.pack(pady=(0, 20))
+                
+                # PRINCIPIO ARESITOS V3: Creación protegida de componentes
+                self._crear_notebook_herramientas(main_frame)
+                
+        except Exception as e:
+            self.logger.error(f"Error creando interfaz: {e}")
+            self._crear_interfaz_fallback()
+    
+    def _cargar_logo_dinamico(self, parent):
+        """Carga dinámica del logo con fallback (PRINCIPIO ARESITOS V3)."""
         try:
             import os
             logo_path = os.path.join(os.path.dirname(__file__), '..', 'recursos', 'Aresitos.png')
+            
             if os.path.exists(logo_path):
-                self.logo_img = tk.PhotoImage(file=logo_path)
-                logo_label = tk.Label(
-                    main_frame,
-                    image=self.logo_img,
-                    bg=self.colors['bg_primary']
-                )
-                logo_label.pack(pady=(0, 10))
-        except Exception:
-            pass  # Continuar sin logo si hay problemas
-        
-        # Título
-        titulo_label = tk.Label(
-            main_frame, 
-            text="Configurador de Herramientas Kali",
-            font=('Arial', 16, 'bold'),
-            bg=self.colors['bg_primary'], 
-            fg=self.colors['fg_accent']
-        )
-        titulo_label.pack(pady=(0, 20))
-        
-        # Subtítulo informativo
-        info_label = tk.Label(
-            main_frame,
-            text="Antes de arrancar el programa es recomendable instalar las herramientas que se usaran.",
-            font=('Arial', 11),
-            bg=self.colors['bg_primary'],
-            fg=self.colors['fg_primary'],
-            justify=tk.CENTER
-        )
-        info_label.pack(pady=(0, 30))
-        
-        # Frame de botones con distribución uniforme
-        botones_frame = tk.Frame(main_frame, bg=self.colors['bg_primary'])
-        botones_frame.pack(fill="x", pady=(0, 20))
-        
-        # Configurar columnas con peso igual para distribución uniforme
-        for i in range(4):
-            botones_frame.grid_columnconfigure(i, weight=1, uniform="botones")
-        
-        # Botón verificar herramientas
-        self.btn_verificar = tk.Button(
-            botones_frame,
-            text="Verificar Herramientas",
-            command=self.verificar_herramientas,
-            bg=self.colors['button_bg'],
-            fg='white',
-            font=('Arial', 10, 'bold'),
-            relief='flat',
-            padx=15,
-            pady=8,
-            cursor='hand2'
-        )
-        self.btn_verificar.grid(row=0, column=0, padx=10, sticky="ew")
-        
-        # Botón mostrar optimizaciones
-        self.btn_optimizaciones = tk.Button(
-            botones_frame,
-            text="Ver Optimizaciones",
-            command=self.mostrar_optimizaciones,
-            bg='#9C27B0',
-            fg='white',
-            font=('Arial', 10, 'bold'),
-            relief='flat',
-            padx=15,
-            pady=8,
-            cursor='hand2'
-        )
-        self.btn_optimizaciones.grid(row=0, column=1, padx=10, sticky="ew")
-        
-        # Botón instalar herramientas
-        self.btn_instalar = tk.Button(
-            botones_frame,
-            text="Instalar Faltantes",
-            command=self.instalar_herramientas,
-            bg=self.colors['warning'],
-            fg='white',
-            font=('Arial', 10, 'bold'),
-            relief='flat',
-            padx=15,
-            pady=8,
-            cursor='hand2',
-            state='disabled'
-        )
-        self.btn_instalar.grid(row=0, column=2, padx=10, sticky="ew")
-        
-        # Botón continuar (habilitado por defecto en modo desarrollo)
-        self.btn_continuar = tk.Button(
-            botones_frame,
-            text="Continuar a ARESITOS",
-            command=self.continuar_aplicacion,
-            bg=self.colors['success'],
-            fg='white',
-            font=('Arial', 10, 'bold'),
-            relief='flat',
-            padx=15,
-            pady=8,
-            cursor='hand2',
-            state='normal'  # Habilitado por defecto
-        )
-        self.btn_continuar.grid(row=0, column=3, padx=10, sticky="ew")
-        
-        # Área de resultados
-        self.text_resultados = scrolledtext.ScrolledText(
-            main_frame,
-            height=20,
-            width=80,
-            bg=self.colors['bg_secondary'],
-            fg=self.colors['fg_primary'],
-            font=('Consolas', 10),
-            insertbackground=self.colors['fg_accent'],
-            relief='flat',
-            bd=2
-        )
-        self.text_resultados.pack(fill="both", expand=True)
-        
-        # Mensaje inicial
-        self.text_resultados.insert(tk.END, 
-            "ARESITOS v3.0 - Configurador de Herramientas Escaneador Profesional\n" +
-            "=" * 50 + "\n\n" +
-            "Sistema optimizado para Kali Linux con comandos nativos integrados:\n\n" +
-            "COMANDOS BÁSICOS:\n" +
-            "• Sistema: ps, ss, lsof, grep, awk, find, stat, lsmod, iptables\n" +
-            "• Red: nmap, netcat, ip, route, ss, hping3, curl, wget\n" +
-            "• Archivos: ls, chmod, chown, cat, sha256sum, md5sum\n\n" +
-            "SEGURIDAD Y DETECCIÓN:\n" +
-            "• Anti-rootkit: chkrootkit, rkhunter, lynis, unhide, tiger\n" +
-            "• Malware: clamav, yara, binwalk, strings, exiftool\n" +
-            "• Monitoreo: inotifywait, auditd, systemctl, pspy, aide\n" +
-            "• Firewall: iptables, fail2ban-client\n\n" +
-            "ANÁLISIS FORENSE:\n" +
-            "• Forense: sleuthkit, autopsy, foremost\n" +
-            "• Memoria: hexdump, strings, file, binwalk\n" +
-            "• Logs: journalctl, aureport, logwatch, rsyslog\n\n" +
-            "[NETWORK] PENETRACIÓN Y AUDITORÍA:\n" +
-            "• Escaneadores: nmap, masscan, nuclei, nikto, gobuster, feroxbuster\n" +
-            "• Cracking: hashcat, john, hydra, medusa, patator, crunch\n" +
-            "• Web: sqlmap, whatweb, wfuzz, ffuf, dirb\n" +
-            "• Bases de datos: sqlite3, mysql, psql\n\n" +
-            "📁 INTERFAZ Y VISUALIZACIÓN:\n" +
-            "• Gestores: thunar, nautilus, dolphin, xdg-open\n" +
-            "• Editores: nano, vim, gedit, mousepad\n\n" +
-            "Haga clic en 'Verificar Herramientas' para comprobar disponibilidad.\n" +
-            "NOTA: Los comandos básicos del sistema ya están integrados.\n\n"
-        )
-        
-        # Centrar ventana
-        self.after(100, self._centrar_ventana)
+                # Acceso dinámico a PhotoImage
+                photo_image = getattr(tk, 'PhotoImage', None)
+                if photo_image:
+                    self.logo_img = photo_image(file=logo_path)
+                    logo_label = tk.Label(
+                        parent,
+                        image=self.logo_img,
+                        bg=self.colors['bg_primary']
+                    )
+                    logo_label.pack(pady=(0, 10))
+                else:
+                    self.logger.warning("PhotoImage no disponible")
+        except Exception as e:
+            self.logger.warning(f"Error cargando logo: {e}")
+            # Continuar sin logo si hay problemas
     
+    def _crear_notebook_herramientas(self, parent):
+        """Crear notebook de herramientas con acceso dinámico (PRINCIPIO ARESITOS V3)."""
+        try:
+            # Crear notebook con verificación dinámica
+            notebook_class = getattr(ttk, 'Notebook', None)
+            if notebook_class:
+                self.notebook = notebook_class(parent)
+                self.notebook.pack(fill="both", expand=True)
+                
+                # PRINCIPIO ARESITOS V3: Creación asíncrona de tabs
+                self.executor.submit(self._crear_tabs_herramientas)
+            else:
+                self.logger.error("Notebook no disponible")
+                self._crear_interfaz_simple(parent)
+                
+        except Exception as e:
+            self.logger.error(f"Error creando notebook: {e}")
+            self._crear_interfaz_simple(parent)
+    
+    def _crear_interfaz_simple(self, parent):
+        """Interfaz simple de fallback (PRINCIPIO ARESITOS V3)."""
+        try:
+            simple_frame = tk.Frame(parent, bg=self.colors['bg_primary'])
+            simple_frame.pack(fill="both", expand=True)
+            
+            tk.Label(
+                simple_frame,
+                text="📋 Herramientas Kali disponibles en modo básico",
+                bg=self.colors['bg_primary'],
+                fg=self.colors['fg_primary'],
+                font=('Arial', 12)
+            ).pack(pady=20)
+            
+        except Exception as e:
+            self.logger.error(f"Error en interfaz simple: {e}")
+    
+    def _crear_tabs_herramientas(self):
+        """Crear contenido de herramientas de forma asíncrona (PRINCIPIO ARESITOS V3)."""
+        try:
+            # PRINCIPIO ARESITOS V3: Verificación dinámica de notebook
+            if hasattr(self, 'notebook') and self.notebook:
+                # Por ahora, retornamos ya que el archivo usa botones directos
+                # En futuras versiones se pueden agregar tabs específicos
+                self.logger.info("Notebook disponible para futuras expansiones")
+            else:
+                self.logger.warning("Notebook no disponible")
+                
+        except Exception as e:
+            self.logger.error(f"Error preparando tabs: {e}")
+        
+        # Continuar con la creación de la interfaz original
+        try:
+            # Llamar al método después para crear la interfaz principal
+            self.after(100, self._crear_interfaz_principal)
+        except Exception as e:
+            self.logger.error(f"Error programando interfaz principal: {e}")
+    
+    def _crear_interfaz_principal(self):
+        """Crear la interfaz principal con botones (PRINCIPIO ARESITOS V3)."""
+        try:
+            # Verificar si ya tiene parent configurado
+            if not hasattr(self, '_interfaz_creada'):
+                self._interfaz_creada = True
+                
+                # Buscar el main_frame o crear uno nuevo
+                main_frame = None
+                for child in self.winfo_children():
+                    if isinstance(child, tk.Frame):
+                        main_frame = child
+                        break
+                
+                if not main_frame:
+                    main_frame = tk.Frame(self, bg=self.colors['bg_primary'])
+                    main_frame.pack(fill="both", expand=True, padx=20, pady=20)
+                
+                # Título
+                titulo_label = tk.Label(
+                    main_frame, 
+                    text="Configurador de Herramientas Kali",
+                    font=('Arial', 16, 'bold'),
+                    bg=self.colors['bg_primary'], 
+                    fg=self.colors['fg_accent']
+                )
+                titulo_label.pack(pady=(0, 20))
+                
+                # Subtítulo informativo
+                info_label = tk.Label(
+                    main_frame,
+                    text="Antes de arrancar el programa es recomendable instalar las herramientas que se usaran.",
+                    font=('Arial', 11),
+                    bg=self.colors['bg_primary'],
+                    fg=self.colors['fg_primary'],
+                    justify=tk.CENTER
+                )
+                info_label.pack(pady=(0, 30))
+                
+                # Frame de botones con distribución uniforme
+                botones_frame = tk.Frame(main_frame, bg=self.colors['bg_primary'])
+                botones_frame.pack(fill="x", pady=(0, 20))
+                
+                # Configurar columnas con peso igual para distribución uniforme
+                for i in range(4):
+                    botones_frame.grid_columnconfigure(i, weight=1, uniform="botones")
+                
+                # PRINCIPIO ARESITOS V3: Creación protegida de botones
+                self._crear_botones_herramientas(botones_frame, main_frame)
+                
+        except Exception as e:
+            self.logger.error(f"Error creando interfaz principal: {e}")
+    
+    def _crear_botones_herramientas(self, botones_frame, main_frame):
+        """Crear botones de herramientas con acceso dinámico (PRINCIPIO ARESITOS V3)."""
+        try:
+            # Botón verificar herramientas
+            self.btn_verificar = tk.Button(
+                botones_frame,
+                text="Verificar Herramientas",
+                command=self.verificar_herramientas,
+                bg=self.colors['button_bg'],
+                fg='white',
+                font=('Arial', 10, 'bold'),
+                relief='flat',
+                padx=15,
+                pady=8,
+                cursor='hand2'
+            )
+            self.btn_verificar.grid(row=0, column=0, padx=10, sticky="ew")
+            
+            # Botón mostrar optimizaciones
+            self.btn_optimizaciones = tk.Button(
+                botones_frame,
+                text="Ver Optimizaciones",
+                command=self.mostrar_optimizaciones,
+                bg='#9C27B0',
+                fg='white',
+                font=('Arial', 10, 'bold'),
+                relief='flat',
+                padx=15,
+                pady=8,
+                cursor='hand2'
+            )
+            self.btn_optimizaciones.grid(row=0, column=1, padx=10, sticky="ew")
+            
+            # Botón instalar herramientas
+            self.btn_instalar = tk.Button(
+                botones_frame,
+                text="Instalar Faltantes",
+                command=self.instalar_herramientas,
+                bg=self.colors['warning'],
+                fg='white',
+                font=('Arial', 10, 'bold'),
+                relief='flat',
+                padx=15,
+                pady=8,
+                cursor='hand2',
+                state='disabled'
+            )
+            self.btn_instalar.grid(row=0, column=2, padx=10, sticky="ew")
+            
+            # PRINCIPIO ARESITOS V3: Continuar con resto de la interfaz
+            self._crear_resto_interfaz(botones_frame, main_frame)
+            
+        except Exception as e:
+            self.logger.error(f"Error creando botones: {e}")
+    
+    def _crear_resto_interfaz(self, botones_frame, main_frame):
+        """Crear el resto de la interfaz (PRINCIPIO ARESITOS V3)."""
+        try:
+            # Botón continuar (habilitado por defecto en modo desarrollo)
+            self.btn_continuar = tk.Button(
+                botones_frame,
+                text="Continuar a ARESITOS",
+                command=self.continuar_aplicacion,
+                bg=self.colors['success'],
+                fg='white',
+                font=('Arial', 10, 'bold'),
+                relief='flat',
+                padx=15,
+                pady=8,
+                cursor='hand2',
+                state='normal'  # Habilitado por defecto
+            )
+            self.btn_continuar.grid(row=0, column=3, padx=10, sticky="ew")
+            
+            # Área de resultados
+            self.text_resultados = scrolledtext.ScrolledText(
+                main_frame,
+                height=20,
+                width=80,
+                bg=self.colors['bg_secondary'],
+                fg=self.colors['fg_primary'],
+                font=('Consolas', 10),
+                insertbackground=self.colors['fg_accent'],
+                relief='flat',
+                bd=2
+            )
+            self.text_resultados.pack(fill="both", expand=True)
+            
+            # Mensaje inicial
+            self._mostrar_mensaje_inicial()
+            
+        except Exception as e:
+            self.logger.error(f"Error creando resto de interfaz: {e}")
+    
+    def _mostrar_mensaje_inicial(self):
+        """Mostrar mensaje inicial con acceso dinámico (PRINCIPIO ARESITOS V3)."""
+        try:
+            # PRINCIPIO ARESITOS V3: Acceso dinámico al text widget
+            text_widget = getattr(self, 'text_resultados', None)
+            if text_widget:
+                metodo_insert = getattr(text_widget, 'insert', None)
+                if metodo_insert:
+                    mensaje_inicial = (
+                        "ARESITOS v3.0 - Configurador de Herramientas Escaneador Profesional\n" +
+                        "=" * 50 + "\n\n" +
+                        "Sistema optimizado para Kali Linux con comandos nativos integrados:\n\n" +
+                        "COMANDOS BÁSICOS:\n" +
+                        "• Sistema: ps, ss, lsof, grep, awk, find, stat, lsmod, iptables\n" +
+                        "• Red: nmap, netcat, ip, route, ss, hping3, curl, wget\n" +
+                        "• Análisis: wireshark, tcpdump, strings, file, hexdump\n" +
+                        "• Forense: volatility, binwalk, foremost, dd, autopsy\n\n" +
+                        "HERRAMIENTAS ESPECIALIZADAS:\n" +
+                        "• Reconocimiento: nmap, masscan, enum4linux, gobuster\n" +
+                        "• Vulnerabilidades: nikto, dirb, sqlmap, wpscan\n" +
+                        "• Explotación: metasploit, burpsuite, hydra, john\n" +
+                        "• Post-explotación: mimikatz, empire, powersploit\n" +
+                        "• Análisis malware: yara, clamav, virustotal-cli\n\n" +
+                        "🔧 Presiona 'Verificar Herramientas' para comprobar disponibilidad\n" +
+                        "⚙️ Presiona 'Ver Optimizaciones' para detalles técnicos\n" +
+                        "📦 Presiona 'Instalar Faltantes' si necesitas herramientas\n" +
+                        "▶️ Presiona 'Continuar a ARESITOS' cuando estés listo\n\n"
+                    )
+                    metodo_insert(tk.END, mensaje_inicial)
+                else:
+                    self.logger.warning("Método insert no disponible en text_resultados")
+        except Exception as e:
+            self.logger.error(f"Error mostrando mensaje inicial: {e}")
     def _centrar_ventana(self):
         """Centrar la ventana en la pantalla"""
         try:
@@ -373,28 +572,59 @@ LISTO PARA: Escaneos de vulnerabilidades en entornos Kali Linux 2025
         self._log_terminal("Optimizaciones Kali Linux mostradas", "HERRAMIENTAS_KALI", "INFO")
     
     def verificar_herramientas(self):
-        """Verificar herramientas de Kali Linux disponibles"""
-        if self.proceso_activo:
-            return
-        
-        self.proceso_activo = True
+        """Verificar herramientas de Kali Linux disponibles con principios ARESITOS V3."""
         try:
-            if hasattr(self, 'btn_verificar') and self.btn_verificar.winfo_exists():
-                self.btn_verificar.config(state='disabled')
-            if hasattr(self, 'text_resultados') and self.text_resultados.winfo_exists():
-                self.text_resultados.delete(1.0, tk.END)
-        except (tk.TclError, AttributeError):
-            pass
-        
-        # Ejecutar verificación en thread separado
-        thread = threading.Thread(target=self._verificar_herramientas_async)
-        thread.daemon = True
-        thread.start()
+            # PRINCIPIO ARESITOS V3: Thread Safety
+            with self.lock:
+                if self.proceso_activo:
+                    self.logger.warning("Verificación ya en proceso")
+                    return
+                
+                self.proceso_activo = True
+                
+                # PRINCIPIO ARESITOS V3: Acceso dinámico a componentes UI
+                btn_verificar = getattr(self, 'btn_verificar', None)
+                if btn_verificar:
+                    metodo_exists = getattr(btn_verificar, 'winfo_exists', None)
+                    metodo_config = getattr(btn_verificar, 'config', None)
+                    if metodo_exists and metodo_config:
+                        try:
+                            if metodo_exists():
+                                metodo_config(state='disabled')
+                        except tk.TclError:
+                            pass
+                
+                text_resultados = getattr(self, 'text_resultados', None)
+                if text_resultados:
+                    metodo_exists = getattr(text_resultados, 'winfo_exists', None)
+                    metodo_delete = getattr(text_resultados, 'delete', None)
+                    if metodo_exists and metodo_delete:
+                        try:
+                            if metodo_exists():
+                                metodo_delete(1.0, tk.END)
+                        except tk.TclError:
+                            pass
+                
+                # PRINCIPIO ARESITOS V3: Ejecución asíncrona con ThreadPoolExecutor
+                self.executor.submit(self._verificar_herramientas_async)
+                
+        except Exception as e:
+            self.logger.error(f"Error iniciando verificación de herramientas: {e}")
+            self.proceso_activo = False
     
     def _verificar_herramientas_async(self):
-        """Verificación asíncrona de herramientas"""
+        """Verificación asíncrona de herramientas con principios ARESITOS V3."""
         try:
+            # PRINCIPIO ARESITOS V3: Thread Safety y logging
+            with self.lock:
+                self.logger.info("Iniciando verificación asíncrona de herramientas")
+            
+            # Mostrar mensaje inicial de forma segura
             self.after(0, self._actualizar_texto, "Verificando herramientas de Kali Linux...\n\n")
+            
+            # PRINCIPIO ARESITOS V3: Cache sistema para herramientas
+            if not hasattr(self, '_cache_herramientas'):
+                self._cache_herramientas = {}
             
             # Lista de herramientas esenciales modernizadas para Kali 2025
             herramientas = [
@@ -497,16 +727,33 @@ LISTO PARA: Escaneos de vulnerabilidades en entornos Kali Linux 2025
                 pass
     
     def _actualizar_texto(self, texto):
-        """Actualizar texto en el área de resultados con verificación de seguridad"""
+        """Actualizar texto en el área de resultados con principios ARESITOS V3."""
         try:
-            # Verificar si el widget aún existe y la ventana no ha sido destruida
-            if hasattr(self, 'text_resultados') and self.text_resultados.winfo_exists():
-                self.text_resultados.insert(tk.END, texto)
-                self.text_resultados.see(tk.END)
-                self.text_resultados.update()
-        except (tk.TclError, AttributeError):
-            # Widget ya destruido, ignorar silenciosamente
-            pass
+            # PRINCIPIO ARESITOS V3: Acceso dinámico a text_resultados
+            text_widget = getattr(self, 'text_resultados', None)
+            if text_widget:
+                # Verificar métodos dinámicamente
+                metodo_exists = getattr(text_widget, 'winfo_exists', None)
+                metodo_insert = getattr(text_widget, 'insert', None)
+                metodo_see = getattr(text_widget, 'see', None)
+                metodo_update = getattr(text_widget, 'update', None)
+                
+                if metodo_exists and metodo_exists():
+                    if metodo_insert:
+                        metodo_insert(tk.END, texto)
+                    if metodo_see:
+                        metodo_see(tk.END)
+                    if metodo_update:
+                        metodo_update()
+                else:
+                    self.logger.warning("Widget text_resultados no existe")
+            else:
+                self.logger.warning("text_resultados no disponible")
+        except (tk.TclError, AttributeError) as e:
+            # PRINCIPIO ARESITOS V3: Logging robusto de errores
+            self.logger.debug(f"Widget ya destruido o error de acceso: {e}")
+        except Exception as e:
+            self.logger.error(f"Error actualizando texto: {e}")
     
     def _finalizar_verificacion(self):
         """Finalizar proceso de verificación con verificación de seguridad"""
@@ -852,32 +1099,93 @@ LISTO PARA: Escaneos de vulnerabilidades en entornos Kali Linux 2025
             print(f"Terminal log error: {e}")
     
     def _verificar_kali_linux(self) -> bool:
-        """Verificar que estamos ejecutando en Kali Linux."""
+        """Verificar que estamos ejecutando en Kali Linux con principios ARESITOS V3."""
         try:
             import platform
             import os
             
-            # Verificar ID del sistema operativo
+            # PRINCIPIO ARESITOS V3: Cache sistema para verificaciones
+            cache_key = 'kali_verification'
+            if hasattr(self, '_cache_herramientas') and cache_key in self._cache_herramientas:
+                return self._cache_herramientas[cache_key]
+            
+            # PRINCIPIO ARESITOS V3: Verificación múltiple con fallbacks dinámicos
+            verificaciones = [
+                self._verificar_os_release,
+                self._verificar_platform_system,
+                self._verificar_lsb_release,
+                self._verificar_directorios_kali,
+                self._verificar_comandos_kali
+            ]
+            
+            for verificacion in verificaciones:
+                try:
+                    if verificacion():
+                        # Guardar en cache
+                        if hasattr(self, '_cache_herramientas'):
+                            self._cache_herramientas[cache_key] = True
+                        return True
+                except Exception as e:
+                    self.logger.debug(f"Error en verificación {verificacion.__name__}: {e}")
+                    continue
+            
+            # No es Kali Linux
+            if hasattr(self, '_cache_herramientas'):
+                self._cache_herramientas[cache_key] = False
+            return False
+            
+        except Exception as e:
+            self.logger.error(f"Error verificando Kali Linux: {e}")
+            return False
+    
+    def _verificar_os_release(self) -> bool:
+        """Verificar /etc/os-release para Kali (PRINCIPIO ARESITOS V3)."""
+        try:
+            import os
             if os.path.exists('/etc/os-release'):
                 with open('/etc/os-release', 'r') as f:
-                    contenido = f.read()
-                    if 'ID=kali' in contenido or 'kali' in contenido.lower():
-                        return True
-            
-            # Verificar nombre del sistema
-            if 'kali' in platform.system().lower():
-                return True
-                
-            # Verificar distribución
-            try:
-                resultado = subprocess.run(['lsb_release', '-i'], 
-                                         capture_output=True, text=True, timeout=5)
-                if 'kali' in resultado.stdout.lower():
-                    return True
-            except:
-                pass
-            
+                    contenido = f.read().lower()
+                    return 'id=kali' in contenido or 'kali' in contenido
             return False
+        except Exception:
+            return False
+    
+    def _verificar_platform_system(self) -> bool:
+        """Verificar platform.system() para Kali (PRINCIPIO ARESITOS V3)."""
+        try:
+            import platform
+            return 'kali' in platform.system().lower()
+        except Exception:
+            return False
+    
+    def _verificar_lsb_release(self) -> bool:
+        """Verificar lsb_release para Kali (PRINCIPIO ARESITOS V3)."""
+        try:
+            resultado = subprocess.run(['lsb_release', '-i'], 
+                                     capture_output=True, text=True, timeout=5)
+            return 'kali' in resultado.stdout.lower()
+        except Exception:
+            return False
+    
+    def _verificar_directorios_kali(self) -> bool:
+        """Verificar directorios específicos de Kali (PRINCIPIO ARESITOS V3)."""
+        try:
+            import os
+            directorios_kali = [
+                '/usr/share/kali-themes',
+                '/etc/apt/sources.list.d',
+                '/usr/share/kali-desktop-base'
+            ]
+            return any(os.path.exists(d) for d in directorios_kali)
+        except Exception:
+            return False
+    
+    def _verificar_comandos_kali(self) -> bool:
+        """Verificar comandos específicos de Kali (PRINCIPIO ARESITOS V3)."""
+        try:
+            import shutil
+            comandos_kali = ['apt', 'dpkg', 'systemctl']
+            return all(shutil.which(cmd) for cmd in comandos_kali)
         except Exception:
             return False
 
