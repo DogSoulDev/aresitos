@@ -316,7 +316,7 @@ python3 main.py --dev
 Aresitos/
 ├── main.py                     # Punto de entrada principal
 ├── configurar_kali.sh          # Script de configuración automática
-├── aresitos/                   # Módulo principal de la aplicación
+├── Aresitos/                   # Módulo principal de la aplicación
 │   ├── controlador/            # Lógica de negocio (15 controladores)
 │   ├── modelo/                 # Gestión de datos y persistencia (19 modelos)
 │   ├── vista/                  # Interfaces de usuario (12 vistas)
@@ -596,10 +596,10 @@ def main():
     print("\n📁 VERIFICANDO ESTRUCTURA...")
     archivos_criticos = [
         'main.py',
-        'aresitos/__init__.py',
-        'aresitos/modelo/modelo_escaneador_kali2025.py',
-        'aresitos/vista/vista_principal.py',
-        'aresitos/controlador/controlador_principal_nuevo.py',
+        'Aresitos/__init__.py',
+        'Aresitos/modelo/modelo_escaneador_kali2025.py',
+        'Aresitos/vista/vista_principal.py',
+        'Aresitos/controlador/controlador_principal_nuevo.py',
         'configuración/aresitos_config_kali.json'
     ]
     

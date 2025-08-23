@@ -47,14 +47,14 @@
 ### **3. VERIFICACIÓN DE SINTAXIS ✅ SIN ERRORES**
 ```
 ✅ main.py                                   - Sintaxis correcta
-✅ aresitos/vista/vista_principal.py         - Sintaxis correcta  
-✅ aresitos/vista/vista_dashboard.py         - Sintaxis correcta
-✅ aresitos/vista/vista_escaneo.py           - Sintaxis correcta
-✅ aresitos/vista/vista_siem.py              - Sintaxis correcta
-✅ aresitos/controlador/controlador_principal_nuevo.py - Sintaxis correcta
-✅ aresitos/modelo/modelo_principal.py       - Sintaxis correcta
-✅ aresitos/controlador/controlador_escaneo.py - Sintaxis correcta
-✅ aresitos/controlador/controlador_siem_nuevo.py - Sintaxis correcta
+✅ Aresitos/vista/vista_principal.py         - Sintaxis correcta  
+✅ Aresitos/vista/vista_dashboard.py         - Sintaxis correcta
+✅ Aresitos/vista/vista_escaneo.py           - Sintaxis correcta
+✅ Aresitos/vista/vista_siem.py              - Sintaxis correcta
+✅ Aresitos/controlador/controlador_principal_nuevo.py - Sintaxis correcta
+✅ Aresitos/modelo/modelo_principal.py       - Sintaxis correcta
+✅ Aresitos/controlador/controlador_escaneo.py - Sintaxis correcta
+✅ Aresitos/controlador/controlador_siem_nuevo.py - Sintaxis correcta
 ```
 
 ### **4. CONFIGURACIÓN DEL SISTEMA ✅ VÁLIDA**
@@ -178,7 +178,7 @@ if match not in ['INFO', 'WARNING', 'ERROR']:  # Excluir logging legítimo
 
 ### **CAMBIOS PENDIENTES EN GIT**
 ```
-Modified: aresitos/vista/vista_principal.py     (Logging MVC agregado)
+Modified: Aresitos/vista/vista_principal.py     (Logging MVC agregado)
 Modified: verificacion_final.py                (Script corregido)  
 Added:    documentacion/REVISION_MVC_ARESITOS.md (Nueva documentación)
 ```

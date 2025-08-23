@@ -4,8 +4,8 @@
 ## 🛡️ IMPLEMENTACIÓN DE SEGURIDAD COMPLETADA
 
 ### ✅ ARCHIVOS CREADOS:
-1. `aresitos/utils/sanitizador_archivos.py` - Módulo principal de sanitización
-2. `aresitos/utils/helper_seguridad.py` - Helper para interfaces de usuario
+1. `Aresitos/utils/sanitizador_archivos.py` - Módulo principal de sanitización
+2. `Aresitos/utils/helper_seguridad.py` - Helper para interfaces de usuario
 3. `logs/.gitkeep` - Asegurar directorio logs en repositorio
 
 ### ✅ FUNCIONES SANITIZADAS:

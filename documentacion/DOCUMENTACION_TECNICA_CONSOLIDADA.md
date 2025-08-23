@@ -441,7 +441,7 @@ data/
 ### **Testing y Verificación**
 ```bash
 # Verificación sintaxis todos los archivos
-python -m py_compile aresitos/**/*.py
+python -m py_compile Aresitos/**/*.py
 
 # Test integración MVC
 python verificacion_final.py
@@ -662,7 +662,7 @@ def _obtener_version_herramienta(self, herramienta):
 
 ### Estructura MVC
 ```
-aresitos/
+Aresitos/
 ├── modelo/                     # Lógica de negocio
 │   ├── modelo_*_kali2025.py   # Módulos específicos Kali
 │   └── modelo_*.py            # Módulos base
