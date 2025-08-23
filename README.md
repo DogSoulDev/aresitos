@@ -28,7 +28,8 @@
 ```bash
 # Instalación completa en un solo comando
 git clone https://github.com/DogSoulDev/Aresitos.git && cd Aresitos
-chmod +x configurar_kali.sh && sudo ./configurar_kali.sh
+chmod +x configurar_kali.sh
+sudo ./configurar_kali.sh
 python3 main.py
 ```
 
@@ -38,7 +39,8 @@ python3 main.py
 git clone https://github.com/DogSoulDev/Aresitos.git
 cd Aresitos
 
-# 2. Configurar entorno Kali Linux 2025
+# 2. Dar permisos de ejecución y configurar entorno Kali Linux 2025
+chmod +x configurar_kali.sh
 sudo ./configurar_kali.sh
 
 # 3. Verificar instalación completa
@@ -57,6 +59,7 @@ python3 main.py --dev
 ### **Configuración Avanzada**
 ```bash
 # Actualizar herramientas y configuraciones
+chmod +x configurar_kali.sh
 sudo ./configurar_kali.sh --update
 
 # Verificar estado del sistema
@@ -84,7 +87,7 @@ python3 main.py --verbose --scanner-debug
 ```bash
 # Instalación completa y ejecución en 30 segundos
 git clone https://github.com/DogSoulDev/Aresitos.git && cd Aresitos
-sudo ./configurar_kali.sh && python3 main.py
+chmod +x configurar_kali.sh && sudo ./configurar_kali.sh && python3 main.py
 ```
 
 ## **Requisitos del Sistema**
