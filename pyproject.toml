@@ -1,19 +1,20 @@
 # ===================================================================
-# ARESITOS v3.0 - CONFIGURACIÓN DEL PROYECTO
+# ARESITOS V3.0 OPTIMIZADO - CONFIGURACIÓN DEL PROYECTO
 # Suite de Ciberseguridad NATIVA para Kali Linux - ZERO DEPENDENCIAS
+# OPTIMIZADA SIGUIENDO PRINCIPIOS ARESITOS V3
 # ===================================================================
 
 [project]
 name = "aresitos"
-version = "3.0.0"
-description = "Suite de ciberseguridad profesional para Kali Linux con arquitectura 100% nativa - escaneador, FIM, SIEM, auditoria y deteccion malware usando solo Python stdlib + herramientas Kali"
+version = "3.0.0-optimizada"
+description = "Suite de ciberseguridad profesional OPTIMIZADA para Kali Linux con arquitectura 100% nativa - escaneador consolidado, FIM Kali2025, SIEM avanzado, monitor nativo y cuarentena optimizada usando solo Python stdlib + herramientas Kali Linux"
 readme = "README.md"
 license = {text = "MIT"}
 authors = [
-    {name = "DogSoulDev", email = "dogsouldev@protonmail.com"}
+    {name = "DogSoulDev + Ares Aegis Security Team", email = "dogsouldev@protonmail.com"}
 ]
 maintainers = [
-    {name = "DogSoulDev", email = "dogsouldev@protonmail.com"}
+    {name = "DogSoulDev + Ares Aegis Security Team", email = "dogsouldev@protonmail.com"}
 ]
 keywords = [
     "cybersecurity", "vulnerability-scanner", "kali-linux", 

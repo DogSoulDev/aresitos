@@ -1,7 +1,14 @@
 # -*- coding: utf-8 -*-
 """
-Ares Aegis - Controlador de Escaneo
-Controlador especializado en operaciones de escaneo de seguridad
+Aresitos V3 - Controlador de Escaneo Optimizado
+===============================================
+
+Controlador especializado en operaciones de escaneo de seguridad optimizado
+siguiendo los principios ARESITOS V3: Python nativo + herramientas Kali Linux.
+
+Autor: Ares Aegis Security Team
+Versión: 3.0
+Fecha: 2025-08-23
 """
 
 import threading
@@ -9,37 +16,25 @@ import time
 import re
 import socket
 import subprocess
+import logging
 from datetime import datetime
-from datetime import datetime
-from typing import Dict, Any, List, Optional
+from typing import Dict, Any, List, Optional, Tuple
 
 from Aresitos.controlador.controlador_base import ControladorBase
-# from Aresitos.modelo.modelo_escaneador_avanzado_real import EscaneadorAvanzadoReal, TipoEscaneo, NivelRiesgo  # Archivo eliminado
 from Aresitos.modelo.modelo_siem import SIEMKali2025 as SIEMAvanzadoNativo
 from Aresitos.utils.detector_red import DetectorRed
 
-# Importar arquitectura modular consolidada
+# Importar arquitectura modular consolidada ARESITOS V3
 try:
-    from Aresitos.modelo.modelo_escaneador import EscaneadorCompleto, crear_escaneador
+    from Aresitos.modelo.modelo_escaneador import EscaneadorCompleto
     from Aresitos.modelo.modelo_escaneador_sistema import EscaneadorSistema
     from Aresitos.modelo.modelo_escaneador_red import EscaneadorRed
-    ESCANEADOR_DISPONIBLE = True
+    ESCANEADOR_V3_DISPONIBLE = True
 except ImportError:
-    ESCANEADOR_DISPONIBLE = False
+    ESCANEADOR_V3_DISPONIBLE = False
     EscaneadorCompleto = None
     EscaneadorSistema = None
     EscaneadorRed = None
-
-# Compatibilidad con nombres antiguos
-try:
-    from Aresitos.modelo.modelo_escaneador import EscaneadorAvanzado, EscaneadorBase
-    EscaneadorAvanzadoReal = EscaneadorCompleto  # Alias actualizado
-    EscaneadorKali2025 = EscaneadorCompleto     # Alias actualizado
-    KALI2025_DISPONIBLE = True
-except ImportError:
-    KALI2025_DISPONIBLE = False
-    EscaneadorAvanzadoReal = None
-    EscaneadorKali2025 = None
 
 class UtilsIP:
     """Utilidades para manejo de IPs sin dependencias externas."""
@@ -113,19 +108,19 @@ class ControladorEscaneo(ControladorBase):
             self.siem = SIEMAvanzadoNativo()  # Usar clase correcta
             
             # Inicializar escáner usando arquitectura consolidada
-            if ESCANEADOR_DISPONIBLE and EscaneadorCompleto:
+            if ESCANEADOR_V3_DISPONIBLE and EscaneadorCompleto:
                 try:
                     self.escáner = EscaneadorCompleto()
                     self.escaner_kali2025 = self.escáner  # Alias para compatibilidad
-                    self.logger.info("OK EscaneadorCompleto inicializado como escaneador principal")
+                    self.logger.info("✅ EscaneadorCompleto V3 inicializado como escaneador principal")
                 except Exception as e:
-                    self.logger.warning(f"Error inicializando EscaneadorCompleto: {e}")
+                    self.logger.warning(f"⚠️ Error inicializando EscaneadorCompleto: {e}")
                     self.escáner = None
                     self.escaner_kali2025 = None
             else:
                 self.escáner = None
                 self.escaner_kali2025 = None
-                self.logger.error("ERROR: EscaneadorCompleto no disponible")
+                self.logger.error("❌ EscaneadorCompleto V3 no disponible")
             
             # Verificar que el escáner esté funcionando
             if self.escáner:
@@ -368,23 +363,24 @@ class ControladorEscaneo(ControladorBase):
     def _inicializar_impl(self) -> Dict[str, Any]:
         """Implementación específica de inicialización del controlador de escaneo."""
         try:
-            self.logger.info("Inicializando componentes de escaneo")
+            self.logger.info("🚀 Inicializando componentes de escaneo ARESITOS V3")
             
-            # Inicializar escáner usando factory pattern
-            if ESCANEADOR_DISPONIBLE:
+            # Inicializar escáner usando arquitectura V3
+            if ESCANEADOR_V3_DISPONIBLE:
                 try:
-                    # Primero intentar Kali2025, sino avanzado
-                    if KALI2025_DISPONIBLE and EscaneadorKali2025:
-                        self.escáner = EscaneadorKali2025()
+                    # Usar EscaneadorCompleto V3
+                    if EscaneadorCompleto:
+                        self.escáner = EscaneadorCompleto()
+                        self.logger.info("✅ EscaneadorCompleto V3 inicializado")
                     else:
-                        self.escáner = crear_escaneador('avanzado')
-                    self.logger.debug("Escaneador inicializado")
+                        self.escáner = None
+                        self.logger.warning("⚠️ EscaneadorCompleto no disponible")
                 except Exception as e:
-                    self.logger.error(f"Error inicializando escaneador: {e}")
+                    self.logger.error(f"❌ Error inicializando escaneador V3: {e}")
                     self.escáner = None
             else:
                 self.escáner = None
-                self.logger.warning("No hay escaneadores disponibles")
+                self.logger.warning("⚠️ No hay escaneadores V3 disponibles")
             
             # Inicializar SIEM
             self.siem = SIEMAvanzadoNativo()

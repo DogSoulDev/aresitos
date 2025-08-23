@@ -1,6 +1,7 @@
 # ===================================================================
-# ARESITOS v3.0 - ARQUITECTURA NATIVA PARA KALI LINUX
-# Suite Profesional de Ciberseguridad - ZERO DEPENDENCIAS EXTERNAS
+# ARESITOS V3.0 OPTIMIZADO - ARQUITECTURA NATIVA PARA KALI LINUX
+# Suite Profesional de Ciberseguridad OPTIMIZADA - ZERO DEPENDENCIAS EXTERNAS
+# SIGUIENDO PRINCIPIOS ARESITOS V3 CONSOLIDADOS
 # ===================================================================
 # 
 # INSTALACION DIRECTA - SIN REQUIREMENTS EXTERNOS:

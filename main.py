@@ -1,20 +1,21 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-ARESITOS v3.0 - Herramienta de Auditoría y Respuesta de Seguridad
-================================================================
+ARESITOS V3.0 - Herramienta de Auditoría y Respuesta de Seguridad OPTIMIZADA
+============================================================================
 
-main.py - Punto de entrada principal con flujo de inicio optimizado
+main.py - Punto de entrada principal optimizado siguiendo principios ARESITOS V3
 
-Funcionalidades principales:
-- Verificación automática de entorno Kali Linux
-- Flujo de login GUI con validación de herramientas
-- Inicialización ordenada de arquitectura MVC
-- Fallback a modo clásico en caso de errores
+Principios ARESITOS V3 aplicados:
+- Python nativo + herramientas Kali Linux únicamente
+- Verificación estricta de entorno Kali Linux
+- Flujo de login GUI con validación de herramientas nativas
+- Arquitectura MVC optimizada sin dependencias externas
+- Fallback inteligente a modo clásico
 
-Autor: DogSoulDev  
+Autor: DogSoulDev (Optimizado por Ares Aegis Security Team)
 Fecha: 23 de Agosto de 2025
-Versión: 3.0 (Kali Linux 2025)
+Versión: 3.0.0 OPTIMIZADA (Kali Linux 2025)
 """
 
 import os
@@ -29,10 +30,10 @@ from pathlib import Path
 # Asegurar encoding UTF-8
 os.environ.setdefault('PYTHONIOENCODING', 'utf-8')
 
-# Variables globales de configuración
-VERSION = "3.0.0"
-AUTOR = "DogSoulDev"
-DESCRIPCION = "Herramienta de Ciberseguridad para Kali Linux"
+# Variables globales de configuración ARESITOS V3
+VERSION = "3.0.0-OPTIMIZADA"
+AUTOR = "DogSoulDev + Ares Aegis Security Team"
+DESCRIPCION = "Suite de Ciberseguridad Optimizada para Kali Linux (Solo Python Nativo + Herramientas Kali)"
 
 def signal_handler(sig, frame):
     """Manejador de señales para limpieza apropiada"""
