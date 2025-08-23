@@ -1,8 +1,8 @@
 #!/bin/bash
 # -*- coding: utf-8 -*-
 #
-# ARESITOS v3.0 - Script de Configuración para Kali Linux
-# =======================================================
+# ARESITOS v3.0 - Script de Configuración para Kali Linux [OPTIMIZADO]
+# ====================================================================
 #
 # Script de configuración automática para preparar Kali Linux
 # para ejecutar ARESITOS con todas las funcionalidades del escaneador profesional.
@@ -17,137 +17,308 @@
 #
 # Autor: DogSoulDev
 # Fecha: 23 de Agosto de 2025
-# Versión: 3.0
+# Versión: 3.0 [BASH OPTIMIZADO - PRINCIPIOS ARESITOS V3]
 # Proyecto: ARESITOS - Suite de Ciberseguridad Profesional
 #
 # IMPORTANTE: Este script debe ejecutarse como root o con sudo
 # sudo ./configurar_kali.sh
 #
 
-# Colores para output
-RED='\033[0;31m'
-GREEN='\033[0;32m'
-YELLOW='\033[1;33m'
-BLUE='\033[0;34m'
-PURPLE='\033[0;35m'
-CYAN='\033[0;36m'
-NC='\033[0m' # No Color
+# ============================================================================
+# CONFIGURACIÓN GLOBAL Y CONSTANTES [PRINCIPIO 1: CONFIGURACIÓN CENTRALIZADA]
+# ============================================================================
+
+# Configuración estricta de bash [PRINCIPIO 2: MODO ESTRICTO]
+set -euo pipefail  # Exit on error, undefined vars, pipe failures
+IFS=$'\n\t'       # Secure Internal Field Separator
+
+# Colores para output [PRINCIPIO 3: CONSTANTES INMUTABLES]
+declare -r RED='\033[0;31m'
+declare -r GREEN='\033[0;32m'
+declare -r YELLOW='\033[1;33m'
+declare -r BLUE='\033[0;34m'
+declare -r PURPLE='\033[0;35m'
+declare -r CYAN='\033[0;36m'
+declare -r NC='\033[0m' # No Color
+
+# Variables globales inmutables [PRINCIPIO 4: DIRECTORIO BASE SEGURO]
+declare -r SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+declare -r ARESITOS_VERSION="3.0"
+declare -r LOG_FILE="${SCRIPT_DIR}/logs/configuracion_$(date +%Y%m%d_%H%M%S).log"
+
+# Crear directorio de logs si no existe [PRINCIPIO 5: PREPARACIÓN AUTOMÁTICA]
+mkdir -p "${SCRIPT_DIR}/logs"
 
 # Establecer directorio de trabajo del script
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-cd "$SCRIPT_DIR"
-echo -e "${CYAN}[SETUP]${NC} Directorio de trabajo establecido en: $SCRIPT_DIR"
+cd "$SCRIPT_DIR" || {
+    echo "ERROR CRÍTICO: No se puede cambiar al directorio del script" >&2
+    exit 1
+}
 
-# Función para imprimir con colores
+echo -e "${CYAN}[SETUP]${NC} Directorio de trabajo establecido en: $SCRIPT_DIR"
+echo -e "${CYAN}[SETUP]${NC} Modo estricto de bash activado - ARESITOS v${ARESITOS_VERSION}"
+
+# ============================================================================
+# FUNCIONES DE LOGGING Y OUTPUT [PRINCIPIO 6: LOGGING ROBUSTO]
+# ============================================================================
+
+# Sistema de logging dual (pantalla + archivo) [PRINCIPIO 7: TRAZABILIDAD]
+log_with_timestamp() {
+    local message="$1"
+    local timestamp="$(date '+%Y-%m-%d %H:%M:%S')"
+    echo "[$timestamp] $message" | tee -a "$LOG_FILE"
+}
+
+# Funciones de output optimizadas [PRINCIPIO 8: FUNCIONES PURAS]
 print_info() {
-    echo -e "${BLUE}[INFO]${NC} $1"
+    local message="$1"
+    echo -e "${BLUE}[INFO]${NC} $message"
+    log_with_timestamp "INFO: $message"
 }
 
 print_success() {
-    echo -e "${GREEN}[✓]${NC} $1"
+    local message="$1"
+    echo -e "${GREEN}[✓]${NC} $message"
+    log_with_timestamp "SUCCESS: $message"
 }
 
 print_warning() {
-    echo -e "${YELLOW}[WARN]${NC} $1"
+    local message="$1"
+    echo -e "${YELLOW}[WARN]${NC} $message"
+    log_with_timestamp "WARNING: $message"
 }
 
 print_error() {
-    echo -e "${RED}[✗]${NC} $1"
+    local message="$1"
+    echo -e "${RED}[✗]${NC} $message" >&2
+    log_with_timestamp "ERROR: $message"
 }
 
 print_header() {
-    echo -e "${PURPLE}$1${NC}"
+    local message="$1"
+    echo -e "${PURPLE}$message${NC}"
+    log_with_timestamp "HEADER: $message"
 }
 
-# Verificar que se ejecuta como root
+# ============================================================================
+# FUNCIONES DE VALIDACIÓN [PRINCIPIO 9: VALIDACIÓN ROBUSTA]
+# ============================================================================
+
+# Verificar que se ejecuta como root [PRINCIPIO 10: VALIDACIÓN DE PERMISOS]
 check_root() {
     if [[ $EUID -ne 0 ]]; then
         print_error "Este script debe ejecutarse como root o con sudo"
-        echo "Uso: sudo $0"
+        print_error "Uso: sudo $0"
+        log_with_timestamp "FATAL: Script ejecutado sin permisos de root"
         exit 1
     fi
+    print_success "Permisos de root verificados correctamente"
 }
 
-# Detectar el usuario que ejecutó sudo
+# Detectar el usuario que ejecutó sudo [PRINCIPIO 11: DETECCIÓN INTELIGENTE]
 detect_user() {
-    if [[ -n "$SUDO_USER" ]]; then
-        REAL_USER="$SUDO_USER"
-        USER_HOME=$(eval echo ~$SUDO_USER)
+    local real_user user_home
+    
+    if [[ -n "${SUDO_USER:-}" ]]; then
+        real_user="$SUDO_USER"
+        user_home=$(eval echo "~$SUDO_USER")
     else
-        REAL_USER=$(whoami)
-        USER_HOME="$HOME"
+        real_user=$(whoami)
+        user_home="$HOME"
     fi
     
-    print_info "Usuario detectado: $REAL_USER"
-    print_info "Directorio home: $USER_HOME"
+    # Validar que el directorio home existe
+    if [[ ! -d "$user_home" ]]; then
+        print_error "Directorio home no encontrado: $user_home"
+        return 1
+    fi
+    
+    # Exportar variables globales
+    export REAL_USER="$real_user"
+    export USER_HOME="$user_home"
+    
+    print_info "Usuario detectado: $real_user"
+    print_info "Directorio home: $user_home"
+    return 0
 }
 
-# Actualizar repositorios
+# Verificar conectividad de red [PRINCIPIO 12: VALIDACIÓN DE PRERREQUISITOS]
+check_network() {
+    print_info "Verificando conectividad de red..."
+    
+    if ping -c 1 8.8.8.8 &>/dev/null; then
+        print_success "Conectividad de red verificada"
+        return 0
+    else
+        print_warning "Sin conectividad de red - algunas funciones pueden fallar"
+        return 1
+    fi
+}
+
+# Verificar espacio en disco [PRINCIPIO 13: VALIDACIÓN DE RECURSOS]
+check_disk_space() {
+    local required_mb=1024  # 1GB mínimo
+    local available_mb
+    
+    available_mb=$(df "$SCRIPT_DIR" | awk 'NR==2 {print int($4/1024)}')
+    
+    if [[ $available_mb -lt $required_mb ]]; then
+        print_error "Espacio insuficiente en disco. Requerido: ${required_mb}MB, Disponible: ${available_mb}MB"
+        return 1
+    else
+        print_success "Espacio en disco verificado: ${available_mb}MB disponibles"
+        return 0
+    fi
+}
+
+# ============================================================================
+# FUNCIONES DE INSTALACIÓN [PRINCIPIO 14: INSTALACIÓN ROBUSTA]
+# ============================================================================
+
+# Actualizar repositorios con retry [PRINCIPIO 15: REINTENTOS AUTOMÁTICOS]
 update_repositories() {
     print_header "🔄 Actualizando repositorios..."
     
-    apt update
-    if [[ $? -eq 0 ]]; then
-        print_success "Repositorios actualizados"
+    local max_retries=3
+    local retry_count=0
+    
+    while [[ $retry_count -lt $max_retries ]]; do
+        if apt update; then
+            print_success "Repositorios actualizados exitosamente"
+            return 0
+        else
+            ((retry_count++))
+            print_warning "Error actualizando repositorios (intento $retry_count/$max_retries)"
+            if [[ $retry_count -lt $max_retries ]]; then
+                print_info "Reintentando en 5 segundos..."
+                sleep 5
+            fi
+        fi
+    done
+    
+    print_error "No se pudieron actualizar los repositorios después de $max_retries intentos"
+    return 1
+}
+
+# Instalar herramientas con validación [PRINCIPIO 16: INSTALACIÓN VALIDADA]
+install_package() {
+    local package="$1"
+    local description="${2:-$package}"
+    
+    print_info "Instalando $description..."
+    
+    if dpkg -l | grep -q "^ii  $package "; then
+        print_success "$description ya está instalado"
+        return 0
+    fi
+    
+    if apt install -y "$package"; then
+        print_success "$description instalado correctamente"
+        return 0
     else
-        print_warning "Error actualizando repositorios"
+        print_error "Error instalando $description"
+        return 1
     fi
 }
 
-# Instalar herramientas necesarias
-install_tools() {
-    print_header "🔧 Instalando herramientas de escaneador profesional ARESITOS v3.0..."
+# Instalar herramientas esenciales [PRINCIPIO 17: INSTALACIÓN MODULAR]
+install_essential_tools() {
+    print_header "🔧 Instalando herramientas esenciales del escaneador profesional ARESITOS v3.0..."
     
     # Lista de herramientas ESENCIALES para escaneador profesional
-    ESSENTIAL_TOOLS=(
+    local -a essential_tools=(
         # Python y herramientas básicas (CRÍTICAS)
-        "python3-dev"
-        "python3-venv" 
-        "python3-tk"
-        "curl"
-        "wget"
-        "git"
+        "python3-dev:Desarrollo Python 3"
+        "python3-venv:Entornos virtuales Python"
+        "python3-tk:Interfaz gráfica Tkinter"
+        "curl:Cliente HTTP"
+        "wget:Descargador web"
+        "git:Control de versiones"
         
         # Herramientas de escaneador PROFESIONAL (CORE)
-        "nmap"                  # Escaneador principal - CRÍTICO
-        "masscan"              # Escaneo masivo rápido
-        "net-tools"            # netstat, ifconfig
-        "iproute2"             # ss, ip commands
-        "tcpdump"              # Captura de paquetes
-        "iftop"                # Monitor de red
-        "netcat-openbsd"       # Netcat
+        "nmap:Escaneador de red principal"
+        "masscan:Escaneador masivo rápido"
+        "net-tools:Herramientas de red básicas"
+        "iproute2:Herramientas de red avanzadas"
+        "tcpdump:Captura de paquetes"
+        "iftop:Monitor de red en tiempo real"
+        "netcat-openbsd:Herramienta de red netcat"
         
         # Herramientas forense y SIEM VERIFICADAS
-        "wireshark"            # Análisis de tráfico
-        "autopsy"              # Forense digital
-        "sleuthkit"            # Toolkit forense
-        "foremost"             # Recuperación de archivos
-        "binwalk"              # Análisis de firmware
-        "strings"              # Extracción de strings
-        "exiftool"             # Metadatos
+        "wireshark:Análisis de tráfico de red"
+        "autopsy:Forense digital"
+        "sleuthkit:Toolkit de investigación forense"
+        "foremost:Recuperación de archivos"
+        "binwalk:Análisis de firmware"
+        "strings:Extracción de cadenas de texto"
+        "exiftool:Análisis de metadatos"
         
         # Utilidades del sistema ESTABLES
-        "htop"
-        "lsof"
-        "psmisc"
-        "dnsutils"             # dig, nslookup
-        "whois"                # Información WHOIS
+        "htop:Monitor de procesos mejorado"
+        "lsof:Lista de archivos abiertos"
+        "psmisc:Utilidades de procesos"
+        "dnsutils:Herramientas DNS"
+        "whois:Información de dominios"
     )
     
-    # Lista de herramientas AVANZADAS para escaneador profesional
-    ADVANCED_TOOLS=(
-        # Herramientas de escaneador avanzado (todas disponibles via APT)
-        "ffuf"                 # Fuzzer web rápido (VERIFICADO en repos Kali)
-        "feroxbuster"          # Scanner de directorios Rust (VERIFICADO en repos Kali)
-        "rustscan"             # Scanner ultrarrápido Rust (VERIFICADO en repos Kali)
-        "nuclei"               # Motor de vulnerabilidades (VERIFICADO en repos Kali)
-        "nikto"                # Scanner web
-        "whatweb"              # Identificación web
-        "dirb"                 # Brute force directorios
+    local failed_packages=()
+    local total_packages=${#essential_tools[@]}
+    local installed_count=0
+    
+    for tool_info in "${essential_tools[@]}"; do
+        IFS=':' read -r package description <<< "$tool_info"
+        
+        if install_package "$package" "$description"; then
+            ((installed_count++))
+        else
+            failed_packages+=("$package")
+        fi
+    done
+    
+    print_info "Instalación completa: $installed_count/$total_packages herramientas esenciales"
+    
+    if [[ ${#failed_packages[@]} -gt 0 ]]; then
+        print_warning "Paquetes que fallaron: ${failed_packages[*]}"
+        return 1
+    else
+        print_success "Todas las herramientas esenciales instaladas correctamente"
+        return 0
+    fi
+}
+
+# Instalar herramientas avanzadas [PRINCIPIO 18: INSTALACIÓN OPCIONAL]
+install_advanced_tools() {
+    print_header "🚀 Instalando herramientas avanzadas del escaneador profesional..."
+    
+    local -a advanced_tools=(
+        # Herramientas de escaneador avanzado (disponibles via APT en Kali)
+        "ffuf:Fuzzer web ultrarrápido"
+        "feroxbuster:Scanner de directorios en Rust"
+        "rustscan:Scanner de puertos ultrarrápido"
+        "nuclei:Motor de detección de vulnerabilidades"
+        "nikto:Scanner de vulnerabilidades web"
+        "whatweb:Identificador de tecnologías web"
+        "dirb:Brute force de directorios web"
         
         # Herramientas de seguridad adicionales
-        "lynis"                # Auditoría de seguridad
-        "chkrootkit"           # Detección de rootkits
+        "lynis:Auditoría de seguridad del sistema"
+        "chkrootkit:Detector de rootkits"
+    )
+    
+    local optional_count=0
+    local total_advanced=${#advanced_tools[@]}
+    
+    for tool_info in "${advanced_tools[@]}"; do
+        IFS=':' read -r package description <<< "$tool_info"
+        
+        if install_package "$package" "$description"; then
+            ((optional_count++))
+        fi
+    done
+    
+    print_info "Herramientas avanzadas instaladas: $optional_count/$total_advanced"
+    print_success "Instalación de herramientas avanzadas completada"
+}
         "rkhunter"             # Hunter de rootkits
         "clamav"               # Antivirus
         
@@ -933,67 +1104,174 @@ EOF
     print_info "Ejecute: python3 $TEST_SCRIPT"
 }
 
-# Función principal
+# ============================================================================
+# FUNCIÓN PRINCIPAL OPTIMIZADA [PRINCIPIO 19: ORQUESTACIÓN INTELIGENTE]
+# ============================================================================
+
+# Función principal con manejo de errores robusto
 main() {
-    print_header "🛡️ CONFIGURADOR ARESITOS v3.0 - ESCANEADOR PROFESIONAL PARA KALI LINUX"
-    print_header "=============================================================================="
+    # Configurar manejo de errores para la función principal
+    local exit_code=0
     
-    check_root
-    detect_user
+    print_header "🛡️ CONFIGURADOR ARESITOS v3.0 - ESCANEADOR PROFESIONAL PARA KALI LINUX [OPTIMIZADO]"
+    print_header "=========================================================================================="
     
-    echo
-    print_info "ARESITOS v3.0 incluye un ESCANEADOR PROFESIONAL con capacidades avanzadas:"
-    echo
-    print_info "🎯 CAPACIDADES DEL ESCANEADOR PROFESIONAL:"
-    echo "  • Escaneo integral con nmap (detección de servicios y scripts)"
-    echo "  • Escaneo masivo rápido con masscan/rustscan" 
-    echo "  • Detección de vulnerabilidades con nuclei"
-    echo "  • Enumeración de directorios web con gobuster/ffuf"
-    echo "  • Escaneo de redes completas con análisis automático"
-    echo "  • Exportación de reportes en JSON/TXT"
-    echo "  • Validación automática de herramientas disponibles"
-    echo "  • Fallback inteligente según herramientas instaladas"
-    echo
-    print_info "🔧 ACCIONES DE CONFIGURACIÓN:"
-    echo "  • Actualizar repositorios e instalar herramientas del escaneador"
-    echo "  • Configurar permisos de red especiales para escaneo avanzado"
-    echo "  • Configurar sudo sin contraseña para herramientas del escaneador"
-    echo "  • Instalar dependencias Python para interfaz gráfica"
-    echo "  • Verificar funcionamiento completo del escaneador profesional"
-    echo
+    # Inicializar log
+    log_with_timestamp "Iniciando configuración ARESITOS v${ARESITOS_VERSION}"
     
-    read -p "¿Continuar? (y/N): " -n 1 -r
-    echo
+    # Validaciones iniciales [PRINCIPIO 20: VALIDACIÓN TEMPRANA]
+    print_info "Ejecutando validaciones iniciales..."
     
-    if [[ ! $REPLY =~ ^[Yy]$ ]]; then
-        print_info "Configuración cancelada"
+    check_root || exit 1
+    detect_user || exit 1
+    check_network  # No crítico, solo informativo
+    check_disk_space || exit 1
+    
+    # Mostrar capacidades del sistema
+    display_system_capabilities
+    
+    # Confirmación del usuario [PRINCIPIO 21: CONFIRMACIÓN EXPLÍCITA]
+    if ! prompt_user_confirmation; then
+        print_info "Configuración cancelada por el usuario"
         exit 0
     fi
     
-    echo
-    update_repositories
-    install_tools
-    configure_network_permissions
-    configure_sudo
-    configure_aresitos_permissions
-    install_python_deps
-    verify_setup
-    create_test_script
+    # Proceso de instalación con seguimiento de errores
+    print_header "🚀 INICIANDO PROCESO DE CONFIGURACIÓN AUTOMÁTICA"
     
-    echo
-    print_header "COMPLETADO CONFIGURACIÓN COMPLETADA"
-    print_header "============================"
+    # Ejecutar cada paso con seguimiento de errores
+    local steps=(
+        "update_repositories:Actualización de repositorios"
+        "install_essential_tools:Instalación de herramientas esenciales"
+        "install_advanced_tools:Instalación de herramientas avanzadas"
+        "configure_network_permissions:Configuración de permisos de red"
+        "configure_sudo:Configuración de sudo"
+        "configure_aresitos_permissions:Configuración de permisos ARESITOS"
+        "install_python_deps:Instalación de dependencias Python"
+        "verify_setup:Verificación final del sistema"
+        "create_test_script:Creación de script de pruebas"
+    )
     
-    print_success "ARESITOS v3.0 está configurado para Kali Linux"
-    echo
-    print_info "Pasos siguientes:"
-    echo "  1. Cierre y reabra la terminal para aplicar cambios de grupo"
-    echo "  2. Execute el script de prueba: python3 $USER_HOME/test_aresitos_permissions.py"
-    echo "  3. Execute la verificación final: python3 verificacion_final.py"
-    echo "  4. Inicie ARESITOS: python3 main.py"
-    echo
-    print_warning "IMPORTANTE: Reinicie la sesión para aplicar cambios de grupos"
+    local completed_steps=0
+    local total_steps=${#steps[@]}
+    
+    for step_info in "${steps[@]}"; do
+        IFS=':' read -r step_function step_description <<< "$step_info"
+        
+        print_info "Ejecutando: $step_description ($((completed_steps + 1))/$total_steps)"
+        
+        if $step_function; then
+            ((completed_steps++))
+            print_success "✅ $step_description completado"
+        else
+            print_error "❌ $step_description falló"
+            exit_code=1
+            # Continuar con otros pasos en lugar de abortar completamente
+        fi
+        
+        echo  # Línea en blanco para separación visual
+    done
+    
+    # Mostrar resumen final
+    display_final_summary "$completed_steps" "$total_steps" "$exit_code"
+    
+    # Log de finalización
+    log_with_timestamp "Configuración finalizada con código: $exit_code"
+    
+    return $exit_code
 }
 
-# Ejecutar función principal
+# Mostrar capacidades del sistema [PRINCIPIO 22: INFORMACIÓN TRANSPARENTE]
+display_system_capabilities() {
+    echo
+    print_info "🎯 CAPACIDADES DEL ESCANEADOR PROFESIONAL ARESITOS v${ARESITOS_VERSION}:"
+    echo
+    print_info "🔧 HERRAMIENTAS CORE:"
+    echo "  • nmap: Escaneo integral con detección de servicios y scripts"
+    echo "  • masscan/rustscan: Escaneo masivo ultrarrápido de redes"
+    echo "  • nuclei: Detección automática de vulnerabilidades CVE"
+    echo "  • gobuster/ffuf: Enumeración avanzada de directorios web"
+    echo "  • wireshark: Análisis forense de tráfico de red"
+    echo
+    print_info "🚀 FUNCIONALIDADES AVANZADAS:"
+    echo "  • 5 modos de escaneo especializados (Integral, Avanzado, Red, Rápido, Profundo)"
+    echo "  • Exportación profesional: JSON, TXT, CSV con análisis detallado"
+    echo "  • Validación automática y fallback inteligente de herramientas"
+    echo "  • Escaneo paralelo masivo con ThreadPoolExecutor"
+    echo "  • Integración nativa con arsenal de Kali Linux 2025"
+    echo
+    print_info "🔧 CONFIGURACIONES AUTOMÁTICAS:"
+    echo "  • Permisos CAP_NET_RAW para escaneos SYN sin sudo"
+    echo "  • Configuración sudo sin contraseña para herramientas de escaneo"
+    echo "  • Actualización automática de templates nuclei"
+    echo "  • Bases de datos de vulnerabilidades localizadas"
+    echo "  • Wordlists categorizadas y especializadas"
+    echo
+}
+
+# Confirmación del usuario [PRINCIPIO 23: INTERACCIÓN CLARA]
+prompt_user_confirmation() {
+    print_warning "⚠️  IMPORTANTE: Esta configuración modificará su sistema Kali Linux"
+    print_info "📁 Log de instalación: $LOG_FILE"
+    echo
+    read -p "¿Continuar con la configuración automática? (y/N): " -n 1 -r
+    echo
+    
+    if [[ $REPLY =~ ^[Yy]$ ]]; then
+        print_success "Configuración confirmada por el usuario"
+        return 0
+    else
+        return 1
+    fi
+}
+
+# Mostrar resumen final [PRINCIPIO 24: REPORTE FINAL DETALLADO]
+display_final_summary() {
+    local completed=$1
+    local total=$2
+    local exit_code=$3
+    
+    echo
+    print_header "📊 RESUMEN DE CONFIGURACIÓN COMPLETADO"
+    print_header "======================================="
+    
+    print_info "Pasos completados: $completed/$total"
+    print_info "Log completo disponible en: $LOG_FILE"
+    
+    if [[ $exit_code -eq 0 ]]; then
+        print_success "🎉 CONFIGURACIÓN COMPLETADA EXITOSAMENTE"
+        echo
+        print_info "🚀 PASOS SIGUIENTES:"
+        echo "  1. 🔄 Reinicie la terminal para aplicar cambios de grupos"
+        echo "  2. 🧪 Ejecute verificación: python3 verificacion_final.py"
+        echo "  3. 🎯 Ejecute pruebas: python3 ${USER_HOME}/test_aresitos_permissions.py"
+        echo "  4. 🛡️ Inicie ARESITOS: python3 main.py"
+        echo
+        print_warning "💡 IMPORTANTE: Cierre y reabra la terminal para aplicar todos los cambios"
+    else
+        print_warning "⚠️ CONFIGURACIÓN COMPLETADA CON ADVERTENCIAS"
+        print_info "Revise el log para más detalles: $LOG_FILE"
+        print_info "ARESITOS debería funcionar con funcionalidad básica"
+    fi
+    
+    echo
+    print_info "🔗 Soporte: https://github.com/DogSoulDev/Aresitos"
+    print_info "📧 Contacto: dogsouldev@protonmail.com"
+}
+
+# ============================================================================
+# PUNTO DE ENTRADA [PRINCIPIO 25: EJECUCIÓN CONTROLADA]
+# ============================================================================
+
+# Configurar limpieza automática en caso de interrupción
+cleanup() {
+    print_warning "Configuración interrumpida por el usuario"
+    log_with_timestamp "INTERRUPCIÓN: Configuración cancelada por señal"
+    exit 130
+}
+
+# Configurar manejo de señales
+trap cleanup SIGINT SIGTERM
+
+# Ejecutar función principal con todos los argumentos
 main "$@"

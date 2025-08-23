@@ -339,10 +339,4 @@ El uso de ARESITOS implica la aceptación completa de esta licencia y código é
 ### En Memoria de Ares
 *25 de Abril 2013 - 5 de Agosto 2025*
 
-*Este proyecto está dedicado con amor infinito a Ares, mi compañero fiel durante más de 12 años. Cada línea de código de ARESITOS lleva su espíritu de lealtad, valentía y protección. Aunque ya no estés físicamente aquí, tu legado vive en cada escaneo que protege un sistema, en cada vulnerabilidad detectada y en cada momento que ARESITOS ayuda a hacer el mundo digital más seguro.*
-
-*Gracias por enseñarme el verdadero significado de la fidelidad y la protección incondicional.*
-
-*Hasta que volvamos a vernos, mi fiel guardián.*
-
-**- DogSoulDev**
+*Hasta que volvamos a vernos.*
