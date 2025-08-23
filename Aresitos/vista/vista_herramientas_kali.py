@@ -197,26 +197,44 @@ class VistaHerramientasKali(tk.Frame):
             self._crear_interfaz_fallback()
     
     def _cargar_logo_dinamico(self, parent):
-        """Carga dinámica del logo con fallback (PRINCIPIO ARESITOS V3)."""
+        """Logo textual de ciberseguridad sin dependencias externas (PRINCIPIO ARESITOS V3)."""
         try:
-            import os
-            logo_path = os.path.join(os.path.dirname(__file__), '..', 'recursos', 'Aresitos.png')
+            # Logo textual con símbolo de ciberseguridad
+            logo_frame = tk.Frame(parent, bg=self.colors['bg_primary'])
+            logo_frame.pack(pady=(0, 10))
             
-            if os.path.exists(logo_path):
-                # Acceso dinámico a PhotoImage
-                photo_image = getattr(tk, 'PhotoImage', None)
-                if photo_image:
-                    self.logo_img = photo_image(file=logo_path)
-                    logo_label = tk.Label(
-                        parent,
-                        image=self.logo_img,
-                        bg=self.colors['bg_primary']
-                    )
-                    logo_label.pack(pady=(0, 10))
-                else:
-                    self.logger.warning("PhotoImage no disponible")
+            # Símbolo de seguridad
+            symbol_label = tk.Label(
+                logo_frame,
+                text="🛡️",
+                font=("Arial", 24, "bold"),
+                bg=self.colors['bg_primary'],
+                fg="#2E86C1"
+            )
+            symbol_label.pack()
+            
+            # Texto ARESITOS
+            text_label = tk.Label(
+                logo_frame,
+                text="ARESITOS V3",
+                font=("Arial", 12, "bold"),
+                bg=self.colors['bg_primary'],
+                fg=self.colors['text_primary']
+            )
+            text_label.pack()
+            
+            # Subtítulo
+            subtitle_label = tk.Label(
+                logo_frame,
+                text="CYBER SECURITY TOOLS",
+                font=("Arial", 8),
+                bg=self.colors['bg_primary'],
+                fg=self.colors['text_secondary']
+            )
+            subtitle_label.pack()
+            
         except Exception as e:
-            self.logger.warning(f"Error cargando logo: {e}")
+            self.logger.warning(f"Error configurando logo: {e}")
             # Continuar sin logo si hay problemas
     
     def _crear_notebook_herramientas(self, parent):

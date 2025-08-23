@@ -21,7 +21,7 @@ Principios ARESITOS aplicados:
 - Sin dependencias externas
 - Código limpio y conciso (SOLID/DRY)
 - MVC arquitectura respetada
-- Sin emojis/tokens (excepto Aresitos.ico/png)
+- Sin emojis/tokens (icono de ciberseguridad integrado como excepción)
 
 Autor: DogSoulDev
 Fecha: Agosto 2025

@@ -16,7 +16,7 @@
 
 ### Iconos y Branding
 - OK **Iconos ARESITOS** configurados en todas las ventanas principales
-  - Ventana de login: `Aresitos.png` con fallback a `Aresitos.ico`
+  - Ventana de login: Icono de ciberseguridad integrado en código
   - Ventana principal: Configurado desde `main.py`
   - Ventana de herramientas Kali: Icono en barra de título
   - Ventanas de notificaciones: Icono consistente
@@ -132,8 +132,8 @@
 
 ### Configuración Mejorada
 - OK **Gestión de iconos simplificada**
-  - `Aresitos.png` como prioridad con PhotoImage
-  - `Aresitos.ico` como fallback con iconbitmap
+  - Icono de ciberseguridad integrado como prioridad
+  - Sistema de iconos sin archivos externos como fallback
   - Manejo de errores robusto
 - OK **Tamaños de ventana optimizados**
   - Login: 900x700 (era 800x600)

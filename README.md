@@ -1,4 +1,6 @@
-![ARESITOS](Aresitos/recursos/Aresitos.ico)
+![ARESITOS](Aresitos/recursos/Aresitos.png)
+
+# 🛡️ ARESITOS V3 - CYBER SECURITY FRAMEWORK
 
 # ARESITOS - Herramienta de Ciberseguridad Profesional
 
@@ -78,7 +80,8 @@ python3 main.py --verbose --scanner-debug
 ![Vista Herramientas](Aresitos/recursos/vista_herramientas.png)
 
 ### Vista Principal
-![Vista Aresitos](Aresitos/recursos/vista_aresitos.png)
+### 🖥️ **Vista Herramientas ARESITOS V3**
+*Interface principal con iconos de ciberseguridad integrados*
 
 ---
 
