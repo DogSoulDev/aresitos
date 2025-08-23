@@ -65,44 +65,48 @@ class DetenerProcesos:
         threading.Thread(target=ejecutar_detencion, daemon=True).start()
     
     def detener_monitoreo(self, callback_actualizacion: Callable, callback_habilitar: Callable):
-        """Detener procesos de monitoreo de manera robusta."""
+        """Detener procesos de monitoreo de manera SEGURA y robusta."""
         def ejecutar_detencion():
             try:
-                callback_actualizacion("=== DETENIENDO MONITOREO ===\n")
+                callback_actualizacion("=== DETENIENDO MONITOREO ARESITOS ===\n")
+                callback_actualizacion("SEGURIDAD: Aplicando protecciones contra crash del sistema...\n")
                 
-                # Procesos de monitoreo específicos
-                procesos_monitoreo = [
-                    'htop', 'top', 'iotop', 'nethogs', 'iftop',
-                    'vmstat', 'iostat', 'netstat', 'ss'
+                # Procesos de monitoreo específicos SEGUROS (solo herramientas, no servicios del sistema)
+                procesos_monitoreo_seguros = [
+                    'htop_aresitos', 'top_aresitos', 'iotop_aresitos', 
+                    'nethogs_aresitos', 'iftop_aresitos'
                 ]
                 
+                # IMPORTANTE: No incluir 'htop', 'top' etc genéricos que el usuario puede estar usando
                 procesos_terminados = self._terminar_procesos_por_nombre(
-                    procesos_monitoreo, callback_actualizacion, "MONITOREO"
+                    procesos_monitoreo_seguros, callback_actualizacion, "MONITOREO-ARESITOS"
                 )
                 
-                # Terminar procesos Python relacionados con monitoreo
+                # Terminar SOLO procesos Python de ARESITOS con patrón muy específico
                 procesos_terminados += self._terminar_procesos_python(
-                    ['python.*monitor', 'python.*watch'], callback_actualizacion
+                    ['aresitos.*monitor', 'aresitos.*watch'], callback_actualizacion
                 )
                 
-                # Limpiar archivos temporales de monitoreo
-                archivos_temp = [
-                    '/tmp/monitor.pid',
-                    '/tmp/system_monitor.log',
-                    '/var/log/monitor.log'
+                # Limpiar SOLO archivos temporales de ARESITOS
+                archivos_temp_seguros = [
+                    '/tmp/aresitos_monitor.pid',
+                    '/tmp/aresitos_system_monitor.log',
+                    '/var/log/aresitos_monitor.log'
                 ]
-                self._limpiar_archivos_temporales(archivos_temp, callback_actualizacion)
+                self._limpiar_archivos_temporales(archivos_temp_seguros, callback_actualizacion)
                 
                 if procesos_terminados > 0:
-                    callback_actualizacion(f"✓ COMPLETADO: {procesos_terminados} procesos de monitoreo terminados\n")
+                    callback_actualizacion(f"OK COMPLETADO: {procesos_terminados} procesos de monitoreo ARESITOS terminados\n")
                 else:
-                    callback_actualizacion("• INFO: No se encontraron procesos de monitoreo activos\n")
+                    callback_actualizacion("INFO: No se encontraron procesos de monitoreo ARESITOS activos\n")
                 
-                callback_actualizacion("=== MONITOREO DETENIDO COMPLETAMENTE ===\n\n")
+                callback_actualizacion("=== MONITOREO ARESITOS DETENIDO COMPLETAMENTE ===\n")
+                callback_actualizacion("SEGURIDAD: Sistema operativo protegido - no se tocaron procesos críticos\n\n")
                 callback_habilitar()
                 
             except Exception as e:
                 callback_actualizacion(f"ERROR durante detención de monitoreo: {str(e)}\n")
+                callback_actualizacion("SEGURIDAD: Error contenido - sistema protegido\n")
                 callback_habilitar()
         
         threading.Thread(target=ejecutar_detencion, daemon=True).start()
@@ -249,62 +253,154 @@ class DetenerProcesos:
     def _terminar_procesos_por_nombre(self, procesos: List[str], 
                                     callback_actualizacion: Callable, 
                                     tipo: str) -> int:
-        """Terminar procesos por nombre de manera robusta."""
+        """Terminar procesos por nombre de manera SEGURA y robusta."""
         procesos_terminados = 0
+        
+        # Lista de procesos CRÍTICOS del sistema que NUNCA deben terminarse
+        procesos_protegidos = {
+            'systemd', 'init', 'kernel', 'kthreadd', 'ksoftirqd', 'migration',
+            'rcu_', 'watchdog', 'systemd-', 'dbus', 'NetworkManager', 'gdm',
+            'Xorg', 'pulseaudio', 'bluetoothd', 'ssh', 'rsyslog', 'cron',
+            'lightdm', 'gnome-shell', 'gnome-session', 'kali-session',
+            'plasma', 'kwin', 'krunner', 'plasmashell'
+        }
         
         for proceso in procesos:
             try:
-                # Buscar procesos activos
+                # VALIDACIÓN DE SEGURIDAD: Verificar que no es un proceso del sistema
+                proceso_seguro = True
+                for protegido in procesos_protegidos:
+                    if protegido.lower() in proceso.lower():
+                        callback_actualizacion(f"SEGURIDAD: Proceso {proceso} protegido - OMITIDO\n")
+                        proceso_seguro = False
+                        break
+                
+                if not proceso_seguro:
+                    continue
+                
+                # Buscar procesos activos con validación adicional
                 resultado = subprocess.run(['pgrep', '-f', proceso], 
-                                        capture_output=True, text=True)
+                                        capture_output=True, text=True, timeout=5)
                 if resultado.returncode == 0 and resultado.stdout.strip():
                     pids = resultado.stdout.strip().split('\n')
                     for pid in pids:
                         if pid.strip():
                             try:
-                                # Terminar proceso específico
-                                subprocess.run(['kill', '-TERM', pid.strip()], 
-                                            capture_output=True)
-                                callback_actualizacion(f"✓ Terminado {tipo} {proceso} (PID: {pid.strip()})\n")
+                                pid_int = int(pid.strip())
+                                
+                                # VALIDACIÓN CRÍTICA: No tocar PID 1 (init) ni procesos de root críticos
+                                if pid_int <= 10:  # PIDs 1-10 son típicamente críticos del sistema
+                                    callback_actualizacion(f"SEGURIDAD: PID {pid_int} es crítico del sistema - OMITIDO\n")
+                                    continue
+                                
+                                # Verificar que el proceso no es de root para servicios críticos
+                                try:
+                                    info_proceso = subprocess.run(['ps', '-p', str(pid_int), '-o', 'user,comm'], 
+                                                                capture_output=True, text=True, timeout=3)
+                                    if 'root' in info_proceso.stdout and any(critico in info_proceso.stdout.lower() 
+                                                                           for critico in ['systemd', 'kernel', 'init']):
+                                        callback_actualizacion(f"SEGURIDAD: Proceso root crítico PID {pid_int} - OMITIDO\n")
+                                        continue
+                                except:
+                                    # Si no puede verificar, mejor ser conservador
+                                    continue
+                                
+                                # Terminar proceso específico SOLO CON SIGTERM (nunca SIGKILL en sistema)
+                                subprocess.run(['kill', '-TERM', str(pid_int)], 
+                                            capture_output=True, timeout=3)
+                                callback_actualizacion(f"OK Terminado {tipo} {proceso} (PID: {pid_int})\n")
                                 procesos_terminados += 1
                                 
-                                # Esperar un poco y verificar si sigue vivo
+                                # NO usar SIGKILL automáticamente - demasiado peligroso
                                 time.sleep(0.5)
-                                resultado_check = subprocess.run(['kill', '-0', pid.strip()], 
-                                                            capture_output=True)
-                                if resultado_check.returncode == 0:
-                                    # Aún vivo, usar SIGKILL
-                                    subprocess.run(['kill', '-KILL', pid.strip()], 
-                                                capture_output=True)
-                                    callback_actualizacion(f"✓ Forzado término de {proceso} (PID: {pid.strip()})\n")
                                     
-                            except Exception:
+                            except (ValueError, subprocess.TimeoutExpired):
                                 continue
-            except Exception:
+                            except Exception as e:
+                                callback_actualizacion(f"ADVERTENCIA: Error terminando PID {pid}: {str(e)}\n")
+                                continue
+            except subprocess.TimeoutExpired:
+                callback_actualizacion(f"TIMEOUT: Búsqueda de proceso {proceso} cancelada por seguridad\n")
+                continue
+            except Exception as e:
+                callback_actualizacion(f"ERROR: Búsqueda proceso {proceso}: {str(e)}\n")
                 continue
         
         return procesos_terminados
     
     def _terminar_procesos_python(self, patrones: List[str], 
                                 callback_actualizacion: Callable) -> int:
-        """Terminar procesos Python específicos."""
+        """Terminar procesos Python específicos de manera SEGURA."""
         procesos_terminados = 0
+        
+        # Obtener PID actual y procesos padre para protección
+        pid_actual = os.getpid()
+        try:
+            # Obtener el PID del proceso padre (ARESITOS principal)
+            resultado_padre = subprocess.run(['ps', '-o', 'ppid=', '-p', str(pid_actual)], 
+                                          capture_output=True, text=True, timeout=3)
+            pid_padre = int(resultado_padre.stdout.strip()) if resultado_padre.stdout.strip() else None
+        except:
+            pid_padre = None
         
         for patron in patrones:
             try:
+                # Buscar procesos con timeout de seguridad
                 resultado = subprocess.run(['pgrep', '-f', patron], 
-                                        capture_output=True, text=True)
+                                        capture_output=True, text=True, timeout=5)
                 if resultado.returncode == 0 and resultado.stdout.strip():
                     pids = resultado.stdout.strip().split('\n')
                     for pid in pids:
-                        if pid.strip() and pid.strip() != str(os.getpid()):
+                        if pid.strip():
                             try:
-                                subprocess.run(['kill', '-TERM', pid.strip()], 
-                                            capture_output=True)
-                                callback_actualizacion(f"✓ Terminado proceso Python (PID: {pid.strip()})\n")
+                                pid_int = int(pid.strip())
+                                
+                                # VALIDACIONES CRÍTICAS DE SEGURIDAD
+                                # 1. No terminar proceso actual
+                                if pid_int == pid_actual:
+                                    callback_actualizacion(f"SEGURIDAD: PID {pid_int} es proceso actual - OMITIDO\n")
+                                    continue
+                                
+                                # 2. No terminar proceso padre de ARESITOS
+                                if pid_padre and pid_int == pid_padre:
+                                    callback_actualizacion(f"SEGURIDAD: PID {pid_int} es proceso padre ARESITOS - OMITIDO\n")
+                                    continue
+                                
+                                # 3. Verificar que es realmente un proceso Python de ARESITOS
+                                try:
+                                    info_proceso = subprocess.run(['ps', '-p', str(pid_int), '-o', 'cmd'], 
+                                                                capture_output=True, text=True, timeout=3)
+                                    cmd_line = info_proceso.stdout.lower()
+                                    
+                                    # Solo terminar si realmente contiene 'aresitos' o patrones seguros
+                                    if not ('aresitos' in cmd_line or 'temp' in cmd_line or 'scan' in cmd_line):
+                                        callback_actualizacion(f"SEGURIDAD: Proceso PID {pid_int} no parece ser de ARESITOS - OMITIDO\n")
+                                        continue
+                                        
+                                    # No terminar intérpretes Python del sistema
+                                    if any(sistema in cmd_line for sistema in ['/usr/bin/python', 'system', 'gnome', 'kde']):
+                                        callback_actualizacion(f"SEGURIDAD: Python del sistema PID {pid_int} - OMITIDO\n")
+                                        continue
+                                        
+                                except:
+                                    # Si no puede verificar, mejor no tocar
+                                    callback_actualizacion(f"SEGURIDAD: No se pudo verificar PID {pid_int} - OMITIDO\n")
+                                    continue
+                                
+                                # Terminar proceso SOLO con SIGTERM
+                                subprocess.run(['kill', '-TERM', str(pid_int)], 
+                                            capture_output=True, timeout=3)
+                                callback_actualizacion(f"OK Terminado proceso Python ARESITOS (PID: {pid_int})\n")
                                 procesos_terminados += 1
-                            except Exception:
+                                
+                            except (ValueError, subprocess.TimeoutExpired):
                                 continue
+                            except Exception as e:
+                                callback_actualizacion(f"ADVERTENCIA: Error con PID {pid}: {str(e)}\n")
+                                continue
+            except subprocess.TimeoutExpired:
+                callback_actualizacion(f"TIMEOUT: Búsqueda patrón {patron} cancelada por seguridad\n")
+                continue
             except Exception:
                 pass
         

@@ -3,7 +3,10 @@
 ARESITOS - Gestor Centralizado de Iconos
 ========================================
 
-Gestor unificado para cargar y aplicar el icono Aresitos.ico de manera consistente
+Gestor unificado para cargar y ap            return None
+            
+        except Exception:
+            return Noner el icono Aresitos.ico de manera consistente
 en todas las ventanas de la aplicación.
 
 Autor: DogSoulDev
@@ -60,7 +63,7 @@ class GestorIconos:
     @classmethod
     def aplicar_icono_ventana(cls, ventana: Union[tk.Tk, tk.Toplevel]) -> bool:
         """
-        Aplicar el icono Aresitos.ico a una ventana Tkinter con manejo robusto de errores
+        Aplicar el icono Aresitos a una ventana Tkinter OPTIMIZADO para Kali Linux
         
         Args:
             ventana: Ventana Tkinter (Tk o Toplevel)
@@ -69,58 +72,129 @@ class GestorIconos:
             bool: True si el icono se aplicó correctamente, False en caso contrario
         """
         try:
+            import platform
+            
+            # Método especializado para Linux/Kali
+            if platform.system() == "Linux":
+                return cls._aplicar_icono_linux(ventana)
+            else:
+                return cls._aplicar_icono_windows(ventana)
+                
+        except Exception as e:
+            # Silenciosamente fallar sin logs repetitivos
+            return False
+    
+    @classmethod
+    def _aplicar_icono_linux(cls, ventana: Union[tk.Tk, tk.Toplevel]) -> bool:
+        """Método especializado para aplicar iconos en Kali Linux."""
+        try:
+            # 1. PRIORIDAD: PNG para mejor compatibilidad en Linux
+            ruta_png = cls._obtener_ruta_png()
+            if ruta_png and os.path.exists(ruta_png):
+                try:
+                    # Verificar permisos de lectura
+                    if not os.access(ruta_png, os.R_OK):
+                        return False
+                    
+                    # Verificar que el archivo PNG es válido
+                    with open(ruta_png, 'rb') as f:
+                        header = f.read(8)
+                        if header == b'\x89PNG\r\n\x1a\n':
+                            # Cargar y aplicar PNG
+                            icono_img = tk.PhotoImage(file=ruta_png)
+                            ventana.iconphoto(True, icono_img)
+                            
+                            # Mantener referencia para evitar garbage collection
+                            setattr(ventana, '_icono_aresitos_ref', icono_img)
+                            
+                            # Aplicar también al window manager (crítico en Linux)
+                            try:
+                                ventana.wm_iconphoto(True, icono_img)
+                            except:
+                                pass
+                            
+                            cls._icono_cargado = True
+                            return True
+                except Exception:
+                    pass
+            
+            # 2. FALLBACK: ICO con método específico para Linux
+            ruta_ico = cls.obtener_ruta_icono()
+            if ruta_ico and os.path.exists(ruta_ico):
+                try:
+                    if os.access(ruta_ico, os.R_OK):
+                        # En Kali Linux, a veces iconbitmap funciona mejor con ruta absoluta
+                        ruta_absoluta = os.path.abspath(ruta_ico)
+                        ventana.iconbitmap(f"@{ruta_absoluta}")  # @ prefix para Kali
+                        cls._icono_cargado = True
+                        return True
+                except Exception:
+                    try:
+                        # Fallback sin @
+                        ventana.iconbitmap(ruta_ico)
+                        cls._icono_cargado = True
+                        return True
+                    except:
+                        pass
+            
+            # 3. ÚLTIMO RECURSO: Configurar propiedades del window manager directamente
+            try:
+                ventana.wm_title("ARESITOS V3")  # Asegurar que el título esté establecido
+                if hasattr(ventana, 'wm_iconname'):
+                    ventana.wm_iconname("ARESITOS")
+            except:
+                pass
+            
+            return False
+            
+        except Exception:
+            return False
+    
+    @classmethod 
+    def _aplicar_icono_windows(cls, ventana: Union[tk.Tk, tk.Toplevel]) -> bool:
+        """Método para Windows (código original)."""
+        try:
             ruta_icono = cls.obtener_ruta_icono()
             
             if not ruta_icono or not os.path.exists(ruta_icono):
-                # Silenciosamente fallar sin logs repetitivos
                 return False
             
-            # Método 1: Intentar PNG primero (más compatible en Linux)
-            import platform
-            if platform.system() == "Linux":
-                ruta_png = ruta_icono.replace('.ico', '.png')
-                if os.path.exists(ruta_png):
-                    try:
-                        # Verificar que el archivo PNG es válido antes de cargar
-                        with open(ruta_png, 'rb') as f:
-                            header = f.read(8)
-                            # Verificar signature PNG válida
-                            if header == b'\x89PNG\r\n\x1a\n':
-                                icono_img = tk.PhotoImage(file=ruta_png)
-                                ventana.iconphoto(True, icono_img)
-                                # Mantener referencia para evitar garbage collection
-                                setattr(ventana, '_icono_ref', icono_img)
-                                cls._icono_cargado = True
-                                return True
-                    except (tk.TclError, IOError, OSError):
-                        # PNG no válido o corrupto, continuar con ICO
-                        pass
-            
-            # Método 2: Intentar iconbitmap con .ico
+            # Intentar iconbitmap con .ico
             try:
-                # Verificar que el archivo ICO existe y es legible
                 if os.access(ruta_icono, os.R_OK):
                     ventana.iconbitmap(ruta_icono)
                     cls._icono_cargado = True
                     return True
             except tk.TclError:
-                # ICO no soportado o corrupto
                 pass
             
-            # Método 3: Usar icono por defecto del sistema si disponible
-            try:
-                # En Linux, usar icono genérico del sistema
-                if platform.system() == "Linux":
-                    ventana.iconname("ARESITOS")
-                return True
-            except (tk.TclError, AttributeError):
-                pass
-                
             return False
-                
+            
         except Exception:
-            # Fallar silenciosamente para evitar logs excesivos
             return False
+    
+    @classmethod
+    def _obtener_ruta_png(cls) -> Optional[str]:
+        """Obtener ruta específica del archivo PNG."""
+        try:
+            ruta_actual = os.path.dirname(os.path.abspath(__file__))
+            
+            rutas_posibles = [
+                os.path.join(ruta_actual, '..', 'recursos', 'Aresitos.png'),
+                os.path.join(ruta_actual, '..', '..', 'recursos', 'Aresitos.png'),
+                os.path.join(ruta_actual, '..', '..', 'aresitos', 'recursos', 'Aresitos.png'),
+                os.path.join(os.path.dirname(ruta_actual), 'recursos', 'Aresitos.png')
+            ]
+            
+            for ruta in rutas_posibles:
+                ruta_normalizada = os.path.normpath(ruta)
+                if os.path.exists(ruta_normalizada):
+                    return ruta_normalizada
+            
+            return None
+            
+        except Exception:
+            return None
     
     @classmethod
     def aplicar_icono_photoimage(cls, ventana: Union[tk.Tk, tk.Toplevel]) -> bool:

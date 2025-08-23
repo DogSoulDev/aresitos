@@ -33,6 +33,23 @@ class VistaPrincipal(tk.Frame):
         # Configurar logging
         self.logger = logging.getLogger(__name__)
         
+        # Aplicar icono ARESITOS a la ventana principal (CRÍTICO para Kali)
+        try:
+            from ..utils.gestor_iconos import GestorIconos
+            # Obtener la ventana raíz (parent de este Frame)
+            root_window = parent
+            while hasattr(root_window, 'master') and root_window.master:
+                root_window = root_window.master
+            
+            # Aplicar icono con método optimizado para Kali Linux
+            icono_aplicado = GestorIconos.aplicar_icono_ventana(root_window)
+            if icono_aplicado:
+                self.logger.info("Icono ARESITOS aplicado correctamente")
+            else:
+                self.logger.warning("No se pudo aplicar icono ARESITOS")
+        except Exception as e:
+            self.logger.warning(f"Error aplicando icono ARESITOS: {e}")
+        
         # Solo aplicar tema si está disponible
         if BURP_THEME_AVAILABLE:
             self.theme = burp_theme

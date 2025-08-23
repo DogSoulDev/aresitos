@@ -1482,6 +1482,52 @@ class ControladorEscaneo(ControladorBase):
         except Exception as e:
             self.logger.warning(f"Error registrando evento SIEM: {e}")
 
+    def escanear_sistema(self, objetivo: str = "localhost") -> Dict[str, Any]:
+        """
+        Método de compatibilidad para escanear sistema completo.
+        Conecta con la funcionalidad existente y registra en SIEM.
+        """
+        try:
+            self.logger.info(f"Iniciando escaneo de sistema: {objetivo}")
+            
+            # Usar el método existente del modelo escaneador
+            if hasattr(self, 'escáner') and self.escáner:
+                resultado = self.escáner.escanear_sistema("completo")
+                
+                # Registrar en SIEM para análisis posterior
+                if resultado.get('exito'):
+                    self._registrar_evento_siem(
+                        "ESCANEO_SISTEMA_COMPLETADO",
+                        f"Escaneo de sistema completado para {objetivo}: {len(resultado.get('vulnerabilidades_encontradas', []))} vulnerabilidades",
+                        "info"
+                    )
+                    self.logger.info("Escaneo de sistema completado y registrado en SIEM")
+                else:
+                    self._registrar_evento_siem(
+                        "ESCANEO_SISTEMA_ERROR", 
+                        f"Error en escaneo de sistema para {objetivo}: {resultado.get('error', 'Error desconocido')}",
+                        "warning"
+                    )
+                
+                return resultado
+            else:
+                # Fallback básico si no hay escaneador disponible
+                return {
+                    'exito': False,
+                    'error': 'Escaneador no disponible',
+                    'timestamp': datetime.now().isoformat(),
+                    'objetivo': objetivo
+                }
+                
+        except Exception as e:
+            self.logger.error(f"Error en escanear_sistema: {e}")
+            return {
+                'exito': False,
+                'error': str(e),
+                'timestamp': datetime.now().isoformat(),
+                'objetivo': objetivo
+            }
+
 # RESUMEN TÉCNICO: Controlador de Escaneo avanzado para Ares Aegis con arquitectura asíncrona,
 # herencia de ControladorBase, operaciones thread-safe, análisis de criticidad automático,
 # integración SIEM completa, configuración dinámica, generación de reportes profesionales
