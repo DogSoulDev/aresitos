@@ -169,7 +169,7 @@ class VistaMonitoreo(tk.Frame):
                 text="LIMPIAR",
                 command=self.limpiar_terminal_monitoreo,
                 bg=self.colors.get('warning', '#ffaa00'),
-                fg='white',
+                fg='#ff6633',
                 font=("Arial", 8, "bold"),
                 height=1
             )
@@ -181,7 +181,7 @@ class VistaMonitoreo(tk.Frame):
                 text="VER LOGS",
                 command=self.abrir_logs_monitoreo,
                 bg=self.colors.get('info', '#007acc'),
-                fg='white',
+                fg='#ff6633',
                 font=("Arial", 8, "bold"),
                 height=1
             )

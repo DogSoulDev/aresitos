@@ -153,7 +153,7 @@ class VistaFIM(tk.Frame):
                 text="LIMPIAR",
                 command=self.limpiar_terminal_fim,
                 bg=self.colors.get('warning', '#ffaa00'),
-                fg='white',
+                fg='#ff6633',
                 font=("Arial", 8, "bold"),
                 height=1
             )
@@ -165,7 +165,7 @@ class VistaFIM(tk.Frame):
                 text="VER LOGS",
                 command=self.abrir_logs_fim,
                 bg=self.colors.get('info', '#007acc'),
-                fg='white',
+                fg='#ff6633',
                 font=("Arial", 8, "bold"),
                 height=1
             )

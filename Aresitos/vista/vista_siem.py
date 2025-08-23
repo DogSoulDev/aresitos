@@ -137,7 +137,7 @@ class VistaSIEM(tk.Frame):
                 text="LIMPIAR",
                 command=self.limpiar_terminal_siem,
                 bg=self.colors.get('warning', '#ffaa00'),
-                fg='white',
+                fg='#ff6633',
                 font=("Arial", 8, "bold"),
                 height=1
             )
@@ -149,7 +149,7 @@ class VistaSIEM(tk.Frame):
                 text="VER LOGS",
                 command=self.abrir_logs_siem,
                 bg=self.colors.get('info', '#007acc'),
-                fg='white',
+                fg='#ff6633',
                 font=("Arial", 8, "bold"),
                 height=1
             )
@@ -1535,7 +1535,7 @@ class VistaSIEM(tk.Frame):
     def detener_siem(self):
         """Detener sistema SIEM de forma robusta."""
         try:
-            self._log_terminal("🛑 Iniciando detención del sistema SIEM", "SIEM", "WARNING")
+            self._log_terminal("STOP Iniciando detención del sistema SIEM", "SIEM", "WARNING")
             self._actualizar_texto_monitoreo("DETENIENDO Sistema SIEM...\n")
             
             # 1. Marcar proceso como inactivo INMEDIATAMENTE
@@ -1544,7 +1544,7 @@ class VistaSIEM(tk.Frame):
             
             # 2. Esperar a que el hilo termine (máximo 3 segundos)
             if hasattr(self, 'thread_siem') and self.thread_siem and self.thread_siem.is_alive():
-                self._log_terminal("⏳ Esperando finalización del hilo SIEM...", "SIEM", "INFO")
+                self._log_terminal("WAIT Esperando finalización del hilo SIEM...", "SIEM", "INFO")
                 self.thread_siem.join(timeout=3.0)  # Esperar máximo 3 segundos
                 if self.thread_siem.is_alive():
                     self._log_terminal("Hilo SIEM no respondió en tiempo esperado", "SIEM", "WARNING")

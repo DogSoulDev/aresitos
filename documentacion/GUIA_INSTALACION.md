@@ -791,6 +791,23 @@ sudo ./configurar_kali.sh  # Reejecutar configuración
 ```bash
 # ARESITOS funciona sin rustscan, usa nmap como alternativa
 # Para instalar rustscan manualmente:
+
+# PASO 1: Instalar Cargo (gestor de paquetes de Rust)
+┌──(kali㉿kali)-[~]
+└─$ cargo install rustscan
+Command 'cargo' not found, but can be installed with:
+sudo apt install cargo 
+sudo apt install rustup
+
+# PASO 2: Instalar Cargo
+┌──(kali㉿kali)-[~]
+└─$ sudo apt install cargo
+
+# PASO 3: Instalar rustscan
+┌──(kali㉿kali)-[~]
+└─$ cargo install rustscan
+
+# ALTERNATIVA con rustup (recomendado)
 curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
 source ~/.cargo/env
 cargo install rustscan

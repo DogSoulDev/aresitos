@@ -128,7 +128,17 @@ class VistaEscaneo(tk.Frame):
                                      font=('Arial', 9))
         self.progress_label.pack(side="left")
         
-        self.progress_bar = ttk.Progressbar(self.progress_frame, mode='determinate', length=300)
+        # Configurar estilo naranja para la barra de progreso
+        style = ttk.Style()
+        style.configure("Orange.Horizontal.TProgressbar", 
+                       troughcolor=self.colors['bg_secondary'],
+                       background='#ff6633',
+                       borderwidth=1,
+                       lightcolor='#ff6633',
+                       darkcolor='#ff6633')
+        
+        self.progress_bar = ttk.Progressbar(self.progress_frame, mode='determinate', length=300,
+                                          style="Orange.Horizontal.TProgressbar")
         self.progress_bar.pack(side="right", padx=(10, 0))
         
         # Área de resultados con tema Burp Suite
@@ -168,7 +178,7 @@ class VistaEscaneo(tk.Frame):
                 text="LIMPIAR",
                 command=self.limpiar_terminal_escaneo,
                 bg=self.colors.get('warning', '#ffaa00'),
-                fg='white',
+                fg='#ff6633',
                 font=("Arial", 8, "bold"),
                 height=1
             )
@@ -180,7 +190,7 @@ class VistaEscaneo(tk.Frame):
                 text="VER LOGS",
                 command=self.abrir_logs_escaneo,
                 bg=self.colors.get('info', '#007acc'),
-                fg='white',
+                fg='#ff6633',
                 font=("Arial", 8, "bold"),
                 height=1
             )

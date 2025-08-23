@@ -881,7 +881,7 @@ LISTO PARA: Escaneos de vulnerabilidades en entornos Kali Linux 2025
             herramientas_manuales = [
                 'rustscan: cargo install rustscan (requiere Rust)',
                 'httpx: go install github.com/projectdiscovery/httpx/cmd/httpx@latest (requiere Go)',
-                'nuclei: go install github.com/projectdiscovery/nuclei/v2/cmd/nuclei@latest (requiere Go)',
+                'nuclei: go install github.com/projectdiscovery/nuclei/cmd/nuclei@latest (requiere Go)',
                 'linpeas: wget https://github.com/carlospolop/PEASS-ng/releases/latest/download/linpeas.sh',
                 'pspy64: wget https://github.com/DominicBreuker/pspy/releases/latest/download/pspy64',
                 'pspy32: wget https://github.com/DominicBreuker/pspy/releases/latest/download/pspy32',
