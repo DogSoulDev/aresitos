@@ -15,15 +15,22 @@ from typing import Dict, Any, List, Optional, Set
 from pathlib import Path
 
 from Aresitos.controlador.controlador_base import ControladorBase
-from Aresitos.modelo.modelo_fim import FIMAvanzado, TipoArchivoFIM, TipoCambioFIM, MetadatosArchivo
-from Aresitos.modelo.modelo_siem import SIEM, TipoEvento, SeveridadEvento
+# Importar solo las clases que realmente existen
+from Aresitos.modelo.modelo_fim import FIMKali2025
+from Aresitos.modelo.modelo_siem import SIEMKali2025
 
 # Importar nuevos modelos Kali 2025
 try:
-    from Aresitos.modelo.modelo_fim_kali2025 import FIMKali2025
+    from Aresitos.modelo.modelo_fim import FIMKali2025
     KALI2025_FIM_DISPONIBLE = True
 except ImportError:
     KALI2025_FIM_DISPONIBLE = False
+
+try:
+    from Aresitos.modelo.modelo_siem import SIEMKali2025
+    KALI2025_SIEM_DISPONIBLE = True
+except ImportError:
+    KALI2025_SIEM_DISPONIBLE = False
 
 class ControladorFIM(ControladorBase):
     """
@@ -40,9 +47,13 @@ class ControladorFIM(ControladorBase):
         if hasattr(modelo_principal, 'fim_avanzado') and modelo_principal.fim_avanzado:
             self.fim = modelo_principal.fim_avanzado
         else:
-            # Solo crear nueva instancia si no existe
+            # Solo crear nueva instancia si no existe - usar FIMKali2025
             try:
-                self.fim = FIMAvanzado()
+                if KALI2025_FIM_DISPONIBLE:
+                    self.fim = FIMKali2025()
+                else:
+                    self.logger.warning("FIMKali2025 no disponible")
+                    self.fim = None
             except Exception as e:
                 self.logger.error(f"Error inicializando FIM: {e}")
                 self.fim = None
@@ -62,9 +73,13 @@ class ControladorFIM(ControladorBase):
         if hasattr(modelo_principal, 'siem_avanzado') and modelo_principal.siem_avanzado:
             self.siem = modelo_principal.siem_avanzado
         else:
-            # Solo crear nueva instancia si no existe
+            # Solo crear nueva instancia si no existe - usar SIEMKali2025
             try:
-                self.siem = SIEM()
+                if KALI2025_SIEM_DISPONIBLE:
+                    self.siem = SIEMKali2025()
+                else:
+                    self.logger.warning("SIEMKali2025 no disponible")
+                    self.siem = None
             except Exception as e:
                 self.logger.error(f"Error inicializando SIEM: {e}")
                 self.siem = None
@@ -1218,7 +1233,9 @@ class ControladorFIM(ControladorBase):
         """Registrar evento en el sistema SIEM."""
         try:
             if self.siem:
-                self.siem.generar_evento(tipo, descripcion, severidad)
+                # Usar log en lugar de generar_evento que no existe
+                evento_msg = f"[{tipo}] {descripcion} (Severidad: {severidad})"
+                self.siem.log(evento_msg)
         except Exception as e:
             self.logger.error(f"Error registrando evento SIEM: {e}")
 
@@ -2430,11 +2447,15 @@ report_url=stdout
                 if self.siem and amenazas:
                     for amenaza in amenazas:
                         try:
-                            if hasattr(self.siem, 'registrar_evento'):
-                                self.siem.registrar_evento(
-                                    "ROOTKIT_DETECTADO",
-                                    f"Rootkit detectado: {amenaza.get('nombre', 'Unknown')}"
-                                )
+                            if hasattr(self.siem, '_guardar_evento_seguridad'):
+                                evento = {
+                                    'tipo': "ROOTKIT_DETECTADO",
+                                    'descripcion': f"Rootkit detectado: {amenaza.get('nombre', 'Unknown')}",
+                                    'fuente': 'FIM',
+                                    'timestamp': datetime.now().isoformat(),
+                                    'severidad': 'alta'
+                                }
+                                self.siem._guardar_evento_seguridad(evento)
                         except Exception as e:
                             self.logger.warning(f"Error registrando amenaza en SIEM: {e}")
             

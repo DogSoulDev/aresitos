@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-Ares Aegis - Controlador de Monitoreo Avanzado
+ARESITOS v3.0 - Controlador de Monitoreo Avanzado
 Controlador especializado en monitoreo integral del sistema
 Integra funcionalidad avanzada de detección de anomalías y procesos sospechosos
 """
@@ -10,7 +10,7 @@ import time
 import subprocess
 from typing import Dict, Any, List, Optional
 from Aresitos.modelo.modelo_monitor import Monitor
-from Aresitos.modelo.modelo_siem import SIEM
+from Aresitos.modelo.modelo_siem import SIEMKali2025
 
 class ControladorMonitoreo:
     """
@@ -26,7 +26,7 @@ class ControladorMonitoreo:
         
         # Crear SIEM si no existe para integración
         if not hasattr(self.modelo_principal, 'siem'):
-            self.siem = SIEM()
+            self.siem = SIEMKali2025()
             self.monitor.siem = self.siem
         else:
             self.siem = self.modelo_principal.siem
@@ -188,18 +188,18 @@ class ControladorMonitoreo:
         datos_sistema = self.monitor.obtener_datos_sistema_recientes(1)
         datos_red = self._obtener_datos_red_seguros(1)
         
-        reporte = "#  REPORTE DE MONITOREO - ARES AEGIS\n\n"
+        reporte = "# REPORTE DE MONITOREO - ARESITOS\n\n"
         
         if datos_sistema:
             sistema = datos_sistema[0].get('sistema', {})
-            reporte += f"##  ESTADO DEL SISTEMA\n"
+            reporte += f"## ESTADO DEL SISTEMA\n"
             reporte += f"- **CPU**: {sistema.get('cpu', 'N/A')}%\n"
             reporte += f"- **Memoria**: {sistema.get('memoria', 'N/A')}%\n"
             reporte += f"- **Disco**: {sistema.get('disco', 'N/A')}%\n\n"
         
         if datos_red:
             red = datos_red[0]
-            reporte += f"##  ESTADO DE RED\n"
+            reporte += f"## ESTADO DE RED\n"
             reporte += f"- **Conexiones**: {red.get('conexiones_activas', 'N/A')}\n"
             reporte += f"- **Tráfico**: {red.get('trafico_total', {}).get('bytes_recibidos', 'N/A')} bytes\n\n"
         

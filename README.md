@@ -2,30 +2,26 @@
 
 # ARESITOS - Herramienta de Ciberseguridad
 
-[![Versión](https://img.shields.io/badge/versión-v3.0%20Professional%20Scanner-brightgreen.svg)](https://github.com/DogSoulDev/Aresitos)
+[![Versión](https://img.shields.io/badge/versión-v3.0-brightgreen.svg)](https://github.com/DogSoulDev/Aresitos)
 [![Kali Linux](https://img.shields.io/badge/Kali%20Linux-2025-blue.svg)](https://www.kali.org/)
 [![Python](https://img.shields.io/badge/Python-3.9%2B%20Native-yellow.svg)](https://www.python.org/)
-[![Arquitectura](https://img.shields.io/badge/Arquitectura-MVC%20SOLID-orange.svg)](README.md)
-[![Scanner](https://img.shields.io/badge/Scanner-Professional%20Grade-green.svg)](README.md)
-[![SIEM](https://img.shields.io/badge/SIEM-Integrado-red.svg)](README.md)
-[![FIM](https://img.shields.io/badge/FIM-Real%20Time-purple.svg)](README.md)
+[![Arquitectura](https://img.shields.io/badge/Arquitectura-MVC-orange.svg)](README.md)
 
-**ARESITOS v3.0** es una herramienta de ciberseguridad profesional con un **escaneador de vulnerabilidades de grado empresarial** diseñada para proteger a pentesters, red teams y estudiantes de ciberseguridad. La nueva versión incorpora capacidades avanzadas de escaneo, detección de vulnerabilidades y enumeración automatizada.
+**ARESITOS v3.0** es una herramienta de ciberseguridad profesional diseñada exclusivamente para Kali Linux. Integra escaneador de vulnerabilidades, SIEM, FIM, sistema de cuarentena y auditoría de seguridad en una interfaz unificada.
 
-### 🎯 **NUEVAS CAPACIDADES v3.0 - ESCANEADOR PROFESIONAL**
-- **🔍 Escaneo Integral**: nmap con detección completa de servicios y scripts NSE
-- **⚡ Escaneo Masivo**: masscan y rustscan para análisis rápido de redes extensas
-- **🛡️ Detección de Vulnerabilidades**: nuclei con templates actualizados automáticamente
-- **🌐 Enumeración Web**: gobuster, ffuf y feroxbuster para discovery completo
-- **📊 Exportación Avanzada**: Reportes en JSON/TXT con análisis detallado
-- **🎛️ Validación Automática**: Verificación inteligente de herramientas disponibles
-- **🔄 Fallback Inteligente**: Adaptación automática según herramientas instaladas
+## Características Principales
 
----
+- **Escaneador Avanzado**: nmap, masscan, nuclei integrados
+- **SIEM en Tiempo Real**: Monitoreo y correlación de eventos 
+- **FIM**: Vigilancia de integridad de archivos críticos
+- **Sistema de Cuarentena**: Detección y aislamiento de malware
+- **Auditoría Automatizada**: Análisis completo de seguridad del sistema
+- **Arquitectura MVC**: Código limpio, mantenible y extensible
+- **Solo Python Nativo**: Sin dependencias externas
 
-## 🚀 **INSTALACIÓN INSTANTÁNEA (30 segundos)**
+## Instalación Instantánea
 
-### ⚡ **Método Automático - Recomendado**
+### Método Automático - Recomendado
 ```bash
 # Clonar y ejecutar configuración automática
 git clone https://github.com/DogSoulDev/Aresitos.git && cd Aresitos
@@ -33,31 +29,7 @@ chmod +x configurar_kali.sh && sudo ./configurar_kali.sh
 python3 main.py
 ```
 
-> **🔧 NOTA**: Si experimentas problemas con directorios duplicados, ejecuta:
-> ```bash
-> cd Aresitos && sudo ./configurar_kali.sh
-> ```
-> El script ahora establece automáticamente el directorio de trabajo correcto.
-
-> **⚠️ HERRAMIENTAS FORENSES OPCIONALES**: Si necesitas herramientas adicionales:
-> ```bash
-> # MÉTODO RECOMENDADO: Instalar paquete completo de forense
-> sudo apt install kali-tools-forensics
-> 
-> # O instalar herramientas individuales (ejecutar UNO por vez):
-> 
-> # 1. Wireshark (análisis de tráfico)
-> sudo apt install wireshark
-> 
-> # 2. Autopsy (forense digital)  
-> sudo apt install autopsy
-> 
-> # 3. SleuthKit (investigación forense)
-> sudo apt install sleuthkit
-> ```
-> **IMPORTANTE**: kali-tools-forensics incluye TODAS las herramientas forenses disponibles
-
-### 🔧 **Método Manual - Control Total**
+### Método Manual - Control Total
 ```bash
 # 1. Descargar ARESITOS
 git clone https://github.com/DogSoulDev/Aresitos.git
@@ -69,76 +41,47 @@ sudo ./configurar_kali.sh
 # 3. Verificar instalación
 python3 verificacion_final.py
 
-# 4. ¡Iniciar ARESITOS v2.0!
+# 4. Iniciar ARESITOS
 python3 main.py
 ```
 
-### 🛠️ **Modo Desarrollo (Otros Sistemas)**
+### Modo Desarrollo (Otros Sistemas)
 ```bash
 # Para testing en sistemas no-Kali (funcionalidad limitada)
 python3 main.py --dev
 ```
 
----
+## 📸 **Capturas de Pantalla**
 
-## 🖼️ **CAPTURAS DE PANTALLA DETALLADAS**
-
-### 1. Sistema de Autenticación - Primera Impresión
+### Sistema de Autenticación
 ![Vista Login](Aresitos/recursos/vista_login.png)
 
-**¿Qué es esta pantalla?**
-La primera ventana que ves al iniciar Aresitos. No es solo un login normal, es un sistema inteligente que verifica automáticamente que tu sistema Kali Linux esté configurado correctamente.
-
-**¿Qué hace por ti?**
-- **Verifica herramientas**: Comprueba que tengas instaladas más de 25 herramientas de ciberseguridad
-- **Configura permisos**: Establece los permisos necesarios para usar herramientas avanzadas
-- **Detecta problemas**: Si algo falta, te guía para solucionarlo automáticamente
-- **Acceso seguro**: Controla quién puede usar el sistema con autenticación robusta
-
-### 2. Vista de Herramientas - Configuración Automática
+### Vista de Herramientas 
 ![Vista Herramientas](Aresitos/recursos/vista_herramientas.png)
 
-**¿Qué es esta pantalla?**
-Una ventana especial que aparece solo la primera vez que usas Aresitos. Su trabajo es configurar automáticamente todas las herramientas de seguridad que necesitas.
-
-**¿Qué hace por ti?**
-- **Instala herramientas modernas**: nmap, nuclei, gobuster y más de 20 herramientas avanzadas
-- **Configura permisos**: Te permite usar las herramientas sin escribir contraseñas constantemente
-- **Actualiza bases de datos**: Descarga las últimas definiciones de vulnerabilidades
-- **Prepara el entorno**: Deja todo listo para que puedas empezar a trabajar inmediatamente
-
-### 3. Vista Principal - Centro de Comando
+### Vista Principal
 ![Vista Aresitos](Aresitos/recursos/vista_aresitos.png)
-
-**¿Qué es esta pantalla?**
-El corazón de Aresitos. Una vez configurado todo, esta es tu central de operaciones de ciberseguridad. Aquí tienes acceso a todas las funcionalidades del programa.
-
-**¿Qué puedes hacer?**
-- **🎯 Dashboard**: Ver el estado de tu sistema en tiempo real
-- **🔍 Escaneador**: Buscar vulnerabilidades en otros sistemas o redes
-- **🛡️ SIEM**: Monitorear eventos de seguridad y detectar amenazas
-- **📁 FIM**: Vigilar cambios sospechosos en archivos importantes
-- **🔒 Cuarentena**: Aislar archivos maliciosos de forma segura
-- **📊 Reportes**: Generar informes profesionales de tus auditorías
-- **📚 Gestión de Datos**: Administrar diccionarios y listas de palabras
-- **⚙️ Auditoría**: Revisar la seguridad de tu propio sistema
 
 ---
 
-## 🏗️ **ARQUITECTURA ARESITOS**
+## ⚡ **Inicio Rápido**
 
-### 🔐 **Sistema de Autenticación Avanzado**
-**Centro de Control de Acceso y Verificación del Sistema**
+```bash
+# Instalar y ejecutar en 30 segundos
+git clone https://github.com/DogSoulDev/Aresitos.git && cd Aresitos
+sudo ./configurar_kali.sh && python3 main.py
+```
 
-**Características Principales:**
-- ✅ **Verificación automática** de herramientas Kali 2025
-- ✅ **SudoManager integrado** - Sin solicitudes repetitivas de contraseña
-- ✅ **Rate limiting** contra ataques de fuerza bruta
-- ✅ **Configuración automática** de herramientas missing
-- ✅ **Modo desarrollo** para testing en otros sistemas
+## 🔧 **Requisitos del Sistema**
 
-**¿Cómo funciona?**
-El sistema verifica automáticamente que tengas instaladas +25 herramientas críticas, configura permisos especiales y establece una sesión sudo persistente para toda la aplicación.
+- **Sistema Operativo**: Kali Linux 2024+ (exclusivamente)
+- **Python**: 3.8+ (incluido por defecto en Kali)
+- **Permisos**: sudo para instalación de herramientas
+- **Espacio**: 100MB mínimo
+- **Memoria**: 2GB RAM recomendado
+
+
+---
 
 ### ⚙️ **Configurador Inteligente de Herramientas**
 **Instalación y Configuración Automática de Arsenal Completo**

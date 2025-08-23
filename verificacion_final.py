@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-Script de verificación final de ARESITOS v2.0
+Script de verificación final de ARESITOS v3.0
 Verifica que todas las correcciones se han aplicado correctamente
 """
 
@@ -166,7 +166,7 @@ def verificar_estructura_archivos():
 def main():
     """Función principal de verificación"""
     print("=" * 60)
-    print("VERIFICANDO VERIFICACIÓN FINAL DE ARESITOS v2.0")
+    print("VERIFICANDO VERIFICACIÓN FINAL DE ARESITOS v3.0")
     print("=" * 60)
     
     verificaciones = [
@@ -186,7 +186,7 @@ def main():
     
     if exitosas == total:
         print("EXITO ¡TODAS LAS VERIFICACIONES PASARON!")
-        print("OK ARESITOS v2.0 está listo para usar")
+        print("OK ARESITOS v3.0 está listo para usar")
         print("\nINFO Para ejecutar:")
         print("   python main.py --desarrollo")
         print("   python main.py  # Para modo producción")

@@ -31,10 +31,10 @@ from datetime import datetime
 
 # Evitar warnings de typing usando TYPE_CHECKING
 if TYPE_CHECKING:
-    from .modelo_escaneador_avanzado import EscaneadorAvanzado as _EscaneadorAvanzado
+    from .modelo_escaneador_avanzado_real import EscaneadorAvanzadoReal as _EscaneadorAvanzado
 else:
     try:
-        from .modelo_escaneador_avanzado import EscaneadorAvanzado as _EscaneadorAvanzado
+        from .modelo_escaneador_avanzado_real import EscaneadorAvanzadoReal as _EscaneadorAvanzado
     except ImportError:
         try:
             from .modelo_escaneador_base import EscaneadorBase as _EscaneadorAvanzado

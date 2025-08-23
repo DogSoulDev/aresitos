@@ -41,9 +41,9 @@ class ControladorEscaneadorCuarentena:
         """Inicializa el escáner y el sistema de cuarentena."""
         # Inicializar escáner
         try:
-            from ..modelo.modelo_escaneador_avanzado_real import EscaneadorAvanzadoReal
-            self.escáner = EscaneadorAvanzadoReal()
-            self.logger.info("OK Escaneador avanzado inicializado")
+            from ..modelo.modelo_escaneador import EscaneadorKali2025
+            self.escáner = EscaneadorKali2025()
+            self.logger.info("OK Escaneador Kali2025 inicializado")
         except Exception as e:
             self.logger.error(f"Error inicializando escáner: {e}")
             self.escáner = None

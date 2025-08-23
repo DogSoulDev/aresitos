@@ -31,11 +31,8 @@ class VistaHerramientasKali(tk.Frame):
     def __init__(self, parent, callback_completado=None):
         super().__init__(parent)
         
-        # VERIFICACIÓN CRÍTICA: Solo para Kali Linux (excepto en modo desarrollo)
-        import sys
-        modo_desarrollo = '--dev' in sys.argv or '--desarrollo' in sys.argv
-        
-        if not self._verificar_kali_linux() and not modo_desarrollo:
+        # VERIFICACIÓN CRÍTICA: Solo para Kali Linux
+        if not self._verificar_kali_linux():
             messagebox.showerror(
                 "Error - Solo Kali Linux", 
                 "ARESITOS está diseñado exclusivamente para Kali Linux.\n\n"
@@ -44,13 +41,6 @@ class VistaHerramientasKali(tk.Frame):
             )
             self.destroy()
             return
-        elif not self._verificar_kali_linux() and modo_desarrollo:
-            messagebox.showinfo(
-                "Modo Desarrollo", 
-                "MODO DESARROLLO ACTIVADO\n\n"
-                "Ejecutando en entorno no-Kali.\n"
-                "Funcionalidad limitada disponible."
-            )
             
         self.controlador = None  # Patrón MVC
         self.callback_completado = callback_completado
@@ -276,7 +266,7 @@ class VistaHerramientasKali(tk.Frame):
         """Mostrar todas las optimizaciones Kali Linux ya aplicadas"""
         self.text_resultados.delete(1.0, tk.END)
         
-        optimizaciones_texto = """ARESITOS v3.0 - OPTIMIZACIONES KALI LINUX APLICADAS
+        optimizaciones_texto = """ARESITOS v2.0 - OPTIMIZACIONES KALI LINUX APLICADAS
 =======================================================
 
 OK SISTEMA COMPLETAMENTE OPTIMIZADO PARA KALI LINUX
@@ -808,6 +798,40 @@ LISTO PARA: Escaneos de vulnerabilidades en entornos Kali Linux 2025
             # Widget ya destruido, ignorar silenciosamente
             self.proceso_activo = False
     
+    def continuar_aplicacion(self):
+        """Continuar a la aplicación principal con verificación de seguridad"""
+        try:
+            # Verificar si los widgets aún existen antes de acceder a ellos
+            if not (hasattr(self, 'text_resultados') and self.text_resultados.winfo_exists()):
+                return
+                
+            self.text_resultados.insert(tk.END, "\nIniciando ARESITOS v2.0...\n")
+            self.text_resultados.insert(tk.END, "Herramientas modernas configuradas correctamente\n")
+            self.text_resultados.insert(tk.END, "Tema Burp Suite aplicado\n")
+            self.text_resultados.insert(tk.END, "Dashboard completo cargado\n")
+            self.text_resultados.see(tk.END)
+            
+            # Deshabilitar botón para evitar clicks múltiples
+            if hasattr(self, 'btn_continuar') and self.btn_continuar.winfo_exists():
+                self.btn_continuar.config(state='disabled', text="Iniciando...")
+            
+            # Ejecutar callback si está disponible
+            if self.callback_completado:
+                if hasattr(self, 'text_resultados') and self.text_resultados.winfo_exists():
+                    self.text_resultados.insert(tk.END, "\nAbriendo aplicación principal...\n")
+                    self.text_resultados.see(tk.END)
+                # Usar after para ejecutar el callback en el hilo principal
+                self.after(1500, self._ejecutar_callback_seguro)
+            else:
+                messagebox.showinfo("Información", 
+                                  "Configuración completada exitosamente.\n"
+                                  "ARESITOS v2.0 se iniciará automáticamente.")
+                # Si no hay callback, cerrar esta ventana
+                self.after(2000, self._cerrar_ventana_seguro)
+        except (tk.TclError, AttributeError):
+            # Widget ya destruido, ignorar silenciosamente
+            pass
+    
     def _ejecutar_callback_seguro(self):
         """Ejecutar callback de forma segura"""
         try:
@@ -880,29 +904,3 @@ LISTO PARA: Escaneos de vulnerabilidades en entornos Kali Linux 2025
             return False
         except Exception:
             return False
-
-    def continuar_aplicacion(self):
-        """Continuar a la aplicación principal de ARESITOS"""
-        try:
-            self._log_terminal("Usuario continuando a aplicación principal", "HERRAMIENTAS_KALI", "INFO")
-            
-            # Ejecutar callback si existe
-            if self.callback_completado:
-                self.callback_completado()
-            else:
-                # Fallback: cerrar esta ventana y que el sistema maneje el siguiente paso
-                if hasattr(self, 'master') and self.master:
-                    self.master.destroy()
-                else:
-                    self.destroy()
-                    
-        except Exception as e:
-            self.logger.error(f"Error continuando aplicación: {e}")
-            # Forzar cierre y continuar
-            try:
-                if hasattr(self, 'master') and self.master:
-                    self.master.destroy()
-                else:
-                    self.destroy()
-            except:
-                pass

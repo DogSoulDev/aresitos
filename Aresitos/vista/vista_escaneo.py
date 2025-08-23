@@ -8,10 +8,12 @@ import datetime
 
 try:
     from Aresitos.vista.burp_theme import burp_theme
+    from Aresitos.utils.detector_red import DetectorRed
     BURP_THEME_AVAILABLE = True
 except ImportError:
     BURP_THEME_AVAILABLE = False
     burp_theme = None
+    DetectorRed = None
 
 class VistaEscaneo(tk.Frame):
     
@@ -482,27 +484,21 @@ class VistaEscaneo(tk.Frame):
                 self._actualizar_texto_seguro("MODO: Escaneador Avanzado Kali 2025\n")
                 self._actualizar_texto_seguro("HERRAMIENTAS: masscan, nmap, nuclei, gobuster, ffuf, rustscan\n\n")
                 
-                # Determinar objetivo (localhost + red local)
-                objetivos = ["127.0.0.1"]  # Siempre incluir localhost
+                # Determinar objetivo usando DetectorRed
+                if DetectorRed:
+                    try:
+                        self.detector_red = DetectorRed()
+                        objetivos = self.detector_red.obtener_objetivos_escaneo()
+                        if not objetivos:
+                            objetivos = ["127.0.0.1"]  # Fallback si no se detecta red
+                        self._log_terminal(f"CONTROLADOR Red detectada automáticamente: {objetivos}", "ESCANEADOR", "INFO")
+                    except Exception as e:
+                        self._log_terminal(f"CONTROLADOR Error detección automática: {e}", "ESCANEADOR", "WARNING")
+                        objetivos = ["127.0.0.1"]
+                else:
+                    objetivos = ["127.0.0.1"]  # Siempre incluir localhost
                 
-                self._actualizar_progreso_seguro(30, "Estado: Detectando red local...")
-                
-                # Detectar red local
-                try:
-                    import subprocess
-                    resultado = subprocess.run(['ip', 'route', 'show', 'default'], 
-                                             capture_output=True, text=True, timeout=5)
-                    if resultado.returncode == 0 and resultado.stdout.strip():
-                        gateway_line = resultado.stdout.strip()
-                        if 'via' in gateway_line:
-                            gateway = gateway_line.split('via')[1].split()[0]
-                            octetos = gateway.split('.')
-                            if len(octetos) >= 3:
-                                red_local = f"{octetos[0]}.{octetos[1]}.{octetos[2]}.0/24"
-                                objetivos.append(red_local)
-                                self._actualizar_texto_seguro(f"RED LOCAL DETECTADA: {red_local}\n")
-                except Exception as e:
-                    self._log_terminal(f"Error detectando red: {str(e)}", "ESCANEADOR", "WARNING")
+                self._actualizar_progreso_seguro(30, "Estado: Detectando objetivos de escaneo...")
                 
                 self._actualizar_texto_seguro(f"OBJETIVOS: {', '.join(objetivos)}\n\n")
                 
@@ -557,8 +553,20 @@ class VistaEscaneo(tk.Frame):
                 herramientas_status = self._validar_herramientas_escaneo()
                 
                 # Usar escaneo avanzado o integral según disponibilidad
+                if DetectorRed:
+                    try:
+                        self.detector_red = DetectorRed()
+                        objetivos_escaneo = self.detector_red.obtener_objetivos_escaneo()
+                        if not objetivos_escaneo:
+                            objetivos_escaneo = ["127.0.0.1"]
+                    except Exception as e:
+                        self._log_terminal(f"Error detección automática: {e}", "ESCANEADOR", "WARNING")
+                        objetivos_escaneo = ["127.0.0.1"]
+                else:
+                    objetivos_escaneo = ["127.0.0.1"]
+                    
                 resultados_totales = {"exito": True, "resultados": []}
-                for objetivo in ["127.0.0.1"]:  # Empezar solo con localhost
+                for objetivo in objetivos_escaneo:
                     try:
                         if herramientas_status["total"] >= 3:
                             self._log_terminal(f"Usando escaneo avanzado multiherramienta para {objetivo}", "ESCANEADOR", "INFO")
@@ -1527,11 +1535,26 @@ class VistaEscaneo(tk.Frame):
             self._actualizar_texto_seguro(f"Error al exportar reporte: {str(e)}\n")
             return {"exito": False, "error": str(e)}
 
-    def _escaneo_red_completa(self, rango_red="192.168.1.0/24"):
+    def _escaneo_red_completa(self, rango_red=None):
         """Escaneo completo de una red local."""
         import subprocess
         import ipaddress
         from datetime import datetime
+        
+        # Detectar red automáticamente si no se especifica
+        if not rango_red:
+            if DetectorRed:
+                try:
+                    detector = DetectorRed()
+                    redes = detector.obtener_objetivos_escaneo()
+                    if redes and len(redes) > 1:  # Si hay más de localhost
+                        rango_red = redes[1]  # Usar la primera red que no sea localhost
+                    else:
+                        rango_red = "192.168.1.0/24"  # Fallback
+                except Exception:
+                    rango_red = "192.168.1.0/24"  # Fallback
+            else:
+                rango_red = "192.168.1.0/24"  # Fallback
         
         self._actualizar_texto_seguro(f"\n=== ESCANEO DE RED COMPLETA: {rango_red} ===\n")
         
@@ -2549,38 +2572,29 @@ class VistaEscaneo(tk.Frame):
                 if resultado_nmap.returncode == 0:
                     self._actualizar_texto_seguro("NMAP DISPONIBLE: Ejecutando escaneo básico de red\n")
                     
-                    # Detectar la red local del usuario automáticamente
-                    red_local = None
-                    try:
-                        # Obtener la IP del gateway y calcular la red
-                        if gateway and gateway != 'unknown':
-                            # Intentar detectar la red basándose en el gateway
-                            partes_gateway = gateway.split('.')
-                            if len(partes_gateway) == 4:
-                                red_local = f"{partes_gateway[0]}.{partes_gateway[1]}.{partes_gateway[2]}.0/24"
-                        
-                        # Método alternativo: usar ip route para obtener la red
-                        if not red_local:
-                            try:
-                                route_result = subprocess.run(['ip', 'route', 'show', 'scope', 'link'], 
-                                                            capture_output=True, text=True, timeout=5)
-                                for line in route_result.stdout.split('\n'):
-                                    if '/' in line and 'dev' in line:
-                                        red_local = line.split()[0]
-                                        break
-                            except:
-                                pass
-                        
-                        # Fallback a red común si no se detecta
-                        if not red_local:
+                    # Detectar la red local usando DetectorRed
+                    if DetectorRed:
+                        try:
+                            detector = DetectorRed()
+                            redes = detector.obtener_objetivos_escaneo()
+                            # Buscar la primera red que no sea localhost
+                            red_local = None
+                            for red in redes:
+                                if red not in ["127.0.0.1", "localhost"]:
+                                    red_local = red
+                                    break
+                            
+                            if not red_local:
+                                red_local = "192.168.1.0/24"
+                                self._actualizar_texto_seguro("ADVERTENCIA: No se detectó red, usando por defecto 192.168.1.0/24\n")
+                            else:
+                                self._actualizar_texto_seguro(f"RED DETECTADA AUTOMÁTICAMENTE: {red_local}\n")
+                        except Exception as e:
                             red_local = "192.168.1.0/24"
-                            self._actualizar_texto_seguro("ADVERTENCIA: Usando red por defecto 192.168.1.0/24\n")
-                        else:
-                            self._actualizar_texto_seguro(f"RED DETECTADA: {red_local}\n")
-                    
-                    except Exception as e:
+                            self._actualizar_texto_seguro(f"ERROR en detección automática: {e}, usando red por defecto\n")
+                    else:
                         red_local = "192.168.1.0/24"
-                        self._actualizar_texto_seguro(f"ERROR detectando red: {e}, usando red por defecto\n")
+                        self._actualizar_texto_seguro("ADVERTENCIA: DetectorRed no disponible, usando red por defecto\n")
                     
                     # Escaneo de la red detectada
                     try:

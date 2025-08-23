@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-Ares Aegis - Controlador Principal Simplificado
+ARESITOS v3.0 - Controlador Principal Simplificado
 Sistema principal de coordinación simplificado y optimizado para Kali Linux
 """
 
@@ -11,8 +11,8 @@ from datetime import datetime
 from typing import Dict, Any, Optional, List
 
 from Aresitos.controlador.controlador_base import ControladorBase
-from Aresitos.controlador.controlador_gestor_configuracion import GestorConfiguracion
-from Aresitos.controlador.controlador_gestor_componentes import GestorComponentes
+from Aresitos.controlador.controlador_configuracion import GestorConfiguracion  
+from Aresitos.controlador.controlador_componentes import GestorComponentes
 
 class ControladorPrincipal(ControladorBase):
     """
@@ -49,12 +49,12 @@ class ControladorPrincipal(ControladorBase):
         # Inicializar controladores específicos
         try:
             from .controlador_escaneo import ControladorEscaneo
-            from .controlador_auditoria import ControladorAuditoria  
+            from .controlador_auditoria import ControladorAuditoria
             from .controlador_reportes import ControladorReportes
             from .controlador_monitoreo import ControladorMonitoreo
             from .controlador_herramientas import ControladorHerramientas
             from .controlador_fim import ControladorFIM
-            from .controlador_siem_nuevo import ControladorSIEM
+            from .controlador_siem import ControladorSIEM
             from .controlador_cuarentena import ControladorCuarentena
             
             self.controlador_escaneador = ControladorEscaneo(modelo_principal)
@@ -84,7 +84,7 @@ class ControladorPrincipal(ControladorBase):
         # Operaciones activas
         self._operaciones_activas = set()
         
-        self.logger.info("Controlador Principal Ares Aegis inicializado")
+        self.logger.info("Controlador Principal ARESITOS inicializado")
     
     async def _inicializar_impl(self) -> Dict[str, Any]:
         """Implementación de inicialización del controlador principal."""
@@ -93,7 +93,7 @@ class ControladorPrincipal(ControladorBase):
             
             # 1. Verificar sistema básico
             if self.gestor_componentes:
-                resultado_basico = self.gestor_componentes.inicializar_sistema_basico()
+                resultado_basico = self.gestor_componentes.inicializar_componentes_ordenado()
                 if not resultado_basico.get('exito'):
                     return {
                         'exito': False,
@@ -101,9 +101,9 @@ class ControladorPrincipal(ControladorBase):
                         'fase': 'sistema_basico'
                     }
             
-            # 2. Inicializar componentes principales
+            # 2. Inicializar componentes principales (reusando el mismo resultado)
             if self.gestor_componentes:
-                resultado_componentes = self.gestor_componentes.inicializar_componentes_ordenado()
+                resultado_componentes = resultado_basico  # Reusar resultado anterior
                 componentes_exitosos = resultado_componentes.get('componentes_exitosos', 0)
                 
                 if componentes_exitosos == 0:

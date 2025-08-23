@@ -875,11 +875,11 @@ configure_aresitos_permissions() {
 create_test_script() {
     print_header "📝 Creando script de prueba..."
     
-    TEST_SCRIPT="$USER_HOME/test_ares_permissions.py"
+    TEST_SCRIPT="$USER_HOME/test_aresitos_permissions.py"
     
     cat > "$TEST_SCRIPT" << 'EOF'
 #!/usr/bin/env python3
-"""Script de prueba para verificar permisos de Ares Aegis"""
+"""Script de prueba para verificar permisos de ARESITOS v3.0"""
 import subprocess
 import sys
 
@@ -893,7 +893,7 @@ def test_tool(tool, args):
     except Exception as e:
         return False, "", str(e)
 
-print("🧪 Probando herramientas de Ares Aegis...")
+print("🧪 Probando herramientas de ARESITOS v3.0...")
 print("="*50)
 
 tests = [
@@ -984,13 +984,13 @@ main() {
     print_header "COMPLETADO CONFIGURACIÓN COMPLETADA"
     print_header "============================"
     
-    print_success "Ares Aegis está configurado para Kali Linux"
+    print_success "ARESITOS v3.0 está configurado para Kali Linux"
     echo
     print_info "Pasos siguientes:"
     echo "  1. Cierre y reabra la terminal para aplicar cambios de grupo"
-    echo "  2. Execute el script de prueba: python3 $USER_HOME/test_ares_permissions.py"
-    echo "  3. Execute la verificación de permisos: python3 verificacion_permisos.py"
-    echo "  4. Inicie Ares Aegis: python3 main.py"
+    echo "  2. Execute el script de prueba: python3 $USER_HOME/test_aresitos_permissions.py"
+    echo "  3. Execute la verificación final: python3 verificacion_final.py"
+    echo "  4. Inicie ARESITOS: python3 main.py"
     echo
     print_warning "IMPORTANTE: Reinicie la sesión para aplicar cambios de grupos"
 }

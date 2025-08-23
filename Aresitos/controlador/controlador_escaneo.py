@@ -10,18 +10,31 @@ import re
 import socket
 import subprocess
 from datetime import datetime
+from datetime import datetime
 from typing import Dict, Any, List, Optional
 
 from Aresitos.controlador.controlador_base import ControladorBase
-from Aresitos.modelo.modelo_escaneador_avanzado_real import EscaneadorAvanzadoReal, TipoEscaneo, NivelRiesgo
-from Aresitos.modelo.modelo_siem import SIEMAvanzadoNativo, TipoEvento, SeveridadEvento
+# from Aresitos.modelo.modelo_escaneador_avanzado_real import EscaneadorAvanzadoReal, TipoEscaneo, NivelRiesgo  # Archivo eliminado
+from Aresitos.modelo.modelo_siem import SIEMKali2025 as SIEMAvanzadoNativo
+from Aresitos.utils.detector_red import DetectorRed
 
-# Importar nuevos modelos Kali 2025
+# Importar arquitectura modular de escáner
+try:
+    from Aresitos.modelo.modelo_escaneador import crear_escaneador, EscaneadorAvanzado
+    from Aresitos.modelo.modelo_escaneador_avanzado_real import EscaneadorAvanzadoReal
+    ESCANEADOR_DISPONIBLE = True
+except ImportError:
+    ESCANEADOR_DISPONIBLE = False
+    EscaneadorAvanzado = None
+    EscaneadorAvanzadoReal = None
+
+# EscaneadorKali2025 es realmente EscaneadorAvanzadoReal con funcionalidades Kali
 try:
     from Aresitos.modelo.modelo_escaneador_kali2025 import EscaneadorKali2025
     KALI2025_DISPONIBLE = True
 except ImportError:
     KALI2025_DISPONIBLE = False
+    EscaneadorKali2025 = EscaneadorAvanzadoReal  # Fallback
 
 class UtilsIP:
     """Utilidades para manejo de IPs sin dependencias externas."""
@@ -93,19 +106,30 @@ class ControladorEscaneo(ControladorBase):
         # Inicializar componentes inmediatamente para compatibilidad
         try:
             self.siem = SIEMAvanzadoNativo()  # Usar clase correcta
-            self.escáner = EscaneadorAvanzadoReal()  # Usar clase correcta
             
-            # Inicializar escáner Kali 2025 si está disponible
-            if KALI2025_DISPONIBLE:
+            # Inicializar escáner usando Kali2025 como principal
+            if KALI2025_DISPONIBLE and EscaneadorKali2025:
                 try:
-                    self.escaner_kali2025 = EscaneadorKali2025()
-                    self.logger.info("✓ EscaneadorKali2025 inicializado correctamente")
+                    self.escáner = EscaneadorKali2025()
+                    self.escaner_kali2025 = self.escáner  # Alias para compatibilidad
+                    self.logger.info("OK EscaneadorKali2025 inicializado como escaneador principal")
                 except Exception as e:
-                    self.logger.warning(f"✓ Error inicializando EscaneadorKali2025: {e}")
-                    self.escaner_kali2025 = None
-            else:
+                    self.logger.warning(f"Error inicializando EscaneadorKali2025: {e}")
+                    # Fallback a escaneador avanzado
+                    if ESCANEADOR_DISPONIBLE:
+                        self.escáner = crear_escaneador('avanzado')
+                        self.escaner_kali2025 = None
+                    else:
+                        self.escáner = None
+                        self.escaner_kali2025 = None
+            elif ESCANEADOR_DISPONIBLE:
+                self.escáner = crear_escaneador('avanzado')
                 self.escaner_kali2025 = None
-                self.logger.warning("✓ EscaneadorKali2025 no disponible")
+                self.logger.info("OK Escaneador avanzado inicializado")
+            else:
+                self.escáner = None
+                self.escaner_kali2025 = None
+                self.logger.error("ERROR: No hay escaneadores disponibles")
             
             # Verificar que el escáner esté funcionando
             if self.escáner:
@@ -350,9 +374,21 @@ class ControladorEscaneo(ControladorBase):
         try:
             self.logger.info("Inicializando componentes de escaneo")
             
-            # Inicializar escáner
-            self.escáner = EscaneadorAvanzadoReal()
-            self.logger.debug("Escaneador inicializado")
+            # Inicializar escáner usando factory pattern
+            if ESCANEADOR_DISPONIBLE:
+                try:
+                    # Primero intentar Kali2025, sino avanzado
+                    if KALI2025_DISPONIBLE and EscaneadorKali2025:
+                        self.escáner = EscaneadorKali2025()
+                    else:
+                        self.escáner = crear_escaneador('avanzado')
+                    self.logger.debug("Escaneador inicializado")
+                except Exception as e:
+                    self.logger.error(f"Error inicializando escaneador: {e}")
+                    self.escáner = None
+            else:
+                self.escáner = None
+                self.logger.warning("No hay escaneadores disponibles")
             
             # Inicializar SIEM
             self.siem = SIEMAvanzadoNativo()
@@ -484,18 +520,36 @@ class ControladorEscaneo(ControladorBase):
             tiempo_inicio = time.time()
             
             # SECURITY: Usar objetivo validado en todas las operaciones
-            # Escaneo completo con objetivo seguro (usa el método principal)
+            # Escaneo completo con objetivo seguro
             self.logger.info(f" Ejecutando escaneo completo para {objetivo_seguro}")
-            resultado_escaneo = self.escáner.escanear_completo(objetivo_seguro)
+            
+            # Verificar qué tipo de escaneador tenemos y usar el método apropiado
+            if hasattr(self.escáner, 'escaneo_completo_kali2025'):
+                # Es un EscaneadorKali2025
+                resultado_escaneo = getattr(self.escáner, 'escaneo_completo_kali2025')(objetivo_seguro)
+            elif hasattr(self.escáner, 'escanear_completo'):
+                # Es un EscaneadorAvanzadoReal
+                resultado_escaneo = getattr(self.escáner, 'escanear_completo')(objetivo_seguro)
+            elif hasattr(self.escáner, 'escaneo_con_cache'):
+                # Usar el método con caché que añadimos
+                resultado_escaneo = getattr(self.escáner, 'escaneo_con_cache')('puertos_basico', objetivo_seguro)
+            else:
+                # Fallback si no hay métodos de escaneado disponibles
+                resultado_escaneo = {
+                    'exito': False,
+                    'error': 'No hay métodos de escaneado disponibles',
+                    'puertos_abiertos': [],
+                    'vulnerabilidades': []
+                }
             
             # Extraer componentes individuales del resultado
-            puertos_resultado = resultado_escaneo.puertos_abiertos if hasattr(resultado_escaneo, 'puertos_abiertos') and resultado_escaneo.puertos_abiertos else []
+            puertos_resultado = resultado_escaneo.get('puertos_abiertos', []) if isinstance(resultado_escaneo, dict) else []
             conexiones_resultado = {'conexiones_activas': len(puertos_resultado), 'detalles': 'Extraído del escaneo completo'}
             
             # Obtener análisis de logs del SIEM
             try:
-                # Usar obtener_eventos para obtener información del SIEM
-                eventos_recientes = self.siem.obtener_eventos(limite=10) if hasattr(self.siem, 'obtener_eventos') else []
+                # SIEMKali2025 no tiene obtener_eventos, usar método alternativo
+                eventos_recientes = []  # Fallback si no hay eventos disponibles
                 analisis_logs = {
                     'eventos_recientes': eventos_recientes,
                     'total_eventos': len(eventos_recientes),
@@ -523,9 +577,17 @@ class ControladorEscaneo(ControladorBase):
                 self._estado_escaneo['ultimos_resultados'] = resultados
                 self._estado_escaneo['total_escaneos_realizados'] += 1
             
-            # Registrar evento SIEM
+            # Registrar evento SIEM usando método disponible
             try:
-                self.siem.registrar_evento("ESCANEO_BASICO", f"Escaneo básico completado para {objetivo}")
+                if hasattr(self.siem, '_guardar_evento_seguridad'):
+                    evento = {
+                        'tipo': "ESCANEO_BASICO",
+                        'descripcion': f"Escaneo básico completado para {objetivo}",
+                        'fuente': 'ESCANEADOR',
+                        'timestamp': datetime.now().isoformat(),
+                        'severidad': 'info'
+                    }
+                    self.siem._guardar_evento_seguridad(evento)
             except Exception as e_siem:
                 self.logger.warning(f"Error registrando evento SIEM: {e_siem}")
             
@@ -540,9 +602,8 @@ class ControladorEscaneo(ControladorBase):
             error_msg = f"Error en escaneo básico: {str(e)}"
             self.logger.error(error_msg)
             try:
-                if self.siem:
-                    self.siem.registrar_evento("ERROR_ESCANEO_BASICO", error_msg)
-            except (ValueError, TypeError, AttributeError):
+                self._registrar_evento_siem("ERROR_ESCANEO_BASICO", error_msg, 'error')
+            except Exception:
                 pass  # No fallar si SIEM no está disponible
             raise e
     
@@ -592,15 +653,26 @@ class ControladorEscaneo(ControladorBase):
             
             # Realizar escaneo avanzado para obtener más detalles
             self.logger.info(f" Ejecutando escaneo avanzado para {objetivo_seguro}")
-            resultado_avanzado = self.escáner.escanear_completo(objetivo_seguro)
+            
+            # Verificar qué tipo de escaneador tenemos y usar el método apropiado
+            if hasattr(self.escáner, 'escaneo_completo_kali2025'):
+                resultado_avanzado = getattr(self.escáner, 'escaneo_completo_kali2025')(objetivo_seguro)
+            elif hasattr(self.escáner, 'escanear_completo'):
+                resultado_avanzado = getattr(self.escáner, 'escanear_completo')(objetivo_seguro)
+            else:
+                # Fallback básico
+                resultado_avanzado = {
+                    'vulnerabilidades': [],
+                    'puertos_abiertos': []
+                }
             
             # Extraer información específica del resultado avanzado
             servicios = []
             deteccion_os = {'sistema': 'Desconocido', 'version': 'No detectada'}
-            vulnerabilidades = resultado_avanzado.vulnerabilidades if hasattr(resultado_avanzado, 'vulnerabilidades') and resultado_avanzado.vulnerabilidades else []
+            vulnerabilidades = resultado_avanzado.get('vulnerabilidades', []) if isinstance(resultado_avanzado, dict) else []
             
             # Simular detección básica de servicios basada en puertos
-            puertos_abiertos = resultado_avanzado.puertos_abiertos if hasattr(resultado_avanzado, 'puertos_abiertos') and resultado_avanzado.puertos_abiertos else []
+            puertos_abiertos = resultado_avanzado.get('puertos_abiertos', []) if isinstance(resultado_avanzado, dict) else []
             for puerto in puertos_abiertos:
                 if isinstance(puerto, dict) and 'puerto' in puerto:
                     port_num = puerto['puerto']
@@ -640,8 +712,8 @@ class ControladorEscaneo(ControladorBase):
             # Registrar evento SIEM
             try:
                 nivel_evento = "warning" if criticidad['nivel'] in ['alto', 'critico'] else "info"
-                self.siem.registrar_evento("ESCANEO_COMPLETO", 
-                                         f"Escaneo completo de {objetivo} - Criticidad: {criticidad['nivel']}")
+                self._registrar_evento_siem("ESCANEO_COMPLETO", 
+                                         f"Escaneo completo de {objetivo} - Criticidad: {criticidad['nivel']}", nivel_evento)
             except Exception as e_siem:
                 self.logger.warning(f"Error registrando evento SIEM: {e_siem}")
             
@@ -657,7 +729,7 @@ class ControladorEscaneo(ControladorBase):
             self.logger.error(error_msg)
             try:
                 if self.siem:
-                    self.siem.registrar_evento("ERROR_ESCANEO_COMPLETO", error_msg)
+                    self._registrar_evento_siem("ERROR_ESCANEO_COMPLETO", error_msg, 'error')
             except (ValueError, TypeError, AttributeError):
                 pass  # No fallar si SIEM no está disponible
             raise e
@@ -884,8 +956,8 @@ class ControladorEscaneo(ControladorBase):
             
             # Registrar evento SIEM
             try:
-                self.siem.registrar_evento("ESCANEO_RED", 
-                                         f"Escaneo de red {rango_red} - {len(hosts_activos)} hosts descubiertos")
+                self._registrar_evento_siem("ESCANEO_RED", 
+                                         f"Escaneo de red {rango_red} - {len(hosts_activos)} hosts descubiertos", 'info')
             except Exception as e_siem:
                 self.logger.warning(f"Error registrando evento SIEM: {e_siem}")
             
@@ -898,7 +970,7 @@ class ControladorEscaneo(ControladorBase):
             self.logger.error(error_msg)
             try:
                 if self.siem:
-                    self.siem.registrar_evento("ERROR_ESCANEO_RED", error_msg)
+                    self._registrar_evento_siem("ERROR_ESCANEO_RED", error_msg, 'error')
             except (ValueError, TypeError, AttributeError):
                 pass  # No fallar si SIEM no está disponible
             raise e
@@ -975,7 +1047,7 @@ class ControladorEscaneo(ControladorBase):
                     self.logger.info("Escaneo detenido por solicitud del usuario")
                     try:
                         if self.siem:
-                            self.siem.registrar_evento("ESCANEO_DETENIDO", "Escaneo detenido manualmente")
+                            self._registrar_evento_siem("ESCANEO_DETENIDO", "Escaneo detenido manualmente", 'info')
                     except (ValueError, TypeError, AttributeError):
                         pass  # No fallar si SIEM no está disponible
                     return {'exito': True, 'mensaje': 'Escaneo detenido'}
@@ -1193,7 +1265,7 @@ class ControladorEscaneo(ControladorBase):
                 self._estado_escaneo['ultimo_objetivo'] = objetivo
                 
                 # Ejecutar escaneo con Kali 2025
-                resultado = self.escaner_kali2025.escaneo_completo_kali2025(objetivo)
+                resultado = getattr(self.escaner_kali2025, 'escaneo_completo_kali2025', lambda x: {'exito': False, 'error': 'Método no disponible'})(objetivo)
                 
                 self._estado_escaneo['escaneo_en_progreso'] = False
                 self._estado_escaneo['ultimos_resultados'] = resultado
@@ -1202,10 +1274,10 @@ class ControladorEscaneo(ControladorBase):
                 # Registrar en SIEM si está disponible
                 if self.siem and resultado.get("exito"):
                     try:
-                        if hasattr(self.siem, 'registrar_evento'):
-                            self.siem.registrar_evento(
+                        if hasattr(self.siem, '_guardar_evento_seguridad'):
+                            self._registrar_evento_siem(
                                 "ESCANEO_COMPLETADO",
-                                f"Escaneo Kali2025 completado: {objetivo}"
+                                f"Escaneo Kali2025 completado: {objetivo}", 'info'
                             )
                     except Exception as e:
                         self.logger.warning(f"Error registrando en SIEM: {e}")
@@ -1230,7 +1302,7 @@ class ControladorEscaneo(ControladorBase):
         
         try:
             # Usar el método general que sí existe
-            resultado = self.escaner_kali2025.escaneo_completo_kali2025(objetivo)
+            resultado = getattr(self.escaner_kali2025, 'escaneo_completo_kali2025', lambda x: {'exito': False, 'error': 'Método no disponible'})(objetivo)
             
             return {
                 "exito": True,
@@ -1256,15 +1328,15 @@ class ControladorEscaneo(ControladorBase):
         
         try:
             # Usar el método general que sí existe
-            resultado = self.escaner_kali2025.escaneo_completo_kali2025(objetivo)
+            resultado = getattr(self.escaner_kali2025, 'escaneo_completo_kali2025', lambda x: {'exito': False, 'error': 'Método no disponible'})(objetivo)
             
             # Registrar en SIEM si está disponible
             if self.siem and resultado.get("exito"):
                 try:
-                    if hasattr(self.siem, 'registrar_evento'):
-                        self.siem.registrar_evento(
+                    if hasattr(self.siem, '_guardar_evento_seguridad'):
+                        self._registrar_evento_siem(
                             "VULNERABILIDAD_DETECTADA",
-                            f"Escaneo de vulnerabilidades completado: {objetivo}"
+                            f"Escaneo de vulnerabilidades completado: {objetivo}", 'warning'
                         )
                 except Exception as e:
                     self.logger.warning(f"Error registrando en SIEM: {e}")
@@ -1284,7 +1356,7 @@ class ControladorEscaneo(ControladorBase):
             return {"error": "EscaneadorKali2025 no disponible"}
         
         try:
-            herramientas = self.escaner_kali2025.verificar_herramientas()
+            herramientas = getattr(self.escaner_kali2025, 'verificar_herramientas', lambda: {'error': 'Método no disponible'})()
             total_herramientas = len(herramientas) if herramientas else 0
             return {
                 "exito": True,
@@ -1407,6 +1479,21 @@ class ControladorEscaneo(ControladorBase):
         except Exception as e:
             self.logger.error(f"Error validando IP {ip}: {e}")
             return False
+
+    def _registrar_evento_siem(self, tipo: str, descripcion: str, severidad: str = 'info') -> None:
+        """Helper para registrar eventos en SIEM usando métodos disponibles"""
+        try:
+            if self.siem and hasattr(self.siem, '_guardar_evento_seguridad'):
+                evento = {
+                    'tipo': tipo,
+                    'descripcion': descripcion,
+                    'fuente': 'ESCANEADOR',
+                    'timestamp': datetime.now().isoformat(),
+                    'severidad': severidad
+                }
+                self.siem._guardar_evento_seguridad(evento)
+        except Exception as e:
+            self.logger.warning(f"Error registrando evento SIEM: {e}")
 
 # RESUMEN TÉCNICO: Controlador de Escaneo avanzado para Ares Aegis con arquitectura asíncrona,
 # herencia de ControladorBase, operaciones thread-safe, análisis de criticidad automático,

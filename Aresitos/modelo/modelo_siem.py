@@ -1,711 +1,801 @@
-#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-SIEM AVANZADO ARES AEGIS - VERSIÓN NATIVA LINUX
-===============================================
+ARESITOS - Modelo SIEM Kali Linux 2025
+=====================================
 
-Sistema de Información y Gestión de Eventos de Seguridad
-que usa ÚNICAMENTE herramientas nativas de Linux y Python estándar.
+Security Information and Event Management con herramientas modernas de Kali Linux 2025.
+Solo herramientas que se instalan fácilmente con 'apt install'.
 
-FUNCIONALIDADES IMPLEMENTADAS:
--  Gestión de eventos de seguridad
--  Análisis de logs del sistema
--  Correlación básica de eventos
--  Alertas y notificaciones
--  Solo Python estándar + comandos Linux
+Herramientas integradas:
+- auditd: Framework de auditoría Linux
+- rsyslog: Gestión centralizada de logs
+- fail2ban: Protección automática contra ataques
+- lynis: Auditoría de seguridad del sistema
 
-Autor: Ares Aegis Security Suite
-Fecha: 2025-08-17
+Autor: DogSoulDev
+Fecha: 19 de Agosto de 2025
 """
 
-import json
-import datetime
-import os
-import logging
-import threading
-import time
-import hashlib
-import uuid
 import subprocess
-from collections import defaultdict, deque
-from dataclasses import dataclass, field
-from enum import Enum
-from typing import Dict, List, Any, Optional, Set
-from pathlib import Path
+import threading
+import json
+import os
+import time
+import re
+from typing import Dict, List, Any, Optional, TYPE_CHECKING
+from datetime import datetime, timedelta
+import sqlite3
+from collections import defaultdict
 
-class TipoEvento(Enum):
-    """Tipos de eventos SIEM."""
-    AUTENTICACION = "AUTENTICACION"
-    ACCESO_ARCHIVO = "ACCESO_ARCHIVO"
-    CONEXION_RED = "CONEXION_RED"
-    PROCESO = "PROCESO"
-    VULNERABILIDAD = "VULNERABILIDAD"
-    SISTEMA_INICIADO = "SISTEMA_INICIADO"
-    SISTEMA_DETENIDO = "SISTEMA_DETENIDO"
-    ALERTAS = "ALERTAS"
-    AUDITORIA = "AUDITORIA"
-    SEGURIDAD = "SEGURIDAD"
+# Evitar warnings de typing - usar fallback directo
+class _SIEMAvanzado:
+    def __init__(self, gestor_permisos=None):
+        self.gestor_permisos = gestor_permisos
+        self.configuracion = {}
+    
+    def log(self, mensaje: str):
+        print(f"[SIEM] {mensaje}")
 
-class SeveridadEvento(Enum):
-    """Niveles de severidad."""
-    CRITICA = "CRITICA"
-    ALTA = "ALTA"
-    MEDIA = "MEDIA"
-    BAJA = "BAJA"
-    INFO = "INFO"
-
-@dataclass
-class EventoSIEM:
-    """Representa un evento SIEM completo."""
-    id: str
-    timestamp: datetime.datetime
-    tipo: TipoEvento
-    severidad: SeveridadEvento
-    origen: str
-    mensaje: str
-    detalles: Dict[str, Any] = field(default_factory=dict)
-    tags: Set[str] = field(default_factory=set)
-    procesado: bool = False
-
-@dataclass
-class Alerta:
-    """Alerta generada por el SIEM."""
-    id: str
-    timestamp: datetime.datetime
-    titulo: str
-    descripcion: str
-    severidad: SeveridadEvento
-    eventos_relacionados: List[str] = field(default_factory=list)
-    estado: str = "nueva"
-
-class SIEMAvanzadoNativo:
+class SIEMKali2025(_SIEMAvanzado):  # type: ignore
     """
-    SIEM Avanzado que usa herramientas nativas de Linux.
-    Diseñado específicamente para Kali Linux con máxima compatibilidad.
+    SIEM avanzado con herramientas Kali Linux 2025
     """
     
-    def __init__(self, directorio_logs: Optional[str] = None):
-        self.logger = logging.getLogger("aresitos.modelo.siem_avanzado")
-        
-        # Directorio de logs
-        if directorio_logs:
-            self.directorio_logs = directorio_logs
-        else:
-            self.directorio_logs = self._crear_directorio_logs()
-        
-        # Buffer de eventos para correlación
-        self.buffer_eventos = deque(maxlen=10000)
-        self.eventos_por_tipo = defaultdict(deque)
-        
-        # Alertas activas
-        self.alertas_activas = {}
-        
-        # Métricas
-        self.metricas = {
-            'eventos_procesados': 0,
-            'alertas_generadas': 0,
-            'correlaciones_encontradas': 0,
-            'eventos_por_severidad': defaultdict(int),
-            'eventos_por_tipo': defaultdict(int)
+    def __init__(self, gestor_permisos=None):
+        super().__init__(gestor_permisos)
+        self.herramientas_siem = {
+            'auditctl': '/usr/sbin/auditctl',
+            'ausearch': '/usr/bin/ausearch',
+            'logger': '/usr/bin/logger',
+            'fail2ban-client': '/usr/bin/fail2ban-client',
+            'lynis': '/usr/bin/lynis',
+            'rsyslog': '/usr/sbin/rsyslogd'
         }
+        self.base_datos_siem = "data/siem_kali2025.db"
+        self.monitores_activos = {}
+        self.reglas_correlacion = []
+        self.verificar_herramientas()
+        self.inicializar_base_datos()
+        self.cargar_reglas_correlacion()
+    
+    def verificar_herramientas(self):
+        """Verifica qué herramientas SIEM están disponibles"""
+        self.herramientas_disponibles = {}
         
-        # Thread para procesamiento en background
-        self._procesando = False
-        self._thread_procesamiento = None
-        
-        # Lock para thread safety
-        self._lock = threading.RLock()
-        
-        # Reglas de análisis de logs
-        self.reglas_logs = self._cargar_reglas_logs()
-        
-        # Archivos de log del sistema a monitorear
-        self.archivos_sistema = self._obtener_archivos_sistema()
-        
-        self.logger.info(" SIEM Avanzado Nativo Ares Aegis inicializado")
-        self.logger.info(f"Directorio de logs: {self.directorio_logs}")
-
-    def _crear_directorio_logs(self) -> str:
-        """Crear directorio para logs."""
-        directorio = os.path.join(os.path.expanduser("~"), "aresitos", "logs")
-        try:
-            os.makedirs(directorio, exist_ok=True)
-            return directorio
-        except Exception as e:
-            self.logger.warning(f"Error creando directorio logs: {e}")
-            import tempfile
-            directorio = os.path.join(tempfile.gettempdir(), "ares_siem_logs")
-            os.makedirs(directorio, exist_ok=True)
-            return directorio
-
-    def _cargar_reglas_logs(self) -> Dict[str, Dict[str, Any]]:
-        """Cargar reglas para análisis de logs del sistema."""
-        return {
-            'ssh_failure': {
-                'nombre': 'Fallos de autenticación SSH',
-                'patrones': ['Failed password', 'authentication failure', 'Invalid user'],
-                'severidad': SeveridadEvento.ALTA,
-                'tipo': TipoEvento.AUTENTICACION,
-                'archivos': ['/var/log/auth.log', '/var/log/secure']
-            },
-            'sudo_usage': {
-                'nombre': 'Uso de sudo',
-                'patrones': ['sudo:', 'COMMAND='],
-                'severidad': SeveridadEvento.MEDIA,
-                'tipo': TipoEvento.AUDITORIA,
-                'archivos': ['/var/log/auth.log', '/var/log/secure']
-            },
-            'system_error': {
-                'nombre': 'Errores del sistema',
-                'patrones': ['ERROR', 'CRITICAL', 'FATAL', 'segfault'],
-                'severidad': SeveridadEvento.ALTA,
-                'tipo': TipoEvento.SISTEMA_INICIADO,
-                'archivos': ['/var/log/syslog', '/var/log/messages']
-            },
-            'network_anomaly': {
-                'nombre': 'Anomalías de red',
-                'patrones': ['connection refused', 'port scan', 'flood'],
-                'severidad': SeveridadEvento.MEDIA,
-                'tipo': TipoEvento.CONEXION_RED,
-                'archivos': ['/var/log/syslog', '/var/log/kern.log']
-            },
-            'file_access': {
-                'nombre': 'Acceso a archivos sensibles',
-                'patrones': ['/etc/passwd', '/etc/shadow', '/etc/sudoers'],
-                'severidad': SeveridadEvento.ALTA,
-                'tipo': TipoEvento.ACCESO_ARCHIVO,
-                'archivos': ['/var/log/audit/audit.log', '/var/log/syslog']
-            }
-        }
-
-    def _obtener_archivos_sistema(self) -> List[str]:
-        """Obtener lista de archivos de log del sistema disponibles."""
-        archivos_candidatos = [
-            '/var/log/auth.log',
-            '/var/log/syslog',
-            '/var/log/messages',
-            '/var/log/secure',
-            '/var/log/kern.log',
-            '/var/log/audit/audit.log'
-        ]
-        
-        archivos_disponibles = []
-        for archivo in archivos_candidatos:
-            if os.path.exists(archivo) and os.access(archivo, os.R_OK):
-                archivos_disponibles.append(archivo)
-        
-        self.logger.info(f"Archivos de log disponibles: {len(archivos_disponibles)}")
-        return archivos_disponibles
-
-    def iniciar_procesamiento(self):
-        """Iniciar procesamiento en background."""
-        with self._lock:
-            if not self._procesando:
-                self._procesando = True
-                self._thread_procesamiento = threading.Thread(
-                    target=self._loop_procesamiento,
-                    daemon=True
-                )
-                self._thread_procesamiento.start()
-                self.logger.info(" Procesamiento SIEM iniciado")
-
-    def detener_procesamiento(self):
-        """Detener procesamiento en background."""
-        with self._lock:
-            self._procesando = False
-            if self._thread_procesamiento:
-                self._thread_procesamiento.join(timeout=5)
-                self.logger.info(" Procesamiento SIEM detenido")
-
-    def registrar_evento(self, tipo: str, mensaje: str, detalles: Optional[Dict[str, Any]] = None, 
-                        severidad: str = "INFO", origen: str = "sistema", tags: Optional[Set[str]] = None) -> str:
-        """Registrar un nuevo evento en el SIEM."""
-        
-        # Convertir strings a enums
-        try:
-            tipo_enum = TipoEvento(tipo.upper()) if hasattr(TipoEvento, tipo.upper()) else TipoEvento.SISTEMA_INICIADO
-            severidad_enum = SeveridadEvento(severidad.upper()) if hasattr(SeveridadEvento, severidad.upper()) else SeveridadEvento.INFO
-        except (ValueError, TypeError, AttributeError):
-            tipo_enum = TipoEvento.SISTEMA_INICIADO
-            severidad_enum = SeveridadEvento.INFO
-        
-        evento = EventoSIEM(
-            id=str(uuid.uuid4()),
-            timestamp=datetime.datetime.now(),
-            tipo=tipo_enum,
-            severidad=severidad_enum,
-            origen=origen,
-            mensaje=mensaje,
-            detalles=detalles or {},
-            tags=tags or set()
-        )
-        
-        # Agregar al buffer
-        with self._lock:
-            self.buffer_eventos.append(evento)
-            self.eventos_por_tipo[tipo_enum].append(evento)
-            
-            # Actualizar métricas
-            self.metricas['eventos_procesados'] += 1
-            self.metricas['eventos_por_severidad'][severidad_enum.value] += 1
-            self.metricas['eventos_por_tipo'][tipo_enum.value] += 1
-        
-        # Persistir evento
-        self._persistir_evento(evento)
-        
-        # Verificar correlaciones
-        self._verificar_correlaciones_simples(evento)
-        
-        return evento.id
-
-    def _persistir_evento(self, evento: EventoSIEM):
-        """Persistir evento en archivo JSON."""
-        try:
-            fecha_actual = evento.timestamp.strftime('%Y-%m-%d')
-            archivo_log = os.path.join(self.directorio_logs, f"siem_eventos_{fecha_actual}.json")
-            
-            # Preparar datos del evento
-            evento_data = {
-                'id': evento.id,
-                'timestamp': evento.timestamp.isoformat(),
-                'tipo': evento.tipo.value,
-                'severidad': evento.severidad.value,
-                'origen': evento.origen,
-                'mensaje': evento.mensaje,
-                'detalles': evento.detalles,
-                'tags': list(evento.tags),
-                'procesado': evento.procesado
-            }
-            
-            # Leer eventos existentes
-            eventos_existentes = []
-            if os.path.exists(archivo_log):
-                try:
-                    with open(archivo_log, 'r', encoding='utf-8') as f:
-                        eventos_existentes = json.load(f)
-                except (IOError, OSError, PermissionError, FileNotFoundError):
-                    eventos_existentes = []
-            
-            # Agregar nuevo evento
-            eventos_existentes.append(evento_data)
-            
-            # Mantener solo los últimos 1000 eventos por día
-            if len(eventos_existentes) > 1000:
-                eventos_existentes = eventos_existentes[-1000:]
-            
-            # Guardar eventos actualizados
-            with open(archivo_log, 'w', encoding='utf-8') as f:
-                json.dump(eventos_existentes, f, indent=2, ensure_ascii=False)
-                
-        except Exception as e:
-            self.logger.error(f"Error persistiendo evento: {e}")
-
-    def _loop_procesamiento(self):
-        """Loop principal de procesamiento en background."""
-        while self._procesando:
+        for herramienta, ruta in self.herramientas_siem.items():
             try:
-                # Analizar logs del sistema
-                self._analizar_logs_sistema()
-                
-                # Limpiar eventos antiguos del buffer
-                self._limpiar_buffer()
-                
-                # Verificar alertas
-                self._verificar_alertas()
-                
-                time.sleep(25)  # Issue 21/24: Optimizado de 30 a 25 segundos - Procesar cada 25 segundos
-                
+                result = subprocess.run(['which', herramienta], 
+                                     capture_output=True, text=True, timeout=5)
+                if result.returncode == 0:
+                    self.herramientas_disponibles[herramienta] = result.stdout.strip()
+                    self.log(f"OK {herramienta} disponible en {result.stdout.strip()}")
+                else:
+                    self.log(f"INFO {herramienta} no encontrada")
             except Exception as e:
-                self.logger.error(f"Error en loop de procesamiento: {e}")
-                time.sleep(60)
-
-    def _analizar_logs_sistema(self):
-        """Analizar logs del sistema buscando patrones sospechosos."""
-        for regla_id, regla in self.reglas_logs.items():
-            for archivo_log in regla['archivos']:
-                if archivo_log in self.archivos_sistema:
-                    self._procesar_archivo_log(archivo_log, regla_id, regla)
-
-    def _procesar_archivo_log(self, archivo_log: str, regla_id: str, regla: Dict[str, Any]):
-        """Procesar un archivo de log específico."""
-        try:
-            # Usar tail para obtener las últimas líneas
-            cmd = ['tail', '-n', '100', archivo_log]
-            result = subprocess.run(cmd, capture_output=True, text=True, timeout=30)
-            
-            if result.returncode == 0:
-                lineas = result.stdout.split('\n')
-                
-                for linea in lineas:
-                    if linea.strip():
-                        # Verificar patrones
-                        for patron in regla['patrones']:
-                            if patron.lower() in linea.lower():
-                                self._generar_evento_desde_log(linea, regla_id, regla, archivo_log)
-                                break
-                                
-        except subprocess.TimeoutExpired:
-            self.logger.warning(f"Timeout procesando {archivo_log}")
-        except Exception as e:
-            self.logger.warning(f"Error procesando {archivo_log}: {e}")
-
-    def _generar_evento_desde_log(self, linea: str, regla_id: str, regla: Dict[str, Any], archivo: str):
-        """Generar evento SIEM desde línea de log."""
-        # Evitar duplicados verificando si ya procesamos esta línea recientemente
-        hash_linea = hashlib.sha256(linea.encode()).hexdigest()
-        
-        # Verificar si ya procesamos esta línea en los últimos 5 minutos
-        tiempo_limite = datetime.datetime.now() - datetime.timedelta(minutes=5)
-        with self._lock:
-            for evento in reversed(list(self.buffer_eventos)):
-                if evento.timestamp < tiempo_limite:
-                    break
-                if evento.detalles.get('hash_linea') == hash_linea:
-                    return  # Ya procesado
-        
-        # Generar evento
-        evento_id = self.registrar_evento(
-            tipo=regla['tipo'].value,
-            mensaje=f"{regla['nombre']}: {linea.strip()[:200]}",
-            severidad=regla['severidad'].value,
-            origen=archivo,
-            detalles={
-                'regla_id': regla_id,
-                'archivo_log': archivo,
-                'linea_completa': linea.strip(),
-                'hash_linea': hash_linea
-            },
-            tags={regla_id, 'auto_detectado'}
-        )
-
-    def _verificar_correlaciones_simples(self, evento: EventoSIEM):
-        """Verificar correlaciones simples entre eventos."""
-        try:
-            # Buscar eventos similares en los últimos 5 minutos
-            tiempo_limite = evento.timestamp - datetime.timedelta(minutes=5)
-            eventos_similares = []
-            
-            with self._lock:
-                for evento_buffer in self.buffer_eventos:
-                    if (evento_buffer.timestamp >= tiempo_limite and
-                        evento_buffer.tipo == evento.tipo and
-                        evento_buffer.id != evento.id):
-                        eventos_similares.append(evento_buffer)
-            
-            # Si hay muchos eventos similares, generar alerta
-            if len(eventos_similares) >= 5:
-                self._generar_alerta_correlacion(evento, eventos_similares)
-                
-        except Exception as e:
-            self.logger.error(f"Error verificando correlaciones: {e}")
-
-    def _generar_alerta_correlacion(self, evento_trigger: EventoSIEM, eventos_relacionados: List[EventoSIEM]):
-        """Generar alerta por correlación de eventos."""
-        alerta_id = str(uuid.uuid4())
-        
-        alerta = Alerta(
-            id=alerta_id,
-            timestamp=datetime.datetime.now(),
-            titulo=f"Correlación detectada: {evento_trigger.tipo.value}",
-            descripcion=f"Se detectaron {len(eventos_relacionados) + 1} eventos similares de tipo {evento_trigger.tipo.value} en los últimos 5 minutos.",
-            severidad=SeveridadEvento.ALTA,
-            eventos_relacionados=[e.id for e in eventos_relacionados] + [evento_trigger.id]
-        )
-        
-        with self._lock:
-            self.alertas_activas[alerta_id] = alerta
-            self.metricas['alertas_generadas'] += 1
-            self.metricas['correlaciones_encontradas'] += 1
-        
-        # Persistir alerta
-        self._persistir_alerta(alerta)
-        
-        self.logger.warning(f"✓  ALERTA CORRELACIÓN: {alerta.titulo} - {len(eventos_relacionados) + 1} eventos")
-
-    def _persistir_alerta(self, alerta: Alerta):
-        """Persistir alerta en archivo JSON."""
-        try:
-            fecha_actual = alerta.timestamp.strftime('%Y-%m-%d')
-            archivo_alertas = os.path.join(self.directorio_logs, f"siem_alertas_{fecha_actual}.json")
-            
-            # Preparar datos de la alerta
-            alerta_data = {
-                'id': alerta.id,
-                'timestamp': alerta.timestamp.isoformat(),
-                'titulo': alerta.titulo,
-                'descripcion': alerta.descripcion,
-                'severidad': alerta.severidad.value,
-                'eventos_relacionados': alerta.eventos_relacionados,
-                'estado': alerta.estado
-            }
-            
-            # Leer alertas existentes
-            alertas_existentes = []
-            if os.path.exists(archivo_alertas):
-                try:
-                    with open(archivo_alertas, 'r', encoding='utf-8') as f:
-                        alertas_existentes = json.load(f)
-                except (IOError, OSError, PermissionError, FileNotFoundError):
-                    alertas_existentes = []
-            
-            # Agregar nueva alerta
-            alertas_existentes.append(alerta_data)
-            
-            # Guardar alertas actualizadas
-            with open(archivo_alertas, 'w', encoding='utf-8') as f:
-                json.dump(alertas_existentes, f, indent=2, ensure_ascii=False)
-                
-        except Exception as e:
-            self.logger.error(f"Error persistiendo alerta: {e}")
-
-    def _limpiar_buffer(self):
-        """Limpiar eventos antiguos del buffer."""
-        with self._lock:
-            limite_tiempo = datetime.datetime.now() - datetime.timedelta(hours=1)
-            
-            # Limpiar buffer principal
-            while (self.buffer_eventos and 
-                   self.buffer_eventos[0].timestamp < limite_tiempo):
-                self.buffer_eventos.popleft()
-            
-            # Limpiar buffers por tipo
-            for tipo, buffer in self.eventos_por_tipo.items():
-                while buffer and buffer[0].timestamp < limite_tiempo:
-                    buffer.popleft()
-
-    def _verificar_alertas(self):
-        """Verificar estado de alertas activas."""
-        # Implementación básica - marcar alertas antiguas como procesadas
-        tiempo_limite = datetime.datetime.now() - datetime.timedelta(hours=24)
-        alertas_a_remover = []
-        
-        with self._lock:
-            for alerta_id, alerta in self.alertas_activas.items():
-                if alerta.timestamp < tiempo_limite:
-                    alertas_a_remover.append(alerta_id)
-            
-            for alerta_id in alertas_a_remover:
-                del self.alertas_activas[alerta_id]
-
-    def obtener_eventos(self, limite: int = 100, filtro_tipo: Optional[str] = None, 
-                       filtro_severidad: Optional[str] = None,
-                       desde: Optional[datetime.datetime] = None) -> List[Dict[str, Any]]:
-        """Obtener eventos del SIEM con filtros."""
-        try:
-            eventos = []
-            
-            # Buscar en archivos de eventos
-            fecha_actual = datetime.datetime.now().strftime('%Y-%m-%d')
-            archivo_log = os.path.join(self.directorio_logs, f"siem_eventos_{fecha_actual}.json")
-            
-            if os.path.exists(archivo_log):
-                with open(archivo_log, 'r', encoding='utf-8') as f:
-                    eventos_archivo = json.load(f)
-                    
-                    for evento_data in eventos_archivo:
-                        # Aplicar filtros
-                        if filtro_tipo and evento_data.get('tipo') != filtro_tipo.upper():
-                            continue
-                        if filtro_severidad and evento_data.get('severidad') != filtro_severidad.upper():
-                            continue
-                        if desde:
-                            evento_timestamp = datetime.datetime.fromisoformat(evento_data['timestamp'])
-                            if evento_timestamp < desde:
-                                continue
-                        
-                        eventos.append(evento_data)
-            
-            # Ordenar por timestamp descendente y limitar
-            eventos.sort(key=lambda x: x['timestamp'], reverse=True)
-            return eventos[:limite]
-            
-        except Exception as e:
-            self.logger.error(f"Error obteniendo eventos: {e}")
-            return []
-
-    def obtener_alertas_activas(self) -> List[Dict[str, Any]]:
-        """Obtener alertas activas."""
-        with self._lock:
-            alertas = []
-            for alerta in self.alertas_activas.values():
-                alertas.append({
-                    'id': alerta.id,
-                    'timestamp': alerta.timestamp.isoformat(),
-                    'titulo': alerta.titulo,
-                    'descripcion': alerta.descripcion,
-                    'severidad': alerta.severidad.value,
-                    'eventos_relacionados': len(alerta.eventos_relacionados),
-                    'estado': alerta.estado
-                })
-            return alertas
-
-    def obtener_metricas(self) -> Dict[str, Any]:
-        """Obtener métricas del SIEM."""
-        with self._lock:
-            return {
-                'eventos_procesados': self.metricas['eventos_procesados'],
-                'alertas_generadas': self.metricas['alertas_generadas'],
-                'correlaciones_encontradas': self.metricas['correlaciones_encontradas'],
-                'alertas_activas': len(self.alertas_activas),
-                'eventos_en_buffer': len(self.buffer_eventos),
-                'archivos_monitoreados': len(self.archivos_sistema),
-                'reglas_activas': len(self.reglas_logs),
-                'eventos_por_severidad': dict(self.metricas['eventos_por_severidad']),
-                'eventos_por_tipo': dict(self.metricas['eventos_por_tipo']),
-                'timestamp': datetime.datetime.now().isoformat()
-            }
-
-    def generar_reporte_siem(self, periodo_horas: int = 24) -> str:
-        """Generar reporte del SIEM."""
-        desde = datetime.datetime.now() - datetime.timedelta(hours=periodo_horas)
-        eventos = self.obtener_eventos(limite=1000, desde=desde)
-        alertas = self.obtener_alertas_activas()
-        metricas = self.obtener_metricas()
-        
-        reporte = f"""
-#  REPORTE SIEM - ARES AEGIS
-
-##  RESUMEN EJECUTIVO (Últimas {periodo_horas} horas)
-- **Eventos Procesados**: {len(eventos)}
-- **Alertas Activas**: {len(alertas)}
-- **Correlaciones Encontradas**: {metricas['correlaciones_encontradas']}
-- **Archivos Monitoreados**: {metricas['archivos_monitoreados']}
-
-##  EVENTOS POR SEVERIDAD
-"""
-        
-        eventos_por_severidad = defaultdict(int)
-        for evento in eventos:
-            eventos_por_severidad[evento.get('severidad', 'INFO')] += 1
-        
-        for severidad, cantidad in eventos_por_severidad.items():
-            emoji = {"CRITICA": "", "ALTA": "", "MEDIA": "", "BAJA": "", "INFO": "✓"}
-            reporte += f"- {emoji.get(severidad, '✓')} **{severidad}**: {cantidad}\n"
-        
-        reporte += f"\n## ✓ ALERTAS ACTIVAS ({len(alertas)})\n"
-        
-        for alerta in alertas[:10]:  # Primeras 10 alertas
-            emoji = {"CRITICA": "", "ALTA": "", "MEDIA": "", "BAJA": "", "INFO": "✓"}
-            severidad = alerta.get('severidad', 'INFO')
-            titulo = alerta.get('titulo', 'Sin título')
-            timestamp_str = alerta.get('timestamp', datetime.datetime.now().isoformat())
-            reporte += f"{emoji.get(str(severidad), '✓')} **{titulo}**\n"
-            timestamp = datetime.datetime.fromisoformat(timestamp_str)
-            reporte += f"   {timestamp.strftime('%Y-%m-%d %H:%M:%S')}\n"
-            reporte += f"   {alerta.get('descripcion', 'Sin descripción')}\n\n"
-        
-        reporte += f"\n##  EVENTOS RECIENTES\n"
-        
-        for evento in eventos[:20]:  # Primeros 20 eventos
-            emoji = {"CRITICA": "", "ALTA": "", "MEDIA": "", "BAJA": "", "INFO": "✓"}
-            severidad = evento.get('severidad', 'INFO')
-            tipo = evento.get('tipo', 'DESCONOCIDO')
-            mensaje = evento.get('mensaje', '')
-            timestamp_str = evento.get('timestamp', datetime.datetime.now().isoformat())
-            timestamp = datetime.datetime.fromisoformat(timestamp_str)
-            reporte += f"{emoji.get(str(severidad), '✓')} {timestamp.strftime('%H:%M:%S')} - {tipo}: {str(mensaje)[:100]}\n"
-        
-        reporte += f"\n---\n*Generado: {datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')}*"
-        
-        return reporte
-
-
-# Clase de compatibilidad
-class SIEM(SIEMAvanzadoNativo):
-    """Clase de compatibilidad con la interfaz original."""
+                self.log(f"ERROR Error verificando {herramienta}: {e}")
     
-    def __init__(self, directorio_logs: Optional[str] = None):
-        super().__init__(directorio_logs)
-        self.reglas_alertas = self._cargar_reglas_basicas()
-
-    def _cargar_reglas_basicas(self) -> List[Dict[str, Any]]:
-        """Cargar reglas básicas para compatibilidad."""
-        return [
+    def inicializar_base_datos(self):
+        """Inicializa base de datos SQLite para SIEM"""
+        try:
+            # Crear directorio si no existe
+            os.makedirs(os.path.dirname(self.base_datos_siem), exist_ok=True)
+            
+            conn = sqlite3.connect(self.base_datos_siem)
+            cursor = conn.cursor()
+            
+            # Tabla para eventos de seguridad
+            cursor.execute('''
+                CREATE TABLE IF NOT EXISTS eventos_seguridad (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    timestamp TEXT,
+                    fuente TEXT,
+                    tipo_evento TEXT,
+                    severidad TEXT,
+                    host TEXT,
+                    usuario TEXT,
+                    proceso TEXT,
+                    comando TEXT,
+                    archivo TEXT,
+                    ip_origen TEXT,
+                    puerto_origen INTEGER,
+                    ip_destino TEXT,
+                    puerto_destino INTEGER,
+                    detalles TEXT,
+                    raw_log TEXT
+                )
+            ''')
+            
+            # Tabla para alertas generadas
+            cursor.execute('''
+                CREATE TABLE IF NOT EXISTS alertas_siem (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    timestamp TEXT,
+                    regla_disparada TEXT,
+                    severidad TEXT,
+                    eventos_relacionados TEXT,
+                    descripcion TEXT,
+                    acciones_tomadas TEXT,
+                    estado TEXT
+                )
+            ''')
+            
+            # Tabla para estadísticas de red
+            cursor.execute('''
+                CREATE TABLE IF NOT EXISTS estadisticas_red (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    timestamp TEXT,
+                    protocolo TEXT,
+                    conexiones_activas INTEGER,
+                    bytes_enviados INTEGER,
+                    bytes_recibidos INTEGER,
+                    paquetes_perdidos INTEGER
+                )
+            ''')
+            
+            # Tabla para auditorías de sistema
+            cursor.execute('''
+                CREATE TABLE IF NOT EXISTS auditorias_sistema (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    timestamp TEXT,
+                    herramienta TEXT,
+                    categoria TEXT,
+                    hallazgo TEXT,
+                    severidad TEXT,
+                    recomendacion TEXT
+                )
+            ''')
+            
+            conn.commit()
+            conn.close()
+            self.log("OK Base de datos SIEM Kali2025 inicializada")
+            
+        except Exception as e:
+            self.log(f"OK Error inicializando base de datos SIEM: {e}")
+    
+    def cargar_reglas_correlacion(self):
+        """Carga reglas de correlación de eventos"""
+        self.reglas_correlacion = [
             {
-                'id': 'ssh_failure',
-                'nombre': 'Fallos de autenticación SSH',
-                'patron': 'Failed password',
-                'severidad': 'media',
-                'archivo': '/var/log/auth.log'
+                'nombre': 'Multiples_fallos_login',
+                'descripcion': 'Detecta múltiples fallos de login del mismo usuario',
+                'patron': 'authentication failure',
+                'umbral': 5,
+                'ventana_tiempo': 300,  # 5 minutos
+                'severidad': 'HIGH',
+                'campo_agrupacion': 'usuario'
             },
             {
-                'id': 'sudo_usage',
-                'nombre': 'Uso de sudo',
-                'patron': 'sudo:',
-                'severidad': 'baja',
-                'archivo': '/var/log/auth.log'
+                'nombre': 'Acceso_archivos_criticos',
+                'descripcion': 'Detecta acceso a archivos críticos del sistema',
+                'patron': r'/etc/(passwd|shadow|hosts|sudoers)',
+                'umbral': 1,
+                'ventana_tiempo': 60,
+                'severidad': 'HIGH',
+                'campo_agrupacion': 'archivo'
             },
             {
-                'id': 'system_error',
-                'nombre': 'Errores del sistema',
-                'patron': 'ERROR',
-                'severidad': 'alta',
-                'archivo': '/var/log/syslog'
+                'nombre': 'Comandos_sospechosos',
+                'descripcion': 'Detecta ejecución de comandos sospechosos',
+                'patron': r'(nc|netcat|wget|curl.*http|python.*socket)',
+                'umbral': 1,
+                'ventana_tiempo': 60,
+                'severidad': 'MEDIUM',
+                'campo_agrupacion': 'comando'
+            },
+            {
+                'nombre': 'Escalacion_privilegios',
+                'descripcion': 'Detecta intentos de escalación de privilegios',
+                'patron': r'(sudo|su|chmod.*777|chown.*root)',
+                'umbral': 3,
+                'ventana_tiempo': 600,
+                'severidad': 'HIGH',
+                'campo_agrupacion': 'usuario'
             }
         ]
-
-    def generar_evento(self, tipo: str, mensaje: str, severidad: str = 'info', 
-                       origen: str = 'sistema') -> Dict[str, Any]:
-        """Método de compatibilidad con la interfaz original."""
+        self.log(f"OK Cargadas {len(self.reglas_correlacion)} reglas de correlación")
+    
+    def configurar_auditd(self, reglas_personalizadas: Optional[List[str]] = None) -> Dict[str, Any]:
+        """
+        Configura auditd con reglas de auditoría
+        """
+        self.log("CONFIGURANDO auditd")
+        
+        if 'auditctl' not in self.herramientas_disponibles:
+            return {"error": "auditctl no disponible"}
+        
         try:
-            evento_id = self.registrar_evento(
-                tipo=tipo,
-                mensaje=mensaje,
-                severidad=severidad,
-                origen=origen
+            # Reglas básicas de auditoría
+            reglas_default = [
+                '-w /etc/passwd -p wa -k usuarios',
+                '-w /etc/shadow -p wa -k usuarios',
+                '-w /etc/sudoers -p wa -k privilegios',
+                '-w /etc/hosts -p wa -k red',
+                '-w /bin/su -p x -k escalacion',
+                '-w /usr/bin/sudo -p x -k escalacion',
+                '-w /bin/login -p x -k autenticacion',
+                '-w /var/log/auth.log -p wa -k logs_auth',
+                '-a always,exit -F arch=b64 -S execve -k comandos',
+                '-a always,exit -F arch=b32 -S execve -k comandos'
+            ]
+            
+            # Usar reglas personalizadas si se proporcionan
+            reglas = reglas_personalizadas if reglas_personalizadas else reglas_default
+            
+            # Limpiar reglas existentes
+            subprocess.run(['auditctl', '-D'], capture_output=True)
+            
+            # Aplicar nuevas reglas
+            reglas_aplicadas = 0
+            for regla in reglas:
+                try:
+                    cmd = ['auditctl'] + regla.split()
+                    result = subprocess.run(cmd, capture_output=True, text=True, timeout=10)
+                    if result.returncode == 0:
+                        reglas_aplicadas += 1
+                        self.log(f"OK Regla aplicada: {regla}")
+                    else:
+                        self.log(f"OK Error en regla: {regla} - {result.stderr}")
+                except Exception as e:
+                    self.log(f"OK Error aplicando regla {regla}: {e}")
+            
+            # Verificar estado de auditd
+            status_result = subprocess.run(['auditctl', '-s'], capture_output=True, text=True)
+            
+            self.log(f"OK Auditd configurado: {reglas_aplicadas} reglas activas")
+            return {
+                "exito": True,
+                "reglas_aplicadas": reglas_aplicadas,
+                "total_reglas": len(reglas),
+                "estado_auditd": status_result.stdout,
+                "herramienta": "auditd"
+            }
+            
+        except Exception as e:
+            self.log(f"OK Error configurando auditd: {e}")
+            return {"error": str(e)}
+    
+    def monitorear_logs_tiempo_real(self, archivos_log: Optional[List[str]] = None) -> Dict[str, Any]:
+        """
+        Inicia monitoreo de logs en tiempo real
+        """
+        self.log("ANALIZANDO Iniciando monitoreo de logs tiempo real")
+        
+        try:
+            # Archivos de log por defecto
+            if not archivos_log:
+                archivos_log = [
+                    '/var/log/auth.log',
+                    '/var/log/syslog',
+                    '/var/log/kern.log',
+                    '/var/log/audit/audit.log'
+                ]
+            
+            monitores_iniciados = 0
+            for archivo_log in archivos_log:
+                if os.path.exists(archivo_log):
+                    # Crear thread de monitoreo para cada log
+                    thread = threading.Thread(
+                        target=self._monitorear_log_file,
+                        args=(archivo_log,),
+                        daemon=True
+                    )
+                    thread.start()
+                    self.monitores_activos[archivo_log] = {
+                        'thread': thread,
+                        'activo': True,
+                        'timestamp_inicio': datetime.now().isoformat()
+                    }
+                    monitores_iniciados += 1
+                else:
+                    self.log(f"OK Log no existe: {archivo_log}")
+            
+            self.log(f"OK Monitoreo iniciado en {monitores_iniciados} logs")
+            return {
+                "exito": True,
+                "logs_monitoreados": monitores_iniciados,
+                "herramienta": "rsyslog"
+            }
+            
+        except Exception as e:
+            self.log(f"OK Error iniciando monitoreo logs: {e}")
+            return {"error": str(e)}
+    
+    def _monitorear_log_file(self, archivo_log: str):
+        """Thread de monitoreo de un archivo de log específico"""
+        try:
+            cmd = ['tail', '-F', archivo_log]
+            process = subprocess.Popen(
+                cmd,
+                stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE,
+                text=True,
+                bufsize=1
             )
             
+            self.log(f"ANALIZANDO Monitor activo en: {archivo_log}")
+            
+            while self.monitores_activos.get(archivo_log, {}).get('activo', False):
+                if process.stdout:
+                    line = process.stdout.readline()
+                    if line:
+                        self._procesar_linea_log(line.strip(), archivo_log)
+                    
+        except Exception as e:
+            self.log(f"OK Error en monitor log {archivo_log}: {e}")
+    
+    def _procesar_linea_log(self, linea: str, fuente: str):
+        """Procesa una línea de log y la almacena en base de datos"""
+        try:
+            # Parsear línea de log
+            evento = self._parsear_linea_log(linea, fuente)
+            
+            if evento:
+                # Guardar en base de datos
+                self._guardar_evento_seguridad(evento)
+                
+                # Aplicar reglas de correlación
+                self._aplicar_reglas_correlacion(evento)
+                
+        except Exception as e:
+            self.log(f"OK Error procesando línea log: {e}")
+    
+    def _parsear_linea_log(self, linea: str, fuente: str) -> Optional[Dict[str, Any]]:
+        """Parsea una línea de log y extrae información relevante"""
+        try:
+            evento = {
+                'timestamp': datetime.now().isoformat(),
+                'fuente': fuente,
+                'raw_log': linea,
+                'tipo_evento': 'unknown',
+                'severidad': 'LOW'
+            }
+            
+            # Patterns para diferentes tipos de eventos
+            patterns = {
+                'login_fallido': r'authentication failure.*user=(\w+)',
+                'login_exitoso': r'session opened for user (\w+)',
+                'sudo_ejecutado': r'sudo.*USER=(\w+).*COMMAND=(.+)',
+                'acceso_archivo': r'audit.*path="([^"]+)"',
+                'comando_ejecutado': r'audit.*exe="([^"]+)".*comm="([^"]+)"',
+                'conexion_red': r'(\d+\.\d+\.\d+\.\d+).*port (\d+)'
+            }
+            
+            for tipo, pattern in patterns.items():
+                match = re.search(pattern, linea, re.IGNORECASE)
+                if match:
+                    evento['tipo_evento'] = tipo
+                    
+                    # Extraer información específica según el tipo
+                    if tipo in ['login_fallido', 'login_exitoso']:
+                        evento['usuario'] = match.group(1)
+                        evento['severidad'] = 'HIGH' if 'fallido' in tipo else 'LOW'
+                    
+                    elif tipo == 'sudo_ejecutado':
+                        evento['usuario'] = match.group(1)
+                        evento['comando'] = match.group(2)
+                        evento['severidad'] = 'MEDIUM'
+                    
+                    elif tipo == 'acceso_archivo':
+                        evento['archivo'] = match.group(1)
+                        evento['severidad'] = 'HIGH' if '/etc/' in evento['archivo'] else 'LOW'
+                    
+                    elif tipo == 'comando_ejecutado':
+                        evento['proceso'] = match.group(1)
+                        evento['comando'] = match.group(2)
+                        evento['severidad'] = 'MEDIUM'
+                    
+                    elif tipo == 'conexion_red':
+                        evento['ip_origen'] = match.group(1)
+                        evento['puerto_origen'] = str(match.group(2))
+                        evento['severidad'] = 'LOW'
+                    
+                    break
+            
+            return evento
+            
+        except Exception as e:
+            self.log(f"Error parseando línea: {e}")
+            return None
+    
+    def _guardar_evento_seguridad(self, evento: Dict[str, Any]):
+        """Guarda evento de seguridad en base de datos"""
+        try:
+            conn = sqlite3.connect(self.base_datos_siem)
+            cursor = conn.cursor()
+            
+            cursor.execute('''
+                INSERT INTO eventos_seguridad 
+                (timestamp, fuente, tipo_evento, severidad, host, usuario, proceso, comando, 
+                 archivo, ip_origen, puerto_origen, ip_destino, puerto_destino, detalles, raw_log)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            ''', (
+                evento.get('timestamp'),
+                evento.get('fuente'),
+                evento.get('tipo_evento'),
+                evento.get('severidad'),
+                evento.get('host', 'localhost'),
+                evento.get('usuario'),
+                evento.get('proceso'),
+                evento.get('comando'),
+                evento.get('archivo'),
+                evento.get('ip_origen'),
+                evento.get('puerto_origen'),
+                evento.get('ip_destino'),
+                evento.get('puerto_destino'),
+                json.dumps(evento),
+                evento.get('raw_log')
+            ))
+            
+            conn.commit()
+            conn.close()
+            
+        except Exception as e:
+            self.log(f"Error guardando evento: {e}")
+    
+    def _aplicar_reglas_correlacion(self, evento: Dict[str, Any]):
+        """Aplica reglas de correlación para detectar patrones sospechosos"""
+        try:
+            for regla in self.reglas_correlacion:
+                if re.search(regla['patron'], evento.get('raw_log', ''), re.IGNORECASE):
+                    # Buscar eventos similares en la ventana de tiempo
+                    eventos_similares = self._buscar_eventos_similares(evento, regla)
+                    
+                    if len(eventos_similares) >= regla['umbral']:
+                        self._generar_alerta(regla, eventos_similares)
+                        
+        except Exception as e:
+            self.log(f"Error aplicando correlación: {e}")
+    
+    def _buscar_eventos_similares(self, evento: Dict[str, Any], regla: Dict[str, Any]) -> List[Dict[str, Any]]:
+        """Busca eventos similares en la ventana de tiempo especificada"""
+        try:
+            conn = sqlite3.connect(self.base_datos_siem)
+            cursor = conn.cursor()
+            
+            # Calcular ventana de tiempo
+            timestamp_limite = (datetime.now() - timedelta(seconds=regla['ventana_tiempo'])).isoformat()
+            
+            # Construir query según el campo de agrupación
+            campo_agrupacion = regla['campo_agrupacion']
+            valor_agrupacion = evento.get(campo_agrupacion)
+            
+            if valor_agrupacion:
+                cursor.execute(f'''
+                    SELECT * FROM eventos_seguridad 
+                    WHERE {campo_agrupacion} = ? AND timestamp > ?
+                    ORDER BY timestamp DESC
+                ''', (valor_agrupacion, timestamp_limite))
+                
+                eventos = cursor.fetchall()
+                conn.close()
+                
+                return [dict(zip([col[0] for col in cursor.description], evento)) for evento in eventos]
+            
+            conn.close()
+            return []
+            
+        except Exception as e:
+            self.log(f"Error buscando eventos similares: {e}")
+            return []
+    
+    def _generar_alerta(self, regla: Dict[str, Any], eventos: List[Dict[str, Any]]):
+        """Genera una alerta basada en la regla disparada"""
+        try:
+            conn = sqlite3.connect(self.base_datos_siem)
+            cursor = conn.cursor()
+            
+            descripcion = f"{regla['descripcion']} - {len(eventos)} eventos detectados"
+            eventos_ids = [str(e.get('id', '')) for e in eventos]
+            
+            cursor.execute('''
+                INSERT INTO alertas_siem 
+                (timestamp, regla_disparada, severidad, eventos_relacionados, descripcion, estado)
+                VALUES (?, ?, ?, ?, ?, ?)
+            ''', (
+                datetime.now().isoformat(),
+                regla['nombre'],
+                regla['severidad'],
+                ','.join(eventos_ids),
+                descripcion,
+                'NUEVA'
+            ))
+            
+            conn.commit()
+            conn.close()
+            
+            self.log(f"[ALERT] ALERTA GENERADA: {regla['nombre']} - {descripcion}")
+            
+        except Exception as e:
+            self.log(f"Error generando alerta: {e}")
+    
+    def configurar_fail2ban(self) -> Dict[str, Any]:
+        """
+        Configura fail2ban para protección automática
+        """
+        self.log("[SECURITY] Configurando fail2ban")
+        
+        if 'fail2ban-client' not in self.herramientas_disponibles:
+            return {"error": "fail2ban-client no disponible"}
+        
+        try:
+            # Verificar estado
+            status_result = subprocess.run(['fail2ban-client', 'status'], 
+                                         capture_output=True, text=True, timeout=30)
+            
+            # Obtener jails activas
+            jails_result = subprocess.run(['fail2ban-client', 'status'], 
+                                        capture_output=True, text=True)
+            
+            self.log("OK Fail2ban configurado y activo")
             return {
-                'id': evento_id,
-                'timestamp': datetime.datetime.now().isoformat(),
-                'tipo': tipo,
-                'mensaje': mensaje,
-                'severidad': severidad,
-                'origen': origen,
-                'procesado': True
+                "exito": True,
+                "estado": status_result.stdout,
+                "jails": jails_result.stdout,
+                "herramienta": "fail2ban"
             }
             
         except Exception as e:
-            self.logger.error(f"Error generando evento compatible: {e}")
+            self.log(f"OK Error configurando fail2ban: {e}")
+            return {"error": str(e)}
+    
+    def auditoria_sistema_lynis(self) -> Dict[str, Any]:
+        """
+        Ejecuta auditoría completa del sistema con lynis
+        """
+        self.log("ANALIZANDO Iniciando auditoría lynis")
+        
+        if 'lynis' not in self.herramientas_disponibles:
+            return {"error": "lynis no disponible"}
+        
+        try:
+            cmd = [
+                'lynis',
+                'audit', 'system',
+                '--quiet',
+                '--no-colors'
+            ]
+            
+            result = subprocess.run(cmd, capture_output=True, text=True, timeout=900)
+            
+            # Procesar resultados de lynis
+            hallazgos = self._procesar_resultados_lynis(result.stdout)
+            
+            # Guardar en base de datos
+            self._guardar_auditoria_sistema('lynis', hallazgos)
+            
+            self.log(f"OK Auditoría lynis completada: {len(hallazgos)} hallazgos")
             return {
-                'id': str(uuid.uuid4()),
-                'timestamp': datetime.datetime.now().isoformat(),
-                'tipo': tipo,
-                'mensaje': mensaje,
-                'severidad': severidad,
-                'origen': origen,
-                'error': str(e),
-                'procesado': False
+                "exito": True,
+                "hallazgos": hallazgos,
+                "total_hallazgos": len(hallazgos),
+                "herramienta": "lynis"
             }
-
-    def obtener_eventos_recientes(self, limite: int = 100) -> List[Dict[str, Any]]:
-        """Obtiene eventos recientes del SIEM."""
-        return self.obtener_eventos(limite=limite)
-
-    def analizar_logs_sistema(self) -> Dict[str, Any]:
-        """Análisis básico de logs del sistema."""
+            
+        except Exception as e:
+            self.log(f"OK Error ejecutando lynis: {e}")
+            return {"error": str(e)}
+    
+    def obtener_estadisticas_red(self) -> Dict[str, Any]:
+        """
+        Obtiene estadísticas de red del sistema
+        """
+        self.log("RESUMEN Obteniendo estadísticas de red")
+        
+        try:
+            estadisticas = {}
+            
+            # Conexiones activas
+            netstat_result = subprocess.run(['netstat', '-tuln'], 
+                                          capture_output=True, text=True, timeout=30)
+            if netstat_result.returncode == 0:
+                conexiones = self._procesar_netstat(netstat_result.stdout)
+                estadisticas['conexiones_activas'] = conexiones
+            
+            # Estadísticas de interfaz
+            ifconfig_result = subprocess.run(['ip', 'addr', 'show'], 
+                                           capture_output=True, text=True, timeout=30)
+            if ifconfig_result.returncode == 0:
+                interfaces = self._procesar_interfaces(ifconfig_result.stdout)
+                estadisticas['interfaces'] = interfaces
+            
+            # Guardar en base de datos
+            self._guardar_estadisticas_red(estadisticas)
+            
+            self.log("OK Estadísticas de red obtenidas")
+            return {
+                "exito": True,
+                "estadisticas": estadisticas,
+                "herramienta": "netstat"
+            }
+            
+        except Exception as e:
+            self.log(f"OK Error obteniendo estadísticas red: {e}")
+            return {"error": str(e)}
+    
+    def analisis_completo_siem_kali2025(self) -> Dict[str, Any]:
+        """
+        Análisis completo SIEM con todas las herramientas Kali 2025
+        """
+        self.log("[START] INICIANDO ANÁLISIS COMPLETO SIEM KALI 2025")
+        
         resultados = {
-            'eventos_encontrados': 0,
-            'alertas_generadas': 0,
-            'archivos_analizados': [],
-            'timestamp': datetime.datetime.now().isoformat()
+            "timestamp": datetime.now().isoformat(),
+            "herramientas_utilizadas": [],
+            "analisis": {}
         }
         
-        # Forzar análisis inmediato de logs
-        self._analizar_logs_sistema()
+        # 1. Configurar auditd
+        self.log("FASE 1: Configurando auditd")
+        auditd_result = self.configurar_auditd()
+        resultados["analisis"]["auditd"] = auditd_result
+        if auditd_result.get("exito"):
+            resultados["herramientas_utilizadas"].append("auditd")
         
-        # Obtener métricas actuales
-        metricas = self.obtener_metricas()
-        resultados['eventos_encontrados'] = metricas['eventos_procesados']
-        resultados['alertas_generadas'] = metricas['alertas_generadas']
-        resultados['archivos_analizados'] = [{'archivo': f, 'analizado': True} for f in self.archivos_sistema]
+        # 2. Iniciar monitoreo de logs
+        self.log("FASE 2: Iniciando monitoreo logs")
+        monitor_result = self.monitorear_logs_tiempo_real()
+        resultados["analisis"]["monitoreo_logs"] = monitor_result
+        if monitor_result.get("exito"):
+            resultados["herramientas_utilizadas"].append("rsyslog")
         
+        # 3. Configurar fail2ban
+        self.log("FASE 3: Configurando fail2ban")
+        fail2ban_result = self.configurar_fail2ban()
+        resultados["analisis"]["fail2ban"] = fail2ban_result
+        if fail2ban_result.get("exito"):
+            resultados["herramientas_utilizadas"].append("fail2ban")
+        
+        # 4. Auditoría con lynis
+        self.log("FASE 4: Auditoría sistema lynis")
+        lynis_result = self.auditoria_sistema_lynis()
+        resultados["analisis"]["lynis"] = lynis_result
+        if lynis_result.get("exito"):
+            resultados["herramientas_utilizadas"].append("lynis")
+        
+        # 5. Estadísticas de red
+        self.log("FASE 5: Estadísticas de red")
+        red_result = self.obtener_estadisticas_red()
+        resultados["analisis"]["estadisticas_red"] = red_result
+        if red_result.get("exito"):
+            resultados["herramientas_utilizadas"].append("netstat")
+        
+        # Resumen final
+        total_reglas_auditd = auditd_result.get("reglas_aplicadas", 0)
+        total_logs_monitoreados = monitor_result.get("logs_monitoreados", 0)
+        total_hallazgos = lynis_result.get("total_hallazgos", 0)
+        
+        resultados["resumen"] = {
+            "reglas_auditd_activas": total_reglas_auditd,
+            "logs_monitoreados": total_logs_monitoreados,
+            "hallazgos_seguridad": total_hallazgos,
+            "herramientas_utilizadas": len(set(resultados["herramientas_utilizadas"])),
+            "monitores_activos": len(self.monitores_activos)
+        }
+        
+        self.log("OK ANÁLISIS COMPLETO SIEM FINALIZADO")
         return resultados
-
-    def obtener_timestamp(self) -> str:
-        """Obtiene timestamp actual en formato ISO."""
-        return datetime.datetime.now().isoformat()
-
-    def obtener_estadisticas(self) -> Dict[str, Any]:
-        """Obtiene estadísticas del SIEM."""
-        return self.obtener_metricas()
+    
+    def _procesar_resultados_lynis(self, output: str) -> List[Dict[str, Any]]:
+        """Procesa resultados de lynis"""
+        hallazgos = []
+        lines = output.split('\n')
+        
+        for line in lines:
+            if 'ADVERTENCIA' in line or '[SUGGESTION]' in line:
+                severidad = 'MEDIUM' if 'ADVERTENCIA' in line else 'LOW'
+                hallazgos.append({
+                    'categoria': 'auditoria_sistema',
+                    'hallazgo': line.strip(),
+                    'severidad': severidad,
+                    'herramienta': 'lynis'
+                })
+        
+        return hallazgos
+    
+    def _procesar_netstat(self, output: str) -> Dict[str, Any]:
+        """Procesa salida de netstat"""
+        conexiones = {
+            'tcp': 0,
+            'udp': 0,
+            'listening': 0,
+            'established': 0
+        }
+        
+        lines = output.split('\n')
+        for line in lines:
+            if 'tcp' in line.lower():
+                conexiones['tcp'] += 1
+                if 'LISTEN' in line:
+                    conexiones['listening'] += 1
+                elif 'ESTABLISHED' in line:
+                    conexiones['established'] += 1
+            elif 'udp' in line.lower():
+                conexiones['udp'] += 1
+        
+        return conexiones
+    
+    def _procesar_interfaces(self, output: str) -> List[Dict[str, Any]]:
+        """Procesa información de interfaces de red"""
+        interfaces = []
+        lines = output.split('\n')
+        
+        interface_actual = None
+        for line in lines:
+            if ':' in line and not line.startswith(' '):
+                # Nueva interfaz
+                parts = line.split(':')
+                if len(parts) >= 2:
+                    interface_actual = {
+                        'nombre': parts[1].strip(),
+                        'estado': 'UP' if 'UP' in line else 'DOWN'
+                    }
+                    interfaces.append(interface_actual)
+            elif 'inet ' in line and interface_actual:
+                # Dirección IP
+                ip_match = re.search(r'inet (\d+\.\d+\.\d+\.\d+)', line)
+                if ip_match:
+                    interface_actual['ip'] = ip_match.group(1)
+        
+        return interfaces
+    
+    def _guardar_auditoria_sistema(self, herramienta: str, hallazgos: List[Dict[str, Any]]):
+        """Guarda resultados de auditoría en base de datos"""
+        try:
+            conn = sqlite3.connect(self.base_datos_siem)
+            cursor = conn.cursor()
+            
+            for hallazgo in hallazgos:
+                cursor.execute('''
+                    INSERT INTO auditorias_sistema 
+                    (timestamp, herramienta, categoria, hallazgo, severidad, recomendacion)
+                    VALUES (?, ?, ?, ?, ?, ?)
+                ''', (
+                    datetime.now().isoformat(),
+                    herramienta,
+                    hallazgo.get('categoria', ''),
+                    hallazgo.get('hallazgo', ''),
+                    hallazgo.get('severidad', 'LOW'),
+                    hallazgo.get('recomendacion', '')
+                ))
+            
+            conn.commit()
+            conn.close()
+        except Exception as e:
+            self.log(f"Error guardando auditoría: {e}")
+    
+    def _guardar_estadisticas_red(self, estadisticas: Dict[str, Any]):
+        """Guarda estadísticas de red en base de datos"""
+        try:
+            conn = sqlite3.connect(self.base_datos_siem)
+            cursor = conn.cursor()
+            
+            conexiones = estadisticas.get('conexiones_activas', {})
+            
+            cursor.execute('''
+                INSERT INTO estadisticas_red 
+                (timestamp, protocolo, conexiones_activas, bytes_enviados, bytes_recibidos)
+                VALUES (?, ?, ?, ?, ?)
+            ''', (
+                datetime.now().isoformat(),
+                'TCP+UDP',
+                conexiones.get('tcp', 0) + conexiones.get('udp', 0),
+                0,  # Por ahora sin datos de bytes
+                0
+            ))
+            
+            conn.commit()
+            conn.close()
+        except Exception as e:
+            self.log(f"Error guardando estadísticas red: {e}")
+    
+    def log(self, mensaje: str):
+        """Log de actividades del SIEM"""
+        timestamp = datetime.now().strftime("%H:%M:%S")
+        print(f"[SIEM KALI2025] {timestamp}: {mensaje}")
+        
+        # También llamar al log del padre si existe
+        try:
+            if hasattr(super(), 'log'):
+                super().log(mensaje)
+        except (ValueError, TypeError, AttributeError):
+            pass

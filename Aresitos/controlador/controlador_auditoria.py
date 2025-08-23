@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-Ares Aegis - Controlador de Auditoría Avanzado
+ARESITOS v3.0 - Controlador de Auditoría Avanzado
 Controlador especializado en auditorías de seguridad completas para Kali Linux
 """
 
@@ -12,7 +12,7 @@ from datetime import datetime
 from typing import Dict, Any, List, Optional
 from pathlib import Path
 
-from Aresitos.modelo.modelo_utilidades_sistema import ModeloUtilidadesSistema
+from Aresitos.modelo.modelo_sistema import ModeloUtilidadesSistema
 
 class ControladorAuditoria:
     """
@@ -65,8 +65,8 @@ class ControladorAuditoria:
             comando = [
                 'sudo', 'lynis', 
                 'audit', 'system',
-                '--auditor', 'ares-aegis',
-                '--cronjob',  # Para salida parseable
+                '--auditor', 'aresitos',
+                '--cronjob',
                 '--quiet'
             ]
             
@@ -145,7 +145,6 @@ class ControladorAuditoria:
         
         # Ejecutar rkhunter
         try:
-            print(" Ejecutando rkhunter...")
             cmd_rkhunter = ['sudo', 'rkhunter', '--check', '--skip-keypress', '--report-warnings-only']
             
             proceso = subprocess.run(
@@ -167,7 +166,6 @@ class ControladorAuditoria:
         
         # Ejecutar chkrootkit
         try:
-            print(" Ejecutando chkrootkit...")
             cmd_chkrootkit = ['sudo', 'chkrootkit']
             
             proceso = subprocess.run(
@@ -411,23 +409,17 @@ class ControladorAuditoria:
             'auditorias_individuales': {}
         }
         
-        print(" Iniciando auditoría completa del sistema...")
-        
         try:
             # 1. Auditoría Lynis
-            print(" Ejecutando auditoría Lynis...")
             resultado_completo['auditorias_individuales']['lynis'] = self.ejecutar_auditoria_lynis()
             
             # 2. Detección de rootkits
-            print("✓ Ejecutando detección de rootkits...")
             resultado_completo['auditorias_individuales']['rootkits'] = self.ejecutar_deteccion_rootkits()
             
             # 3. Verificación de permisos
-            print(" Verificando permisos críticos...")
             resultado_completo['auditorias_individuales']['permisos'] = self.verificar_permisos_criticos()
             
             # 4. Análisis de servicios
-            print(" Analizando servicios del sistema...")
             resultado_completo['auditorias_individuales']['servicios'] = self.analizar_servicios_sistema()
             
             resultado_completo['timestamp_fin'] = datetime.now().isoformat()
@@ -437,8 +429,6 @@ class ControladorAuditoria:
             resultado_completo['resumen_ejecutivo'] = self._generar_resumen_ejecutivo(
                 resultado_completo['auditorias_individuales']
             )
-            
-            print("OK Auditoría completa finalizada")
             
         except Exception as e:
             resultado_completo['error'] = str(e)
@@ -497,14 +487,6 @@ class ControladorAuditoria:
             resumen['error_generando_resumen'] = str(e)
         
         return resumen
-        exitosos = sum(1 for r in resultados.values() if r.get('exito', False))
-        
-        return {
-            'total_verificaciones': total_checks,
-            'exitosas': exitosos,
-            'fallidas': total_checks - exitosos,
-            'porcentaje_exito': (exitosos / total_checks * 100) if total_checks > 0 else 0
-        }
 
     def verificar_funcionalidad_kali(self):
         """
@@ -626,8 +608,6 @@ class ControladorAuditoria:
             resultado['exito'] = False
         
         return resultado
-    
-
 # RESUMEN TÉCNICO: Controlador de auditorías de seguridad para Kali Linux. Coordina 
 # análisis de sistema con lynis, detección de rootkits, verificación de permisos y 
 # servicios. Arquitectura MVC con principios SOLID, herramientas nativas sin 

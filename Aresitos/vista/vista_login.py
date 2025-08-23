@@ -28,7 +28,7 @@ from typing import Optional, Dict, List
 
 try:
     from Aresitos.vista.burp_theme import burp_theme
-    from Aresitos.vista.vista_herramientas_kali import VistaHerramientasKali
+    from Aresitos.vista.vista_herramientas import VistaHerramientasKali
     from Aresitos.utils.sudo_manager import SudoManager
     from Aresitos.utils.gestor_iconos import configurar_icono_ventana
     BURP_THEME_AVAILABLE = True
@@ -1050,7 +1050,7 @@ class LoginAresitos:
         try:
             # Importar módulos principales
             from Aresitos.vista.vista_principal import VistaPrincipal
-            from Aresitos.controlador.controlador_principal_nuevo import ControladorPrincipal
+            from Aresitos.controlador.controlador_principal import ControladorPrincipal
             from Aresitos.modelo.modelo_principal import ModeloPrincipal
             
             self.escribir_log("Módulos principales importados correctamente")

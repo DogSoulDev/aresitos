@@ -1,11 +1,11 @@
 # ===================================================================
-# ARESITOS v2.0 - CONFIGURACIÓN DEL PROYECTO
+# ARESITOS v3.0 - CONFIGURACIÓN DEL PROYECTO
 # Suite de Ciberseguridad NATIVA para Kali Linux - ZERO DEPENDENCIAS
 # ===================================================================
 
 [project]
 name = "aresitos"
-version = "2.0.0"
+version = "3.0.0"
 description = "Suite de ciberseguridad profesional para Kali Linux con arquitectura 100% nativa - escaneador, FIM, SIEM, auditoria y deteccion malware usando solo Python stdlib + herramientas Kali"
 readme = "README.md"
 license = {text = "MIT"}
@@ -53,11 +53,11 @@ dependencies = []
 # ===================================================================
 # ARQUITECTURA NATIVA - ZERO DEPENDENCIAS DE PRODUCCION
 # ===================================================================
-# ARESITOS v2.0 NO requiere dependencias para funcionar
+# ARESITOS v3.0 NO requiere dependencias para funcionar
 # Solo utiliza Python stdlib + herramientas Kali Linux nativas
 # 
 # INSTALACION DIRECTA:
-# git clone <repo> && cd Ares-Aegis && python3 main.py
+# git clone <repo> && cd Aresitos && python3 main.py
 # ===================================================================
 
 # Dependencias SOLO para desarrollo (opcionales)
@@ -111,10 +111,10 @@ Changelog = "https://github.com/DogSoulDev/Aresitos/blob/master/CHANGELOG.md"
 
 [project.scripts]
 aresitos = "main:main"
-aresitos-scanner = "aresitos.controlador.controlador_escaneo:main"
-aresitos-fim = "aresitos.controlador.controlador_fim:main"
-aresitos-siem = "aresitos.controlador.controlador_siem_nuevo:main"
-aresitos-dashboard = "aresitos.controlador.controlador_dashboard:main"
+aresitos-scanner = "Aresitos.controlador.controlador_escaneo:main"
+aresitos-fim = "Aresitos.controlador.controlador_fim:main"
+aresitos-siem = "Aresitos.controlador.controlador_siem_nuevo:main"
+aresitos-dashboard = "Aresitos.controlador.controlador_dashboard:main"
 
 # ===================================================================
 # HERRAMIENTAS DE DESARROLLO
@@ -149,7 +149,7 @@ profile = "black"
 multi_line_output = 3
 line_length = 88
 skip_gitignore = true
-known_first_party = ["aresitos"]
+known_first_party = ["Aresitos"]
 sections = ["FUTURE", "STDLIB", "THIRDPARTY", "FIRSTPARTY", "LOCALFOLDER"]
 no_lines_before = ["LOCALFOLDER"]
 
@@ -191,7 +191,7 @@ warn_unreachable = true
 strict_equality = true
 
 [tool.pytest.ini_options]
-testpaths = ["tests", "aresitos/tests"]
+testpaths = ["tests", "Aresitos/tests"]
 python_files = ["test_*.py", "*_test.py"]
 python_classes = ["Test*", "*Test", "*Tests"]
 python_functions = ["test_*"]
@@ -210,7 +210,7 @@ markers = [
 ]
 
 [tool.coverage.run]
-source = ["aresitos"]
+source = ["Aresitos"]
 omit = [
     "*/tests/*",
     "*/test_*",
@@ -243,11 +243,11 @@ requires = [
 build-backend = "setuptools.build_meta"
 
 [tool.setuptools]
-packages = ["aresitos"]
+packages = ["Aresitos"]
 include-package-data = true
 
 [tool.setuptools.package-data]
-aresitos = [
+Aresitos = [
     "recursos/*.ico",
     "recursos/cheatsheets/*.md",
     "configuracion/*.json"

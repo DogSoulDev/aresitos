@@ -1,29 +1,77 @@
+#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-Aresitos - Punto de Entrada Principal
-=====================================
+ARESITOS v3.0 - Herramienta de Auditoría y Respuesta de Seguridad
+================================================================
 
-Punto de entrada principal para Aresitos que redirige al sistema
-de login GUI para una mejor experiencia de usuario.
+main.py - Punto de entrada principal con flujo de inicio optimizado
 
-Exclusivamente para Kali Linux.
+Funcionalidades principales:
+- Verificación automática de entorno Kali Linux
+- Flujo de login GUI con validación de herramientas
+- Inicialización ordenada de arquitectura MVC
+- Fallback a modo clásico en caso de errores
 
-Autor: DogSoulDev
-Fecha: 16 de Agosto de 2025
+Autor: DogSoulDev  
+Fecha: 23 de Agosto de 2025
+Versión: 3.0 (Kali Linux 2025)
 """
 
 import os
 import sys
 import platform
+import subprocess
+import signal
+import threading
+import time
 from pathlib import Path
 
-def verificar_kali_linux():
-    """Verificación básica de Kali Linux"""
+# Asegurar encoding UTF-8
+os.environ.setdefault('PYTHONIOENCODING', 'utf-8')
+
+# Variables globales de configuración
+VERSION = "3.0.0"
+AUTOR = "DogSoulDev"
+DESCRIPCION = "Herramienta de Ciberseguridad para Kali Linux"
+
+def signal_handler(sig, frame):
+    """Manejador de señales para limpieza apropiada"""
+    print("\nRecibida señal de interrupción. Cerrando ARESITOS...")
     try:
+        # Limpieza de recursos aquí si es necesario
+        pass
+    except Exception:
+        pass
+    finally:
+        sys.exit(0)
+
+# Configurar manejadores de señales
+signal.signal(signal.SIGINT, signal_handler)
+signal.signal(signal.SIGTERM, signal_handler)
+
+def verificar_kali_linux_estricto():
+    """Verificación estricta de Kali Linux como sistema base"""
+    try:
+        # Verificar archivos de sistema específicos de Kali
         if os.path.exists('/etc/os-release'):
             with open('/etc/os-release', 'r') as f:
                 content = f.read().lower()
-                return 'kali' in content
+                if 'kali' in content:
+                    return True
+        
+        # Verificar directorio específico de Kali
+        if os.path.exists('/usr/share/kali-themes'):
+            return True
+            
+        # Verificar comando kali-linux
+        try:
+            result = subprocess.run(['which', 'kali-linux'], 
+                                  capture_output=True, timeout=5)
+            if result.returncode == 0:
+                return True
+        except (subprocess.TimeoutExpired, subprocess.CalledProcessError, FileNotFoundError):
+            pass
+            
         return False
     except (IOError, OSError, PermissionError):
         return False
@@ -77,10 +125,51 @@ def verificar_tkinter():
         else:
             raise Exception(f"Error con tkinter: {e}")
 
+def verificar_dependencias_nativas():
+    """Verificar que todas las dependencias Python nativas estén disponibles"""
+    dependencias_criticas = [
+        ('tkinter', 'Interfaz gráfica'),
+        ('sqlite3', 'Base de datos local'),
+        ('json', 'Manejo de configuraciones'),
+        ('threading', 'Operaciones concurrentes'),
+        ('subprocess', 'Ejecución de comandos Kali'),
+        ('hashlib', 'Funciones de integridad'),
+        ('datetime', 'Timestamps y fechas'),
+        ('logging', 'Sistema de logs'),
+        ('pathlib', 'Manejo de rutas'),
+        ('platform', 'Información del sistema')
+    ]
+    
+    faltantes = []
+    for modulo, descripcion in dependencias_criticas:
+        try:
+            __import__(modulo)
+        except ImportError:
+            faltantes.append((modulo, descripcion))
+    
+    if faltantes:
+        print("ERROR: Dependencias Python críticas faltantes:")
+        for modulo, desc in faltantes:
+            print(f"  - {modulo}: {desc}")
+        print("\nInstale Python completo: sudo apt install python3-dev python3-tk")
+        return False
+    
+    print("OK Todas las dependencias Python nativas disponibles")
+    return True
+
 def main():
     """Función principal que redirige al login GUI con flujo escalonado"""
-    print("Aresitos - Sistema de Seguridad Cibernética")
-    print("=" * 50)
+    print(f"ARESITOS v{VERSION} - Sistema de Seguridad Cibernética")
+    print("=" * 55)
+    print(f"Autor: {AUTOR}")
+    print(f"Descripción: {DESCRIPCION}")
+    print("Exclusivamente para Kali Linux")
+    print("=" * 55)
+    
+    # Verificar dependencias Python nativas primero
+    if not verificar_dependencias_nativas():
+        print("ERROR: Dependencias Python críticas faltantes")
+        sys.exit(1)
     
     # Issue 23/24: Verificación de estabilidad del sistema
     if "--verify" in sys.argv or "--verificar" in sys.argv:
@@ -91,9 +180,9 @@ def main():
             print("Sistema verificado - continuando con inicio normal...")
     
     # Verificar Kali Linux antes de continuar
-    if not verificar_kali_linux():
+    if not verificar_kali_linux_estricto():
         if verificar_modo_desarrollo():
-            print("[WARNING]  MODO DESARROLLO: Ejecutando en entorno no-Kali")
+            print("WARNING MODO DESARROLLO: Ejecutando en entorno no-Kali")
             print("   Algunas funcionalidades pueden no estar disponibles")
         else:
             print("ERROR: ARESITOS requiere Kali Linux")
@@ -150,9 +239,8 @@ def iniciar_aplicacion_clasica():
         
         # Importar módulos principales
         from Aresitos.vista.vista_principal import VistaPrincipal
-        from Aresitos.controlador.controlador_principal_nuevo import ControladorPrincipal  
+        from Aresitos.controlador.controlador_principal import ControladorPrincipal  
         from Aresitos.modelo.modelo_principal import ModeloPrincipal
-        
         print("Modulos principales cargados")
         
         # Crear aplicación principal con tema Burp Suite
@@ -163,7 +251,7 @@ def iniciar_aplicacion_clasica():
         # Configurar icono de la ventana usando gestor centralizado
         try:
             from Aresitos.utils.gestor_iconos import configurar_icono_ventana
-            configurar_icono_ventana(root, "ARESITOS v2.0 - Herramientas de Seguridad")
+            configurar_icono_ventana(root, "ARESITOS v3.0 - Herramientas de Seguridad")
         except Exception as e:
             print(f"No se pudo cargar el icono de la ventana: {e}")
         
@@ -189,10 +277,10 @@ def iniciar_aplicacion_clasica():
         y = (root.winfo_screenheight() // 2) - (900 // 2)
         root.geometry(f"1400x900+{x}+{y}")
         
-        print("Aresitos iniciado exitosamente")
+        print("ARESITOS iniciado exitosamente")
         print("OK Dashboard completo cargado - Funcional")
         print("OK Tema Burp Suite aplicado")
-        print("OK Herramientas modernizadas configuradas")
+        print("OK Herramientas Kali Linux configuradas")
         
         # Ejecutar aplicación
         root.mainloop()
@@ -200,7 +288,7 @@ def iniciar_aplicacion_clasica():
     except ImportError as e:
         print(f"Error importando módulos: {e}")
         print("Verifique la instalación de ARESITOS")
-        print("Ejecute: python configurar.py")
+        print("Ejecute: sudo ./configurar_kali.sh")
     except Exception as e:
         print(f"Error iniciando aplicación: {e}")
         import traceback
@@ -216,31 +304,34 @@ def verificar_permisos_inicio():
                                   capture_output=True, text=True, timeout=5)
             
             if "cap_net_raw" not in result.stdout:
-                print("AVISO: nmap podria no tener permisos para SYN scan")
-                print("Para funcionalidad completa: sudo python configurar.py")
+                print("AVISO: nmap podría no tener permisos para SYN scan")
+                print("Para funcionalidad completa: sudo ./configurar_kali.sh")
             
             # Verificar sudo sin contraseña
             result_sudo = subprocess.run(["sudo", "-n", "true"], 
                                        capture_output=True, timeout=5)
             if result_sudo.returncode != 0:
                 print("sudo requiere contraseña - use el login GUI")
-                print("Ejecute: python -m aresitos.vista.vista_login")
+                print("Ejecute: python main.py")
                 
         except (subprocess.TimeoutExpired, subprocess.CalledProcessError, FileNotFoundError):
             pass  # No mostrar errores si no se puede verificar
 
 def verificacion_estabilidad_sistema():
-    """Issue 23/24: Verificación final de estabilidad del sistema"""
-    """Verificar integridad y estabilidad de todos los componentes de Aresitos"""
-    print("\n=== VERIFICACIÓN DE ESTABILIDAD ARESITOS ===")
+    """Verificación final de estabilidad del sistema ARESITOS v3.0"""
+    print("\n=== VERIFICACIÓN DE ESTABILIDAD ARESITOS v3.0 ===")
     
     verificaciones = []
     
     # Verificar estructura de archivos críticos
     archivos_criticos = [
         "Aresitos/vista/vista_principal.py",
-        "Aresitos/controlador/controlador_principal_nuevo.py", 
+        "Aresitos/controlador/controlador_principal.py", 
         "Aresitos/modelo/modelo_principal.py",
+        "Aresitos/modelo/modelo_escaneador_avanzado_real.py",
+        "Aresitos/modelo/modelo_siem.py",
+        "Aresitos/modelo/modelo_fim.py",
+        "Aresitos/modelo/modelo_cuarentena.py",
         "Aresitos/utils/sudo_manager.py",
         "Aresitos/vista/terminal_mixin.py"
     ]
@@ -251,16 +342,26 @@ def verificacion_estabilidad_sistema():
         else:
             verificaciones.append(f"ERROR Archivo faltante: {archivo}")
     
-    # Verificar configuraciones
-    configs = ["configuración/aresitos_config.json", "configuración/aresitos_config_kali.json"]
+    # Verificar configuraciones actualizadas
+    configs = [
+        "configuración/aresitos_config.json", 
+        "configuración/aresitos_config_kali.json",
+        "configuración/aresitos_config_completo.json"
+    ]
     for config in configs:
         if os.path.exists(config):
             verificaciones.append(f"OK Configuración: {config}")
         else:
-            verificaciones.append(f"ERROR Configuración faltante: {config}")
+            verificaciones.append(f"WARN Configuración opcional: {config}")
     
-    # Verificar directorios de datos
-    directorios = ["data", "logs", "data/cheatsheets", "data/wordlists"]
+    # Verificar directorios de datos esenciales
+    directorios = [
+        "data", 
+        "logs", 
+        "data/cheatsheets", 
+        "data/wordlists",
+        "data/diccionarios"
+    ]
     for directorio in directorios:
         if os.path.exists(directorio):
             verificaciones.append(f"OK Directorio: {directorio}")
@@ -274,8 +375,13 @@ def verificacion_estabilidad_sistema():
     errores = [v for v in verificaciones if v.startswith("ERROR")]
     if errores:
         print(f"\nERRORES DETECTADOS: {len(errores)}")
+        for error in errores:
+            print(f"  {error}")
         return False
     else:
+        warnings = [v for v in verificaciones if v.startswith("WARN")]
+        if warnings:
+            print(f"\nADVERTENCIAS: {len(warnings)} (no críticas)")
         print(f"\nSISTEMA ESTABLE: {len(verificaciones)} verificaciones completadas")
         return True
 

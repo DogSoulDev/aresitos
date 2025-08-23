@@ -9,16 +9,16 @@ import logging
 from datetime import datetime
 from typing import Dict, Any, Optional, Set
 
-from Aresitos.controlador.controlador_principal_base import ControladorPrincipalBase
+from Aresitos.controlador.controlador_base import ControladorBase
 
-class GestorComponentes(ControladorPrincipalBase):
+class GestorComponentes(ControladorBase):
     """
     Gestor centralizado de componentes del sistema.
     Maneja la inicialización, coordinación y finalización de componentes.
     """
     
     def __init__(self, modelo_principal):
-        super().__init__(modelo_principal)
+        super().__init__(modelo_principal, "GestorComponentes")
         
         # Estado de componentes
         self._componentes_estado = {
@@ -139,14 +139,20 @@ class GestorComponentes(ControladorPrincipalBase):
     def _inicializar_siem(self) -> Dict[str, Any]:
         """Inicializar componente SIEM."""
         try:
-            from Aresitos.modelo.modelo_siem import SIEM
+            from Aresitos.modelo.modelo_siem import SIEMKali2025
             
             # Crear instancia SIEM
-            siem_instance = SIEM()
+            siem_instance = SIEMKali2025()
             
             # Verificar que funcione básicamente
-            if hasattr(siem_instance, 'generar_evento'):
-                siem_instance.generar_evento("INIT_SIEM", "SIEM inicializado", "info")
+            if hasattr(siem_instance, '_guardar_evento_seguridad'):
+                evento_test = {
+                    'timestamp': datetime.now().isoformat(),
+                    'tipo': 'INIT_SIEM',
+                    'mensaje': 'SIEM inicializado',
+                    'nivel': 'info'
+                }
+                siem_instance._guardar_evento_seguridad(evento_test)
             
             # Guardar referencia
             self._componentes_estado['siem']['instancia'] = siem_instance
@@ -165,13 +171,13 @@ class GestorComponentes(ControladorPrincipalBase):
     def _inicializar_fim(self) -> Dict[str, Any]:
         """Inicializar componente FIM."""
         try:
-            from Aresitos.modelo.modelo_fim import FIMAvanzado
+            from Aresitos.modelo.modelo_fim import FIMKali2025 as FIMAvanzado
             
             # Obtener instancia SIEM si está disponible
             siem_instance = self._componentes_estado['siem']['instancia']
             
             # Crear instancia FIM
-            fim_instance = FIMAvanzado(siem=siem_instance)
+            fim_instance = FIMAvanzado()
             
             # Verificar funcionalidad básica
             if hasattr(fim_instance, 'obtener_estadisticas'):
@@ -196,7 +202,7 @@ class GestorComponentes(ControladorPrincipalBase):
     def _inicializar_escaneador(self) -> Dict[str, Any]:
         """Inicializar componente Escaneador."""
         try:
-            from Aresitos.modelo.modelo_escaneador_avanzado import EscaneadorAvanzado
+            from Aresitos.modelo.modelo_escaneador_avanzado_real import EscaneadorAvanzadoReal as EscaneadorAvanzado
             
             # Obtener instancia SIEM si está disponible
             siem_instance = self._componentes_estado['siem']['instancia']
@@ -227,7 +233,7 @@ class GestorComponentes(ControladorPrincipalBase):
         try:
             # Importar el sistema de cuarentena
             try:
-                from Aresitos.modelo.modelo_cuarentena import Cuarentena as GestorCuarentena
+                from Aresitos.modelo.modelo_cuarentena import CuarentenaKali2025 as GestorCuarentena
             except ImportError:
                 self.logger.warning("Sistema de cuarentena no encontrado - usando mock")
                 # Crear clase mock básica
@@ -245,7 +251,7 @@ class GestorComponentes(ControladorPrincipalBase):
             
             # Verificar funcionalidad básica
             if hasattr(cuarentena_instance, 'obtener_estadisticas'):
-                stats = cuarentena_instance.obtener_estadisticas()
+                stats = getattr(cuarentena_instance, 'obtener_estadisticas', lambda: {'error': 'Método no disponible'})()
                 if not isinstance(stats, dict):
                     # No crítico, continuar
                     pass

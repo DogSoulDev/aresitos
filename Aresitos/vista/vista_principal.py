@@ -13,7 +13,7 @@ from Aresitos.vista.vista_dashboard import VistaDashboard
 from Aresitos.vista.vista_escaneo import VistaEscaneo
 from Aresitos.vista.vista_monitoreo import VistaMonitoreo
 from Aresitos.vista.vista_auditoria import VistaAuditoria
-from Aresitos.vista.vista_gestion_datos import VistaGestionDatos
+from Aresitos.vista.vista_datos import VistaGestionDatos
 from Aresitos.vista.vista_reportes import VistaReportes
 from Aresitos.vista.vista_fim import VistaFIM
 from Aresitos.vista.vista_siem import VistaSIEM

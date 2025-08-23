@@ -1,21 +1,21 @@
 # ===================================================================
-# ARESITOS v2.0 - ARQUITECTURA NATIVA PARA KALI LINUX
+# ARESITOS v3.0 - ARQUITECTURA NATIVA PARA KALI LINUX
 # Suite Profesional de Ciberseguridad - ZERO DEPENDENCIAS EXTERNAS
 # ===================================================================
 # 
 # INSTALACION DIRECTA - SIN REQUIREMENTS EXTERNOS:
 # 1. git clone <repositorio>
-# 2. cd Ares-Aegis
+# 2. cd Aresitos
 # 3. sudo ./configurar_kali.sh  # Configurar herramientas Kali
 # 4. python3 main.py           # Ejecutar directamente
 #
 # VERIFICACION:
-# python3 verificacion_final_arquitectura.py
+# python3 verificacion_final.py
 # ===================================================================
 
 # === ARQUITECTURA NATIVA - CERO DEPENDENCIAS EXTERNAS ===
 # ===================================================================
-# ARESITOS v2.0 utiliza EXCLUSIVAMENTE Python stdlib + Kali tools
+# ARESITOS v3.0 utiliza EXCLUSIVAMENTE Python stdlib + Kali tools
 # NO requiere pip install - funciona directamente en Kali Linux
 # ===================================================================
 

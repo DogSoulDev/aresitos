@@ -12,12 +12,7 @@ class ModeloGestorWordlists:
         self.wordlists_predefinidas = self._obtener_wordlists_predefinidas()
         
         # Inicializar constructor de wordlists
-        try:
-            from Aresitos.modelo.modelo_constructor_wordlists import ConstructorWordlists
-            self.constructor_wordlists = ConstructorWordlists(self.directorio_wordlists)
-        except ImportError as e:
-            print(f"Warning: Constructor de wordlists no disponible: {e}")
-            self.constructor_wordlists = None
+        self.constructor_wordlists = None
         
         self._inicializar_wordlists_basicas()
         self._cargar_wordlists_desde_data()
@@ -27,10 +22,7 @@ class ModeloGestorWordlists:
         directorio_data = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(__file__))), "data", "wordlists")
         
         if not os.path.exists(directorio_data):
-            print(f"Directorio data/wordlists no encontrado: {directorio_data}")
             return
-        
-        print(f"Escaneando wordlists en: {directorio_data}")
         
         # 1. Cargar archivos JSON de configuración automáticamente
         archivos_json = [f for f in os.listdir(directorio_data) if f.endswith('.json')]
@@ -65,13 +57,12 @@ class ModeloGestorWordlists:
                     
                     if contenido:
                         self.wordlists_predefinidas[categoria] = contenido
-                        print(f"   {archivo}: {len(contenido)} entradas cargadas en '{categoria}'")
                         wordlists_cargadas += 1
                     
                 except Exception as e:
-                    print(f"   Error cargando {archivo}: {e}")
+                    pass
             else:
-                print(f"   Archivo no encontrado: {archivo}")
+                pass
         
         # Cargar configuración JSON si existe
         config_path = os.path.join(directorio_data, "wordlists_config.json")
@@ -83,13 +74,9 @@ class ModeloGestorWordlists:
                 for categoria, datos in config.items():
                     if isinstance(datos, list):
                         self.wordlists_predefinidas[categoria] = datos
-                        print(f"   Configuración JSON: '{categoria}' con {len(datos)} entradas")
                         
             except Exception as e:
-                print(f"   Error cargando configuración JSON: {e}")
-        
-        print(f" Total wordlists cargadas: {wordlists_cargadas}")
-        print(f" Categorías disponibles: {len(self.wordlists_predefinidas)}")
+                pass
         
         # Crear archivo de índice actualizado
         self._crear_indice_wordlists()
@@ -334,10 +321,8 @@ class ModeloGestorWordlists:
                 f.write("---\n")
                 f.write("*Índice generado automáticamente por Aresitos*\n")
             
-            print(f" Índice creado: {indice_path}")
-            
         except Exception as e:
-            print(f" Error creando índice: {e}")
+            pass
 
     def _cargar_configuracion_json(self, ruta_json: str):
         """Carga wordlists desde un archivo JSON de configuración"""
@@ -346,7 +331,6 @@ class ModeloGestorWordlists:
                 config = json.load(f)
             
             archivo_nombre = os.path.basename(ruta_json)
-            print(f" Procesando: {archivo_nombre}")
             
             # Si el JSON tiene estructura de wordlists
             if isinstance(config, dict):
@@ -356,13 +340,11 @@ class ModeloGestorWordlists:
                         if isinstance(lista, list) and lista:
                             nombre_categoria = f"json_{categoria}"
                             self.wordlists_predefinidas[nombre_categoria] = lista
-                            print(f"    Categoría '{categoria}': {len(lista)} elementos")
                 
                 # Caso 2: JSON con lista simple en una clave específica
                 elif 'wordlist' in config and isinstance(config['wordlist'], list):
                     nombre_categoria = f"json_{os.path.splitext(archivo_nombre)[0]}"
                     self.wordlists_predefinidas[nombre_categoria] = config['wordlist']
-                    print(f"    Wordlist '{nombre_categoria}': {len(config['wordlist'])} elementos")
                 
                 # Caso 3: JSON de configuración con múltiples listas
                 else:
@@ -370,18 +352,14 @@ class ModeloGestorWordlists:
                         if isinstance(value, list) and value:
                             nombre_categoria = f"json_{key}"
                             self.wordlists_predefinidas[nombre_categoria] = value
-                            print(f"    Lista '{key}': {len(value)} elementos")
             
             # Si el JSON es una lista directa
             elif isinstance(config, list) and config:
                 nombre_categoria = f"json_{os.path.splitext(archivo_nombre)[0]}"
                 self.wordlists_predefinidas[nombre_categoria] = config
-                print(f"    Lista directa: {len(config)} elementos")
-                
+        
         except Exception as e:
-            print(f" Error cargando {ruta_json}: {e}")
-
-# RESUMEN: Gestor de wordlists para ciberseguridad que maneja almacenamiento en ~/aresitos_wordlists,
+            pass# RESUMEN: Gestor de wordlists para ciberseguridad que maneja almacenamiento en ~/aresitos_wordlists,
 # incluye wordlists predefinidas (passwords, usuarios, directorios, subdominios, extensiones) y
 # proporciona CRUD completo: listar, cargar, editar, eliminar, exportar y buscar en wordlists.
 # Ahora con carga automática desde data/wordlists del proyecto.

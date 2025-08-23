@@ -3,7 +3,7 @@
 import subprocess
 import re
 import shlex
-from Aresitos.modelo.modelo_utilidades_sistema import ModeloUtilidadesSistema
+from Aresitos.modelo.modelo_sistema import ModeloUtilidadesSistema
 
 class ControladorHerramientas:
     
@@ -182,7 +182,6 @@ class ControladorHerramientas:
             info['error_info'] = str(e)
         
         return info
-        return self.utilidades_sistema.verificar_herramientas_kali_completo()
     
     def verificar_herramienta_especifica(self, nombre_herramienta):
         # SECURITY FIX: Validar entrada antes de ejecutar comando
