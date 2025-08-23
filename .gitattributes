@@ -1,7 +1,12 @@
 # ===================================================================
-# ARESITOS v2.0 - CONFIGURACIÓN GIT ATTRIBUTES
+# ARESITOS v3.0 - CONFIGURACIÓN GIT ATTRIBUTES
 # Suite de Ciberseguridad para Kali Linux
 # ===================================================================
+
+# === CONFIGURACIÓN CASE SENSITIVITY ===
+# Asegurar consistencia de nombres entre Windows y Linux
+* text=auto
+* -text
 
 # === NORMALIZACIÓN AUTOMÁTICA ===
 * text=auto

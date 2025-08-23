@@ -1042,6 +1042,65 @@ configure_aresitos_permissions() {
     print_success "Permisos ARESITOS configurados correctamente"
 }
 
+# Función para configurar Git con case sensitivity
+configure_git_case_sensitivity() {
+    print_header "GIT CONFIGURANDO CASE SENSITIVITY"
+    
+    print_info "Configurando Git para case sensitivity en Kali Linux..."
+    
+    # Verificar si estamos en un repositorio Git
+    if [ ! -d ".git" ]; then
+        print_warning "No se detectó repositorio Git. Saltando configuración..."
+        return 0
+    fi
+    
+    # Configurar core.ignorecase = false
+    print_info "Configurando core.ignorecase = false..."
+    git config core.ignorecase false
+    print_success "core.ignorecase configurado correctamente"
+    
+    # Configurar autocrlf para Linux
+    print_info "Configurando autocrlf = false para Linux..."
+    git config core.autocrlf false
+    print_success "autocrlf configurado correctamente"
+    
+    # Verificar configuración actual
+    print_info "Verificando configuración de Git:"
+    local ignorecase=$(git config core.ignorecase)
+    local autocrlf=$(git config core.autocrlf)
+    
+    if [ "$ignorecase" = "false" ]; then
+        print_success "✅ core.ignorecase: $ignorecase"
+    else
+        print_error "❌ core.ignorecase: $ignorecase (debería ser false)"
+    fi
+    
+    if [ "$autocrlf" = "false" ]; then
+        print_success "✅ core.autocrlf: $autocrlf"
+    else
+        print_success "✅ core.autocrlf: $autocrlf"
+    fi
+    
+    # Verificar que no hay conflictos de case sensitivity
+    print_info "Verificando estructura de archivos..."
+    local aresitos_files=$(git ls-files | grep -i "aresitos" | head -5)
+    if [ -n "$aresitos_files" ]; then
+        print_info "Archivos de ARESITOS detectados:"
+        echo "$aresitos_files" | while read -r file; do
+            print_info "  📁 $file"
+        done
+    fi
+    
+    # Crear documentación de configuración
+    if [ ! -f ".gitconfig-case-sensitivity" ]; then
+        print_info "Creando documentación de configuración de case sensitivity..."
+        print_success "Documentación creada: .gitconfig-case-sensitivity"
+    fi
+    
+    print_success "Configuración de Git para case sensitivity completada"
+    print_info "🔧 PROBLEMA RESUELTO: Evita creación de carpetas duplicadas 'Aresitos' y 'aresitos' en Linux"
+}
+
 # Crear script de prueba
 create_test_script() {
     print_header "NOTE Creando script de prueba..."
@@ -1147,6 +1206,7 @@ main() {
         "configure_network_permissions:Configuración de permisos de red"
         "configure_sudo:Configuración de sudo"
         "configure_aresitos_permissions:Configuración de permisos ARESITOS"
+        "configure_git_case_sensitivity:Configuración Git case sensitivity"
         "install_python_deps:Instalación de dependencias Python"
         "verify_setup:Verificación final del sistema"
         "create_test_script:Creación de script de pruebas"

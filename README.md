@@ -9,6 +9,8 @@
 
 **ARESITOS v3.0** es una herramienta de ciberseguridad profesional diseñada exclusivamente para Kali Linux. Integra escaneador de vulnerabilidades, SIEM, FIM, sistema de cuarentena y auditoría de seguridad en una interfaz unificada para estudiantes y profesionales de la seguridad.
 
+> **📋 Repositorio de Testeos Anterior:** Si deseas revisar el código de pruebas y desarrollo previo a ARESITOS, puedes consultar el repositorio de testeos [Ares Aegis](https://github.com/DogSoulDev/Ares-Aegis) donde se realizaron las pruebas iniciales y desarrollo experimental.
+
 ## **Características Principales**
 
 - **Escaneador Avanzado**: nmap, masscan, nuclei, gobuster integrados
