@@ -7,13 +7,7 @@ import os
 import logging
 import threading
 import datetime
-
-# Importar SudoManager para prevenir crashes
-try:
-    from Aresitos.utils.sudo_manager import SudoManager
-    SUDO_MANAGER_DISPONIBLE = True
-except ImportError:
-    SUDO_MANAGER_DISPONIBLE = False
+import subprocess
 
 try:
     from Aresitos.vista.burp_theme import burp_theme
@@ -32,18 +26,6 @@ class VistaMonitoreo(tk.Frame):
         self.monitor_red_activo = False
         self.thread_red = None
         self.vista_principal = parent  # Referencia al padre para acceder al terminal
-        
-        # Inicializar SudoManager para prevenir crashes
-        if SUDO_MANAGER_DISPONIBLE:
-            try:
-                self.sudo_manager = SudoManager()
-                self.logger.info("SudoManager inicializado para VistaMonitoreo")
-            except Exception as e:
-                self.logger.warning(f"Error inicializando SudoManager: {e}")
-                self.sudo_manager = None
-        else:
-            self.sudo_manager = None
-            self.logger.warning("SudoManager no disponible en VistaMonitoreo")
         
         # Configurar tema y colores de manera consistente
         if BURP_THEME_AVAILABLE and burp_theme:
@@ -102,19 +84,18 @@ class VistaMonitoreo(tk.Frame):
         import subprocess
         
         try:
-            if usar_sudo and self.sudo_manager and self.sudo_manager.is_sudo_active():
-                # Usar SudoManager para comandos que requieren privilegios
-                comando_str = ' '.join(comando)
-                resultado = self.sudo_manager.execute_sudo_command(comando_str, timeout=timeout)
-            else:
-                # Ejecutar comando normal
-                resultado = subprocess.run(
-                    comando,
-                    capture_output=True,
-                    text=True,
-                    timeout=timeout,
-                    check=False
-                )
+            # Si se requiere sudo, agregar al inicio del comando
+            if usar_sudo:
+                comando = ['sudo'] + comando
+                
+            # Ejecutar comando
+            resultado = subprocess.run(
+                comando,
+                capture_output=True,
+                text=True,
+                timeout=timeout,
+                check=False
+            )
             
             return {
                 'success': resultado.returncode == 0,
@@ -1673,17 +1654,6 @@ class VistaMonitoreo(tk.Frame):
         from Aresitos.utils.sanitizador_archivos import SanitizadorArchivos
         from Aresitos.utils.helper_seguridad import HelperSeguridad
         
-        # Importar SudoManager para prevenir crashes
-        try:
-            from Aresitos.utils.sudo_manager import SudoManager
-            sudo_manager = SudoManager()
-            if not sudo_manager.is_sudo_active():
-                self.text_cuarentena.insert(tk.END, "WARNING SUDO NO ACTIVO: Verificar permisos en otras ventanas de ARESITOS\n")
-                messagebox.showwarning("Permisos", "Sudo no activo. Algunas operaciones pueden fallar.")
-        except ImportError:
-            sudo_manager = None
-            self.text_cuarentena.insert(tk.END, "WARNING SudoManager no disponible - usando modo básico\n")
-        
         # Mostrar advertencia especial para cuarentena
         if not HelperSeguridad.mostrar_advertencia_cuarentena():
             self.text_cuarentena.insert(tk.END, "CANCEL Usuario canceló la operación de cuarentena\n")
@@ -1717,13 +1687,10 @@ class VistaMonitoreo(tk.Frame):
                 self.text_cuarentena.insert(tk.END, f"INFO: Archivo encontrado - Tamaño: {file_stat.st_size} bytes\n")
             except PermissionError:
                 self.text_cuarentena.insert(tk.END, f"WARNING Sin permisos para acceder a {archivo}\n")
-                if sudo_manager:
-                    self.text_cuarentena.insert(tk.END, "INFO: Usando SudoManager para acceso con privilegios\n")
-                else:
-                    respuesta = messagebox.askyesno("Permisos", 
-                                                  "Sin permisos de acceso. ¿Continuar de todos modos?")
-                    if not respuesta:
-                        return
+                respuesta = messagebox.askyesno("Permisos", 
+                                              "Sin permisos de acceso. ¿Continuar de todos modos?")
+                if not respuesta:
+                    return
             
             # VALIDACIÓN BÁSICA DE SEGURIDAD (menos restrictiva para cuarentena)
             sanitizador = SanitizadorArchivos()
@@ -1902,15 +1869,6 @@ class VistaMonitoreo(tk.Frame):
             if not respuesta2:
                 self.text_cuarentena.insert(tk.END, "CANCEL Usuario canceló limpieza de cuarentena en segunda confirmación\n")
                 return
-            
-            # Importar SudoManager para operaciones seguras
-            try:
-                from Aresitos.utils.sudo_manager import SudoManager
-                sudo_manager = SudoManager()
-                if not sudo_manager.is_sudo_active():
-                    self.text_cuarentena.insert(tk.END, "WARNING SUDO NO ACTIVO: La operacion puede fallar\n")
-            except ImportError:
-                sudo_manager = None
             
             # Mostrar progreso
             self.text_cuarentena.insert(tk.END, "PROCESSING Iniciando limpieza de cuarentena...\n")

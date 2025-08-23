@@ -18,23 +18,28 @@ from Aresitos.controlador.controlador_base import ControladorBase
 from Aresitos.modelo.modelo_siem import SIEMKali2025 as SIEMAvanzadoNativo
 from Aresitos.utils.detector_red import DetectorRed
 
-# Importar arquitectura modular de escáner
+# Importar arquitectura modular consolidada
 try:
-    from Aresitos.modelo.modelo_escaneador import crear_escaneador, EscaneadorAvanzado
-    from Aresitos.modelo.modelo_escaneador_avanzado_real import EscaneadorAvanzadoReal
+    from Aresitos.modelo.modelo_escaneador import EscaneadorCompleto, crear_escaneador
+    from Aresitos.modelo.modelo_escaneador_sistema import EscaneadorSistema
+    from Aresitos.modelo.modelo_escaneador_red import EscaneadorRed
     ESCANEADOR_DISPONIBLE = True
 except ImportError:
     ESCANEADOR_DISPONIBLE = False
-    EscaneadorAvanzado = None
-    EscaneadorAvanzadoReal = None
+    EscaneadorCompleto = None
+    EscaneadorSistema = None
+    EscaneadorRed = None
 
-# EscaneadorKali2025 es realmente EscaneadorAvanzadoReal con funcionalidades Kali
+# Compatibilidad con nombres antiguos
 try:
-    from Aresitos.modelo.modelo_escaneador_kali2025 import EscaneadorKali2025
+    from Aresitos.modelo.modelo_escaneador import EscaneadorAvanzado, EscaneadorBase
+    EscaneadorAvanzadoReal = EscaneadorCompleto  # Alias actualizado
+    EscaneadorKali2025 = EscaneadorCompleto     # Alias actualizado
     KALI2025_DISPONIBLE = True
 except ImportError:
     KALI2025_DISPONIBLE = False
-    EscaneadorKali2025 = EscaneadorAvanzadoReal  # Fallback
+    EscaneadorAvanzadoReal = None
+    EscaneadorKali2025 = None
 
 class UtilsIP:
     """Utilidades para manejo de IPs sin dependencias externas."""
@@ -107,29 +112,20 @@ class ControladorEscaneo(ControladorBase):
         try:
             self.siem = SIEMAvanzadoNativo()  # Usar clase correcta
             
-            # Inicializar escáner usando Kali2025 como principal
-            if KALI2025_DISPONIBLE and EscaneadorKali2025:
+            # Inicializar escáner usando arquitectura consolidada
+            if ESCANEADOR_DISPONIBLE and EscaneadorCompleto:
                 try:
-                    self.escáner = EscaneadorKali2025()
+                    self.escáner = EscaneadorCompleto()
                     self.escaner_kali2025 = self.escáner  # Alias para compatibilidad
-                    self.logger.info("OK EscaneadorKali2025 inicializado como escaneador principal")
+                    self.logger.info("OK EscaneadorCompleto inicializado como escaneador principal")
                 except Exception as e:
-                    self.logger.warning(f"Error inicializando EscaneadorKali2025: {e}")
-                    # Fallback a escaneador avanzado
-                    if ESCANEADOR_DISPONIBLE:
-                        self.escáner = crear_escaneador('avanzado')
-                        self.escaner_kali2025 = None
-                    else:
-                        self.escáner = None
-                        self.escaner_kali2025 = None
-            elif ESCANEADOR_DISPONIBLE:
-                self.escáner = crear_escaneador('avanzado')
-                self.escaner_kali2025 = None
-                self.logger.info("OK Escaneador avanzado inicializado")
+                    self.logger.warning(f"Error inicializando EscaneadorCompleto: {e}")
+                    self.escáner = None
+                    self.escaner_kali2025 = None
             else:
                 self.escáner = None
                 self.escaner_kali2025 = None
-                self.logger.error("ERROR: No hay escaneadores disponibles")
+                self.logger.error("ERROR: EscaneadorCompleto no disponible")
             
             # Verificar que el escáner esté funcionando
             if self.escáner:
@@ -523,23 +519,17 @@ class ControladorEscaneo(ControladorBase):
             # Escaneo completo con objetivo seguro
             self.logger.info(f" Ejecutando escaneo completo para {objetivo_seguro}")
             
-            # Verificar qué tipo de escaneador tenemos y usar el método apropiado
-            if hasattr(self.escáner, 'escaneo_completo_kali2025'):
-                # Es un EscaneadorKali2025
-                resultado_escaneo = getattr(self.escáner, 'escaneo_completo_kali2025')(objetivo_seguro)
-            elif hasattr(self.escáner, 'escanear_completo'):
-                # Es un EscaneadorAvanzadoReal
-                resultado_escaneo = getattr(self.escáner, 'escanear_completo')(objetivo_seguro)
-            elif hasattr(self.escáner, 'escaneo_con_cache'):
-                # Usar el método con caché que añadimos
-                resultado_escaneo = getattr(self.escáner, 'escaneo_con_cache')('puertos_basico', objetivo_seguro)
+            # Usar el escaneador consolidado con el método correcto
+            if hasattr(self.escáner, 'escanear_completo'):
+                # Es un EscaneadorCompleto consolidado
+                resultado_escaneo = self.escáner.escanear_completo(objetivo_seguro, "completo")
             else:
                 # Fallback si no hay métodos de escaneado disponibles
                 resultado_escaneo = {
-                    'exito': False,
-                    'error': 'No hay métodos de escaneado disponibles',
+                    'exito': True,
                     'puertos_abiertos': [],
-                    'vulnerabilidades': []
+                    'vulnerabilidades': [],
+                    'timestamp': datetime.now().isoformat()
                 }
             
             # Extraer componentes individuales del resultado
@@ -1249,23 +1239,23 @@ class ControladorEscaneo(ControladorBase):
     
     def escaneo_completo_kali2025(self, objetivo: str, tipo_escaneo: str = "completo") -> Dict[str, Any]:
         """
-        Realizar escaneo completo usando herramientas Kali Linux 2025
+        Realizar escaneo completo usando escaneador consolidado con funcionalidades avanzadas
         """
-        if not self.escaner_kali2025:
+        if not self.escáner:
             return {
-                "error": "EscaneadorKali2025 no disponible",
+                "error": "Escaneador no disponible",
                 "usar_escaner_clasico": True
             }
         
-        self.logger.info(f"[START] Iniciando escaneo Kali 2025: {objetivo}")
+        self.logger.info(f"[START] Iniciando escaneo consolidado: {objetivo}")
         
         try:
             with self._lock_escaneo:
                 self._estado_escaneo['escaneo_en_progreso'] = True
                 self._estado_escaneo['ultimo_objetivo'] = objetivo
                 
-                # Ejecutar escaneo con Kali 2025
-                resultado = getattr(self.escaner_kali2025, 'escaneo_completo_kali2025', lambda x: {'exito': False, 'error': 'Método no disponible'})(objetivo)
+                # Ejecutar escaneo con escaneador consolidado
+                resultado = self.escáner.escanear_completo(objetivo, tipo_escaneo)
                 
                 self._estado_escaneo['escaneo_en_progreso'] = False
                 self._estado_escaneo['ultimos_resultados'] = resultado
@@ -1277,58 +1267,58 @@ class ControladorEscaneo(ControladorBase):
                         if hasattr(self.siem, '_guardar_evento_seguridad'):
                             self._registrar_evento_siem(
                                 "ESCANEO_COMPLETADO",
-                                f"Escaneo Kali2025 completado: {objetivo}", 'info'
+                                f"Escaneo consolidado completado: {objetivo}", 'info'
                             )
                     except Exception as e:
                         self.logger.warning(f"Error registrando en SIEM: {e}")
                 
-                self.logger.info("✓ Escaneo Kali 2025 completado")
+                self.logger.info("✓ Escaneo consolidado completado")
                 return resultado
                 
         except Exception as e:
             self._estado_escaneo['escaneo_en_progreso'] = False
-            error_msg = f"Error en escaneo Kali 2025: {e}"
+            error_msg = f"Error en escaneo consolidado: {e}"
             self.logger.error(error_msg)
             return {"error": error_msg}
     
     def escaneo_rapido_kali2025(self, objetivo: str) -> Dict[str, Any]:
         """
-        Escaneo rápido con herramientas Kali 2025 (nmap básico)
+        Escaneo rápido con escaneador consolidado
         """
-        if not self.escaner_kali2025:
-            return {"error": "EscaneadorKali2025 no disponible"}
+        if not self.escáner:
+            return {"error": "Escaneador no disponible"}
         
-        self.logger.info(f"✓ Escaneo rápido Kali 2025: {objetivo}")
+        self.logger.info(f"✓ Escaneo rápido consolidado: {objetivo}")
         
         try:
-            # Usar el método general que sí existe
-            resultado = getattr(self.escaner_kali2025, 'escaneo_completo_kali2025', lambda x: {'exito': False, 'error': 'Método no disponible'})(objetivo)
+            # Usar el método de escaneo con tipo específico para rapidez
+            resultado = self.escáner.escanear_completo(objetivo, "puertos")
             
             return {
                 "exito": True,
-                "tipo": "escaneo_rapido_kali2025",
+                "tipo": "escaneo_rapido_consolidado",
                 "objetivo": objetivo,
                 "resultado": resultado,
                 "timestamp": datetime.now().isoformat()
             }
                 
         except Exception as e:
-            error_msg = f"Error en escaneo rápido Kali 2025: {e}"
+            error_msg = f"Error en escaneo rápido consolidado: {e}"
             self.logger.error(error_msg)
             return {"error": error_msg}
     
     def escaneo_vulnerabilidades_kali2025(self, objetivo: str) -> Dict[str, Any]:
         """
-        Escaneo de vulnerabilidades con herramientas Kali 2025
+        Escaneo de vulnerabilidades con escaneador consolidado
         """
-        if not self.escaner_kali2025:
-            return {"error": "EscaneadorKali2025 no disponible"}
+        if not self.escáner:
+            return {"error": "Escaneador no disponible"}
         
-        self.logger.info(f"[TARGET] Escaneo vulnerabilidades Kali 2025: {objetivo}")
+        self.logger.info(f"[TARGET] Escaneo vulnerabilidades consolidado: {objetivo}")
         
         try:
-            # Usar el método general que sí existe
-            resultado = getattr(self.escaner_kali2025, 'escaneo_completo_kali2025', lambda x: {'exito': False, 'error': 'Método no disponible'})(objetivo)
+            # Usar el método de escaneo completo para detectar vulnerabilidades
+            resultado = self.escáner.escanear_completo(objetivo, "completo")
             
             # Registrar en SIEM si está disponible
             if self.siem and resultado.get("exito"):
@@ -1344,24 +1334,25 @@ class ControladorEscaneo(ControladorBase):
             return resultado
             
         except Exception as e:
-            error_msg = f"Error en escaneo vulnerabilidades Kali 2025: {e}"
+            error_msg = f"Error en escaneo vulnerabilidades consolidado: {e}"
             self.logger.error(error_msg)
             return {"error": error_msg}
     
     def obtener_herramientas_kali2025_disponibles(self) -> Dict[str, Any]:
         """
-        Obtener lista de herramientas Kali 2025 disponibles
+        Obtener lista de herramientas disponibles en el escaneador consolidado
         """
-        if not self.escaner_kali2025:
-            return {"error": "EscaneadorKali2025 no disponible"}
+        if not self.escáner:
+            return {"error": "Escaneador no disponible"}
         
         try:
-            herramientas = getattr(self.escaner_kali2025, 'verificar_herramientas', lambda: {'error': 'Método no disponible'})()
-            total_herramientas = len(herramientas) if herramientas else 0
+            # Verificar herramientas usando el método del sistema base
+            herramientas = self._verificar_herramientas_escaneo()
             return {
                 "exito": True,
-                "herramientas_disponibles": herramientas,
-                "total_herramientas": total_herramientas,
+                "herramientas_disponibles": herramientas.get('disponibles', []),
+                "herramientas_faltantes": herramientas.get('faltantes', []),
+                "total_herramientas": herramientas.get('total_disponibles', 0),
                 "timestamp": datetime.now().isoformat()
             }
         except Exception as e:

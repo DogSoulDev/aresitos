@@ -43,11 +43,12 @@ class ModeloPrincipal:
             
             # Inicializar componentes avanzados
             try:
-                from Aresitos.modelo.modelo_escaneador import EscaneadorKali2025
-                self.escaneador_avanzado = EscaneadorKali2025()
-                print("Escaneador Kali2025 inicializado")
+                # Usar el escaneador consolidado optimizado
+                from Aresitos.modelo.modelo_escaneador import EscaneadorCompleto
+                self.escaneador_avanzado = EscaneadorCompleto()
+                print("Escaneador consolidado inicializado")
             except Exception as e:
-                print(f"Error inicializando escáner Kali2025: {e}")
+                print(f"Error inicializando escáner consolidado: {e}")
                 self.escaneador_avanzado = None
             
             try:
@@ -65,11 +66,19 @@ class ModeloPrincipal:
                 print(f"Error inicializando monitor avanzado: {e}")
             
             try:
-                from Aresitos.modelo.modelo_fim import FIMKali2025
-                self.fim = FIMKali2025()
-                print("FIM Kali2025 inicializado")
+                from Aresitos.modelo.modelo_fim_kali2025 import FIMKali2025
+                self.fim_avanzado = FIMKali2025()
+                print("FIM Kali2025 optimizado inicializado")
             except Exception as e:
-                print(f"Error inicializando FIM avanzado: {e}")
+                print(f"Error inicializando FIM Kali2025: {e}")
+                # Fallback al FIM original
+                try:
+                    from Aresitos.modelo.modelo_fim import FIMKali2025
+                    self.fim_avanzado = FIMKali2025()
+                    print("FIM original inicializado")
+                except Exception as e2:
+                    print(f"Error inicializando FIM: {e2}")
+                    self.fim_avanzado = None
             
             print("Inicialización de gestores completada")
             

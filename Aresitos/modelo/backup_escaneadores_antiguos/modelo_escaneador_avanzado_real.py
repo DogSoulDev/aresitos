@@ -23,6 +23,9 @@ from datetime import datetime
 from dataclasses import dataclass
 from enum import Enum
 
+# Importar modelo dashboard para funcionalidad de red
+from .modelo_dashboard import ModeloDashboard
+
 # Clase de datos para resultados de escaneo
 @dataclass
 class ResultadoEscaneo:
@@ -150,17 +153,27 @@ class EscaneadorAvanzadoReal:
             'patrones_malware': ['malware', 'virus', 'trojan', 'backdoor', 'rootkit']
         }
     
-    def escanear_completo(self, objetivo: str = "localhost") -> ResultadoEscaneo:
+    def escanear_completo(self, objetivo: Optional[str] = None) -> ResultadoEscaneo:
         """
-        Ejecutar escaneo completo del objetivo.
+        Ejecutar escaneo completo del sistema Kali Linux.
         
         Args:
-            objetivo: IP o dominio a escanear
+            objetivo: IP o dominio a escanear (None para autodetección)
             
         Returns:
             ResultadoEscaneo: Resultado completo del análisis
         """
-        self.logger.info(f"🎯 Iniciando escaneo completo de: {objetivo}")
+        self.logger.info("Iniciando escaneo completo del sistema Kali Linux")
+        
+        # Autodetectar objetivo si no se especifica
+        if objetivo is None:
+            objetivo = self._autodetectar_objetivo()
+        
+        # Validar que tenemos un objetivo válido
+        if not objetivo:
+            objetivo = "localhost"
+        
+        self.logger.info(f"Escaneando objetivo: {objetivo}")
         
         resultado = ResultadoEscaneo(
             objetivo=objetivo,
@@ -766,6 +779,49 @@ class EscaneadorAvanzadoReal:
         }
         
         return servicios_comunes.get(puerto, f'Desconocido-{puerto}')
+
+    def _autodetectar_objetivo(self) -> str:
+        """
+        Autodetectar el objetivo de escaneo usando información de red real.
+        
+        Returns:
+            str: IP principal del sistema para análisis local
+        """
+        try:
+            # Usar modelo dashboard para obtener información de red
+            dashboard = ModeloDashboard()
+            info_red = dashboard.obtener_informacion_red()
+            
+            # Buscar la interfaz principal (no loopback)
+            interfaces = info_red.get('interfaces', {})
+            
+            for interfaz, ips in interfaces.items():
+                if interfaz != 'lo' and ips:  # Evitar loopback
+                    for ip_info in ips:
+                        if ip_info.get('tipo') == 'IPv4':
+                            ip = ip_info.get('ip', '')
+                            # Verificar que no sea loopback ni APIPA
+                            if (not ip.startswith('127.') and 
+                                not ip.startswith('169.254.') and
+                                ip != '0.0.0.0'):
+                                self.logger.info(f"Autodetectada IP principal: {ip} en {interfaz}")
+                                return ip
+            
+            # Fallback: obtener IP usando socket
+            with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as s:
+                s.connect(("8.8.8.8", 80))
+                ip_local = s.getsockname()[0]
+                if ip_local and not ip_local.startswith('127.'):
+                    self.logger.info(f"Autodetectada IP fallback: {ip_local}")
+                    return ip_local
+            
+            # Último recurso: usar localhost para análisis local
+            self.logger.warning("No se pudo autodetectar IP, usando localhost para análisis local")
+            return "localhost"
+            
+        except Exception as e:
+            self.logger.error(f"Error en autodetección de objetivo: {e}")
+            return "localhost"
 
     def obtener_estadisticas_seguridad(self) -> Dict[str, Any]:
         """Obtener estadísticas detalladas de seguridad."""

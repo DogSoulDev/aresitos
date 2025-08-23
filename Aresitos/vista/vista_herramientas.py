@@ -550,48 +550,28 @@ LISTO PARA: Escaneos de vulnerabilidades en entornos Kali Linux 2025
                 self.after(0, self._actualizar_texto, "Reinicie ARESITOS e ingrese la contraseña correcta\n")
                 return
             
-            # Lista de paquetes disponibles en repositorios APT de Kali
+            # Lista de herramientas esenciales para ARESITOS en Kali Linux
             paquetes = [
-                # Comandos básicos del sistema (ya incluidos en Kali por defecto)
+                # Comandos básicos del sistema
                 'procps', 'iproute2', 'net-tools', 'util-linux', 'findutils', 'grep', 'gawk',
                 'coreutils', 'systemd', 'wget', 'curl', 'diffutils',
-                # Herramientas de monitoreo y análisis sistema (FASE 3.2 y 3.3)
+                # Herramientas de monitoreo y análisis
                 'inotify-tools', 'chkrootkit', 'rkhunter', 'lynis', 'auditd', 'debsums',
                 'rsyslog', 'logrotate', 'logwatch',
-                # Escaneadores básicos (FASE 3.1 - Escaneador Expandido)
+                # Escaneadores de red
                 'nmap', 'masscan', 'nikto', 'gobuster', 'feroxbuster', 'dirb',
-                # Servicios de red (FASE 3.1)
+                # Servicios de red
                 'netcat-traditional', 'whatweb', 'wfuzz', 'ffuf',
-                # Cracking y passwords
-                'hashcat', 'john', 'hydra', 'medusa', 'patator',
-                # Análisis SQL
-                'sqlmap', 'sqlninja',
-                # Cuarentena y malware (FASE 3.3 - FIM expandido)
-                'clamav', 'clamav-daemon', 'clamav-freshclam', 'yara', 'binwalk', 'exiftool',
-                'foremost', 'sleuthkit', 'autopsy',
-                # SIEM y auditoría (FASE 3.2)
-                'fail2ban', 'aide', 'tripwire', 'samhain',
-                # Herramientas de análisis avanzado (FASE 3)
-                'tcpdump', 'wireshark', 'tshark', 'strace', 'ltrace', 'gdb',
-                'osquery', 'file', 'hexdump'
-            ]
-            
-                        # Lista de herramientas esenciales para Kali Linux (ELIMINADOS: sqlninja, volatility3)
-            paquetes = [
-                # Escaneo de red (actualizado FASE 3.1)
-                'nmap', 'masscan', 'nikto', 'gobuster', 'feroxbuster', 'dirb',
-                # Servicios de red (FASE 3.1)
-                'netcat-traditional', 'whatweb', 'wfuzz', 'ffuf',
-                # Cracking y passwords
+                # Análisis de contraseñas
                 'hashcat', 'john', 'hydra', 'medusa', 'patator',
                 # Análisis SQL
                 'sqlmap',
-                # Cuarentena y malware (FASE 3.3 - FIM expandido)
+                # Antimalware y forense
                 'clamav', 'clamav-daemon', 'clamav-freshclam', 'yara', 'binwalk', 'exiftool',
                 'foremost', 'sleuthkit', 'autopsy',
-                # SIEM y auditoría (FASE 3.2) - REMOVIDOS PROBLEMÁTICOS
+                # SIEM y seguridad
                 'fail2ban', 'aide',
-                # Herramientas de análisis avanzado (FASE 3)
+                # Análisis avanzado
                 'tcpdump', 'wireshark', 'tshark', 'strace', 'ltrace', 'gdb',
                 'osquery', 'file', 'hexdump'
             ]
@@ -632,61 +612,73 @@ LISTO PARA: Escaneos de vulnerabilidades en entornos Kali Linux 2025
                 'strings: Parte del paquete binutils (generalmente ya instalado)'
             ]
             
-            # Actualizar repositorios usando SudoManager
+            # Actualizar repositorios 
             self.after(0, self._actualizar_texto, "Actualizando repositorios...\n")
-            result = sudo_manager.execute_sudo_command('apt update', timeout=120)
             
-            if result.returncode == 0:
-                self.after(0, self._actualizar_texto, "OK Repositorios actualizados\n\n")
-            else:
-                self.after(0, self._actualizar_texto, f"ERROR actualizando repositorios: {result.stderr}\n\n")
+            try:
+                # Usar subprocess directo con sudo
+                cmd_update = ['sudo', 'apt', 'update']
+                result = subprocess.run(cmd_update, capture_output=True, text=True, timeout=120)
+                
+                if result.returncode == 0:
+                    self.after(0, self._actualizar_texto, "OK Repositorios actualizados\n\n")
+                else:
+                    self.after(0, self._actualizar_texto, f"ADVERTENCIA al actualizar repositorios\n\n")
+            except Exception as e:
+                self.after(0, self._actualizar_texto, f"ERROR actualizando repositorios: {e}\n\n")
             
-            # Instalar paquetes uno por uno para mejor control de errores
-            self.after(0, self._actualizar_texto, "Instalando herramientas...\n")
+            # Instalar paquetes en lotes para mayor eficiencia
+            self.after(0, self._actualizar_texto, "Instalando herramientas esenciales...\n")
             
             paquetes_exitosos = []
             paquetes_fallidos = []
             
-            for paquete in paquetes:
+            # Dividir en lotes de 5 paquetes para evitar timeouts
+            batch_size = 5
+            for i in range(0, len(paquetes), batch_size):
+                batch = paquetes[i:i+batch_size]
+                batch_names = ' '.join(batch)
+                
                 try:
-                    self.after(0, self._actualizar_texto, f"Instalando {paquete}...\n")
+                    self.after(0, self._actualizar_texto, f"Instalando lote: {batch_names}\n")
                     
-                    # Usar SudoManager en lugar de sudo directo
-                    result = sudo_manager.execute_sudo_command(f'apt install -y {paquete}', timeout=120)
+                    # Comando de instalación
+                    cmd_install = ['sudo', 'apt', 'install', '-y'] + batch
+                    result = subprocess.run(cmd_install, capture_output=True, text=True, timeout=180)
                     
                     if result.returncode == 0:
-                        paquetes_exitosos.append(paquete)
-                        self.after(0, self._actualizar_texto, f"OK {paquete} instalado correctamente\n")
+                        paquetes_exitosos.extend(batch)
+                        self.after(0, self._actualizar_texto, f"OK Lote instalado correctamente\n")
                     else:
-                        paquetes_fallidos.append(paquete)
+                        paquetes_fallidos.extend(batch)
                         error_msg = result.stderr.strip()
                         
                         # Identificar errores comunes y dar instrucciones específicas
                         if "Unable to locate package" in error_msg or "E: Package" in error_msg:
-                            self.after(0, self._actualizar_texto, f"ERROR instalando {paquete}: Paquete no encontrado en repositorios\n")
-                            self.after(0, self._actualizar_texto, f"  SOLUCIÓN: Instale manualmente con: sudo apt update && sudo apt install {paquete}\n")
+                            self.after(0, self._actualizar_texto, f"ERROR instalando lote {batch_names}: Paquetes no encontrados en repositorios\n")
+                            self.after(0, self._actualizar_texto, f"  SOLUCIÓN: Instale manualmente con: sudo apt update && sudo apt install {batch_names}\n")
                             self.after(0, self._actualizar_texto, f"  ALTERNATIVA: Busque en: https://kali.org/tools/ para instalación alternativa\n")
                         elif "WARNING: apt does not have a stable CLI interface" in error_msg:
-                            self.after(0, self._actualizar_texto, f"WARNING {paquete}: Advertencia de compatibilidad APT (no es error crítico)\n")
-                            self.after(0, self._actualizar_texto, f"  SOLUCIÓN: Instale manualmente con: sudo apt install {paquete}\n")
+                            self.after(0, self._actualizar_texto, f"WARNING lote {batch_names}: Advertencia de compatibilidad APT (no es error crítico)\n")
+                            self.after(0, self._actualizar_texto, f"  SOLUCIÓN: Instale manualmente con: sudo apt install {batch_names}\n")
                         elif "externally-managed-environment" in error_msg:
-                            self.after(0, self._actualizar_texto, f"ERROR instalando {paquete}: Entorno Python gestionado externamente\n")
-                            self.after(0, self._actualizar_texto, f"  SOLUCIÓN: Instale con pipx: pipx install {paquete}\n")
-                            self.after(0, self._actualizar_texto, f"  ALTERNATIVA: python3 -m pip install --user {paquete} --break-system-packages\n")
+                            self.after(0, self._actualizar_texto, f"ERROR instalando lote {batch_names}: Entorno Python gestionado externamente\n")
+                            self.after(0, self._actualizar_texto, f"  SOLUCIÓN: Instale con pipx: pipx install {batch_names}\n")
+                            self.after(0, self._actualizar_texto, f"  ALTERNATIVA: python3 -m pip install --user {batch_names} --break-system-packages\n")
                         else:
-                            self.after(0, self._actualizar_texto, f"ERROR instalando {paquete}: {error_msg[:100]}...\n")
-                            self.after(0, self._actualizar_texto, f"  SOLUCIÓN: Instale manualmente con: sudo apt install {paquete}\n")
+                            self.after(0, self._actualizar_texto, f"ERROR instalando lote {batch_names}: {error_msg[:100]}...\n")
+                            self.after(0, self._actualizar_texto, f"  SOLUCIÓN: Instale manualmente con: sudo apt install {batch_names}\n")
                             self.after(0, self._actualizar_texto, f"  DOCUMENTACIÓN: Consulte documentación específica de la herramienta\n")
                         
                 except subprocess.TimeoutExpired:
-                    paquetes_fallidos.append(paquete)
-                    self.after(0, self._actualizar_texto, f"TIMEOUT instalando {paquete}\n")
-                    self.after(0, self._actualizar_texto, f"  SOLUCIÓN: Instale manualmente con más tiempo: sudo apt install {paquete}\n")
+                    paquetes_fallidos.extend(batch)
+                    self.after(0, self._actualizar_texto, f"TIMEOUT instalando lote {batch_names}\n")
+                    self.after(0, self._actualizar_texto, f"  SOLUCIÓN: Instale manualmente con más tiempo: sudo apt install {batch_names}\n")
                     self.after(0, self._actualizar_texto, f"  NOTA: Puede requerir descargas grandes o dependencias complejas\n")
                 except Exception as e:
-                    paquetes_fallidos.append(paquete)
-                    self.after(0, self._actualizar_texto, f"ERROR instalando {paquete}: {str(e)[:100]}...\n")
-                    self.after(0, self._actualizar_texto, f"  SOLUCIÓN: Revise permisos e instale manualmente: sudo apt install {paquete}\n")
+                    paquetes_fallidos.extend(batch)
+                    self.after(0, self._actualizar_texto, f"ERROR instalando lote {batch_names}: {str(e)[:100]}...\n")
+                    self.after(0, self._actualizar_texto, f"  SOLUCIÓN: Revise permisos e instale manualmente: sudo apt install {batch_names}\n")
                     self.after(0, self._actualizar_texto, f"  VERIFICACIÓN: Verifique conectividad y repositorios actualizados\n")
             
             # Mostrar resumen

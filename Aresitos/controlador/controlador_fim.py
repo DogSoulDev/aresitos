@@ -15,13 +15,13 @@ from typing import Dict, Any, List, Optional, Set
 from pathlib import Path
 
 from Aresitos.controlador.controlador_base import ControladorBase
-# Importar solo las clases que realmente existen
-from Aresitos.modelo.modelo_fim import FIMKali2025
+# Usar el FIM optimizado
+from Aresitos.modelo.modelo_fim_kali2025 import FIMKali2025
 from Aresitos.modelo.modelo_siem import SIEMKali2025
 
-# Importar nuevos modelos Kali 2025
+# Importar nuevos modelos Kali 2025 optimizados
 try:
-    from Aresitos.modelo.modelo_fim import FIMKali2025
+    from Aresitos.modelo.modelo_fim_kali2025 import FIMKali2025
     KALI2025_FIM_DISPONIBLE = True
 except ImportError:
     KALI2025_FIM_DISPONIBLE = False

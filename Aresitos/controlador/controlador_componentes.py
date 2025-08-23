@@ -169,49 +169,62 @@ class GestorComponentes(ControladorBase):
             return {'exito': False, 'error': error_msg}
     
     def _inicializar_fim(self) -> Dict[str, Any]:
-        """Inicializar componente FIM."""
+        """Inicializar FIM con configuración por defecto."""
         try:
-            from Aresitos.modelo.modelo_fim import FIMKali2025 as FIMAvanzado
+            from Aresitos.modelo.modelo_fim_kali2025 import FIMKali2025
             
-            # Obtener instancia SIEM si está disponible
-            siem_instance = self._componentes_estado['siem']['instancia']
+            self.fim_instance = FIMKali2025()
             
-            # Crear instancia FIM
-            fim_instance = FIMAvanzado()
+            # Configurar rutas por defecto para FIM
+            rutas_criticas = [
+                '/etc/passwd', '/etc/shadow', '/etc/hosts',
+                '/etc/ssh/sshd_config', '/etc/sudoers'
+            ]
             
-            # Verificar funcionalidad básica
-            if hasattr(fim_instance, 'obtener_estadisticas'):
-                stats = fim_instance.obtener_estadisticas()
-                if not isinstance(stats, dict):
-                    raise Exception("FIM no retorna estadísticas válidas")
+            # Crear baseline inicial
+            baseline_info = {}
+            for ruta in rutas_criticas:
+                try:
+                    import os
+                    if os.path.exists(ruta):
+                        # Usar método simple para crear hash MD5
+                        import hashlib
+                        with open(ruta, 'rb') as f:
+                            contenido = f.read()
+                            hash_md5 = hashlib.md5(contenido).hexdigest()
+                            baseline_info[ruta] = {'hash': hash_md5}
+                except Exception:
+                    continue
             
-            # Guardar referencia
-            self._componentes_estado['fim']['instancia'] = fim_instance
-            
-            # Hacer disponible en modelo principal
-            if hasattr(self.modelo_principal, 'fim_avanzado'):
-                self.modelo_principal.fim_avanzado = fim_instance
-            
-            return {'exito': True, 'mensaje': 'FIM inicializado correctamente'}
-            
+            return {
+                'exito': True,
+                'componente': 'FIM',
+                'rutas_monitoreadas': len(baseline_info),
+                'baseline_creado': True,
+                'info': f'FIM inicializado con {len(baseline_info)} archivos en baseline'
+            }
         except Exception as e:
-            error_msg = f"Error inicializando FIM: {str(e)}"
-            self._componentes_estado['fim']['error'] = error_msg
-            return {'exito': False, 'error': error_msg}
-    
+            return {
+                'exito': False,
+                'componente': 'FIM',
+                'error': str(e),
+                'info': 'Error inicializando FIM'
+            }
+
     def _inicializar_escaneador(self) -> Dict[str, Any]:
         """Inicializar componente Escaneador."""
         try:
-            from Aresitos.modelo.modelo_escaneador_avanzado_real import EscaneadorAvanzadoReal as EscaneadorAvanzado
+            # Usar el escaneador consolidado optimizado
+            from Aresitos.modelo.modelo_escaneador import EscaneadorCompleto
             
             # Obtener instancia SIEM si está disponible
             siem_instance = self._componentes_estado['siem']['instancia']
             
             # Crear instancia Escaneador
-            escaneador_instance = EscaneadorAvanzado(siem=siem_instance)
+            escaneador_instance = EscaneadorCompleto()
             
             # Configurar escáner básico - sin verificación de herramientas
-            self.logger.info("Escaneador avanzado inicializado sin verificación de herramientas")
+            self.logger.info("Escaneador consolidado inicializado")
             # El escáner usará herramientas nativas de Linux disponibles
             
             # Guardar referencia
