@@ -1,7 +1,7 @@
 {
     "cheatsheets_config": {
         "version": "1.0",
-        "descripcion": "Configuración de cheatsheets para Ares Aegis",
+        "descripcion": "Configuración de cheatsheets para ARESITOS",
         "categorias": [
             {
                 "id": "nmap",

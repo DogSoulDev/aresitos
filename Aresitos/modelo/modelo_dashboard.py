@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-Ares Aegis - Modelo Dashboard
+ARESITOS - Modelo Dashboard
 Modelo para gestionar métricas del sistema, información de red y monitoreo
 SOLO Python nativo + comandos Linux + herramientas Kali
 """

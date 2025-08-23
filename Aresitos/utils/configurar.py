@@ -1,9 +1,10 @@
 #!/usr/bin/env python3
+# -*- coding: utf-8 -*-
 """
-Configurador Automático de Ares Aegis
-=====================================
+Configurador Automático de ARESITOS
+===============================
 
-Script para configurar automáticamente el entorno de Ares Aegis
+Script para configurar automáticamente el entorno de ARESITOS
 con todas las dependencias y herramientas necesarias.
 
 Autor: DogSoulDev
@@ -17,15 +18,15 @@ import subprocess
 import shutil
 from pathlib import Path
 
-class ConfiguradorAresAegis:
-    """Configurador automático del entorno Ares Aegis"""
+class ConfiguradorARESITOS:
+    """Configurador automático del entorno ARESITOS"""
     
     def __init__(self):
         self.sistema = platform.system()
         self.es_kali = self.detectar_kali()
         self.directorio_base = Path(__file__).parent
         
-        print(" Configurador Automático de Ares Aegis")
+        print(" Configurador Automático de ARESITOS")
         print("=" * 50)
         print(f"Sistema: {self.sistema}")
         print(f"Kali Linux: {'OK Sí' if self.es_kali else 'ERROR No'}")
@@ -221,18 +222,18 @@ class ConfiguradorAresAegis:
         
         # Crear script de inicio
         script_inicio = f"""#!/bin/bash
-# Ares Aegis Launcher
+# ARESITOS Launcher
 cd "{self.directorio_base}"
 python3 login_gui.py "$@"
 """
         
         try:
-            ruta_launcher = Path('/usr/local/bin/ares-aegis')
+            ruta_launcher = Path('/usr/local/bin/aresitos')
             if os.access('/usr/local/bin', os.W_OK):
                 with open(ruta_launcher, 'w') as f:
                     f.write(script_inicio)
                 os.chmod(ruta_launcher, 0o755)
-                print("OK Alias 'ares-aegis' creado")
+                print("OK Alias 'aresitos' creado")
             else:
                 print("WARNING Sin permisos para crear alias global")
         except Exception as e:
@@ -286,7 +287,7 @@ python3 login_gui.py "$@"
     
     def ejecutar_configuracion_completa(self):
         """Ejecutar configuración completa del sistema"""
-        print(" Iniciando configuración automática de Ares Aegis...")
+        print(" Iniciando configuración automática de ARESITOS...")
         print()
         
         pasos = [
@@ -323,10 +324,10 @@ python3 login_gui.py "$@"
         print(f" Pasos completados: {exitosos}/{len(pasos)}")
         
         if exitosos >= len(pasos) * 0.8:
-            print("OK Configuración exitosa - Ares Aegis listo para usar")
+            print("OK Configuración exitosa - ARESITOS listo para usar")
             print("\n Para iniciar ejecute: python login_gui.py")
-            if self.sistema != "Windows" and shutil.which('ares-aegis'):
-                print(" O simplemente: ares-aegis")
+            if self.sistema != "Windows" and shutil.which('aresitos'):
+                print(" O simplemente: aresitos")
             return True
         else:
             print("WARNING Configuración incompleta - revise los errores anteriores")
@@ -334,7 +335,7 @@ python3 login_gui.py "$@"
 
 def main():
     """Función principal del configurador"""
-    configurador = ConfiguradorAresAegis()
+    configurador = ConfiguradorARESITOS()
     
     try:
         resultado = configurador.ejecutar_configuracion_completa()

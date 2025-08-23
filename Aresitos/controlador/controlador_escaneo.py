@@ -6,7 +6,7 @@ Aresitos V3 - Controlador de Escaneo Optimizado
 Controlador especializado en operaciones de escaneo de seguridad optimizado
 siguiendo los principios ARESITOS V3: Python nativo + herramientas Kali Linux.
 
-Autor: Ares Aegis Security Team
+Autor: ARESITOS Security Team
 Versión: 3.0
 Fecha: 2025-08-23
 """
@@ -1124,7 +1124,7 @@ class ControladorEscaneo(ControladorBase):
         """Implementación de generación de reporte."""
         try:
             reporte = {
-                'titulo': 'Reporte de Escaneo - Ares Aegis',
+                'titulo': 'Reporte de Escaneo - ARESITOS',
                 'timestamp': datetime.now().isoformat(),
                 'version': '2.0.0',
                 'objetivo': resultados.get('objetivo', 'No especificado'),
@@ -1133,7 +1133,7 @@ class ControladorEscaneo(ControladorBase):
                 'detalles_tecnicos': resultados,
                 'recomendaciones': self._generar_recomendaciones(resultados),
                 'metadatos': {
-                    'generado_por': 'Ares Aegis - Controlador de Escaneo',
+                    'generado_por': 'ARESITOS - Controlador de Escaneo',
                     'tiempo_generacion': datetime.now().isoformat(),
                     'version_controlador': '2.0.0'
                 }
@@ -1528,7 +1528,7 @@ class ControladorEscaneo(ControladorBase):
                 'objetivo': objetivo
             }
 
-# RESUMEN TÉCNICO: Controlador de Escaneo avanzado para Ares Aegis con arquitectura asíncrona,
+# RESUMEN TÉCNICO: Controlador de Escaneo avanzado para ARESITOS con arquitectura asíncrona,
 # herencia de ControladorBase, operaciones thread-safe, análisis de criticidad automático,
 # integración SIEM completa, configuración dinámica, generación de reportes profesionales
 # y manejo robusto de errores. Optimizado para escaneados de seguridad en Kali Linux.

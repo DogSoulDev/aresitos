@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-Ares Aegis - Controlador FIM (File Integrity Monitoring)
+ARESITOS - Controlador FIM (File Integrity Monitoring)
 Controlador especializado en monitoreo de integridad de archivos para Kali Linux
 """
 
@@ -1342,7 +1342,7 @@ class ControladorFIM(ControladorBase):
                 'herramienta': 'inotifywait',
                 'instrucciones_daemon': [
                     "Para ejecutar en background:",
-                    f"nohup {' '.join(cmd_inotify)} > /var/log/ares-aegis/inotify.log 2>&1 &"
+                    f"nohup {' '.join(cmd_inotify)} > /var/log/aresitos/inotify.log 2>&1 &"
                 ]
             }
             

@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-Ares Aegis - Gestor de Configuración
+ARESITOS - Gestor de Configuración
 Gestión centralizada de configuración del sistema
 """
 
@@ -20,7 +20,7 @@ except ImportError:
 
 class GestorConfiguracion:
     """
-    Gestor centralizado de configuración para Ares Aegis.
+    Gestor centralizado de configuración para ARESITOS.
     Maneja carga, guardado y validación de configuraciones.
     """
     
@@ -61,7 +61,7 @@ class GestorConfiguracion:
         return {
             "sistema": {
                 "version": "2.0.0",
-                "nombre": "Ares Aegis",
+                "nombre": "ARESITOS",
                 "debug": False,
                 "log_level": "INFO",
                 "max_hilos": 4,
@@ -469,7 +469,7 @@ class GestorConfiguracion:
         except (ValueError, TypeError, AttributeError):
             return False
 
-# RESUMEN TÉCNICO: Gestor centralizado de configuración para Ares Aegis con soporte para
+# RESUMEN TÉCNICO: Gestor centralizado de configuración para ARESITOS con soporte para
 # múltiples archivos JSON, fusión inteligente de configuraciones, validación automática,
 # notación de punto para acceso jerárquico, perfiles predefinidos y sistema de backup.
 # Thread-safe con configuración por defecto robusta para entornos de ciberseguridad.

@@ -18,7 +18,7 @@ Principios ARESITOS V3 aplicados:
 - Configuration Loader: Carga dinámica de configuraciones
 - Resource Cleanup: Limpieza automática de recursos
 
-Autor: DogSoulDev (Optimizado por Ares Aegis Security Team)
+Autor: DogSoulDev (Optimizado por ARESITOS Security Team)
 Fecha: 23 de Agosto de 2025
 Versión: 3.0.0 OPTIMIZADA (Kali Linux 2025)
 """
@@ -40,7 +40,7 @@ os.environ.setdefault('PYTHONIOENCODING', 'utf-8')
 
 # Variables globales de configuración ARESITOS V3
 VERSION = "3.0.0-OPTIMIZADA"
-AUTOR = "DogSoulDev + Ares Aegis Security Team"
+AUTOR = "DogSoulDev + ARESITOS Security Team"
 DESCRIPCION = "Suite de Ciberseguridad Optimizada para Kali Linux (Solo Python Nativo + Herramientas Kali)"
 
 # Thread Safety

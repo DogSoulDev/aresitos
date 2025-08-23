@@ -6,7 +6,7 @@ Aresitos V3 - Controlador Dashboard Optimizado
 Controlador optimizado para gestionar la vista del panel principal siguiendo
 los principios ARESITOS V3: Python nativo + herramientas Kali Linux.
 
-Autor: Ares Aegis Security Team
+Autor: ARESITOS Security Team
 Versión: 3.0
 Fecha: 2025-08-23
 """

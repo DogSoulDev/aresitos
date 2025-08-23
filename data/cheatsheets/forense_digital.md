@@ -440,4 +440,4 @@ verify_integrity() {
 
 **LEGAL NOTA LEGAL**: Este cheatsheet es para uso forense legal y educativo únicamente. Siempre cumple con las leyes locales y obtén las autorizaciones judiciales necesarias antes de realizar análisis forense.
 
-** Ares Aegis** - Herramientas Forenses para Investigadores de Ciberseguridad
+** ARESITOS** - Herramientas Forenses para Investigadores de Ciberseguridad

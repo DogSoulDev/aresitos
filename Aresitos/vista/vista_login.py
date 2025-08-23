@@ -681,12 +681,12 @@ class LoginAresitos:
             aresitos_root,  # Ruta calculada desde el script
             "/home/kali/Aresitos",
             "/home/kali/Desktop/Aresitos", 
-            "/home/kali/Ares-Aegis",
-            "/home/kali/Desktop/Ares-Aegis",
+            "/home/kali/ARESITOS",
+            "/home/kali/Desktop/ARESITOS",
             os.path.expanduser("~/Aresitos"),
             os.path.expanduser("~/Desktop/Aresitos"),
-            os.path.expanduser("~/Ares-Aegis"),
-            os.path.expanduser("~/Desktop/Ares-Aegis")
+            os.path.expanduser("~/ARESITOS"),
+            os.path.expanduser("~/Desktop/ARESITOS")
         ]
         
         return rutas_posibles

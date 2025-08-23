@@ -56,12 +56,12 @@ Resolving deltas: 100% (910/910), done.
 └─$ sudo ./configurar_kali.sh
 [sudo] password for kali: 
 
-SECURE CONFIGURADOR DE PERMISOS ARES AEGIS PARA KALI LINUX
+SECURE CONFIGURADOR DE PERMISOS ARESITOS PARA KALI LINUX
 ==========================================================
 [INFO] Usuario detectado: kali
 [INFO] Directorio home: /home/kali
 
-[INFO] Este script configurará Ares Aegis para funcionar correctamente en Kali Linux
+[INFO] Este script configurará ARESITOS para funcionar correctamente en Kali Linux
 [INFO] Se realizarán las siguientes acciones:
   • Actualizar repositorios
   • Instalar herramientas de seguridad necesarias
@@ -219,7 +219,7 @@ COMPLETADO CONFIGURACIÓN COMPLETADA
   1. Cierre y reabra la terminal para aplicar cambios de grupo
   2. Execute el script de prueba: python3 /home/kali/test_ares_permissions.py
   3. Execute la verificación de permisos: python3 verificacion_permisos.py
-  4. Inicie Ares Aegis: python3 main.py
+  4. Inicie ARESITOS: python3 main.py
 ```
 
 ### Paso 10: Inicio de la Aplicación
@@ -741,7 +741,7 @@ Si la instalación es exitosa, verás estos mensajes:
 [✓] Configuración sudo creada en /etc/sudoers.d/Aresitos-v2
 [✓] Configuración Python completada
 COMPLETADO CONFIGURACIÓN COMPLETADA
-[✓] Ares Aegis está configurado para Kali Linux
+[✓] ARESITOS está configurado para Kali Linux
 ```
 
 ### WARNING **Advertencias Normales (No son errores)**

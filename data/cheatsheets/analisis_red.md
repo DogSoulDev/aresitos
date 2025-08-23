@@ -455,4 +455,4 @@ test_connectivity() {
 
 ** NOTA DE SEGURIDAD**: Estas herramientas son para diagnóstico de red y pruebas autorizadas únicamente. Siempre obtén permiso antes de escanear redes que no sean de tu propiedad.
 
-** Ares Aegis** - Análisis de Red para Profesionales de Ciberseguridad
+** ARESITOS** - Análisis de Red para Profesionales de Ciberseguridad

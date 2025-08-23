@@ -6,7 +6,7 @@ Aresitos V3 - Modelo Principal Optimizado
 Modelo principal que coordina todos los gestores de datos siguiendo
 los principios ARESITOS V3: Python nativo + herramientas Kali Linux.
 
-Autor: Ares Aegis Security Team
+Autor: ARESITOS Security Team
 Versión: 3.0
 Fecha: 2025-08-23
 """

@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-MONITOR AVANZADO ARES AEGIS - VERSIÓN NATIVA LINUX
+MONITOR AVANZADO ARESITOS - VERSIÓN NATIVA LINUX
 ===============================================
 
 Monitor de sistema que usa ÚNICAMENTE herramientas nativas de Linux
@@ -14,7 +14,7 @@ FUNCIONALIDADES IMPLEMENTADAS:
 -  Detección de anomalías
 -  Solo Python estándar + comandos Linux
 
-Autor: Ares Aegis Security Suite
+Autor: ARESITOS Security Suite
 Fecha: 2025-08-17
 """
 
@@ -131,7 +131,7 @@ class MonitorAvanzadoNativo:
         # Verificar herramientas disponibles
         self._herramientas = self._verificar_herramientas()
         
-        self.logger.info(" Monitor Avanzado Nativo Ares Aegis inicializado")
+        self.logger.info(" Monitor Avanzado Nativo ARESITOS inicializado")
         self.logger.info(f"Herramientas disponibles: {len([h for h in self._herramientas.values() if h])}/8")
 
     def _verificar_herramientas(self) -> Dict[str, bool]:
@@ -831,7 +831,7 @@ class MonitorAvanzadoNativo:
         procesos_sospechosos = self.obtener_procesos_sospechosos()
         
         reporte = f"""
-#  REPORTE DE MONITOREO - ARES AEGIS
+#  REPORTE DE MONITOREO - ARESITOS
 
 ##  ESTADO DEL SISTEMA
 - **CPU**: {datos_sistema.get('cpu_porcentaje', 'N/A'):.1f}%

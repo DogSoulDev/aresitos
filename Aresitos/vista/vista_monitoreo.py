@@ -1755,7 +1755,7 @@ class VistaMonitoreo(tk.Frame):
             
             # Log adicional para debugging
             import logging
-            logger = logging.getLogger("AresAegis.VistaMonitoreo")
+            logger = logging.getLogger("ARESITOS.VistaMonitoreo")
             logger.error(f"Error crítico en agregar_a_cuarentena: {e}", exc_info=True)
     
     def listar_cuarentena(self):
@@ -1829,7 +1829,7 @@ class VistaMonitoreo(tk.Frame):
             
             # Log adicional para debugging
             import logging
-            logger = logging.getLogger("AresAegis.VistaMonitoreo")
+            logger = logging.getLogger("ARESITOS.VistaMonitoreo")
             logger.error(f"Error en listar_cuarentena: {e}", exc_info=True)
         
         if not archivos:
@@ -1910,7 +1910,7 @@ class VistaMonitoreo(tk.Frame):
             
             # Log adicional para debugging
             import logging
-            logger = logging.getLogger("AresAegis.VistaMonitoreo")
+            logger = logging.getLogger("ARESITOS.VistaMonitoreo")
             logger.error(f"Error crítico en limpiar_cuarentena: {e}", exc_info=True)
     
     def _iniciar_monitoreo_linux_avanzado(self):

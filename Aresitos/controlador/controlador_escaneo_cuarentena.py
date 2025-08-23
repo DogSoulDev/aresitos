@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-Ares Aegis - Controlador Principal con Cuarentena Integrada
+ARESITOS - Controlador Principal con Cuarentena Integrada
 Gestiona el escáner con cuarentena automática para amenazas detectadas
 OPTIMIZADO con PRINCIPIOS ARESITOS V3: Python nativo + Kali tools + Thread Safety
 """
@@ -21,7 +21,7 @@ class ControladorEscaneadorCuarentena:
     
     def __init__(self):
         """Inicializa el controlador integrado con thread safety."""
-        self.logger = logging.getLogger(f"AresAegis.{self.__class__.__name__}")
+        self.logger = logging.getLogger(f"ARESITOS.{self.__class__.__name__}")
         
         # Thread Safety (PRINCIPIO ARESITOS V3)
         self._lock = threading.RLock()

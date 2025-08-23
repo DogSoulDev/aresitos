@@ -1,4 +1,4 @@
-# ÍNDICE DE CHEATSHEETS DE ARES AEGIS
+# ÍNDICE DE CHEATSHEETS DE ARESITOS
 
 ## Descripción
 Esta carpeta contiene cheatsheets de ciberseguridad para profesionales. Los archivos pueden ser editados, guardados y personalizados según las necesidades del usuario.
@@ -123,7 +123,7 @@ Esta carpeta contiene cheatsheets de ciberseguridad para profesionales. Los arch
 ### Agregar Nuevos Cheatsheets
 1. Crear archivo .txt en la carpeta `data/cheatsheets/`
 2. Actualizar `cheatsheets_config.json` con la nueva categoría
-3. Reiniciar Ares Aegis para cargar los cambios
+3. Reiniciar ARESITOS para cargar los cambios
 
 ### Formato Recomendado
 ```
@@ -147,5 +147,5 @@ comando4                          # Descripción
 - **Compatibilidad**: Todos los sistemas operativos
 
 ---
-**Ares Aegis - Suite de Ciberseguridad Profesional**  
+**ARESITOS - Suite de Ciberseguridad Profesional**  
 Versión: 1.0 | Fecha: Agosto 2025

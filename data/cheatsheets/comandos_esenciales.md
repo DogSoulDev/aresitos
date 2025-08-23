@@ -1,4 +1,4 @@
-#  CHEATSHEET COMPLETO - ARES AEGIS
+#  CHEATSHEET COMPLETO - ARESITOS
 
 ## ** ÍNDICE DE COMANDOS ESENCIALES**
 
@@ -335,4 +335,4 @@ echo "Sesiones activas: $(who | wc -l)"
 
 ** NOTA DE SEGURIDAD**: Estos comandos son para uso educativo y pruebas autorizadas únicamente. Siempre obtén permiso explícito antes de realizar pruebas de seguridad en sistemas que no sean de tu propiedad.
 
-**SYMBOL Ares Aegis** - Sistema de Auditoría de Seguridad para Expertos en Ciberseguridad y Hacking Ético
+**SYMBOL ARESITOS** - Sistema de Auditoría de Seguridad para Expertos en Ciberseguridad y Hacking Ético

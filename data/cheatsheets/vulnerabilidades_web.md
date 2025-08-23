@@ -393,4 +393,4 @@ check_rate_limit() {
 
 ** NOTA ÉTICA**: Este cheatsheet es para uso educativo y pruebas de seguridad autorizadas únicamente. Siempre obtén permiso explícito antes de realizar pruebas en sistemas que no sean de tu propiedad.
 
-** Ares Aegis** - Herramientas para Expertos en Ciberseguridad y Hacking Ético
+** ARESITOS** - Herramientas para Expertos en Ciberseguridad y Hacking Ético

@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-Ares Aegis - Verificador de Compatibilidad Kali Linux
+ARESITOS - Verificador de Compatibilidad Kali Linux
 Este script verifica si el sistema está correctamente preparado para Kali Linux
 """
 
@@ -51,7 +51,7 @@ def verificar_compatibilidad_kali():
             pass
     else:
         print("WARNING  No es un sistema Linux")
-        print(" Ares Aegis está optimizado para Kali Linux")
+        print(" ARESITOS está optimizado para Kali Linux")
     
     # 2. Verificar herramientas de Kali
     print("\n2⃣ VERIFICACIÓN DE HERRAMIENTAS KALI")
@@ -148,7 +148,7 @@ def verificar_compatibilidad_kali():
     # Determinar nivel de preparación
     if resultados['sistema_operativo'] and porcentaje_herramientas >= 70 and (resultados['es_root'] or resultados['sudo_disponible']):
         print("\n SISTEMA LISTO PARA KALI LINUX")
-        print("OK Ares Aegis puede ejecutarse con funcionalidad completa")
+        print("OK ARESITOS puede ejecutarse con funcionalidad completa")
     elif resultados['sistema_operativo'] and porcentaje_herramientas >= 50:
         print("\nWARNING  SISTEMA PARCIALMENTE PREPARADO")
         print(" Algunas funcionalidades estarán limitadas")

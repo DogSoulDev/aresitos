@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-Ares Aegis - Controlador Base
+ARESITOS - Controlador Base
 Clase base abstracta para todos los controladores del sistema
 """
 
@@ -13,7 +13,7 @@ from typing import Dict, Any, Optional, List, Union
 
 class ControladorBase(ABC):
     """
-    Clase base abstracta para todos los controladores de Ares Aegis.
+    Clase base abstracta para todos los controladores de ARESITOS.
     Proporciona funcionalidad común como logging, manejo de errores,
     métricas y gestión del ciclo de vida.
     """
@@ -340,7 +340,7 @@ class ControladorBase(ABC):
         """Verificar si el controlador está activo."""
         return self._activo
 
-# RESUMEN TÉCNICO: Clase base abstracta para arquitectura de controladores en Ares Aegis.
+# RESUMEN TÉCNICO: Clase base abstracta para arquitectura de controladores en ARESITOS.
 # Implementa patrón Template Method con inicialización asíncrona, sistema de métricas en tiempo real,
 # logging especializado, eventos SIEM integrados y verificación de salud. Diseño thread-safe con
 # manejo robusto de errores siguiendo principios SOLID para escalabilidad profesional.

@@ -11,10 +11,10 @@ description = "Suite de ciberseguridad profesional OPTIMIZADA para Kali Linux co
 readme = "README.md"
 license = {text = "MIT"}
 authors = [
-    {name = "DogSoulDev + Ares Aegis Security Team", email = "dogsouldev@protonmail.com"}
+    {name = "DogSoulDev + ARESITOS Security Team", email = "dogsouldev@protonmail.com"}
 ]
 maintainers = [
-    {name = "DogSoulDev + Ares Aegis Security Team", email = "dogsouldev@protonmail.com"}
+    {name = "DogSoulDev + ARESITOS Security Team", email = "dogsouldev@protonmail.com"}
 ]
 keywords = [
     "cybersecurity", "vulnerability-scanner", "kali-linux", 

@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-Ares Aegis - Vista Dashboard Optimizada
+ARESITOS - Vista Dashboard Optimizada
 Dashboard para expertos en ciberseguridad con métricas específicas
 Actualización cada 60 segundos para optimizar recursos
 """
@@ -618,7 +618,7 @@ class VistaDashboard(tk.Frame):
                 os.path.join(directorio_proyecto, "data", "cheatsheets"),  # Ruta relativa al proyecto
                 "data/cheatsheets/",
                 "./data/cheatsheets/",
-                os.path.expanduser("~/Desktop/Ares-Aegis/data/cheatsheets/"),
+                os.path.expanduser("~/Desktop/ARESITOS/data/cheatsheets/"),
                 os.path.expanduser("~/Aresitos/data/cheatsheets/"),
                 "/opt/aresitos/data/cheatsheets/",
                 "/usr/share/aresitos/cheatsheets/"
