@@ -1016,7 +1016,7 @@ class VistaAuditoria(tk.Frame):
                     except FileNotFoundError:
                         self.auditoria_text.insert(tk.END, f" Comando {comando[0]} no encontrado\n")
                     except subprocess.TimeoutExpired:
-                        self.auditoria_text.insert(tk.END, f"⏱ Timeout en {tipo}\n")
+                        self.auditoria_text.insert(tk.END, f"TIME Timeout en {tipo}\n")
                     except Exception as e:
                         self.auditoria_text.insert(tk.END, f" Error: {str(e)}\n")
                 
@@ -1746,7 +1746,7 @@ class VistaAuditoria(tk.Frame):
             self.terminal_output.insert(tk.END, "="*60 + "\n\n")
             
             for categoria, lista_comandos in comandos.items():
-                self.terminal_output.insert(tk.END, f"📂 {categoria.upper()}:\n")
+                self.terminal_output.insert(tk.END, f"FOLDER {categoria.upper()}:\n")
                 comandos_linea = ", ".join(lista_comandos)
                 self.terminal_output.insert(tk.END, f"   {comandos_linea}\n\n")
             

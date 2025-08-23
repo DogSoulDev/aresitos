@@ -868,8 +868,8 @@ class VistaFIM(tk.Frame):
                             self.after(0, self._actualizar_texto_fim, f"ESTADO GENERAL: ✓ TODAS LAS FASES COMPLETADAS EXITOSAMENTE\n")
                             self._log_terminal("✓ FIM: Todas las fases completadas exitosamente", "FIM", "SUCCESS")
                         else:
-                            self.after(0, self._actualizar_texto_fim, f"ESTADO GENERAL: ⚠ {fases_completadas} fases exitosas, {fases_con_error} con errores\n")
-                            self._log_terminal(f"⚠ FIM: {fases_completadas} fases exitosas, {fases_con_error} con errores", "FIM", "WARNING")
+                            self.after(0, self._actualizar_texto_fim, f"ESTADO GENERAL: WARN {fases_completadas} fases exitosas, {fases_con_error} con errores\n")
+                            self._log_terminal(f"WARN FIM: {fases_completadas} fases exitosas, {fases_con_error} con errores", "FIM", "WARNING")
                         
                         self.after(0, self._actualizar_texto_fim, f"RESULTADO: FIM ejecutado de forma resiliente\n")
                         self.after(0, self._actualizar_texto_fim, f"{'='*50}\n")
@@ -1445,7 +1445,7 @@ class VistaFIM(tk.Frame):
                                 try:
                                     # Contar archivos en directorio (limitado para no sobrecargar)
                                     archivos_en_dir = len(os.listdir(ruta)) if os.access(ruta, os.R_OK) else "Sin acceso"
-                                    self.after(0, self._actualizar_texto_fim, f"📂 {ruta}: {descripcion} (Dir: {archivos_en_dir} items, Permisos: {permisos})\n")
+                                    self.after(0, self._actualizar_texto_fim, f"FOLDER {ruta}: {descripcion} (Dir: {archivos_en_dir} items, Permisos: {permisos})\n")
                                     directorios_criticos += 1
                                 except PermissionError:
                                     self.after(0, self._actualizar_texto_fim, f"ACCESO {ruta}: {descripcion} (Sin permisos de lectura)\n")
@@ -1640,7 +1640,7 @@ class VistaFIM(tk.Frame):
             
             # Verificar herramientas de integridad adicionales
             herramientas_integridad = ['aide', 'tripwire', 'samhain']
-            self._actualizar_texto_fim("\n🛠️ Verificando herramientas de integridad disponibles:\n")
+            self._actualizar_texto_fim("\nTOOLS Verificando herramientas de integridad disponibles:\n")
             
             for herramienta in herramientas_integridad:
                 try:
@@ -1659,7 +1659,7 @@ class VistaFIM(tk.Frame):
     def _analisis_permisos_criticos(self):
         """Análisis detallado de permisos en archivos críticos."""
         try:
-            self._actualizar_texto_fim("\n🔒 3. ANÁLISIS DE PERMISOS CRÍTICOS\n")
+            self._actualizar_texto_fim("\nLOCK 3. ANÁLISIS DE PERMISOS CRÍTICOS\n")
             self._actualizar_texto_fim("-" * 50 + "\n")
             
             import subprocess
@@ -1723,7 +1723,7 @@ class VistaFIM(tk.Frame):
                         self._actualizar_texto_fim("  [OK] No se encontraron archivos con permisos 777\n")
                         
             except subprocess.TimeoutExpired:
-                self._actualizar_texto_fim("  ⏱️ Timeout buscando archivos con permisos excesivos\n")
+                self._actualizar_texto_fim("  TIMEOUT Timeout buscando archivos con permisos excesivos\n")
             except:
                 pass
             
@@ -1737,7 +1737,7 @@ class VistaFIM(tk.Frame):
     def _deteccion_archivos_sospechosos(self):
         """Detectar archivos ocultos y potencialmente sospechosos."""
         try:
-            self._actualizar_texto_fim("\n🕵️ 4. DETECCIÓN DE ARCHIVOS SOSPECHOSOS\n")
+            self._actualizar_texto_fim("\nDETECT 4. DETECCIÓN DE ARCHIVOS SOSPECHOSOS\n")
             self._actualizar_texto_fim("-" * 50 + "\n")
             
             import subprocess
@@ -1759,7 +1759,7 @@ class VistaFIM(tk.Frame):
                             archivos_ocultos = [f for f in archivos_ocultos if f.strip()]
                             
                             if archivos_ocultos:
-                                self._actualizar_texto_fim(f"  📂 {directorio}: {len(archivos_ocultos)} archivos ocultos\n")
+                                self._actualizar_texto_fim(f"  FOLDER {directorio}: {len(archivos_ocultos)} archivos ocultos\n")
                                 archivos_ocultos_total += len(archivos_ocultos)
                                 
                                 # Mostrar algunos ejemplos si hay muchos
@@ -1771,10 +1771,10 @@ class VistaFIM(tk.Frame):
                                         self._actualizar_texto_fim(f"    • {archivo}\n")
                                     self._actualizar_texto_fim(f"    ... y {len(archivos_ocultos) - 2} más\n")
                             else:
-                                self._actualizar_texto_fim(f"  📂 {directorio}: Sin archivos ocultos\n")
+                                self._actualizar_texto_fim(f"  FOLDER {directorio}: Sin archivos ocultos\n")
                                 
                     except subprocess.TimeoutExpired:
-                        self._actualizar_texto_fim(f"  ⏱️ {directorio}: Timeout en búsqueda\n")
+                        self._actualizar_texto_fim(f"  TIMEOUT {directorio}: Timeout en búsqueda\n")
                     except:
                         pass
             
@@ -1799,7 +1799,7 @@ class VistaFIM(tk.Frame):
                                 self._actualizar_texto_fim(f"    [WARNING] {archivo}\n")
                                 
                 except subprocess.TimeoutExpired:
-                    self._actualizar_texto_fim(f"  ⏱️ Timeout buscando patrón: {patron}\n")
+                    self._actualizar_texto_fim(f"  TIMEOUT Timeout buscando patrón: {patron}\n")
                 except:
                     pass
             
@@ -1821,14 +1821,14 @@ class VistaFIM(tk.Frame):
                         self._actualizar_texto_fim(f"  [STATS] {len(archivos_recientes)} archivos modificados recientemente\n")
                         if len(archivos_recientes) <= 5:
                             for archivo in archivos_recientes:
-                                self._actualizar_texto_fim(f"    📝 {archivo}\n")
+                                self._actualizar_texto_fim(f"    NOTE {archivo}\n")
                         else:
                             self._actualizar_texto_fim("    (Lista muy extensa - revisar manualmente si es necesario)\n")
                     else:
                         self._actualizar_texto_fim("  [OK] Sin modificaciones recientes en directorios críticos\n")
                         
             except subprocess.TimeoutExpired:
-                self._actualizar_texto_fim("  ⏱️ Timeout verificando archivos recientes\n")
+                self._actualizar_texto_fim("  TIMEOUT Timeout verificando archivos recientes\n")
             except:
                 pass
             
@@ -1842,7 +1842,7 @@ class VistaFIM(tk.Frame):
     def _monitoreo_logs_sistema(self):
         """Monitoreo de logs de sistema relacionados con integridad de archivos."""
         try:
-            self._actualizar_texto_fim("\n📋 5. MONITOREO DE LOGS DE SISTEMA\n")
+            self._actualizar_texto_fim("\nLIST 5. MONITOREO DE LOGS DE SISTEMA\n")
             self._actualizar_texto_fim("-" * 50 + "\n")
             
             import subprocess
@@ -1887,11 +1887,11 @@ class VistaFIM(tk.Frame):
                                         eventos_seguridad += eventos_encontrados
                                         
                             except subprocess.TimeoutExpired:
-                                self._actualizar_texto_fim(f"    ⏱️ Timeout analizando log\n")
+                                self._actualizar_texto_fim(f"    TIMEOUT Timeout analizando log\n")
                             except:
                                 pass
                         else:
-                            self._actualizar_texto_fim(f"    ℹ️ Log muy grande - análisis manual recomendado\n")
+                            self._actualizar_texto_fim(f"    INFO Log muy grande - análisis manual recomendado\n")
                             
                     except Exception as e:
                         self._actualizar_texto_fim(f"  [FAIL] {descripcion}: Error - {str(e)}\n")
@@ -1917,7 +1917,7 @@ class VistaFIM(tk.Frame):
                         self._actualizar_texto_fim(f"  [FAIL] {servicio}: No disponible\n")
                         
                 except subprocess.TimeoutExpired:
-                    self._actualizar_texto_fim(f"  ⏱️ {servicio}: Timeout\n")
+                    self._actualizar_texto_fim(f"  TIMEOUT {servicio}: Timeout\n")
                 except:
                     self._actualizar_texto_fim(f"  ❓ {servicio}: Error verificando\n")
             
@@ -1994,7 +1994,7 @@ class VistaFIM(tk.Frame):
                             self._actualizar_texto_fim(f"  Permisos: {resultado_ls.stdout.strip()}\n")
                             
                     except subprocess.TimeoutExpired:
-                        self._actualizar_texto_fim(f"  ⏱️ Timeout analizando metadatos de {archivo}\n")
+                        self._actualizar_texto_fim(f"  TIMEOUT Timeout analizando metadatos de {archivo}\n")
                     except Exception as e:
                         self._actualizar_texto_fim(f"  [FAIL] Error: {str(e)}\n")
                         
@@ -2004,7 +2004,7 @@ class VistaFIM(tk.Frame):
     def _busqueda_archivos_eliminados(self):
         """Buscar evidencia de archivos eliminados recientemente."""
         try:
-            self._actualizar_texto_fim("\n🗑️ 2. BÚSQUEDA DE ARCHIVOS ELIMINADOS\n")
+            self._actualizar_texto_fim("\nDELETE 2. BÚSQUEDA DE ARCHIVOS ELIMINADOS\n")
             self._actualizar_texto_fim("-" * 50 + "\n")
             
             import subprocess
@@ -2024,16 +2024,16 @@ class VistaFIM(tk.Frame):
                             self._actualizar_texto_fim(f"[SCAN] Eventos de eliminación en audit.log: {len(eliminaciones)}\n")
                             # Mostrar solo los más recientes
                             for evento in eliminaciones[-3:]:
-                                self._actualizar_texto_fim(f"  📝 {evento[:80]}...\n")
+                                self._actualizar_texto_fim(f"  NOTE {evento[:80]}...\n")
                         else:
                             self._actualizar_texto_fim("[OK] No se encontraron eliminaciones en audit.log\n")
                     else:
-                        self._actualizar_texto_fim("ℹ️ No hay eventos de eliminación en audit.log\n")
+                        self._actualizar_texto_fim("INFO No hay eventos de eliminación en audit.log\n")
                 else:
                     self._actualizar_texto_fim("❓ audit.log no disponible\n")
                     
             except subprocess.TimeoutExpired:
-                self._actualizar_texto_fim("⏱️ Timeout buscando en audit.log\n")
+                self._actualizar_texto_fim("TIMEOUT Timeout buscando en audit.log\n")
             except:
                 pass
             
@@ -2047,7 +2047,7 @@ class VistaFIM(tk.Frame):
                     eventos = [e for e in eventos if e.strip()]
                     
                     if eventos:
-                        self._actualizar_texto_fim(f"📋 Eventos de archivos en la última hora: {len(eventos)}\n")
+                        self._actualizar_texto_fim(f"LIST Eventos de archivos en la última hora: {len(eventos)}\n")
                         if len(eventos) <= 3:
                             for evento in eventos:
                                 self._actualizar_texto_fim(f"  📄 {evento[:80]}...\n")
@@ -2057,7 +2057,7 @@ class VistaFIM(tk.Frame):
                         self._actualizar_texto_fim("[OK] Sin eventos de archivos recientes\n")
                         
             except subprocess.TimeoutExpired:
-                self._actualizar_texto_fim("⏱️ Timeout buscando en journalctl\n")
+                self._actualizar_texto_fim("TIMEOUT Timeout buscando en journalctl\n")
             except:
                 pass
                 
@@ -2095,14 +2095,14 @@ class VistaFIM(tk.Frame):
                     if archivos_recientes:
                         self._actualizar_texto_fim(f"🚨 ARCHIVOS MODIFICADOS EN LOS ÚLTIMOS 30 MIN: {len(archivos_recientes)}\n")
                         for archivo in archivos_recientes[:5]:
-                            self._actualizar_texto_fim(f"  📝 {archivo}\n")
+                            self._actualizar_texto_fim(f"  NOTE {archivo}\n")
                         if len(archivos_recientes) > 5:
                             self._actualizar_texto_fim(f"  ... y {len(archivos_recientes) - 5} más\n")
                     else:
                         self._actualizar_texto_fim("[OK] Sin modificaciones muy recientes en /etc\n")
                         
             except subprocess.TimeoutExpired:
-                self._actualizar_texto_fim("⏱️ Timeout buscando archivos recientes\n")
+                self._actualizar_texto_fim("TIMEOUT Timeout buscando archivos recientes\n")
             except:
                 pass
             
@@ -2143,7 +2143,7 @@ class VistaFIM(tk.Frame):
             # Verificar herramientas de verificación de firmas
             herramientas_firma = ['file', 'hexdump', 'strings']
             
-            self._actualizar_texto_fim("🛠️ Verificando herramientas de análisis disponibles:\n")
+            self._actualizar_texto_fim("TOOLS Verificando herramientas de análisis disponibles:\n")
             
             for herramienta in herramientas_firma:
                 try:
@@ -2179,7 +2179,7 @@ class VistaFIM(tk.Frame):
                                 self._actualizar_texto_fim(f"      [WARNING] Formato no estándar\n")
                                 
                     except subprocess.TimeoutExpired:
-                        self._actualizar_texto_fim(f"  ⏱️ Timeout verificando {archivo}\n")
+                        self._actualizar_texto_fim(f"  TIMEOUT Timeout verificando {archivo}\n")
                     except Exception as e:
                         self._actualizar_texto_fim(f"  [FAIL] Error: {str(e)}\n")
                 else:
@@ -2209,7 +2209,7 @@ class VistaFIM(tk.Frame):
                                 self._actualizar_texto_fim(f"    [WARNING] {paquete}: Checksums modificados\n")
                                 
                         except subprocess.TimeoutExpired:
-                            self._actualizar_texto_fim(f"    ⏱️ {paquete}: Timeout\n")
+                            self._actualizar_texto_fim(f"    TIMEOUT {paquete}: Timeout\n")
                         except:
                             pass
                 else:
@@ -2288,7 +2288,7 @@ class VistaFIM(tk.Frame):
             self.terminal_output.insert(tk.END, "="*60 + "\n\n")
             
             for categoria, lista_comandos in comandos.items():
-                self.terminal_output.insert(tk.END, f"📂 {categoria.upper()}:\n")
+                self.terminal_output.insert(tk.END, f"FOLDER {categoria.upper()}:\n")
                 comandos_linea = ", ".join(lista_comandos)
                 self.terminal_output.insert(tk.END, f"   {comandos_linea}\n\n")
             

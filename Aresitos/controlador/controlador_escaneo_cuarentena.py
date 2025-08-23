@@ -121,7 +121,7 @@ class ControladorEscaneadorCuarentena:
             Dict con resultados del escaneo y cuarentena
         """
         with self._lock:
-            self.logger.info(f"🚀 Iniciando escaneo {tipo_escaneo} con cuarentena automática")
+            self.logger.info(f"LAUNCH Iniciando escaneo {tipo_escaneo} con cuarentena automática")
             
             resultado = {
                 'timestamp_inicio': datetime.now().isoformat(),
@@ -219,7 +219,7 @@ class ControladorEscaneadorCuarentena:
                     if self._debe_ir_a_cuarentena_dinamico(vuln_info):
                         if self._procesar_amenaza_cuarentena_dinamico(vuln_info):
                             amenazas_cuarentena.append(vuln_info)
-                            self.logger.warning(f"⚠️ Amenaza enviada a cuarentena: {vuln_info['tipo']}")
+                            self.logger.warning(f"WARNING Amenaza enviada a cuarentena: {vuln_info['tipo']}")
                 
                 # 4. Obtener resumen de cuarentena
                 resumen_cuarentena = self._obtener_resumen_cuarentena()
@@ -464,9 +464,9 @@ class ControladorEscaneadorCuarentena:
                 if metodo_restaurar:
                     resultado = metodo_restaurar(ruta_archivo)
                     if resultado:
-                        self.logger.info(f"✅ Archivo restaurado: {ruta_archivo}")
+                        self.logger.info(f"OK Archivo restaurado: {ruta_archivo}")
                     else:
-                        self.logger.warning(f"❌ No se pudo restaurar: {ruta_archivo}")
+                        self.logger.warning(f"ERROR No se pudo restaurar: {ruta_archivo}")
                     return resultado
                 else:
                     self.logger.error("Método de restauración no disponible en cuarentena")
@@ -523,7 +523,7 @@ class ControladorEscaneadorCuarentena:
                     'timestamp': datetime.now().isoformat()
                 }
                 
-                self.logger.info(f"✅ Integraciones configuradas: {conexiones} controladores conectados")
+                self.logger.info(f"OK Integraciones configuradas: {conexiones} controladores conectados")
                 return True
                 
             except Exception as e:

@@ -325,7 +325,7 @@ class VistaSIEM(tk.Frame):
             self.terminal_output.insert(tk.END, "="*60 + "\n\n")
             
             for categoria, lista_comandos in comandos.items():
-                self.terminal_output.insert(tk.END, f"📂 {categoria.upper()}:\n")
+                self.terminal_output.insert(tk.END, f"FOLDER {categoria.upper()}:\n")
                 comandos_linea = ", ".join(lista_comandos)
                 self.terminal_output.insert(tk.END, f"   {comandos_linea}\n\n")
             
@@ -2766,14 +2766,14 @@ ls -la "$OUTPUT_DIR/"
                     "[NETWORK] Extracción de URLs y dominios maliciosos",
                     "📧 Identificación de direcciones de email",
                     "🏠 Descubrimiento de direcciones IP internas",
-                    "🔑 Localización de claves criptográficas",
+                    "KEY Localización de claves criptográficas",
                     "📱 Análisis forense de aplicaciones móviles"
                 ]
                 
                 for caso in casos_uso:
                     self.after(0, self._actualizar_texto_forense, f"  {caso}\n")
                 
-                self.after(0, self._actualizar_texto_forense, f"\n📁 DIRECTORIO DE LOGS: /tmp/aresitos_logs/strings_analysis/\n")
+                self.after(0, self._actualizar_texto_forense, f"\nDIR DIRECTORIO DE LOGS: /tmp/aresitos_logs/strings_analysis/\n")
                 self.after(0, self._actualizar_texto_forense, "ANÁLISIS COMPLETADO\n\n")
                 
             except Exception as e:
@@ -3906,7 +3906,7 @@ ls -la "$OUTPUT_DIR/"
                     if huerfanos:
                         self._actualizar_texto_analisis(f"\nProcesos huérfanos detectados: {len(huerfanos)}\n")
                         for huerfano in huerfanos[:5]:
-                            self._actualizar_texto_analisis(f"  📍 {huerfano}\n")
+                            self._actualizar_texto_analisis(f"  POINT {huerfano}\n")
                             
             except:
                 pass
@@ -3917,7 +3917,7 @@ ls -la "$OUTPUT_DIR/"
     def _analizar_actividad_archivos(self):
         """Analizar actividad sospechosa en archivos críticos."""
         try:
-            self._actualizar_texto_analisis("\n📁 3. ANÁLISIS DE ACTIVIDAD EN ARCHIVOS CRÍTICOS\n")
+            self._actualizar_texto_analisis("\nDIR 3. ANÁLISIS DE ACTIVIDAD EN ARCHIVOS CRÍTICOS\n")
             self._actualizar_texto_analisis("-" * 50 + "\n")
             
             import os
@@ -4079,7 +4079,7 @@ ls -la "$OUTPUT_DIR/"
                         if logins_nocturnos:
                             self._actualizar_texto_analisis(f"LOGINS NOCTURNOS DETECTADOS: {len(logins_nocturnos)}\n")
                             for login in logins_nocturnos[:3]:
-                                self._actualizar_texto_analisis(f"  📍 {login}\n")
+                                self._actualizar_texto_analisis(f"  POINT {login}\n")
                         else:
                             self._actualizar_texto_analisis("No se detectaron logins nocturnos recientes\n")
                             
@@ -4228,7 +4228,7 @@ ls -la "$OUTPUT_DIR/"
     def _correlacionar_archivos_logins(self):
         """Correlacionar modificaciones de archivos con logins.""" 
         try:
-            self._actualizar_texto_analisis("\n📁 3. CORRELACIÓN ARCHIVOS-LOGINS\n")
+            self._actualizar_texto_analisis("\nDIR 3. CORRELACIÓN ARCHIVOS-LOGINS\n")
             self._actualizar_texto_analisis("-" * 50 + "\n")
             
             import subprocess
@@ -4324,12 +4324,12 @@ ls -la "$OUTPUT_DIR/"
             # Evaluar la cadena de eventos
             if len(eventos_sospechosos) >= 2:
                 self._actualizar_texto_analisis("CADENA DE EVENTOS SOSPECHOSA DETECTADA:\n")
-                self._actualizar_texto_analisis(f"  📍 Eventos correlacionados: {', '.join(eventos_sospechosos)}\n")
+                self._actualizar_texto_analisis(f"  POINT Eventos correlacionados: {', '.join(eventos_sospechosos)}\n")
                 self._actualizar_texto_analisis("  Posible intento de intrusión en progreso\n")
                 self._actualizar_texto_analisis("  Recomendación: Revisar logs detalladamente y considerar medidas defensivas\n")
             elif len(eventos_sospechosos) == 1:
                 self._actualizar_texto_analisis("Evento aislado detectado:\n")
-                self._actualizar_texto_analisis(f"  📍 Tipo: {eventos_sospechosos[0]}\n")
+                self._actualizar_texto_analisis(f"  POINT Tipo: {eventos_sospechosos[0]}\n")
                 self._actualizar_texto_analisis("  Mantener vigilancia\n")
             else:
                 self._actualizar_texto_analisis("No se detectaron cadenas de eventos sospechosas\n")

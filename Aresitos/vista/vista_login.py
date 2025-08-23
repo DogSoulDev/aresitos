@@ -969,10 +969,10 @@ class LoginAresitos:
                         if "package not found" in result.stderr.lower():
                             self.escribir_log(f"💡 {herramienta} no disponible en repositorios")
                         elif "timeout" in str(result.stderr).lower():
-                            self.escribir_log(f"⏱️  {herramienta} timeout - requiere instalación manual")
+                            self.escribir_log(f"TIMEOUT: {herramienta} timeout - requiere instalación manual")
                             
                 except subprocess.TimeoutExpired:
-                    self.escribir_log(f"⏱️  Timeout instalando {herramienta} - continuando...")
+                    self.escribir_log(f"TIMEOUT: Timeout instalando {herramienta} - continuando...")
                 except Exception as e:
                     self.escribir_log(f"[FAIL] Error inesperado con {herramienta}: {e}")
             self.escribir_log(" Instalación automática completada")

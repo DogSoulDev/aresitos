@@ -372,7 +372,7 @@ class VistaGestionDatos(tk.Frame):
         # Botones de gestión de archivos
         gestión_acciones = [
             ("🔄 Refrescar", self.cargar_archivos, '#17a2b8'),
-            ("📁 Abrir Carpeta", self.abrir_carpeta_actual, '#007acc'),
+            ("DIR Abrir Carpeta", self.abrir_carpeta_actual, '#007acc'),
             ("[STATS] Estadísticas", self.obtener_estadisticas_datos, '#6c757d')
         ]
         
@@ -453,12 +453,12 @@ class VistaGestionDatos(tk.Frame):
                                 metodo_wordlists = getattr(self.controlador, 'obtener_wordlists_disponibles', None)
                                 if metodo_wordlists:
                                     wordlists_data = metodo_wordlists()
-                                    self.logger.info(f"✅ Wordlists disponibles: {len(wordlists_data) if wordlists_data else 0}")
+                                    self.logger.info(f"OK Wordlists disponibles: {len(wordlists_data) if wordlists_data else 0}")
                             else:
                                 metodo_diccionarios = getattr(self.controlador, 'obtener_diccionarios_disponibles', None)
                                 if metodo_diccionarios:
                                     diccionarios_data = metodo_diccionarios()
-                                    self.logger.info(f"✅ Diccionarios disponibles: {len(diccionarios_data) if diccionarios_data else 0}")
+                                    self.logger.info(f"OK Diccionarios disponibles: {len(diccionarios_data) if diccionarios_data else 0}")
                                     
                             # Actualizar estadísticas en la vista
                             self._actualizar_desde_controlador_dinamico()
@@ -514,7 +514,7 @@ class VistaGestionDatos(tk.Frame):
                 for archivo in archivos:
                     try:
                         # Mostrar nombre del archivo con icono según tipo
-                        icono = "📄" if archivo.suffix == '.json' else "📝"
+                        icono = "📄" if archivo.suffix == '.json' else "NOTE"
                         display_name = f"{icono} {archivo.name}"
                         
                         if hasattr(self, 'lista_archivos'):
@@ -524,7 +524,7 @@ class VistaGestionDatos(tk.Frame):
                 
                 # Mensaje de confirmación
                 if archivos:
-                    self._log_terminal(f"✅ Lista de {tipo_str} actualizada correctamente", "GESTION")
+                    self._log_terminal(f"OK Lista de {tipo_str} actualizada correctamente", "GESTION")
                     
                     # Actualizar cache con información de archivos
                     self._cache[f'{tipo_str}_files'] = {
@@ -533,19 +533,19 @@ class VistaGestionDatos(tk.Frame):
                         'timestamp': datetime.datetime.now().isoformat()
                     }
                 else:
-                    self._log_terminal(f"⚠️ No se encontraron {tipo_str} en la carpeta", "GESTION", "WARNING")
+                    self._log_terminal(f"WARNING No se encontraron {tipo_str} en la carpeta", "GESTION", "WARNING")
             else:
-                self._log_terminal(f"❌ Carpeta de {tipo_str} no encontrada: {ruta}", "GESTION", "ERROR")
+                self._log_terminal(f"ERROR Carpeta de {tipo_str} no encontrada: {ruta}", "GESTION", "ERROR")
                 # Intentar crear la carpeta
                 try:
                     ruta.mkdir(parents=True, exist_ok=True)
-                    self._log_terminal(f"✅ Carpeta de {tipo_str} creada: {ruta}", "GESTION")
+                    self._log_terminal(f"OK Carpeta de {tipo_str} creada: {ruta}", "GESTION")
                 except Exception as e:
-                    self._log_terminal(f"❌ Error creando carpeta {tipo_str}: {e}", "GESTION", "ERROR")
+                    self._log_terminal(f"ERROR Error creando carpeta {tipo_str}: {e}", "GESTION", "ERROR")
                     
         except Exception as e:
             self.logger.error(f"Error cargando archivos: {e}")
-            self._log_terminal(f"❌ Error general cargando {self.tipo_actual}: {e}", "GESTION", "ERROR")
+            self._log_terminal(f"ERROR Error general cargando {self.tipo_actual}: {e}", "GESTION", "ERROR")
     
     def on_archivo_seleccionado(self, event):
         """Manejar selección de archivo con validación robusta (PRINCIPIO ARESITOS V3)."""
@@ -582,14 +582,14 @@ class VistaGestionDatos(tk.Frame):
             if archivo_path.exists():
                 self.archivo_seleccionado = archivo_path
                 self.mostrar_contenido_archivo()
-                self._log_terminal(f"📁 Archivo seleccionado: {nombre_archivo}", "GESTION")
+                self._log_terminal(f"DIR Archivo seleccionado: {nombre_archivo}", "GESTION")
             else:
-                self._log_terminal(f"❌ Archivo no encontrado: {nombre_archivo}", "GESTION", "ERROR")
+                self._log_terminal(f"ERROR Archivo no encontrado: {nombre_archivo}", "GESTION", "ERROR")
                 self.archivo_seleccionado = None
                 
         except Exception as e:
             self.logger.error(f"Error en selección de archivo: {e}")
-            self._log_terminal(f"❌ Error seleccionando archivo: {e}", "GESTION", "ERROR")
+            self._log_terminal(f"ERROR Error seleccionando archivo: {e}", "GESTION", "ERROR")
     
     def mostrar_contenido_archivo(self):
         """Mostrar contenido del archivo seleccionado."""
@@ -643,10 +643,10 @@ class VistaGestionDatos(tk.Frame):
             # Mostrar información de seguridad si está disponible
             if seguridad_disponible:
                 if not getattr(HelperSeguridad, 'mostrar_info_carga_archivo', lambda x: True)(self.tipo_actual):
-                    self._log_terminal("❌ Usuario canceló la carga por información de seguridad", "GESTION")
+                    self._log_terminal("ERROR Usuario canceló la carga por información de seguridad", "GESTION")
                     return
             
-            self._log_terminal(f"📂 Cargando archivo {self.tipo_actual}...", "GESTION")
+            self._log_terminal(f"FOLDER Cargando archivo {self.tipo_actual}...", "GESTION")
             
             # Configurar filtros de diálogo de forma dinámica
             if seguridad_disponible:
@@ -668,16 +668,16 @@ class VistaGestionDatos(tk.Frame):
             if archivo:
                 # Validación de seguridad si está disponible
                 if seguridad_disponible:
-                    self._log_terminal(f"🔒 Validando archivo: {os.path.basename(archivo)}", "GESTION")
+                    self._log_terminal(f"LOCK Validando archivo: {os.path.basename(archivo)}", "GESTION")
                     
                     resultado_validacion = getattr(sanitizador, 'validar_archivo', lambda x, y: {'valido': True})(archivo, self.tipo_actual)
                     
                     # Usar helper para mostrar resultado de validación
                     if not getattr(HelperSeguridad, 'mostrar_resultado_validacion', lambda x: True)(resultado_validacion):
-                        self._log_terminal("❌ Carga cancelada por validación de seguridad", "GESTION")
+                        self._log_terminal("ERROR Carga cancelada por validación de seguridad", "GESTION")
                         return
                     
-                    self._log_terminal(f"✅ Archivo validado correctamente", "GESTION")
+                    self._log_terminal(f"OK Archivo validado correctamente", "GESTION")
                 
                 # Copiar archivo a la carpeta correspondiente
                 archivo_origen = Path(archivo)
@@ -698,9 +698,9 @@ class VistaGestionDatos(tk.Frame):
                 try:
                     import shutil
                     shutil.copy2(archivo_origen, destino)
-                    self._log_terminal(f"✅ Archivo copiado a: {destino.name}", "GESTION")
+                    self._log_terminal(f"OK Archivo copiado a: {destino.name}", "GESTION")
                 except Exception as e:
-                    self._log_terminal(f"❌ Error copiando archivo: {e}", "GESTION", "ERROR")
+                    self._log_terminal(f"ERROR Error copiando archivo: {e}", "GESTION", "ERROR")
                     messagebox.showerror("Error", f"Error al copiar archivo: {str(e)}")
                     return
                 
@@ -710,12 +710,12 @@ class VistaGestionDatos(tk.Frame):
                 
                 self._thread_pool.submit(recargar_async)
                 
-                self._log_terminal(f"📝 Lista de {self.tipo_actual} actualizada", "GESTION")
+                self._log_terminal(f"NOTE Lista de {self.tipo_actual} actualizada", "GESTION")
                 messagebox.showinfo("Éxito", f"Archivo cargado exitosamente:\n{destino.name}")
                 
         except Exception as e:
             error_msg = f"Error al cargar archivo: {str(e)}"
-            self._log_terminal(f"❌ {error_msg}", "GESTION", "ERROR")
+            self._log_terminal(f"ERROR {error_msg}", "GESTION", "ERROR")
             messagebox.showerror("Error", error_msg)
     
     def mostrar_ayuda_formatos(self):
@@ -724,7 +724,7 @@ class VistaGestionDatos(tk.Frame):
             # Importación dinámica del helper de seguridad
             try:
                 from Aresitos.utils.helper_seguridad import HelperSeguridad
-                self._log_terminal(f"ℹ️ Mostrando ayuda de formatos para {self.tipo_actual}", "GESTION")
+                self._log_terminal(f"INFO Mostrando ayuda de formatos para {self.tipo_actual}", "GESTION")
                 metodo_ayuda = getattr(HelperSeguridad, 'mostrar_ayuda_formatos', None)
                 if metodo_ayuda:
                     metodo_ayuda(self.tipo_actual)
@@ -745,7 +745,7 @@ class VistaGestionDatos(tk.Frame):
                 ayuda = """
 FORMATOS SOPORTADOS PARA WORDLISTS:
 
-📝 Archivos .txt:
+NOTE Archivos .txt:
 - Una palabra/línea por línea
 - Codificación UTF-8 recomendada
 - Tamaño máximo: 100MB
@@ -1457,7 +1457,7 @@ EJEMPLOS:
             if archivos_validos:
                 self._log_terminal(f"INFO {len(archivos_validos)} {tipo_carpeta} disponibles {extensiones_msg}:", "GESTION")
                 for archivo in sorted(archivos_validos)[:8]:  # Mostrar primeros 8
-                    extension_icon = "📄" if archivo.endswith('.json') else "📝"
+                    extension_icon = "📄" if archivo.endswith('.json') else "NOTE"
                     self._log_terminal(f"   {extension_icon} {archivo}", "GESTION")
                 
                 if len(archivos_validos) > 8:
@@ -1552,7 +1552,7 @@ EJEMPLOS:
             self.terminal_output.insert(tk.END, "="*60 + "\n\n")
             
             for categoria, lista_comandos in comandos.items():
-                self.terminal_output.insert(tk.END, f"📂 {categoria.upper()}:\n")
+                self.terminal_output.insert(tk.END, f"FOLDER {categoria.upper()}:\n")
                 comandos_linea = ", ".join(lista_comandos)
                 self.terminal_output.insert(tk.END, f"   {comandos_linea}\n\n")
             

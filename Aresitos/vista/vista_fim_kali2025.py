@@ -82,13 +82,13 @@ class VistaFIMKali2025:
         try:
             if FIM_DISPONIBLE and FIMKali2025:
                 self.fim = FIMKali2025()
-                self.log("✅ FIM Kali2025 inicializado correctamente")
+                self.log("OK FIM Kali2025 inicializado correctamente")
             else:
                 self.fim = self._crear_fim_mock()
-                self.log("⚠️ FIM no disponible, usando mock")
+                self.log("WARNING FIM no disponible, usando mock")
                 
         except Exception as e:
-            self.log(f"❌ Error inicializando FIM: {e}")
+            self.log(f"ERROR Error inicializando FIM: {e}")
             self.fim = self._crear_fim_mock()
     
     def _crear_fim_mock(self):
@@ -174,12 +174,12 @@ class VistaFIMKali2025:
                 # Iniciar actualización UI de forma asíncrona
                 self._thread_pool.submit(self._iniciar_actualizacion_ui)
                 
-                self.log("✅ Interfaz FIM creada correctamente")
+                self.log("OK Interfaz FIM creada correctamente")
             else:
-                self.log("❌ Error creando notebook principal")
+                self.log("ERROR Error creando notebook principal")
                 
         except Exception as e:
-            self.log(f"❌ Error creando interfaz: {e}")
+            self.log(f"ERROR Error creando interfaz: {e}")
             # Crear interfaz mínima de fallback
             self._crear_interfaz_fallback(parent_frame)
     
@@ -190,7 +190,7 @@ class VistaFIMKali2025:
             fallback_frame.pack(fill=tk.BOTH, expand=True, padx=10, pady=10)
             
             tk.Label(fallback_frame, 
-                    text="⚠️ FIM - Modo Limitado", 
+                    text="WARNING FIM - Modo Limitado", 
                     bg=self.colores['bg_principal'], 
                     fg=self.colores['warning'],
                     font=('Arial', 14, 'bold')).pack(pady=20)
@@ -201,10 +201,10 @@ class VistaFIMKali2025:
                                    font=('Consolas', 10))
             self.texto_log.pack(fill=tk.BOTH, expand=True, pady=10)
             
-            self.log("⚠️ Interfaz FIM en modo fallback")
+            self.log("WARNING Interfaz FIM en modo fallback")
             
         except Exception as e:
-            self.log(f"❌ Error en interfaz fallback: {e}")
+            self.log(f"ERROR Error en interfaz fallback: {e}")
     
     def _configurar_estilo_burp(self):
         """Configurar tema visual Burp Suite"""
@@ -253,10 +253,10 @@ class VistaFIMKali2025:
                 if metodo_add:
                     metodo_add(frame_monitoreo, text="[SCAN] Monitoreo Tiempo Real")
                 else:
-                    self.log("⚠️ Método add no disponible en notebook")
+                    self.log("WARNING Método add no disponible en notebook")
                     return
             else:
-                self.log("⚠️ Notebook no disponible para tab monitoreo")
+                self.log("WARNING Notebook no disponible para tab monitoreo")
                 return
             
             # Panel superior - controles
@@ -266,7 +266,7 @@ class VistaFIMKali2025:
             # Botones principales
             self.btn_iniciar_monitoreo = ttk.Button(
                 frame_controles,
-                text="▶ INICIAR MONITOREO",
+                text="START INICIAR MONITOREO",
                 command=self._iniciar_monitoreo_ui,
                 style='Burp.TButton'
             )
@@ -283,7 +283,7 @@ class VistaFIMKali2025:
             
             self.btn_agregar_ruta = ttk.Button(
                 frame_controles,
-                text="📁 AGREGAR RUTA",
+                text="DIR AGREGAR RUTA",
                 command=self._agregar_ruta_ui,
                 style='Burp.TButton'
             )
@@ -343,7 +343,7 @@ class VistaFIMKali2025:
             self._cargar_rutas_predeterminadas()
             
         except Exception as e:
-            self.log(f"❌ Error creando tab monitoreo: {e}")
+            self.log(f"ERROR Error creando tab monitoreo: {e}")
     
     def _crear_tab_escaneo(self):
         """Tab de escaneos de seguridad con acceso dinámico (PRINCIPIO ARESITOS V3)."""
@@ -354,12 +354,12 @@ class VistaFIMKali2025:
             if hasattr(self, 'notebook') and self.notebook:
                 metodo_add = getattr(self.notebook, 'add', None)
                 if metodo_add:
-                    metodo_add(frame_escaneo, text="🛡 Escaneos Seguridad")
+                    metodo_add(frame_escaneo, text="SHIELD Escaneos Seguridad")
                 else:
-                    self.log("⚠️ Método add no disponible en notebook")
+                    self.log("WARNING Método add no disponible en notebook")
                     return
             else:
-                self.log("⚠️ Notebook no disponible para tab escaneos")
+                self.log("WARNING Notebook no disponible para tab escaneos")
                 return
             
             # Panel controles escaneo
@@ -377,7 +377,7 @@ class VistaFIMKali2025:
             
             self.btn_auditoria_linpeas = ttk.Button(
                 frame_controles_escaneo,
-                text="📋 AUDITORÍA LINPEAS",
+                text="LIST AUDITORÍA LINPEAS",
                 command=self._ejecutar_auditoria_linpeas,
                 style='Burp.TButton'
             )
@@ -425,7 +425,7 @@ class VistaFIMKali2025:
             self._crear_tab_resultados_vulnerabilidades()
             
         except Exception as e:
-            self.log(f"❌ Error creando tab escaneo: {e}")
+            self.log(f"ERROR Error creando tab escaneo: {e}")
     
     def _crear_tab_detecciones(self):
         """Tab de detecciones y alertas con acceso dinámico (PRINCIPIO ARESITOS V3)."""
@@ -436,12 +436,12 @@ class VistaFIMKali2025:
             if hasattr(self, 'notebook') and self.notebook:
                 metodo_add = getattr(self.notebook, 'add', None)
                 if metodo_add:
-                    metodo_add(frame_detecciones, text="⚠ Detecciones")
+                    metodo_add(frame_detecciones, text="WARN Detecciones")
                 else:
-                    self.log("⚠️ Método add no disponible en notebook")
+                    self.log("WARNING Método add no disponible en notebook")
                     return
             else:
-                self.log("⚠️ Notebook no disponible para tab detecciones")
+                self.log("WARNING Notebook no disponible para tab detecciones")
                 return
             
             # Panel filtros
@@ -497,7 +497,7 @@ class VistaFIMKali2025:
             self.tabla_detecciones.config(yscrollcommand=scrollbar_det.set)
             
         except Exception as e:
-            self.log(f"❌ Error creando tab detecciones: {e}")
+            self.log(f"ERROR Error creando tab detecciones: {e}")
     
     def _crear_tab_configuracion(self):
         """Tab de configuración FIM con acceso dinámico (PRINCIPIO ARESITOS V3)."""
@@ -508,12 +508,12 @@ class VistaFIMKali2025:
             if hasattr(self, 'notebook') and self.notebook:
                 metodo_add = getattr(self.notebook, 'add', None)
                 if metodo_add:
-                    metodo_add(frame_config, text="⚙ Configuración")
+                    metodo_add(frame_config, text="SETUP Configuración")
                 else:
-                    self.log("⚠️ Método add no disponible en notebook")
+                    self.log("WARNING Método add no disponible en notebook")
                     return
             else:
-                self.log("⚠️ Notebook no disponible para tab configuración")
+                self.log("WARNING Notebook no disponible para tab configuración")
                 return
             
             # Panel herramientas
@@ -554,7 +554,7 @@ class VistaFIMKali2025:
             
             ttk.Button(
                 frame_botones_config,
-                text="💾 EXPORTAR CONFIG",
+                text="SAVE EXPORTAR CONFIG",
                 command=self._exportar_configuracion,
                 style='Burp.TButton'
             ).pack(side=tk.LEFT, padx=5)
@@ -563,7 +563,7 @@ class VistaFIMKali2025:
             self._actualizar_estado_fim()
             
         except Exception as e:
-            self.log(f"❌ Error creando tab configuración: {e}")
+            self.log(f"ERROR Error creando tab configuración: {e}")
     
     def _crear_tab_logs(self):
         """Tab de logs del sistema con acceso dinámico (PRINCIPIO ARESITOS V3)."""
@@ -576,10 +576,10 @@ class VistaFIMKali2025:
                 if metodo_add:
                     metodo_add(frame_logs, text="📄 Logs")
                 else:
-                    self.log("⚠️ Método add no disponible en notebook")
+                    self.log("WARNING Método add no disponible en notebook")
                     return
             else:
-                self.log("⚠️ Notebook no disponible para tab logs")
+                self.log("WARNING Notebook no disponible para tab logs")
                 return
             
             # Controles logs
@@ -588,14 +588,14 @@ class VistaFIMKali2025:
             
             ttk.Button(
                 frame_controles_logs,
-                text="🗑 LIMPIAR LOGS",
+                text="CLEAR LIMPIAR LOGS",
                 command=self._limpiar_logs,
                 style='Burp.TButton'
             ).pack(side=tk.LEFT, padx=5)
             
             ttk.Button(
                 frame_controles_logs,
-                text="💾 GUARDAR LOGS",
+                text="SAVE GUARDAR LOGS",
                 command=self._guardar_logs,
                 style='Burp.TButton'
             ).pack(side=tk.LEFT, padx=5)
@@ -610,7 +610,7 @@ class VistaFIMKali2025:
             self.texto_log.pack(fill=tk.BOTH, expand=True, padx=10, pady=5)
             
         except Exception as e:
-            self.log(f"❌ Error creando tab logs: {e}")
+            self.log(f"ERROR Error creando tab logs: {e}")
     
     def _crear_tab_resultados_rootkits(self):
         """Tab para resultados de rootkits"""
@@ -969,11 +969,11 @@ class VistaFIMKali2025:
                     metodo_delete(1.0, tk.END)
                     self.log("✓ Logs limpiados")
                 else:
-                    self.log("⚠️ Método delete no disponible en texto_log")
+                    self.log("WARNING Método delete no disponible en texto_log")
             else:
-                self.log("⚠️ texto_log no disponible para limpiar")
+                self.log("WARNING texto_log no disponible para limpiar")
         except Exception as e:
-            self.log(f"❌ Error limpiando logs: {e}")
+            self.log(f"ERROR Error limpiando logs: {e}")
     
     def _guardar_logs(self):
         """Guardar logs a archivo con acceso dinámico (PRINCIPIO ARESITOS V3)."""
@@ -995,11 +995,11 @@ class VistaFIMKali2025:
                             f.write(contenido)
                         self.log(f"✓ Logs guardados: {archivo}")
                     else:
-                        self.log("⚠️ Método get no disponible en texto_log")
+                        self.log("WARNING Método get no disponible en texto_log")
                 else:
-                    self.log("⚠️ texto_log no disponible para guardar")
+                    self.log("WARNING texto_log no disponible para guardar")
         except Exception as e:
-            self.log(f"❌ Error guardando logs: {e}")
+            self.log(f"ERROR Error guardando logs: {e}")
     
     def _iniciar_actualizacion_ui(self):
         """Iniciar hilo de actualización de UI"""

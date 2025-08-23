@@ -1386,7 +1386,7 @@ rule Packed_Executable
             Dict con resultado del procesamiento
         """
         try:
-            self.log(f"📁 Procesando evento FIM: {evento_fim.get('tipo_cambio', 'Cambio detectado')}")
+            self.log(f"DIR Procesando evento FIM: {evento_fim.get('tipo_cambio', 'Cambio detectado')}")
             
             archivo = evento_fim.get('archivo')
             tipo_cambio = evento_fim.get('tipo_cambio', 'Modificación')
@@ -1437,7 +1437,7 @@ rule Packed_Executable
                     
                     return resultado
                 else:
-                    self.log(f"ℹ️ Cambio FIM no sospechoso: {archivo}")
+                    self.log(f"INFO Cambio FIM no sospechoso: {archivo}")
                     return {"exito": True, "mensaje": "Cambio FIM monitoreado, no requiere cuarentena"}
             else:
                 self.log(f"[WARNING] Archivo FIM no encontrado: {archivo}")
@@ -1513,7 +1513,7 @@ rule Packed_Executable
                     
                     return resultado
                 else:
-                    self.log(f"ℹ️ Archivo escaneado sin riesgo crítico: {archivo}")
+                    self.log(f"INFO Archivo escaneado sin riesgo crítico: {archivo}")
                     return {"exito": True, "mensaje": "Archivo escaneado, riesgo aceptable"}
             else:
                 self.log(f"[WARNING] Archivo del escaneador no encontrado: {archivo}")
@@ -1531,7 +1531,7 @@ rule Packed_Executable
             Dict con reporte completo del sistema
         """
         try:
-            self.log("📋 Generando reporte completo de cuarentena")
+            self.log("LIST Generando reporte completo de cuarentena")
             
             # Obtener resumen básico
             resumen = self.obtener_resumen_cuarentena()

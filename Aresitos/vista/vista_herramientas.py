@@ -227,7 +227,7 @@ class VistaHerramientasKali(tk.Frame):
             "• Cracking: hashcat, john, hydra, medusa, patator, crunch\n" +
             "• Web: sqlmap, whatweb, wfuzz, ffuf, dirb\n" +
             "• Bases de datos: sqlite3, mysql, psql\n\n" +
-            "📁 INTERFAZ Y VISUALIZACIÓN:\n" +
+            "DIR INTERFAZ Y VISUALIZACIÓN:\n" +
             "• Gestores: thunar, nautilus, dolphin, xdg-open\n" +
             "• Editores: nano, vim, gedit, mousepad\n\n" +
             "Haga clic en 'Verificar Herramientas' para comprobar disponibilidad.\n" +

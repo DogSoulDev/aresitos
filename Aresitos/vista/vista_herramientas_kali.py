@@ -137,7 +137,7 @@ class VistaHerramientasKali(tk.Frame):
             
             tk.Label(
                 fallback_frame,
-                text="⚠️ MODO SEGURO - HERRAMIENTAS KALI",
+                text="WARNING MODO SEGURO - HERRAMIENTAS KALI",
                 bg='#2e2e2e',
                 fg='#ffaa00',
                 font=('Arial', 12, 'bold')
@@ -172,7 +172,7 @@ class VistaHerramientasKali(tk.Frame):
                 # Título principal
                 titulo = tk.Label(
                     main_frame,
-                    text="🛡️ HERRAMIENTAS KALI LINUX",
+                    text="SECURE HERRAMIENTAS KALI LINUX",
                     bg=self.colors['bg_primary'],
                     fg=self.colors['fg_accent'],
                     font=('Arial', 16, 'bold')
@@ -236,7 +236,7 @@ class VistaHerramientasKali(tk.Frame):
             
             tk.Label(
                 simple_frame,
-                text="📋 Herramientas Kali disponibles en modo básico",
+                text="LIST Herramientas Kali disponibles en modo básico",
                 bg=self.colors['bg_primary'],
                 fg=self.colors['fg_primary'],
                 font=('Arial', 12)
@@ -436,10 +436,10 @@ class VistaHerramientasKali(tk.Frame):
                         "• Explotación: metasploit, burpsuite, hydra, john\n" +
                         "• Post-explotación: mimikatz, empire, powersploit\n" +
                         "• Análisis malware: yara, clamav, virustotal-cli\n\n" +
-                        "🔧 Presiona 'Verificar Herramientas' para comprobar disponibilidad\n" +
-                        "⚙️ Presiona 'Ver Optimizaciones' para detalles técnicos\n" +
+                        "TOOL Presiona 'Verificar Herramientas' para comprobar disponibilidad\n" +
+                        "CONFIG Presiona 'Ver Optimizaciones' para detalles técnicos\n" +
                         "📦 Presiona 'Instalar Faltantes' si necesitas herramientas\n" +
-                        "▶️ Presiona 'Continuar a ARESITOS' cuando estés listo\n\n"
+                        "PLAY Presiona 'Continuar a ARESITOS' cuando estés listo\n\n"
                     )
                     metodo_insert(tk.END, mensaje_inicial)
                 else:

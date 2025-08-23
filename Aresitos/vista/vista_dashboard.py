@@ -669,7 +669,7 @@ class VistaDashboard(tk.Frame):
                                 if cheatsheets:
                                     self.escribir_terminal(f"INFO {len(cheatsheets)} cheatsheets disponibles (.txt/.md):", "[CHEATSHEETS]")
                                     for cs in sorted(cheatsheets)[:8]:  # Mostrar los primeros 8 ordenados
-                                        extension = "📝" if cs.endswith('.txt') else "📄"
+                                        extension = "NOTE" if cs.endswith('.txt') else "📄"
                                         self.escribir_terminal(f"   {extension} {cs}", "[CHEATSHEETS]")
                                     if len(cheatsheets) > 8:
                                         self.escribir_terminal(f"   ... y {len(cheatsheets)-8} cheatsheets más", "[CHEATSHEETS]")
@@ -762,7 +762,7 @@ class VistaDashboard(tk.Frame):
                 if cheatsheets:
                     self.escribir_terminal("=== CHEATSHEETS DISPONIBLES ===", "[CHEATSHEETS]")
                     for i, cs in enumerate(sorted(cheatsheets), 1):
-                        extension = "📝" if cs.endswith('.txt') else "📄"
+                        extension = "NOTE" if cs.endswith('.txt') else "📄"
                         self.escribir_terminal(f"{i:2d}. {extension} {cs}", "[CHEATSHEETS]")
                     self.escribir_terminal("\nUso: Click en 'Ver Cheat' o escriba nombre del archivo", "[HELP]")
                 else:
@@ -813,7 +813,7 @@ class VistaDashboard(tk.Frame):
                         self.escribir_terminal(f"[SYSTEM] {linea.strip()}", "[CÓDIGO]")
                     elif linea.strip().startswith('-') or linea.strip().startswith('*'):
                         # Listas
-                        self.escribir_terminal(f"📌 {linea.strip()}", "[LISTA]")
+                        self.escribir_terminal(f"PIN {linea.strip()}", "[LISTA]")
                     elif 'nmap' in linea.lower() or 'sudo' in linea.lower() or linea.strip().startswith('/'):
                         # Comandos específicos
                         self.escribir_terminal(f"[FAST] {linea.strip()}", "[COMANDO]")
@@ -886,7 +886,7 @@ class VistaDashboard(tk.Frame):
             
             # Crear lista con números para selección
             for i, cs in enumerate(cheatsheets, 1):
-                extension = "📝" if cs.endswith('.txt') else "📄"
+                extension = "NOTE" if cs.endswith('.txt') else "📄"
                 nombre_sin_ext = cs.replace('.txt', '').replace('.md', '')
                 self.escribir_terminal(f"{i:2d}. {extension} {nombre_sin_ext}", "[LISTA]")
             
@@ -1411,7 +1411,7 @@ class VistaDashboard(tk.Frame):
         # Botón cargar cheatsheets
         btn_cargar_cheatsheets = tk.Button(
             buttons_frame,
-            text="📁 Abrir Carpeta",
+            text="DIR Abrir Carpeta",
             command=self.abrir_carpeta_cheatsheets,
             bg='#007acc',
             fg='white',
@@ -1432,7 +1432,7 @@ class VistaDashboard(tk.Frame):
         
         btn_ver_cheatsheets = tk.Button(
             buttons_frame,
-            text="📝 Ver Lista",
+            text="NOTE Ver Lista",
             command=lambda: self.mostrar_cheatsheet(),
             bg='#28a745',
             fg='white',
@@ -1480,7 +1480,7 @@ class VistaDashboard(tk.Frame):
             cheatsheets_dir = os.path.join(directorio_proyecto, "data", "cheatsheets")
             
             if not os.path.exists(cheatsheets_dir):
-                self.categorias_chuletas.insert(tk.END, "📁 Carpeta cheatsheets no encontrada")
+                self.categorias_chuletas.insert(tk.END, "DIR Carpeta cheatsheets no encontrada")
                 return
             
             # Obtener lista de archivos disponibles
@@ -1488,14 +1488,14 @@ class VistaDashboard(tk.Frame):
             cheatsheets = sorted([f for f in archivos if f.endswith(('.txt', '.md'))])
             
             if not cheatsheets:
-                self.categorias_chuletas.insert(tk.END, "📋 No hay cheatsheets disponibles")
+                self.categorias_chuletas.insert(tk.END, "LIST No hay cheatsheets disponibles")
                 return
             
             # Agregar cada archivo como categoría
             for archivo in cheatsheets:
                 # Quitar extensión y formatear nombre
                 nombre_sin_ext = archivo.replace('.txt', '').replace('.md', '')
-                extension_icon = "📝" if archivo.endswith('.txt') else "📄"
+                extension_icon = "NOTE" if archivo.endswith('.txt') else "📄"
                 nombre_formateado = f"{extension_icon} {nombre_sin_ext}"
                 self.categorias_chuletas.insert(tk.END, nombre_formateado)
                     
@@ -1873,14 +1873,14 @@ journalctl -u ssh                # Logs de servicio específico
                 self.categoria_actual = categoria
                 
                 # Verificar si es un mensaje de error o vacío
-                if categoria.startswith("📁") or categoria.startswith("📋") or categoria.startswith("[FAIL]"):
+                if categoria.startswith("DIR") or categoria.startswith("LIST") or categoria.startswith("[FAIL]"):
                     self.cheatsheet_text.delete(1.0, tk.END)
                     self.cheatsheet_text.insert(1.0, f"# CHEATSHEETS\n\n{categoria}\n\nPor favor, revise la carpeta de cheatsheets.")
                     return
                 
                 # Extraer nombre del archivo (quitar emoji y espacios)
                 nombre_archivo = categoria.split(" ", 1)[1] if " " in categoria else categoria
-                nombre_archivo = nombre_archivo.replace("📝 ", "").replace("📄 ", "")
+                nombre_archivo = nombre_archivo.replace("NOTE ", "").replace("📄 ", "")
                 
                 # Obtener directorio de cheatsheets
                 directorio_proyecto = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))

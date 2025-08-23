@@ -361,7 +361,7 @@ class VistaMonitoreo(tk.Frame):
             self.terminal_output.insert(tk.END, "="*60 + "\n\n")
             
             for categoria, lista_comandos in comandos.items():
-                self.terminal_output.insert(tk.END, f"📂 {categoria.upper()}:\n")
+                self.terminal_output.insert(tk.END, f"FOLDER {categoria.upper()}:\n")
                 comandos_linea = ", ".join(lista_comandos)
                 self.terminal_output.insert(tk.END, f"   {comandos_linea}\n\n")
             

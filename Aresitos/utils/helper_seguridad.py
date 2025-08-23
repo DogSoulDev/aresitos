@@ -43,7 +43,7 @@ class HelperSeguridad:
             extensiones_texto = ", ".join(extensiones)
         
         mensaje = f"""
-🔒 INFORMACIÓN DE SEGURIDAD - CARGA DE ARCHIVOS
+LOCK INFORMACIÓN DE SEGURIDAD - CARGA DE ARCHIVOS
 
 Tipo de archivo: {tipo_archivo.upper()}
 Extensiones permitidas: {extensiones_texto}
@@ -82,7 +82,7 @@ Extensiones permitidas: {extensiones_texto}
             True si el usuario quiere continuar, False si cancela
         """
         mensaje = """
-🔒 ADVERTENCIA - ARCHIVO PARA CUARENTENA
+LOCK ADVERTENCIA - ARCHIVO PARA CUARENTENA
 
 [WARNING]  ATENCIÓN: Está a punto de cargar un archivo potencialmente peligroso.
 
@@ -181,7 +181,7 @@ Por favor, verifique el archivo y vuelva a intentarlo.
         """
         ayuda_formatos = {
             'wordlists': """
-📝 FORMATOS SOPORTADOS - WORDLISTS
+NOTE FORMATOS SOPORTADOS - WORDLISTS
 
 [OK] Archivos de texto (.txt):
 • Una palabra por línea
@@ -204,7 +204,7 @@ usuario
             """,
             
             'diccionarios': """
-📝 FORMATOS SOPORTADOS - DICCIONARIOS
+NOTE FORMATOS SOPORTADOS - DICCIONARIOS
 
 [OK] Archivos JSON (.json):
 • Estructura JSON válida
@@ -221,7 +221,7 @@ usuario
             """,
             
             'reportes': """
-📝 FORMATOS SOPORTADOS - REPORTES
+NOTE FORMATOS SOPORTADOS - REPORTES
 
 [OK] Archivos JSON (.json):
 • Estructura JSON válida con metadatos

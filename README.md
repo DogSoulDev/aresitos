@@ -9,7 +9,7 @@
 
 **ARESITOS v3.0** es una herramienta de ciberseguridad profesional diseñada exclusivamente para Kali Linux. Integra escaneador de vulnerabilidades, SIEM, FIM, sistema de cuarentena y auditoría de seguridad en una interfaz unificada para estudiantes y profesionales de la seguridad.
 
-## 🚀 **Características Principales**
+## **Características Principales**
 
 - **Escaneador Avanzado**: nmap, masscan, nuclei, gobuster integrados
 - **SIEM en Tiempo Real**: Monitoreo y correlación de eventos de seguridad
@@ -20,9 +20,9 @@
 - **Arquitectura MVC**: Código limpio, mantenible y extensible
 - **Solo Python Nativo**: Sin dependencias externas complejas
 
-## 📦 **Instalación Profesional**
+## **Instalación Profesional**
 
-### 🎯 **Método Automático - Recomendado**
+### **Método Automático - Recomendado**
 ```bash
 # Instalación completa en un solo comando
 git clone https://github.com/DogSoulDev/Aresitos.git && cd Aresitos
@@ -30,7 +30,7 @@ chmod +x configurar_kali.sh && sudo ./configurar_kali.sh
 python3 main.py
 ```
 
-### 🔧 **Método Manual - Control Total**
+### **Método Manual - Control Total**
 ```bash
 # 1. Clonar el repositorio
 git clone https://github.com/DogSoulDev/Aresitos.git
@@ -46,13 +46,13 @@ python3 verificacion_final.py
 python3 main.py
 ```
 
-### 🛠️ **Modo Desarrollo (Sistemas No-Kali)**
+### **Modo Desarrollo (Sistemas No-Kali)**
 ```bash
 # Para testing en otros sistemas Linux (funcionalidad limitada)
 python3 main.py --dev
 ```
 
-### ⚙️ **Configuración Avanzada**
+### **Configuración Avanzada**
 ```bash
 # Actualizar herramientas y configuraciones
 sudo ./configurar_kali.sh --update
@@ -77,7 +77,7 @@ python3 main.py --verbose --scanner-debug
 
 ---
 
-## ⚡ **Inicio Rápido**
+## **Inicio Rápido**
 
 ```bash
 # Instalación completa y ejecución en 30 segundos
@@ -85,9 +85,9 @@ git clone https://github.com/DogSoulDev/Aresitos.git && cd Aresitos
 sudo ./configurar_kali.sh && python3 main.py
 ```
 
-## 🔧 **Requisitos del Sistema**
+## **Requisitos del Sistema**
 
-### 📋 **Requisitos Mínimos**
+### **Requisitos Mínimos**
 - **Sistema Operativo**: Kali Linux 2024+ (recomendado 2025)
 - **Python**: 3.8+ (incluido por defecto en Kali)
 - **Memoria RAM**: 2GB mínimo, 4GB recomendado
@@ -95,38 +95,38 @@ sudo ./configurar_kali.sh && python3 main.py
 - **Permisos**: sudo para instalación de herramientas
 - **Red**: Conexión a internet para actualizaciones
 
-### 🏗️ **Arquitectura Soportada**
-- ✅ **Kali Linux 2025** - Funcionalidad completa optimizada
-- ✅ **Kali Linux 2024** - Compatibilidad total verificada
-- ✅ **Parrot Security** - Soporte nativo completo
-- ⚠️ **BlackArch** - Funciones básicas, configuración manual
-- ⚠️ **Ubuntu/Debian** - Modo limitado para desarrollo
-- ❌ **Windows/macOS** - No soportado oficialmente
+### **Arquitectura Soportada**
+- [OK] **Kali Linux 2025** - Funcionalidad completa optimizada
+- [OK] **Kali Linux 2024** - Compatibilidad total verificada
+- [OK] **Parrot Security** - Soporte nativo completo
+- [WARN] **BlackArch** - Funciones básicas, configuración manual
+- [WARN] **Ubuntu/Debian** - Modo limitado para desarrollo
+- [ERROR] **Windows/macOS** - No soportado oficialmente
 
 ---
 
-## 🎯 **Configurador Inteligente de Herramientas**
+## **Configurador Inteligente de Herramientas**
 
-### 🛠️ **Arsenal Completo Auto-Instalado**
+### **Arsenal Completo Auto-Instalado**
 
 **Herramientas del Escaneador Profesional v3.0:**
-- 🔍 **Scanners Core**: nmap, masscan, rustscan con configuraciones optimizadas
-- 🌐 **Web Discovery**: nuclei (CVE detection), gobuster, ffuf, feroxbuster
-- 🛡️ **Vulnerability Assessment**: Templates nuclei actualizados, análisis automático
-- 📊 **Network Analysis**: Análisis de superficie de ataque, correlación de servicios
-- 🔎 **Enumeration**: Detección de directorios, archivos, subdominios
-- 🔑 **Threat Intelligence**: Base de datos CVE integrada, fingerprinting avanzado
+- **Scanners Core**: nmap, masscan, rustscan con configuraciones optimizadas
+- **Web Discovery**: nuclei (CVE detection), gobuster, ffuf, feroxbuster
+- **Vulnerability Assessment**: Templates nuclei actualizados, análisis automático
+- **Network Analysis**: Análisis de superficie de ataque, correlación de servicios
+- **Enumeration**: Detección de directorios, archivos, subdominios
+- **Threat Intelligence**: Base de datos CVE integrada, fingerprinting avanzado
 
 **Configuraciones Automáticas:**
-- ✅ Permisos CAP_NET_RAW para escaneos SYN
-- ✅ Bases de datos de vulnerabilidades actualizadas
-- ✅ Wordlists y diccionarios especializados por categoría
-- ✅ Templates nuclei premium y personalizados
-- ✅ Configuración de firewall adaptativa para herramientas
+- [OK] Permisos CAP_NET_RAW para escaneos SYN
+- [OK] Bases de datos de vulnerabilidades actualizadas
+- [OK] Wordlists y diccionarios especializados por categoría
+- [OK] Templates nuclei premium y personalizados
+- [OK] Configuración de firewall adaptativa para herramientas
 
-## 🎛️ **Dashboard Profesional - Centro de Operaciones**
+## **Dashboard Profesional - Centro de Operaciones**
 
-### 📊 **Módulos Integrados**
+### **Módulos Integrados**
 
 **🎛️ Dashboard Principal**
 - Monitor de sistema en tiempo real (actualización cada 60s)

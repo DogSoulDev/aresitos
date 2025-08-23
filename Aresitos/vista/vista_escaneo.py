@@ -1062,7 +1062,7 @@ class VistaEscaneo(tk.Frame):
             
             if fases_con_error == 0:
                 self._actualizar_texto_seguro("OK ESCANEO COMPLETADO SIN ERRORES\n")
-                self._log_terminal("🎉 Escaneo básico completado exitosamente", "ESCANEADOR", "SUCCESS")
+                self._log_terminal("SUCCESS Escaneo básico completado exitosamente", "ESCANEADOR", "SUCCESS")
             elif fases_completadas > fases_con_error:
                 self._actualizar_texto_seguro("WARNING ESCANEO COMPLETADO CON ADVERTENCIAS\n")
                 self._log_terminal("WARNING Escaneo básico completado con advertencias", "ESCANEADOR", "WARNING")
@@ -1129,7 +1129,7 @@ class VistaEscaneo(tk.Frame):
             if analisis:
                 for item in analisis:
                     if any(palabra in item.lower() for palabra in ['error', 'fail', 'vulnerable', 'insecure', 'weak']):
-                        self._log_terminal(f"🔓 VULNERABILIDAD: {item}", "ESCANEADOR", "ERROR")
+                        self._log_terminal(f"UNLOCK VULNERABILIDAD: {item}", "ESCANEADOR", "ERROR")
                     elif any(palabra in item.lower() for palabra in ['warning', 'caution', 'deprecated']):
                         self._log_terminal(f"ADVERTENCIA: {item}", "ESCANEADOR", "WARNING")
                         
@@ -3772,7 +3772,7 @@ class VistaEscaneo(tk.Frame):
             self.terminal_output.insert(tk.END, "="*60 + "\n\n")
             
             for categoria, lista_comandos in comandos.items():
-                self.terminal_output.insert(tk.END, f"📂 {categoria.upper()}:\n")
+                self.terminal_output.insert(tk.END, f"FOLDER {categoria.upper()}:\n")
                 comandos_linea = ", ".join(lista_comandos)
                 self.terminal_output.insert(tk.END, f"   {comandos_linea}\n\n")
             
