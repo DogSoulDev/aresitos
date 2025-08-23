@@ -37,7 +37,7 @@ class GestorIconos:
     """
     
     # Icono alternativo ASCII art para terminales (shield symbol)
-    ICONO_ASCII = "🛡️"
+    ICONO_ASCII = "SHIELD"
     
     @classmethod
     def crear_icono_cyber(cls) -> Optional[Union[tk.PhotoImage, tk.BitmapImage]]:
@@ -152,7 +152,7 @@ class GestorIconos:
             
             # Fallback: configurar título con símbolo de seguridad
             try:
-                ventana.title("🛡️ ARESITOS V3 - CYBER SECURITY")
+                ventana.title("ARESITOS V3 - CYBER SECURITY")
                 return True
             except:
                 pass

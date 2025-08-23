@@ -382,7 +382,7 @@ class VistaMonitoreo(tk.Frame):
             info = validador_comandos.obtener_info_seguridad()
             
             self.terminal_output.insert(tk.END, "\n" + "="*60 + "\n")
-            self.terminal_output.insert(tk.END, "🔐 INFORMACIÓN DE SEGURIDAD ARESITOS\n")
+            self.terminal_output.insert(tk.END, "SEGURIDAD: INFORMACIÓN DE SEGURIDAD ARESITOS\n")
             self.terminal_output.insert(tk.END, "="*60 + "\n\n")
             
             estado_seguridad = "[OK] SEGURO" if info['es_usuario_kali'] else "[FAIL] INSEGURO"
@@ -1698,20 +1698,20 @@ class VistaMonitoreo(tk.Frame):
             # Solo verificar ruta y nombre seguro, no contenido (puede ser malicioso)
             if not sanitizador._validar_ruta_segura(archivo):
                 error_msg = "Ruta de archivo no segura"
-                self.text_cuarentena.insert(tk.END, f"✗ Error de seguridad: {error_msg}\n")
+                self.text_cuarentena.insert(tk.END, f"ERROR: Error de seguridad: {error_msg}\n")
                 messagebox.showerror("Error de Seguridad", error_msg)
                 return
             
             if not sanitizador._validar_nombre_archivo(archivo):
                 error_msg = "Nombre de archivo contiene caracteres peligrosos"
-                self.text_cuarentena.insert(tk.END, f"✗ Error de seguridad: {error_msg}\n")
+                self.text_cuarentena.insert(tk.END, f"ERROR: Error de seguridad: {error_msg}\n")
                 messagebox.showerror("Error de Seguridad", error_msg)
                 return
             
             # Verificar tamaño razonable
             if not sanitizador._validar_tamano(archivo):
                 error_msg = "Archivo demasiado grande para cuarentena"
-                self.text_cuarentena.insert(tk.END, f"✗ Error: {error_msg}\n")
+                self.text_cuarentena.insert(tk.END, f"ERROR: Error: {error_msg}\n")
                 messagebox.showerror("Error", error_msg)
                 return
             

@@ -177,7 +177,7 @@ check_disk_space() {
 
 # Actualizar repositorios con retry [PRINCIPIO 15: REINTENTOS AUTOMÁTICOS]
 update_repositories() {
-    print_header "🔄 Actualizando repositorios..."
+    print_header "Actualizando repositorios..."
     
     local max_retries=3
     local retry_count=0
@@ -1110,7 +1110,7 @@ configure_git_case_sensitivity() {
     if [ -n "$aresitos_files" ]; then
         print_info "Archivos de ARESITOS detectados:"
         echo "$aresitos_files" | while read -r file; do
-            print_info "  📁 $file"
+            print_info "  ARCHIVO: $file"
         done
     fi
     
@@ -1325,7 +1325,7 @@ display_final_summary() {
         print_success "SUCCESS CONFIGURACIÓN COMPLETADA EXITOSAMENTE"
         echo
         print_info "LAUNCH PASOS SIGUIENTES:"
-        echo "  1. 🔄 Reinicie la terminal para aplicar cambios de grupos"
+        echo "  1. REINICIE la terminal para aplicar cambios de grupos"
         echo "  2. Ejecute verificación: python3 verificacion_final.py"
         echo "  3. TARGET Ejecute pruebas: python3 ${USER_HOME}/test_aresitos_permissions.py"
         echo "  4. SECURE Inicie ARESITOS: python3 main.py"

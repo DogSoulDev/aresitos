@@ -1,6 +1,6 @@
 ![ARESITOS](Aresitos/recursos/Aresitos.png)
 
-# 🛡️ ARESITOS V3 - CYBER SECURITY FRAMEWORK
+# ARESITOS V3 - CYBER SECURITY FRAMEWORK
 
 # ARESITOS - Herramienta de Ciberseguridad Profesional
 
@@ -11,7 +11,7 @@
 
 **ARESITOS v3.0** es una herramienta de ciberseguridad profesional diseñada exclusivamente para Kali Linux. Integra escaneador de vulnerabilidades, SIEM, FIM, sistema de cuarentena y auditoría de seguridad en una interfaz unificada para estudiantes y profesionales de la seguridad.
 
-> **📋 Repositorio de Testeos Anterior:** Si deseas revisar el código de pruebas y desarrollo previo a ARESITOS, puedes consultar el repositorio de testeos [Ares Aegis](https://github.com/DogSoulDev/Ares-Aegis) donde se realizaron las pruebas iniciales y desarrollo experimental.
+> **Repositorio de Testeos Anterior:** Si deseas revisar el código de pruebas y desarrollo previo a ARESITOS, puedes consultar el repositorio de testeos [Ares Aegis](https://github.com/DogSoulDev/Ares-Aegis) donde se realizaron las pruebas iniciales y desarrollo experimental.
 
 ## **Características Principales**
 
@@ -24,9 +24,9 @@
 - **Arquitectura MVC**: Código limpio, mantenible y extensible
 - **Solo Python Nativo**: Sin dependencias externas complejas
 
-## **📊 Especificaciones y Requisitos**
+## **Especificaciones y Requisitos**
 
-### **💾 Consumo de Recursos**
+### **Consumo de Recursos**
 | Componente | Memoria (MB) | CPU (%) |
 |------------|--------------|---------|
 | **GUI Principal** | 15 | 5 |
@@ -39,7 +39,7 @@
 
 *Durante escaneos intensivos
 
-### **🖥️ Requisitos del Sistema**
+### **Requisitos del Sistema**
 
 #### **Mínimos (Funcionalidad Básica)**
 - **RAM**: 512 MB libres
@@ -62,7 +62,7 @@
 - **Python**: 3.12+
 - **OS**: Kali Linux 2025.1+
 
-### **📦 Tamaño del Proyecto**
+### **Tamaño del Proyecto**
 - **Total**: 7.6 MB
 - **Código Python**: 2.4 MB (61 archivos, 52,750 líneas)
 - **Wordlists/Datos**: 1.9 MB
@@ -115,7 +115,7 @@ python3 main.py --verify
 python3 main.py --verbose --scanner-debug
 ```
 
-## 📸 **Capturas de Pantalla**
+## **Capturas de Pantalla**
 
 ### Sistema de Autenticación
 ![Vista Login](Aresitos/recursos/vista_login.png)
@@ -124,7 +124,7 @@ python3 main.py --verbose --scanner-debug
 ![Vista Herramientas](Aresitos/recursos/vista_herramientas.png)
 
 ### Vista Principal
-### 🖥️ **Vista Herramientas ARESITOS V3**
+### **Vista Herramientas ARESITOS V3**
 *Interface principal con iconos de ciberseguridad integrados*
 
 ---
@@ -263,12 +263,12 @@ ARESITOS v3.0 Professional Security Suite/
 ### SYSTEM **Especificaciones Técnicas v3.0**
 - 🐍 **Python**: 3.9+ con optimizaciones asíncronas para escaneador
 - SAVE **RAM**: 4GB mínimo, 8GB recomendado para escaneos masivos
-- 💿 **Almacenamiento**: 1GB para instalación + templates nuclei actualizados
+- **Almacenamiento**: 1GB para instalación + templates nuclei actualizados
 - WEB **Conectividad**: Capacidad offline completa, internet para updates
-- 🔐 **Permisos**: CAP_NET_RAW para escaneos SYN, sudo para configuración
+- **Permisos**: CAP_NET_RAW para escaneos SYN, sudo para configuración
 - FAST **Concurrencia**: Soporte completo para escaneos paralelos masivos
 
-### 🔗 **Dependencias del Sistema**
+### **Dependencias del Sistema**
 - OK **Librerías Python Nativas**: tkinter, subprocess, threading, json, sqlite3
 - OK **Herramientas Kali**: Auto-instalación completa de arsenal de seguridad
 - OK **Configuración**: 100% automatizada vía configurar_kali.sh

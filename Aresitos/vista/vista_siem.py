@@ -346,7 +346,7 @@ class VistaSIEM(tk.Frame):
             info = validador_comandos.obtener_info_seguridad()
             
             self.terminal_output.insert(tk.END, "\n" + "="*60 + "\n")
-            self.terminal_output.insert(tk.END, "🔐 INFORMACIÓN DE SEGURIDAD ARESITOS\n")
+            self.terminal_output.insert(tk.END, "INFORMACIÓN DE SEGURIDAD ARESITOS\n")
             self.terminal_output.insert(tk.END, "="*60 + "\n\n")
             
             estado_seguridad = "[OK] SEGURO" if info['es_usuario_kali'] else "[FAIL] INSEGURO"
@@ -793,7 +793,7 @@ class VistaSIEM(tk.Frame):
                 self._log_terminal("OK FASE 1 completada exitosamente", "SIEM", "SUCCESS")  # Issue 22/24: Sin emojis
             except Exception as e:
                 fases_con_error += 1
-                self._log_terminal(f"✗ ERROR en FASE 1: {str(e)}", "SIEM", "ERROR")
+                self._log_terminal(f"ERROR en FASE 1: {str(e)}", "SIEM", "ERROR")
                 self._log_terminal("Continuando con la siguiente fase...", "SIEM", "WARNING")
             
             # FASE 2: Monitoreo y protección DNS
@@ -804,7 +804,7 @@ class VistaSIEM(tk.Frame):
                 self._log_terminal("OK FASE 2 completada exitosamente", "SIEM", "SUCCESS")
             except Exception as e:
                 fases_con_error += 1
-                self._log_terminal(f"✗ ERROR en FASE 2: {str(e)}", "SIEM", "ERROR")
+                self._log_terminal(f"ERROR en FASE 2: {str(e)}", "SIEM", "ERROR")
                 self._log_terminal("Continuando con la siguiente fase...", "SIEM", "WARNING")
             
             # FASE 3: Monitoreo de datos de red
@@ -815,7 +815,7 @@ class VistaSIEM(tk.Frame):
                 self._log_terminal("OK FASE 3 completada exitosamente", "SIEM", "SUCCESS")
             except Exception as e:
                 fases_con_error += 1
-                self._log_terminal(f"✗ ERROR en FASE 3: {str(e)}", "SIEM", "ERROR")
+                self._log_terminal(f"ERROR en FASE 3: {str(e)}", "SIEM", "ERROR")
                 self._log_terminal("Continuando con la siguiente fase...", "SIEM", "WARNING")
             
             # FASE 4: Monitoreo de 50 puertos críticos
@@ -826,7 +826,7 @@ class VistaSIEM(tk.Frame):
                 self._log_terminal("OK FASE 4 completada exitosamente", "SIEM", "SUCCESS")
             except Exception as e:
                 fases_con_error += 1
-                self._log_terminal(f"✗ ERROR en FASE 4: {str(e)}", "SIEM", "ERROR")
+                self._log_terminal(f"ERROR en FASE 4: {str(e)}", "SIEM", "ERROR")
                 self._log_terminal("Continuando con la siguiente fase...", "SIEM", "WARNING")
             
             # FASE 5: Detección de anomalías en tiempo real
@@ -837,7 +837,7 @@ class VistaSIEM(tk.Frame):
                 self._log_terminal("OK FASE 5 completada exitosamente", "SIEM", "SUCCESS")
             except Exception as e:
                 fases_con_error += 1
-                self._log_terminal(f"✗ ERROR en FASE 5: {str(e)}", "SIEM", "ERROR")
+                self._log_terminal(f"ERROR en FASE 5: {str(e)}", "SIEM", "ERROR")
                 self._log_terminal("Continuando con la siguiente fase...", "SIEM", "WARNING")
             
             # FASE 6: Monitoreo continuo
@@ -864,7 +864,7 @@ class VistaSIEM(tk.Frame):
                     self._log_terminal("OK FASE 6 completada con monitoreo básico", "SIEM", "SUCCESS")
             except Exception as e:
                 fases_con_error += 1
-                self._log_terminal(f"✗ ERROR en FASE 6: {str(e)}", "SIEM", "ERROR")
+                self._log_terminal(f"ERROR en FASE 6: {str(e)}", "SIEM", "ERROR")
                 self._log_terminal("Fase final completada con errores", "SIEM", "WARNING")
             
             # RESUMEN FINAL DE FASES
@@ -873,7 +873,7 @@ class VistaSIEM(tk.Frame):
                 self.after(0, self._actualizar_texto_monitoreo, f"RESUMEN DE EJECUCIÓN SIEM\n")
                 self.after(0, self._actualizar_texto_monitoreo, f"{'='*50}\n")
                 self.after(0, self._actualizar_texto_monitoreo, f"OK FASES COMPLETADAS: {fases_completadas}/6\n")
-                self.after(0, self._actualizar_texto_monitoreo, f"✗ FASES CON ERROR: {fases_con_error}/6\n")
+                self.after(0, self._actualizar_texto_monitoreo, f"ERROR: FASES CON ERROR: {fases_con_error}/6\n")
                 
                 if fases_con_error == 0:
                     self.after(0, self._actualizar_texto_monitoreo, f"ESTADO GENERAL: OK TODAS LAS FASES COMPLETADAS EXITOSAMENTE\n")
@@ -1721,7 +1721,7 @@ class VistaSIEM(tk.Frame):
                         puertos_criticos_abiertos = [p for p in puertos_abiertos if p in puertos_criticos]
                         
                         if puertos_criticos_abiertos:
-                            self._log_terminal(f"🔌 Puertos críticos abiertos: {', '.join(puertos_criticos_abiertos)}", "SIEM-DASHBOARD", "WARNING")
+                            self._log_terminal(f"PUERTOS: Puertos críticos abiertos: {', '.join(puertos_criticos_abiertos)}", "SIEM-DASHBOARD", "WARNING")
                         else:
                             self._log_terminal("SEGURIDAD No hay puertos críticos abiertos públicamente", "SIEM-DASHBOARD", "INFO")
                     
@@ -2624,7 +2624,7 @@ class VistaSIEM(tk.Frame):
         """Análisis profesional con strings para extracción de cadenas de texto."""
         def ejecutar():
             try:
-                self.after(0, self._actualizar_texto_forense, "🔤 ANÁLISIS PROFESIONAL CON STRINGS\n")
+                self.after(0, self._actualizar_texto_forense, "STRINGS: ANÁLISIS PROFESIONAL CON STRINGS\n")
                 self.after(0, self._actualizar_texto_forense, "="*60 + "\n")
                 
                 import subprocess
@@ -3968,7 +3968,7 @@ ls -la "$OUTPUT_DIR/"
                     if archivos_permisos:
                         self._actualizar_texto_analisis(f"\nARCHIVOS CON PERMISOS SOSPECHOSOS: {len(archivos_permisos)}\n")
                         for archivo in archivos_permisos[:5]:
-                            self._actualizar_texto_analisis(f"  🔸 {archivo}\n")
+                            self._actualizar_texto_analisis(f"  - {archivo}\n")
                         if len(archivos_permisos) > 5:
                             self._actualizar_texto_analisis(f"  ... y {len(archivos_permisos) - 5} más\n")
                             
@@ -4056,7 +4056,7 @@ ls -la "$OUTPUT_DIR/"
             # Determinar si es horario laboral
             es_horario_laboral = 8 <= hora_actual <= 18
             
-            self._actualizar_texto_analisis(f"🕐 Hora actual: {datetime.now().strftime('%H:%M:%S')}\n")
+            self._actualizar_texto_analisis(f"TIEMPO: Hora actual: {datetime.now().strftime('%H:%M:%S')}\n")
             
             if es_horario_laboral:
                 self._actualizar_texto_analisis("Actividad durante horario laboral normal\n")
@@ -4118,7 +4118,7 @@ ls -la "$OUTPUT_DIR/"
     def correlacionar_eventos_avanzado(self):
         """Correlación avanzada de eventos de seguridad."""
         try:
-            self._actualizar_texto_analisis("🔗 INICIANDO CORRELACIÓN AVANZADA DE EVENTOS\n")
+            self._actualizar_texto_analisis("CORRELACION: INICIANDO CORRELACIÓN AVANZADA DE EVENTOS\n")
             self._actualizar_texto_analisis("=" * 70 + "\n")
             
             # 1. Correlación de intentos de acceso fallidos
@@ -4286,7 +4286,7 @@ ls -la "$OUTPUT_DIR/"
     def _analizar_cadenas_eventos(self):
         """Analizar cadenas de eventos que pueden indicar un ataque."""
         try:
-            self._actualizar_texto_analisis("\n🔗 4. ANÁLISIS DE CADENAS DE EVENTOS\n")
+            self._actualizar_texto_analisis("\nCORRELACION: 4. ANÁLISIS DE CADENAS DE EVENTOS\n")
             self._actualizar_texto_analisis("-" * 50 + "\n")
             
             # Simular análisis de cadena de eventos típica de ataque

@@ -470,7 +470,7 @@ class VistaFIMKali2025:
             
             ttk.Button(
                 frame_filtros,
-                text="🔄 ACTUALIZAR",
+                text="ACTUALIZAR",
                 command=self._actualizar_detecciones,
                 style='Burp.TButton'
             ).pack(side=tk.LEFT, padx=5)
@@ -547,7 +547,7 @@ class VistaFIMKali2025:
             
             ttk.Button(
                 frame_botones_config,
-                text="🔄 ACTUALIZAR ESTADO",
+                text="ACTUALIZAR ESTADO",
                 command=self._actualizar_estado_fim,
                 style='Burp.TButton'
             ).pack(side=tk.LEFT, padx=5)
@@ -706,7 +706,7 @@ class VistaFIMKali2025:
                     self.btn_iniciar_monitoreo.config(state='disabled')
                     self.btn_detener_monitoreo.config(state='normal')
                     self.label_estado.config(text="Estado: ACTIVO", foreground=self.colores['success'])
-                    self.log("✓ Monitoreo FIM iniciado correctamente")
+                    self.log("OK: Monitoreo FIM iniciado correctamente")
                 else:
                     messagebox.showerror("Error", f"Error iniciando monitoreo: {resultado.get('error')}")
             except Exception as e:
@@ -723,14 +723,14 @@ class VistaFIMKali2025:
         self.btn_iniciar_monitoreo.config(state='normal')
         self.btn_detener_monitoreo.config(state='disabled')
         self.label_estado.config(text="Estado: DETENIDO", foreground=self.colores['error'])
-        self.log("✓ Monitoreo FIM detenido")
+        self.log("OK: Monitoreo FIM detenido")
     
     def _agregar_ruta_ui(self):
         """Agregar nueva ruta para monitorear"""
         ruta = filedialog.askdirectory(title="Seleccionar directorio para monitorear")
         if ruta:
             self.lista_rutas.insert(tk.END, ruta)
-            self.log(f"✓ Ruta agregada: {ruta}")
+            self.log(f"OK: Ruta agregada: {ruta}")
     
     def _ejecutar_escaneo_rootkits(self):
         """Ejecutar escaneo de rootkits"""
@@ -749,7 +749,7 @@ class VistaFIMKali2025:
                 # Mostrar resultados en tabla
                 self._mostrar_resultados_rootkits(resultado)
                 
-                self.log(f"✓ Escaneo rootkits completado: {resultado.get('detecciones_totales', 0)} detecciones")
+                self.log(f"OK: Escaneo rootkits completado: {resultado.get('detecciones_totales', 0)} detecciones")
                 
             except Exception as e:
                 self.log(f"ERROR escaneo rootkits: {e}")
@@ -777,7 +777,7 @@ class VistaFIMKali2025:
                 # Mostrar resultados
                 self._mostrar_resultados_vulnerabilidades(resultado)
                 
-                self.log(f"✓ Auditoría LinPEAS completada: {resultado.get('total_problemas', 0)} problemas")
+                self.log(f"OK: Auditoría LinPEAS completada: {resultado.get('total_problemas', 0)} problemas")
                 
             except Exception as e:
                 self.log(f"ERROR auditoría LinPEAS: {e}")
@@ -805,7 +805,7 @@ class VistaFIMKali2025:
                 # Mostrar resultados
                 self._mostrar_resultados_malware(resultado)
                 
-                self.log(f"✓ Escaneo malware completado: {resultado.get('detecciones_totales', 0)} detecciones")
+                self.log(f"OK: Escaneo malware completado: {resultado.get('detecciones_totales', 0)} detecciones")
                 
             except Exception as e:
                 self.log(f"ERROR escaneo malware: {e}")
@@ -833,7 +833,7 @@ class VistaFIMKali2025:
                 # Mostrar todos los resultados
                 self._mostrar_resultados_completos(resultado)
                 
-                self.log(f"✓ Análisis completo terminado - {len(resultado.get('herramientas_utilizadas', []))} herramientas")
+                self.log(f"OK: Análisis completo terminado - {len(resultado.get('herramientas_utilizadas', []))} herramientas")
                 
             except Exception as e:
                 self.log(f"ERROR análisis completo: {e}")
@@ -916,7 +916,7 @@ class VistaFIMKali2025:
     def _actualizar_detecciones(self):
         """Actualizar tabla de detecciones desde BD"""
         # TODO: Implementar consulta a base de datos SQLite
-        self.log("✓ Detecciones actualizadas")
+        self.log("OK: Detecciones actualizadas")
     
     def _actualizar_estado_fim(self):
         """Actualizar estado del sistema FIM"""
@@ -954,7 +954,7 @@ class VistaFIMKali2025:
                 estado = self.fim.obtener_estado_fim()
                 with open(archivo, 'w', encoding='utf-8') as f:
                     json.dump(estado, f, indent=2, ensure_ascii=False)
-                self.log(f"✓ Configuración exportada: {archivo}")
+                self.log(f"OK: Configuración exportada: {archivo}")
             except Exception as e:
                 self.log(f"ERROR exportando configuración: {e}")
     
@@ -967,7 +967,7 @@ class VistaFIMKali2025:
                 metodo_delete = getattr(texto_log, 'delete', None)
                 if metodo_delete:
                     metodo_delete(1.0, tk.END)
-                    self.log("✓ Logs limpiados")
+                    self.log("OK: Logs limpiados")
                 else:
                     self.log("WARNING Método delete no disponible en texto_log")
             else:
@@ -993,7 +993,7 @@ class VistaFIMKali2025:
                         contenido = metodo_get(1.0, tk.END)
                         with open(archivo, 'w', encoding='utf-8') as f:
                             f.write(contenido)
-                        self.log(f"✓ Logs guardados: {archivo}")
+                        self.log(f"OK: Logs guardados: {archivo}")
                     else:
                         self.log("WARNING Método get no disponible en texto_log")
                 else:
@@ -1030,7 +1030,7 @@ class VistaFIMKali2025:
         self._actualizacion_ui_activa = False
         if self.fim:
             self.fim.detener_monitoreo()
-        self.log("✓ Vista FIM cerrada")
+        self.log("OK: Vista FIM cerrada")
     
     # Métodos para integración con controlador principal
     def registrar_callback(self, tipo: str, callback: Callable):

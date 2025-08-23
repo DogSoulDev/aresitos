@@ -1106,7 +1106,7 @@ class LoginAresitos:
             # Configurar icono para la ventana principal usando gestor centralizado
             try:
                 if configurar_icono_ventana(root_app, "ARESITOS v2.0 - Dashboard Principal"):
-                    self.escribir_log("✓ Ícono de aplicación configurado correctamente")
+                    self.escribir_log("CONFIGURACION: Ícono de aplicación configurado correctamente")
                 else:
                     self.escribir_log("INFO Continuando sin icono - archivo no encontrado")
             except Exception as e:

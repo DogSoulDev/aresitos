@@ -206,8 +206,8 @@ class VistaHerramientasKali(tk.Frame):
             # Símbolo de seguridad
             symbol_label = tk.Label(
                 logo_frame,
-                text="🛡️",
-                font=("Arial", 24, "bold"),
+                text="[SHIELD]",
+                font=("Arial", 16, "bold"),
                 bg=self.colors['bg_primary'],
                 fg="#2E86C1"
             )
