@@ -24,6 +24,50 @@
 - **Arquitectura MVC**: Código limpio, mantenible y extensible
 - **Solo Python Nativo**: Sin dependencias externas complejas
 
+## **📊 Especificaciones y Requisitos**
+
+### **💾 Consumo de Recursos**
+| Componente | Memoria (MB) | CPU (%) |
+|------------|--------------|---------|
+| **GUI Principal** | 15 | 5 |
+| **Escaneador** | 8 | 25* |
+| **SIEM** | 12 | 10 |
+| **FIM** | 6 | 15 |
+| **Cuarentena** | 4 | 8 |
+| **Cache/Logs** | 8 | 3 |
+| **Total Estimado** | **~71 MB** | **12-25%** |
+
+*Durante escaneos intensivos
+
+### **🖥️ Requisitos del Sistema**
+
+#### **Mínimos (Funcionalidad Básica)**
+- **RAM**: 512 MB libres
+- **CPU**: 1 core @ 1.0 GHz
+- **Disco**: 50 MB
+- **Python**: 3.9+
+- **OS**: Kali Linux 2023.1+
+
+#### **Recomendados (Rendimiento Óptimo)**
+- **RAM**: 1 GB libres  
+- **CPU**: 2 cores @ 2.0 GHz
+- **Disco**: 100 MB
+- **Python**: 3.11+
+- **OS**: Kali Linux 2024.1+
+
+#### **Óptimos (Máxima Performance)**
+- **RAM**: 2 GB libres
+- **CPU**: 4+ cores @ 2.5 GHz  
+- **Disco**: 200 MB
+- **Python**: 3.12+
+- **OS**: Kali Linux 2025.1+
+
+### **📦 Tamaño del Proyecto**
+- **Total**: 7.6 MB
+- **Código Python**: 2.4 MB (61 archivos, 52,750 líneas)
+- **Wordlists/Datos**: 1.9 MB
+- **Documentación**: 3.3 MB
+
 ## **Instalación Profesional**
 
 ### **Método Automático - Recomendado**
