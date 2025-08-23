@@ -56,7 +56,7 @@ Resolving deltas: 100% (910/910), done.
 └─$ sudo ./configurar_kali.sh
 [sudo] password for kali: 
 
-🛡️ CONFIGURADOR DE PERMISOS ARES AEGIS PARA KALI LINUX
+SECURE CONFIGURADOR DE PERMISOS ARES AEGIS PARA KALI LINUX
 ==========================================================
 [INFO] Usuario detectado: kali
 [INFO] Directorio home: /home/kali
@@ -239,7 +239,7 @@ Iniciando interfaz gráfica...
 ### Script de Configuración `configurar_kali.sh`
 El script de configuración automática realiza todas las tareas necesarias para preparar Kali Linux:
 
-#### ✅ **Herramientas Críticas Instaladas**
+#### OK **Herramientas Críticas Instaladas**
 - **python3-dev, python3-venv, python3-tk**: Entorno Python completo
 - **curl, wget, git**: Herramientas de descarga y control de versiones
 - **nmap**: Escaneador de red principal
@@ -248,7 +248,7 @@ El script de configuración automática realiza todas las tareas necesarias para
 - **netcat-openbsd**: Utilidad de red versátil
 - **htop, lsof, psmisc**: Monitoreo de sistema y procesos
 
-#### ✅ **Herramientas de Seguridad Opcionales**
+#### OK **Herramientas de Seguridad Opcionales**
 - **masscan**: Escaneador de puertos de alta velocidad
 - **gobuster**: Enumeración de directorios web
 - **nikto**: Escaneador de vulnerabilidades web
@@ -261,14 +261,14 @@ El script de configuración automática realiza todas las tareas necesarias para
 - **feroxbuster**: Fuzzing de directorios
 - **httpx-toolkit**: Herramientas HTTP modernas
 
-#### ⚠️ **Herramientas que Requieren Instalación Manual**
+#### WARNING **Herramientas que Requieren Instalación Manual**
 - **rustscan**: Escaneador moderno (requiere Rust)
   ```bash
   # Para instalar rustscan manualmente:
   cargo install rustscan
   ```
 
-#### 🔧 **Configuraciones Automáticas**
+#### TOOL **Configuraciones Automáticas**
 1. **Permisos de Red**: Configuración de nmap y tcpdump sin sudo
 2. **Grupos de Usuario**: Adición a grupos wireshark y netdev
 3. **Configuración Sudo**: Archivo `/etc/sudoers.d/Aresitos-v2` para herramientas específicas
@@ -371,7 +371,7 @@ Cada vista debe mostrar:
 # - 48 terminales activos en total
 ```
 
-## 🔒 **Permisos y Seguridad**
+## LOCK **Permisos y Seguridad**
 
 ## Configuración de Permisos y Seguridad
 
@@ -484,14 +484,14 @@ ps aux | grep python3 | grep aresitos
 
 ### Indicadores de Salud del Sistema
 Verificar que estén operativos:
-- ✅ **Herramientas de Kali**: Todas disponibles y funcionales
-- ✅ **Bases de datos**: Creadas y accesibles en directorio data/
-- ✅ **Permisos**: Configurados correctamente para ejecución
-- ✅ **Interfaz**: Todos los módulos cargan sin errores
-- ✅ **Terminales**: Terminales integrados funcionando en cada vista
-- ✅ **Layout**: Diseño PanedWindow con división controles/terminal
-- ✅ **Threading**: Operaciones no bloqueantes activas
-- ✅ **Logs**: Archivo de logs generándose en directorio logs/
+- OK **Herramientas de Kali**: Todas disponibles y funcionales
+- OK **Bases de datos**: Creadas y accesibles en directorio data/
+- OK **Permisos**: Configurados correctamente para ejecución
+- OK **Interfaz**: Todos los módulos cargan sin errores
+- OK **Terminales**: Terminales integrados funcionando en cada vista
+- OK **Layout**: Diseño PanedWindow con división controles/terminal
+- OK **Threading**: Operaciones no bloqueantes activas
+- OK **Logs**: Archivo de logs generándose en directorio logs/
 
 ## Guía de Primer Uso
 
@@ -557,7 +557,7 @@ freshclam
 updatedb
 ```
 
-## ✅ VERIFICACIÓN FINAL
+## OK VERIFICACIÓN FINAL
 
 ### Script de Verificación
 ```python
@@ -582,18 +582,18 @@ def main():
         'clamscan', 'yara', 'inotifywait', 'chkrootkit', 'rkhunter'
     ]
     
-    print("🔍 VERIFICANDO HERRAMIENTAS KALI...")
+    print("SCAN VERIFICANDO HERRAMIENTAS KALI...")
     errores = []
     
     for herramienta in herramientas:
         if verificar_herramienta(herramienta):
-            print(f"✅ {herramienta}")
+            print(f"OK {herramienta}")
         else:
-            print(f"❌ {herramienta}")
+            print(f"ERROR {herramienta}")
             errores.append(herramienta)
     
     # Verificar estructura de archivos
-    print("\n📁 VERIFICANDO ESTRUCTURA...")
+    print("\nFOLDER VERIFICANDO ESTRUCTURA...")
     archivos_criticos = [
         'main.py',
         'Aresitos/__init__.py',
@@ -605,18 +605,18 @@ def main():
     
     for archivo in archivos_criticos:
         if os.path.exists(archivo):
-            print(f"✅ {archivo}")
+            print(f"OK {archivo}")
         else:
-            print(f"❌ {archivo}")
+            print(f"ERROR {archivo}")
             errores.append(archivo)
     
     # Resultado final
     if errores:
-        print(f"\n❌ VERIFICACIÓN FALLIDA. Errores: {len(errores)}")
+        print(f"\nERROR VERIFICACIÓN FALLIDA. Errores: {len(errores)}")
         print("Ejecutar: sudo ./configurar_kali.sh")
         return False
     else:
-        print("\n✅ SISTEMA VERIFICADO - LISTO PARA USAR")
+        print("\nOK SISTEMA VERIFICADO - LISTO PARA USAR")
         print("Ejecutar: python main.py")
         return True
 
@@ -624,7 +624,7 @@ if __name__ == "__main__":
     main()
 ```
 
-## 🛠️ SOLUCIÓN DE PROBLEMAS
+## TOOLS SOLUCIÓN DE PROBLEMAS
 
 ### Errores Comunes
 
@@ -633,7 +633,7 @@ if __name__ == "__main__":
 # Error típico:
 # Could not get lock /var/lib/dpkg/lock-frontend. It is held by process XXXXX (apt)
 
-# ✅ SOLUCIÓN RECOMENDADA (Método Seguro):
+# OK SOLUCIÓN RECOMENDADA (Método Seguro):
 # 1. Esperar 5-10 minutos (otro proceso puede estar actualizando)
 # 2. Verificar procesos activos:
 sudo ps aux | grep apt
@@ -646,7 +646,7 @@ sudo lsof /var/lib/dpkg/lock
 # 4. Terminar proceso específico (sustituir XXXXX por el PID real):
 sudo kill -9 XXXXX
 
-# ⚠️ MÉTODO DE ÚLTIMO RECURSO (Solo si lo anterior no funciona):
+# WARNING MÉTODO DE ÚLTIMO RECURSO (Solo si lo anterior no funciona):
 sudo rm /var/lib/dpkg/lock-frontend
 sudo rm /var/lib/dpkg/lock
 sudo rm /var/cache/apt/archives/lock
@@ -690,16 +690,16 @@ python -c "import sys; print(sys.version)"
 # Verificar instalación completa
 python -c "
 import sqlite3, threading, subprocess, json, hashlib
-print('✅ Python stdlib OK')
+print('OK Python stdlib OK')
 "
 
 # Verificar herramientas críticas
-nmap --version && echo "✅ nmap OK"
-clamscan --version && echo "✅ clamscan OK"
-inotifywait --help && echo "✅ inotify OK"
+nmap --version && echo "OK nmap OK"
+clamscan --version && echo "OK clamscan OK"
+inotifywait --help && echo "OK inotify OK"
 ```
 
-## 📋 CHECKLIST DE INSTALACIÓN
+## LIST CHECKLIST DE INSTALACIÓN
 
 - [ ] **Kali Linux 2025** instalado y actualizado
 - [ ] **Git** disponible para clonar repositorio
@@ -711,7 +711,7 @@ inotifywait --help && echo "✅ inotify OK"
 - [ ] **Verificar** con `python verificacion_final.py`
 - [ ] **Probar** ejecución con `python main.py`
 
-## 🎯 COMANDOS ESENCIALES
+## TARGET COMANDOS ESENCIALES
 
 ```bash
 # Instalación completa paso a paso
@@ -723,7 +723,7 @@ python verificacion_final.py
 python main.py
 
 # Verificación rápida
-python -c "import Aresitos; print('✅ ARESITOS OK')"
+python -c "import Aresitos; print('OK ARESITOS OK')"
 
 # Debug mode
 python main.py --dev
@@ -732,9 +732,9 @@ python main.py --dev
 tail -f logs/aresitos.log
 ```
 
-## 📋 NOTAS IMPORTANTES DE INSTALACIÓN
+## LIST NOTAS IMPORTANTES DE INSTALACIÓN
 
-### ✅ **Instalación Exitosa - Indicadores**
+### OK **Instalación Exitosa - Indicadores**
 Si la instalación es exitosa, verás estos mensajes:
 ```
 [✓] Todas las herramientas ESENCIALES instaladas correctamente
@@ -744,7 +744,7 @@ COMPLETADO CONFIGURACIÓN COMPLETADA
 [✓] Ares Aegis está configurado para Kali Linux
 ```
 
-### ⚠️ **Advertencias Normales (No son errores)**
+### WARNING **Advertencias Normales (No son errores)**
 Estos mensajes son normales y no impiden el funcionamiento:
 ```
 [WARN] No se pudo instalar rustscan (continuando...)
@@ -804,7 +804,7 @@ cargo install rustscan
 
 ---
 
-**✨ INSTALACIÓN COMPLETADA**  
+**FEATURE INSTALACIÓN COMPLETADA**  
 *Una vez que veas "Iniciando interfaz gráfica..." tu instalación está lista.*
 
 ---

@@ -196,7 +196,7 @@ NOTE FORMATOS SOPORTADOS - WORDLISTS
 • Formato de texto plano
 • Compatible con herramientas estándar
 
-💡 Ejemplo de contenido válido:
+TIP Ejemplo de contenido válido:
 admin
 password
 test123
@@ -211,7 +211,7 @@ NOTE FORMATOS SOPORTADOS - DICCIONARIOS
 • Codificación UTF-8
 • Máximo 50MB
 
-💡 Ejemplo de estructura:
+TIP Ejemplo de estructura:
 {
     "nombre_diccionario": {
         "termino1": "definición1",
@@ -231,7 +231,7 @@ NOTE FORMATOS SOPORTADOS - REPORTES
 • Texto plano con información de reportes
 • Codificación UTF-8
 
-💡 Los reportes contienen información de:
+TIP Los reportes contienen información de:
 • Escaneos de seguridad
 • Resultados de auditorías
 • Análisis de vulnerabilidades

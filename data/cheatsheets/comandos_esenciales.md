@@ -283,7 +283,7 @@ who | wc -l
 echo "Sesiones activas: $(who | wc -l)"
 ```
 
-### **� REFERENCIAS DE COMANDOS**
+### **SYMBOL REFERENCIAS DE COMANDOS**
 
 #### **Comandos de Información del Sistema**
 - `uname -a` - Información del kernel
@@ -335,4 +335,4 @@ echo "Sesiones activas: $(who | wc -l)"
 
 ** NOTA DE SEGURIDAD**: Estos comandos son para uso educativo y pruebas autorizadas únicamente. Siempre obtén permiso explícito antes de realizar pruebas de seguridad en sistemas que no sean de tu propiedad.
 
-**� Ares Aegis** - Sistema de Auditoría de Seguridad para Expertos en Ciberseguridad y Hacking Ético
+**SYMBOL Ares Aegis** - Sistema de Auditoría de Seguridad para Expertos en Ciberseguridad y Hacking Ético

@@ -1315,7 +1315,7 @@ EJEMPLOS:
             if not es_valido:
                 # Mostrar error de seguridad
                 self.terminal_output.insert(tk.END, f"{mensaje}\n")
-                self.terminal_output.insert(tk.END, "💡 Use 'ayuda-comandos' para ver comandos disponibles\n")
+                self.terminal_output.insert(tk.END, "TIP Use 'ayuda-comandos' para ver comandos disponibles\n")
                 self.terminal_output.see(tk.END)
                 self.comando_entry.delete(0, tk.END)
                 return

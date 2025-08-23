@@ -935,7 +935,7 @@ class LoginAresitos:
             
             if herramientas_problematicas:
                 self.escribir_log(f"[WARNING]  Omitiendo herramientas problemáticas: {', '.join(herramientas_problematicas)}")
-                self.escribir_log("💡 Instale manualmente con: sudo apt install <herramienta>")
+                self.escribir_log("TIP Instale manualmente con: sudo apt install <herramienta>")
             
             # Instalar herramientas seguras una por una
             for herramienta in herramientas_seguras[:8]:  # Aumentamos a 8 pero solo seguras
@@ -967,7 +967,7 @@ class LoginAresitos:
                     else:
                         self.escribir_log(f"[FAIL] Error instalando {herramienta}")
                         if "package not found" in result.stderr.lower():
-                            self.escribir_log(f"💡 {herramienta} no disponible en repositorios")
+                            self.escribir_log(f"TIP {herramienta} no disponible en repositorios")
                         elif "timeout" in str(result.stderr).lower():
                             self.escribir_log(f"TIMEOUT: {herramienta} timeout - requiere instalación manual")
                             

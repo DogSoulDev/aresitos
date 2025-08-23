@@ -1016,7 +1016,7 @@ LISTO PARA: Escaneos de vulnerabilidades en entornos Kali Linux 2025
                 self.after(0, self._actualizar_texto, "HERRAMIENTAS DE INSTALACIÓN MANUAL\n")
                 self.after(0, self._actualizar_texto, "="*60 + "\n")
                 for herramienta in herramientas_manuales:
-                    self.after(0, self._actualizar_texto, f"� {herramienta}\n")
+                    self.after(0, self._actualizar_texto, f"SYMBOL {herramienta}\n")
                 self.after(0, self._actualizar_texto, "\nEstas herramientas se pueden instalar manualmente\n")
                 self.after(0, self._actualizar_texto, "para funcionalidades específicas adicionales.\n")
                 self.after(0, self._actualizar_texto, "\nNOTA: Las capacidades avanzadas de la Fase 3 funcionan\n")

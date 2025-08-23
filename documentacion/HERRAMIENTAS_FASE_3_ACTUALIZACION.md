@@ -61,9 +61,9 @@ El sistema verifica **+50 herramientas** específicas para Kali Linux, incluyend
 
 ### Compatibilidad
 
-- ✅ **Kali Linux 2025**: Funcionalidad completa
-- ⚠️ **Otras distribuciones**: Verificación básica
-- ❌ **Windows/macOS**: Solo verificación de Python
+- OK **Kali Linux 2025**: Funcionalidad completa
+- WARNING **Otras distribuciones**: Verificación básica
+- ERROR **Windows/macOS**: Solo verificación de Python
 
 ---
 

@@ -2,7 +2,7 @@
 
 ## ** ANÁLISIS FORENSE CON HERRAMIENTAS NATIVAS**
 
-### **� PRESERVACIÓN DE EVIDENCIA**
+### **SYMBOL PRESERVACIÓN DE EVIDENCIA**
 
 #### **Creación de Imágenes Forenses**
 ```bash
@@ -42,7 +42,7 @@ who > /casos/usuarios_conectados.txt
 last > /casos/historial_conexiones.txt
 ```
 
-### **� ANÁLISIS DE ARCHIVOS**
+### **SYMBOL ANÁLISIS DE ARCHIVOS**
 
 #### **Búsqueda de Archivos Específicos**
 ```bash
@@ -93,7 +93,7 @@ file video.mp4
 strings video.mp4 | head -50
 ```
 
-### **� ANÁLISIS TEMPORAL**
+### **SYMBOL ANÁLISIS TEMPORAL**
 
 #### **Línea de Tiempo de Archivos**
 ```bash
@@ -126,7 +126,7 @@ detect_timestamp_anomalies() {
 }
 ```
 
-### **� ANÁLISIS DE MEMORIA Y PROCESOS**
+### **SYMBOL ANÁLISIS DE MEMORIA Y PROCESOS**
 
 #### **Información de Memoria**
 ```bash
@@ -438,6 +438,6 @@ verify_integrity() {
 
 ---
 
-**⚖ NOTA LEGAL**: Este cheatsheet es para uso forense legal y educativo únicamente. Siempre cumple con las leyes locales y obtén las autorizaciones judiciales necesarias antes de realizar análisis forense.
+**LEGAL NOTA LEGAL**: Este cheatsheet es para uso forense legal y educativo únicamente. Siempre cumple con las leyes locales y obtén las autorizaciones judiciales necesarias antes de realizar análisis forense.
 
 ** Ares Aegis** - Herramientas Forenses para Investigadores de Ciberseguridad

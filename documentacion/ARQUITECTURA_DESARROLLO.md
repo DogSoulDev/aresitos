@@ -118,7 +118,7 @@ paned.pack(fill='both', expand=True)
 - **Gestión Datos**: Operaciones archivos
 ```
 
-## ⚙️ **Capa CONTROLADOR**
+## CONFIG **Capa CONTROLADOR**
 
 ### **Responsabilidades**
 - Coordinación MVC
@@ -135,7 +135,7 @@ controlador_siem_nuevo.py           # Event Management
 controlador_cuarentena.py           # Gestión malware
 ```
 
-## 🔧 **Utilidades Sistema**
+## TOOL **Utilidades Sistema**
 
 ### **Módulos Utils**
 ```python
@@ -145,7 +145,7 @@ verificar_kali.py          # Detección entorno
 configurar.py              # Setup automático
 ```
 
-## 🗄️ **Persistencia Datos**
+## DATA **Persistencia Datos**
 
 ### **Bases Datos SQLite**
 ```sql
@@ -195,7 +195,7 @@ def escaneo_async(self, objetivo):
 - **Events**: Sincronización operaciones
 - **Locks**: Protección recursos compartidos
 
-## 🔒 **Seguridad Implementada**
+## LOCK **Seguridad Implementada**
 
 ### **Validación Entrada**
 ```python
@@ -225,7 +225,7 @@ def ejecutar_comando_seguro(self, comando: List[str]) -> str:
         return "Timeout: Comando tardó más de 30 segundos"
 ```
 
-## 📈 **Optimización Rendimiento**
+## METRICS **Optimización Rendimiento**
 
 ### **Gestión Memoria**
 - **Lazy loading**: Carga módulos bajo demanda
@@ -237,7 +237,7 @@ def ejecutar_comando_seguro(self, comando: List[str]) -> str:
 - **Async operations**: Operaciones no bloqueantes
 - **Connection pooling**: Reutilización conexiones DB
 
-## 🎯 **Flujo Desarrollo**
+## TARGET **Flujo Desarrollo**
 
 ### **1. Inicialización**
 ```python
@@ -272,7 +272,7 @@ controlador.set_modelo(modelo)
 3. **Módulos** → Funcionalidades específicas
 4. **Logs** → Trazabilidad operaciones
 
-## 🔍 **Testing y QA**
+## SCAN **Testing y QA**
 
 ### **Verificación Sintaxis**
 ```bash
@@ -299,7 +299,7 @@ def test_mvc_integration():
     assert resultado['status'] == 'success'
 ```
 
-## 📊 **Métricas Calidad**
+## DATA **Métricas Calidad**
 
 ### **Estructura Código**
 - **Archivos Python**: 50 total
@@ -329,7 +329,7 @@ def test_mvc_integration():
 - Login → Herramientas → App principal
 - Interfaz consistente y profesional
 
-#### 🎮 CONTROLADOR (Coordinación)
+#### CONTROL CONTROLADOR (Coordinación)
 ```python
 Aresitos/controlador/
 ├── controlador_principal_nuevo.py     # Coordinador MVC
@@ -344,7 +344,7 @@ Aresitos/controlador/
 - Threading para UI responsiva
 - Coordinación de herramientas
 
-## 🔧 PATRONES DE DESARROLLO
+## TOOL PATRONES DE DESARROLLO
 
 ### 1. Ejecución de Herramientas
 ```python
@@ -409,7 +409,7 @@ def init_database():
     return conn
 ```
 
-## 🛡️ PRINCIPIOS DE SEGURIDAD
+## SECURE PRINCIPIOS DE SEGURIDAD
 
 ### Criptografía Moderna
 - **Eliminado**: MD5, SHA-1 (vulnerables)
@@ -419,10 +419,10 @@ def init_database():
 
 ### Ejecución Segura
 ```python
-# ❌ NUNCA hacer esto (shell injection)
+# ERROR NUNCA hacer esto (shell injection)
 os.system(f"nmap {target}")
 
-# ✅ Forma segura
+# OK Forma segura
 subprocess.run(['nmap', '-sV', target], capture_output=True)
 ```
 
@@ -438,7 +438,7 @@ def validar_ip(ip):
         return False
 ```
 
-## 📊 COMPONENTES PRINCIPALES
+## DATA COMPONENTES PRINCIPALES
 
 ### EscaneadorKali2025
 ```python
@@ -491,7 +491,7 @@ class CuarentenaKali2025:
         """exiftool + file + hexdump"""
 ```
 
-## 🚀 MEJORAS IMPLEMENTADAS v2.0
+## LAUNCH MEJORAS IMPLEMENTADAS v2.0
 
 ### **🆕 Sistema Terminal Integrado**
 - **48 terminales activos**: Logs en tiempo real por módulo
@@ -515,10 +515,10 @@ class CuarentenaKali2025:
 - **🆕 Buffer terminales**: Gestión eficiente de logs
 
 ### **Calidad de Código v2.0**
-- **✅ 0 errores sintaxis**: Código completamente limpio
-- **✅ 0 duplicaciones**: Textos profesionales
-- **✅ 80+ correcciones**: Calidad mejorada
-- **✅ Tema consistente**: Burp Suite en todo el sistema
+- **OK 0 errores sintaxis**: Código completamente limpio
+- **OK 0 duplicaciones**: Textos profesionales
+- **OK 80+ correcciones**: Calidad mejorada
+- **OK Tema consistente**: Burp Suite en todo el sistema
 
 ### Error Handling Robusto
 ```python
@@ -534,7 +534,7 @@ def operacion_con_recovery(self):
         return self.modo_seguro()
 ```
 
-## 📈 MÉTRICAS DE DESARROLLO
+## METRICS MÉTRICAS DE DESARROLLO
 
 ### Cobertura de Código
 - **Modelos**: 46 archivos (100% funcionales)

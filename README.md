@@ -128,13 +128,13 @@ sudo ./configurar_kali.sh && python3 main.py
 
 ### **Módulos Integrados**
 
-**🎛️ Dashboard Principal**
+**PANEL Dashboard Principal**
 - Monitor de sistema en tiempo real (actualización cada 60s)
 - Métricas de red avanzadas con gráficos dinámicos
 - Status de servicios críticos del sistema
 - Terminal integrado con historial persistente
 
-**🔍 Escaneador Profesional v3.0**
+**SCAN Escaneador Profesional v3.0**
 - **5 Modos de Escaneo**: Integral, Avanzado, Red, Rápido, Profundo
 - **Detección Automática**: Validación y uso inteligente de herramientas
 - **Integración nuclei**: Templates actualizados, detección automática de CVEs
@@ -143,25 +143,25 @@ sudo ./configurar_kali.sh && python3 main.py
 - **Exportación Avanzada**: Reportes JSON/TXT/CSV con análisis detallado
 - **Fallback Inteligente**: Adaptación automática según herramientas instaladas
 
-**🛡️ SIEM (Security Information and Event Management)**
+**SECURE SIEM (Security Information and Event Management)**
 - Monitoreo de 50+ puertos críticos en tiempo real
 - Correlación automática de eventos de seguridad
 - Detección de anomalías comportamentales avanzadas
 - Alertas inteligentes con contexto completo y recomendaciones
 
-**📁 FIM (File Integrity Monitoring)**
+**FOLDER FIM (File Integrity Monitoring)**
 - Vigilancia de 60+ directorios críticos del sistema
 - Detección en tiempo real de modificaciones no autorizadas
 - Checksums SHA256 para verificación de integridad absoluta
 - Alertas inmediatas con detalles de cambios detectados
 
-**🔒 Sistema de Cuarentena Automática**
+**LOCK Sistema de Cuarentena Automática**
 - Detección automática de malware conocido y patrones sospechosos
 - Aislamiento seguro preservando evidencia forense
 - Análisis de comportamiento sospechoso con machine learning
 - Gestión inteligente de falsos positivos
 
-**📊 Generador de Reportes Profesionales**
+**DATA Generador de Reportes Profesionales**
 - Informes ejecutivos y técnicos personalizables
 - Integración completa de datos de todos los módulos
 - Exportación múltiple: JSON, TXT, CSV, PDF
@@ -173,7 +173,7 @@ sudo ./configurar_kali.sh && python3 main.py
 - Diccionarios especializados por sector e industria
 - Cheatsheets integradas de herramientas y técnicas
 
-**⚙️ Auditoría de Sistema Automatizada**
+**CONFIG Auditoría de Sistema Automatizada**
 - Lynis con configuración optimizada para Kali Linux
 - Chkrootkit con heurísticas avanzadas y actualizadas
 - Análisis profundo de configuraciones de seguridad
@@ -181,52 +181,52 @@ sudo ./configurar_kali.sh && python3 main.py
 
 ---
 
-## 🏗️ **Arquitectura Técnica Avanzada**
+## ARCH **Arquitectura Técnica Avanzada**
 
-### 🔧 **Diseño SOLID + MVC v3.0**
+### TOOL **Diseño SOLID + MVC v3.0**
 ```
 ARESITOS v3.0 Professional Security Suite/
-├── 🎨 Vista (UI Layer)          - 13 interfaces especializadas + Escaneador Pro
-├── 🎮 Controlador (Logic)       - 15 módulos + Controlador Escaneador Avanzado
-├── 💾 Modelo (Data)            - 19 módulos + Modelos de Escaneo Profesional
-├── 🔧 Utils (Infrastructure)   - Componentes + Gestión Avanzada de Herramientas
-└── 📊 Data (Intelligence)      - Bases de conocimiento + Templates nuclei
+├── UI Vista (UI Layer)          - 13 interfaces especializadas + Escaneador Pro
+├── CONTROL Controlador (Logic)       - 15 módulos + Controlador Escaneador Avanzado
+├── SAVE Modelo (Data)            - 19 módulos + Modelos de Escaneo Profesional
+├── TOOL Utils (Infrastructure)   - Componentes + Gestión Avanzada de Herramientas
+└── DATA Data (Intelligence)      - Bases de conocimiento + Templates nuclei
 ```
 
-### ✨ **Nuevas Características v3.0**
-- ✅ **Escaneador Modular**: 5 tipos de escaneo especializados y configurables
-- ✅ **Validación Automática**: Detección inteligente de herramientas disponibles
-- ✅ **Fallback System**: Adaptación automática según disponibilidad de tools
-- ✅ **Export Engine**: Sistema avanzado de exportación con múltiples formatos
-- ✅ **Progress Tracking**: Seguimiento detallado en tiempo real de escaneos
-- ✅ **Tool Integration**: Integración nativa optimizada con arsenal Kali 2025
+### FEATURE **Nuevas Características v3.0**
+- OK **Escaneador Modular**: 5 tipos de escaneo especializados y configurables
+- OK **Validación Automática**: Detección inteligente de herramientas disponibles
+- OK **Fallback System**: Adaptación automática según disponibilidad de tools
+- OK **Export Engine**: Sistema avanzado de exportación con múltiples formatos
+- OK **Progress Tracking**: Seguimiento detallado en tiempo real de escaneos
+- OK **Tool Integration**: Integración nativa optimizada con arsenal Kali 2025
 
-### 🎯 **Principios de Diseño Aplicados**
-- ✅ **Single Responsibility**: Cada clase tiene una función específica y bien definida
-- ✅ **Open/Closed**: Totalmente extensible sin modificar código existente
-- ✅ **Liskov Substitution**: Interfaces consistentes y predecibles
-- ✅ **Interface Segregation**: APIs específicas para cada caso de uso
-- ✅ **Dependency Inversion**: Abstracciones sobre implementaciones concretas
+### TARGET **Principios de Diseño Aplicados**
+- OK **Single Responsibility**: Cada clase tiene una función específica y bien definida
+- OK **Open/Closed**: Totalmente extensible sin modificar código existente
+- OK **Liskov Substitution**: Interfaces consistentes y predecibles
+- OK **Interface Segregation**: APIs específicas para cada caso de uso
+- OK **Dependency Inversion**: Abstracciones sobre implementaciones concretas
 
-### 💻 **Especificaciones Técnicas v3.0**
+### SYSTEM **Especificaciones Técnicas v3.0**
 - 🐍 **Python**: 3.9+ con optimizaciones asíncronas para escaneador
-- 💾 **RAM**: 4GB mínimo, 8GB recomendado para escaneos masivos
+- SAVE **RAM**: 4GB mínimo, 8GB recomendado para escaneos masivos
 - 💿 **Almacenamiento**: 1GB para instalación + templates nuclei actualizados
-- 🌐 **Conectividad**: Capacidad offline completa, internet para updates
+- WEB **Conectividad**: Capacidad offline completa, internet para updates
 - 🔐 **Permisos**: CAP_NET_RAW para escaneos SYN, sudo para configuración
-- ⚡ **Concurrencia**: Soporte completo para escaneos paralelos masivos
+- FAST **Concurrencia**: Soporte completo para escaneos paralelos masivos
 
 ### 🔗 **Dependencias del Sistema**
-- ✅ **Librerías Python Nativas**: tkinter, subprocess, threading, json, sqlite3
-- ✅ **Herramientas Kali**: Auto-instalación completa de arsenal de seguridad
-- ✅ **Configuración**: 100% automatizada vía configurar_kali.sh
-- ❌ **Dependencias Externas**: Zero external pip packages requeridos
+- OK **Librerías Python Nativas**: tkinter, subprocess, threading, json, sqlite3
+- OK **Herramientas Kali**: Auto-instalación completa de arsenal de seguridad
+- OK **Configuración**: 100% automatizada vía configurar_kali.sh
+- ERROR **Dependencias Externas**: Zero external pip packages requeridos
 
 ---
 
-## 📋 **Comandos Esenciales**
+## LIST **Comandos Esenciales**
 
-### 🔍 **Verificación y Diagnóstico**
+### SCAN **Verificación y Diagnóstico**
 ```bash
 # Verificación completa del sistema + escaneador
 python3 verificacion_final.py
@@ -238,7 +238,7 @@ python3 main.py --verify
 sudo ./configurar_kali.sh --diagnostico
 ```
 
-### 🛠️ **Configuración y Mantenimiento**
+### TOOLS **Configuración y Mantenimiento**
 ```bash
 # Actualizar configuración + herramientas del escaneador
 sudo ./configurar_kali.sh --update
@@ -267,74 +267,74 @@ python3 main.py --dev --verbose --debug-all
 ## 📞 **Soporte y Comunidad**
 
 ### 📖 **Documentación Técnica Completa**
-- 📚 **Manual Técnico**: `/documentacion/DOCUMENTACION_TECNICA_CONSOLIDADA.md`
-- 🏗️ **Guía de Desarrollo**: `/documentacion/ARQUITECTURA_DESARROLLO.md`
-- 🛡️ **Auditoría de Seguridad**: `/documentacion/AUDITORIA_SEGURIDAD_ARESITOS.md`
-- 💻 **Terminal Integrado**: `/documentacion/TERMINAL_INTEGRADO.md`
-- 🔧 **Guía de Instalación**: `/documentacion/GUIA_INSTALACION.md`
+- DOCS **Manual Técnico**: `/documentacion/DOCUMENTACION_TECNICA_CONSOLIDADA.md`
+- ARCH **Guía de Desarrollo**: `/documentacion/ARQUITECTURA_DESARROLLO.md`
+- SECURE **Auditoría de Seguridad**: `/documentacion/AUDITORIA_SEGURIDAD_ARESITOS.md`
+- SYSTEM **Terminal Integrado**: `/documentacion/TERMINAL_INTEGRADO.md`
+- TOOL **Guía de Instalación**: `/documentacion/GUIA_INSTALACION.md`
 
-### 🤝 **Contacto y Contribución**
-- 🌐 **Repositorio Oficial**: https://github.com/DogSoulDev/Aresitos
-- 🐛 **Reportar Issues**: GitHub Issues con templates predefinidos
-- 💬 **Discusiones**: GitHub Discussions para preguntas generales
-- 💌 **Email de Desarrollo**: dogsouldev@protonmail.com
-- 🔗 **LinkedIn Profesional**: [DogSoulDev](https://linkedin.com/in/dogsouldev)
+### CONTACT **Contacto y Contribución**
+- WEB **Repositorio Oficial**: https://github.com/DogSoulDev/Aresitos
+- BUG **Reportar Issues**: GitHub Issues con templates predefinidos
+- CHAT **Discusiones**: GitHub Discussions para preguntas generales
+- EMAIL **Email de Desarrollo**: dogsouldev@protonmail.com
+- LINK **LinkedIn Profesional**: [DogSoulDev](https://linkedin.com/in/dogsouldev)
 
-### 🎓 **Recursos de Aprendizaje**
-- 📺 **Video Tutoriales**: Canal oficial de YouTube (próximamente)
-- 📖 **Guías de Uso**: Wiki completa en GitHub
-- 🛠️ **Ejemplos Prácticos**: Repositorio de casos de uso
-- 👥 **Comunidad**: Servidor Discord para soporte en tiempo real
+### LEARN **Recursos de Aprendizaje**
+- VIDEO **Video Tutoriales**: Canal oficial de YouTube (próximamente)
+- GUIDE **Guías de Uso**: Wiki completa en GitHub
+- TOOLS **Ejemplos Prácticos**: Repositorio de casos de uso
+- GROUP **Comunidad**: Servidor Discord para soporte en tiempo real
 
 ---
 
 ## 📜 **Licencia y Uso Ético**
 
-### 🏛️ **Open Source Non-Commercial License**
+### BUILD **Open Source Non-Commercial License**
 
-#### ✅ **Uso Permitido (Completamente Gratuito)**
-- 🎓 **Educación**: Universidades, estudiantes, investigación académica
-- 🛡️ **Seguridad Personal**: Testing en sistemas propios o con autorización explícita
-- 🌐 **Proyectos Open Source**: Sin monetización directa o indirecta
-- 📚 **Aprendizaje y Capacitación**: Cursos, talleres, seminarios sin fines de lucro
-- 🤝 **Comunidad**: Compartir conocimientos, mejoras y contribuciones
+#### OK **Uso Permitido (Completamente Gratuito)**
+- LEARN **Educación**: Universidades, estudiantes, investigación académica
+- SECURE **Seguridad Personal**: Testing en sistemas propios o con autorización explícita
+- WEB **Proyectos Open Source**: Sin monetización directa o indirecta
+- LEARN **Aprendizaje y Capacitación**: Cursos, talleres, seminarios sin fines de lucro
+- SHARE **Comunidad**: Compartir conocimientos, mejoras y contribuciones
 
-#### ❌ **Uso Estrictamente Prohibido**
-- 💰 **Venta Directa**: No se puede vender ARESITOS o sus derivados
-- 🏢 **Consultoría Comercial**: No usar para servicios de pentesting pagos
-- 📦 **Productos Comerciales**: No incorporar en software comercial sin autorización
-- 💳 **Monetización**: Cursos pagos, suscripciones, licencias comerciales
-- 🏪 **Servicios Managed**: No ofrecer como SaaS o servicios gestionados
+#### ERROR **Uso Estrictamente Prohibido**
+- MONEY **Venta Directa**: No se puede vender ARESITOS o sus derivados
+- BUSINESS **Consultoría Comercial**: No usar para servicios de pentesting pagos
+- PACKAGE **Productos Comerciales**: No incorporar en software comercial sin autorización
+- CREDIT **Monetización**: Cursos pagos, suscripciones, licencias comerciales
+- SHOP **Servicios Managed**: No ofrecer como SaaS o servicios gestionados
 
-#### 📋 **Atribución Obligatoria**
+#### LIST **Atribución Obligatoria**
 **TODO uso debe incluir claramente:**
-- 👨‍💻 **Creador Original**: DogSoulDev
-- 📧 **Contacto**: dogsouldev@protonmail.com
-- 🔗 **Repositorio Fuente**: https://github.com/DogSoulDev/Aresitos
-- 📄 **Tipo de Licencia**: Open Source Non-Commercial License
+- CREATOR **Creador Original**: DogSoulDev
+- EMAIL **Contacto**: dogsouldev@protonmail.com
+- LINK **Repositorio Fuente**: https://github.com/DogSoulDev/Aresitos
+- LICENSE **Tipo de Licencia**: Open Source Non-Commercial License
 
-### 🛡️ **Código de Ética Profesional**
+### SECURE **Código de Ética Profesional**
 
-#### ✅ **Uso Responsable y Legal**
-- 🎯 **Solo Sistemas Autorizados**: Con permiso explícito y documentado por escrito
-- 🔒 **Propósitos Constructivos**: Exclusivamente para mejorar la seguridad
-- 📢 **Divulgación Responsable**: Reportar vulnerabilidades de forma ética
-- 📚 **Educación y Aprendizaje**: Fomentar el conocimiento en ciberseguridad
-- 🤝 **Colaboración Comunitaria**: Contribuir al bien común de la seguridad
+#### OK **Uso Responsable y Legal**
+- TARGET **Solo Sistemas Autorizados**: Con permiso explícito y documentado por escrito
+- LOCK **Propósitos Constructivos**: Exclusivamente para mejorar la seguridad
+- ANNOUNCE **Divulgación Responsable**: Reportar vulnerabilidades de forma ética
+- LEARN **Educación y Aprendizaje**: Fomentar el conocimiento en ciberseguridad
+- SHARE **Colaboración Comunitaria**: Contribuir al bien común de la seguridad
 
-#### ❌ **Actividades Estrictamente Prohibidas**
-- 🚫 **Hacking Malicioso**: Cualquier actividad ilegal o no autorizada
-- 💣 **Daño Intencional**: No usar para comprometer o dañar sistemas
-- 🕵️ **Espionaje No Autorizado**: Respeto absoluto a la privacidad
-- 💰 **Beneficio Ilícito**: No usar para actividades fraudulentas
-- 🎭 **Violación de Términos**: Respeto a las políticas de uso de servicios
+#### ERROR **Actividades Estrictamente Prohibidas**
+- STOP **Hacking Malicioso**: Cualquier actividad ilegal o no autorizada
+- BOMB **Daño Intencional**: No usar para comprometer o dañar sistemas
+- DETECT **Espionaje No Autorizado**: Respeto absoluto a la privacidad
+- MONEY **Beneficio Ilícito**: No usar para actividades fraudulentas
+- MASK **Violación de Términos**: Respeto a las políticas de uso de servicios
 
-### ⚖️ **Responsabilidad Legal**
+### LEGAL **Responsabilidad Legal**
 El uso de ARESITOS implica la aceptación completa de esta licencia y código ético. El usuario es completamente responsable del cumplimiento de las leyes locales, nacionales e internacionales aplicables. Los desarrolladores no se hacen responsables del uso indebido de esta herramienta.
 
 ---
 
-## 🐕 **Dedicatoria Especial**
+## DOG **Dedicatoria Especial**
 
 ### En Memoria de Ares
 *25 de Abril 2013 - 5 de Agosto 2025*

@@ -274,7 +274,7 @@ class VistaEscaneo(tk.Frame):
             if not es_valido:
                 # Mostrar error de seguridad
                 self._actualizar_terminal_seguro(f"{mensaje}\n")
-                self._actualizar_terminal_seguro("💡 Use 'ayuda-comandos' para ver comandos disponibles\n")
+                self._actualizar_terminal_seguro("TIP Use 'ayuda-comandos' para ver comandos disponibles\n")
                 self.comando_entry.delete(0, tk.END)
                 return
             

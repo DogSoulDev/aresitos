@@ -1,19 +1,19 @@
 # ARESITOS - RESUMEN DE SANITIZACIÓN DE ARCHIVOS
 # =============================================
 
-## 🛡️ IMPLEMENTACIÓN DE SEGURIDAD COMPLETADA
+## SECURE IMPLEMENTACIÓN DE SEGURIDAD COMPLETADA
 
-### ✅ ARCHIVOS CREADOS:
+### OK ARCHIVOS CREADOS:
 1. `Aresitos/utils/sanitizador_archivos.py` - Módulo principal de sanitización
 2. `Aresitos/utils/helper_seguridad.py` - Helper para interfaces de usuario
 3. `logs/.gitkeep` - Asegurar directorio logs en repositorio
 
-### ✅ FUNCIONES SANITIZADAS:
+### OK FUNCIONES SANITIZADAS:
 
 #### Vista Gestión de Datos (`vista_gestion_datos.py`):
 - `cargar_archivo()` - Carga de wordlists y diccionarios
 - `mostrar_ayuda_formatos()` - Ayuda sobre formatos permitidos
-- ➕ Botón "🛡️ Formatos" agregado
+- ➕ Botón "SECURE Formatos" agregado
 
 #### Vista Reportes (`vista_reportes.py`):
 - `cargar_reporte()` - Carga de reportes JSON/TXT
@@ -22,7 +22,7 @@
 #### Vista Monitoreo (`vista_monitoreo.py`):
 - `agregar_a_cuarentena()` - Cuarentena de archivos sospechosos
 
-### 🔒 CAPAS DE SEGURIDAD IMPLEMENTADAS:
+### LOCK CAPAS DE SEGURIDAD IMPLEMENTADAS:
 
 #### 1. VALIDACIÓN DE EXTENSIONES:
 - Wordlists: `.txt`, `.list`, `.dic`
@@ -66,7 +66,7 @@
 - Enfoque en seguridad de nombres y rutas
 - Advertencias especiales al usuario
 
-### 🛡️ INTERFACES DE USUARIO:
+### SECURE INTERFACES DE USUARIO:
 
 #### Diálogos de Seguridad:
 - Información previa a carga de archivos
@@ -80,7 +80,7 @@
 - `WARNING` - Advertencias de seguridad
 - `CANCEL` - Operación cancelada por usuario
 
-### 📋 FORMATOS RECHAZADOS:
+### LIST FORMATOS RECHAZADOS:
 - Archivos ejecutables (.exe, .bat, .sh no válidos)
 - Scripts maliciosos (.vbs, .ps1, .js no válidos)
 - Archivos con rutas peligrosas
@@ -96,7 +96,7 @@
 6. Validar contenido según tipo
 7. Mostrar resultado y permitir/denegar carga
 
-## ✅ RESULTADO:
+## OK RESULTADO:
 **ARESITOS AHORA ES SEGURO CONTRA ATAQUES DE ARCHIVOS MALICIOSOS**
 
 Todas las funciones de carga de archivos han sido sanitizadas con múltiples capas de seguridad, siguiendo principios de seguridad defensiva y validación estricta.

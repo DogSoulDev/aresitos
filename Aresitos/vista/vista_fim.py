@@ -256,7 +256,7 @@ class VistaFIM(tk.Frame):
             if not es_valido:
                 # Mostrar error de seguridad
                 self.terminal_output.insert(tk.END, f"{mensaje}\n")
-                self.terminal_output.insert(tk.END, "💡 Use 'ayuda-comandos' para ver comandos disponibles\n")
+                self.terminal_output.insert(tk.END, "TIP Use 'ayuda-comandos' para ver comandos disponibles\n")
                 self.terminal_output.see(tk.END)
                 self.comando_entry.delete(0, tk.END)
                 return
@@ -1931,7 +1931,7 @@ class VistaFIM(tk.Frame):
     def analisis_forense_archivos(self):
         """Análisis forense detallado de archivos críticos."""
         try:
-            self._actualizar_texto_fim("🔬 INICIANDO ANÁLISIS FORENSE DE ARCHIVOS\n")
+            self._actualizar_texto_fim("FORENSIC INICIANDO ANÁLISIS FORENSE DE ARCHIVOS\n")
             self._actualizar_texto_fim("=" * 70 + "\n")
             
             # Verificar que estamos en Linux
@@ -2214,7 +2214,7 @@ class VistaFIM(tk.Frame):
                             pass
                 else:
                     self._actualizar_texto_fim("  ❓ debsums no disponible\n")
-                    self._actualizar_texto_fim("  💡 Para instalar: apt-get install debsums\n")
+                    self._actualizar_texto_fim("  TIP Para instalar: apt-get install debsums\n")
                     
             except:
                 pass

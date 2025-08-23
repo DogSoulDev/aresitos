@@ -2523,7 +2523,7 @@ class VistaSIEM(tk.Frame):
         """Usar Binwalk para análisis de firmware."""
         def ejecutar():
             try:
-                self.after(0, self._actualizar_texto_forense, "🔬 BINWALK - Análisis de Firmware\n")
+                self.after(0, self._actualizar_texto_forense, "FORENSIC BINWALK - Análisis de Firmware\n")
                 self.after(0, self._actualizar_texto_forense, "="*50 + "\n")
                 
                 import subprocess

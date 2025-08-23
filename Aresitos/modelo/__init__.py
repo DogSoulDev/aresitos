@@ -1,29 +1,19 @@
 # -*- coding: utf-8 -*-
 """
-Módulo de modelos de Ares Aegis
-Incluye el sistema de escaneo modularizado
+ARESITOS V3 - Módulo de Modelos de Datos
+Sistema de escaneo modularizado y arquitectura MVC profesional
+Autor: DogSoulDev
 """
 
-# Importar clases principales del escáner
-from .modelo_escaneador import (
-    Escaneador, 
-    EscaneadorBase, 
-    EscaneadorAvanzado,
-    SecurityError,
-    TipoEscaneo,
-    NivelCriticidad,
-    crear_escaneador
-)
-
-# Importar EscaneadorKali2025 si está disponible
+# Importaciones principales del sistema de escaneo
 try:
-    from .modelo_escaneador_kali2025 import EscaneadorKali2025
-    KALI2025_ESCANEADOR_DISPONIBLE = True
+    from .modelo_escaneador import EscaneadorCompleto
+    ESCANEADOR_DISPONIBLE = True
 except ImportError:
-    EscaneadorKali2025 = None
-    KALI2025_ESCANEADOR_DISPONIBLE = False
+    EscaneadorCompleto = None
+    ESCANEADOR_DISPONIBLE = False
 
-# Importar otros modelos principales (usando las clases que realmente existen)
+# Importar modelo SIEM
 try:
     from .modelo_siem import SIEMKali2025
     SIEM_DISPONIBLE = True
@@ -31,26 +21,44 @@ except ImportError:
     SIEMKali2025 = None
     SIEM_DISPONIBLE = False
 
+# Importar modelo FIM
 try:
-    from .modelo_fim import FIMKali2025
+    from .modelo_fim_kali2025 import FIMKali2025
     FIM_DISPONIBLE = True
 except ImportError:
     FIMKali2025 = None
     FIM_DISPONIBLE = False
 
-__all__ = [
-    'Escaneador',
-    'EscaneadorBase', 
-    'EscaneadorAvanzado',
-    'SecurityError',
-    'TipoEscaneo',
-    'NivelCriticidad',
-    'crear_escaneador'
-]
+# Importar modelo Dashboard
+try:
+    from .modelo_dashboard import ModeloDashboard
+    DASHBOARD_DISPONIBLE = True
+except ImportError:
+    ModeloDashboard = None
+    DASHBOARD_DISPONIBLE = False
+
+# Importar modelo de reportes
+try:
+    from .modelo_reportes import ModeloReportes
+    REPORTES_DISPONIBLE = True
+except ImportError:
+    ModeloReportes = None
+    REPORTES_DISPONIBLE = False
+
+# Importar modelo principal
+try:
+    from .modelo_principal import ModeloPrincipal
+    PRINCIPAL_DISPONIBLE = True
+except ImportError:
+    ModeloPrincipal = None
+    PRINCIPAL_DISPONIBLE = False
+
+# Lista base de exportaciones
+__all__ = []
 
 # Añadir clases disponibles dinámicamente
-if KALI2025_ESCANEADOR_DISPONIBLE:
-    __all__.append('EscaneadorKali2025')
+if ESCANEADOR_DISPONIBLE:
+    __all__.append('EscaneadorCompleto')
 
 if SIEM_DISPONIBLE:
     __all__.append('SIEMKali2025')
@@ -58,4 +66,16 @@ if SIEM_DISPONIBLE:
 if FIM_DISPONIBLE:
     __all__.append('FIMKali2025')
 
+if DASHBOARD_DISPONIBLE:
+    __all__.append('ModeloDashboard')
+
+if REPORTES_DISPONIBLE:
+    __all__.append('ModeloReportes')
+
+if PRINCIPAL_DISPONIBLE:
+    __all__.append('ModeloPrincipal')
+
+# Información del módulo
 __version__ = "3.0.0"
+__author__ = "DogSoulDev"
+__description__ = "ARESITOS V3 - Modelos de datos para ciberseguridad profesional"

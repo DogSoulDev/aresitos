@@ -823,7 +823,7 @@ class VistaDashboard(tk.Frame):
                     else:
                         # Líneas con formato especial (código, ejemplos)
                         if linea.strip():
-                            self.escribir_terminal(f"💡 {linea}", "[EJEMPLO]")
+                            self.escribir_terminal(f"TIP {linea}", "[EJEMPLO]")
                         else:
                             self.escribir_terminal("", "[CHEATSHEETS]")
                 
@@ -891,7 +891,7 @@ class VistaDashboard(tk.Frame):
                 self.escribir_terminal(f"{i:2d}. {extension} {nombre_sin_ext}", "[LISTA]")
             
             # Pedir entrada al usuario
-            self.escribir_terminal("\n💡 OPCIONES DE BÚSQUEDA:", "[HELP]")
+            self.escribir_terminal("\nTIP OPCIONES DE BÚSQUEDA:", "[HELP]")
             self.escribir_terminal("• Escriba el número (ej: 1, 2, 3...)", "[HELP]")
             self.escribir_terminal("• Escriba parte del nombre (ej: nmap, metasploit)", "[HELP]")
             self.escribir_terminal("• Escriba palabras clave (ej: network, sql, linux)", "[HELP]")
@@ -937,7 +937,7 @@ class VistaDashboard(tk.Frame):
                 self.escribir_terminal(f"[SCAN] Encontradas {len(coincidencias)} coincidencias:", "[CHEATSHEETS]")
                 for i, cs in enumerate(coincidencias, 1):
                     self.escribir_terminal(f"  {i}. {cs}", "[LISTA]")
-                self.escribir_terminal("💡 Sea más específico en la búsqueda", "[HELP]")
+                self.escribir_terminal("TIP Sea más específico en la búsqueda", "[HELP]")
             else:
                 # Búsqueda en contenido
                 self.escribir_terminal(f"[SCAN] Buscando '{busqueda}' en contenido de archivos...", "[CHEATSHEETS]")
@@ -963,7 +963,7 @@ class VistaDashboard(tk.Frame):
                         self.mostrar_cheatsheet(archivos_con_contenido[0])
                 else:
                     self.escribir_terminal(f"[FAIL] No se encontró '{busqueda}' en ningún cheatsheet", "[ERROR]")
-                    self.escribir_terminal("💡 Intente con: nmap, metasploit, burp, sql, linux, windows", "[HELP]")
+                    self.escribir_terminal("TIP Intente con: nmap, metasploit, burp, sql, linux, windows", "[HELP]")
                     
         except Exception as e:
             self.escribir_terminal(f"ERROR en búsqueda: {str(e)}", "[ERROR]")

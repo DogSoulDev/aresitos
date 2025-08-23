@@ -4,23 +4,23 @@ Esta carpeta contiene la documentación técnica completa de **Aresitos - Herram
 
 ## Archivos Principales
 
-### � Manual Técnico
+### SYMBOL Manual Técnico
 - **DOCUMENTACION_TECNICA_CONSOLIDADA.md**: Manual técnico completo con todas las funcionalidades
 
-### 🏗️ Desarrollo  
+### ARCH Desarrollo  
 - **ARQUITECTURA_DESARROLLO.md**: Guía de arquitectura y desarrollo del sistema
 - **REVISION_MVC_ARESITOS.md**: Análisis de la arquitectura MVC implementada
 
-### 🛡️ Seguridad
+### SECURE Seguridad
 - **AUDITORIA_SEGURIDAD_ARESITOS.md**: Auditoría de seguridad y análisis de vulnerabilidades
 
-### � Instalación
+### SYMBOL Instalación
 - **GUIA_INSTALACION.md**: Instrucciones detalladas de instalación y configuración
 
-### 💻 Terminal
+### SYSTEM Terminal
 - **TERMINAL_INTEGRADO.md**: Documentación del terminal integrado y comandos
 
-### � Configuración
+### SYMBOL Configuración
 - **SANITIZACION_ARCHIVOS.md**: Proceso de sanitización y limpieza de archivos
 
 ## Información General

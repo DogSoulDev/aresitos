@@ -1,44 +1,44 @@
-# 🖥️ TERMINAL INTEGRADO DE ARESITOS
+# TERMINAL **TERMINAL INTEGRADO DE ARESITOS**
 
-## 📋 Descripción General
+## LIST Descripción General
 
 ARESITOS ahora incluye un **Terminal Integrado** en el Dashboard que captura y muestra en tiempo real toda la información de logs, escaneos, monitoreo, auditoría, FIM, SIEM y reportes directamente en la interfaz gráfica.
 
-## 🚀 Características Principales
+## LAUNCH Características Principales
 
-### ✅ Captura de Logs en Tiempo Real
+### OK Captura de Logs en Tiempo Real
 - Todos los logs de los módulos de ARESITOS se muestran automáticamente
 - Información de escaneos, monitoreo, auditoría, etc.
 - Timestamps precisos con emojis identificativos
 
-### 🎮 Controles del Terminal
+### CONTROL Controles del Terminal
 - **🔴 ACTIVAR CAPTURA LOGS**: Activa/desactiva la captura automática de logs
 - **🧹 LIMPIAR**: Limpia el contenido del terminal
-- **🖥️ TERMINAL KALI**: Abre un terminal externo de Kali Linux
+- **TERMINAL TERMINAL**: Abre un terminal externo de Kali Linux
 
-### ⚡ Comandos Rápidos
+### FAST Comandos Rápidos
 Botones predefinidos para comandos frecuentes de ciberseguridad:
-- 🌐 **Conexiones**: `netstat -tuln`
-- ⚙️ **Procesos**: `ps aux | head -20`
+- WEB **Conexiones**: `netstat -tuln`
+- CONFIG **Procesos**: `ps aux | head -20`
 - 🔗 **Red**: `ifconfig`
-- 🔍 **Nmap**: `nmap --version`
-- 💾 **Disco**: `df -h`
-- 🧠 **Memoria**: `free -h`
+- SCAN **Nmap**: `nmap --version`
+- SAVE **Disco**: `df -h`
+- MEMORY **Memoria**: `free -h`
 - 👤 **Usuario**: `whoami`
-- ℹ️ **Sistema**: `uname -a`
+- INFO **Sistema**: `uname -a`
 - 🔌 **Sockets**: `ss -tuln`
 
-### 💻 Línea de Comandos Personalizada
+### SYSTEM Línea de Comandos Personalizada
 - Campo de entrada para ejecutar comandos personalizados
-- Presiona **Enter** o **▶️ Ejecutar** para ejecutar
+- Presiona **Enter** o **START Ejecutar** para ejecutar
 - Salida formateada con análisis automático
 
-## 📝 Uso del Terminal Integrado
+## NOTE Uso del Terminal Integrado
 
 ### 1. Acceso al Terminal
 1. Abre ARESITOS
 2. Ve al **Dashboard**
-3. Selecciona la pestaña **🖥️ Terminal ARESITOS**
+3. Selecciona la pestaña **TERMINAL Terminal ARESITOS**
 
 ### 2. Activar Captura de Logs
 1. Presiona **🔴 ACTIVAR CAPTURA LOGS**
@@ -50,9 +50,9 @@ Botones predefinidos para comandos frecuentes de ciberseguridad:
 2. Presiona **Escanear Sistema**
 3. **¡NOVEDAD!** Verás los logs en tiempo real en el terminal:
    ```
-   [11:32:14] 🚀 [ESCANEADOR] Iniciando escaneo del sistema
-   [11:32:15] 🔍 [ESCANEADOR] Verificando herramientas de escaneo
-   [11:32:16] ✅ [ESCANEADOR] Escaneo completado exitosamente
+   [11:32:14] LAUNCH [ESCANEADOR] Iniciando escaneo del sistema
+   [11:32:15] SCAN [ESCANEADOR] Verificando herramientas de escaneo
+   [11:32:16] OK [ESCANEADOR] Escaneo completado exitosamente
    ```
 
 ### 4. Monitoreo en Tiempo Real
@@ -62,39 +62,39 @@ Botones predefinidos para comandos frecuentes de ciberseguridad:
 - **SIEM**: Eventos de seguridad detectados
 - **Reportes**: Generación de reportes en vivo
 
-## 🔧 Funcionalidades Técnicas
+## TOOL Funcionalidades Técnicas
 
 ### Sistema de Logging Centralizado
 ```python
 # Los módulos ahora registran actividad automáticamente:
-self._log_terminal("🚀 Iniciando escaneo del sistema", "ESCANEADOR", "INFO")
-self._log_terminal("✅ Operación completada", "MONITOREO", "SUCCESS")
-self._log_terminal("⚠️ Advertencia detectada", "FIM", "WARNING")
-self._log_terminal("❌ Error en proceso", "SIEM", "ERROR")
+self._log_terminal("LAUNCH Iniciando escaneo del sistema", "ESCANEADOR", "INFO")
+self._log_terminal("OK Operación completada", "MONITOREO", "SUCCESS")
+self._log_terminal("WARNING Advertencia detectada", "FIM", "WARNING")
+self._log_terminal("ERROR Error en proceso", "SIEM", "ERROR")
 ```
 
 ### Tipos de Mensajes
-- **INFO** ℹ️: Información general
-- **SUCCESS** ✅: Operaciones exitosas
-- **WARNING** ⚠️: Advertencias
-- **ERROR** ❌: Errores
-- **DEBUG** 🔍: Información de depuración
+- **INFO** INFO: Información general
+- **SUCCESS** OK: Operaciones exitosas
+- **WARNING** WARNING: Advertencias
+- **ERROR** ERROR: Errores
+- **DEBUG** SCAN: Información de depuración
 
 ### Redirección de Stdout/Stderr
 - Captura automática de `print()` y errores
 - Preserva la funcionalidad original
 - Thread-safe para múltiples operaciones
 
-## 🎯 Casos de Uso
+## TARGET Casos de Uso
 
 ### 1. Debugging y Monitoreo
 ```
-[14:30:15] 🚀 [ESCANEADOR] Iniciando escaneo del sistema
-[14:30:16] 🔍 [ESCANEADOR] Verificando herramientas de escaneo
-[14:30:17] ✅ [ESCANEADOR] Escaneo completado exitosamente
-[14:30:20] 🔍 [MONITOREO] Verificando servicios de red
-[14:30:22] ⚠️ [FIM] Archivo modificado: /etc/passwd
-[14:30:25] ❌ [SIEM] Evento de seguridad detectado
+[14:30:15] LAUNCH [ESCANEADOR] Iniciando escaneo del sistema
+[14:30:16] SCAN [ESCANEADOR] Verificando herramientas de escaneo
+[14:30:17] OK [ESCANEADOR] Escaneo completado exitosamente
+[14:30:20] SCAN [MONITOREO] Verificando servicios de red
+[14:30:22] WARNING [FIM] Archivo modificado: /etc/passwd
+[14:30:25] ERROR [SIEM] Evento de seguridad detectado
 ```
 
 ### 2. Auditoría Completa
@@ -107,7 +107,7 @@ self._log_terminal("❌ Error en proceso", "SIEM", "ERROR")
 - Contexto completo de operaciones fallidas
 - Recomendaciones de solución automáticas
 
-## 🛠️ Comandos Avanzados
+## TOOLS Comandos Avanzados
 
 ### Análisis de Red
 ```bash
@@ -157,9 +157,9 @@ sudo lsof -i :80                  # HTTP connections
 - Logs de configuración
 - Historial de cambios
 
-## 📊 Ventajas del Terminal Integrado
+## DATA Ventajas del Terminal Integrado
 
-### ✅ Ventajas
+### OK Ventajas
 1. **Visibilidad Completa**: Todo en un solo lugar
 2. **Tiempo Real**: Información instantánea
 3. **Contexto Unificado**: Logs correlacionados
@@ -167,21 +167,21 @@ sudo lsof -i :80                  # HTTP connections
 5. **Persistencia**: Historial completo de sesión
 6. **Thread-Safe**: Múltiples operaciones simultáneas
 
-### 🎯 Comparación: Antes vs Ahora
+### TARGET Comparación: Antes vs Ahora
 
-#### ❌ ANTES
+#### ERROR ANTES
 - Logs dispersos en terminal externo
 - Información invisible para el usuario
 - Sin correlación entre módulos
 - Debugging complejo
 
-#### ✅ AHORA
+#### OK AHORA
 - Terminal integrado centralizado
 - Logs visibles en tiempo real
 - Contexto completo de operaciones
 - Debugging simplificado
 
-## 🚀 Próximas Mejoras
+## LAUNCH Próximas Mejoras
 
 1. **Filtros de Logs**: Por módulo, nivel, tiempo
 2. **Exportar Logs**: Guardar sesiones completas
@@ -191,12 +191,12 @@ sudo lsof -i :80                  # HTTP connections
 
 ---
 
-## 💡 Tip de Uso
+## TIP **Tip de Uso**
 
 **¡Activa la captura de logs antes de usar cualquier módulo de ARESITOS para ver toda la información en tiempo real!**
 
 El Terminal Integrado es especialmente útil para:
-- 🔍 **Troubleshooting**: Ver exactamente qué está pasando
-- 📊 **Monitoring**: Seguimiento continuo de operaciones
-- 🔒 **Security**: Detectar actividades sospechosas
-- 📝 **Auditing**: Registro completo de actividades
+- SCAN **Troubleshooting**: Ver exactamente qué está pasando
+- DATA **Monitoring**: Seguimiento continuo de operaciones
+- LOCK **Security**: Detectar actividades sospechosas
+- NOTE **Auditing**: Registro completo de actividades

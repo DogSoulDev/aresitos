@@ -257,7 +257,7 @@ http://169.254.169.254/latest/meta-data/
 http://metadata.google.internal/computeMetadata/v1/
 ```
 
-## **� HERRAMIENTAS DE DETECCIÓN NATIVAS**
+## **SYMBOL HERRAMIENTAS DE DETECCIÓN NATIVAS**
 
 ### **Curl para Web Testing**
 ```bash

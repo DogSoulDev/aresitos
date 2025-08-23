@@ -169,9 +169,9 @@ An attacker can craft a payload where the result of the `md5($password,true)` fu
 
 | Hash | Input    | Output (Raw)            |  Payload  |
 | ---- | -------- | ----------------------- | --------- |
-| md5  | ffifdyop | `'or'6�]��!r,��b`       | `'or'`    |
+| md5  | ffifdyop | `'or'6SYMBOL]SYMBOLSYMBOL!r,SYMBOLSYMBOLb`       | `'or'`    |
 | md5  | 129581926211651571912466741651878684928 | `ÚT0Do#ßÁ'or'8` | `'or'` |
-| sha1 | 3fDf     | `Q�u'='�@�[�t�- o��_-!` | `'='`     |
+| sha1 | 3fDf     | `QSYMBOLu'='SYMBOL@SYMBOL[SYMBOLtSYMBOL- oSYMBOLSYMBOL_-!` | `'='`     |
 | sha1 | 178374   | `ÜÛ¾}_ia!8Wm'/*´Õ`      | `'/*`     |
 | sha1 | 17       | `Ùp2ûjww%6\`            | `\`       |
 
@@ -179,7 +179,7 @@ This behavior can be abused to bypass the authentication by escaping the context
 
 ```php
 sql1 = "SELECT * FROM admin WHERE pass = '".md5("ffifdyop", true)."'";
-sql1 = "SELECT * FROM admin WHERE pass = ''or'6�]��!r,��b'";
+sql1 = "SELECT * FROM admin WHERE pass = ''or'6SYMBOL]SYMBOLSYMBOL!r,SYMBOLSYMBOLb'";
 ```
 
 ## UNION Based Injection

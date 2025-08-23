@@ -261,7 +261,7 @@ class VistaAuditoria(tk.Frame):
             if not es_valido:
                 # Mostrar error de seguridad
                 self.terminal_output.insert(tk.END, f"{mensaje}\n")
-                self.terminal_output.insert(tk.END, "💡 Use 'ayuda-comandos' para ver comandos disponibles\n")
+                self.terminal_output.insert(tk.END, "TIP Use 'ayuda-comandos' para ver comandos disponibles\n")
                 self.terminal_output.see(tk.END)
                 self.comando_entry.delete(0, tk.END)
                 return
@@ -559,7 +559,7 @@ class VistaAuditoria(tk.Frame):
                                         lineas_importantes.append(f"WARNING {linea}")
                                     elif 'suggestion' in linea.lower():
                                         suggestions_count += 1
-                                        lineas_importantes.append(f"💡 {linea}")
+                                        lineas_importantes.append(f"TIP {linea}")
                                     elif any(critical in linea.lower() for critical in ['vulnerable', 'weak', 'missing']):
                                         lineas_importantes.append(f"CRITICO {linea}")
                                     else:
@@ -568,7 +568,7 @@ class VistaAuditoria(tk.Frame):
                             # Mostrar resumen de hallazgos
                             self._actualizar_texto_auditoria(f"✓ Auditoría completada - Procesando {len(lineas_importantes)} hallazgos\n")
                             self._actualizar_texto_auditoria(f"WARNING Advertencias encontradas: {warnings_count}\n")
-                            self._actualizar_texto_auditoria(f"💡 Sugerencias de mejora: {suggestions_count}\n\n")
+                            self._actualizar_texto_auditoria(f"TIP Sugerencias de mejora: {suggestions_count}\n\n")
                             
                             # Mostrar hallazgos más importantes (primeros 30)
                             self._actualizar_texto_auditoria("=== HALLAZGOS PRINCIPALES ===\n")

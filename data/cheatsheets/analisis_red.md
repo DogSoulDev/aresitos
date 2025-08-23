@@ -184,7 +184,7 @@ tcpdump -i eth0 port 80
 watch -n 1 'ss -tuln | wc -l'
 ```
 
-### **� ANÁLISIS DNS**
+### **SYMBOL ANÁLISIS DNS**
 
 #### **Resolución DNS**
 ```bash
