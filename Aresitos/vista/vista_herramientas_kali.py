@@ -384,7 +384,7 @@ LISTO PARA: Escaneos de vulnerabilidades en entornos Kali Linux 2025
                 'lsmod', 'kill', 'pgrep', 'pkill', 'sha256sum', 'md5sum', 'sha1sum', 'sha512sum',
                 'iptables', 'cat', 'less', 'more', 'pwd', 'mkdir', 'rm', 'cp', 'mv',
                 # Herramientas de monitoreo y análisis del sistema (para FIM y SIEM)
-                'inotifywait', 'inotify-tools', 'auditd', 'ausearch', 'aide', 'samhain', 'tripwire',
+                'inotifywait', 'inotify-tools', 'auditd', 'ausearch', 'aide',
                 'debsums', 'dpkg', 'rpm', 'synaptic',
                 # Anti-rootkit y detección (usadas en escaneador avanzado FASE 3.1)
                 'chkrootkit', 'rkhunter', 'lynis', 'unhide', 'tiger', 'maldet',
@@ -564,6 +564,50 @@ LISTO PARA: Escaneos de vulnerabilidades en entornos Kali Linux 2025
                 'osquery', 'file', 'hexdump'
             ]
             
+                        # Lista de herramientas esenciales para Kali Linux (ELIMINADOS: sqlninja, volatility3)
+            paquetes = [
+                # Escaneo de red (actualizado FASE 3.1)
+                'nmap', 'masscan', 'nikto', 'gobuster', 'feroxbuster', 'dirb',
+                # Servicios de red (FASE 3.1)
+                'netcat-traditional', 'whatweb', 'wfuzz', 'ffuf',
+                # Cracking y passwords
+                'hashcat', 'john', 'hydra', 'medusa', 'patator',
+                # Análisis SQL
+                'sqlmap',
+                # Cuarentena y malware (FASE 3.3 - FIM expandido)
+                'clamav', 'clamav-daemon', 'clamav-freshclam', 'yara', 'binwalk', 'exiftool',
+                'foremost', 'sleuthkit', 'autopsy',
+                # SIEM y auditoría (FASE 3.2) - REMOVIDOS PROBLEMÁTICOS
+                'fail2ban', 'aide',
+                # Herramientas de análisis avanzado (FASE 3)
+                'tcpdump', 'wireshark', 'tshark', 'strace', 'ltrace', 'gdb',
+                'osquery', 'file', 'hexdump'
+            ]
+            
+            # Herramientas problemáticas que requieren instalación manual especial
+            herramientas_problematicas = {
+                'tripwire': {
+                    'razon': 'Requiere configuración interactiva y puede tardar +10 minutos',
+                    'comando': 'sudo apt install tripwire',
+                    'notas': 'Configurará automáticamente durante instalación. Responder prompts.'
+                },
+                'samhain': {
+                    'razon': 'Configuración compleja y dependencias especiales',
+                    'comando': 'sudo apt install samhain',
+                    'notas': 'Herramienta de integridad avanzada. Configuración manual requerida.'
+                },
+                'sqlninja': {
+                    'razon': 'Paquete obsoleto en Kali Linux 2025',
+                    'comando': 'Usar sqlmap como alternativa',
+                    'notas': 'sqlninja no está disponible en repositorios actuales'
+                },
+                'volatility3': {
+                    'razon': 'Instalación vía pip, no APT',
+                    'comando': 'pip3 install volatility3',
+                    'notas': 'Herramienta de análisis de memoria forense'
+                }
+            }
+            
             # Herramientas que requieren instalación manual (se informará al usuario):
             herramientas_manuales = [
                 'rustscan: cargo install rustscan (requiere Rust)',
@@ -663,6 +707,18 @@ LISTO PARA: Escaneos de vulnerabilidades en entornos Kali Linux 2025
             if len(paquetes_exitosos) >= len(paquetes) * 0.7:
                 self.after(0, self._actualizar_texto, "\n✓ Instalación completada exitosamente\n")
                 
+                # Mostrar información sobre herramientas problemáticas
+                self.after(0, self._actualizar_texto, "\n" + "="*60 + "\n")
+                self.after(0, self._actualizar_texto, "⚠️  HERRAMIENTAS ESPECIALES - INSTALACIÓN MANUAL\n")
+                self.after(0, self._actualizar_texto, "="*60 + "\n")
+                self.after(0, self._actualizar_texto, "Las siguientes herramientas requieren instalación manual especial:\n\n")
+                
+                for herramienta, info in herramientas_problematicas.items():
+                    self.after(0, self._actualizar_texto, f"🔧 {herramienta.upper()}:\n")
+                    self.after(0, self._actualizar_texto, f"   Razón: {info['razon']}\n")
+                    self.after(0, self._actualizar_texto, f"   Comando: {info['comando']}\n")
+                    self.after(0, self._actualizar_texto, f"   Notas: {info['notas']}\n\n")
+                
                 # Mostrar información sobre herramientas de la FASE 3
                 self.after(0, self._actualizar_texto, "\n" + "="*60 + "\n")
                 self.after(0, self._actualizar_texto, "🚀 HERRAMIENTAS FASE 3 - EXPANSIONES AVANZADAS\n")
@@ -682,7 +738,7 @@ LISTO PARA: Escaneos de vulnerabilidades en entornos Kali Linux 2025
                 
                 self.after(0, self._actualizar_texto, "✅ FIM OPTIMIZADO (Fase 3.3):\n")
                 self.after(0, self._actualizar_texto, "   • inotify-tools (monitoreo tiempo real)\n")
-                self.after(0, self._actualizar_texto, "   • aide, tripwire (integridad archivos)\n")
+                self.after(0, self._actualizar_texto, "   • aide (integridad archivos)\n")
                 self.after(0, self._actualizar_texto, "   • debsums (verificación checksums)\n")
                 self.after(0, self._actualizar_texto, "   • sleuthkit, autopsy (análisis forense)\n\n")
                 
