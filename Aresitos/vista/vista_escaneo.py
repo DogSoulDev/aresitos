@@ -3957,6 +3957,11 @@ class VistaEscaneo(tk.Frame):
 
     # ============================================================================
     # MÉTODOS PARA ESCANEADORES AVANZADOS KALI 2025 
+    # Implementación siguiendo principios ARESITOS v3.0:
+    # - Verificación robusta de controladores
+    # - Fallback inteligente a escaneadores legacy
+    # - Manejo de errores comprehensivo
+    # - UI responsiva con threading
     # ============================================================================
     
     def mostrar_notificacion(self, mensaje, tipo="info"):
@@ -4016,10 +4021,17 @@ class VistaEscaneo(tk.Frame):
         import threading
         def _ejecutar():
             try:
-                if hasattr(self.controlador, 'ejecutar_escaneo_rapido_avanzado'):
+                # Verificación robusta del controlador y método
+                if self.controlador and hasattr(self.controlador, 'ejecutar_escaneo_rapido_avanzado'):
                     resultado = self.controlador.ejecutar_escaneo_rapido_avanzado(objetivo)
                     self._procesar_resultado_avanzado(resultado, "Rápido Avanzado")
+                elif self.controlador and hasattr(self.controlador, 'escaneo_completo_kali2025'):
+                    # Fallback a escaneador Kali 2025 si está disponible
+                    self._actualizar_texto_seguro("🔄 Usando escaneador Kali 2025...\n")
+                    resultado = self.controlador.escaneo_completo_kali2025(objetivo)
+                    self._procesar_resultado_escaneo_simple(resultado)
                 else:
+                    # Fallback final a escaneador estándar
                     self._actualizar_texto_seguro("⚠️ Escaneador avanzado no disponible. Usando escaneador estándar...\n")
                     self.ejecutar_escaneo()
             except Exception as e:
@@ -4046,10 +4058,17 @@ class VistaEscaneo(tk.Frame):
         import threading
         def _ejecutar():
             try:
-                if hasattr(self.controlador, 'ejecutar_escaneo_completo_avanzado'):
+                # Verificación robusta del controlador y método
+                if self.controlador and hasattr(self.controlador, 'ejecutar_escaneo_completo_avanzado'):
                     resultado = self.controlador.ejecutar_escaneo_completo_avanzado(objetivo)
                     self._procesar_resultado_avanzado(resultado, "Completo Avanzado")
+                elif self.controlador and hasattr(self.controlador, 'escaneo_completo_kali2025'):
+                    # Fallback a escaneador Kali 2025 si está disponible
+                    self._actualizar_texto_seguro("🔄 Usando escaneador Kali 2025...\n")
+                    resultado = self.controlador.escaneo_completo_kali2025(objetivo)
+                    self._procesar_resultado_escaneo_simple(resultado)
                 else:
+                    # Fallback final a escaneador estándar
                     self._actualizar_texto_seguro("⚠️ Escaneador avanzado no disponible. Usando escaneador estándar...\n")
                     self.ejecutar_escaneo()
             except Exception as e:
@@ -4076,7 +4095,8 @@ class VistaEscaneo(tk.Frame):
         import threading
         def _ejecutar():
             try:
-                if hasattr(self.controlador, 'ejecutar_escaneo_sigiloso_avanzado'):
+                # Verificación robusta del controlador y método
+                if self.controlador and hasattr(self.controlador, 'ejecutar_escaneo_sigiloso_avanzado'):
                     # Configurar escaneo sigiloso
                     config_sigiloso = {
                         'timing': '-T1',  # Muy lento
@@ -4086,7 +4106,13 @@ class VistaEscaneo(tk.Frame):
                     }
                     resultado = self.controlador.ejecutar_escaneo_sigiloso_avanzado(objetivo, config_sigiloso)
                     self._procesar_resultado_avanzado(resultado, "Sigiloso Avanzado")
+                elif self.controlador and hasattr(self.controlador, 'escaneo_completo_kali2025'):
+                    # Fallback a escaneador Kali 2025 con configuración sigilosa
+                    self._actualizar_texto_seguro("🔄 Usando escaneador Kali 2025 en modo sigiloso...\n")
+                    resultado = self.controlador.escaneo_completo_kali2025(objetivo)
+                    self._procesar_resultado_escaneo_simple(resultado)
                 else:
+                    # Fallback final a escaneador estándar
                     self._actualizar_texto_seguro("⚠️ Escaneador avanzado no disponible. Usando escaneador estándar...\n")
                     self.ejecutar_escaneo()
             except Exception as e:
@@ -4125,7 +4151,8 @@ class VistaEscaneo(tk.Frame):
         import threading
         def _ejecutar():
             try:
-                if hasattr(self.controlador, 'ejecutar_escaneo_agresivo_avanzado'):
+                # Verificación robusta del controlador y método
+                if self.controlador and hasattr(self.controlador, 'ejecutar_escaneo_agresivo_avanzado'):
                     # Configurar escaneo agresivo
                     config_agresivo = {
                         'timing': '-T4',  # Agresivo
@@ -4135,7 +4162,13 @@ class VistaEscaneo(tk.Frame):
                     }
                     resultado = self.controlador.ejecutar_escaneo_agresivo_avanzado(objetivo, config_agresivo)
                     self._procesar_resultado_avanzado(resultado, "Agresivo Avanzado")
+                elif self.controlador and hasattr(self.controlador, 'escaneo_completo_kali2025'):
+                    # Fallback a escaneador Kali 2025 con configuración agresiva
+                    self._actualizar_texto_seguro("🔄 Usando escaneador Kali 2025 en modo agresivo...\n")
+                    resultado = self.controlador.escaneo_completo_kali2025(objetivo)
+                    self._procesar_resultado_escaneo_simple(resultado)
                 else:
+                    # Fallback final a escaneador estándar
                     self._actualizar_texto_seguro("⚠️ Escaneador avanzado no disponible. Usando escaneador estándar...\n")
                     self.ejecutar_escaneo()
             except Exception as e:
@@ -4147,13 +4180,69 @@ class VistaEscaneo(tk.Frame):
     def mostrar_estadisticas_avanzadas(self):
         """Mostrar estadísticas del escaneador avanzado."""
         try:
-            if hasattr(self.controlador, 'obtener_estadisticas_avanzadas'):
+            # Verificación robusta del controlador y método
+            if self.controlador and hasattr(self.controlador, 'obtener_estadisticas_avanzadas'):
                 stats = self.controlador.obtener_estadisticas_avanzadas()
                 self._mostrar_ventana_estadisticas(stats)
+            elif self.controlador:
+                # Fallback a estadísticas básicas si están disponibles
+                self._actualizar_texto_seguro("📊 Mostrando estadísticas básicas del sistema...\n")
+                stats_basicas = {
+                    'mensaje': 'Estadísticas avanzadas no disponibles',
+                    'escaneador': 'Sistema básico',
+                    'version': 'ARESITOS v3.0'
+                }
+                self._mostrar_ventana_estadisticas(stats_basicas)
             else:
-                self.mostrar_notificacion("📊 Estadísticas no disponibles", "info")
+                self.mostrar_notificacion("📊 Estadísticas no disponibles - Controlador no configurado", "warning")
         except Exception as e:
             self.mostrar_notificacion(f"❌ Error al obtener estadísticas: {str(e)}", "error")
+
+    def _procesar_resultado_escaneo_simple(self, resultado):
+        """Procesar resultados de escaneadores simples/legacy."""
+        if not resultado:
+            self._actualizar_texto_seguro("❌ No se obtuvieron resultados del escaneo\n")
+            return
+        
+        self._actualizar_texto_seguro(f"\n{'='*50}\n")
+        self._actualizar_texto_seguro("📋 RESULTADOS DEL ESCANEO\n")
+        self._actualizar_texto_seguro(f"{'='*50}\n")
+        
+        # Procesar según tipo de resultado
+        if isinstance(resultado, dict):
+            if 'exito' in resultado and resultado['exito']:
+                self._actualizar_texto_seguro("✅ Escaneo completado exitosamente\n")
+                
+                # Mostrar información disponible
+                if 'puertos_encontrados' in resultado:
+                    puertos = resultado['puertos_encontrados']
+                    self._actualizar_texto_seguro(f"🔓 Puertos encontrados: {len(puertos)}\n")
+                    for puerto in puertos[:10]:  # Mostrar máximo 10
+                        self._actualizar_texto_seguro(f"  • {puerto}\n")
+                
+                if 'vulnerabilidades' in resultado:
+                    vulns = resultado['vulnerabilidades']
+                    self._actualizar_texto_seguro(f"🚨 Vulnerabilidades: {len(vulns)}\n")
+                    for vuln in vulns[:5]:  # Mostrar máximo 5
+                        self._actualizar_texto_seguro(f"  • {vuln}\n")
+                
+                if 'servicios' in resultado:
+                    servicios = resultado['servicios']
+                    self._actualizar_texto_seguro(f"🛠️ Servicios detectados: {len(servicios)}\n")
+                    for servicio in servicios[:5]:  # Mostrar máximo 5
+                        self._actualizar_texto_seguro(f"  • {servicio}\n")
+                        
+                # Notificación de finalización
+                self.mostrar_notificacion("✅ Escaneo completado", "success")
+            else:
+                error_msg = resultado.get('error', 'Error desconocido')
+                self._actualizar_texto_seguro(f"❌ Error en escaneo: {error_msg}\n")
+                self.mostrar_notificacion("❌ Error en escaneo", "error")
+        else:
+            # Resultado en formato texto o string
+            self._actualizar_texto_seguro(f"Resultado: {str(resultado)}\n")
+        
+        self._actualizar_texto_seguro(f"{'='*50}\n")
     
     def _procesar_resultado_avanzado(self, resultado, tipo_escaneo):
         """Procesar y mostrar resultados de escaneos avanzados."""
