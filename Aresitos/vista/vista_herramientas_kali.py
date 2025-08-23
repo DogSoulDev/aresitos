@@ -30,6 +30,18 @@ class VistaHerramientasKali(tk.Frame):
     
     def __init__(self, parent, callback_completado=None):
         super().__init__(parent)
+        
+        # VERIFICACIÓN CRÍTICA: Solo para Kali Linux
+        if not self._verificar_kali_linux():
+            messagebox.showerror(
+                "Error - Solo Kali Linux", 
+                "ARESITOS está diseñado exclusivamente para Kali Linux.\n\n"
+                "Sistema detectado no es compatible.\n"
+                "Instale Kali Linux para usar ARESITOS."
+            )
+            self.destroy()
+            return
+            
         self.controlador = None  # Patrón MVC
         self.callback_completado = callback_completado
         self.proceso_activo = False
@@ -197,16 +209,16 @@ class VistaHerramientasKali(tk.Frame):
             "ARESITOS v3.0 - Configurador de Herramientas Escaneador Profesional\n" +
             "=" * 50 + "\n\n" +
             "Sistema optimizado para Kali Linux con comandos nativos integrados:\n\n" +
-            "🔧 COMANDOS BÁSICOS:\n" +
+            "COMANDOS BÁSICOS:\n" +
             "• Sistema: ps, ss, lsof, grep, awk, find, stat, lsmod, iptables\n" +
             "• Red: nmap, netcat, ip, route, ss, hping3, curl, wget\n" +
             "• Archivos: ls, chmod, chown, cat, sha256sum, md5sum\n\n" +
-            "🛡️ SEGURIDAD Y DETECCIÓN:\n" +
+            "SEGURIDAD Y DETECCIÓN:\n" +
             "• Anti-rootkit: chkrootkit, rkhunter, lynis, unhide, tiger\n" +
             "• Malware: clamav, yara, binwalk, strings, exiftool\n" +
             "• Monitoreo: inotifywait, auditd, systemctl, pspy, aide\n" +
             "• Firewall: iptables, fail2ban-client\n\n" +
-            "🔍 ANÁLISIS FORENSE:\n" +
+            "ANÁLISIS FORENSE:\n" +
             "• Forense: sleuthkit, autopsy, foremost\n" +
             "• Memoria: hexdump, strings, file, binwalk\n" +
             "• Logs: journalctl, aureport, logwatch, rsyslog\n\n" +
@@ -428,17 +440,17 @@ LISTO PARA: Escaneos de vulnerabilidades en entornos Kali Linux 2025
                     
                     if result.returncode == 0:
                         herramientas_ok.append(herramienta)
-                        self.after(0, self._actualizar_texto, f"✓ {herramienta} - OK\n")
+                        self.after(0, self._actualizar_texto, f"OK {herramienta} - OK\n")
                     else:
                         herramientas_faltantes.append(herramienta)
-                        self.after(0, self._actualizar_texto, f"✗ {herramienta} - FALTANTE\n")
+                        self.after(0, self._actualizar_texto, f"ERROR {herramienta} - FALTANTE\n")
                         
                 except subprocess.TimeoutExpired:
                     herramientas_faltantes.append(herramienta)
-                    self.after(0, self._actualizar_texto, f"✗ {herramienta} - TIMEOUT\n")
+                    self.after(0, self._actualizar_texto, f"ERROR {herramienta} - TIMEOUT\n")
                 except Exception as e:
                     herramientas_faltantes.append(herramienta)
-                    self.after(0, self._actualizar_texto, f"✗ {herramienta} - ERROR: {e}\n")
+                    self.after(0, self._actualizar_texto, f"ERROR {herramienta} - ERROR: {e}\n")
             
             # Mostrar resumen
             self.after(0, self._mostrar_resumen_verificacion, herramientas_ok, herramientas_faltantes)
@@ -625,9 +637,9 @@ LISTO PARA: Escaneos de vulnerabilidades en entornos Kali Linux 2025
             result = sudo_manager.execute_sudo_command('apt update', timeout=120)
             
             if result.returncode == 0:
-                self.after(0, self._actualizar_texto, "✓ Repositorios actualizados\n\n")
+                self.after(0, self._actualizar_texto, "OK Repositorios actualizados\n\n")
             else:
-                self.after(0, self._actualizar_texto, f"✗ Error actualizando repositorios: {result.stderr}\n\n")
+                self.after(0, self._actualizar_texto, f"ERROR actualizando repositorios: {result.stderr}\n\n")
             
             # Instalar paquetes uno por uno para mejor control de errores
             self.after(0, self._actualizar_texto, "Instalando herramientas...\n")
@@ -644,55 +656,55 @@ LISTO PARA: Escaneos de vulnerabilidades en entornos Kali Linux 2025
                     
                     if result.returncode == 0:
                         paquetes_exitosos.append(paquete)
-                        self.after(0, self._actualizar_texto, f"✓ {paquete} instalado correctamente\n")
+                        self.after(0, self._actualizar_texto, f"OK {paquete} instalado correctamente\n")
                     else:
                         paquetes_fallidos.append(paquete)
                         error_msg = result.stderr.strip()
                         
                         # Identificar errores comunes y dar instrucciones específicas
                         if "Unable to locate package" in error_msg or "E: Package" in error_msg:
-                            self.after(0, self._actualizar_texto, f"✗ Error instalando {paquete}: Paquete no encontrado en repositorios\n")
-                            self.after(0, self._actualizar_texto, f"  💡 SOLUCIÓN: Instale manualmente con: sudo apt update && sudo apt install {paquete}\n")
-                            self.after(0, self._actualizar_texto, f"  📝 O busque en: https://kali.org/tools/ para instalación alternativa\n")
+                            self.after(0, self._actualizar_texto, f"ERROR instalando {paquete}: Paquete no encontrado en repositorios\n")
+                            self.after(0, self._actualizar_texto, f"  SOLUCIÓN: Instale manualmente con: sudo apt update && sudo apt install {paquete}\n")
+                            self.after(0, self._actualizar_texto, f"  ALTERNATIVA: Busque en: https://kali.org/tools/ para instalación alternativa\n")
                         elif "WARNING: apt does not have a stable CLI interface" in error_msg:
-                            self.after(0, self._actualizar_texto, f"⚠️ {paquete}: Advertencia de compatibilidad APT (no es error crítico)\n")
-                            self.after(0, self._actualizar_texto, f"  💡 SOLUCIÓN: Instale manualmente con: sudo apt install {paquete}\n")
+                            self.after(0, self._actualizar_texto, f"WARNING {paquete}: Advertencia de compatibilidad APT (no es error crítico)\n")
+                            self.after(0, self._actualizar_texto, f"  SOLUCIÓN: Instale manualmente con: sudo apt install {paquete}\n")
                         elif "externally-managed-environment" in error_msg:
-                            self.after(0, self._actualizar_texto, f"✗ Error instalando {paquete}: Entorno Python gestionado externamente\n")
-                            self.after(0, self._actualizar_texto, f"  💡 SOLUCIÓN: Instale con pipx: pipx install {paquete}\n")
-                            self.after(0, self._actualizar_texto, f"  📝 O use: python3 -m pip install --user {paquete} --break-system-packages\n")
+                            self.after(0, self._actualizar_texto, f"ERROR instalando {paquete}: Entorno Python gestionado externamente\n")
+                            self.after(0, self._actualizar_texto, f"  SOLUCIÓN: Instale con pipx: pipx install {paquete}\n")
+                            self.after(0, self._actualizar_texto, f"  ALTERNATIVA: python3 -m pip install --user {paquete} --break-system-packages\n")
                         else:
-                            self.after(0, self._actualizar_texto, f"✗ Error instalando {paquete}: {error_msg[:100]}...\n")
-                            self.after(0, self._actualizar_texto, f"  💡 SOLUCIÓN: Instale manualmente con: sudo apt install {paquete}\n")
-                            self.after(0, self._actualizar_texto, f"  📝 O consulte documentación específica de la herramienta\n")
+                            self.after(0, self._actualizar_texto, f"ERROR instalando {paquete}: {error_msg[:100]}...\n")
+                            self.after(0, self._actualizar_texto, f"  SOLUCIÓN: Instale manualmente con: sudo apt install {paquete}\n")
+                            self.after(0, self._actualizar_texto, f"  DOCUMENTACIÓN: Consulte documentación específica de la herramienta\n")
                         
                 except subprocess.TimeoutExpired:
                     paquetes_fallidos.append(paquete)
-                    self.after(0, self._actualizar_texto, f"✗ Timeout instalando {paquete}\n")
-                    self.after(0, self._actualizar_texto, f"  💡 SOLUCIÓN: Instale manualmente con más tiempo: sudo apt install {paquete}\n")
-                    self.after(0, self._actualizar_texto, f"  📝 Puede requerir descargas grandes o dependencias complejas\n")
+                    self.after(0, self._actualizar_texto, f"TIMEOUT instalando {paquete}\n")
+                    self.after(0, self._actualizar_texto, f"  SOLUCIÓN: Instale manualmente con más tiempo: sudo apt install {paquete}\n")
+                    self.after(0, self._actualizar_texto, f"  NOTA: Puede requerir descargas grandes o dependencias complejas\n")
                 except Exception as e:
                     paquetes_fallidos.append(paquete)
-                    self.after(0, self._actualizar_texto, f"✗ Error instalando {paquete}: {str(e)[:100]}...\n")
-                    self.after(0, self._actualizar_texto, f"  💡 SOLUCIÓN: Revise permisos e instale manualmente: sudo apt install {paquete}\n")
-                    self.after(0, self._actualizar_texto, f"  📝 Verifique conectividad y repositorios actualizados\n")
+                    self.after(0, self._actualizar_texto, f"ERROR instalando {paquete}: {str(e)[:100]}...\n")
+                    self.after(0, self._actualizar_texto, f"  SOLUCIÓN: Revise permisos e instale manualmente: sudo apt install {paquete}\n")
+                    self.after(0, self._actualizar_texto, f"  VERIFICACIÓN: Verifique conectividad y repositorios actualizados\n")
             
             # Mostrar resumen
             self.after(0, self._actualizar_texto, f"\n{'='*50}\n")
             self.after(0, self._actualizar_texto, f"RESUMEN DE INSTALACIÓN\n")
             self.after(0, self._actualizar_texto, f"{'='*50}\n")
-            self.after(0, self._actualizar_texto, f"✓ Instalados correctamente: {len(paquetes_exitosos)}\n")
-            self.after(0, self._actualizar_texto, f"✗ Errores de instalación: {len(paquetes_fallidos)}\n\n")
+            self.after(0, self._actualizar_texto, f"OK Instalados correctamente: {len(paquetes_exitosos)}\n")
+            self.after(0, self._actualizar_texto, f"ERROR Errores de instalación: {len(paquetes_fallidos)}\n\n")
             
             if paquetes_fallidos:
-                self.after(0, self._actualizar_texto, f"🔧 HERRAMIENTAS QUE REQUIEREN INSTALACIÓN MANUAL:\n")
+                self.after(0, self._actualizar_texto, f"HERRAMIENTAS QUE REQUIEREN INSTALACIÓN MANUAL:\n")
                 for paquete in paquetes_fallidos:
                     self.after(0, self._actualizar_texto, f"   • {paquete}\n")
-                self.after(0, self._actualizar_texto, f"\n📋 COMANDOS PARA INSTALACIÓN MANUAL:\n")
+                self.after(0, self._actualizar_texto, f"\nCOMANDOS PARA INSTALACIÓN MANUAL:\n")
                 self.after(0, self._actualizar_texto, f"sudo apt update\n")
                 for paquete in paquetes_fallidos:
                     self.after(0, self._actualizar_texto, f"sudo apt install {paquete}\n")
-                self.after(0, self._actualizar_texto, f"\n📚 RECURSOS ADICIONALES:\n")
+                self.after(0, self._actualizar_texto, f"\nRECURSOS ADICIONALES:\n")
                 self.after(0, self._actualizar_texto, f"• Kali Tools: https://kali.org/tools/\n")
                 self.after(0, self._actualizar_texto, f"• Documentation: https://kali.org/docs/\n")
                 self.after(0, self._actualizar_texto, f"• Forum Support: https://forums.kali.org/\n")
@@ -705,38 +717,38 @@ LISTO PARA: Escaneos de vulnerabilidades en entornos Kali Linux 2025
             
             # Considerar exitoso si al menos el 70% se instaló
             if len(paquetes_exitosos) >= len(paquetes) * 0.7:
-                self.after(0, self._actualizar_texto, "\n✓ Instalación completada exitosamente\n")
+                self.after(0, self._actualizar_texto, "\nOK Instalación completada exitosamente\n")
                 
                 # Mostrar información sobre herramientas problemáticas
                 self.after(0, self._actualizar_texto, "\n" + "="*60 + "\n")
-                self.after(0, self._actualizar_texto, "⚠️  HERRAMIENTAS ESPECIALES - INSTALACIÓN MANUAL\n")
+                self.after(0, self._actualizar_texto, "HERRAMIENTAS ESPECIALES - INSTALACIÓN MANUAL\n")
                 self.after(0, self._actualizar_texto, "="*60 + "\n")
                 self.after(0, self._actualizar_texto, "Las siguientes herramientas requieren instalación manual especial:\n\n")
                 
                 for herramienta, info in herramientas_problematicas.items():
-                    self.after(0, self._actualizar_texto, f"🔧 {herramienta.upper()}:\n")
+                    self.after(0, self._actualizar_texto, f"HERRAMIENTA {herramienta.upper()}:\n")
                     self.after(0, self._actualizar_texto, f"   Razón: {info['razon']}\n")
                     self.after(0, self._actualizar_texto, f"   Comando: {info['comando']}\n")
                     self.after(0, self._actualizar_texto, f"   Notas: {info['notas']}\n\n")
                 
                 # Mostrar información sobre herramientas de la FASE 3
                 self.after(0, self._actualizar_texto, "\n" + "="*60 + "\n")
-                self.after(0, self._actualizar_texto, "🚀 HERRAMIENTAS FASE 3 - EXPANSIONES AVANZADAS\n")
+                self.after(0, self._actualizar_texto, "HERRAMIENTAS FASE 3 - EXPANSIONES AVANZADAS\n")
                 self.after(0, self._actualizar_texto, "="*60 + "\n")
-                self.after(0, self._actualizar_texto, "✅ ESCANEADOR EXPANDIDO (Fase 3.1):\n")
+                self.after(0, self._actualizar_texto, "ESCANEADOR EXPANDIDO (Fase 3.1):\n")
                 self.after(0, self._actualizar_texto, "   • nmap, masscan, rustscan (escaneo de red)\n")
                 self.after(0, self._actualizar_texto, "   • nikto, whatweb (análisis web)\n")
                 self.after(0, self._actualizar_texto, "   • chkrootkit, rkhunter (detección rootkits)\n")
                 self.after(0, self._actualizar_texto, "   • binwalk, strings (análisis forense)\n")
                 self.after(0, self._actualizar_texto, "   • clamav (antivirus integrado)\n\n")
                 
-                self.after(0, self._actualizar_texto, "✅ SIEM AVANZADO (Fase 3.2):\n")
+                self.after(0, self._actualizar_texto, "SIEM AVANZADO (Fase 3.2):\n")
                 self.after(0, self._actualizar_texto, "   • auditd, rsyslog (auditoría y logs)\n")
                 self.after(0, self._actualizar_texto, "   • fail2ban (protección contra fuerza bruta)\n")
                 self.after(0, self._actualizar_texto, "   • logwatch (análisis de logs)\n")
                 self.after(0, self._actualizar_texto, "   • tcpdump, wireshark (análisis de red)\n\n")
                 
-                self.after(0, self._actualizar_texto, "✅ FIM OPTIMIZADO (Fase 3.3):\n")
+                self.after(0, self._actualizar_texto, "FIM OPTIMIZADO (Fase 3.3):\n")
                 self.after(0, self._actualizar_texto, "   • inotify-tools (monitoreo tiempo real)\n")
                 self.after(0, self._actualizar_texto, "   • aide (integridad archivos)\n")
                 self.after(0, self._actualizar_texto, "   • debsums (verificación checksums)\n")
@@ -744,24 +756,24 @@ LISTO PARA: Escaneos de vulnerabilidades en entornos Kali Linux 2025
                 
                 # Mostrar información sobre herramientas de instalación manual
                 self.after(0, self._actualizar_texto, "=" * 60 + "\n")
-                self.after(0, self._actualizar_texto, "📦 HERRAMIENTAS DE INSTALACIÓN MANUAL\n")
+                self.after(0, self._actualizar_texto, "HERRAMIENTAS DE INSTALACIÓN MANUAL\n")
                 self.after(0, self._actualizar_texto, "="*60 + "\n")
                 for herramienta in herramientas_manuales:
                     self.after(0, self._actualizar_texto, f"� {herramienta}\n")
                 self.after(0, self._actualizar_texto, "\nEstas herramientas se pueden instalar manualmente\n")
                 self.after(0, self._actualizar_texto, "para funcionalidades específicas adicionales.\n")
-                self.after(0, self._actualizar_texto, "\n💡 NOTA: Las capacidades avanzadas de la Fase 3 funcionan\n")
+                self.after(0, self._actualizar_texto, "\nNOTA: Las capacidades avanzadas de la Fase 3 funcionan\n")
                 self.after(0, self._actualizar_texto, "   con las herramientas instaladas automáticamente.\n")
                 
                 self.after(0, self._habilitar_continuar)
             else:
-                self.after(0, self._actualizar_texto, f"\n✗ Instalación con muchos errores ({len(paquetes_fallidos)}/{len(paquetes)} fallaron)\n")
+                self.after(0, self._actualizar_texto, f"\nERROR Instalación con muchos errores ({len(paquetes_fallidos)}/{len(paquetes)} fallaron)\n")
                 self.after(0, self._actualizar_texto, "Recomendación: Verificar conexión y repositorios\n")
                 
         except subprocess.TimeoutExpired:
-            self.after(0, self._actualizar_texto, "\n✗ Timeout durante la instalación\n")
+            self.after(0, self._actualizar_texto, "\nTIMEOUT durante la instalación\n")
         except Exception as e:
-            self.after(0, self._actualizar_texto, f"\n✗ Error: {e}\n")
+            self.after(0, self._actualizar_texto, f"\nERROR: {e}\n")
         finally:
             self.after(0, self._finalizar_instalacion)
     
@@ -862,3 +874,33 @@ LISTO PARA: Escaneos de vulnerabilidades en entornos Kali Linux 2025
             if hasattr(self, 'logger'):
                 self.logger.info(f"[{modulo}] {mensaje}")
             print(f"Terminal log error: {e}")
+    
+    def _verificar_kali_linux(self) -> bool:
+        """Verificar que estamos ejecutando en Kali Linux."""
+        try:
+            import platform
+            import os
+            
+            # Verificar ID del sistema operativo
+            if os.path.exists('/etc/os-release'):
+                with open('/etc/os-release', 'r') as f:
+                    contenido = f.read()
+                    if 'ID=kali' in contenido or 'kali' in contenido.lower():
+                        return True
+            
+            # Verificar nombre del sistema
+            if 'kali' in platform.system().lower():
+                return True
+                
+            # Verificar distribución
+            try:
+                resultado = subprocess.run(['lsb_release', '-i'], 
+                                         capture_output=True, text=True, timeout=5)
+                if 'kali' in resultado.stdout.lower():
+                    return True
+            except:
+                pass
+            
+            return False
+        except Exception:
+            return False
