@@ -525,11 +525,11 @@ class VistaFIM(tk.Frame):
                 self.after(0, self._actualizar_texto_fim, "\n")
                 
                 fases_completadas += 1
-                self._log_terminal("✓ FASE 1 completada exitosamente", "FIM", "SUCCESS")
+                self._log_terminal("OK: FASE 1 completada exitosamente", "FIM", "SUCCESS")
                 
             except Exception as e:
                 fases_con_error += 1
-                self._log_terminal(f"✗ ERROR en FASE 1: {str(e)}", "FIM", "ERROR")
+                self._log_terminal(f"ERROR: ERROR en FASE 1: {str(e)}", "FIM", "ERROR")
                 self.after(0, self._actualizar_texto_fim, f"ERROR FASE 1: {str(e)}\n")
                 self._log_terminal("Continuando con la siguiente fase...", "FIM", "WARNING")
             
@@ -647,11 +647,11 @@ class VistaFIM(tk.Frame):
                                 self.after(0, self._actualizar_texto_fim, f"ERROR verificando {archivo}: {str(e)}\n\n")
                         
                         fases_completadas += 1
-                        self._log_terminal("✓ FASE 2 completada exitosamente", "FIM", "SUCCESS")
+                        self._log_terminal("OK: FASE 2 completada exitosamente", "FIM", "SUCCESS")
                         
                     except Exception as e:
                         fases_con_error += 1
-                        self._log_terminal(f"✗ ERROR en FASE 2: {str(e)}", "FIM", "ERROR")
+                        self._log_terminal(f"ERROR: ERROR en FASE 2: {str(e)}", "FIM", "ERROR")
                         self.after(0, self._actualizar_texto_fim, f"ERROR FASE 2: {str(e)}\n")
                         self._log_terminal("Continuando con la siguiente fase...", "FIM", "WARNING")
                     
@@ -746,11 +746,11 @@ class VistaFIM(tk.Frame):
                             self.after(0, self._actualizar_texto_fim, "ERROR: ss no disponible\n")
                         
                         fases_completadas += 1
-                        self._log_terminal("✓ FASE 2.5 completada exitosamente", "FIM", "SUCCESS")
+                        self._log_terminal("OK: FASE 2.5 completada exitosamente", "FIM", "SUCCESS")
                         
                     except Exception as e:
                         fases_con_error += 1
-                        self._log_terminal(f"✗ ERROR en FASE 2.5: {str(e)}", "FIM", "ERROR")
+                        self._log_terminal(f"ERROR: ERROR en FASE 2.5: {str(e)}", "FIM", "ERROR")
                         self.after(0, self._actualizar_texto_fim, f"ERROR FASE 2.5: {str(e)}\n")
                         self._log_terminal("Continuando con la siguiente fase...", "FIM", "WARNING")
                     
@@ -848,11 +848,11 @@ class VistaFIM(tk.Frame):
                         self.after(0, self._actualizar_texto_fim, "INFO: Los cambios en archivos críticos serán detectados y reportados automáticamente\n")
                         
                         fases_completadas += 1
-                        self._log_terminal("✓ FASE 3 completada exitosamente", "FIM", "SUCCESS")
+                        self._log_terminal("OK: FASE 3 completada exitosamente", "FIM", "SUCCESS")
                         
                     except Exception as e:
                         fases_con_error += 1
-                        self._log_terminal(f"✗ ERROR en FASE 3: {str(e)}", "FIM", "ERROR")
+                        self._log_terminal(f"ERROR: ERROR en FASE 3: {str(e)}", "FIM", "ERROR")
                         self.after(0, self._actualizar_texto_fim, f"ERROR FASE 3: {str(e)}\n")
                         self._log_terminal("Fase final completada con errores", "FIM", "WARNING")
                     
@@ -861,12 +861,12 @@ class VistaFIM(tk.Frame):
                         self.after(0, self._actualizar_texto_fim, f"\n{'='*50}\n")
                         self.after(0, self._actualizar_texto_fim, f"RESUMEN DE EJECUCIÓN FIM\n")
                         self.after(0, self._actualizar_texto_fim, f"{'='*50}\n")
-                        self.after(0, self._actualizar_texto_fim, f"✓ FASES COMPLETADAS: {fases_completadas}/3\n")
-                        self.after(0, self._actualizar_texto_fim, f"✗ FASES CON ERROR: {fases_con_error}/3\n")
+                        self.after(0, self._actualizar_texto_fim, f"OK: FASES COMPLETADAS: {fases_completadas}/3\n")
+                        self.after(0, self._actualizar_texto_fim, f"ERROR: FASES CON ERROR: {fases_con_error}/3\n")
                         
                         if fases_con_error == 0:
-                            self.after(0, self._actualizar_texto_fim, f"ESTADO GENERAL: ✓ TODAS LAS FASES COMPLETADAS EXITOSAMENTE\n")
-                            self._log_terminal("✓ FIM: Todas las fases completadas exitosamente", "FIM", "SUCCESS")
+                            self.after(0, self._actualizar_texto_fim, f"ESTADO GENERAL: OK: TODAS LAS FASES COMPLETADAS EXITOSAMENTE\n")
+                            self._log_terminal("OK: FIM: Todas las fases completadas exitosamente", "FIM", "SUCCESS")
                         else:
                             self.after(0, self._actualizar_texto_fim, f"ESTADO GENERAL: WARN {fases_completadas} fases exitosas, {fases_con_error} con errores\n")
                             self._log_terminal(f"WARN FIM: {fases_completadas} fases exitosas, {fases_con_error} con errores", "FIM", "WARNING")
@@ -1237,7 +1237,7 @@ class VistaFIM(tk.Frame):
             self.after(0, self._actualizar_texto_fim, "INICIANDO MONITOREO EN TIEMPO REAL:\n")
             for directorio in directorios_criticos:
                 if os.path.exists(directorio):
-                    self.after(0, self._actualizar_texto_fim, f"  ✓ Monitoreando: {directorio}\n")
+                    self.after(0, self._actualizar_texto_fim, f"  OK: Monitoreando: {directorio}\n")
             
             self.after(0, self._actualizar_texto_fim, "\nUSANDO inotifywatch para detección inmediata...\n")
             
@@ -1651,7 +1651,7 @@ class VistaFIM(tk.Frame):
                     else:
                         self._actualizar_texto_fim(f"  [FAIL] {herramienta}: No instalado\n")
                 except:
-                    self._actualizar_texto_fim(f"  ❓ {herramienta}: Error verificando\n")
+                    self._actualizar_texto_fim(f"  WARNING: {herramienta}: Error verificando\n")
                     
         except Exception as e:
             self._actualizar_texto_fim(f"[FAIL] Error en verificación de checksums: {str(e)}\n")
@@ -1699,7 +1699,7 @@ class VistaFIM(tk.Frame):
                     except Exception as e:
                         self._actualizar_texto_fim(f"  [FAIL] {archivo}: Error - {str(e)}\n")
                 else:
-                    self._actualizar_texto_fim(f"  ❓ {archivo}: No encontrado\n")
+                    self._actualizar_texto_fim(f"  WARNING: {archivo}: No encontrado\n")
             
             # Buscar archivos con permisos demasiado permisivos
             try:
@@ -1896,7 +1896,7 @@ class VistaFIM(tk.Frame):
                     except Exception as e:
                         self._actualizar_texto_fim(f"  [FAIL] {descripcion}: Error - {str(e)}\n")
                 else:
-                    self._actualizar_texto_fim(f"  ❓ {descripcion} ({log_path}): No encontrado\n")
+                    self._actualizar_texto_fim(f"  WARNING: {descripcion} ({log_path}): No encontrado\n")
             
             # Verificar servicios de monitoreo
             servicios_monitoreo = ['auditd', 'rsyslog', 'systemd-journald']
@@ -1919,7 +1919,7 @@ class VistaFIM(tk.Frame):
                 except subprocess.TimeoutExpired:
                     self._actualizar_texto_fim(f"  TIMEOUT {servicio}: Timeout\n")
                 except:
-                    self._actualizar_texto_fim(f"  ❓ {servicio}: Error verificando\n")
+                    self._actualizar_texto_fim(f"  WARNING: {servicio}: Error verificando\n")
             
             self._actualizar_texto_fim(f"\n[STATS] Resumen de logs:\n")
             self._actualizar_texto_fim(f"  • Logs disponibles: {logs_disponibles}\n")
@@ -2030,7 +2030,7 @@ class VistaFIM(tk.Frame):
                     else:
                         self._actualizar_texto_fim("INFO No hay eventos de eliminación en audit.log\n")
                 else:
-                    self._actualizar_texto_fim("❓ audit.log no disponible\n")
+                    self._actualizar_texto_fim("WARNING: audit.log no disponible\n")
                     
             except subprocess.TimeoutExpired:
                 self._actualizar_texto_fim("TIMEOUT Timeout buscando en audit.log\n")
@@ -2076,7 +2076,7 @@ class VistaFIM(tk.Frame):
             # Buscar archivos modificados a horas inusuales (fuera de horario laboral)
             hora_actual = datetime.now().hour
             
-            self._actualizar_texto_fim(f"🕐 Hora actual: {hora_actual}:00\n")
+            self._actualizar_texto_fim(f"TIEMPO: Hora actual: {hora_actual}:00\n")
             
             if 22 <= hora_actual or hora_actual <= 6:
                 self._actualizar_texto_fim("[WARNING] ACTIVIDAD FUERA DE HORARIO LABORAL DETECTADA\n")
@@ -2135,7 +2135,7 @@ class VistaFIM(tk.Frame):
     def _verificacion_firmas(self):
         """Verificación de firmas de archivos críticos."""
         try:
-            self._actualizar_texto_fim("\n🔏 4. VERIFICACIÓN DE FIRMAS\n")
+            self._actualizar_texto_fim("\nFIRMAS: 4. VERIFICACIÓN DE FIRMAS\n")
             self._actualizar_texto_fim("-" * 50 + "\n")
             
             import subprocess
@@ -2154,7 +2154,7 @@ class VistaFIM(tk.Frame):
                     else:
                         self._actualizar_texto_fim(f"  [FAIL] {herramienta}: No encontrado\n")
                 except:
-                    self._actualizar_texto_fim(f"  ❓ {herramienta}: Error verificando\n")
+                    self._actualizar_texto_fim(f"  WARNING: {herramienta}: Error verificando\n")
             
             # Analizar tipo de archivos críticos con 'file'
             archivos_binarios = ['/usr/bin/sudo', '/usr/bin/passwd', '/usr/sbin/sshd']
@@ -2183,11 +2183,11 @@ class VistaFIM(tk.Frame):
                     except Exception as e:
                         self._actualizar_texto_fim(f"  [FAIL] Error: {str(e)}\n")
                 else:
-                    self._actualizar_texto_fim(f"  ❓ {archivo}: No encontrado\n")
+                    self._actualizar_texto_fim(f"  WARNING: {archivo}: No encontrado\n")
             
             # Verificar checksums conocidos si están disponibles
             try:
-                self._actualizar_texto_fim(f"\n🔐 Verificando base de datos de checksums del sistema:\n")
+                self._actualizar_texto_fim(f"\nCHECKSUMS: Verificando base de datos de checksums del sistema:\n")
                 
                 # Verificar si debsums está disponible (verifica checksums de paquetes)
                 resultado = subprocess.run(['which', 'debsums'], 
@@ -2213,7 +2213,7 @@ class VistaFIM(tk.Frame):
                         except:
                             pass
                 else:
-                    self._actualizar_texto_fim("  ❓ debsums no disponible\n")
+                    self._actualizar_texto_fim("  WARNING: debsums no disponible\n")
                     self._actualizar_texto_fim("  TIP Para instalar: apt-get install debsums\n")
                     
             except:
@@ -2309,7 +2309,7 @@ class VistaFIM(tk.Frame):
             info = validador_comandos.obtener_info_seguridad()
             
             self.terminal_output.insert(tk.END, "\n" + "="*60 + "\n")
-            self.terminal_output.insert(tk.END, "🔐 INFORMACIÓN DE SEGURIDAD ARESITOS - FIM\n")
+            self.terminal_output.insert(tk.END, "SEGURIDAD: INFORMACIÓN DE SEGURIDAD ARESITOS - FIM\n")
             self.terminal_output.insert(tk.END, "="*60 + "\n\n")
             
             estado_seguridad = "[OK] SEGURO" if info['es_usuario_kali'] else "[FAIL] INSEGURO"

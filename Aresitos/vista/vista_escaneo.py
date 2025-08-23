@@ -133,7 +133,7 @@ class VistaEscaneo(tk.Frame):
         entrada_frame = tk.Frame(btn_frame_avanzado, bg=self.colors['bg_primary'])
         entrada_frame.pack(fill="x", pady=(0, 5))
         
-        tk.Label(entrada_frame, text="🎯 Objetivo:", 
+        tk.Label(entrada_frame, text="OBJETIVO:", 
                 font=('Arial', 9, 'bold'),
                 bg=self.colors['bg_primary'], fg=self.colors['fg_primary']).pack(side="left", padx=(0, 5))
         
@@ -151,7 +151,7 @@ class VistaEscaneo(tk.Frame):
         btn_avanzado_container.pack(fill="x")
         
         # Botón escaneo rápido avanzado (RustScan/Masscan)
-        self.btn_rapido_avanzado = tk.Button(btn_avanzado_container, text="🔍 Rápido (RustScan)", 
+        self.btn_rapido_avanzado = tk.Button(btn_avanzado_container, text="Rápido (RustScan)", 
                                            command=self.ejecutar_escaneo_rapido_avanzado,
                                            bg='#007ACC', fg='white', 
                                            font=('Arial', 9, 'bold'),
@@ -161,7 +161,7 @@ class VistaEscaneo(tk.Frame):
         self.btn_rapido_avanzado.pack(side="left", padx=(0, 8))
         
         # Botón escaneo completo avanzado (Multi-herramientas)
-        self.btn_completo_avanzado = tk.Button(btn_avanzado_container, text="🔬 Completo (Multi-tools)", 
+        self.btn_completo_avanzado = tk.Button(btn_avanzado_container, text="Completo (Multi-tools)", 
                                              command=self.ejecutar_escaneo_completo_avanzado,
                                              bg='#28A745', fg='white', 
                                              font=('Arial', 9, 'bold'),
@@ -181,7 +181,7 @@ class VistaEscaneo(tk.Frame):
         self.btn_sigiloso_avanzado.pack(side="left", padx=(0, 8))
         
         # Botón escaneo agresivo (Aggressive)
-        self.btn_agresivo_avanzado = tk.Button(btn_avanzado_container, text="⚡ Agresivo (Parallel)", 
+        self.btn_agresivo_avanzado = tk.Button(btn_avanzado_container, text="Agresivo (Parallel)", 
                                              command=self.ejecutar_escaneo_agresivo_avanzado,
                                              bg='#DC3545', fg='white', 
                                              font=('Arial', 9, 'bold'),
@@ -191,7 +191,7 @@ class VistaEscaneo(tk.Frame):
         self.btn_agresivo_avanzado.pack(side="left", padx=(0, 8))
         
         # Botón estadísticas del escaneador
-        self.btn_stats_avanzado = tk.Button(btn_avanzado_container, text="📊 Stats", 
+        self.btn_stats_avanzado = tk.Button(btn_avanzado_container, text="Stats", 
                                           command=self.mostrar_estadisticas_avanzadas,
                                           bg='#FFC107', fg='black', 
                                           font=('Arial', 9, 'bold'),
@@ -622,10 +622,10 @@ class VistaEscaneo(tk.Frame):
                             resultados_totales["resultados"].append(resultado)
                             self._log_terminal(f"CONTROLADOR Escaneo de {objetivo} completado", "ESCANEADOR", "SUCCESS")
                         else:
-                            self._log_terminal(f"✗ Error en escaneo de {objetivo}: {resultado.get('error', 'Error desconocido')}", "ESCANEADOR", "ERROR")
+                            self._log_terminal(f"ERROR: Error en escaneo de {objetivo}: {resultado.get('error', 'Error desconocido')}", "ESCANEADOR", "ERROR")
                             
                     except Exception as e:
-                        self._log_terminal(f"✗ Excepción escaneando {objetivo}: {str(e)}", "ESCANEADOR", "ERROR")
+                        self._log_terminal(f"ERROR: Excepción escaneando {objetivo}: {str(e)}", "ESCANEADOR", "ERROR")
                         continue
                 
                 # Mostrar resultados consolidados
@@ -991,7 +991,7 @@ class VistaEscaneo(tk.Frame):
                 
             except Exception as e:
                 fases_con_error += 1
-                self._log_terminal(f"✗ ERROR en FASE 1: {str(e)}", "ESCANEADOR", "ERROR")
+                self._log_terminal(f"ERROR: ERROR en FASE 1: {str(e)}", "ESCANEADOR", "ERROR")
             
             # FASE 2: Análisis de red básico
             try:
@@ -1017,7 +1017,7 @@ class VistaEscaneo(tk.Frame):
                 
             except Exception as e:
                 fases_con_error += 1
-                self._log_terminal(f"✗ ERROR en FASE 2: {str(e)}", "ESCANEADOR", "ERROR")
+                self._log_terminal(f"ERROR: ERROR en FASE 2: {str(e)}", "ESCANEADOR", "ERROR")
             
             # FASE 3: Puertos en escucha
             try:
@@ -1038,7 +1038,7 @@ class VistaEscaneo(tk.Frame):
                 
             except Exception as e:
                 fases_con_error += 1
-                self._log_terminal(f"✗ ERROR en FASE 3: {str(e)}", "ESCANEADOR", "ERROR")
+                self._log_terminal(f"ERROR: ERROR en FASE 3: {str(e)}", "ESCANEADOR", "ERROR")
             
             # FASE 4: Procesos activos
             try:
@@ -1063,7 +1063,7 @@ class VistaEscaneo(tk.Frame):
                 
             except Exception as e:
                 fases_con_error += 1
-                self._log_terminal(f"✗ ERROR en FASE 4: {str(e)}", "ESCANEADOR", "ERROR")
+                self._log_terminal(f"ERROR: ERROR en FASE 4: {str(e)}", "ESCANEADOR", "ERROR")
             
             # FASE 5: Servicios del sistema
             try:
@@ -1086,7 +1086,7 @@ class VistaEscaneo(tk.Frame):
                 
             except Exception as e:
                 fases_con_error += 1
-                self._log_terminal(f"✗ ERROR en FASE 5: {str(e)}", "ESCANEADOR", "ERROR")
+                self._log_terminal(f"ERROR: ERROR en FASE 5: {str(e)}", "ESCANEADOR", "ERROR")
             
             # FASE 6: Verificación de herramientas de seguridad
             try:
@@ -1103,7 +1103,7 @@ class VistaEscaneo(tk.Frame):
                             disponibles.append(herramienta)
                             self._actualizar_texto_seguro(f"  CONTROLADOR {herramienta}: {resultado.stdout.strip()}\n")
                         else:
-                            self._actualizar_texto_seguro(f"  ✗ {herramienta}: No disponible\n")
+                            self._actualizar_texto_seguro(f"  ERROR: {herramienta}: No disponible\n")
                     except:
                         self._actualizar_texto_seguro(f"  ? {herramienta}: Error verificando\n")
                 
@@ -1114,7 +1114,7 @@ class VistaEscaneo(tk.Frame):
                 
             except Exception as e:
                 fases_con_error += 1
-                self._log_terminal(f"✗ ERROR en FASE 6: {str(e)}", "ESCANEADOR", "ERROR")
+                self._log_terminal(f"ERROR: ERROR en FASE 6: {str(e)}", "ESCANEADOR", "ERROR")
             
             # FASE 7: Resumen de seguridad
             try:
@@ -1141,7 +1141,7 @@ class VistaEscaneo(tk.Frame):
                 
             except Exception as e:
                 fases_con_error += 1
-                self._log_terminal(f"✗ ERROR en FASE 7: {str(e)}", "ESCANEADOR", "ERROR")
+                self._log_terminal(f"ERROR: ERROR en FASE 7: {str(e)}", "ESCANEADOR", "ERROR")
             
             # Resumen final
             self._actualizar_texto_seguro("\n" + "=" * 60 + "\n")
@@ -1189,7 +1189,7 @@ class VistaEscaneo(tk.Frame):
             
             puertos_encontrados = resultados.get('puertos', [])
             if puertos_encontrados:
-                self._log_terminal(f"🔌 Detectados {len(puertos_encontrados)} puertos activos", "ESCANEADOR", "WARNING")
+                self._log_terminal(f"PUERTOS: Detectados {len(puertos_encontrados)} puertos activos", "ESCANEADOR", "WARNING")
                 
                 for puerto_info in puertos_encontrados:
                     # Extraer número de puerto de la información
@@ -1243,11 +1243,11 @@ class VistaEscaneo(tk.Frame):
         
         # Log de puertos al terminal integrado
         if puertos_encontrados:
-            self._log_terminal(f"🔌 Encontrados {len(puertos_encontrados)} puertos", "ESCANEADOR", "SUCCESS")
+            self._log_terminal(f"PUERTOS: Encontrados {len(puertos_encontrados)} puertos", "ESCANEADOR", "SUCCESS")
             for puerto in puertos_encontrados[:3]:  # Mostrar solo los primeros 3
                 self._log_terminal(f"  └─ {puerto}", "ESCANEADOR", "INFO")
         else:
-            self._log_terminal("🔌 No se encontraron puertos activos", "ESCANEADOR", "INFO")
+            self._log_terminal("PUERTOS: No se encontraron puertos activos", "ESCANEADOR", "INFO")
         
         self.text_resultados.insert(tk.END, "\n=== PROCESOS ===\n")
         procesos_encontrados = resultados.get('procesos', [])[:10]  # Mostrar solo 10
@@ -1973,7 +1973,7 @@ class VistaEscaneo(tk.Frame):
         
         self._actualizar_texto_seguro("\nCAPACIDADES PRINCIPALES:\n")
         for capacidad in estadisticas["capacidades"]:
-            self._actualizar_texto_seguro(f"  ✓ {capacidad}\n")
+            self._actualizar_texto_seguro(f"  OK: {capacidad}\n")
         
         self._actualizar_texto_seguro("\nTIPOS DE ESCANEO DISPONIBLES:\n")
         for tipo, descripcion in estadisticas["tipos_escaneo"].items():
@@ -3884,7 +3884,7 @@ class VistaEscaneo(tk.Frame):
             info = validador_comandos.obtener_info_seguridad()
             
             self.terminal_output.insert(tk.END, "\n" + "="*60 + "\n")
-            self.terminal_output.insert(tk.END, "🔐 INFORMACIÓN DE SEGURIDAD ARESITOS - ESCANEADOR\n")
+            self.terminal_output.insert(tk.END, "SEGURIDAD: INFORMACIÓN DE SEGURIDAD ARESITOS - ESCANEADOR\n")
             self.terminal_output.insert(tk.END, "="*60 + "\n\n")
             
             estado_seguridad = "[OK] SEGURO" if info['es_usuario_kali'] else "[FAIL] INSEGURO"
@@ -4005,12 +4005,12 @@ class VistaEscaneo(tk.Frame):
         """Ejecutar escaneo rápido con RustScan/Masscan."""
         objetivo = self.entry_objetivo.get().strip()
         if not objetivo:
-            self.mostrar_notificacion("⚠️ Introduce un objetivo para escanear", "warning")
+            self.mostrar_notificacion("WARNING: Introduce un objetivo para escanear", "warning")
             return
             
         # Validar el objetivo
         if not self._validar_objetivo(objetivo):
-            self.mostrar_notificacion("❌ Objetivo no válido", "error")
+            self.mostrar_notificacion("ERROR: Objetivo no válido", "error")
             return
             
         self._actualizar_texto_seguro("🚀 INICIANDO ESCANEO RÁPIDO AVANZADO...\n")

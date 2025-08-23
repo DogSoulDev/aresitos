@@ -1,5 +1,3 @@
-![ARESITOS](Aresitos/recursos/Aresitos.png)
-
 # ARESITOS V3 - CYBER SECURITY FRAMEWORK
 
 # ARESITOS - Herramienta de Ciberseguridad Profesional

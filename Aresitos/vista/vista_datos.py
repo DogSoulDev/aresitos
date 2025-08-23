@@ -371,7 +371,7 @@ class VistaGestionDatos(tk.Frame):
         
         # Botones de gestión de archivos
         gestión_acciones = [
-            ("🔄 Refrescar", self.cargar_archivos, '#17a2b8'),
+            ("Refrescar", self.cargar_archivos, '#17a2b8'),
             ("DIR Abrir Carpeta", self.abrir_carpeta_actual, '#007acc'),
             ("[STATS] Estadísticas", self.obtener_estadisticas_datos, '#6c757d')
         ]
@@ -428,7 +428,7 @@ class VistaGestionDatos(tk.Frame):
         """Cambiar entre wordlists y diccionarios con thread safety (PRINCIPIO ARESITOS V3)."""
         with self._lock:
             try:
-                self.logger.info(f"🔄 Cambiando tipo de gestión de datos a: {nuevo_tipo}")
+                self.logger.info(f"CAMBIO: Cambiando tipo de gestión de datos a: {nuevo_tipo}")
                 self.tipo_actual = nuevo_tipo
                 
                 # Actualizar botones con acceso dinámico al tema
@@ -508,7 +508,7 @@ class VistaGestionDatos(tk.Frame):
                     self.logger.warning(f"Error ordenando archivos: {e}")
                 
                 # Mostrar información de refresco
-                self._log_terminal(f"🔄 Actualizando lista de {tipo_str}... Encontrados {len(archivos)} archivos", "GESTION")
+                self._log_terminal(f"ACTUALIZANDO: Actualizando lista de {tipo_str}... Encontrados {len(archivos)} archivos", "GESTION")
                 
                 # Agregar archivos a la lista con iconos
                 for archivo in archivos:
@@ -1573,7 +1573,7 @@ EJEMPLOS:
             info = validador_comandos.obtener_info_seguridad()
             
             self.terminal_output.insert(tk.END, "\n" + "="*60 + "\n")
-            self.terminal_output.insert(tk.END, "🔐 INFORMACIÓN DE SEGURIDAD ARESITOS - GESTIÓN DATOS\n")
+            self.terminal_output.insert(tk.END, "SEGURIDAD: INFORMACIÓN DE SEGURIDAD ARESITOS - GESTIÓN DATOS\n")
             self.terminal_output.insert(tk.END, "="*60 + "\n\n")
             
             estado_seguridad = "[OK] SEGURO" if info['es_usuario_kali'] else "[FAIL] INSEGURO"
