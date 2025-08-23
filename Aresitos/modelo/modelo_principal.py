@@ -144,7 +144,7 @@ class ModeloPrincipal:
     def _inicializar_gestores(self):
         """Inicializa todos los gestores de datos optimizados siguiendo ARESITOS V3."""
         try:
-            self.logger.info("🚀 Inicializando gestores ARESITOS V3...")
+            self.logger.info("[LAUNCH] Inicializando gestores ARESITOS V3...")
             self._estado_sistema['inicializado'] = False
             
             # Verificar herramientas del sistema
@@ -162,10 +162,10 @@ class ModeloPrincipal:
             # Verificar estado final
             self._verificar_estado_componentes()
             
-            self.logger.info("✅ Inicialización de gestores ARESITOS V3 completada")
+            self.logger.info("[OK] Inicialización de gestores ARESITOS V3 completada")
             
         except Exception as e:
-            self.logger.error(f"❌ Error en inicialización de gestores: {e}")
+            self.logger.error(f"[FAIL] Error en inicialización de gestores: {e}")
             self._estado_sistema['errores_inicializacion'].append(str(e))
     
     def _inicializar_dashboard(self):
@@ -175,9 +175,9 @@ class ModeloPrincipal:
                 from Aresitos.modelo.modelo_dashboard import ModeloDashboard
                 self.dashboard = ModeloDashboard()
                 self._estado_sistema['componentes_activos']['dashboard'] = True
-                self.logger.info("✅ Dashboard optimizado inicializado")
+                self.logger.info("[OK] Dashboard optimizado inicializado")
         except Exception as e:
-            self.logger.warning(f"⚠️ Dashboard no disponible: {e}")
+            self.logger.warning(f"[WARNING] Dashboard no disponible: {e}")
             self._estado_sistema['componentes_activos']['dashboard'] = False
     
     def _inicializar_escaneador(self):
@@ -189,7 +189,7 @@ class ModeloPrincipal:
                     from Aresitos.modelo.modelo_escaneador import EscaneadorCompleto
                     self.escaneador_avanzado = EscaneadorCompleto()
                     self._estado_sistema['componentes_activos']['escaneador'] = True
-                    self.logger.info("✅ Escaneador consolidado inicializado")
+                    self.logger.info("[OK] Escaneador consolidado inicializado")
                 except ImportError:
                     # Fallback a escaneadores específicos
                     try:
@@ -198,11 +198,11 @@ class ModeloPrincipal:
                         self.escaneador_red = EscaneadorRed()
                         self.escaneador_sistema = EscaneadorSistema()
                         self._estado_sistema['componentes_activos']['escaneador'] = True
-                        self.logger.info("✅ Escaneadores especializados inicializados")
+                        self.logger.info("[OK] Escaneadores especializados inicializados")
                     except ImportError as e2:
                         raise e2
         except Exception as e:
-            self.logger.warning(f"⚠️ Escaneador no disponible: {e}")
+            self.logger.warning(f"[WARNING] Escaneador no disponible: {e}")
             self._estado_sistema['componentes_activos']['escaneador'] = False
     
     def _inicializar_siem(self):
@@ -212,9 +212,9 @@ class ModeloPrincipal:
                 from Aresitos.modelo.modelo_siem import SIEMKali2025
                 self.siem_avanzado = SIEMKali2025()
                 self._estado_sistema['componentes_activos']['siem'] = True
-                self.logger.info("✅ SIEM Kali2025 inicializado")
+                self.logger.info("[OK] SIEM Kali2025 inicializado")
         except Exception as e:
-            self.logger.warning(f"⚠️ SIEM no disponible: {e}")
+            self.logger.warning(f"[WARNING] SIEM no disponible: {e}")
             self._estado_sistema['componentes_activos']['siem'] = False
     
     def _inicializar_monitor(self):
@@ -224,9 +224,9 @@ class ModeloPrincipal:
                 from Aresitos.modelo.modelo_monitor import MonitorAvanzadoNativo
                 self.monitor_avanzado = MonitorAvanzadoNativo(siem=self.siem_avanzado)
                 self._estado_sistema['componentes_activos']['monitor'] = True
-                self.logger.info("✅ Monitor avanzado inicializado")
+                self.logger.info("[OK] Monitor avanzado inicializado")
         except Exception as e:
-            self.logger.warning(f"⚠️ Monitor no disponible: {e}")
+            self.logger.warning(f"[WARNING] Monitor no disponible: {e}")
             self._estado_sistema['componentes_activos']['monitor'] = False
     
     def _inicializar_fim(self):
@@ -238,18 +238,18 @@ class ModeloPrincipal:
                     from Aresitos.modelo.modelo_fim_kali2025 import FIMKali2025
                     self.fim_avanzado = FIMKali2025()
                     self._estado_sistema['componentes_activos']['fim'] = True
-                    self.logger.info("✅ FIM Kali2025 optimizado inicializado")
+                    self.logger.info("[OK] FIM Kali2025 optimizado inicializado")
                 except ImportError:
                     # Fallback al FIM original
                     try:
                         from Aresitos.modelo.modelo_fim import FIMKali2025
                         self.fim_avanzado = FIMKali2025()
                         self._estado_sistema['componentes_activos']['fim'] = True
-                        self.logger.info("✅ FIM original inicializado")
+                        self.logger.info("[OK] FIM original inicializado")
                     except ImportError as e2:
                         raise e2
         except Exception as e:
-            self.logger.warning(f"⚠️ FIM no disponible: {e}")
+            self.logger.warning(f"[WARNING] FIM no disponible: {e}")
             self._estado_sistema['componentes_activos']['fim'] = False
     
     def _inicializar_cuarentena(self):
@@ -259,9 +259,9 @@ class ModeloPrincipal:
                 from Aresitos.modelo.modelo_cuarentena_kali2025 import CuarentenaKali2025
                 self.cuarentena = CuarentenaKali2025()
                 self._estado_sistema['componentes_activos']['cuarentena'] = True
-                self.logger.info("✅ Cuarentena Kali2025 inicializada")
+                self.logger.info("[OK] Cuarentena Kali2025 inicializada")
         except Exception as e:
-            self.logger.warning(f"⚠️ Cuarentena no disponible: {e}")
+            self.logger.warning(f"[WARNING] Cuarentena no disponible: {e}")
             self._estado_sistema['componentes_activos']['cuarentena'] = False
     
     def _verificar_estado_componentes(self):
@@ -271,12 +271,12 @@ class ModeloPrincipal:
         
         self._estado_sistema['inicializado'] = componentes_activos >= (total_componentes * 0.5)  # Al menos 50%
         
-        self.logger.info(f"📊 Componentes activos: {componentes_activos}/{total_componentes}")
+        self.logger.info(f"[STATS] Componentes activos: {componentes_activos}/{total_componentes}")
         
         if self._estado_sistema['inicializado']:
-            self.logger.info("🎯 Sistema ARESITOS V3 inicializado correctamente")
+            self.logger.info("[TARGET] Sistema ARESITOS V3 inicializado correctamente")
         else:
-            self.logger.warning("⚠️ Sistema parcialmente inicializado")
+            self.logger.warning("[WARNING] Sistema parcialmente inicializado")
     
     def _cache_get(self, key: str) -> Optional[Any]:
         """Obtener valor del cache si no ha expirado."""
@@ -545,7 +545,7 @@ class ModeloPrincipal:
             with self._lock:
                 self._cache_metricas.clear()
             
-            self.logger.info("✅ Todos los componentes detenidos")
+            self.logger.info("[OK] Todos los componentes detenidos")
             
             return {
                 'exito': True,

@@ -289,7 +289,7 @@ class VistaPrincipal(tk.Frame):
         if self.theme:
             status_frame = tk.Frame(self, bg=self.theme.get_color('bg_secondary'), height=25)
         else:
-            status_frame = tk.Frame(self, bg='#f0f0f0', height=25)
+            status_frame = tk.Frame(self, bg='#3c3c3c', height=25)  # Gris oscuro Burp Suite
         status_frame.pack(fill="x", padx=2, pady=(0, 2))
         status_frame.pack_propagate(False)
         
@@ -297,18 +297,18 @@ class VistaPrincipal(tk.Frame):
         if self.theme:
             self.status_label = tk.Label(
                 status_frame,
-                text="ARESITOS Ready - Todos los sistemas operativos",
-                font=("Arial", 8),
-                fg=self.theme.get_color('fg_primary'),
+                text="ARESITOS v3.0 - Listo | PYTHON NATIVO + KALI TOOLS",
+                font=('Consolas', 9),
+                fg=self.theme.get_color('fg_secondary'),
                 bg=self.theme.get_color('bg_secondary')
             )
         else:
             self.status_label = tk.Label(
                 status_frame,
-                text="ARESITOS Ready - Todos los sistemas operativos",
-                font=("Arial", 8),
-                fg='#000000',
-                bg='#f0f0f0'
+                text="ARESITOS v3.0 - Listo | PYTHON NATIVO + KALI TOOLS",
+                font=('Consolas', 9),
+                bg='#3c3c3c',  # Gris oscuro Burp Suite
+                fg='#cccccc'   # Texto gris claro
             )
         self.status_label.pack(side="left", padx=10, pady=3)
         
@@ -316,18 +316,18 @@ class VistaPrincipal(tk.Frame):
         if self.theme:
             tech_label = tk.Label(
                 status_frame,
-                text="Python Native | No External Dependencies",
-                font=("Arial", 8),
-                fg=self.theme.get_color('fg_secondary'),
+                text="Kali Linux | ARESITOS V3",
+                font=('Consolas', 8),
+                fg=self.theme.get_color('fg_accent'),
                 bg=self.theme.get_color('bg_secondary')
             )
         else:
             tech_label = tk.Label(
                 status_frame,
-                text="Python Native | No External Dependencies",
-                font=("Arial", 8),
-                fg='#666666',
-                bg='#f0f0f0'
+                text="Kali Linux | ARESITOS V3",
+                font=('Consolas', 8),
+                fg='#ff6633',  # Naranja Burp Suite
+                bg='#3c3c3c'   # Gris oscuro Burp Suite
             )
         tech_label.pack(side="right", padx=10, pady=3)
     

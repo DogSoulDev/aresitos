@@ -48,14 +48,14 @@ class HelperSeguridad:
 Tipo de archivo: {tipo_archivo.upper()}
 Extensiones permitidas: {extensiones_texto}
 
-⚠️  MEDIDAS DE SEGURIDAD ACTIVAS:
+[WARNING]  MEDIDAS DE SEGURIDAD ACTIVAS:
 • Solo se permiten archivos con extensiones válidas
 • Verificación de contenido y estructura de archivo
 • Validación de tamaño máximo (50MB)
 • Detección de caracteres peligrosos en nombres
 • Prevención de ataques de traversal de directorios
 
-🛡️  ARCHIVOS RECHAZADOS AUTOMÁTICAMENTE:
+[SECURITY]  ARCHIVOS RECHAZADOS AUTOMÁTICAMENTE:
 • Ejecutables (.exe, .bat, .sh no válidos)
 • Archivos con rutas peligrosas (../, ~/)
 • Archivos con nombres de sistema reservados
@@ -84,9 +84,9 @@ Extensiones permitidas: {extensiones_texto}
         mensaje = """
 🔒 ADVERTENCIA - ARCHIVO PARA CUARENTENA
 
-⚠️  ATENCIÓN: Está a punto de cargar un archivo potencialmente peligroso.
+[WARNING]  ATENCIÓN: Está a punto de cargar un archivo potencialmente peligroso.
 
-🛡️  MEDIDAS DE PROTECCIÓN:
+[SECURITY]  MEDIDAS DE PROTECCIÓN:
 • El archivo será aislado inmediatamente
 • No se ejecutará automáticamente
 • Se aplicará análisis de seguridad
@@ -129,10 +129,10 @@ Extensiones permitidas: {extensiones_texto}
             mensaje = f"""
 🚫 ARCHIVO RECHAZADO POR SEGURIDAD
 
-❌ Errores encontrados:
+[FAIL] Errores encontrados:
 • {errores_texto}
 
-🛡️ El archivo no cumple con los estándares de seguridad de Aresitos.
+[SECURITY] El archivo no cumple con los estándares de seguridad de Aresitos.
 Por favor, verifique el archivo y vuelva a intentarlo.
             """
             
@@ -153,11 +153,11 @@ Por favor, verifique el archivo y vuelva a intentarlo.
                     advertencias_texto = str(advertencias)
                 
                 mensaje = f"""
-⚠️  ARCHIVO ACEPTADO CON ADVERTENCIAS
+[WARNING]  ARCHIVO ACEPTADO CON ADVERTENCIAS
 
-✅ El archivo ha pasado las validaciones básicas de seguridad.
+[OK] El archivo ha pasado las validaciones básicas de seguridad.
 
-⚠️  Advertencias encontradas:
+[WARNING]  Advertencias encontradas:
 • {advertencias_texto}
 
 ¿Desea continuar cargando el archivo?
@@ -183,16 +183,16 @@ Por favor, verifique el archivo y vuelva a intentarlo.
             'wordlists': """
 📝 FORMATOS SOPORTADOS - WORDLISTS
 
-✅ Archivos de texto (.txt):
+[OK] Archivos de texto (.txt):
 • Una palabra por línea
 • Codificación UTF-8
 • Sin caracteres de control
 
-✅ Listas (.list):
+[OK] Listas (.list):
 • Formato similar a .txt
 • Estructura lineal simple
 
-✅ Diccionarios (.dic):
+[OK] Diccionarios (.dic):
 • Formato de texto plano
 • Compatible con herramientas estándar
 
@@ -206,7 +206,7 @@ usuario
             'diccionarios': """
 📝 FORMATOS SOPORTADOS - DICCIONARIOS
 
-✅ Archivos JSON (.json):
+[OK] Archivos JSON (.json):
 • Estructura JSON válida
 • Codificación UTF-8
 • Máximo 50MB
@@ -223,11 +223,11 @@ usuario
             'reportes': """
 📝 FORMATOS SOPORTADOS - REPORTES
 
-✅ Archivos JSON (.json):
+[OK] Archivos JSON (.json):
 • Estructura JSON válida con metadatos
 • Información de escaneos y resultados
 
-✅ Archivos de texto (.txt):
+[OK] Archivos de texto (.txt):
 • Texto plano con información de reportes
 • Codificación UTF-8
 

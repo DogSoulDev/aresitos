@@ -871,7 +871,7 @@ class VistaReportes(tk.Frame):
         except ImportError:
             # Fallback sin validación (modo inseguro)
             self.terminal_output.insert(tk.END, f"\n> {comando}\n")
-            self.terminal_output.insert(tk.END, "⚠️  EJECUTANDO SIN VALIDACIÓN DE SEGURIDAD\n")
+            self.terminal_output.insert(tk.END, "[WARNING]  EJECUTANDO SIN VALIDACIÓN DE SEGURIDAD\n")
             self.terminal_output.see(tk.END)
             self.comando_entry.delete(0, tk.END)
             
@@ -880,7 +880,7 @@ class VistaReportes(tk.Frame):
             thread.start()
         except Exception as e:
             self.terminal_output.insert(tk.END, f"\n> {comando}\n")
-            self.terminal_output.insert(tk.END, f"❌ Error de seguridad: {e}\n")
+            self.terminal_output.insert(tk.END, f"[FAIL] Error de seguridad: {e}\n")
             self.terminal_output.see(tk.END)
             self.comando_entry.delete(0, tk.END)
     
@@ -1367,7 +1367,7 @@ class VistaReportes(tk.Frame):
             comandos = validador_comandos.obtener_comandos_disponibles()
             
             self.terminal_output.insert(tk.END, "\n" + "="*60 + "\n")
-            self.terminal_output.insert(tk.END, "🛡️  COMANDOS DISPONIBLES EN ARESITOS v2.0 - REPORTES\n")
+            self.terminal_output.insert(tk.END, "[SECURITY]  COMANDOS DISPONIBLES EN ARESITOS v2.0 - REPORTES\n")
             self.terminal_output.insert(tk.END, "="*60 + "\n\n")
             
             for categoria, lista_comandos in comandos.items():
@@ -1375,7 +1375,7 @@ class VistaReportes(tk.Frame):
                 comandos_linea = ", ".join(lista_comandos)
                 self.terminal_output.insert(tk.END, f"   {comandos_linea}\n\n")
             
-            self.terminal_output.insert(tk.END, "🔧 COMANDOS ESPECIALES:\n")
+            self.terminal_output.insert(tk.END, "[TOOLS] COMANDOS ESPECIALES:\n")
             self.terminal_output.insert(tk.END, "   ayuda-comandos, info-seguridad, clear/cls\n\n")
             self.terminal_output.insert(tk.END, "="*60 + "\n")
             

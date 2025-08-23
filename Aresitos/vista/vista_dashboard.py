@@ -807,16 +807,16 @@ class VistaDashboard(tk.Frame):
                     # Formato especial para diferentes tipos de líneas
                     if linea.strip().startswith('#'):
                         # Títulos/headers
-                        self.escribir_terminal(f"🔵 {linea.strip()}", "[TÍTULO]")
+                        self.escribir_terminal(f"[INFO] {linea.strip()}", "[TÍTULO]")
                     elif linea.strip().startswith('```') or linea.strip().startswith('~~~'):
                         # Bloques de código
-                        self.escribir_terminal(f"💻 {linea.strip()}", "[CÓDIGO]")
+                        self.escribir_terminal(f"[SYSTEM] {linea.strip()}", "[CÓDIGO]")
                     elif linea.strip().startswith('-') or linea.strip().startswith('*'):
                         # Listas
                         self.escribir_terminal(f"📌 {linea.strip()}", "[LISTA]")
                     elif 'nmap' in linea.lower() or 'sudo' in linea.lower() or linea.strip().startswith('/'):
                         # Comandos específicos
-                        self.escribir_terminal(f"⚡ {linea.strip()}", "[COMANDO]")
+                        self.escribir_terminal(f"[FAST] {linea.strip()}", "[COMANDO]")
                     elif linea.strip() and not linea.startswith(' '):
                         # Líneas de texto normal
                         self.escribir_terminal(f"   {linea.strip()}", "[CHEATSHEETS]")
@@ -833,7 +833,7 @@ class VistaDashboard(tk.Frame):
                 from datetime import datetime
                 mod_time = datetime.fromtimestamp(stat_info.st_mtime).strftime("%Y-%m-%d %H:%M")
                 
-                self.escribir_terminal(f"📊 Archivo: {tamaño_kb:.1f} KB, modificado: {mod_time}", "[INFO]")
+                self.escribir_terminal(f"[STATS] Archivo: {tamaño_kb:.1f} KB, modificado: {mod_time}", "[INFO]")
                 
             except UnicodeDecodeError:
                 # Intentar con diferentes encodings
@@ -934,13 +934,13 @@ class VistaDashboard(tk.Frame):
                 self.escribir_terminal(f"📖 Encontrado: {coincidencias[0]}", "[CHEATSHEETS]")
                 self.mostrar_cheatsheet(coincidencias[0])
             elif len(coincidencias) > 1:
-                self.escribir_terminal(f"🔍 Encontradas {len(coincidencias)} coincidencias:", "[CHEATSHEETS]")
+                self.escribir_terminal(f"[SCAN] Encontradas {len(coincidencias)} coincidencias:", "[CHEATSHEETS]")
                 for i, cs in enumerate(coincidencias, 1):
                     self.escribir_terminal(f"  {i}. {cs}", "[LISTA]")
                 self.escribir_terminal("💡 Sea más específico en la búsqueda", "[HELP]")
             else:
                 # Búsqueda en contenido
-                self.escribir_terminal(f"🔍 Buscando '{busqueda}' en contenido de archivos...", "[CHEATSHEETS]")
+                self.escribir_terminal(f"[SCAN] Buscando '{busqueda}' en contenido de archivos...", "[CHEATSHEETS]")
                 archivos_con_contenido = []
                 
                 for cs in cheatsheets[:10]:  # Buscar en los primeros 10 archivos
@@ -962,7 +962,7 @@ class VistaDashboard(tk.Frame):
                         self.escribir_terminal(f"📖 Mostrando: {archivos_con_contenido[0]}", "[CHEATSHEETS]")
                         self.mostrar_cheatsheet(archivos_con_contenido[0])
                 else:
-                    self.escribir_terminal(f"❌ No se encontró '{busqueda}' en ningún cheatsheet", "[ERROR]")
+                    self.escribir_terminal(f"[FAIL] No se encontró '{busqueda}' en ningún cheatsheet", "[ERROR]")
                     self.escribir_terminal("💡 Intente con: nmap, metasploit, burp, sql, linux, windows", "[HELP]")
                     
         except Exception as e:
@@ -1265,7 +1265,7 @@ class VistaDashboard(tk.Frame):
     
     def _agregar_info_red_adicional(self):
         """Agregar información adicional de red"""
-        self.interfaces_text.insert(tk.END, "🌐 INFORMACIÓN ADICIONAL DE RED:\n\n")
+        self.interfaces_text.insert(tk.END, "[NETWORK] INFORMACIÓN ADICIONAL DE RED:\n\n")
         
         # Gateway predeterminado
         try:
@@ -1285,7 +1285,7 @@ class VistaDashboard(tk.Frame):
                     if line.startswith('nameserver'):
                         dns_servers.append(line.split()[1])
                 if dns_servers:
-                    self.interfaces_text.insert(tk.END, f"🔍 DNS: {', '.join(dns_servers)}\n")
+                    self.interfaces_text.insert(tk.END, f"[SCAN] DNS: {', '.join(dns_servers)}\n")
         except:
             pass
         
@@ -1442,7 +1442,7 @@ class VistaDashboard(tk.Frame):
         
         btn_buscar_cheat = tk.Button(
             buttons_frame,
-            text="🔍 Buscar",
+            text="[SCAN] Buscar",
             command=self._buscar_cheatsheet_interactivo,
             bg='#ffc107',
             fg='black',
@@ -1502,7 +1502,7 @@ class VistaDashboard(tk.Frame):
         except Exception as e:
             print(f"Error cargando categorías de cheatsheets: {e}")
             # Mensaje de error
-            self.categorias_chuletas.insert(tk.END, "❌ Error cargando cheatsheets")
+            self.categorias_chuletas.insert(tk.END, "[FAIL] Error cargando cheatsheets")
     
     def _crear_cheatsheets_database(self):
         """Crear base de datos de cheatsheets."""
@@ -1873,7 +1873,7 @@ journalctl -u ssh                # Logs de servicio específico
                 self.categoria_actual = categoria
                 
                 # Verificar si es un mensaje de error o vacío
-                if categoria.startswith("📁") or categoria.startswith("📋") or categoria.startswith("❌"):
+                if categoria.startswith("📁") or categoria.startswith("📋") or categoria.startswith("[FAIL]"):
                     self.cheatsheet_text.delete(1.0, tk.END)
                     self.cheatsheet_text.insert(1.0, f"# CHEATSHEETS\n\n{categoria}\n\nPor favor, revise la carpeta de cheatsheets.")
                     return

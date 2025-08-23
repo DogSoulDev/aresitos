@@ -43,7 +43,7 @@ class ControladorCuarentena:
                 self.log(f"Error inicializando cuarentena Kali 2025: {e}")
                 self.cuarentena = None
         else:
-            self.log("⚠️ Cuarentena Kali 2025 no disponible")
+            self.log("[WARNING] Cuarentena Kali 2025 no disponible")
             self.cuarentena = None
     
     def log(self, mensaje: str):
@@ -95,7 +95,7 @@ class ControladorCuarentena:
                     return False
             else:
                 # Amenaza sin archivo asociado - registrar en logs
-                self.log(f"⚠️ Amenaza sin archivo: {descripcion}")
+                self.log(f"[WARNING] Amenaza sin archivo: {descripcion}")
                 return True
                 
         except Exception as e:

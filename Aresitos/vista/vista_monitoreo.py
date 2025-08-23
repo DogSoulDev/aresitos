@@ -293,7 +293,7 @@ class VistaMonitoreo(tk.Frame):
         except ImportError:
             # Fallback sin validación (modo inseguro)
             self.terminal_output.insert(tk.END, f"\n> {comando}\n")
-            self.terminal_output.insert(tk.END, "⚠️  EJECUTANDO SIN VALIDACIÓN DE SEGURIDAD\n")
+            self.terminal_output.insert(tk.END, "[WARNING]  EJECUTANDO SIN VALIDACIÓN DE SEGURIDAD\n")
             self.terminal_output.see(tk.END)
             self.comando_entry.delete(0, tk.END)
             
@@ -302,7 +302,7 @@ class VistaMonitoreo(tk.Frame):
             thread.start()
         except Exception as e:
             self.terminal_output.insert(tk.END, f"\n> {comando}\n")
-            self.terminal_output.insert(tk.END, f"❌ Error de seguridad: {e}\n")
+            self.terminal_output.insert(tk.END, f"[FAIL] Error de seguridad: {e}\n")
             self.terminal_output.see(tk.END)
             self.comando_entry.delete(0, tk.END)
     
@@ -357,7 +357,7 @@ class VistaMonitoreo(tk.Frame):
             comandos = obtener_comandos_disponibles()
             
             self.terminal_output.insert(tk.END, "\n" + "="*60 + "\n")
-            self.terminal_output.insert(tk.END, "🛡️  COMANDOS DISPONIBLES EN ARESITOS v2.0\n")
+            self.terminal_output.insert(tk.END, "[SECURITY]  COMANDOS DISPONIBLES EN ARESITOS v2.0\n")
             self.terminal_output.insert(tk.END, "="*60 + "\n\n")
             
             for categoria, lista_comandos in comandos.items():
@@ -365,7 +365,7 @@ class VistaMonitoreo(tk.Frame):
                 comandos_linea = ", ".join(lista_comandos)
                 self.terminal_output.insert(tk.END, f"   {comandos_linea}\n\n")
             
-            self.terminal_output.insert(tk.END, "🔧 COMANDOS ESPECIALES:\n")
+            self.terminal_output.insert(tk.END, "[TOOLS] COMANDOS ESPECIALES:\n")
             self.terminal_output.insert(tk.END, "   ayuda-comandos, info-seguridad, clear/cls\n\n")
             self.terminal_output.insert(tk.END, "="*60 + "\n")
             
@@ -385,7 +385,7 @@ class VistaMonitoreo(tk.Frame):
             self.terminal_output.insert(tk.END, "🔐 INFORMACIÓN DE SEGURIDAD ARESITOS\n")
             self.terminal_output.insert(tk.END, "="*60 + "\n\n")
             
-            estado_seguridad = "✅ SEGURO" if info['es_usuario_kali'] else "❌ INSEGURO"
+            estado_seguridad = "[OK] SEGURO" if info['es_usuario_kali'] else "[FAIL] INSEGURO"
             
             self.terminal_output.insert(tk.END, f"Estado: {estado_seguridad}\n")
             self.terminal_output.insert(tk.END, f"Usuario: {info['usuario_actual']}\n")

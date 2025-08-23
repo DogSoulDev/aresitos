@@ -934,7 +934,7 @@ class LoginAresitos:
             herramientas_problematicas = [h for h in herramientas if h in HERRAMIENTAS_PROBLEMATICAS]
             
             if herramientas_problematicas:
-                self.escribir_log(f"⚠️  Omitiendo herramientas problemáticas: {', '.join(herramientas_problematicas)}")
+                self.escribir_log(f"[WARNING]  Omitiendo herramientas problemáticas: {', '.join(herramientas_problematicas)}")
                 self.escribir_log("💡 Instale manualmente con: sudo apt install <herramienta>")
             
             # Instalar herramientas seguras una por una
@@ -960,12 +960,12 @@ class LoginAresitos:
                     )
                     
                     if result.returncode == 0:
-                        self.escribir_log(f"✅ {herramienta} instalado correctamente")
+                        self.escribir_log(f"[OK] {herramienta} instalado correctamente")
                         # Remover de la lista de faltantes
                         if herramienta in self.herramientas_faltantes:
                             self.herramientas_faltantes.remove(herramienta)
                     else:
-                        self.escribir_log(f"❌ Error instalando {herramienta}")
+                        self.escribir_log(f"[FAIL] Error instalando {herramienta}")
                         if "package not found" in result.stderr.lower():
                             self.escribir_log(f"💡 {herramienta} no disponible en repositorios")
                         elif "timeout" in str(result.stderr).lower():
@@ -974,7 +974,7 @@ class LoginAresitos:
                 except subprocess.TimeoutExpired:
                     self.escribir_log(f"⏱️  Timeout instalando {herramienta} - continuando...")
                 except Exception as e:
-                    self.escribir_log(f"❌ Error inesperado con {herramienta}: {e}")
+                    self.escribir_log(f"[FAIL] Error inesperado con {herramienta}: {e}")
             self.escribir_log(" Instalación automática completada")
             
             # Limpiar password de memoria

@@ -290,7 +290,7 @@ class VistaEscaneo(tk.Frame):
         except ImportError:
             # Fallback sin validación (modo inseguro)
             self.terminal_output.insert(tk.END, f"\n> {comando}\n")
-            self.terminal_output.insert(tk.END, "⚠️  EJECUTANDO SIN VALIDACIÓN DE SEGURIDAD\n")
+            self.terminal_output.insert(tk.END, "[WARNING]  EJECUTANDO SIN VALIDACIÓN DE SEGURIDAD\n")
             self.terminal_output.see(tk.END)
             self.comando_entry.delete(0, tk.END)
             
@@ -299,7 +299,7 @@ class VistaEscaneo(tk.Frame):
             thread.start()
         except Exception as e:
             self.terminal_output.insert(tk.END, f"\n> {comando}\n")
-            self.terminal_output.insert(tk.END, f"❌ Error de seguridad: {e}\n")
+            self.terminal_output.insert(tk.END, f"[FAIL] Error de seguridad: {e}\n")
             self.terminal_output.see(tk.END)
             self.comando_entry.delete(0, tk.END)
     
@@ -662,8 +662,8 @@ class VistaEscaneo(tk.Frame):
                 self._actualizar_texto_seguro("CRITICO: Se encontraron vulnerabilidades - Revisar inmediatamente\n")
             if total_puertos > 20:
                 self._actualizar_texto_seguro("ATENCION: Muchos puertos abiertos - Revisar superficie de ataque\n")
-            self._actualizar_texto_seguro("🔵 Revisar logs detallados en el módulo SIEM\n")
-            self._actualizar_texto_seguro("🔵 Considerar monitoreo FIM de archivos críticos\n\n")
+            self._actualizar_texto_seguro("• Revisar logs detallados en el módulo SIEM\n")
+            self._actualizar_texto_seguro("• Considerar monitoreo FIM de archivos críticos\n\n")
             
             self._actualizar_texto_seguro("=" * 70 + "\n")
             self._actualizar_texto_seguro("        ESCANEO KALI 2025 COMPLETADO EXITOSAMENTE\n")
@@ -3768,7 +3768,7 @@ class VistaEscaneo(tk.Frame):
             comandos = validador_comandos.obtener_comandos_disponibles()
             
             self.terminal_output.insert(tk.END, "\n" + "="*60 + "\n")
-            self.terminal_output.insert(tk.END, "🛡️  COMANDOS DISPONIBLES EN ARESITOS v2.0 - ESCANEADOR\n")
+            self.terminal_output.insert(tk.END, "[SECURITY]  COMANDOS DISPONIBLES EN ARESITOS v2.0 - ESCANEADOR\n")
             self.terminal_output.insert(tk.END, "="*60 + "\n\n")
             
             for categoria, lista_comandos in comandos.items():
@@ -3776,7 +3776,7 @@ class VistaEscaneo(tk.Frame):
                 comandos_linea = ", ".join(lista_comandos)
                 self.terminal_output.insert(tk.END, f"   {comandos_linea}\n\n")
             
-            self.terminal_output.insert(tk.END, "🔧 COMANDOS ESPECIALES:\n")
+            self.terminal_output.insert(tk.END, "[TOOLS] COMANDOS ESPECIALES:\n")
             self.terminal_output.insert(tk.END, "   ayuda-comandos, info-seguridad, clear/cls\n\n")
             self.terminal_output.insert(tk.END, "="*60 + "\n")
             
@@ -3796,7 +3796,7 @@ class VistaEscaneo(tk.Frame):
             self.terminal_output.insert(tk.END, "🔐 INFORMACIÓN DE SEGURIDAD ARESITOS - ESCANEADOR\n")
             self.terminal_output.insert(tk.END, "="*60 + "\n\n")
             
-            estado_seguridad = "✅ SEGURO" if info['es_usuario_kali'] else "❌ INSEGURO"
+            estado_seguridad = "[OK] SEGURO" if info['es_usuario_kali'] else "[FAIL] INSEGURO"
             
             self.terminal_output.insert(tk.END, f"Estado: {estado_seguridad}\n")
             self.terminal_output.insert(tk.END, f"Usuario: {info['usuario_actual']}\n")

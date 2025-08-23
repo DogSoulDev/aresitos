@@ -63,7 +63,7 @@ class ControladorDashboard(ControladorBase):
             Dict con resultado de la inicialización
         """
         try:
-            self.logger.info("🚀 Inicializando Dashboard ARESITOS V3...")
+            self.logger.info("[LAUNCH] Inicializando Dashboard ARESITOS V3...")
             
             # Inicializar widgets del dashboard
             self._inicializar_widgets_v3()
@@ -87,7 +87,7 @@ class ControladorDashboard(ControladorBase):
             }
             
         except Exception as e:
-            self.logger.error(f"❌ Error en inicialización del dashboard: {e}")
+            self.logger.error(f"[FAIL] Error en inicialización del dashboard: {e}")
             return {
                 'exito': False,
                 'error': f'Error en inicialización del dashboard: {str(e)}',
@@ -146,7 +146,7 @@ class ControladorDashboard(ControladorBase):
         with self._lock:
             self.widgets_activos = widgets_v3
             
-        self.logger.info(f"✅ {len(widgets_v3)} widgets ARESITOS V3 inicializados")
+        self.logger.info(f"[OK] {len(widgets_v3)} widgets ARESITOS V3 inicializados")
     
     def _configurar_metricas_sistema(self) -> None:
         """
@@ -193,7 +193,7 @@ class ControladorDashboard(ControladorBase):
         with self._lock:
             self.metricas_activas = metricas_v3
         
-        self.logger.info("✅ Métricas del sistema ARESITOS V3 configuradas")
+        self.logger.info("[OK] Métricas del sistema ARESITOS V3 configuradas")
     
     def _iniciar_actualizacion_automatica(self) -> None:
         """
@@ -315,7 +315,7 @@ class ControladorDashboard(ControladorBase):
         try:
             if hasattr(self.modelo_principal, '_estado_sistema'):
                 # Dashboard registrado exitosamente
-                self.logger.info("✅ Dashboard registrado con modelo principal")
+                self.logger.info("[OK] Dashboard registrado con modelo principal")
         except Exception as e:
             self.logger.warning(f"No se pudo registrar con modelo principal: {e}")
     
@@ -463,7 +463,7 @@ class ControladorDashboard(ControladorBase):
                 self.cache_metricas.clear()
                 self.actualizaciones_pendientes.clear()
             
-            self.logger.info("✅ Dashboard detenido correctamente")
+            self.logger.info("[OK] Dashboard detenido correctamente")
             
             return {
                 'exito': True,
@@ -472,7 +472,7 @@ class ControladorDashboard(ControladorBase):
             }
             
         except Exception as e:
-            self.logger.error(f"❌ Error deteniendo dashboard: {e}")
+            self.logger.error(f"[FAIL] Error deteniendo dashboard: {e}")
             return {
                 'exito': False,
                 'error': str(e),

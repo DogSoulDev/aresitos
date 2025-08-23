@@ -257,7 +257,7 @@ class VistaSIEM(tk.Frame):
         except ImportError:
             # Fallback sin validación (modo inseguro)
             self.terminal_output.insert(tk.END, f"\n> {comando}\n")
-            self.terminal_output.insert(tk.END, "⚠️  EJECUTANDO SIN VALIDACIÓN DE SEGURIDAD\n")
+            self.terminal_output.insert(tk.END, "[WARNING]  EJECUTANDO SIN VALIDACIÓN DE SEGURIDAD\n")
             self.terminal_output.see(tk.END)
             self.comando_entry.delete(0, tk.END)
             
@@ -266,7 +266,7 @@ class VistaSIEM(tk.Frame):
             thread.start()
         except Exception as e:
             self.terminal_output.insert(tk.END, f"\n> {comando}\n")
-            self.terminal_output.insert(tk.END, f"❌ Error de seguridad: {e}\n")
+            self.terminal_output.insert(tk.END, f"[FAIL] Error de seguridad: {e}\n")
             self.terminal_output.see(tk.END)
             self.comando_entry.delete(0, tk.END)
     
@@ -321,7 +321,7 @@ class VistaSIEM(tk.Frame):
             comandos = obtener_comandos_disponibles()
             
             self.terminal_output.insert(tk.END, "\n" + "="*60 + "\n")
-            self.terminal_output.insert(tk.END, "🛡️  COMANDOS DISPONIBLES EN ARESITOS v2.0\n")
+            self.terminal_output.insert(tk.END, "[SECURITY]  COMANDOS DISPONIBLES EN ARESITOS v2.0\n")
             self.terminal_output.insert(tk.END, "="*60 + "\n\n")
             
             for categoria, lista_comandos in comandos.items():
@@ -329,7 +329,7 @@ class VistaSIEM(tk.Frame):
                 comandos_linea = ", ".join(lista_comandos)
                 self.terminal_output.insert(tk.END, f"   {comandos_linea}\n\n")
             
-            self.terminal_output.insert(tk.END, "🔧 COMANDOS ESPECIALES:\n")
+            self.terminal_output.insert(tk.END, "[TOOLS] COMANDOS ESPECIALES:\n")
             self.terminal_output.insert(tk.END, "   ayuda-comandos, info-seguridad, clear/cls\n\n")
             self.terminal_output.insert(tk.END, "="*60 + "\n")
             
@@ -349,7 +349,7 @@ class VistaSIEM(tk.Frame):
             self.terminal_output.insert(tk.END, "🔐 INFORMACIÓN DE SEGURIDAD ARESITOS\n")
             self.terminal_output.insert(tk.END, "="*60 + "\n\n")
             
-            estado_seguridad = "✅ SEGURO" if info['es_usuario_kali'] else "❌ INSEGURO"
+            estado_seguridad = "[OK] SEGURO" if info['es_usuario_kali'] else "[FAIL] INSEGURO"
             
             self.terminal_output.insert(tk.END, f"Estado: {estado_seguridad}\n")
             self.terminal_output.insert(tk.END, f"Usuario: {info['usuario_actual']}\n")
@@ -2763,7 +2763,7 @@ ls -la "$OUTPUT_DIR/"
                     "🦠 Análisis de malware y detección de IoCs",
                     "Ingeniería inversa de binarios sospechosos", 
                     "Búsqueda de credenciales hardcodeadas",
-                    "🌐 Extracción de URLs y dominios maliciosos",
+                    "[NETWORK] Extracción de URLs y dominios maliciosos",
                     "📧 Identificación de direcciones de email",
                     "🏠 Descubrimiento de direcciones IP internas",
                     "🔑 Localización de claves criptográficas",
@@ -3789,7 +3789,7 @@ ls -la "$OUTPUT_DIR/"
     def _analizar_conexiones_red(self):
         """Analizar conexiones de red sospechosas."""
         try:
-            self._actualizar_texto_analisis("\n🌐 1. ANÁLISIS DE CONEXIONES DE RED SOSPECHOSAS\n")
+            self._actualizar_texto_analisis("\n[NETWORK] 1. ANÁLISIS DE CONEXIONES DE RED SOSPECHOSAS\n")
             self._actualizar_texto_analisis("-" * 50 + "\n")
             
             import subprocess
@@ -4192,7 +4192,7 @@ ls -la "$OUTPUT_DIR/"
     def _correlacionar_red_procesos(self):
         """Correlacionar actividad de red con procesos activos."""
         try:
-            self._actualizar_texto_analisis("\n🌐 2. CORRELACIÓN RED-PROCESOS\n")
+            self._actualizar_texto_analisis("\n[NETWORK] 2. CORRELACIÓN RED-PROCESOS\n")
             self._actualizar_texto_analisis("-" * 50 + "\n")
             
             import subprocess

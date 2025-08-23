@@ -1331,7 +1331,7 @@ rule Packed_Executable
             Dict con resultado del procesamiento
         """
         try:
-            self.log(f"📊 Procesando evento SIEM: {evento_siem.get('tipo_evento', 'Desconocido')}")
+            self.log(f"[STATS] Procesando evento SIEM: {evento_siem.get('tipo_evento', 'Desconocido')}")
             
             archivo = evento_siem.get('archivo')
             descripcion = evento_siem.get('descripcion', 'Evento SIEM detectado')
@@ -1363,7 +1363,7 @@ rule Packed_Executable
                 return resultado
             else:
                 # Evento SIEM sin archivo - registrar en logs
-                self.log(f"⚠️ Evento SIEM sin archivo asociado: {descripcion}")
+                self.log(f"[WARNING] Evento SIEM sin archivo asociado: {descripcion}")
                 return {"exito": True, "mensaje": "Evento SIEM registrado sin archivo"}
                 
         except Exception as e:
@@ -1440,7 +1440,7 @@ rule Packed_Executable
                     self.log(f"ℹ️ Cambio FIM no sospechoso: {archivo}")
                     return {"exito": True, "mensaje": "Cambio FIM monitoreado, no requiere cuarentena"}
             else:
-                self.log(f"⚠️ Archivo FIM no encontrado: {archivo}")
+                self.log(f"[WARNING] Archivo FIM no encontrado: {archivo}")
                 return {"exito": False, "error": "Archivo no encontrado"}
                 
         except Exception as e:
@@ -1462,7 +1462,7 @@ rule Packed_Executable
             Dict con resultado del procesamiento
         """
         try:
-            self.log(f"🔍 Procesando evento ESCANEADOR")
+            self.log(f"[SCAN] Procesando evento ESCANEADOR")
             
             archivo = evento_escaneador.get('archivo')
             vulnerabilidades = evento_escaneador.get('vulnerabilidades', [])
@@ -1516,7 +1516,7 @@ rule Packed_Executable
                     self.log(f"ℹ️ Archivo escaneado sin riesgo crítico: {archivo}")
                     return {"exito": True, "mensaje": "Archivo escaneado, riesgo aceptable"}
             else:
-                self.log(f"⚠️ Archivo del escaneador no encontrado: {archivo}")
+                self.log(f"[WARNING] Archivo del escaneador no encontrado: {archivo}")
                 return {"exito": False, "error": "Archivo no encontrado"}
                 
         except Exception as e:

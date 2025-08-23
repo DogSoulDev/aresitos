@@ -112,15 +112,15 @@ class ControladorEscaneo(ControladorBase):
                 try:
                     self.escáner = EscaneadorCompleto()
                     self.escaner_kali2025 = self.escáner  # Alias para compatibilidad
-                    self.logger.info("✅ EscaneadorCompleto V3 inicializado como escaneador principal")
+                    self.logger.info("[OK] EscaneadorCompleto V3 inicializado como escaneador principal")
                 except Exception as e:
-                    self.logger.warning(f"⚠️ Error inicializando EscaneadorCompleto: {e}")
+                    self.logger.warning(f"[WARNING] Error inicializando EscaneadorCompleto: {e}")
                     self.escáner = None
                     self.escaner_kali2025 = None
             else:
                 self.escáner = None
                 self.escaner_kali2025 = None
-                self.logger.error("❌ EscaneadorCompleto V3 no disponible")
+                self.logger.error("[FAIL] EscaneadorCompleto V3 no disponible")
             
             # Verificar que el escáner esté funcionando
             if self.escáner:
@@ -363,7 +363,7 @@ class ControladorEscaneo(ControladorBase):
     def _inicializar_impl(self) -> Dict[str, Any]:
         """Implementación específica de inicialización del controlador de escaneo."""
         try:
-            self.logger.info("🚀 Inicializando componentes de escaneo ARESITOS V3")
+            self.logger.info("[LAUNCH] Inicializando componentes de escaneo ARESITOS V3")
             
             # Inicializar escáner usando arquitectura V3
             if ESCANEADOR_V3_DISPONIBLE:
@@ -371,16 +371,16 @@ class ControladorEscaneo(ControladorBase):
                     # Usar EscaneadorCompleto V3
                     if EscaneadorCompleto:
                         self.escáner = EscaneadorCompleto()
-                        self.logger.info("✅ EscaneadorCompleto V3 inicializado")
+                        self.logger.info("[OK] EscaneadorCompleto V3 inicializado")
                     else:
                         self.escáner = None
-                        self.logger.warning("⚠️ EscaneadorCompleto no disponible")
+                        self.logger.warning("[WARNING] EscaneadorCompleto no disponible")
                 except Exception as e:
-                    self.logger.error(f"❌ Error inicializando escaneador V3: {e}")
+                    self.logger.error(f"[FAIL] Error inicializando escaneador V3: {e}")
                     self.escáner = None
             else:
                 self.escáner = None
-                self.logger.warning("⚠️ No hay escaneadores V3 disponibles")
+                self.logger.warning("[WARNING] No hay escaneadores V3 disponibles")
             
             # Inicializar SIEM
             self.siem = SIEMAvanzadoNativo()

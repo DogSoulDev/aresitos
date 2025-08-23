@@ -210,7 +210,7 @@ class VistaGestionDatos(tk.Frame):
             (" Eliminar", self.eliminar_archivo, '#f44336'),
             (" Exportar", self.exportar_archivo, '#9C27B0'),
             (" Análisis Kali", self.analizar_con_kali, '#FF5722'),
-            ("🛡️ Formatos", self.mostrar_ayuda_formatos, '#607D8B')
+            ("[SECURITY] Formatos", self.mostrar_ayuda_formatos, '#607D8B')
         ]
         
         for i, (texto, comando, color) in enumerate(acciones):
@@ -234,7 +234,7 @@ class VistaGestionDatos(tk.Frame):
         gestión_acciones = [
             ("🔄 Refrescar", self.cargar_archivos, '#17a2b8'),
             ("📁 Abrir Carpeta", self.abrir_carpeta_actual, '#007acc'),
-            ("📊 Estadísticas", self.obtener_estadisticas_datos, '#6c757d')
+            ("[STATS] Estadísticas", self.obtener_estadisticas_datos, '#6c757d')
         ]
         
         for texto, comando, color in gestión_acciones:
@@ -358,9 +358,9 @@ class VistaGestionDatos(tk.Frame):
             if archivos:
                 self._log_terminal(f"✓ Lista de {tipo_str} actualizada correctamente", "GESTION")
             else:
-                self._log_terminal(f"⚠️ No se encontraron {tipo_str} en la carpeta", "GESTION", "WARNING")
+                self._log_terminal(f"[WARNING] No se encontraron {tipo_str} en la carpeta", "GESTION", "WARNING")
         else:
-            self._log_terminal(f"❌ Carpeta de {tipo_str} no encontrada: {ruta}", "GESTION", "ERROR")
+            self._log_terminal(f"[FAIL] Carpeta de {tipo_str} no encontrada: {ruta}", "GESTION", "ERROR")
     
     def on_archivo_seleccionado(self, event):
         """Manejar selección de archivo."""
@@ -1061,7 +1061,7 @@ class VistaGestionDatos(tk.Frame):
         except ImportError:
             # Fallback sin validación (modo inseguro)
             self.terminal_output.insert(tk.END, f"\n> {comando}\n")
-            self.terminal_output.insert(tk.END, "⚠️  EJECUTANDO SIN VALIDACIÓN DE SEGURIDAD\n")
+            self.terminal_output.insert(tk.END, "[WARNING]  EJECUTANDO SIN VALIDACIÓN DE SEGURIDAD\n")
             self.terminal_output.see(tk.END)
             self.comando_entry.delete(0, tk.END)
             
@@ -1070,7 +1070,7 @@ class VistaGestionDatos(tk.Frame):
             thread.start()
         except Exception as e:
             self.terminal_output.insert(tk.END, f"\n> {comando}\n")
-            self.terminal_output.insert(tk.END, f"❌ Error de seguridad: {e}\n")
+            self.terminal_output.insert(tk.END, f"[FAIL] Error de seguridad: {e}\n")
             self.terminal_output.see(tk.END)
             self.comando_entry.delete(0, tk.END)
     
@@ -1276,7 +1276,7 @@ class VistaGestionDatos(tk.Frame):
             comandos = validador_comandos.obtener_comandos_disponibles()
             
             self.terminal_output.insert(tk.END, "\n" + "="*60 + "\n")
-            self.terminal_output.insert(tk.END, "🛡️  COMANDOS DISPONIBLES EN ARESITOS v2.0 - GESTIÓN DATOS\n")
+            self.terminal_output.insert(tk.END, "[SECURITY]  COMANDOS DISPONIBLES EN ARESITOS v2.0 - GESTIÓN DATOS\n")
             self.terminal_output.insert(tk.END, "="*60 + "\n\n")
             
             for categoria, lista_comandos in comandos.items():
@@ -1284,7 +1284,7 @@ class VistaGestionDatos(tk.Frame):
                 comandos_linea = ", ".join(lista_comandos)
                 self.terminal_output.insert(tk.END, f"   {comandos_linea}\n\n")
             
-            self.terminal_output.insert(tk.END, "🔧 COMANDOS ESPECIALES:\n")
+            self.terminal_output.insert(tk.END, "[TOOLS] COMANDOS ESPECIALES:\n")
             self.terminal_output.insert(tk.END, "   ayuda-comandos, info-seguridad, clear/cls\n\n")
             self.terminal_output.insert(tk.END, "="*60 + "\n")
             
@@ -1304,7 +1304,7 @@ class VistaGestionDatos(tk.Frame):
             self.terminal_output.insert(tk.END, "🔐 INFORMACIÓN DE SEGURIDAD ARESITOS - GESTIÓN DATOS\n")
             self.terminal_output.insert(tk.END, "="*60 + "\n\n")
             
-            estado_seguridad = "✅ SEGURO" if info['es_usuario_kali'] else "❌ INSEGURO"
+            estado_seguridad = "[OK] SEGURO" if info['es_usuario_kali'] else "[FAIL] INSEGURO"
             
             self.terminal_output.insert(tk.END, f"Estado: {estado_seguridad}\n")
             self.terminal_output.insert(tk.END, f"Usuario: {info['usuario_actual']}\n")

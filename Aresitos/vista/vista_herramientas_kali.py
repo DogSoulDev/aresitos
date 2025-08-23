@@ -232,7 +232,7 @@ class VistaHerramientasKali(tk.Frame):
             "• Forense: sleuthkit, autopsy, foremost\n" +
             "• Memoria: hexdump, strings, file, binwalk\n" +
             "• Logs: journalctl, aureport, logwatch, rsyslog\n\n" +
-            "🌐 PENETRACIÓN Y AUDITORÍA:\n" +
+            "[NETWORK] PENETRACIÓN Y AUDITORÍA:\n" +
             "• Escaneadores: nmap, masscan, nuclei, nikto, gobuster, feroxbuster\n" +
             "• Cracking: hashcat, john, hydra, medusa, patator, crunch\n" +
             "• Web: sqlmap, whatweb, wfuzz, ffuf, dirb\n" +

@@ -200,25 +200,25 @@ class ValidadorComandos:
         """
         # 1. Validar usuario Kali
         if not self.validar_usuario_kali():
-            return False, "", "❌ ACCESO DENEGADO: Solo usuario 'kali' en Kali Linux"
+            return False, "", "[FAIL] ACCESO DENEGADO: Solo usuario 'kali' en Kali Linux"
         
         # 2. Sanitizar comando
         comando_sanitizado = self.sanitizar_comando(comando)
         
         if not comando_sanitizado:
-            return False, "", "❌ Comando vacío después de sanitización"
+            return False, "", "[FAIL] Comando vacío después de sanitización"
         
         # 3. Validar longitud
         valido_longitud, msg_longitud = self.validar_longitud_comando(comando_sanitizado)
         if not valido_longitud:
-            return False, "", f"❌ {msg_longitud}"
+            return False, "", f"[FAIL] {msg_longitud}"
         
         # 4. Validar comando permitido
         valido_permitido, msg_permitido = self.validar_comando_permitido(comando_sanitizado)
         if not valido_permitido:
-            return False, "", f"❌ {msg_permitido}"
+            return False, "", f"[FAIL] {msg_permitido}"
         
-        return True, comando_sanitizado, f"✅ Comando autorizado: {comando_sanitizado}"
+        return True, comando_sanitizado, f"[OK] Comando autorizado: {comando_sanitizado}"
     
     def obtener_comandos_disponibles(self) -> Dict[str, List[str]]:
         """Obtener lista de comandos disponibles por categoría"""

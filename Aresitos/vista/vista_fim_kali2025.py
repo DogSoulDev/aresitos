@@ -151,7 +151,7 @@ class VistaFIMKali2025:
     def _crear_tab_monitoreo(self):
         """Tab de monitoreo en tiempo real"""
         frame_monitoreo = ttk.Frame(self.notebook, style='Burp.TFrame')
-        self.notebook.add(frame_monitoreo, text="🔍 Monitoreo Tiempo Real")
+        self.notebook.add(frame_monitoreo, text="[SCAN] Monitoreo Tiempo Real")
         
         # Panel superior - controles
         frame_controles = ttk.Frame(frame_monitoreo, style='Burp.TFrame')
@@ -248,7 +248,7 @@ class VistaFIMKali2025:
         # Botones de escaneo
         self.btn_escaneo_rootkits = ttk.Button(
             frame_controles_escaneo,
-            text="🔍 ESCANEO ROOTKITS",
+            text="[SCAN] ESCANEO ROOTKITS",
             command=self._ejecutar_escaneo_rootkits,
             style='Burp.TButton'
         )
@@ -272,7 +272,7 @@ class VistaFIMKali2025:
         
         self.btn_analisis_completo = ttk.Button(
             frame_controles_escaneo,
-            text="🎯 ANÁLISIS COMPLETO",
+            text="[TARGET] ANÁLISIS COMPLETO",
             command=self._ejecutar_analisis_completo,
             style='Burp.TButton'
         )
