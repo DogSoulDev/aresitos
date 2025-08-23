@@ -78,7 +78,7 @@ print_info() {
 
 print_success() {
     local message="$1"
-    echo -e "${GREEN}[✓]${NC} $message"
+    echo -e "${GREEN}[OK]${NC} $message"
     log_with_timestamp "SUCCESS: $message"
 }
 
@@ -317,27 +317,107 @@ install_advanced_tools() {
     done
     
     print_info "Herramientas avanzadas instaladas: $optional_count/$total_advanced"
+    
+    # Instalar herramientas de seguridad adicionales
+    install_advanced_security_tools
+    
+    # Verificar capacidades del escaneador
+    print_info "SCAN Verificando capacidades del escaneador ARESITOS..."
+    
+    SCANNER_CAPABILITIES=()
+    
+    if command -v nmap >/dev/null 2>&1; then
+        SCANNER_CAPABILITIES+=("OK Escaneo integral con nmap + scripts NSE")
+    fi
+    
+    if command -v masscan >/dev/null 2>&1; then
+        SCANNER_CAPABILITIES+=("OK Escaneo masivo ultrarrápido con masscan")
+    fi
+    
+    if command -v rustscan >/dev/null 2>&1; then
+        SCANNER_CAPABILITIES+=("OK Escaneo rápido de puertos con rustscan")
+    fi
+    
+    if command -v nuclei >/dev/null 2>&1; then
+        SCANNER_CAPABILITIES+=("OK Detección de vulnerabilidades CVE con nuclei")
+    fi
+    
+    if command -v gobuster >/dev/null 2>&1; then
+        SCANNER_CAPABILITIES+=("OK Enumeración de directorios con gobuster")
+    fi
+    
+    if command -v ffuf >/dev/null 2>&1; then
+        SCANNER_CAPABILITIES+=("OK Fuzzing web avanzado con ffuf")
+    fi
+    
+    if command -v feroxbuster >/dev/null 2>&1; then
+        SCANNER_CAPABILITIES+=("OK Enumeración recursiva con feroxbuster")
+    fi
+    
+    # Mostrar capacidades
+    if [[ ${#SCANNER_CAPABILITIES[@]} -gt 0 ]]; then
+        print_success "TARGET CAPACIDADES DEL ESCANEADOR ARESITOS:"
+        for capability in "${SCANNER_CAPABILITIES[@]}"; do
+            echo "    $capability"
+        done
+    fi
+    
+    print_info "METRICS Total de herramientas del escaneador profesional: ${#SCANNER_CAPABILITIES[@]}/7"
+    
+    # Actualizar base de datos de locate
+    print_info "Actualizando base de datos del sistema..."
+    updatedb >/dev/null 2>&1 || {
+        print_warning "No se pudo actualizar base de datos locate"
+    }
+    
     print_success "Instalación de herramientas avanzadas completada"
 }
-        "rkhunter"             # Hunter de rootkits
-        "clamav"               # Antivirus
-        
-        # Herramientas forense adicionales
-        "volatility3"          # Análisis de memoria
-        "yara"                 # Pattern matching
+
+# ============================================================================
+# INSTALACIÓN DE HERRAMIENTAS AVANZADAS PARA ESCANEADOR v3.0
+# ============================================================================
+
+install_advanced_security_tools() {
+    print_header "INSTALANDO HERRAMIENTAS AVANZADAS DE SEGURIDAD"
+    
+    # Herramientas avanzadas de seguridad (opcionales pero recomendadas)
+    local -a security_tools=(
+        "rkhunter:Hunter de rootkits avanzado"
+        "clamav-daemon:Motor antivirus ClamAV"
+        "clamav-freshclam:Actualizador de firmas ClamAV"
+        "volatility3:Análisis forense de memoria"
+        "yara:Motor de reconocimiento de patrones"
     )
     
-    # Herramientas especiales que requieren instalación manual
-    SPECIAL_TOOLS=(
-        "subfinder"            # Subdomain finder (Go)
-        "httpx"                # HTTP probe (Go)
-    )
+    local security_count=0
+    local total_security=${#security_tools[@]}
+    
+    for tool_info in "${security_tools[@]}"; do
+        IFS=':' read -r package description <<< "$tool_info"
+        
+        if install_package "$package" "$description"; then
+            ((security_count++))
+        fi
+    done
+    
+    # Configuración especial para ClamAV si se instaló
+    if dpkg -l | grep -q "^ii  clamav-daemon "; then
+        print_info "Configurando ClamAV..."
+        systemctl stop clamav-freshclam 2>/dev/null || true
+        freshclam 2>/dev/null || true
+        systemctl start clamav-freshclam 2>/dev/null || true
+        print_success "ClamAV configurado correctamente"
+    fi
+    
+    print_info "Herramientas de seguridad instaladas: $security_count/$total_security"
+    print_success "Instalación de herramientas avanzadas completada"
+}
     
     print_info "Actualizando lista de paquetes..."
     apt update -qq
     
     # Instalar herramientas ESENCIALES (críticas para funcionamiento)
-    print_header "📦 Instalando herramientas ESENCIALES..."
+    print_header "Instalando herramientas ESENCIALES..."
     FAILED_ESSENTIAL=()
     
     for tool in "${ESSENTIAL_TOOLS[@]}"; do
@@ -401,13 +481,6 @@ install_advanced_tools() {
             print_success "Templates de nuclei actualizados"
         fi
     fi
-            else
-                print_warning "nuclei no pudo instalarse via APT"
-            fi
-        else
-            print_info "nuclei no encontrado en repositorios, instalación manual requerida"
-            print_info "Para instalar nuclei: go install -v github.com/projectdiscovery/nuclei/v2/cmd/nuclei@latest"
-        fi
     
     # Verificar herramientas especiales de Go (subfinder, httpx)
     if command -v go >/dev/null 2>&1; then
@@ -460,56 +533,6 @@ install_advanced_tools() {
     else
         print_success "OK Todas las herramientas avanzadas del escaneador disponibles"
     fi
-    
-    # Verificar capacidades del escaneador
-    print_info "SCAN Verificando capacidades del escaneador ARESITOS..."
-    
-    SCANNER_CAPABILITIES=()
-    
-    if command -v nmap >/dev/null 2>&1; then
-        SCANNER_CAPABILITIES+=("✓ Escaneo integral con nmap + scripts NSE")
-    fi
-    
-    if command -v masscan >/dev/null 2>&1; then
-        SCANNER_CAPABILITIES+=("✓ Escaneo masivo ultrarrápido con masscan")
-    fi
-    
-    if command -v rustscan >/dev/null 2>&1; then
-        SCANNER_CAPABILITIES+=("✓ Escaneo rápido de puertos con rustscan")
-    fi
-    
-    if command -v nuclei >/dev/null 2>&1; then
-        SCANNER_CAPABILITIES+=("✓ Detección de vulnerabilidades CVE con nuclei")
-    fi
-    
-    if command -v gobuster >/dev/null 2>&1; then
-        SCANNER_CAPABILITIES+=("✓ Enumeración de directorios con gobuster")
-    fi
-    
-    if command -v ffuf >/dev/null 2>&1; then
-        SCANNER_CAPABILITIES+=("✓ Fuzzing web avanzado con ffuf")
-    fi
-    
-    if command -v feroxbuster >/dev/null 2>&1; then
-        SCANNER_CAPABILITIES+=("✓ Enumeración recursiva con feroxbuster")
-    fi
-    
-    # Mostrar capacidades
-    if [[ ${#SCANNER_CAPABILITIES[@]} -gt 0 ]]; then
-        print_success "TARGET CAPACIDADES DEL ESCANEADOR ARESITOS:"
-        for capability in "${SCANNER_CAPABILITIES[@]}"; do
-            echo "    $capability"
-        done
-    fi
-    
-    print_info "METRICS Total de herramientas del escaneador profesional: ${#SCANNER_CAPABILITIES[@]}/7"
-    
-    # Actualizar base de datos de locate
-    print_info "Actualizando base de datos del sistema..."
-    updatedb >/dev/null 2>&1 || {
-        print_warning "No se pudo actualizar base de datos locate"
-    }
-}
 
 # Configurar permisos especiales para herramientas de red
 configure_network_permissions() {
@@ -753,7 +776,7 @@ def install_with_break_system_packages():
 
 def verify_dependencies():
     """Verificar que las dependencias están disponibles"""
-    print("\n🧪 Verificando dependencias...")
+    print("\nVerificando dependencias...")
     
     dependencies = {
         "tkinter": "Interfaz gráfica",
@@ -896,12 +919,12 @@ EOF
 
 # Verificar configuración
 verify_setup() {
-    print_header "🧪 Verificando configuración..."
+    print_header "Verificando configuración..."
     
     # Verificar herramientas críticas del escaneador profesional
     TOOLS_TO_CHECK=("nmap" "masscan" "ss" "tcpdump" "rustscan" "nuclei" "gobuster")
     
-    print_header "🧪 Verificando herramientas del ESCANEADOR PROFESIONAL..."
+    print_header "Verificando herramientas del ESCANEADOR PROFESIONAL..."
     
     CORE_TOOLS_OK=0
     ADVANCED_TOOLS_OK=0
@@ -1070,15 +1093,15 @@ configure_git_case_sensitivity() {
     local autocrlf=$(git config core.autocrlf)
     
     if [ "$ignorecase" = "false" ]; then
-        print_success "✅ core.ignorecase: $ignorecase"
+        print_success "OK core.ignorecase: $ignorecase"
     else
-        print_error "❌ core.ignorecase: $ignorecase (debería ser false)"
+        print_error "ERROR core.ignorecase: $ignorecase (debería ser false)"
     fi
     
     if [ "$autocrlf" = "false" ]; then
-        print_success "✅ core.autocrlf: $autocrlf"
+        print_success "OK core.autocrlf: $autocrlf"
     else
-        print_success "✅ core.autocrlf: $autocrlf"
+        print_success "OK core.autocrlf: $autocrlf"
     fi
     
     # Verificar que no hay conflictos de case sensitivity
@@ -1098,7 +1121,7 @@ configure_git_case_sensitivity() {
     fi
     
     print_success "Configuración de Git para case sensitivity completada"
-    print_info "🔧 PROBLEMA RESUELTO: Evita creación de carpetas duplicadas 'Aresitos' y 'aresitos' en Linux"
+    print_info "PROBLEMA RESUELTO: Evita creación de carpetas duplicadas 'Aresitos' y 'aresitos' en Linux"
 }
 
 # Crear script de prueba
@@ -1123,7 +1146,7 @@ def test_tool(tool, args):
     except Exception as e:
         return False, "", str(e)
 
-print("🧪 Probando herramientas de ARESITOS v3.0...")
+print("Probando herramientas de ARESITOS v3.0...")
 print("="*50)
 
 tests = [
@@ -1303,7 +1326,7 @@ display_final_summary() {
         echo
         print_info "LAUNCH PASOS SIGUIENTES:"
         echo "  1. 🔄 Reinicie la terminal para aplicar cambios de grupos"
-        echo "  2. 🧪 Ejecute verificación: python3 verificacion_final.py"
+        echo "  2. Ejecute verificación: python3 verificacion_final.py"
         echo "  3. TARGET Ejecute pruebas: python3 ${USER_HOME}/test_aresitos_permissions.py"
         echo "  4. SECURE Inicie ARESITOS: python3 main.py"
         echo

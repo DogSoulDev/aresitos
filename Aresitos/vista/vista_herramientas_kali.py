@@ -1,13 +1,23 @@
 # -*- coding: utf-8 -*-
 """
-ARESITOS - Vista Herramientas Kali Linux
-========================================
+ARESITOS - Vista Herramientas Kali Linux [SINCRONIZADO CON CONFIGURADOR]
+========================================================================
 
 Vista especializada para herramientas nativas de Kali Linux.
 Mantiene la arquitectura 100% Python nativo + herramientas Kali.
 
+PRINCIPIOS ARESITOS V3.0 APLICADOS:
+- CONSISTENCIA: Herramientas sincronizadas con configurar_kali.sh
+- THREAD SAFETY: ThreadPoolExecutor para operaciones concurrentes
+- TRANSPARENCIA: Documentación precisa de dependencias
+- MODULARIDAD: Separación clara de responsabilidades
+
+SINCRONIZACIÓN: Las herramientas verificadas coinciden EXACTAMENTE
+con las definidas en essential_tools, advanced_tools y security_tools
+del archivo configurar_kali.sh.
+
 Autor: DogSoulDev
-Fecha: 19 de Agosto de 2025
+Fecha: 23 de Agosto de 2025 [SINCRONIZADO]
 """
 
 import tkinter as tk
@@ -627,46 +637,41 @@ LISTO PARA: Escaneos de vulnerabilidades en entornos Kali Linux 2025
                 self._cache_herramientas = {}
             
             # Lista de herramientas esenciales modernizadas para Kali 2025
+            # HERRAMIENTAS SINCRONIZADAS CON configurar_kali.sh [PRINCIPIO ARESITOS: CONSISTENCIA]
             herramientas = [
-                # Comandos básicos del sistema (nativos)
+                # Comandos básicos del sistema (nativos de Linux)
                 'ps', 'ss', 'lsof', 'netstat', 'top', 'free', 'df', 'uname', 'who', 'last',
                 'find', 'stat', 'grep', 'awk', 'sort', 'uniq', 'wc', 'tail', 'head',
                 'systemctl', 'ip', 'route', 'wget', 'curl', 'diff', 'ls', 'chmod', 'chown',
-                # Comandos para nuevas funcionalidades implementadas
                 'lsmod', 'kill', 'pgrep', 'pkill', 'sha256sum', 'md5sum', 'sha1sum', 'sha512sum',
                 'iptables', 'cat', 'less', 'more', 'pwd', 'mkdir', 'rm', 'cp', 'mv',
-                # Herramientas de monitoreo y análisis del sistema (para FIM y SIEM)
-                'inotifywait', 'inotify-tools', 'auditd', 'ausearch', 'aide',
-                'debsums', 'dpkg', 'rpm', 'synaptic',
-                # Anti-rootkit y detección (usadas en escaneador avanzado FASE 3.1)
-                'chkrootkit', 'rkhunter', 'lynis', 'unhide', 'tiger', 'maldet',
-                # Escaneadores de red y puertos (usados en SIEM y Escaneador FASE 3.1)
-                'nmap', 'masscan', 'rustscan', 'gobuster', 'feroxbuster', 'nikto', 'nuclei', 'httpx',
-                'zmap', 'unicornscan', 'hping3', 'dirb', 'dirbuster',
-                # Análisis de servicios y red (expandido FASE 3.1)
-                'netcat', 'netcat-traditional', 'whatweb', 'wfuzz', 'ffuf', 'dirb',
-                'enum4linux', 'smbclient', 'rpcclient', 'ldapsearch',
-                # Cracking y fuerza bruta
-                'hashcat', 'john', 'hydra', 'medusa', 'patator', 'crunch', 'cewl',
-                # Bases de datos y SQL
-                'sqlmap', 'sqlninja', 'sqlite3', 'mysql', 'psql',
-                # Análisis de malware (expandido para FIM y cuarentena FASE 3.3)
-                'clamav', 'clamscan', 'freshclam', 'clamav-daemon', 'yara', 'binwalk', 'strings', 'file', 'exiftool',
-                'hexdump', 'foremost', 'sleuthkit', 'autopsy',
-                # FIM y monitoreo avanzado (FASE 3.2 y 3.3)
-                'pspy', 'pspy64', 'pspy32', 'linpeas', 'logger', 'fail2ban-client', 'logwatch',
-                'incron', 'fswatch', 'entr', 'watchman',
-                # Análisis forense y auditoría (usadas en SIEM FASE 3.2)
-                'logrotate', 'rsyslog', 'journalctl', 'aureport', 'auditctl',
-                # Herramientas adicionales para análisis avanzado (FASE 3)
-                'osquery', 'osqueryi', 'tcpdump', 'wireshark', 'tshark',
-                'strace', 'ltrace', 'gdb', 'objdump', 'readelf',
-                # Gestores de archivos para cheatsheets
-                'thunar', 'nautilus', 'dolphin', 'pcmanfm', 'caja', 'nemo', 'xdg-open',
-                # Editores de texto para visualización
+                'which', 'whereis', 'type', 'command',
+                
+                # HERRAMIENTAS ESENCIALES (sincronizadas con essential_tools en configurar_kali.sh)
+                'python3-dev', 'python3-venv', 'python3-tk', 'git',
+                'nmap', 'masscan', 'net-tools', 'iproute2', 'tcpdump', 'iftop', 'netcat-openbsd',
+                'wireshark', 'autopsy', 'sleuthkit', 'foremost', 'binwalk', 'strings', 'exiftool',
+                'htop', 'psmisc', 'dnsutils', 'whois',
+                
+                # HERRAMIENTAS AVANZADAS (sincronizadas con advanced_tools en configurar_kali.sh)
+                'ffuf', 'feroxbuster', 'rustscan', 'nuclei', 'nikto', 'whatweb', 'dirb',
+                'lynis', 'chkrootkit',
+                
+                # HERRAMIENTAS DE SEGURIDAD (sincronizadas con security_tools en configurar_kali.sh)
+                'rkhunter', 'clamav-daemon', 'clamav-freshclam', 'volatility3', 'yara',
+                
+                # Comandos adicionales para funcionalidades específicas ARESITOS
+                'clamscan', 'freshclam',  # ClamAV ejecutables
+                'gobuster',  # Directory enumeration (disponible en Kali)
+                'httpx',     # HTTP probing (instalado via Go en configurador)
+                
+                # Herramientas de monitoreo para FIM y SIEM
+                'inotifywait', 'auditd', 'ausearch', 'aide', 'debsums', 'dpkg',
+                'logger', 'journalctl', 'aureport', 'auditctl',
+                
+                # Editores y gestores de archivos para cheatsheets
                 'nano', 'vim', 'vi', 'gedit', 'mousepad',
-                # Herramientas base de verificación
-                'which', 'whereis', 'type', 'command'
+                'thunar', 'nautilus', 'dolphin', 'pcmanfm', 'caja', 'nemo', 'xdg-open'
             ]
             
             herramientas_faltantes = []
@@ -833,60 +838,61 @@ LISTO PARA: Escaneos de vulnerabilidades en entornos Kali Linux 2025
                 'osquery', 'file', 'hexdump'
             ]
             
-                        # Lista de herramientas esenciales para Kali Linux (ELIMINADOS: sqlninja, volatility3)
+            # PAQUETES PARA INSTALACIÓN AUTOMÁTICA (sincronizados con configurar_kali.sh)
+            # [PRINCIPIO ARESITOS: CONSISTENCIA CON CONFIGURADOR]
             paquetes = [
-                # Escaneo de red (actualizado FASE 3.1)
-                'nmap', 'masscan', 'nikto', 'gobuster', 'feroxbuster', 'dirb',
-                # Servicios de red (FASE 3.1)
-                'netcat-traditional', 'whatweb', 'wfuzz', 'ffuf',
-                # Cracking y passwords
-                'hashcat', 'john', 'hydra', 'medusa', 'patator',
-                # Análisis SQL
-                'sqlmap',
-                # Cuarentena y malware (FASE 3.3 - FIM expandido)
-                'clamav', 'clamav-daemon', 'clamav-freshclam', 'yara', 'binwalk', 'exiftool',
-                'foremost', 'sleuthkit', 'autopsy',
-                # SIEM y auditoría (FASE 3.2) - REMOVIDOS PROBLEMÁTICOS
-                'fail2ban', 'aide',
-                # Herramientas de análisis avanzado (FASE 3)
-                'tcpdump', 'wireshark', 'tshark', 'strace', 'ltrace', 'gdb',
-                'osquery', 'file', 'hexdump'
+                # Herramientas esenciales del configurador
+                'python3-dev', 'python3-venv', 'python3-tk', 'git', 'curl', 'wget',
+                'net-tools', 'iproute2', 'tcpdump', 'iftop', 'netcat-openbsd',
+                'htop', 'psmisc', 'dnsutils', 'whois',
+                
+                # Herramientas forenses y SIEM verificadas
+                'wireshark', 'autopsy', 'sleuthkit', 'foremost', 'binwalk', 'strings', 'exiftool',
+                
+                # Escaneadores avanzados (coincide con advanced_tools)
+                'ffuf', 'feroxbuster', 'rustscan', 'nuclei', 'nikto', 'whatweb', 'dirb',
+                'lynis', 'chkrootkit',
+                
+                # Herramientas de seguridad (coincide con security_tools)
+                'rkhunter', 'clamav-daemon', 'clamav-freshclam', 'volatility3', 'yara',
+                
+                # Herramientas adicionales necesarias para ARESITOS
+                'gobuster', 'aide'
             ]
             
-            # Herramientas problemáticas que requieren instalación manual especial
+            # HERRAMIENTAS PROBLEMÁTICAS: Solo las que pueden requerir atención especial
+            # [PRINCIPIO ARESITOS: DOCUMENTACIÓN PRECISA]
             herramientas_problematicas = {
-                'tripwire': {
-                    'razon': 'Requiere configuración interactiva y puede tardar +10 minutos',
-                    'comando': 'sudo apt install tripwire',
-                    'notas': 'Configurará automáticamente durante instalación. Responder prompts.'
+                'python3-dev': {
+                    'razon': 'Paquete de desarrollo, verificar instalación',
+                    'comando': 'sudo apt install python3-dev',
+                    'notas': 'Esencial para compilar extensiones Python'
                 },
-                'samhain': {
-                    'razon': 'Configuración compleja y dependencias especiales',
-                    'comando': 'sudo apt install samhain',
-                    'notas': 'Herramienta de integridad avanzada. Configuración manual requerida.'
-                },
-                'sqlninja': {
-                    'razon': 'Paquete obsoleto en Kali Linux 2025',
-                    'comando': 'Usar sqlmap como alternativa',
-                    'notas': 'sqlninja no está disponible en repositorios actuales'
+                'python3-venv': {
+                    'razon': 'Módulo de entornos virtuales',
+                    'comando': 'sudo apt install python3-venv',
+                    'notas': 'Requerido para aislamiento de dependencias'
                 },
                 'volatility3': {
-                    'razon': 'Instalación vía pip, no APT',
-                    'comando': 'pip3 install volatility3',
-                    'notas': 'Herramienta de análisis de memoria forense'
+                    'razon': 'Instalado via configurador',
+                    'comando': 'Incluido en configurar_kali.sh',
+                    'notas': 'Análisis forense de memoria - instalación automática'
+                },
+                'clamav-daemon': {
+                    'razon': 'Servicio de antivirus',
+                    'comando': 'Configurado automáticamente por configurar_kali.sh',
+                    'notas': 'Motor antivirus ClamAV con configuración automática'
                 }
             }
             
-            # Herramientas que requieren instalación manual (se informará al usuario):
+            # HERRAMIENTAS MANUALES: Instalación vía Go/Rust según configurador
+            # [PRINCIPIO ARESITOS: TRANSPARENCIA EN DEPENDENCIAS]
             herramientas_manuales = [
-                'rustscan: cargo install rustscan (requiere Rust)',
-                'httpx: go install github.com/projectdiscovery/httpx/cmd/httpx@latest (requiere Go)',
-                'nuclei: go install github.com/projectdiscovery/nuclei/cmd/nuclei@latest (requiere Go)',
-                'linpeas: wget https://github.com/carlospolop/PEASS-ng/releases/latest/download/linpeas.sh',
-                'pspy64: wget https://github.com/DominicBreuker/pspy/releases/latest/download/pspy64',
-                'pspy32: wget https://github.com/DominicBreuker/pspy/releases/latest/download/pspy32',
-                'dirbuster: Ya incluido en Kali en /usr/share/dirbuster/',
-                'strings: Parte del paquete binutils (generalmente ya instalado)'
+                'httpx: Instalado via Go en configurar_kali.sh (go install)',
+                'rustscan: Disponible via APT en Kali Linux 2025',
+                'nuclei: Disponible via APT + actualización automática de templates',
+                'feroxbuster: Scanner en Rust disponible via APT',
+                'ffuf: Fuzzer web disponible via APT'
             ]
             
             # Actualizar repositorios usando SudoManager
