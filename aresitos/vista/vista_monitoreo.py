@@ -228,9 +228,11 @@ class VistaMonitoreo(tk.Frame):
             entrada_frame = tk.Frame(terminal_frame, bg='#1e1e1e')
             entrada_frame.pack(fill="x", padx=5, pady=2)
             
-            ttk.Label(style="Burp.TLabel",entrada_frame, text="COMANDO:",
-                    bg='#1e1e1e', fg='#00ff00',
-                    font=("Arial", 9, "bold")).pack(side="left", padx=(0, 5))
+            ttk.Label(
+                entrada_frame, 
+                text="COMANDO:",
+                style="Burp.TLabel"
+            ).pack(side="left", padx=(0, 5))
             
             self.comando_entry = tk.Entry(
                 entrada_frame,
