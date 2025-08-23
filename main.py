@@ -336,7 +336,7 @@ def main():
             
             # Dynamic Access - verificar si existe vista login
             directorio_actual = Path(__file__).parent
-            vista_login_path = directorio_actual / 'Aresitos' / 'vista' / 'vista_login.py'
+            vista_login_path = directorio_actual / 'aresitos' / 'vista' / 'vista_login.py'
             
             if vista_login_path.exists():
                 return _ejecutar_login_gui(directorio_actual)
@@ -364,8 +364,8 @@ def _ejecutar_login_gui(directorio_actual):
             
             # Fallback Systems - múltiples intentos de importación
             import_attempts = [
-                lambda: __import__('Aresitos.vista.vista_login', fromlist=['LoginAresitos']),
-                lambda: __import__(\'aresitos.vista.vista_login'),
+                lambda: __import__('aresitos.vista.vista_login', fromlist=['LoginAresitos']),
+                lambda: __import__('aresitos.vista.vista_login'),
             ]
             
             login_module = None
@@ -458,7 +458,7 @@ def iniciar_aplicacion_clasica():
             
             # Dynamic Access para configurar icono
             try:
-                icon_module = __import__(\'aresitos.utils.gestor_iconos', fromlist=['configurar_icono_ventana'])
+                icon_module = __import__('aresitos.utils.gestor_iconos', fromlist=['configurar_icono_ventana'])
                 configurar_icono = getattr(icon_module, 'configurar_icono_ventana', None)
                 if configurar_icono:
                     configurar_icono(root, "ARESITOS v3.0 - Herramientas de Seguridad")
