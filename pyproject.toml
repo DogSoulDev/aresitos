@@ -5,7 +5,7 @@
 # ===================================================================
 
 [project]
-name = "aresitos"
+name = "Aresitos"
 version = "3.0.0-optimizada"
 description = "Suite de ciberseguridad profesional OPTIMIZADA para Kali Linux con arquitectura 100% nativa - escaneador consolidado, FIM Kali2025, SIEM avanzado, monitor nativo y cuarentena optimizada usando solo Python stdlib + herramientas Kali Linux"
 readme = "README.md"
@@ -111,11 +111,11 @@ Changelog = "https://github.com/DogSoulDev/Aresitos/blob/master/CHANGELOG.md"
 "Architecture" = "https://github.com/DogSoulDev/Aresitos/blob/master/documentacion/desarrollo/ARQUITECTURA_NATIVA.md"
 
 [project.scripts]
-aresitos = "main:main"
-aresitos-scanner = "Aresitos.controlador.controlador_escaneo:main"
-aresitos-fim = "Aresitos.controlador.controlador_fim:main"
-aresitos-siem = "Aresitos.controlador.controlador_siem_nuevo:main"
-aresitos-dashboard = "Aresitos.controlador.controlador_dashboard:main"
+Aresitos = "main:main"
+Aresitos-scanner = "Aresitos.controlador.controlador_escaneo:main"
+Aresitos-fim = "Aresitos.controlador.controlador_fim:main"
+Aresitos-siem = "Aresitos.controlador.controlador_siem_nuevo:main"
+Aresitos-dashboard = "Aresitos.controlador.controlador_dashboard:main"
 
 # ===================================================================
 # HERRAMIENTAS DE DESARROLLO

@@ -82,9 +82,9 @@ class ModeloPrincipal:
         try:
             # Buscar archivos de configuración
             config_paths = [
-                'configuración/aresitos_config.json',
-                'configuración/aresitos_config_kali.json',
-                'config/aresitos.json'
+                'configuración/Aresitos_config.json',
+                'configuración/Aresitos_config_kali.json',
+                'config/Aresitos.json'
             ]
             
             for path in config_paths:

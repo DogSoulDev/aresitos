@@ -603,9 +603,8 @@ def verificacion_estabilidad_sistema():
                 "Aresitos/vista/terminal_mixin.py"
             ],
             'configuraciones': [
-                "configuración/aresitos_config.json", 
-                "configuración/aresitos_config_kali.json",
-                "configuración/aresitos_config_completo.json"
+                "configuración/Aresitos_config.json", 
+                "configuración/Aresitos_config_kali.json"
             ],
             'directorios': [
                 "data", 

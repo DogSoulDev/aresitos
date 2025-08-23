@@ -315,7 +315,7 @@ def verificar_estructura_archivos():
             'Aresitos/vista/vista_login.py',
             'Aresitos/controlador/controlador_principal_nuevo.py',
             'Aresitos/modelo/modelo_siem_kali2025.py',
-            'configuración/aresitos_config.json'
+            'configuración/Aresitos_config.json'
         ]
         
         # ThreadPoolExecutor para verificación paralela

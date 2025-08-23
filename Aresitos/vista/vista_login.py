@@ -701,8 +701,8 @@ class LoginAresitos:
             
             # Permisos seguros para configuración (solo escritura para propietario)
             f"chmod -R 755 {shlex.quote(os.path.join(ruta_proyecto, 'configuración'))}",
-            f"chmod 644 {shlex.quote(os.path.join(ruta_proyecto, 'configuración', 'aresitos_config.json'))} 2>/dev/null || true",
-            f"chmod 644 {shlex.quote(os.path.join(ruta_proyecto, 'configuración', 'aresitos_config_kali.json'))} 2>/dev/null || true",
+            f"chmod 644 {shlex.quote(os.path.join(ruta_proyecto, 'configuración', 'Aresitos_config.json'))} 2>/dev/null || true",
+            f"chmod 644 {shlex.quote(os.path.join(ruta_proyecto, 'configuración', 'Aresitos_config_kali.json'))} 2>/dev/null || true",
             
             # Permisos seguros para data y logs (solo usuario puede escribir)
             f"chmod -R 755 {shlex.quote(os.path.join(ruta_proyecto, 'data'))} 2>/dev/null || true",
@@ -714,7 +714,7 @@ class LoginAresitos:
             
             # Crear directorios necesarios con permisos seguros
             f"mkdir -p {shlex.quote(os.path.join(ruta_proyecto, 'logs'))} && chmod 755 {shlex.quote(os.path.join(ruta_proyecto, 'logs'))}",
-            f"mkdir -p /tmp/aresitos_quarantine && chmod 755 /tmp/aresitos_quarantine",
+            f"mkdir -p /tmp/Aresitos_quarantine && chmod 755 /tmp/Aresitos_quarantine",
             
             # Herramientas de Kali Linux
             "chmod +x /usr/bin/nmap 2>/dev/null || true",
@@ -758,7 +758,7 @@ class LoginAresitos:
         # Verificación final de permisos
         try:
             main_py = os.path.join(ruta_proyecto, 'main.py')
-            config_file = os.path.join(ruta_proyecto, 'configuración', 'aresitos_config.json')
+            config_file = os.path.join(ruta_proyecto, 'configuración', 'Aresitos_config.json')
             
             if os.access(main_py, os.X_OK):
                 self.escribir_log("main.py ejecutable")
