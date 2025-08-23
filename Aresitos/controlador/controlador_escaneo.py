@@ -36,6 +36,20 @@ except ImportError:
     EscaneadorSistema = None
     EscaneadorRed = None
 
+# Importar nuevo escaneador avanzado Kali 2025
+try:
+    from Aresitos.modelo.modelo_escaneador_avanzado_kali2025 import (
+        EscaneadorAvanzadoKali2025, ScannerConfig, escaneo_rapido_aresitos, escaneo_completo_aresitos
+    )
+    from Aresitos.controlador.controlador_escaneador_avanzado_kali2025 import (
+        ControladorEscaneadorAvanzado, crear_controlador_escaneador_avanzado
+    )
+    ESCANEADOR_AVANZADO_DISPONIBLE = True
+except ImportError:
+    ESCANEADOR_AVANZADO_DISPONIBLE = False
+    EscaneadorAvanzadoKali2025 = None
+    ControladorEscaneadorAvanzado = None
+
 class UtilsIP:
     """Utilidades para manejo de IPs sin dependencias externas."""
     
@@ -127,6 +141,18 @@ class ControladorEscaneo(ControladorBase):
                 self.logger.info("OK Escaneador inicializado correctamente")
             else:
                 self.logger.warning("WARNING  Escaneador no inicializado - funcionalidad limitada")
+            
+            # Inicializar escaneador avanzado Kali 2025 si está disponible
+            if ESCANEADOR_AVANZADO_DISPONIBLE:
+                try:
+                    self.escaneador_avanzado = crear_controlador_escaneador_avanzado()
+                    self.logger.info("[OK] Escaneador Avanzado Kali 2025 inicializado")
+                except Exception as e:
+                    self.logger.warning(f"[WARNING] Error inicializando Escaneador Avanzado: {e}")
+                    self.escaneador_avanzado = None
+            else:
+                self.escaneador_avanzado = None
+                self.logger.info("[INFO] Escaneador Avanzado Kali 2025 no disponible")
                 
         except Exception as e:
             self.logger.error(f"ERROR inicializando componentes: {e}")
@@ -1528,7 +1554,374 @@ class ControladorEscaneo(ControladorBase):
                 'objetivo': objetivo
             }
 
+    # ====================================================================
+    # MÉTODOS AVANZADOS KALI 2025 - NUEVA GENERACIÓN DE ESCANEO
+    # ====================================================================
+
+    def ejecutar_escaneo_rapido_avanzado(self, objetivo: str = "127.0.0.1") -> Dict[str, Any]:
+        """
+        Escaneo rápido usando herramientas avanzadas (RustScan, Masscan, etc.)
+        
+        Args:
+            objetivo: IP o dominio a escanear
+            
+        Returns:
+            Dict con resultados del escaneo avanzado
+        """
+        try:
+            self.logger.info(f"Iniciando escaneo rápido avanzado en {objetivo}")
+            
+            if self.escaneador_avanzado:
+                # Usar escaneador avanzado si está disponible
+                resultado = self.escaneador_avanzado.escanear_objetivo(objetivo, 'rapido')
+                
+                # Registrar en SIEM
+                if resultado.get('exito'):
+                    self._registrar_evento_siem(
+                        "ESCANEO_RAPIDO_AVANZADO_EXITOSO",
+                        f"Escaneo rápido avanzado completado para {objetivo}. "
+                        f"Puertos encontrados: {resultado.get('total_puertos', 0)}, "
+                        f"Herramientas: {', '.join(resultado.get('herramientas_usadas', []))}",
+                        "info"
+                    )
+                
+                return resultado
+                
+            elif ESCANEADOR_AVANZADO_DISPONIBLE:
+                # Usar función directa si el controlador no está disponible
+                return escaneo_rapido_aresitos(objetivo)
+                
+            else:
+                # Fallback al escaneador tradicional
+                self.logger.warning("Escaneador avanzado no disponible, usando método tradicional")
+                return self.ejecutar_escaneo_basico(objetivo)
+                
+        except Exception as e:
+            self.logger.error(f"Error en escaneo rápido avanzado: {e}")
+            return {
+                'exito': False,
+                'error': str(e),
+                'timestamp': datetime.now().isoformat(),
+                'objetivo': objetivo,
+                'tipo_escaneo': 'rapido_avanzado'
+            }
+
+    def ejecutar_escaneo_completo_avanzado(self, objetivo: str = "127.0.0.1") -> Dict[str, Any]:
+        """
+        Escaneo completo usando múltiples herramientas avanzadas
+        (RustScan + Nmap + Nuclei + análisis web)
+        
+        Args:
+            objetivo: IP o dominio a escanear
+            
+        Returns:
+            Dict con resultados del escaneo completo avanzado
+        """
+        try:
+            self.logger.info(f"Iniciando escaneo completo avanzado en {objetivo}")
+            
+            if self.escaneador_avanzado:
+                resultado = self.escaneador_avanzado.escanear_objetivo(objetivo, 'completo')
+                
+                # Registrar eventos detallados en SIEM
+                if resultado.get('exito'):
+                    nivel_riesgo = resultado.get('nivel_riesgo', 'DESCONOCIDO')
+                    puntuacion = resultado.get('puntuacion_riesgo', 0)
+                    
+                    self._registrar_evento_siem(
+                        f"ESCANEO_COMPLETO_AVANZADO_{nivel_riesgo}",
+                        f"Escaneo completo avanzado para {objetivo}. "
+                        f"Riesgo: {nivel_riesgo} ({puntuacion}/100), "
+                        f"Puertos críticos: {resultado.get('total_puertos_criticos', 0)}, "
+                        f"Vulnerabilidades: {resultado.get('total_vulnerabilidades', 0)}",
+                        "warning" if nivel_riesgo in ['ALTO', 'CRÍTICO'] else "info"
+                    )
+                    
+                    # Registrar vulnerabilidades críticas individualmente
+                    for vuln in resultado.get('vulnerabilidades_criticas', []):
+                        self._registrar_evento_siem(
+                            "VULNERABILIDAD_CRITICA_DETECTADA",
+                            f"Vulnerabilidad crítica en {objetivo}: {vuln.get('name', vuln.get('description', 'N/A'))}",
+                            "error"
+                        )
+                
+                return resultado
+                
+            elif ESCANEADOR_AVANZADO_DISPONIBLE:
+                return escaneo_completo_aresitos(objetivo)
+                
+            else:
+                self.logger.warning("Escaneador avanzado no disponible, usando método tradicional")
+                return self.ejecutar_escaneo_completo(objetivo)
+                
+        except Exception as e:
+            self.logger.error(f"Error en escaneo completo avanzado: {e}")
+            return {
+                'exito': False,
+                'error': str(e),
+                'timestamp': datetime.now().isoformat(),
+                'objetivo': objetivo,
+                'tipo_escaneo': 'completo_avanzado'
+            }
+
+    def ejecutar_escaneo_sigiloso_avanzado(self, objetivo: str = "127.0.0.1") -> Dict[str, Any]:
+        """
+        Escaneo sigiloso para evitar detección usando técnicas avanzadas
+        
+        Args:
+            objetivo: IP o dominio a escanear
+            
+        Returns:
+            Dict con resultados del escaneo sigiloso
+        """
+        try:
+            self.logger.info(f"Iniciando escaneo sigiloso avanzado en {objetivo}")
+            
+            if self.escaneador_avanzado:
+                resultado = self.escaneador_avanzado.escanear_objetivo(objetivo, 'sigiloso')
+                
+                if resultado.get('exito'):
+                    self._registrar_evento_siem(
+                        "ESCANEO_SIGILOSO_COMPLETADO",
+                        f"Escaneo sigiloso completado para {objetivo}. "
+                        f"Técnicas usadas: {resultado.get('metadata', {}).get('stealth_techniques', [])}",
+                        "info"
+                    )
+                
+                return resultado
+                
+            else:
+                self.logger.warning("Escaneador avanzado no disponible para escaneo sigiloso")
+                return {
+                    'exito': False,
+                    'error': 'Escaneador avanzado requerido para escaneo sigiloso',
+                    'timestamp': datetime.now().isoformat(),
+                    'objetivo': objetivo
+                }
+                
+        except Exception as e:
+            self.logger.error(f"Error en escaneo sigiloso: {e}")
+            return {
+                'exito': False,
+                'error': str(e),
+                'timestamp': datetime.now().isoformat(),
+                'objetivo': objetivo,
+                'tipo_escaneo': 'sigiloso'
+            }
+
+    def ejecutar_escaneo_agresivo_avanzado(self, objetivo: str = "127.0.0.1") -> Dict[str, Any]:
+        """
+        Escaneo agresivo para máxima información usando múltiples herramientas en paralelo
+        
+        Args:
+            objetivo: IP o dominio a escanear
+            
+        Returns:
+            Dict con resultados del escaneo agresivo
+        """
+        try:
+            self.logger.info(f"Iniciando escaneo agresivo avanzado en {objetivo}")
+            
+            if self.escaneador_avanzado:
+                resultado = self.escaneador_avanzado.escanear_objetivo(objetivo, 'agresivo')
+                
+                if resultado.get('exito'):
+                    self._registrar_evento_siem(
+                        "ESCANEO_AGRESIVO_COMPLETADO",
+                        f"Escaneo agresivo completado para {objetivo}. "
+                        f"Intensidad: agresiva, "
+                        f"Herramientas paralelas: {len(resultado.get('herramientas_usadas', []))}",
+                        "warning"  # Marcar como warning por ser agresivo
+                    )
+                
+                return resultado
+                
+            else:
+                self.logger.warning("Escaneador avanzado no disponible para escaneo agresivo")
+                return {
+                    'exito': False,
+                    'error': 'Escaneador avanzado requerido para escaneo agresivo',
+                    'timestamp': datetime.now().isoformat(),
+                    'objetivo': objetivo
+                }
+                
+        except Exception as e:
+            self.logger.error(f"Error en escaneo agresivo: {e}")
+            return {
+                'exito': False,
+                'error': str(e),
+                'timestamp': datetime.now().isoformat(),
+                'objetivo': objetivo,
+                'tipo_escaneo': 'agresivo'
+            }
+
+    def escanear_multiples_objetivos_avanzado(self, objetivos: List[str], 
+                                            tipo_escaneo: str = 'rapido') -> List[Dict[str, Any]]:
+        """
+        Escanear múltiples objetivos en paralelo usando herramientas avanzadas
+        
+        Args:
+            objetivos: Lista de IPs o dominios a escanear
+            tipo_escaneo: Tipo de escaneo ('rapido', 'completo', 'sigiloso', 'agresivo')
+            
+        Returns:
+            Lista de resultados de escaneo
+        """
+        try:
+            self.logger.info(f"Iniciando escaneo múltiple avanzado de {len(objetivos)} objetivos")
+            
+            if self.escaneador_avanzado:
+                resultados = self.escaneador_avanzado.escanear_multiples_objetivos(objetivos, tipo_escaneo)
+                
+                # Registrar resumen en SIEM
+                exitosos = len([r for r in resultados if r.get('exito')])
+                total_puertos = sum(r.get('total_puertos', 0) for r in resultados)
+                total_vulns = sum(r.get('total_vulnerabilidades', 0) for r in resultados)
+                
+                self._registrar_evento_siem(
+                    "ESCANEO_MULTIPLE_AVANZADO_COMPLETADO",
+                    f"Escaneo múltiple completado. "
+                    f"Objetivos: {len(objetivos)}, Exitosos: {exitosos}, "
+                    f"Total puertos: {total_puertos}, Total vulnerabilidades: {total_vulns}",
+                    "info"
+                )
+                
+                return resultados
+                
+            else:
+                self.logger.warning("Escaneador avanzado no disponible para escaneo múltiple")
+                # Fallback: escanear uno por uno con método tradicional
+                resultados = []
+                for objetivo in objetivos:
+                    if tipo_escaneo == 'completo':
+                        resultado = self.ejecutar_escaneo_completo(objetivo)
+                    else:
+                        resultado = self.ejecutar_escaneo_basico(objetivo)
+                    resultados.append(resultado)
+                
+                return resultados
+                
+        except Exception as e:
+            self.logger.error(f"Error en escaneo múltiple avanzado: {e}")
+            return [{
+                'exito': False,
+                'error': str(e),
+                'timestamp': datetime.now().isoformat(),
+                'tipo_escaneo': f'multiple_{tipo_escaneo}'
+            }]
+
+    def obtener_estadisticas_escaneador_avanzado(self) -> Dict[str, Any]:
+        """
+        Obtener estadísticas del escaneador avanzado
+        
+        Returns:
+            Dict con estadísticas y estado de herramientas
+        """
+        try:
+            if self.escaneador_avanzado:
+                estadisticas = self.escaneador_avanzado.obtener_estadisticas()
+                herramientas = self.escaneador_avanzado.obtener_herramientas_disponibles()
+                
+                return {
+                    'escaneador_avanzado_disponible': True,
+                    'estadisticas': estadisticas,
+                    'herramientas_disponibles': herramientas,
+                    'herramientas_activas': [k for k, v in herramientas.items() if v],
+                    'capacidades': [
+                        'RustScan (escaneo ultrarrápido)',
+                        'Nuclei (vulnerabilidades YAML)',
+                        'Masscan (escaneo asíncrono)',
+                        'Análisis web especializado',
+                        'Escaneo sigiloso avanzado',
+                        'Escaneo paralelo múltiple'
+                    ]
+                }
+            else:
+                return {
+                    'escaneador_avanzado_disponible': False,
+                    'razon': 'Controlador avanzado no inicializado',
+                    'escaneador_basico_disponible': self.escáner is not None
+                }
+                
+        except Exception as e:
+            self.logger.error(f"Error obteniendo estadísticas del escaneador avanzado: {e}")
+            return {
+                'escaneador_avanzado_disponible': False,
+                'error': str(e)
+            }
+
+    def generar_reporte_avanzado(self, resultados: List[Dict[str, Any]], 
+                               formato: str = 'json') -> str:
+        """
+        Generar reporte avanzado de múltiples escaneos
+        
+        Args:
+            resultados: Lista de resultados de escaneo
+            formato: Formato del reporte ('json', 'summary')
+            
+        Returns:
+            String con el reporte generado
+        """
+        try:
+            if self.escaneador_avanzado:
+                return self.escaneador_avanzado.generar_reporte_detallado(resultados, formato)
+            else:
+                # Fallback: generar reporte básico
+                return self._generar_reporte_basico(resultados, formato)
+                
+        except Exception as e:
+            self.logger.error(f"Error generando reporte avanzado: {e}")
+            return f"Error generando reporte: {str(e)}"
+
+    def _generar_reporte_basico(self, resultados: List[Dict[str, Any]], 
+                              formato: str = 'json') -> str:
+        """Generar reporte básico si el avanzado no está disponible"""
+        try:
+            import json
+            from datetime import datetime
+            
+            reporte = {
+                'titulo': 'ARESITOS - Reporte de Escaneo',
+                'timestamp': datetime.now().isoformat(),
+                'total_objetivos': len(resultados),
+                'exitosos': len([r for r in resultados if r.get('exito')]),
+                'resultados': resultados
+            }
+            
+            if formato == 'json':
+                return json.dumps(reporte, indent=2, ensure_ascii=False)
+            else:
+                # Formato summary
+                summary = f"""
+ARESITOS - REPORTE DE ESCANEO
+=============================
+Fecha: {reporte['timestamp']}
+Objetivos: {reporte['total_objetivos']}
+Exitosos: {reporte['exitosos']}
+
+RESULTADOS:
+"""
+                for i, resultado in enumerate(resultados, 1):
+                    summary += f"\n{i}. Objetivo: {resultado.get('objetivo', 'N/A')}\n"
+                    summary += f"   Estado: {'ÉXITO' if resultado.get('exito') else 'ERROR'}\n"
+                    if resultado.get('total_puertos'):
+                        summary += f"   Puertos: {resultado['total_puertos']}\n"
+                
+                return summary
+                
+        except Exception as e:
+            return f"Error en reporte básico: {str(e)}"
+
 # RESUMEN TÉCNICO: Controlador de Escaneo avanzado para ARESITOS con arquitectura asíncrona,
 # herencia de ControladorBase, operaciones thread-safe, análisis de criticidad automático,
 # integración SIEM completa, configuración dinámica, generación de reportes profesionales
 # y manejo robusto de errores. Optimizado para escaneados de seguridad en Kali Linux.
+# 
+# NUEVAS CAPACIDADES KALI 2025:
+# - Integración RustScan para escaneo ultrarrápido (3 segundos)
+# - Scanner Nuclei con templates YAML para vulnerabilidades
+# - Masscan para escaneo asíncrono de alta velocidad
+# - Análisis web especializado con Nikto, Whatweb, Gobuster
+# - Estrategias de escaneo adaptativas (rápido, completo, sigiloso, agresivo)
+# - Escaneo paralelo de múltiples objetivos
+# - Puntuación de riesgo automática y recomendaciones de seguridad

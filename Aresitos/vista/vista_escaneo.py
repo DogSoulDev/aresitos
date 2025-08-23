@@ -119,6 +119,87 @@ class VistaEscaneo(tk.Frame):
                                 activeforeground='white')
         self.btn_logs.pack(side="left", padx=(0, 10))
         
+        # Segunda fila de botones - ESCANEADORES AVANZADOS KALI 2025
+        btn_frame_avanzado = tk.Frame(main_frame, bg=self.colors['bg_primary'])
+        btn_frame_avanzado.pack(fill="x", pady=(10, 10))
+        
+        # Etiqueta para separar los escaneadores avanzados
+        label_avanzado = tk.Label(btn_frame_avanzado, text="🚀 ESCANEADORES AVANZADOS KALI 2025:", 
+                                font=('Arial', 9, 'bold'),
+                                bg=self.colors['bg_primary'], fg=self.colors['fg_accent'])
+        label_avanzado.pack(anchor="w", pady=(0, 5))
+        
+        # Campo de entrada para objetivo específico
+        entrada_frame = tk.Frame(btn_frame_avanzado, bg=self.colors['bg_primary'])
+        entrada_frame.pack(fill="x", pady=(0, 5))
+        
+        tk.Label(entrada_frame, text="🎯 Objetivo:", 
+                font=('Arial', 9, 'bold'),
+                bg=self.colors['bg_primary'], fg=self.colors['fg_primary']).pack(side="left", padx=(0, 5))
+        
+        self.entry_objetivo = tk.Entry(entrada_frame, 
+                                     font=('Arial', 9),
+                                     bg=self.colors['bg_secondary'], 
+                                     fg=self.colors['fg_primary'],
+                                     relief='flat', 
+                                     insertbackground=self.colors['fg_primary'])
+        self.entry_objetivo.pack(side="left", fill="x", expand=True, padx=(0, 10))
+        self.entry_objetivo.insert(0, "127.0.0.1")  # Valor por defecto
+        
+        # Contenedor para botones avanzados
+        btn_avanzado_container = tk.Frame(btn_frame_avanzado, bg=self.colors['bg_primary'])
+        btn_avanzado_container.pack(fill="x")
+        
+        # Botón escaneo rápido avanzado (RustScan/Masscan)
+        self.btn_rapido_avanzado = tk.Button(btn_avanzado_container, text="🔍 Rápido (RustScan)", 
+                                           command=self.ejecutar_escaneo_rapido_avanzado,
+                                           bg='#007ACC', fg='white', 
+                                           font=('Arial', 9, 'bold'),
+                                           relief='flat', padx=12, pady=6,
+                                           activebackground='#005A9E',
+                                           activeforeground='white')
+        self.btn_rapido_avanzado.pack(side="left", padx=(0, 8))
+        
+        # Botón escaneo completo avanzado (Multi-herramientas)
+        self.btn_completo_avanzado = tk.Button(btn_avanzado_container, text="🔬 Completo (Multi-tools)", 
+                                             command=self.ejecutar_escaneo_completo_avanzado,
+                                             bg='#28A745', fg='white', 
+                                             font=('Arial', 9, 'bold'),
+                                             relief='flat', padx=12, pady=6,
+                                             activebackground='#1E7E34',
+                                             activeforeground='white')
+        self.btn_completo_avanzado.pack(side="left", padx=(0, 8))
+        
+        # Botón escaneo sigiloso (Stealth)
+        self.btn_sigiloso_avanzado = tk.Button(btn_avanzado_container, text="🥷 Sigiloso (Stealth)", 
+                                             command=self.ejecutar_escaneo_sigiloso_avanzado,
+                                             bg='#6F42C1', fg='white', 
+                                             font=('Arial', 9, 'bold'),
+                                             relief='flat', padx=12, pady=6,
+                                             activebackground='#59359A',
+                                             activeforeground='white')
+        self.btn_sigiloso_avanzado.pack(side="left", padx=(0, 8))
+        
+        # Botón escaneo agresivo (Aggressive)
+        self.btn_agresivo_avanzado = tk.Button(btn_avanzado_container, text="⚡ Agresivo (Parallel)", 
+                                             command=self.ejecutar_escaneo_agresivo_avanzado,
+                                             bg='#DC3545', fg='white', 
+                                             font=('Arial', 9, 'bold'),
+                                             relief='flat', padx=12, pady=6,
+                                             activebackground='#C82333',
+                                             activeforeground='white')
+        self.btn_agresivo_avanzado.pack(side="left", padx=(0, 8))
+        
+        # Botón estadísticas del escaneador
+        self.btn_stats_avanzado = tk.Button(btn_avanzado_container, text="📊 Stats", 
+                                          command=self.mostrar_estadisticas_avanzadas,
+                                          bg='#FFC107', fg='black', 
+                                          font=('Arial', 9, 'bold'),
+                                          relief='flat', padx=12, pady=6,
+                                          activebackground='#E0A800',
+                                          activeforeground='black')
+        self.btn_stats_avanzado.pack(side="left", padx=(0, 8))
+        
         # Barra de progreso
         self.progress_frame = tk.Frame(main_frame, bg=self.colors['bg_primary'])
         self.progress_frame.pack(fill="x", padx=10, pady=(10, 5))
@@ -3873,6 +3954,380 @@ class VistaEscaneo(tk.Frame):
             self.after_idle(_update)
         except (tk.TclError, AttributeError):
             pass  # Ventana ya destruida
+
+    # ============================================================================
+    # MÉTODOS PARA ESCANEADORES AVANZADOS KALI 2025 
+    # ============================================================================
+    
+    def mostrar_notificacion(self, mensaje, tipo="info"):
+        """Mostrar notificación usando messagebox."""
+        if tipo == "error":
+            messagebox.showerror("Error", mensaje)
+        elif tipo == "warning":
+            messagebox.showwarning("Advertencia", mensaje)
+        elif tipo == "success":
+            messagebox.showinfo("Éxito", mensaje)
+        else:
+            messagebox.showinfo("Información", mensaje)
+    
+    def _validar_objetivo(self, objetivo):
+        """Validar si el objetivo es una IP válida o dominio."""
+        if not objetivo:
+            return False
+        
+        # Intentar validar como IP
+        if self._validar_ip(objetivo):
+            return True
+        
+        # Validar como dominio/hostname
+        import re
+        patron_dominio = r'^[a-zA-Z0-9]([a-zA-Z0-9\-]{0,61}[a-zA-Z0-9])?(\.[a-zA-Z0-9]([a-zA-Z0-9\-]{0,61}[a-zA-Z0-9])?)*$'
+        if re.match(patron_dominio, objetivo):
+            return True
+        
+        # Validar rango de red (CIDR)
+        if '/' in objetivo:
+            try:
+                ip, prefijo = objetivo.split('/')
+                if self._validar_ip(ip) and 0 <= int(prefijo) <= 32:
+                    return True
+            except:
+                pass
+        
+        return False
+    
+    def ejecutar_escaneo_rapido_avanzado(self):
+        """Ejecutar escaneo rápido con RustScan/Masscan."""
+        objetivo = self.entry_objetivo.get().strip()
+        if not objetivo:
+            self.mostrar_notificacion("⚠️ Introduce un objetivo para escanear", "warning")
+            return
+            
+        # Validar el objetivo
+        if not self._validar_objetivo(objetivo):
+            self.mostrar_notificacion("❌ Objetivo no válido", "error")
+            return
+            
+        self._actualizar_texto_seguro("🚀 INICIANDO ESCANEO RÁPIDO AVANZADO...\n")
+        self._actualizar_texto_seguro(f"Objetivo: {objetivo}\n")
+        self._actualizar_texto_seguro("Herramientas: RustScan + Masscan\n\n")
+        
+        # Ejecutar en un hilo separado para no bloquear la UI
+        import threading
+        def _ejecutar():
+            try:
+                if hasattr(self.controlador, 'ejecutar_escaneo_rapido_avanzado'):
+                    resultado = self.controlador.ejecutar_escaneo_rapido_avanzado(objetivo)
+                    self._procesar_resultado_avanzado(resultado, "Rápido Avanzado")
+                else:
+                    self._actualizar_texto_seguro("⚠️ Escaneador avanzado no disponible. Usando escaneador estándar...\n")
+                    self.ejecutar_escaneo()
+            except Exception as e:
+                self._actualizar_texto_seguro(f"❌ Error en escaneo rápido avanzado: {str(e)}\n")
+        
+        hilo = threading.Thread(target=_ejecutar, daemon=True)
+        hilo.start()
+    
+    def ejecutar_escaneo_completo_avanzado(self):
+        """Ejecutar escaneo completo con múltiples herramientas."""
+        objetivo = self.entry_objetivo.get().strip()
+        if not objetivo:
+            self.mostrar_notificacion("⚠️ Introduce un objetivo para escanear", "warning")
+            return
+            
+        if not self._validar_objetivo(objetivo):
+            self.mostrar_notificacion("❌ Objetivo no válido", "error")
+            return
+            
+        self._actualizar_texto_seguro("🔬 INICIANDO ESCANEO COMPLETO AVANZADO...\n")
+        self._actualizar_texto_seguro(f"Objetivo: {objetivo}\n")
+        self._actualizar_texto_seguro("Herramientas: Nmap + Nuclei + Gobuster + Nikto + WhatWeb\n\n")
+        
+        import threading
+        def _ejecutar():
+            try:
+                if hasattr(self.controlador, 'ejecutar_escaneo_completo_avanzado'):
+                    resultado = self.controlador.ejecutar_escaneo_completo_avanzado(objetivo)
+                    self._procesar_resultado_avanzado(resultado, "Completo Avanzado")
+                else:
+                    self._actualizar_texto_seguro("⚠️ Escaneador avanzado no disponible. Usando escaneador estándar...\n")
+                    self.ejecutar_escaneo()
+            except Exception as e:
+                self._actualizar_texto_seguro(f"❌ Error en escaneo completo avanzado: {str(e)}\n")
+        
+        hilo = threading.Thread(target=_ejecutar, daemon=True)
+        hilo.start()
+    
+    def ejecutar_escaneo_sigiloso_avanzado(self):
+        """Ejecutar escaneo sigiloso para evadir detección."""
+        objetivo = self.entry_objetivo.get().strip()
+        if not objetivo:
+            self.mostrar_notificacion("⚠️ Introduce un objetivo para escanear", "warning")
+            return
+            
+        if not self._validar_objetivo(objetivo):
+            self.mostrar_notificacion("❌ Objetivo no válido", "error")
+            return
+            
+        self._actualizar_texto_seguro("🥷 INICIANDO ESCANEO SIGILOSO AVANZADO...\n")
+        self._actualizar_texto_seguro(f"Objetivo: {objetivo}\n")
+        self._actualizar_texto_seguro("Técnicas: Timing lento + Fragmentación + Evasión IDS\n\n")
+        
+        import threading
+        def _ejecutar():
+            try:
+                if hasattr(self.controlador, 'ejecutar_escaneo_sigiloso_avanzado'):
+                    # Configurar escaneo sigiloso
+                    config_sigiloso = {
+                        'timing': '-T1',  # Muy lento
+                        'fragmentacion': True,
+                        'evasion_ids': True,
+                        'randomize_hosts': True
+                    }
+                    resultado = self.controlador.ejecutar_escaneo_sigiloso_avanzado(objetivo, config_sigiloso)
+                    self._procesar_resultado_avanzado(resultado, "Sigiloso Avanzado")
+                else:
+                    self._actualizar_texto_seguro("⚠️ Escaneador avanzado no disponible. Usando escaneador estándar...\n")
+                    self.ejecutar_escaneo()
+            except Exception as e:
+                self._actualizar_texto_seguro(f"❌ Error en escaneo sigiloso avanzado: {str(e)}\n")
+        
+        hilo = threading.Thread(target=_ejecutar, daemon=True)
+        hilo.start()
+    
+    def ejecutar_escaneo_agresivo_avanzado(self):
+        """Ejecutar escaneo agresivo con máximo paralelismo."""
+        objetivo = self.entry_objetivo.get().strip()
+        if not objetivo:
+            self.mostrar_notificacion("⚠️ Introduce un objetivo para escanear", "warning")
+            return
+            
+        if not self._validar_objetivo(objetivo):
+            self.mostrar_notificacion("❌ Objetivo no válido", "error")
+            return
+            
+        # Advertencia para escaneo agresivo
+        import tkinter.messagebox as msgbox
+        advertencia = ("⚡ ADVERTENCIA: Escaneo Agresivo\n\n"
+                      "Este modo utiliza máximo paralelismo y puede:\n"
+                      "• Generar mucho tráfico de red\n"
+                      "• Ser detectado fácilmente\n"
+                      "• Sobrecargar el objetivo\n\n"
+                      "¿Continuar?")
+        
+        if not msgbox.askyesno("Confirmación", advertencia):
+            return
+            
+        self._actualizar_texto_seguro("⚡ INICIANDO ESCANEO AGRESIVO AVANZADO...\n")
+        self._actualizar_texto_seguro(f"Objetivo: {objetivo}\n")
+        self._actualizar_texto_seguro("Configuración: Máximo paralelismo + Timing agresivo\n\n")
+        
+        import threading
+        def _ejecutar():
+            try:
+                if hasattr(self.controlador, 'ejecutar_escaneo_agresivo_avanzado'):
+                    # Configurar escaneo agresivo
+                    config_agresivo = {
+                        'timing': '-T4',  # Agresivo
+                        'max_paralelo': 100,
+                        'max_rate': '10000',
+                        'min_rate': '1000'
+                    }
+                    resultado = self.controlador.ejecutar_escaneo_agresivo_avanzado(objetivo, config_agresivo)
+                    self._procesar_resultado_avanzado(resultado, "Agresivo Avanzado")
+                else:
+                    self._actualizar_texto_seguro("⚠️ Escaneador avanzado no disponible. Usando escaneador estándar...\n")
+                    self.ejecutar_escaneo()
+            except Exception as e:
+                self._actualizar_texto_seguro(f"❌ Error en escaneo agresivo avanzado: {str(e)}\n")
+        
+        hilo = threading.Thread(target=_ejecutar, daemon=True)
+        hilo.start()
+    
+    def mostrar_estadisticas_avanzadas(self):
+        """Mostrar estadísticas del escaneador avanzado."""
+        try:
+            if hasattr(self.controlador, 'obtener_estadisticas_avanzadas'):
+                stats = self.controlador.obtener_estadisticas_avanzadas()
+                self._mostrar_ventana_estadisticas(stats)
+            else:
+                self.mostrar_notificacion("📊 Estadísticas no disponibles", "info")
+        except Exception as e:
+            self.mostrar_notificacion(f"❌ Error al obtener estadísticas: {str(e)}", "error")
+    
+    def _procesar_resultado_avanzado(self, resultado, tipo_escaneo):
+        """Procesar y mostrar resultados de escaneos avanzados."""
+        if not resultado:
+            self._actualizar_texto_seguro("❌ No se obtuvieron resultados del escaneo\n")
+            return
+        
+        self._actualizar_texto_seguro(f"\n{'='*60}\n")
+        self._actualizar_texto_seguro(f"📋 RESULTADOS - {tipo_escaneo.upper()}\n")
+        self._actualizar_texto_seguro(f"{'='*60}\n")
+        
+        # Mostrar información básica
+        if 'objetivo' in resultado:
+            self._actualizar_texto_seguro(f"🎯 Objetivo: {resultado['objetivo']}\n")
+        if 'duracion' in resultado:
+            self._actualizar_texto_seguro(f"⏱️ Duración: {resultado['duracion']:.2f} segundos\n")
+        if 'herramientas_usadas' in resultado:
+            self._actualizar_texto_seguro(f"🛠️ Herramientas: {', '.join(resultado['herramientas_usadas'])}\n")
+        
+        # Mostrar puertos encontrados
+        if 'puertos_abiertos' in resultado and resultado['puertos_abiertos']:
+            self._actualizar_texto_seguro(f"\n🔓 PUERTOS ABIERTOS ({len(resultado['puertos_abiertos'])}):\n")
+            for puerto in resultado['puertos_abiertos']:
+                self._actualizar_texto_seguro(f"  • {puerto}\n")
+        
+        # Mostrar vulnerabilidades
+        if 'vulnerabilidades' in resultado and resultado['vulnerabilidades']:
+            self._actualizar_texto_seguro(f"\n🚨 VULNERABILIDADES ({len(resultado['vulnerabilidades'])}):\n")
+            for vuln in resultado['vulnerabilidades'][:10]:  # Mostrar máximo 10
+                criticidad = vuln.get('severidad', 'Unknown').upper()
+                self._actualizar_texto_seguro(f"  • [{criticidad}] {vuln.get('titulo', 'Sin título')}\n")
+            
+            if len(resultado['vulnerabilidades']) > 10:
+                self._actualizar_texto_seguro(f"  ... y {len(resultado['vulnerabilidades']) - 10} más\n")
+        
+        # Mostrar directorios encontrados
+        if 'directorios' in resultado and resultado['directorios']:
+            self._actualizar_texto_seguro(f"\n📁 DIRECTORIOS ({len(resultado['directorios'])}):\n")
+            for directorio in resultado['directorios'][:10]:  # Mostrar máximo 10
+                self._actualizar_texto_seguro(f"  • {directorio}\n")
+        
+        # Mostrar puntuación de riesgo
+        if 'puntuacion_riesgo' in resultado:
+            riesgo = resultado['puntuacion_riesgo']
+            if riesgo >= 8:
+                emoji = "🔴"
+                nivel = "CRÍTICO"
+            elif riesgo >= 6:
+                emoji = "🟠"
+                nivel = "ALTO"
+            elif riesgo >= 4:
+                emoji = "🟡"
+                nivel = "MEDIO"
+            else:
+                emoji = "🟢"
+                nivel = "BAJO"
+            
+            self._actualizar_texto_seguro(f"\n{emoji} RIESGO GENERAL: {nivel} ({riesgo}/10)\n")
+        
+        self._actualizar_texto_seguro(f"\n{'='*60}\n")
+        
+        # Mostrar notificación de finalización
+        nivel_riesgo = resultado.get('puntuacion_riesgo', 0)
+        if nivel_riesgo >= 8:
+            self.mostrar_notificacion(f"🔴 {tipo_escaneo} completado - RIESGO CRÍTICO", "error")
+        elif nivel_riesgo >= 6:
+            self.mostrar_notificacion(f"🟠 {tipo_escaneo} completado - Riesgo Alto", "warning")
+        else:
+            self.mostrar_notificacion(f"✅ {tipo_escaneo} completado", "success")
+    
+    def _mostrar_ventana_estadisticas(self, stats):
+        """Mostrar ventana con estadísticas detalladas."""
+        ventana = tk.Toplevel(self)
+        ventana.title("📊 Estadísticas del Escaneador Avanzado")
+        ventana.geometry("600x500")
+        ventana.configure(bg=self.colors['bg_primary'])
+        
+        # Hacer que la ventana sea modal
+        ventana.grab_set()
+        
+        # Frame principal con scroll
+        main_frame = tk.Frame(ventana, bg=self.colors['bg_primary'])
+        main_frame.pack(fill="both", expand=True, padx=15, pady=15)
+        
+        # Título
+        title_label = tk.Label(main_frame, text="📊 ESTADÍSTICAS DEL ESCANEADOR",
+                              font=('Arial', 14, 'bold'),
+                              bg=self.colors['bg_primary'], fg=self.colors['fg_accent'])
+        title_label.pack(pady=(0, 15))
+        
+        # Área de texto para estadísticas
+        text_frame = tk.Frame(main_frame, bg=self.colors['bg_primary'])
+        text_frame.pack(fill="both", expand=True)
+        
+        stats_text = tk.Text(text_frame, wrap="word", font=('Consolas', 10),
+                            bg=self.colors['bg_secondary'], fg=self.colors['fg_primary'],
+                            relief='flat', padx=10, pady=10)
+        
+        scrollbar = tk.Scrollbar(text_frame, orient="vertical", command=stats_text.yview)
+        stats_text.configure(yscrollcommand=scrollbar.set)
+        
+        scrollbar.pack(side="right", fill="y")
+        stats_text.pack(side="left", fill="both", expand=True)
+        
+        # Insertar estadísticas
+        stats_content = self._formatear_estadisticas(stats)
+        stats_text.insert("1.0", stats_content)
+        stats_text.config(state="disabled")
+        
+        # Botón cerrar
+        btn_cerrar = tk.Button(main_frame, text="Cerrar", command=ventana.destroy,
+                              bg=self.colors['accent'], fg='white', font=('Arial', 10, 'bold'),
+                              relief='flat', padx=20, pady=8)
+        btn_cerrar.pack(pady=(15, 0))
+        
+        # Centrar la ventana
+        ventana.update_idletasks()
+        x = (ventana.winfo_screenwidth() // 2) - (ventana.winfo_width() // 2)
+        y = (ventana.winfo_screenheight() // 2) - (ventana.winfo_height() // 2)
+        ventana.geometry(f"+{x}+{y}")
+    
+    def _formatear_estadisticas(self, stats):
+        """Formatear estadísticas para mostrar."""
+        if not stats:
+            return "No hay estadísticas disponibles."
+        
+        contenido = []
+        contenido.append("🎯 ESTADÍSTICAS GENERALES")
+        contenido.append("=" * 50)
+        
+        # Estadísticas básicas
+        contenido.append(f"Total de escaneos realizados: {stats.get('total_escaneos', 0)}")
+        contenido.append(f"Escaneos exitosos: {stats.get('escaneos_exitosos', 0)}")
+        contenido.append(f"Escaneos fallidos: {stats.get('escaneos_fallidos', 0)}")
+        contenido.append(f"Tiempo total de escaneo: {stats.get('tiempo_total', 0):.2f} segundos")
+        contenido.append("")
+        
+        # Herramientas más usadas
+        if 'herramientas_usadas' in stats:
+            contenido.append("🛠️ HERRAMIENTAS MÁS USADAS")
+            contenido.append("-" * 30)
+            for herramienta, uso in stats['herramientas_usadas'].items():
+                contenido.append(f"{herramienta}: {uso} veces")
+            contenido.append("")
+        
+        # Vulnerabilidades encontradas
+        if 'vulnerabilidades_totales' in stats:
+            contenido.append("🚨 VULNERABILIDADES DETECTADAS")
+            contenido.append("-" * 35)
+            contenido.append(f"Total encontradas: {stats.get('vulnerabilidades_totales', 0)}")
+            
+            severidades = stats.get('vulnerabilidades_por_severidad', {})
+            for sev, count in severidades.items():
+                contenido.append(f"{sev.capitalize()}: {count}")
+            contenido.append("")
+        
+        # Puertos más comunes
+        if 'puertos_comunes' in stats:
+            contenido.append("🔓 PUERTOS MÁS ENCONTRADOS")
+            contenido.append("-" * 30)
+            for puerto, freq in list(stats['puertos_comunes'].items())[:10]:
+                contenido.append(f"Puerto {puerto}: {freq} veces")
+            contenido.append("")
+        
+        # Rendimiento
+        if 'rendimiento' in stats:
+            contenido.append("⚡ RENDIMIENTO")
+            contenido.append("-" * 20)
+            perf = stats['rendimiento']
+            contenido.append(f"Promedio por escaneo: {perf.get('promedio_duracion', 0):.2f}s")
+            contenido.append(f"Escaneo más rápido: {perf.get('escaneo_mas_rapido', 0):.2f}s")
+            contenido.append(f"Escaneo más lento: {perf.get('escaneo_mas_lento', 0):.2f}s")
+        
+        return "\n".join(contenido)
 
 
 # RESUMEN: Interfaz de escaneo de vulnerabilidades con opciones básicas y avanzadas.
