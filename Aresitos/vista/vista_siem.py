@@ -3365,6 +3365,8 @@ ls -la "$OUTPUT_DIR/"
                 self._actualizar_texto_forense("  dcfldd if=/dev/sdX of=imagen.dd hash=sha256 bs=4096\n")
                 self._actualizar_texto_forense(" Análisis de memoria:\n")
                 self._actualizar_texto_forense("  dd if=/proc/kcore of=memoria.dump bs=1M count=100\n")
+                self._actualizar_texto_forense("  bulk_extractor -o output_dir memoria.dump\n")
+                self._actualizar_texto_forense("  strings memoria.dump | grep -i password\n")
                 self._actualizar_texto_forense(" Borrado seguro:\n")
                 self._actualizar_texto_forense("  dd if=/dev/urandom of=/dev/sdX bs=4096\n\n")
                 

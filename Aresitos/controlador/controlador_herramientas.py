@@ -40,7 +40,7 @@ class ControladorHerramientas:
             
             # Forense y Análisis (ESENCIALES)
             'binwalk', 'foremost', 'exiftool', 'strings', 'file',
-            'hexdump', 'xxd', 'grep', 'find', 'locate',
+            'hexdump', 'xxd', 'grep', 'find', 'locate', 'bulk_extractor',
             
             # Exploits y Post-Explotación
             'searchsploit', 'exploitdb', 'linpeas', 'pspy',

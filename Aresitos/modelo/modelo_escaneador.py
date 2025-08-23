@@ -23,6 +23,8 @@ Fecha: Agosto 2025
 
 from typing import Dict, List, Any, Optional
 from datetime import datetime
+import os
+import logging
 
 # Importar escaneadores especializados
 from .modelo_escaneador_sistema import EscaneadorSistema, ResultadoEscaneoSistema, TipoEscaneo, NivelCriticidad, SecurityError
@@ -40,6 +42,9 @@ class EscaneadorCompleto:
         self.gestor_permisos = gestor_permisos
         self.escaneador_sistema = EscaneadorSistema()
         self.escaneador_red = EscaneadorRed()
+        
+        # Configurar logger
+        self.logger = logging.getLogger("aresitos.escaneador_completo")
         
         # Configuración básica
         self.configuracion = {
@@ -339,6 +344,108 @@ class EscaneadorCompleto:
         """Delegar al escaneador de red."""
         return self.escaneador_red.detectar_servicios_web(objetivo, puertos)
     
+    def analizar_memoria_forense(self, archivo_memoria: str, directorio_salida: str = "/tmp/bulk_analysis") -> Dict[str, Any]:
+        """
+        Análisis forense de memoria usando bulk_extractor.
+        Reemplazo completo de volatility3 con herramienta estable.
+        
+        Args:
+            archivo_memoria: Ruta al archivo de dump de memoria
+            directorio_salida: Directorio donde guardar resultados
+            
+        Returns:
+            Dict con resultados del análisis forense
+        """
+        import subprocess
+        import os
+        
+        resultado = {
+            'exito': False,
+            'archivo_analizado': archivo_memoria,
+            'directorio_salida': directorio_salida,
+            'artefactos_encontrados': {},
+            'comando_usado': '',
+            'timestamp': datetime.now().isoformat()
+        }
+        
+        try:
+            # Verificar que bulk_extractor esté disponible
+            check_cmd = subprocess.run(['which', 'bulk_extractor'], 
+                                     capture_output=True, text=True, timeout=5)
+            
+            if check_cmd.returncode != 0:
+                resultado['error'] = 'bulk_extractor no está instalado. Instalar con: sudo apt install bulk_extractor'
+                return resultado
+            
+            # Verificar que el archivo de memoria existe
+            if not os.path.exists(archivo_memoria):
+                resultado['error'] = f'Archivo de memoria no encontrado: {archivo_memoria}'
+                return resultado
+            
+            # Crear directorio de salida si no existe
+            os.makedirs(directorio_salida, exist_ok=True)
+            
+            # Ejecutar bulk_extractor
+            comando = ['bulk_extractor', '-o', directorio_salida, archivo_memoria]
+            resultado['comando_usado'] = ' '.join(comando)
+            
+            self.logger.info(f"Ejecutando análisis forense: {resultado['comando_usado']}")
+            
+            proceso = subprocess.run(comando, capture_output=True, text=True, timeout=300)  # 5 min timeout
+            
+            if proceso.returncode == 0:
+                # Analizar resultados generados
+                artefactos = self._procesar_resultados_bulk_extractor(directorio_salida)
+                resultado['artefactos_encontrados'] = artefactos
+                resultado['exito'] = True
+                resultado['mensaje'] = f'Análisis completado. {len(artefactos)} tipos de artefactos encontrados.'
+                
+                self.logger.info(f"Análisis forense completado: {len(artefactos)} artefactos")
+                
+            else:
+                resultado['error'] = f'Error en bulk_extractor: {proceso.stderr}'
+                self.logger.error(f"Error en análisis forense: {proceso.stderr}")
+                
+        except subprocess.TimeoutExpired:
+            resultado['error'] = 'Timeout en análisis forense (>5 min)'
+            self.logger.error("Timeout en análisis forense")
+        except Exception as e:
+            resultado['error'] = f'Error inesperado: {str(e)}'
+            self.logger.error(f"Error en análisis forense: {e}")
+        
+        return resultado
+    
+    def _procesar_resultados_bulk_extractor(self, directorio: str) -> Dict[str, int]:
+        """Procesar archivos de resultado de bulk_extractor."""
+        artefactos = {}
+        
+        try:
+            # Archivos típicos generados por bulk_extractor
+            archivos_buscar = [
+                'email.txt', 'url.txt', 'ip.txt', 'telephone.txt', 
+                'ccn.txt', 'domain.txt', 'ether.txt', 'zip.txt'
+            ]
+            
+            for archivo in archivos_buscar:
+                ruta_completa = os.path.join(directorio, archivo)
+                if os.path.exists(ruta_completa):
+                    try:
+                        with open(ruta_completa, 'r', encoding='utf-8', errors='ignore') as f:
+                            lineas = f.readlines()
+                            # Contar líneas no vacías
+                            count = len([l for l in lineas if l.strip()])
+                            if count > 0:
+                                tipo_artefacto = archivo.replace('.txt', '')
+                                artefactos[tipo_artefacto] = count
+                                
+                    except Exception as e:
+                        self.logger.debug(f"Error procesando {archivo}: {e}")
+                        
+        except Exception as e:
+            self.logger.error(f"Error procesando resultados bulk_extractor: {e}")
+        
+        return artefactos
+
     # Métodos compatibles con versiones anteriores
     def escanear_sistema(self, tipo: str = "completo") -> Dict[str, Any]:
         """Compatibilidad: escanear solo sistema."""
