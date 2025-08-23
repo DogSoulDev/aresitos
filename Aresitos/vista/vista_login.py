@@ -209,7 +209,7 @@ HERRAMIENTAS_REQUERIDAS = [
 
 # Herramientas que requieren instalación manual o tienen problemas de timeout
 HERRAMIENTAS_PROBLEMATICAS = [
-    'volatility',      # No disponible en repositorios estándar
+    'bulk_extractor',  # Análisis forense estable disponible en APT
     'autopsy',         # Requiere descarga grande
     'tripwire',        # Timeout frecuente
     'samhain',         # Timeout frecuente  

@@ -385,7 +385,7 @@ install_advanced_security_tools() {
         "rkhunter:Hunter de rootkits avanzado"
         "clamav-daemon:Motor antivirus ClamAV"
         "clamav-freshclam:Actualizador de firmas ClamAV"
-        "volatility3:Análisis forense de memoria"
+        "bulk_extractor:Análisis forense de archivos y memoria"
         "yara:Motor de reconocimiento de patrones"
     )
     

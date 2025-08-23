@@ -1,0 +1,66 @@
+ARESITOS - Bulk Extractor Cheatsheet (Análisis Forense)
+=====================================================
+
+INSTALACIÓN:
+sudo apt update
+sudo apt install bulk_extractor
+
+COMANDOS BÁSICOS:
+# Análisis básico de imagen forense
+bulk_extractor -o output_dir image.dd
+
+# Análisis de archivo específico
+bulk_extractor -o results file.bin
+
+# Análisis con opciones específicas
+bulk_extractor -o output -S email_scanner image.dd
+
+OPCIONES PRINCIPALES:
+-o DIR          Directorio de salida
+-R              Análisis recursivo
+-S scanner      Usar escáner específico
+-x scanner      Excluir escáner específico
+-j threads      Número de hilos (por defecto: CPU cores)
+
+ESCÁNERES DISPONIBLES:
+email           Direcciones de email
+url             URLs encontradas
+telephone       Números de teléfono
+ccn             Números de tarjetas de crédito
+ssn             Números de seguridad social
+ip              Direcciones IP
+domain          Nombres de dominio
+
+ANÁLISIS DE RESULTADOS:
+# Ver todos los archivos generados
+ls output_dir/
+
+# Revisar emails encontrados
+cat output_dir/email.txt
+
+# Revisar URLs
+cat output_dir/url.txt
+
+# Ver histograma de archivos
+cat output_dir/url_histogram.txt
+
+CASOS DE USO:
+# Análisis de memoria RAM
+bulk_extractor -o memory_analysis memory.dump
+
+# Búsqueda de credenciales
+bulk_extractor -S email_scanner -S ccn_scanner -o creds image.dd
+
+# Análisis de tráfico de red
+bulk_extractor -S ip_scanner -S domain_scanner -o network packet.pcap
+
+VENTAJAS VS VOLATILITY3:
+- Mantenido activamente
+- Disponible en repositorios APT de Kali
+- No requiere Python específico
+- Análisis más rápido para archivos grandes
+- Mejor detección de artefactos de red
+
+INTEGRACIÓN CON ARESITOS:
+bulk_extractor está incluido en las herramientas de seguridad
+del configurador automático de ARESITOS v3.0.

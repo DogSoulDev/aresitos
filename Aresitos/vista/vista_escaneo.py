@@ -2009,7 +2009,7 @@ class VistaEscaneo(tk.Frame):
             'nmap', 'masscan', 'nikto', 'dirb', 'gobuster', 'sqlmap',
             'metasploit', 'msfconsole', 'john', 'hashcat', 'hydra',
             'aircrack-ng', 'wireshark', 'tcpdump', 'netcat', 'socat',
-            'binwalk', 'foremost', 'volatility', 'yara', 'chkrootkit',
+            'binwalk', 'foremost', 'bulk_extractor', 'yara', 'chkrootkit',
             'rkhunter', 'clamscan', 'lynis'
         ]
         
@@ -2865,7 +2865,7 @@ class VistaEscaneo(tk.Frame):
                 'yara': 'Motor de detección de malware',
                 
                 # Análisis forense
-                'volatility': 'Análisis de memoria forense',
+                'bulk_extractor': 'Análisis forense estable',
                 'binwalk': 'Análisis de firmware y archivos binarios',
                 'foremost': 'Recuperación de archivos',
                 'strings': 'Extractor de cadenas de texto',
@@ -2893,7 +2893,7 @@ class VistaEscaneo(tk.Frame):
                             categorias_disponibles['web'].append(herramienta)
                         elif herramienta in ['chkrootkit', 'lynis', 'rkhunter', 'clamav', 'yara']:
                             categorias_disponibles['seguridad'].append(herramienta)
-                        elif herramienta in ['volatility', 'binwalk', 'foremost', 'strings']:
+                        elif herramienta in ['bulk_extractor', 'binwalk', 'foremost', 'strings']:
                             categorias_disponibles['forense'].append(herramienta)
                         elif herramienta in ['pspy', 'htop', 'iotop']:
                             categorias_disponibles['procesos'].append(herramienta)

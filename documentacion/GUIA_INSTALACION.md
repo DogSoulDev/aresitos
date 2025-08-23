@@ -321,7 +321,7 @@ El script verifica automáticamente:
 - Creación de scripts de prueba
 
 #### Herramientas de Análisis Forense
-- **volatility3**: Framework de análisis forense de memoria
+- **bulk_extractor**: Framework de análisis forense estable
 - **binwalk**: Análisis y extracción de firmware
 - **strings**: Extracción de cadenas de texto de archivos binarios
 - **file**: Identificación de tipos de archivo por contenido
@@ -397,7 +397,7 @@ Al ejecutar Aresitos, debe tener acceso a los siguientes módulos:
 5. **Gestión de Datos**: Wordlists y diccionarios con terminal de generación
 6. **Reportes**: Exportación de resultados con terminal de análisis
 7. **FIM**: Monitoreo de integridad con terminal inotifywait
-8. **SIEM**: Correlación de eventos con terminales Volatility/Binwalk
+8. **SIEM**: Correlación de eventos con terminales Bulk_extractor/Binwalk
 
 #### Verificación de Interfaz
 Cada vista debe mostrar:
@@ -615,7 +615,7 @@ def verificar_herramienta(comando):
 def main():
     herramientas = [
         'nmap', 'masscan', 'gobuster', 'nuclei', 'ffuf',
-        'volatility3', 'binwalk', 'sleuthkit', 'foremost', 'exiftool',
+        'bulk_extractor', 'binwalk', 'sleuthkit', 'foremost', 'exiftool',
         'clamscan', 'yara', 'inotifywait', 'chkrootkit', 'rkhunter'
     ]
     

@@ -439,7 +439,7 @@ class VistaHerramientasKali(tk.Frame):
                         "• Sistema: ps, ss, lsof, grep, awk, find, stat, lsmod, iptables\n" +
                         "• Red: nmap, netcat, ip, route, ss, hping3, curl, wget\n" +
                         "• Análisis: wireshark, tcpdump, strings, file, hexdump\n" +
-                        "• Forense: volatility, binwalk, foremost, dd, autopsy\n\n" +
+                        "• Forense: bulk_extractor, binwalk, foremost, dd, autopsy\n\n" +
                         "HERRAMIENTAS ESPECIALIZADAS:\n" +
                         "• Reconocimiento: nmap, masscan, enum4linux, gobuster\n" +
                         "• Vulnerabilidades: nikto, dirb, sqlmap, wpscan\n" +
@@ -658,7 +658,7 @@ LISTO PARA: Escaneos de vulnerabilidades en entornos Kali Linux 2025
                 'lynis', 'chkrootkit',
                 
                 # HERRAMIENTAS DE SEGURIDAD (sincronizadas con security_tools en configurar_kali.sh)
-                'rkhunter', 'clamav-daemon', 'clamav-freshclam', 'volatility3', 'yara',
+                'rkhunter', 'clamav-daemon', 'clamav-freshclam', 'bulk_extractor', 'yara',
                 
                 # Comandos adicionales para funcionalidades específicas ARESITOS
                 'clamscan', 'freshclam',  # ClamAV ejecutables
@@ -854,7 +854,7 @@ LISTO PARA: Escaneos de vulnerabilidades en entornos Kali Linux 2025
                 'lynis', 'chkrootkit',
                 
                 # Herramientas de seguridad (coincide con security_tools)
-                'rkhunter', 'clamav-daemon', 'clamav-freshclam', 'volatility3', 'yara',
+                'rkhunter', 'clamav-daemon', 'clamav-freshclam', 'bulk_extractor', 'yara',
                 
                 # Herramientas adicionales necesarias para ARESITOS
                 'gobuster', 'aide'
@@ -873,10 +873,10 @@ LISTO PARA: Escaneos de vulnerabilidades en entornos Kali Linux 2025
                     'comando': 'sudo apt install python3-venv',
                     'notas': 'Requerido para aislamiento de dependencias'
                 },
-                'volatility3': {
-                    'razon': 'Instalado via configurador',
+                'bulk_extractor': {
+                    'razon': 'Herramienta de análisis forense estable',
                     'comando': 'Incluido en configurar_kali.sh',
-                    'notas': 'Análisis forense de memoria - instalación automática'
+                    'notas': 'Análisis forense de archivos y memoria - reemplazo de volatility3'
                 },
                 'clamav-daemon': {
                     'razon': 'Servicio de antivirus',
