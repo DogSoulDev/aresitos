@@ -34,6 +34,27 @@ sudo ./configurar_kali.sh
 python3 main.py
 ```
 
+## Instalación Rápida de RustScan (Recomendada)
+
+**RustScan es el escaneador de puertos más rápido del mundo. Para obtener máximo rendimiento en ARESITOS:**
+
+```bash
+# Instalar Rust (requerido una sola vez)
+curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
+source ~/.cargo/env
+
+# Instalar RustScan
+cargo install rustscan
+
+# Verificar instalación
+rustscan --version
+```
+
+**Beneficios de RustScan:**
+- Escaneado 65,535 puertos en menos de 3 segundos
+- Integración nativa con nmap para scripts NSE
+- Compatible con todas las funciones de ARESITOS
+
 ## Instalación Detallada
 
 ### Paso 1: Clonación del Repositorio
@@ -261,11 +282,27 @@ El script de configuración automática realiza todas las tareas necesarias para
 - **feroxbuster**: Fuzzing de directorios
 - **httpx-toolkit**: Herramientas HTTP modernas
 
-#### WARNING **Herramientas que Requieren Instalación Manual**
-- **rustscan**: Escaneador moderno (requiere Rust)
+#### IMPORTANTE **Herramientas que Requieren Instalación Manual**
+- **rustscan**: Escaneador ultrarrápido (RECOMENDADO para máximo rendimiento)
   ```bash
-  # Para instalar rustscan manualmente:
+  # Instalación rápida (opción 1 - RECOMENDADA)
+  curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
+  source ~/.cargo/env
   cargo install rustscan
+  
+  # Instalación alternativa (opción 2)
+  sudo apt install cargo
+  cargo install rustscan
+  ```
+
+- **strings**: Extracción de cadenas de texto de archivos binarios
+  ```bash
+  # Instalar binutils (incluye strings)
+  sudo apt update
+  sudo apt install binutils
+  
+  # Verificar instalación
+  strings --version
   ```
 
 #### TOOL **Configuraciones Automáticas**
@@ -790,27 +827,29 @@ sudo ./configurar_kali.sh  # Reejecutar configuración
 **Si rustscan no está disponible:**
 ```bash
 # ARESITOS funciona sin rustscan, usa nmap como alternativa
-# Para instalar rustscan manualmente:
+# Para instalar rustscan manualmente (MÉTODO RECOMENDADO):
 
-# PASO 1: Instalar Cargo (gestor de paquetes de Rust)
-┌──(kali㉿kali)-[~]
-└─$ cargo install rustscan
-Command 'cargo' not found, but can be installed with:
-sudo apt install cargo 
-sudo apt install rustup
-
-# PASO 2: Instalar Cargo
-┌──(kali㉿kali)-[~]
-└─$ sudo apt install cargo
-
-# PASO 3: Instalar rustscan
-┌──(kali㉿kali)-[~]
-└─$ cargo install rustscan
-
-# ALTERNATIVA con rustup (recomendado)
+# OPCIÓN 1: Instalación directa con rustup (MÁS RÁPIDA)
 curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
 source ~/.cargo/env
 cargo install rustscan
+
+# OPCIÓN 2: Instalación con cargo del sistema
+sudo apt install cargo
+cargo install rustscan
+
+# Verificar instalación
+rustscan --version
+```
+
+**Si strings no está disponible:**
+```bash
+# strings es parte del paquete binutils
+sudo apt update
+sudo apt install binutils
+
+# Verificar instalación
+strings --version
 ```
 
 **Si fallan las dependencias Python:**
