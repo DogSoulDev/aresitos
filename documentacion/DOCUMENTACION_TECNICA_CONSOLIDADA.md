@@ -246,7 +246,7 @@ CREATE TABLE archivos_cuarentena (
 ## Gestión de Configuración
 
 ### Archivo Principal
-**Ubicación**: `configuración/aresitos_config.json`
+**Ubicación**: `configuración/Aresitos_config.json`
 
 Configuración centralizada para:
 - Parámetros de escaneo y umbrales de detección
@@ -417,7 +417,7 @@ CREATE TABLE amenazas_cuarentena (
 ## ⚙️ **Configuración**
 
 ### **Archivos de Configuración**
-- `aresitos_config_kali.json`: Configuración principal Kali
+- `Aresitos_config_kali.json`: Configuración principal Kali
 - `textos_castellano_corregido.json`: Localización español
 - `wordlists_config.json`: Configuración diccionarios
 
@@ -758,8 +758,8 @@ python main.py --dev
 ## 🔒 CONFIGURACIÓN
 
 ### Archivos de Configuración
-- `configuración/aresitos_config_completo.json` - Configuración avanzada
-- `configuración/aresitos_config_kali.json` - Específico Kali Linux
+- `configuración/Aresitos_config_completo.json` - Configuración avanzada
+- `configuración/Aresitos_config_kali.json` - Específico Kali Linux
 - `configuración/textos_castellano_corregido.json` - Interfaz español
 
 ### Parámetros Críticos

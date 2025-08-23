@@ -166,8 +166,8 @@ PERMISOS Configurando permisos de red...
 [✓] Usuario añadido al grupo netdev
 
 CONFIG Configurando sudo para ARESITOS v2.0...
-/etc/sudoers.d/aresitos-v2: parsed OK
-[✓] Configuración sudo creada en /etc/sudoers.d/aresitos-v2
+/etc/sudoers.d/Aresitos-v2: parsed OK
+[✓] Configuración sudo creada en /etc/sudoers.d/Aresitos-v2
 ```
 
 ### Paso 8: Configuración Python
@@ -271,7 +271,7 @@ El script de configuración automática realiza todas las tareas necesarias para
 #### 🔧 **Configuraciones Automáticas**
 1. **Permisos de Red**: Configuración de nmap y tcpdump sin sudo
 2. **Grupos de Usuario**: Adición a grupos wireshark y netdev
-3. **Configuración Sudo**: Archivo `/etc/sudoers.d/aresitos-v2` para herramientas específicas
+3. **Configuración Sudo**: Archivo `/etc/sudoers.d/Aresitos-v2` para herramientas específicas
 4. **Dependencias Python**: Instalación vía APT para compatibilidad con Kali 2024+
 5. **Permisos de Archivos**: Configuración automática de todos los permisos necesarios
 
@@ -600,7 +600,7 @@ def main():
         'Aresitos/modelo/modelo_escaneador_kali2025.py',
         'Aresitos/vista/vista_principal.py',
         'Aresitos/controlador/controlador_principal_nuevo.py',
-        'configuración/aresitos_config_kali.json'
+        'configuración/Aresitos_config_kali.json'
     ]
     
     for archivo in archivos_criticos:
@@ -738,7 +738,7 @@ tail -f logs/aresitos.log
 Si la instalación es exitosa, verás estos mensajes:
 ```
 [✓] Todas las herramientas ESENCIALES instaladas correctamente
-[✓] Configuración sudo creada en /etc/sudoers.d/aresitos-v2
+[✓] Configuración sudo creada en /etc/sudoers.d/Aresitos-v2
 [✓] Configuración Python completada
 COMPLETADO CONFIGURACIÓN COMPLETADA
 [✓] Ares Aegis está configurado para Kali Linux

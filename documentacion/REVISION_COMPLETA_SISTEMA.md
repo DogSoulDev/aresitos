@@ -59,9 +59,9 @@
 
 ### **4. CONFIGURACIÓN DEL SISTEMA ✅ VÁLIDA**
 ```json
-✅ aresitos_config.json          - Configuración principal válida
-✅ aresitos_config_kali.json     - Configuración Kali válida
-✅ aresitos_config_completo.json - Configuración completa válida
+✅ Aresitos_config.json          - Configuración principal válida
+✅ Aresitos_config_kali.json     - Configuración Kali válida
+✅ Aresitos_config_completo.json - Configuración completa válida
 ✅ textos_castellano_corregido.json - Textos en español válidos
 ```
 

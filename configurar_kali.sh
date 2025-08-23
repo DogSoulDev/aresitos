@@ -560,7 +560,7 @@ configure_network_permissions() {
 configure_sudo() {
     print_header "🔐 Configurando sudo para ESCANEADOR PROFESIONAL ARESITOS v3.0..."
     
-    SUDO_FILE="/etc/sudoers.d/aresitos-escaneador-v3"
+    SUDO_FILE="/etc/sudoers.d/Aresitos-escaneador-v3"
     
     # Crear archivo de configuración sudo para escaneador profesional
     cat > "$SUDO_FILE" << EOF
@@ -714,7 +714,7 @@ install_python_deps() {
         # SOLUCIÓN 2: Crear script para bypass temporal si es necesario
         print_info "Creando script de bypass para dependencias críticas..."
         
-        BYPASS_SCRIPT="/tmp/install_python_deps_aresitos.py"
+        BYPASS_SCRIPT="/tmp/install_python_deps_Aresitos.py"
         cat > "$BYPASS_SCRIPT" << 'EOF'
 #!/usr/bin/env python3
 """
@@ -1017,9 +1017,9 @@ configure_aresitos_permissions() {
     chmod -R 755 "$SCRIPT_DIR/logs/" 2>/dev/null
     chmod -R 755 "$SCRIPT_DIR/configuración/" 2>/dev/null
     
-    if [ -d "$SCRIPT_DIR/aresitos/" ]; then
-        chmod -R 755 "$SCRIPT_DIR/aresitos/" 2>/dev/null
-        print_success "Permisos configurados para directorio aresitos/"
+    if [ -d "$SCRIPT_DIR/Aresitos/" ]; then
+        chmod -R 755 "$SCRIPT_DIR/Aresitos/" 2>/dev/null
+        print_success "Permisos configurados para directorio Aresitos/"
     fi
     
     # Permisos específicos para bases de datos

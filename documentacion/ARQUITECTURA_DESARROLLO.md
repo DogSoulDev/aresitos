@@ -169,7 +169,7 @@ CREATE TABLE amenazas_cuarentena (
 ```
 
 ### **Configuración JSON**
-- `aresitos_config_kali.json`: Configuración principal
+- `Aresitos_config_kali.json`: Configuración principal
 - `textos_castellano_corregido.json`: Localización
 - `wordlists_config.json`: Diccionarios
 
@@ -384,7 +384,7 @@ def operacion_asincrona(self):
 ```python
 def cargar_configuracion():
     """Configuración unificada JSON"""
-    ruta_config = "configuración/aresitos_config_kali.json"
+    ruta_config = "configuración/Aresitos_config_kali.json"
     try:
         with open(ruta_config, 'r', encoding='utf-8') as f:
             return json.load(f)
