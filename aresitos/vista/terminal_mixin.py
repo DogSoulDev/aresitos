@@ -18,7 +18,8 @@ class TerminalMixin:
         try:
             if hasattr(self, 'colors') and isinstance(getattr(self, 'colors'), dict):
                 return getattr(self, 'colors')
-        except:
+        except (ValueError, TypeError, OSError) as e:
+            logging.debug(f'Error en excepción: {e}')
             pass
         
         # Colores por defecto del tema Burp Suite
@@ -107,9 +108,11 @@ class TerminalMixin:
                             terminal_global.insert(tk.END, f"[{vista_name}] {mensaje_completo}")
                             terminal_global.see(tk.END)
                             terminal_global.config(state='disabled')
-                except:
+                except (ValueError, TypeError, OSError) as e:
+                    logging.debug(f'Error en excepción: {e}')
                     pass  # Si falla el terminal global, continuar con el local
-        except:
+        except (ValueError, TypeError, OSError) as e:
+            logging.debug(f'Error en excepción: {e}')
             pass  # Si no hay terminal, ignorar silenciosamente
     
     def agregar_paned_window_con_terminal(self, parent_frame, titulo_vista="ARESITOS"):
@@ -141,7 +144,8 @@ class TerminalMixin:
         paned_window.update_idletasks()
         try:
             paned_window.sash_place(0, 400, 0)  # Posición inicial del divisor
-        except:
+        except (ValueError, TypeError, OSError) as e:
+            logging.debug(f'Error en excepción: {e}')
             pass  # Si falla, usar posición por defecto
         
         return contenido_frame

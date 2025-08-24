@@ -322,7 +322,8 @@ Terminal principal - lineas: {reporte['resumen'].get('terminal_principal_lineas'
                             with open(ruta_archivo, 'r', encoding='utf-8') as f:
                                 contenido = json.load(f)
                                 tipo = contenido.get('tipo', 'json')
-                        except:
+                        except (FileNotFoundError, PermissionError, OSError) as e:
+                            logging.debug(f'Error en excepción: {e}')
                             pass
                     elif archivo.endswith('.txt'):
                         tipo = 'texto'

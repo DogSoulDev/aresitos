@@ -600,7 +600,8 @@ class VistaAuditoria(tk.Frame):
                                         stat_info = os.stat(reporte)
                                         size_kb = stat_info.st_size / 1024
                                         self._actualizar_texto_auditoria(f"OK Reporte disponible: {reporte} ({size_kb:.1f} KB)\n")
-                                    except:
+                                    except (FileNotFoundError, PermissionError, OSError) as e:
+                                        logging.debug(f'Error en excepción: {e}')
                                         self._actualizar_texto_auditoria(f"OK Reporte disponible: {reporte}\n")
                         
                         # Recomendaciones específicas para Kali Linux
@@ -736,7 +737,8 @@ class VistaAuditoria(tk.Frame):
                             self.after(0, self._actualizar_texto_auditoria, "ALERTA: Diferencia significativa detectada - posible rootkit\n")
                         else:
                             self.after(0, self._actualizar_texto_auditoria, "OK: Recuento de procesos normal\n")
-                except:
+                except (ValueError, TypeError, OSError) as e:
+                    logging.debug(f'Error en excepción: {e}')
                     self.after(0, self._actualizar_texto_auditoria, "ERROR: No se pudo verificar procesos\n")
                 
                 self.after(0, self._actualizar_texto_auditoria, "\n")
@@ -757,7 +759,8 @@ class VistaAuditoria(tk.Frame):
                             self.after(0, self._actualizar_texto_auditoria, f"OK: {comando} - Tamaño: {tamaño} bytes\n")
                         else:
                             self.after(0, self._actualizar_texto_auditoria, f"ALERTA: {comando} no encontrado o inaccesible\n")
-                    except:
+                    except (subprocess.SubprocessError, OSError, TimeoutError) as e:
+                        logging.debug(f'Error en excepción: {e}')
                         self.after(0, self._actualizar_texto_auditoria, f"ERROR: No se pudo verificar {comando}\n")
                 
                 self.after(0, self._actualizar_texto_auditoria, "\n")
@@ -787,7 +790,8 @@ class VistaAuditoria(tk.Frame):
                             self.after(0, self._actualizar_texto_auditoria, "OK: Listados de red coinciden\n")
                     else:
                         self.after(0, self._actualizar_texto_auditoria, "ERROR: No se pudieron ejecutar comandos de red\n")
-                except:
+                except (ValueError, TypeError, OSError) as e:
+                    logging.debug(f'Error en excepción: {e}')
                     self.after(0, self._actualizar_texto_auditoria, "ERROR: Error comparando herramientas de red\n")
                 
                 self.after(0, self._actualizar_texto_auditoria, "\n")
@@ -822,7 +826,8 @@ class VistaAuditoria(tk.Frame):
                                     self.after(0, self._actualizar_texto_auditoria, f"  SOSPECHOSO: {modulo}\n")
                             else:
                                 self.after(0, self._actualizar_texto_auditoria, "OK: No se encontraron módulos con nombres sospechosos\n")
-                except:
+                except (ValueError, TypeError, AttributeError) as e:
+                    logging.debug(f'Error en excepción: {e}')
                     self.after(0, self._actualizar_texto_auditoria, "ERROR: No se pudo verificar módulos del kernel\n")
                 
                 # Usar controlador si está disponible
@@ -1098,7 +1103,8 @@ class VistaAuditoria(tk.Frame):
                 for archivo in archivos_temp:
                     try:
                         subprocess.run(['rm', '-f', archivo], capture_output=True)
-                    except:
+                    except (subprocess.SubprocessError, OSError, TimeoutError) as e:
+                        logging.debug(f'Error en excepción: {e}')
                         pass
                         
                 self._actualizar_texto_auditoria("OK Limpieza de archivos temporales completada\n")
@@ -1200,7 +1206,8 @@ class VistaAuditoria(tk.Frame):
                                             if web_target not in targets:
                                                 targets.append(web_target)
                                                 self._actualizar_texto_auditoria(f"  OK Servicio web detectado: {web_target}\n")
-                                    except:
+                                    except (ConnectionError, TimeoutError, OSError) as e:
+                                        logging.debug(f'Error en excepción: {e}')
                                         pass
                                         
                         except Exception as e:
@@ -1445,7 +1452,8 @@ class VistaAuditoria(tk.Frame):
                                 self._actualizar_texto_auditoria(f"TECNOLOGÍAS: {tech_result.stdout.strip()}\n")
                             else:
                                 self._actualizar_texto_auditoria("• No se detectaron tecnologías específicas\n")
-                        except:
+                        except (subprocess.SubprocessError, OSError, TimeoutError) as e:
+                            logging.debug(f'Error en excepción: {e}')
                             pass
                         
                         # Mostrar comandos útiles

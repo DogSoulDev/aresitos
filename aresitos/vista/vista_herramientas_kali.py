@@ -1044,7 +1044,8 @@ LISTO PARA: Escaneos de vulnerabilidades en entornos Kali Linux 2025
             try:
                 if self.callback_completado:
                     self.callback_completado()
-            except:
+            except (ValueError, TypeError, OSError) as e:
+                logging.debug(f'Error en excepción: {e}')
                 pass
     
     def _cerrar_y_ejecutar_callback(self):
@@ -1147,7 +1148,8 @@ LISTO PARA: Escaneos de vulnerabilidades en entornos Kali Linux 2025
                                          capture_output=True, text=True, timeout=5)
                 if 'kali' in resultado.stdout.lower():
                     return True
-            except:
+            except (subprocess.SubprocessError, OSError, TimeoutError) as e:
+                logging.debug(f'Error en excepción: {e}')
                 pass
             
             return False

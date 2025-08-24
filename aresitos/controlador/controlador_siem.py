@@ -807,6 +807,350 @@ class ControladorSIEM(ControladorBase):
                         
         except Exception as e:
             self.logger.error(f"Error en notificación de respuesta automática: {e}")
+    
+    def buscar_eventos(self, criterio: str, filtro_tipo: str = "descripcion", limite: int = 100) -> Dict[str, Any]:
+        """
+        Buscar eventos SIEM según criterios específicos.
+        
+        Args:
+            criterio: Texto o patrón a buscar
+            filtro_tipo: Tipo de filtro (descripcion, tipo, severidad, fuente)
+            limite: Máximo número de resultados
+            
+        Returns:
+            Dict con resultados de la búsqueda
+        """
+        try:
+            if not criterio:
+                return {
+                    'exito': False,
+                    'mensaje': 'Criterio de búsqueda requerido'
+                }
+            
+            eventos_encontrados = []
+            
+            # Intentar buscar en modelo SIEM si está disponible
+            if self.siem and hasattr(self.siem, 'db_path'):
+                try:
+                    import sqlite3
+                    if os.path.exists(self.siem.db_path):
+                        with sqlite3.connect(self.siem.db_path) as conn:
+                            cursor = conn.cursor()
+                            
+                            # Construir consulta según tipo de filtro
+                            if filtro_tipo == "descripcion":
+                                query = '''
+                                    SELECT timestamp, tipo, severidad, descripcion, fuente
+                                    FROM eventos_seguridad 
+                                    WHERE descripcion LIKE ?
+                                    ORDER BY timestamp DESC 
+                                    LIMIT ?
+                                '''
+                                cursor.execute(query, (f'%{criterio}%', limite))
+                            elif filtro_tipo == "tipo":
+                                query = '''
+                                    SELECT timestamp, tipo, severidad, descripcion, fuente
+                                    FROM eventos_seguridad 
+                                    WHERE tipo LIKE ?
+                                    ORDER BY timestamp DESC 
+                                    LIMIT ?
+                                '''
+                                cursor.execute(query, (f'%{criterio}%', limite))
+                            elif filtro_tipo == "severidad":
+                                query = '''
+                                    SELECT timestamp, tipo, severidad, descripcion, fuente
+                                    FROM eventos_seguridad 
+                                    WHERE severidad = ?
+                                    ORDER BY timestamp DESC 
+                                    LIMIT ?
+                                '''
+                                cursor.execute(query, (criterio.lower(), limite))
+                            else:
+                                query = '''
+                                    SELECT timestamp, tipo, severidad, descripcion, fuente
+                                    FROM eventos_seguridad 
+                                    WHERE fuente LIKE ?
+                                    ORDER BY timestamp DESC 
+                                    LIMIT ?
+                                '''
+                                cursor.execute(query, (f'%{criterio}%', limite))
+                            
+                            for row in cursor.fetchall():
+                                eventos_encontrados.append({
+                                    'timestamp': row[0],
+                                    'tipo': row[1],
+                                    'severidad': row[2],
+                                    'descripcion': row[3],
+                                    'fuente': row[4]
+                                })
+                                
+                except Exception as e:
+                    self.logger.warning(f"Error buscando en BD SIEM: {e}")
+            
+            # Buscar en buffer interno si no hay resultados de BD o como fallback
+            if not eventos_encontrados:
+                with self._lock:
+                    for evento in self._eventos_buffer:
+                        if len(eventos_encontrados) >= limite:
+                            break
+                        
+                        # Aplicar filtro según tipo
+                        if filtro_tipo == "descripcion":
+                            if criterio.lower() in evento.get('descripcion', '').lower():
+                                eventos_encontrados.append(evento)
+                        elif filtro_tipo == "tipo":
+                            if criterio.lower() in evento.get('tipo', '').lower():
+                                eventos_encontrados.append(evento)
+                        elif filtro_tipo == "severidad":
+                            if criterio.lower() == evento.get('severidad', '').lower():
+                                eventos_encontrados.append(evento)
+                        elif filtro_tipo == "fuente":
+                            if criterio.lower() in evento.get('origen', '').lower():
+                                eventos_encontrados.append(evento)
+            
+            # Registrar búsqueda como evento
+            self.generar_evento(
+                "BUSQUEDA_EVENTOS",
+                f"Búsqueda realizada: {criterio} en {filtro_tipo}, {len(eventos_encontrados)} resultados",
+                "info"
+            )
+            
+            return {
+                'exito': True,
+                'eventos': eventos_encontrados,
+                'total_encontrados': len(eventos_encontrados),
+                'criterio_busqueda': criterio,
+                'filtro_tipo': filtro_tipo,
+                'timestamp_busqueda': datetime.now().isoformat()
+            }
+            
+        except Exception as e:
+            error_msg = f"Error buscando eventos: {str(e)}"
+            self.logger.error(error_msg)
+            return {'exito': False, 'error': error_msg}
+    
+    def obtener_alertas(self, filtro_severidad: str = "todos", estado: str = "todos", limite: int = 50) -> Dict[str, Any]:
+        """
+        Obtener alertas SIEM con filtros específicos.
+        
+        Args:
+            filtro_severidad: Filtrar por severidad (todos, critica, alta, media, baja)
+            estado: Filtrar por estado (todos, nueva, revisada, cerrada)
+            limite: Máximo número de alertas a retornar
+            
+        Returns:
+            Dict con alertas filtradas
+        """
+        try:
+            alertas_filtradas = []
+            
+            with self._lock:
+                for alerta in self._alertas_buffer:
+                    if len(alertas_filtradas) >= limite:
+                        break
+                    
+                    # Aplicar filtro de severidad
+                    if filtro_severidad != "todos":
+                        if alerta.get('severidad', '').lower() != filtro_severidad.lower():
+                            continue
+                    
+                    # Aplicar filtro de estado
+                    if estado != "todos":
+                        if alerta.get('estado', '').lower() != estado.lower():
+                            continue
+                    
+                    alertas_filtradas.append(alerta)
+            
+            # Ordenar por timestamp (más recientes primero)
+            alertas_filtradas.sort(
+                key=lambda x: x.get('timestamp', ''), 
+                reverse=True
+            )
+            
+            # Estadísticas por severidad
+            stats_severidad = defaultdict(int)
+            for alerta in alertas_filtradas:
+                stats_severidad[alerta.get('severidad', 'desconocida')] += 1
+            
+            return {
+                'exito': True,
+                'alertas': alertas_filtradas,
+                'total_alertas': len(alertas_filtradas),
+                'filtros_aplicados': {
+                    'severidad': filtro_severidad,
+                    'estado': estado
+                },
+                'estadisticas_severidad': dict(stats_severidad),
+                'timestamp_consulta': datetime.now().isoformat()
+            }
+            
+        except Exception as e:
+            error_msg = f"Error obteniendo alertas: {str(e)}"
+            self.logger.error(error_msg)
+            return {'exito': False, 'error': error_msg}
+    
+    def configurar_reglas(self, reglas: List[Dict[str, Any]]) -> Dict[str, Any]:
+        """
+        Configurar reglas de correlación y alertas SIEM.
+        
+        Args:
+            reglas: Lista de reglas de correlación con formato:
+                   [{'nombre': str, 'patron': str, 'severidad': str, 'accion': str}]
+            
+        Returns:
+            Dict con resultado de la configuración
+        """
+        try:
+            if not reglas or not isinstance(reglas, list):
+                return {
+                    'exito': False,
+                    'mensaje': 'Lista de reglas requerida'
+                }
+            
+            reglas_validas = []
+            reglas_invalidas = []
+            
+            # Validar cada regla
+            for regla in reglas:
+                if not isinstance(regla, dict):
+                    reglas_invalidas.append({'regla': str(regla), 'error': 'Formato inválido'})
+                    continue
+                
+                # Validar campos requeridos
+                campos_requeridos = ['nombre', 'patron', 'severidad']
+                campos_faltantes = [campo for campo in campos_requeridos if campo not in regla]
+                
+                if campos_faltantes:
+                    reglas_invalidas.append({
+                        'regla': regla.get('nombre', 'Sin nombre'),
+                        'error': f'Campos faltantes: {", ".join(campos_faltantes)}'
+                    })
+                    continue
+                
+                # Validar severidad
+                severidades_validas = ['critica', 'alta', 'media', 'baja', 'info']
+                if regla['severidad'].lower() not in severidades_validas:
+                    reglas_invalidas.append({
+                        'regla': regla['nombre'],
+                        'error': f'Severidad inválida: {regla["severidad"]}'
+                    })
+                    continue
+                
+                # Procesar regla válida
+                regla_procesada = {
+                    'id': f"regla_{int(time.time() * 1000)}_{len(reglas_validas)}",
+                    'nombre': regla['nombre'],
+                    'patron': regla['patron'],
+                    'severidad': regla['severidad'].lower(),
+                    'accion': regla.get('accion', 'alerta'),
+                    'activa': True,
+                    'timestamp_creacion': datetime.now().isoformat(),
+                    'eventos_coincidentes': 0
+                }
+                
+                reglas_validas.append(regla_procesada)
+            
+            # Guardar reglas en configuración
+            if not hasattr(self, '_reglas_correlacion'):
+                self._reglas_correlacion = []
+            
+            # Agregar nuevas reglas
+            self._reglas_correlacion.extend(reglas_validas)
+            
+            # Registrar configuración como evento
+            self.generar_evento(
+                "CONFIGURACION_REGLAS",
+                f"Reglas configuradas: {len(reglas_validas)} válidas, {len(reglas_invalidas)} inválidas",
+                "info"
+            )
+            
+            # Guardar configuración en archivo
+            try:
+                archivo_reglas = os.path.join(self._directorio_logs, "reglas_siem.json")
+                with open(archivo_reglas, 'w', encoding='utf-8') as f:
+                    json.dump(self._reglas_correlacion, f, indent=2, ensure_ascii=False)
+            except Exception as e:
+                self.logger.warning(f"Error guardando reglas en archivo: {e}")
+            
+            return {
+                'exito': True,
+                'reglas_configuradas': len(reglas_validas),
+                'reglas_invalidas': len(reglas_invalidas),
+                'detalles_invalidas': reglas_invalidas,
+                'total_reglas_activas': len(self._reglas_correlacion),
+                'timestamp_configuracion': datetime.now().isoformat()
+            }
+            
+        except Exception as e:
+            error_msg = f"Error configurando reglas: {str(e)}"
+            self.logger.error(error_msg)
+            return {'exito': False, 'error': error_msg}
+    
+    def evaluar_reglas_correlacion(self, evento: Dict[str, Any]) -> List[Dict[str, Any]]:
+        """
+        Evaluar evento contra reglas de correlación configuradas.
+        
+        Args:
+            evento: Evento a evaluar
+            
+        Returns:
+            Lista de acciones a tomar basadas en reglas coincidentes
+        """
+        try:
+            if not hasattr(self, '_reglas_correlacion'):
+                return []
+            
+            acciones_resultado = []
+            
+            for regla in self._reglas_correlacion:
+                if not regla.get('activa', True):
+                    continue
+                
+                try:
+                    # Evaluar patrón simple (contiene texto)
+                    patron = regla['patron'].lower()
+                    evento_texto = ' '.join([
+                        str(evento.get('tipo', '')),
+                        str(evento.get('descripcion', '')),
+                        str(evento.get('fuente', ''))
+                    ]).lower()
+                    
+                    if patron in evento_texto:
+                        # Regla coincide
+                        regla['eventos_coincidentes'] = regla.get('eventos_coincidentes', 0) + 1
+                        
+                        accion = {
+                            'regla_id': regla['id'],
+                            'regla_nombre': regla['nombre'],
+                            'accion': regla.get('accion', 'alerta'),
+                            'severidad_regla': regla['severidad'],
+                            'timestamp_coincidencia': datetime.now().isoformat()
+                        }
+                        
+                        # Ejecutar acción según tipo
+                        if accion['accion'] == 'alerta':
+                            self.generar_alerta(
+                                f"REGLA_ACTIVADA_{regla['nombre'].upper()}",
+                                f"Regla '{regla['nombre']}' activada por evento: {evento.get('descripcion', '')}",
+                                regla['severidad']
+                            )
+                        elif accion['accion'] == 'evento_critico':
+                            self.generar_evento(
+                                "REGLA_CRITICA",
+                                f"Evento crítico detectado por regla '{regla['nombre']}'",
+                                "critica"
+                            )
+                        
+                        acciones_resultado.append(accion)
+                        
+                except Exception as e:
+                    self.logger.warning(f"Error evaluando regla {regla.get('nombre', 'sin_nombre')}: {e}")
+            
+            return acciones_resultado
+            
+        except Exception as e:
+            self.logger.error(f"Error evaluando reglas de correlación: {e}")
+            return []
 
 
 # RESUMEN TÉCNICO: Controlador SIEM simplificado para gestión centralizada de eventos

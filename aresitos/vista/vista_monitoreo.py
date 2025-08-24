@@ -958,7 +958,8 @@ class VistaMonitoreo(tk.Frame):
                             else:
                                 for archivo in archivos_modificados[:3]:  # Mostrar solo los primeros 3
                                     self._log_terminal(f"CAMBIO DETECTADO: {archivo}", "MONITOREO", "INFO")
-                    except:
+                    except (ValueError, TypeError, AttributeError) as e:
+                        logging.debug(f'Error en excepción: {e}')
                         pass
                         
             if cambios_detectados == 0:
@@ -1259,7 +1260,8 @@ class VistaMonitoreo(tk.Frame):
                                 if 'name =' in resultado_host.stdout:
                                     hostname = resultado_host.stdout.split('name =')[1].split()[0]
                                     self._log_terminal(f"  Hostname: {hostname}", "MONITOREO-RED", "INFO")
-                            except:
+                            except (subprocess.SubprocessError, OSError, TimeoutError) as e:
+                                logging.debug(f'Error en excepción: {e}')
                                 pass
                                 
                 except Exception as e:
@@ -1463,7 +1465,8 @@ class VistaMonitoreo(tk.Frame):
                     rx_mb = rx_bytes / (1024 * 1024)
                     tx_mb = tx_bytes / (1024 * 1024)
                     self._log_terminal(f"  Trafico {nombre}: RX {rx_mb:.1f}MB, TX {tx_mb:.1f}MB", "MONITOREO-RED", "INFO")
-                except:
+                except (FileNotFoundError, PermissionError, OSError) as e:
+                    logging.debug(f'Error en excepción: {e}')
                     pass
                     
         except Exception as e:
@@ -1584,7 +1587,8 @@ class VistaMonitoreo(tk.Frame):
                     if f':{puerto} ' in resultado.stdout:
                         servicios_activos.append((nombre, puerto))
                         self._log_terminal(f"SERVICIO ACTIVO: {nombre} en puerto {puerto}", "MONITOREO-RED", "INFO")
-                except:
+                except (subprocess.SubprocessError, OSError, TimeoutError) as e:
+                    logging.debug(f'Error en excepción: {e}')
                     pass
                     
             if not servicios_activos:
@@ -1641,7 +1645,8 @@ class VistaMonitoreo(tk.Frame):
                     self._log_terminal("Resolucion DNS: OK", "MONITOREO-RED", "INFO")
                 else:
                     self._log_terminal("PROBLEMA: Fallo en resolucion DNS", "MONITOREO-RED", "ERROR")
-            except:
+            except (subprocess.SubprocessError, OSError, TimeoutError) as e:
+                logging.debug(f'Error en excepción: {e}')
                 self._log_terminal("WARNING: No se pudo probar DNS", "MONITOREO-RED", "WARNING")
                 
         except Exception as e:
@@ -2012,7 +2017,8 @@ class VistaMonitoreo(tk.Frame):
                                         comando = ' '.join(partes[10:13])
                                         self.after(0, self._actualizar_texto_monitor, 
                                                  f"  PID {pid}: {usuario} CPU:{cpu}% MEM:{memoria}% CMD:{comando}\n")
-                    except:
+                    except (ValueError, TypeError, AttributeError) as e:
+                        logging.debug(f'Error en excepción: {e}')
                         self.after(0, self._actualizar_texto_monitor, "ERROR: No se pudo monitorear procesos con ps\n")
                     
                     # 2. Conexiones de red activas con ss
@@ -2033,7 +2039,8 @@ class VistaMonitoreo(tk.Frame):
                                     if len(partes) >= 4:
                                         puerto_local = partes[3].split(':')[-1]
                                         self.after(0, self._actualizar_texto_monitor, f"  CRÍTICO: Puerto {puerto_local} en escucha\n")
-                    except:
+                    except (ValueError, TypeError, AttributeError) as e:
+                        logging.debug(f'Error en excepción: {e}')
                         self.after(0, self._actualizar_texto_monitor, "ERROR: No se pudo monitorear conexiones con ss\n")
                     
                     # 3. Uso de memoria con free
@@ -2050,7 +2057,8 @@ class VistaMonitoreo(tk.Frame):
                                     disponible = memoria_linea[6] if len(memoria_linea) > 6 else memoria_linea[3]
                                     self.after(0, self._actualizar_texto_monitor, 
                                              f"MEMORIA: Total:{total} Usado:{usado} Disponible:{disponible}\n")
-                    except:
+                    except (ValueError, TypeError, AttributeError) as e:
+                        logging.debug(f'Error en excepción: {e}')
                         self.after(0, self._actualizar_texto_monitor, "ERROR: No se pudo monitorear memoria\n")
                     
                     # 4. Monitoreo de archivos modificados recientemente
@@ -2067,7 +2075,8 @@ class VistaMonitoreo(tk.Frame):
                                         self.after(0, self._actualizar_texto_monitor, f"  RECIENTE: {archivo}\n")
                         else:
                             self.after(0, self._actualizar_texto_monitor, "OK: No hay archivos temporales recientes\n")
-                    except:
+                    except (ValueError, TypeError, AttributeError) as e:
+                        logging.debug(f'Error en excepción: {e}')
                         self.after(0, self._actualizar_texto_monitor, "ERROR: No se pudo monitorear archivos temporales\n")
                     
                     # 5. Verificar intentos de login recientes
@@ -2078,7 +2087,8 @@ class VistaMonitoreo(tk.Frame):
                             lineas = resultado.stdout.strip().split('\n')
                             logins_recientes = len([l for l in lineas if l.strip() and 'pts' in l])
                             self.after(0, self._actualizar_texto_monitor, f"LOGINS RECIENTES: {logins_recientes} sesiones activas\n")
-                    except:
+                    except (subprocess.SubprocessError, OSError, TimeoutError) as e:
+                        logging.debug(f'Error en excepción: {e}')
                         self.after(0, self._actualizar_texto_monitor, "ERROR: No se pudo verificar logins recientes\n")
                     
                     contador += 1
@@ -2151,7 +2161,8 @@ class VistaMonitoreo(tk.Frame):
                     if 'open' in result.stdout:
                         self.after(0, self._actualizar_texto_monitor, f"     Puerto {puerto} detectado como ABIERTO\n")
                         self.log_to_terminal(f"ALERTA: Puerto común {puerto} abierto")
-                except:
+                except (subprocess.SubprocessError, OSError, TimeoutError) as e:
+                    logging.debug(f'Error en excepción: {e}')
                     pass
                     
         except Exception as e:
@@ -2164,7 +2175,8 @@ class VistaMonitoreo(tk.Frame):
             if hasattr(self, 'text_monitor') and self.text_monitor.winfo_exists():
                 self.text_monitor.insert(tk.END, texto)
                 self.text_monitor.see(tk.END)
-        except:
+        except (ValueError, TypeError, OSError) as e:
+            logging.debug(f'Error en excepción: {e}')
             pass  # Ignorar errores de UI
     
     def actualizar_estado(self):

@@ -464,7 +464,8 @@ class VistaReportes(tk.Frame):
                     result = subprocess.run(['grep', '-i', 'error', '/var/log/syslog'], 
                                           capture_output=True, text=True, timeout=10)
                     analisis["logs_sistema"]["errores_syslog"] = result.stdout.split('\n')[-10:]
-                except:
+                except (subprocess.SubprocessError, OSError, TimeoutError) as e:
+                    logging.debug(f'Error en excepción: {e}')
                     analisis["logs_sistema"]["errores_syslog"] = ["Error accediendo a syslog"]
                 
                 # Análisis de autenticación
@@ -472,7 +473,8 @@ class VistaReportes(tk.Frame):
                     result = subprocess.run(['grep', 'Failed', '/var/log/auth.log'], 
                                           capture_output=True, text=True, timeout=10)
                     analisis["logs_sistema"]["fallos_auth"] = len(result.stdout.split('\n'))
-                except:
+                except (subprocess.SubprocessError, OSError, TimeoutError) as e:
+                    logging.debug(f'Error en excepción: {e}')
                     analisis["logs_sistema"]["fallos_auth"] = 0
                 
                 # Estadísticas de memoria y CPU
@@ -480,7 +482,8 @@ class VistaReportes(tk.Frame):
                     result = subprocess.run(['top', '-bn1'], capture_output=True, text=True, timeout=5)
                     lines = result.stdout.split('\n')[:5]
                     analisis["estadisticas"]["top_info"] = lines
-                except:
+                except (subprocess.SubprocessError, OSError, TimeoutError) as e:
+                    logging.debug(f'Error en excepción: {e}')
                     analisis["estadisticas"]["top_info"] = ["Error ejecutando top"]
                 
                 # Mostrar resultados
@@ -520,35 +523,40 @@ class VistaReportes(tk.Frame):
                 try:
                     result = subprocess.run(['uname', '-a'], capture_output=True, text=True, timeout=5)
                     estadisticas["sistema"]["kernel"] = result.stdout.strip()
-                except:
+                except (subprocess.SubprocessError, OSError, TimeoutError) as e:
+                    logging.debug(f'Error en excepción: {e}')
                     estadisticas["sistema"]["kernel"] = "Error obteniendo info del kernel"
                 
                 # Uso de memoria
                 try:
                     result = subprocess.run(['free', '-h'], capture_output=True, text=True, timeout=5)
                     estadisticas["sistema"]["memoria"] = result.stdout.split('\n')[:3]
-                except:
+                except (subprocess.SubprocessError, OSError, TimeoutError) as e:
+                    logging.debug(f'Error en excepción: {e}')
                     estadisticas["sistema"]["memoria"] = ["Error obteniendo memoria"]
                 
                 # Procesos activos
                 try:
                     result = subprocess.run(['ps', 'aux', '--sort=-%cpu'], capture_output=True, text=True, timeout=8)  # Issue 21/24: Optimizado de 5 a 8 segundos
                     estadisticas["procesos"]["top_cpu"] = result.stdout.split('\n')[:10]
-                except:
+                except (subprocess.SubprocessError, OSError, TimeoutError) as e:
+                    logging.debug(f'Error en excepción: {e}')
                     estadisticas["procesos"]["top_cpu"] = ["Error obteniendo procesos"]
                 
                 # Conexiones de red
                 try:
                     result = subprocess.run(['ss', '-tuln'], capture_output=True, text=True, timeout=5)
                     estadisticas["red"]["conexiones"] = len(result.stdout.split('\n'))
-                except:
+                except (subprocess.SubprocessError, OSError, TimeoutError) as e:
+                    logging.debug(f'Error en excepción: {e}')
                     estadisticas["red"]["conexiones"] = 0
                 
                 # Uso del disco
                 try:
                     result = subprocess.run(['df', '-h'], capture_output=True, text=True, timeout=5)
                     estadisticas["disco"]["particiones"] = result.stdout.split('\n')[1:6]
-                except:
+                except (subprocess.SubprocessError, OSError, TimeoutError) as e:
+                    logging.debug(f'Error en excepción: {e}')
                     estadisticas["disco"]["particiones"] = ["Error obteniendo info del disco"]
                 
                 # Mostrar estadísticas
@@ -590,14 +598,16 @@ class VistaReportes(tk.Frame):
                                           capture_output=True, text=True, timeout=10)
                     servicios_activos = len([line for line in result.stdout.split('\n') if '.service' in line])
                     informe["servicios"]["activos"] = servicios_activos
-                except:
+                except (subprocess.SubprocessError, OSError, TimeoutError) as e:
+                    logging.debug(f'Error en excepción: {e}')
                     informe["servicios"]["activos"] = 0
                 
                 # Usuarios conectados
                 try:
                     result = subprocess.run(['who'], capture_output=True, text=True, timeout=5)
                     informe["usuarios"]["conectados"] = len(result.stdout.split('\n')) - 1
-                except:
+                except (subprocess.SubprocessError, OSError, TimeoutError) as e:
+                    logging.debug(f'Error en excepción: {e}')
                     informe["usuarios"]["conectados"] = 0
                 
                 # Archivos SUID
@@ -605,7 +615,8 @@ class VistaReportes(tk.Frame):
                     result = subprocess.run(['find', '/usr', '-perm', '-4000', '-type', 'f', '2>/dev/null'], 
                                           capture_output=True, text=True, timeout=15)
                     informe["archivos"]["suid_binaries"] = len(result.stdout.split('\n')) - 1
-                except:
+                except (subprocess.SubprocessError, OSError, TimeoutError) as e:
+                    logging.debug(f'Error en excepción: {e}')
                     informe["archivos"]["suid_binaries"] = 0
                 
                 # Conexiones sospechosas
@@ -613,7 +624,8 @@ class VistaReportes(tk.Frame):
                     result = subprocess.run(['ss', '-tuln', '|', 'grep', 'LISTEN'], 
                                           capture_output=True, text=True, timeout=5, shell=True)
                     informe["red"]["puertos_escucha"] = len(result.stdout.split('\n')) - 1
-                except:
+                except (subprocess.SubprocessError, OSError, TimeoutError) as e:
+                    logging.debug(f'Error en excepción: {e}')
                     informe["red"]["puertos_escucha"] = 0
                 
                 # Verificar logs de seguridad
@@ -621,7 +633,8 @@ class VistaReportes(tk.Frame):
                     result = subprocess.run(['grep', '-c', 'authentication failure', '/var/log/auth.log'], 
                                           capture_output=True, text=True, timeout=5)
                     informe["usuarios"]["fallos_auth"] = int(result.stdout.strip()) if result.stdout.strip().isdigit() else 0
-                except:
+                except (subprocess.SubprocessError, OSError, TimeoutError) as e:
+                    logging.debug(f'Error en excepción: {e}')
                     informe["usuarios"]["fallos_auth"] = 0
                 
                 # Mostrar informe
@@ -695,7 +708,8 @@ class VistaReportes(tk.Frame):
                             self.reporte_text.insert(tk.END, result.stdout)
                         else:
                             self.reporte_text.insert(tk.END, "Los archivos son idénticos.\n")
-                    except:
+                    except (subprocess.SubprocessError, OSError, TimeoutError) as e:
+                        logging.debug(f'Error en excepción: {e}')
                         # Fallback a comparación simple
                         with open(archivo1, 'r', encoding='utf-8') as f1, open(archivo2, 'r', encoding='utf-8') as f2:
                             content1 = f1.read()

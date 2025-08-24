@@ -141,9 +141,18 @@ class VistaPrincipal(tk.Frame):
             
         if hasattr(self.controlador, 'controlador_escaneador'):
             self.vista_escaneo.set_controlador(self.controlador.controlador_escaneador)
-            self.logger.info("OK Vista Escaneo conectada")
+            self.logger.info("OK Vista Escaneo conectada con controlador_escaneador")
         else:
             self.logger.warning("WARN Controlador Escaneador no disponible")
+            # Crear controlador básico como fallback
+            try:
+                # Usar import ya disponible al cargar el módulo
+                from aresitos.controlador.controlador_escaneo import ControladorEscaneo
+                controlador_escaneo_fallback = ControladorEscaneo(self.controlador.modelo_principal)
+                self.vista_escaneo.set_controlador(controlador_escaneo_fallback)
+                self.logger.info("OK Controlador Escaneo fallback creado y conectado")
+            except Exception as e:
+                self.logger.error(f"ERROR creando controlador escaneo fallback: {e}")
             
         if hasattr(self.controlador, 'controlador_monitoreo'):
             self.vista_monitoreo.set_controlador(self.controlador.controlador_monitoreo)
@@ -190,12 +199,12 @@ class VistaPrincipal(tk.Frame):
     
     def obtener_terminal_integrado(self):
         """Obtener referencia al terminal integrado global del dashboard."""
-        from aresitos.vista.vista_dashboard import VistaDashboard
+        # Usar import ya declarado al inicio del archivo
         return VistaDashboard.obtener_terminal_global()
     
     def log_actividad(self, mensaje, modulo="GENERAL", nivel="INFO"):
         """Registrar actividad en el terminal integrado global."""
-        from aresitos.vista.vista_dashboard import VistaDashboard
+        # Usar import ya declarado al inicio del archivo
         VistaDashboard.log_actividad_global(mensaje, modulo, nivel)
 
     def crear_widgets(self):
@@ -437,7 +446,7 @@ class VistaPrincipal(tk.Frame):
             
             # Optimizar SudoManager
             try:
-                from aresitos.utils.sudo_manager import get_sudo_manager
+                # Usar import ya declarado al inicio del archivo
                 sudo_manager = get_sudo_manager()
                 resultado = sudo_manager.optimize_memory()
                 optimizaciones_realizadas.append(f"SudoManager: {resultado}")

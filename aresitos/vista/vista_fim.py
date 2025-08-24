@@ -122,7 +122,8 @@ class VistaFIM(tk.Frame):
         paned_window.update_idletasks()
         try:
             paned_window.sash_place(0, 400, 0)  # Posición inicial del divisor
-        except:
+        except (ValueError, TypeError, OSError) as e:
+            logging.debug(f'Error en excepción: {e}')
             pass  # Si falla, usar posición por defecto
     
     def crear_terminal_integrado(self, parent_frame):
@@ -373,7 +374,8 @@ class VistaFIM(tk.Frame):
             if hasattr(self, 'terminal_output'):
                 self.terminal_output.insert(tk.END, mensaje_completo)
                 self.terminal_output.see(tk.END)
-        except:
+        except (ValueError, TypeError, AttributeError) as e:
+            logging.debug(f'Error en excepción: {e}')
             pass  # Si no hay terminal, ignorar silenciosamente
     
     def crear_contenido_fim(self, parent_frame):
@@ -500,7 +502,8 @@ class VistaFIM(tk.Frame):
                             self.after(0, self._actualizar_texto_fim, f"  - {archivo}\n")
                     else:
                         self.after(0, self._actualizar_texto_fim, "RESULTADO: No hay archivos modificados recientemente\n")
-                except:
+                except (subprocess.SubprocessError, OSError, TimeoutError) as e:
+                    logging.debug(f'Error en excepción: {e}')
                     self.after(0, self._actualizar_texto_fim, "ERROR: No se pudo ejecutar find en /etc\n")
                 
                 self.after(0, self._actualizar_texto_fim, "\n")
@@ -518,7 +521,8 @@ class VistaFIM(tk.Frame):
                             self.after(0, self._actualizar_texto_fim, f"  SUID: {binario}\n")
                     else:
                         self.after(0, self._actualizar_texto_fim, "RESULTADO: No se encontraron binarios SUID en /usr/bin\n")
-                except:
+                except (subprocess.SubprocessError, OSError, TimeoutError) as e:
+                    logging.debug(f'Error en excepción: {e}')
                     self.after(0, self._actualizar_texto_fim, "ERROR: No se pudo verificar permisos SUID\n")
                 
                 self.after(0, self._actualizar_texto_fim, "\n")
@@ -547,7 +551,8 @@ class VistaFIM(tk.Frame):
                             self.after(0, self._actualizar_texto_fim, f"  PROCESO: {partes[0]} PID: {partes[1]}\n")
                 else:
                     self.after(0, self._actualizar_texto_fim, "RESULTADO: No hay conexiones activas en puertos monitoreados\n")
-            except:
+            except (FileNotFoundError, PermissionError, OSError) as e:
+                logging.debug(f'Error en excepción: {e}')
                 self.after(0, self._actualizar_texto_fim, "ADVERTENCIA: lsof no disponible o error en ejecución\n")
             
             self.after(0, self._actualizar_texto_fim, "\n")
@@ -682,7 +687,8 @@ class VistaFIM(tk.Frame):
                                     self.after(0, self._actualizar_texto_fim, f"OK: {len(procesos)} procesos verificados, ninguno sospechoso\n")
                             else:
                                 self.after(0, self._actualizar_texto_fim, "ERROR: No se pudo ejecutar análisis de procesos\n")
-                        except:
+                        except (ValueError, TypeError, OSError) as e:
+                            logging.debug(f'Error en excepción: {e}')
                             self.after(0, self._actualizar_texto_fim, "ERROR: Comando ps no disponible\n")
                         
                         self.after(0, self._actualizar_texto_fim, "\n")
@@ -712,7 +718,8 @@ class VistaFIM(tk.Frame):
                                     self.after(0, self._actualizar_texto_fim, f"OK: {len(modulos)} módulos kernel verificados\n")
                             else:
                                 self.after(0, self._actualizar_texto_fim, "ERROR: No se pudo verificar módulos del kernel\n")
-                        except:
+                        except (ValueError, TypeError, OSError) as e:
+                            logging.debug(f'Error en excepción: {e}')
                             self.after(0, self._actualizar_texto_fim, "ERROR: lsmod no disponible\n")
                         
                         self.after(0, self._actualizar_texto_fim, "\n")
@@ -741,7 +748,8 @@ class VistaFIM(tk.Frame):
                                     self.after(0, self._actualizar_texto_fim, "OK: No se detectaron puertos de backdoor conocidos\n")
                             else:
                                 self.after(0, self._actualizar_texto_fim, "ERROR: No se pudo verificar conexiones de red\n")
-                        except:
+                        except (ValueError, TypeError, OSError) as e:
+                            logging.debug(f'Error en excepción: {e}')
                             self.after(0, self._actualizar_texto_fim, "ERROR: ss no disponible\n")
                         
                         fases_completadas += 1
@@ -786,7 +794,8 @@ class VistaFIM(tk.Frame):
                                             propietario = f"UID:{stat_info.st_uid}"
                                         tamaño = stat_info.st_size
                                         self.after(0, self._actualizar_texto_fim, f"  EJECUTABLE: {ejecutable} (owner: {propietario}, size: {tamaño})\n")
-                                    except:
+                                    except (subprocess.SubprocessError, OSError, TimeoutError) as e:
+                                        logging.debug(f'Error en excepción: {e}')
                                         self.after(0, self._actualizar_texto_fim, f"  EJECUTABLE: {ejecutable}\n")
                             self._log_terminal(f"ALERTA: {len(ejecutables_sospechosos)} ejecutables sospechosos en directorios temporales", "FIM", "WARNING")
                         else:
@@ -824,7 +833,8 @@ class VistaFIM(tk.Frame):
                         
                         if intentos_sospechosos == 0:
                             self.after(0, self._actualizar_texto_fim, "OK: No se encontraron fallos de autenticación\n")
-                    except:
+                    except (ValueError, TypeError, AttributeError) as e:
+                        logging.debug(f'Error en excepción: {e}')
                         self.after(0, self._actualizar_texto_fim, "ERROR: No se pudieron verificar logs de autenticación\n")
                     
                     self.after(0, self._actualizar_texto_fim, "\n")
@@ -1657,7 +1667,8 @@ class VistaFIM(tk.Frame):
                         self._actualizar_texto_fim(f"  OK {herramienta}: Disponible\n")
                     else:
                         self._actualizar_texto_fim(f"  ERROR {herramienta}: No instalado\n")
-                except:
+                except (subprocess.SubprocessError, OSError, TimeoutError) as e:
+                    logging.debug(f'Error en excepción: {e}')
                     self._actualizar_texto_fim(f"  ❓ {herramienta}: Error verificando\n")
                     
         except Exception as e:
@@ -1731,7 +1742,8 @@ class VistaFIM(tk.Frame):
                         
             except subprocess.TimeoutExpired:
                 self._actualizar_texto_fim("  ⏱️ Timeout buscando archivos con permisos excesivos\n")
-            except:
+            except (subprocess.SubprocessError, OSError, TimeoutError) as e:
+                logging.debug(f'Error en excepción: {e}')
                 pass
             
             self._actualizar_texto_fim(f"\n[DATOS] Resumen de permisos:\n")
@@ -1782,7 +1794,8 @@ class VistaFIM(tk.Frame):
                                 
                     except subprocess.TimeoutExpired:
                         self._actualizar_texto_fim(f"  ⏱️ {directorio}: Timeout en búsqueda\n")
-                    except:
+                    except (subprocess.SubprocessError, OSError, TimeoutError) as e:
+                        logging.debug(f'Error en excepción: {e}')
                         pass
             
             # 2. Buscar archivos con nombres sospechosos
@@ -1807,7 +1820,8 @@ class VistaFIM(tk.Frame):
                                 
                 except subprocess.TimeoutExpired:
                     self._actualizar_texto_fim(f"  ⏱️ Timeout buscando patrón: {patron}\n")
-                except:
+                except (subprocess.SubprocessError, OSError, TimeoutError) as e:
+                    logging.debug(f'Error en excepción: {e}')
                     pass
             
             if archivos_sospechosos_total == 0:
@@ -1836,7 +1850,8 @@ class VistaFIM(tk.Frame):
                         
             except subprocess.TimeoutExpired:
                 self._actualizar_texto_fim("  ⏱️ Timeout verificando archivos recientes\n")
-            except:
+            except (subprocess.SubprocessError, OSError, TimeoutError) as e:
+                logging.debug(f'Error en excepción: {e}')
                 pass
             
             self._actualizar_texto_fim(f"\n[DATOS] Resumen de detección:\n")
@@ -1895,7 +1910,8 @@ class VistaFIM(tk.Frame):
                                         
                             except subprocess.TimeoutExpired:
                                 self._actualizar_texto_fim(f"    ⏱️ Timeout analizando log\n")
-                            except:
+                            except (subprocess.SubprocessError, OSError, TimeoutError) as e:
+                                logging.debug(f'Error en excepción: {e}')
                                 pass
                         else:
                             self._actualizar_texto_fim(f"    ℹ️ Log muy grande - análisis manual recomendado\n")
@@ -1925,7 +1941,8 @@ class VistaFIM(tk.Frame):
                         
                 except subprocess.TimeoutExpired:
                     self._actualizar_texto_fim(f"  ⏱️ {servicio}: Timeout\n")
-                except:
+                except (subprocess.SubprocessError, OSError, TimeoutError) as e:
+                    logging.debug(f'Error en excepción: {e}')
                     self._actualizar_texto_fim(f"  ❓ {servicio}: Error verificando\n")
             
             self._actualizar_texto_fim(f"\n[DATOS] Resumen de logs:\n")
@@ -2041,7 +2058,8 @@ class VistaFIM(tk.Frame):
                     
             except subprocess.TimeoutExpired:
                 self._actualizar_texto_fim("⏱️ Timeout buscando en audit.log\n")
-            except:
+            except (subprocess.SubprocessError, OSError, TimeoutError) as e:
+                logging.debug(f'Error en excepción: {e}')
                 pass
             
             # Buscar en journalctl eventos relacionados con archivos
@@ -2065,7 +2083,8 @@ class VistaFIM(tk.Frame):
                         
             except subprocess.TimeoutExpired:
                 self._actualizar_texto_fim("⏱️ Timeout buscando en journalctl\n")
-            except:
+            except (subprocess.SubprocessError, OSError, TimeoutError) as e:
+                logging.debug(f'Error en excepción: {e}')
                 pass
                 
         except Exception as e:
@@ -2110,7 +2129,8 @@ class VistaFIM(tk.Frame):
                         
             except subprocess.TimeoutExpired:
                 self._actualizar_texto_fim("⏱️ Timeout buscando archivos recientes\n")
-            except:
+            except (subprocess.SubprocessError, OSError, TimeoutError) as e:
+                logging.debug(f'Error en excepción: {e}')
                 pass
             
             # Verificar archivos con timestamps futuros (anómalo)
@@ -2133,7 +2153,8 @@ class VistaFIM(tk.Frame):
                     else:
                         self._actualizar_texto_fim("OK Sin archivos con timestamps anómalos\n")
                         
-            except:
+            except (ValueError, TypeError, AttributeError) as e:
+                logging.debug(f'Error en excepción: {e}')
                 pass
                 
         except Exception as e:
@@ -2160,7 +2181,8 @@ class VistaFIM(tk.Frame):
                         self._actualizar_texto_fim(f"  OK {herramienta}: Disponible\n")
                     else:
                         self._actualizar_texto_fim(f"  ERROR {herramienta}: No encontrado\n")
-                except:
+                except (subprocess.SubprocessError, OSError, TimeoutError) as e:
+                    logging.debug(f'Error en excepción: {e}')
                     self._actualizar_texto_fim(f"  ❓ {herramienta}: Error verificando\n")
             
             # Analizar tipo de archivos críticos con 'file'
@@ -2217,13 +2239,15 @@ class VistaFIM(tk.Frame):
                                 
                         except subprocess.TimeoutExpired:
                             self._actualizar_texto_fim(f"    ⏱️ {paquete}: Timeout\n")
-                        except:
+                        except (subprocess.SubprocessError, OSError, TimeoutError) as e:
+                            logging.debug(f'Error en excepción: {e}')
                             pass
                 else:
                     self._actualizar_texto_fim("  ❓ debsums no disponible\n")
                     self._actualizar_texto_fim("  [SUGERENCIA] Para instalar: apt-get install debsums\n")
                     
-            except:
+            except (subprocess.SubprocessError, OSError, TimeoutError) as e:
+                logging.debug(f'Error en excepción: {e}')
                 pass
                 
         except Exception as e:

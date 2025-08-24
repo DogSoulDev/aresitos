@@ -4,6 +4,7 @@ ARESITOS - Controlador de Escaneo
 Controlador especializado en operaciones de escaneo de seguridad
 """
 
+import logging
 import threading
 import time
 import re
@@ -857,7 +858,8 @@ class ControladorEscaneo(ControladorBase):
                             if result.returncode == 0 and 'bytes from' in result.stdout:
                                 hosts_activos.append(host_ip)
                                 self.logger.info(f"Host adicional encontrado: {host_ip}")
-                        except:
+                        except (subprocess.SubprocessError, OSError, TimeoutError) as e:
+                            self.logger.debug(f'Error en ping a host adicional: {e}')
                             continue
             else:
                 # Para redes grandes, usar nmap para descubrir hosts reales
@@ -1474,6 +1476,22 @@ class ControladorEscaneo(ControladorBase):
         except Exception as e:
             self.logger.error(f"Error validando IP {ip}: {e}")
             return False
+
+    def escaneo_completo(self, objetivo: str = "127.0.0.1") -> Dict[str, Any]:
+        """
+        Método alias para compatibilidad con vista_escaneo.
+        Ejecuta el escaneo completo.
+        """
+        self.logger.info(f"Ejecutando escaneo completo (método alias) para: {objetivo}")
+        return self.ejecutar_escaneo_completo(objetivo)
+    
+    def escanear_sistema(self, objetivo: str = "127.0.0.1") -> Dict[str, Any]:
+        """
+        Método alias para compatibilidad con vista_escaneo.
+        Ejecuta el escaneo básico del sistema.
+        """
+        self.logger.info(f"Ejecutando escaneo del sistema (método alias) para: {objetivo}")
+        return self.ejecutar_escaneo_basico(objetivo)
 
 # RESUMEN TÉCNICO: Controlador de Escaneo avanzado para ARESITOS con arquitectura asíncrona,
 # herencia de ControladorBase, operaciones thread-safe, análisis de criticidad automático,

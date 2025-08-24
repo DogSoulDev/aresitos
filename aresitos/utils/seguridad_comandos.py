@@ -125,7 +125,8 @@ class ValidadorComandos:
                     contenido = f.read()
                     if 'kali' not in contenido.lower():
                         return False
-            except:
+            except (FileNotFoundError, PermissionError, OSError) as e:
+                logging.debug(f'Error en excepción: {e}')
                 return False
             
             # Verificar grupos de seguridad (solo en Linux)
@@ -138,7 +139,8 @@ class ValidadorComandos:
                         grupos_str = resultado.stdout.strip()
                         grupos_requeridos = ['sudo', 'kali']
                         return any(grupo in grupos_str for grupo in grupos_requeridos)
-                except:
+                except (subprocess.SubprocessError, OSError, TimeoutError) as e:
+                    logging.debug(f'Error en excepción: {e}')
                     pass
             
             return True  # Si llegamos aquí, usuario kali en Kali Linux

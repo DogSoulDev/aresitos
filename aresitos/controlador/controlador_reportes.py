@@ -6,7 +6,9 @@ Controlador de Reportes para ARESITOS v3.0 - Sistema de Ciberseguridad Integral.
 
 import os
 import re
+import json
 import logging
+from typing import Optional
 from aresitos.controlador.controlador_base import ControladorBase
 from aresitos.modelo.modelo_reportes import ModeloReportes
 
@@ -246,6 +248,447 @@ class ControladorReportes(ControladorBase):
         except Exception:
             logging.error("Error no específico al calcular espacio")
             return "No disponible"
+    
+    def generar_reporte(self, tipo_reporte: str, datos: Optional[dict] = None, formato: str = "json") -> dict:
+        """
+        Generar reporte específico con datos proporcionados.
+        
+        Args:
+            tipo_reporte: Tipo de reporte (escaneo, auditoria, monitoreo, siem, fim)
+            datos: Datos para incluir en el reporte
+            formato: Formato de salida (json, txt, html)
+            
+        Returns:
+            Dict con resultado de la generación
+        """
+        try:
+            # Validar parámetros
+            if not tipo_reporte:
+                return {'exito': False, 'error': 'Tipo de reporte requerido'}
+            
+            if formato not in ['json', 'txt', 'html']:
+                return {'exito': False, 'error': 'Formato no válido'}
+            
+            # Usar datos vacío si no se proporciona
+            if datos is None:
+                datos = {}
+            
+            # Generar datos del reporte
+            datos_reporte = {
+                'tipo': tipo_reporte,
+                'timestamp': self._obtener_timestamp(),
+                'formato': formato,
+                'datos': datos,
+                'version': 'ARESITOS v3.0',
+                'fecha_generacion': self._obtener_fecha_legible(),
+                'sistema': 'ARESITOS - Sistema de Ciberseguridad'
+            }
+            
+            # Generar contenido específico según tipo
+            if tipo_reporte == 'escaneo':
+                datos_reporte['resumen'] = self._generar_resumen_escaneo(datos)
+            elif tipo_reporte == 'auditoria':
+                datos_reporte['resumen'] = self._generar_resumen_auditoria(datos)
+            elif tipo_reporte == 'monitoreo':
+                datos_reporte['resumen'] = self._generar_resumen_monitoreo(datos)
+            elif tipo_reporte == 'siem':
+                datos_reporte['resumen'] = self._generar_resumen_siem(datos)
+            elif tipo_reporte == 'fim':
+                datos_reporte['resumen'] = self._generar_resumen_fim(datos)
+            else:
+                datos_reporte['resumen'] = f'Reporte general de {tipo_reporte}'
+            
+            # Generar nombre de archivo único
+            nombre_archivo = f"reporte_{tipo_reporte}_{self._obtener_timestamp_archivo()}"
+            
+            # Guardar usando el modelo
+            if formato == 'json':
+                nombre_completo = f"{nombre_archivo}.json"
+                exito = self.reportes.guardar_reporte_json(datos_reporte, nombre_completo)
+            elif formato == 'txt':
+                nombre_completo = f"{nombre_archivo}.txt"
+                exito = self.reportes.guardar_reporte_texto(datos_reporte, nombre_completo)
+            else:
+                # Para HTML, guardamos como texto
+                nombre_completo = f"{nombre_archivo}.txt"
+                datos_reporte['contenido_html'] = self._convertir_a_html(datos_reporte)
+                exito = self.reportes.guardar_reporte_texto(datos_reporte, nombre_completo)
+            
+            if exito:
+                ruta_completa = os.path.join(self.reportes.directorio_reportes, nombre_completo)
+                tamaño = self._obtener_tamaño_archivo(ruta_completa)
+                
+                return {
+                    'exito': True,
+                    'nombre_archivo': nombre_completo,
+                    'ruta': ruta_completa,
+                    'tipo': tipo_reporte,
+                    'formato': formato,
+                    'tamaño': tamaño
+                }
+            else:
+                return {'exito': False, 'error': 'Error guardando el reporte'}
+                
+        except Exception as e:
+            self.logger.error(f"Error generando reporte: {e}")
+            return {'exito': False, 'error': f'Error generando reporte: {str(e)}'}
+    
+    def listar_reportes(self, filtro: str = "todos") -> dict:
+        """
+        Listar reportes disponibles con filtros opcionales.
+        
+        Args:
+            filtro: Filtro para reportes (todos, recientes, por_tipo)
+            
+        Returns:
+            Dict con lista de reportes
+        """
+        try:
+            reportes = self.reportes.listar_reportes()
+            
+            if not reportes:
+                return {
+                    'exito': True,
+                    'reportes': [],
+                    'total': 0,
+                    'mensaje': 'No hay reportes disponibles'
+                }
+            
+            # Aplicar filtros
+            if filtro == "recientes":
+                # Obtener reportes de los últimos 7 días
+                from datetime import datetime, timedelta
+                hace_semana = datetime.now() - timedelta(days=7)
+                reportes_filtrados = []
+                
+                for r in reportes:
+                    try:
+                        fecha_mod = datetime.strptime(r.get('fecha_modificacion', ''), "%Y-%m-%d %H:%M:%S")
+                        if fecha_mod > hace_semana:
+                            reportes_filtrados.append(r)
+                    except (ValueError, TypeError) as e:
+                        # Si no se puede parsear la fecha, incluir el reporte
+                        self.logger.debug(f"Error parseando fecha: {e}")
+                        reportes_filtrados.append(r)
+                        
+            elif filtro.startswith("tipo_"):
+                tipo_buscado = filtro.replace("tipo_", "")
+                reportes_filtrados = [
+                    r for r in reportes 
+                    if r.get('tipo', '').lower() == tipo_buscado.lower()
+                ]
+            else:
+                reportes_filtrados = reportes
+            
+            # Los reportes ya vienen ordenados por fecha del modelo
+            
+            return {
+                'exito': True,
+                'reportes': reportes_filtrados,
+                'total': len(reportes_filtrados),
+                'filtro_aplicado': filtro
+            }
+            
+        except Exception as e:
+            self.logger.error(f"Error listando reportes: {e}")
+            return {'exito': False, 'error': f'Error listando reportes: {str(e)}'}
+    
+    def exportar_reporte(self, nombre_reporte: str, formato_destino: str) -> dict:
+        """
+        Exportar reporte existente a otro formato.
+        
+        Args:
+            nombre_reporte: Nombre del reporte a exportar
+            formato_destino: Formato de destino (json, txt, html)
+            
+        Returns:
+            Dict con resultado de la exportación
+        """
+        try:
+            # Validar formato
+            if formato_destino not in ['json', 'txt', 'html']:
+                return {'exito': False, 'error': 'Formato de destino no válido'}
+            
+            # Buscar el reporte en la lista
+            reportes = self.reportes.listar_reportes()
+            reporte_encontrado = None
+            
+            for reporte in reportes:
+                if reporte['nombre_archivo'] == nombre_reporte:
+                    reporte_encontrado = reporte
+                    break
+            
+            if not reporte_encontrado:
+                return {'exito': False, 'error': 'Reporte no encontrado'}
+            
+            # Leer contenido del reporte original
+            ruta_original = reporte_encontrado['ruta_completa']
+            
+            try:
+                if nombre_reporte.endswith('.json'):
+                    with open(ruta_original, 'r', encoding='utf-8') as f:
+                        contenido_original = json.load(f)
+                else:
+                    with open(ruta_original, 'r', encoding='utf-8') as f:
+                        contenido_text = f.read()
+                        # Crear estructura similar a JSON para procesamiento
+                        contenido_original = {
+                            'tipo': 'texto_importado',
+                            'contenido': contenido_text,
+                            'timestamp': self._obtener_timestamp()
+                        }
+            except Exception as e:
+                return {'exito': False, 'error': f'Error leyendo reporte original: {str(e)}'}
+            
+            # Generar nuevo nombre
+            timestamp = self._obtener_timestamp_archivo()
+            base_name = nombre_reporte.split('.')[0]
+            nombre_exportado = f"{base_name}_export_{timestamp}"
+            
+            # Exportar según formato
+            if formato_destino == 'json':
+                nombre_final = f"{nombre_exportado}.json"
+                exito = self.reportes.guardar_reporte_json(contenido_original, nombre_final)
+            elif formato_destino == 'txt':
+                nombre_final = f"{nombre_exportado}.txt"
+                exito = self.reportes.guardar_reporte_texto(contenido_original, nombre_final)
+            else:  # html
+                nombre_final = f"{nombre_exportado}.txt"
+                contenido_original['contenido_html'] = self._convertir_a_html(contenido_original)
+                exito = self.reportes.guardar_reporte_texto(contenido_original, nombre_final)
+            
+            if exito:
+                ruta_exportada = os.path.join(self.reportes.directorio_reportes, nombre_final)
+                return {
+                    'exito': True,
+                    'reporte_original': nombre_reporte,
+                    'reporte_exportado': nombre_final,
+                    'formato_destino': formato_destino,
+                    'ruta': ruta_exportada
+                }
+            else:
+                return {'exito': False, 'error': 'Error guardando reporte exportado'}
+                
+        except Exception as e:
+            self.logger.error(f"Error exportando reporte: {e}")
+            return {'exito': False, 'error': f'Error exportando reporte: {str(e)}'}
+    
+    def obtener_estadisticas(self) -> dict:
+        """
+        Obtener estadísticas generales de reportes.
+        
+        Returns:
+            Dict con estadísticas completas
+        """
+        try:
+            # Usar el método del modelo
+            estadisticas_modelo = self.reportes.obtener_estadisticas_reportes()
+            
+            if estadisticas_modelo.get('error'):
+                return {
+                    'exito': False, 
+                    'error': estadisticas_modelo['error']
+                }
+            
+            reportes = self.reportes.listar_reportes()
+            
+            # Calcular estadísticas adicionales
+            ultimo_reporte = None
+            espacio_total = 0
+            
+            if reportes:
+                # El primer reporte es el más reciente (ya ordenado)
+                ultimo_reporte = reportes[0]['nombre_archivo']
+                
+                # Calcular espacio total
+                for reporte in reportes:
+                    espacio_total += reporte.get('tamaño_bytes', 0)
+            
+            return {
+                'exito': True,
+                'total_reportes': estadisticas_modelo['total_reportes'],
+                'tipos_reportes': estadisticas_modelo['tipos_reportes'],
+                'reportes_por_fecha': estadisticas_modelo['reportes_por_fecha'],
+                'espacio_utilizado': self._formatear_tamaño(espacio_total),
+                'ultimo_reporte': ultimo_reporte,
+                'directorio_reportes': estadisticas_modelo['directorio_reportes']
+            }
+            
+        except Exception as e:
+            self.logger.error(f"Error obteniendo estadísticas: {e}")
+            return {'exito': False, 'error': f'Error obteniendo estadísticas: {str(e)}'}
+    
+    def _generar_resumen_escaneo(self, datos: dict) -> str:
+        """Generar resumen específico para reportes de escaneo."""
+        if not datos:
+            return "Reporte de escaneo sin datos específicos"
+        
+        puertos = datos.get('puertos', [])
+        vulnerabilidades = datos.get('vulnerabilidades', [])
+        objetivo = datos.get('objetivo', 'No especificado')
+        
+        return f"Escaneo de {objetivo}: {len(puertos)} puertos, {len(vulnerabilidades)} vulnerabilidades"
+    
+    def _generar_resumen_auditoria(self, datos: dict) -> str:
+        """Generar resumen específico para reportes de auditoría."""
+        if not datos:
+            return "Reporte de auditoría sin datos específicos"
+        
+        problemas = datos.get('problemas_encontrados', [])
+        puntuacion = datos.get('puntuacion_seguridad', 'No disponible')
+        
+        return f"Auditoría completada: {len(problemas)} problemas encontrados, puntuación: {puntuacion}"
+    
+    def _generar_resumen_monitoreo(self, datos: dict) -> str:
+        """Generar resumen específico para reportes de monitoreo."""
+        if not datos:
+            return "Reporte de monitoreo sin datos específicos"
+        
+        procesos = datos.get('procesos_monitoreados', 0)
+        alertas = datos.get('alertas_generadas', 0)
+        
+        return f"Monitoreo: {procesos} procesos monitoreados, {alertas} alertas generadas"
+    
+    def _generar_resumen_siem(self, datos: dict) -> str:
+        """Generar resumen específico para reportes SIEM."""
+        if not datos:
+            return "Reporte SIEM sin datos específicos"
+        
+        eventos = datos.get('total_eventos', 0)
+        correlaciones = datos.get('correlaciones', 0)
+        
+        return f"SIEM: {eventos} eventos analizados, {correlaciones} correlaciones detectadas"
+    
+    def _generar_resumen_fim(self, datos: dict) -> str:
+        """Generar resumen específico para reportes FIM."""
+        if not datos:
+            return "Reporte FIM sin datos específicos"
+        
+        archivos = datos.get('archivos_monitoreados', 0)
+        cambios = datos.get('cambios_detectados', 0)
+        
+        return f"FIM: {archivos} archivos monitoreados, {cambios} cambios detectados"
+    
+    def _obtener_timestamp(self) -> str:
+        """Obtener timestamp en formato ISO."""
+        from datetime import datetime
+        return datetime.now().isoformat()
+    
+    def _obtener_timestamp_archivo(self) -> str:
+        """Obtener timestamp para nombres de archivo."""
+        from datetime import datetime
+        return datetime.now().strftime("%Y%m%d_%H%M%S")
+    
+    def _timestamp_a_fecha(self, timestamp: float) -> str:
+        """Convertir timestamp a fecha legible."""
+        from datetime import datetime
+        return datetime.fromtimestamp(timestamp).strftime("%Y-%m-%d %H:%M:%S")
+    
+    def _convertir_a_html(self, datos: dict) -> str:
+        """Convertir datos del reporte a formato HTML básico."""
+        html = f"""
+        <!DOCTYPE html>
+        <html>
+        <head>
+            <title>Reporte ARESITOS</title>
+            <style>
+                body {{ font-family: Arial, sans-serif; margin: 20px; }}
+                .header {{ background-color: #2b2b2b; color: #ff6633; padding: 10px; }}
+                .content {{ margin: 20px 0; }}
+                .data {{ background-color: #f5f5f5; padding: 10px; border-left: 3px solid #ff6633; }}
+            </style>
+        </head>
+        <body>
+            <div class="header">
+                <h1>ARESITOS - Reporte de Seguridad</h1>
+                <p>Tipo: {datos.get('tipo', 'General')}</p>
+                <p>Fecha: {datos.get('timestamp', 'No disponible')}</p>
+            </div>
+            <div class="content">
+                <h2>Resumen</h2>
+                <p>{datos.get('resumen', 'Sin resumen disponible')}</p>
+                <h2>Datos</h2>
+                <div class="data">
+                    <pre>{self._formatear_datos_html(datos.get('datos', {}))}</pre>
+                </div>
+            </div>
+        </body>
+        </html>
+        """
+        return html
+    
+    def _formatear_datos_html(self, datos: dict) -> str:
+        """Formatear datos para mostrar en HTML."""
+        try:
+            import json
+            return json.dumps(datos, indent=2, ensure_ascii=False)
+        except (ValueError, TypeError, KeyError) as e:
+            logging.debug(f'Error en excepción: {e}')
+            return str(datos)
+    
+    def _crear_pdf_basico(self, datos: dict) -> str:
+        """Crear PDF básico (simplificado, retorna contenido de texto)."""
+        # Como no podemos usar librerías externas, retornamos formato de texto
+        contenido = f"""
+ARESITOS - Reporte de Seguridad
+================================
+
+Tipo: {datos.get('tipo', 'General')}
+Fecha: {datos.get('timestamp', 'No disponible')}
+Sistema: {datos.get('sistema', 'ARESITOS')}
+
+RESUMEN:
+{datos.get('resumen', 'Sin resumen disponible')}
+
+DATOS DETALLADOS:
+{self._formatear_datos_texto(datos.get('datos', {}))}
+
+Generado por ARESITOS v3.0
+"""
+        return contenido
+    
+    def _formatear_datos_texto(self, datos: dict) -> str:
+        """Formatear datos para mostrar en texto plano."""
+        try:
+            return json.dumps(datos, indent=2, ensure_ascii=False)
+        except (ValueError, TypeError, KeyError) as e:
+            logging.debug(f'Error en excepción: {e}')
+            return str(datos)
+    
+    def _obtener_fecha_legible(self) -> str:
+        """Obtener fecha en formato legible."""
+        from datetime import datetime
+        return datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    
+    def _obtener_tamaño_archivo(self, ruta: str) -> str:
+        """Obtener tamaño de archivo en formato legible."""
+        try:
+            if os.path.exists(ruta):
+                tamaño_bytes = os.path.getsize(ruta)
+                return self._formatear_tamaño(tamaño_bytes)
+            return "No disponible"
+        except Exception as e:
+            self.logger.error(f"Error obteniendo tamaño de archivo: {e}")
+            return "Error"
+    
+    def _formatear_tamaño(self, bytes_size: int) -> str:
+        """Formatear tamaño en bytes a formato legible."""
+        try:
+            if bytes_size == 0:
+                return "0 B"
+            
+            unidades = ['B', 'KB', 'MB', 'GB', 'TB']
+            i = 0
+            tamaño = float(bytes_size)
+            
+            while tamaño >= 1024 and i < len(unidades) - 1:
+                tamaño /= 1024
+                i += 1
+            
+            return f"{tamaño:.1f} {unidades[i]}"
+        except (ValueError, TypeError, OSError) as e:
+            logging.debug(f'Error en excepción: {e}')
+            return f"{bytes_size} B"
 
 # RESUMEN TÉCNICO: Controlador de gestión de reportes de seguridad para Aresitos. 
 # Coordina generación, almacenamiento y exportación de reportes en múltiples formatos 

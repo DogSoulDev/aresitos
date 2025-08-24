@@ -700,7 +700,8 @@ class VistaGestionDatos(tk.Frame):
                         result = subprocess.run(['wc', '-l', '-w', '-c', archivo_path], 
                                               capture_output=True, text=True, timeout=10)
                         self._actualizar_contenido_seguro(f"ESTADÍSTICAS BÁSICAS:\n{result.stdout}\n")
-                    except:
+                    except (FileNotFoundError, PermissionError, OSError) as e:
+                        logging.debug(f'Error en excepción: {e}')
                         self._actualizar_contenido_seguro("Error obteniendo estadísticas básicas\n")
                     
                     # Análisis de duplicados
@@ -712,7 +713,8 @@ class VistaGestionDatos(tk.Frame):
                                                    input=result.stdout, capture_output=True, text=True, timeout=10)
                             duplicados = len(result2.stdout.split('\n')) if result2.stdout else 0
                             self._actualizar_contenido_seguro(f"\nLÍNEAS DUPLICADAS: {duplicados}\n")
-                    except:
+                    except (FileNotFoundError, PermissionError, OSError) as e:
+                        logging.debug(f'Error en excepción: {e}')
                         self._actualizar_contenido_seguro("\nError analizando duplicados\n")
                     
                     # Longitudes de líneas
@@ -725,7 +727,8 @@ class VistaGestionDatos(tk.Frame):
                                 self._actualizar_contenido_seguro(f"\nLONGITUD MÍNIMA: {min(lengths)}\n")
                                 self._actualizar_contenido_seguro(f"LONGITUD MÁXIMA: {max(lengths)}\n")
                                 self._actualizar_contenido_seguro(f"LONGITUD PROMEDIO: {sum(lengths)/len(lengths):.1f}\n")
-                    except:
+                    except (FileNotFoundError, PermissionError, OSError) as e:
+                        logging.debug(f'Error en excepción: {e}')
                         self._actualizar_contenido_seguro("\nError analizando longitudes\n")
                     
                     # Caracteres especiales
@@ -734,7 +737,8 @@ class VistaGestionDatos(tk.Frame):
                                               capture_output=True, text=True, timeout=10)
                         especiales = len(set(result.stdout))
                         self._actualizar_contenido_seguro(f"\nCARACTERES ESPECIALES ÚNICOS: {especiales}\n")
-                    except:
+                    except (FileNotFoundError, PermissionError, OSError) as e:
+                        logging.debug(f'Error en excepción: {e}')
                         self._actualizar_contenido_seguro("\nError analizando caracteres especiales\n")
                     
                     self._actualizar_contenido_seguro("\n=== ANÁLISIS COMPLETADO ===\n")
@@ -1265,7 +1269,8 @@ class VistaGestionDatos(tk.Frame):
         
         try:
             self.after_idle(_update)
-        except:
+        except (ValueError, TypeError, OSError) as e:
+            logging.debug(f'Error en excepción: {e}')
             pass  # Si no se puede programar, ignorar
 
     def _mostrar_ayuda_comandos(self):

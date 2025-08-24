@@ -1142,7 +1142,8 @@ class LoginAresitos:
             try:
                 if hasattr(self, 'root') and self.root.winfo_exists():
                     self.root.destroy()
-            except:
+            except (FileNotFoundError, PermissionError, OSError) as e:
+                logging.debug(f'Error en excepción: {e}')
                 pass
             
             # Ejecutar como subprocess independiente

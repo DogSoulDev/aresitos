@@ -321,6 +321,280 @@ class ControladorFIM(ControladorBase):
                 'mensaje': error_msg
             }
     
+    def iniciar_monitoreo_integridad(self) -> Dict[str, Any]:
+        """
+        Iniciar monitoreo específico de integridad de archivos críticos.
+        
+        Returns:
+            Dict con resultado del inicio de monitoreo
+        """
+        try:
+            if not self.fim_engine:
+                return {
+                    'exito': False,
+                    'mensaje': 'Motor FIM no está inicializado'
+                }
+            
+            # Configurar monitoreo específico de integridad
+            archivos_criticos = [
+                '/etc/passwd',
+                '/etc/shadow',
+                '/etc/sudoers',
+                '/etc/hosts',
+                '/etc/ssh/sshd_config',
+                '/boot/grub/grub.cfg'
+            ]
+            
+            archivos_validos = []
+            for archivo in archivos_criticos:
+                if os.path.exists(archivo):
+                    archivos_validos.append(archivo)
+                    self.archivos_monitoreados.add(archivo)
+            
+            if archivos_validos:
+                resultado = self.fim_engine.iniciar_monitoreo_tiempo_real(archivos_validos)
+                if resultado.get('exito', True):  # Default True si no hay respuesta específica
+                    self.log(f"Monitoreo de integridad iniciado para {len(archivos_validos)} archivos")
+                    return {
+                        'exito': True,
+                        'mensaje': f'Monitoreo de integridad iniciado para {len(archivos_validos)} archivos críticos',
+                        'archivos_monitoreados': archivos_validos
+                    }
+                else:
+                    return resultado
+            else:
+                return {
+                    'exito': False,
+                    'mensaje': 'No se encontraron archivos críticos para monitorear'
+                }
+                
+        except Exception as e:
+            error_msg = f"Error iniciando monitoreo de integridad: {str(e)}"
+            self.log(error_msg)
+            return {
+                'exito': False,
+                'mensaje': error_msg
+            }
+    
+    def verificar_archivo(self, ruta_archivo: str) -> Dict[str, Any]:
+        """
+        Verificar integridad de un archivo específico.
+        
+        Args:
+            ruta_archivo: Ruta del archivo a verificar
+            
+        Returns:
+            Dict con resultado de la verificación
+        """
+        try:
+            if not ruta_archivo:
+                return {
+                    'exito': False,
+                    'mensaje': 'Ruta de archivo requerida'
+                }
+            
+            if not os.path.exists(ruta_archivo):
+                return {
+                    'exito': False,
+                    'mensaje': f'El archivo {ruta_archivo} no existe'
+                }
+            
+            # Obtener información del archivo
+            try:
+                stat_info = os.stat(ruta_archivo)
+                info_archivo = {
+                    'ruta': ruta_archivo,
+                    'tamaño': stat_info.st_size,
+                    'ultima_modificacion': datetime.fromtimestamp(stat_info.st_mtime).isoformat(),
+                    'permisos': oct(stat_info.st_mode)[-3:],
+                    'propietario_uid': stat_info.st_uid,
+                    'grupo_gid': stat_info.st_gid,
+                    'es_archivo': os.path.isfile(ruta_archivo),
+                    'es_directorio': os.path.isdir(ruta_archivo),
+                    'es_enlace': os.path.islink(ruta_archivo)
+                }
+                
+                # Verificar si el archivo está siendo monitoreado
+                esta_monitoreado = ruta_archivo in self.archivos_monitoreados
+                
+                # Calcular hash si es un archivo regular pequeño
+                hash_md5 = None
+                if os.path.isfile(ruta_archivo) and stat_info.st_size < 10 * 1024 * 1024:  # < 10MB
+                    try:
+                        import hashlib
+                        with open(ruta_archivo, 'rb') as f:
+                            hash_md5 = hashlib.md5(f.read()).hexdigest()
+                    except Exception as e:
+                        self.log(f"No se pudo calcular hash de {ruta_archivo}: {e}")
+                
+                if hash_md5:
+                    info_archivo['hash_md5'] = hash_md5
+                
+                resultado = {
+                    'exito': True,
+                    'archivo': info_archivo,
+                    'monitoreado': esta_monitoreado,
+                    'timestamp_verificacion': datetime.now().isoformat()
+                }
+                
+                self.log(f"Verificación completada para: {ruta_archivo}")
+                return resultado
+                
+            except PermissionError:
+                return {
+                    'exito': False,
+                    'mensaje': f'Sin permisos para acceder a {ruta_archivo}'
+                }
+                
+        except Exception as e:
+            error_msg = f"Error verificando archivo {ruta_archivo}: {str(e)}"
+            self.log(error_msg)
+            return {
+                'exito': False,
+                'mensaje': error_msg
+            }
+    
+    def obtener_cambios(self, periodo_horas: int = 24) -> Dict[str, Any]:
+        """
+        Obtener lista de cambios detectados en el período especificado.
+        
+        Args:
+            periodo_horas: Período en horas para buscar cambios (default: 24)
+            
+        Returns:
+            Dict con lista de cambios detectados
+        """
+        try:
+            cambios_detectados = []
+            
+            # Usar el motor FIM para obtener cambios si está disponible
+            # Comentado temporalmente debido a que el método no existe en FIMKali2025
+            # if self.fim_engine and hasattr(self.fim_engine, 'obtener_cambios_recientes'):
+            #     try:
+            #         cambios_fim = self.fim_engine.obtener_cambios_recientes(periodo_horas)
+            #         if cambios_fim:
+            #             cambios_detectados.extend(cambios_fim)
+            #     except Exception as e:
+            #         self.log(f"Error obteniendo cambios del motor FIM: {e}")
+            
+            # Verificar cambios en archivos monitoreados manualmente
+            from datetime import timedelta
+            tiempo_limite = datetime.now() - timedelta(hours=periodo_horas)
+            
+            for archivo in self.archivos_monitoreados:
+                try:
+                    if os.path.exists(archivo):
+                        stat_info = os.stat(archivo)
+                        fecha_mod = datetime.fromtimestamp(stat_info.st_mtime)
+                        
+                        if fecha_mod > tiempo_limite:
+                            cambio = {
+                                'archivo': archivo,
+                                'tipo_cambio': 'modificacion',
+                                'timestamp': fecha_mod.isoformat(),
+                                'tamaño': stat_info.st_size,
+                                'permisos': oct(stat_info.st_mode)[-3:]
+                            }
+                            
+                            # Evitar duplicados
+                            if not any(c['archivo'] == archivo for c in cambios_detectados):
+                                cambios_detectados.append(cambio)
+                                
+                except Exception as e:
+                    self.log(f"Error verificando cambios en {archivo}: {e}")
+            
+            # Ordenar por timestamp (más recientes primero)
+            cambios_detectados.sort(
+                key=lambda x: x.get('timestamp', ''), 
+                reverse=True
+            )
+            
+            return {
+                'exito': True,
+                'cambios': cambios_detectados,
+                'total_cambios': len(cambios_detectados),
+                'periodo_horas': periodo_horas,
+                'timestamp_consulta': datetime.now().isoformat()
+            }
+            
+        except Exception as e:
+            error_msg = f"Error obteniendo cambios: {str(e)}"
+            self.log(error_msg)
+            return {
+                'exito': False,
+                'mensaje': error_msg
+            }
+    
+    def configurar_directorios(self, directorios: List[str]) -> Dict[str, Any]:
+        """
+        Configurar directorios adicionales para monitoreo.
+        
+        Args:
+            directorios: Lista de rutas de directorios a monitorear
+            
+        Returns:
+            Dict con resultado de la configuración
+        """
+        try:
+            if not directorios:
+                return {
+                    'exito': False,
+                    'mensaje': 'Lista de directorios requerida'
+                }
+            
+            directorios_validos = []
+            directorios_invalidos = []
+            
+            for directorio in directorios:
+                if os.path.exists(directorio) and os.path.isdir(directorio):
+                    directorios_validos.append(directorio)
+                    self.archivos_monitoreados.add(directorio)
+                else:
+                    directorios_invalidos.append(directorio)
+            
+            # Configurar monitoreo en el motor FIM
+            if directorios_validos and self.fim_engine:
+                try:
+                    resultado_fim = self.fim_engine.iniciar_monitoreo_tiempo_real(directorios_validos)
+                    if not resultado_fim.get('exito', True):
+                        return {
+                            'exito': False,
+                            'mensaje': f"Error en motor FIM: {resultado_fim.get('mensaje', 'Error desconocido')}"
+                        }
+                except Exception as e:
+                    self.log(f"Error configurando monitoreo en motor FIM: {e}")
+            
+            # Actualizar configuración
+            if directorios_validos:
+                if 'directorios_adicionales' not in self.configuracion_fim:
+                    self.configuracion_fim['directorios_adicionales'] = []
+                
+                for dir_val in directorios_validos:
+                    if dir_val not in self.configuracion_fim['directorios_adicionales']:
+                        self.configuracion_fim['directorios_adicionales'].append(dir_val)
+            
+            mensaje = f"Configurados {len(directorios_validos)} directorios para monitoreo"
+            if directorios_invalidos:
+                mensaje += f". {len(directorios_invalidos)} directorios no válidos ignorados"
+            
+            self.log(mensaje)
+            
+            return {
+                'exito': True,
+                'mensaje': mensaje,
+                'directorios_configurados': directorios_validos,
+                'directorios_invalidos': directorios_invalidos,
+                'total_monitoreados': len(self.archivos_monitoreados)
+            }
+            
+        except Exception as e:
+            error_msg = f"Error configurando directorios: {str(e)}"
+            self.log(error_msg)
+            return {
+                'exito': False,
+                'mensaje': error_msg
+            }
+    
     def configurar_notificacion_siem(self, controlador_siem):
         """
         Configura la notificación al SIEM para eventos FIM.

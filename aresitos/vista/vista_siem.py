@@ -933,7 +933,8 @@ class VistaSIEM(tk.Frame):
                     self._log_terminal(f"Firewall iptables - {reglas} reglas activas", "SIEM", "INFO")
                 else:
                     self._log_terminal("Firewall iptables no disponible", "SIEM", "WARNING")
-            except:
+            except (subprocess.SubprocessError, OSError, TimeoutError) as e:
+                logging.debug(f'Error en excepción: {e}')
                 self._log_terminal("No se pudo verificar iptables", "SIEM", "WARNING")
                 
         except Exception as e:
@@ -985,7 +986,8 @@ class VistaSIEM(tk.Frame):
                     self._log_terminal("Resolucion DNS funcionando correctamente", "SIEM", "INFO")
                 else:
                     self._log_terminal("PROBLEMA DNS: Fallo en resolucion", "SIEM", "ERROR")
-            except:
+            except (subprocess.SubprocessError, OSError, TimeoutError) as e:
+                logging.debug(f'Error en excepción: {e}')
                 self._log_terminal("PROBLEMA DNS: No se pudo probar resolucion", "SIEM", "WARNING")
                 
         except Exception as e:
@@ -1032,7 +1034,8 @@ class VistaSIEM(tk.Frame):
                                 proceso = parte_users.split('(')[1].split(')')[0]
                             else:
                                 proceso = 'desconocido'
-                        except:
+                        except (ValueError, TypeError, AttributeError) as e:
+                            logging.debug(f'Error en excepción: {e}')
                             proceso = 'desconocido'
                             
                         if proceso not in procesos_red:
@@ -1237,7 +1240,8 @@ class VistaSIEM(tk.Frame):
             import ipaddress
             ip_obj = ipaddress.ip_address(ip)
             return ip_obj.is_private or ip_obj.is_loopback or ip_obj.is_link_local
-        except:
+        except (ValueError, TypeError, OSError) as e:
+            logging.debug(f'Error en excepción: {e}')
             # Verificación manual para IPs comunes
             return (ip.startswith('192.168.') or 
                    ip.startswith('10.') or 
@@ -1281,7 +1285,8 @@ class VistaSIEM(tk.Frame):
                                 # Reportar IPs más agresivas
                                 for ip, intentos in sorted(ips_atacantes.items(), key=lambda x: x[1], reverse=True)[:3]:
                                     self._log_terminal(f"IP AGRESIVA: {ip} ({intentos} intentos)", "SIEM", "ERROR")
-                    except:
+                    except (ValueError, TypeError, AttributeError) as e:
+                        logging.debug(f'Error en excepción: {e}')
                         pass
                     break  # Solo verificar el primer log disponible
             
@@ -1299,7 +1304,8 @@ class VistaSIEM(tk.Frame):
                                 puerto_remoto = int(remote_addr.split(':')[-1])
                                 if puerto_remoto > 50000:  # Puertos muy altos
                                     puertos_altos.append(puerto_remoto)
-                            except:
+                            except (ValueError, TypeError, AttributeError) as e:
+                                logging.debug(f'Error en excepción: {e}')
                                 pass
                 
                 if len(puertos_altos) > 10:
@@ -1335,7 +1341,8 @@ class VistaSIEM(tk.Frame):
                         elif cpu > 50.0:
                             self._log_terminal(f"ALERTA CPU: Proceso {proceso} usando {cpu}% CPU", "SIEM", "WARNING")
                             
-            except:
+            except (ValueError, TypeError, OSError) as e:
+                logging.debug(f'Error en excepción: {e}')
                 pass
                 
             # Verificar uso excesivo de memoria
@@ -1353,7 +1360,8 @@ class VistaSIEM(tk.Frame):
                         if memoria > 20.0:
                             self._log_terminal(f"ANOMALIA MEMORIA: Proceso {proceso} usando {memoria}% RAM", "SIEM", "WARNING")
                             
-            except:
+            except (ValueError, TypeError, AttributeError) as e:
+                logging.debug(f'Error en excepción: {e}')
                 pass
                 
             # Verificar conexiones de red sospechosas
@@ -1371,7 +1379,8 @@ class VistaSIEM(tk.Frame):
                 elif conexiones_establecidas > 20:
                     self._log_terminal(f"ALERTA RED: Muchas conexiones activas ({conexiones_establecidas})", "SIEM", "WARNING")
                     
-            except:
+            except (ValueError, TypeError, AttributeError) as e:
+                logging.debug(f'Error en excepción: {e}')
                 pass
                 
             # Verificar logs del sistema en busca de fallos recientes
@@ -1387,7 +1396,8 @@ class VistaSIEM(tk.Frame):
                 else:
                     self._log_terminal(f"Sistema estable - {errores} errores en la ultima hora", "SIEM", "INFO")
                     
-            except:
+            except (ValueError, TypeError, AttributeError) as e:
+                logging.debug(f'Error en excepción: {e}')
                 pass
                 
             self._log_terminal("Deteccion de anomalias completada", "SIEM", "INFO")
@@ -1413,7 +1423,8 @@ class VistaSIEM(tk.Frame):
                         self._log_terminal("Conectividad de red OK", "SIEM", "INFO")
                     else:
                         self._log_terminal("PROBLEMA: Sin conectividad de red", "SIEM", "ERROR")
-                except:
+                except (subprocess.SubprocessError, OSError, TimeoutError) as e:
+                    logging.debug(f'Error en excepción: {e}')
                     self._log_terminal("No se pudo verificar conectividad", "SIEM", "WARNING")
                     
                 time.sleep(25)  # Issue 21/24: Optimizado de 30 a 25 segundos antes del siguiente ciclo
@@ -1445,7 +1456,8 @@ class VistaSIEM(tk.Frame):
                             "severidad": "HIGH",
                             "detalles": f"Comando: journalctl para eventos SSH recientes"
                         })
-            except:
+            except (ValueError, TypeError, AttributeError) as e:
+                logging.debug(f'Error en excepción: {e}')
                 pass
             
             # 2. Verificar puertos abiertos no autorizados
@@ -1460,7 +1472,8 @@ class VistaSIEM(tk.Frame):
                             "severidad": "HIGH",
                             "detalles": f"Puertos encontrados: {', '.join([p.split()[3] for p in puertos_abiertos[:3]])}"
                         })
-            except:
+            except (subprocess.SubprocessError, OSError, TimeoutError) as e:
+                logging.debug(f'Error en excepción: {e}')
                 pass
             
             # 3. Verificar procesos sospechosos
@@ -1476,7 +1489,8 @@ class VistaSIEM(tk.Frame):
                             "severidad": "CRITICAL",
                             "detalles": f"Procesos: {', '.join([p.split()[10] for p in procesos_sospechosos[:2] if len(p.split()) > 10])}"
                         })
-            except:
+            except (ValueError, TypeError, AttributeError) as e:
+                logging.debug(f'Error en excepción: {e}')
                 pass
             
             # 4. Verificar conexiones de red inusuales
@@ -1492,7 +1506,8 @@ class VistaSIEM(tk.Frame):
                             "severidad": "MEDIUM",
                             "detalles": f"IPs externas: {', '.join([line.split()[4].split(':')[0] for line in conexiones_externas[:3] if ':' in line])}"
                         })
-            except:
+            except (ValueError, TypeError, AttributeError) as e:
+                logging.debug(f'Error en excepción: {e}')
                 pass
             
             # Procesar eventos detectados reales
@@ -1613,7 +1628,8 @@ class VistaSIEM(tk.Frame):
                 self._habilitar_botones_siem(True)  # Forzar habilitación de botones
                 self._actualizar_texto_monitoreo("SIEM detenido forzosamente tras error\n\n")
                 self._log_terminal("SIEM detenido forzosamente", "SIEM", "ERROR")
-            except:
+            except (FileNotFoundError, PermissionError, OSError) as e:
+                logging.debug(f'Error en excepción: {e}')
                 self._log_terminal("ERROR CRÍTICO: No se pudo actualizar interfaz", "SIEM", "ERROR")
     
     def _finalizar_siem(self):
@@ -1692,7 +1708,8 @@ class VistaSIEM(tk.Frame):
                             usado = memoria_info[2]
                             disponible = memoria_info[6] if len(memoria_info) > 6 else memoria_info[3]
                             self._log_terminal(f"MEMORIA: {usado}/{total} usado, {disponible} disponible", "SIEM-DASHBOARD", "INFO")
-                except:
+                except (subprocess.SubprocessError, OSError, TimeoutError) as e:
+                    logging.debug(f'Error en excepción: {e}')
                     self._log_terminal("No se pudieron obtener métricas del sistema", "SIEM-DASHBOARD", "WARNING")
                 
                 # SECCIÓN 2: Conexiones de red activas
@@ -1733,7 +1750,8 @@ class VistaSIEM(tk.Frame):
                         else:
                             self._log_terminal("SEGURIDAD No hay puertos críticos abiertos públicamente", "SIEM-DASHBOARD", "INFO")
                     
-                except:
+                except (ValueError, TypeError, OSError) as e:
+                    logging.debug(f'Error en excepción: {e}')
                     self._log_terminal("ADVERTENCIA Error analizando conexiones de red", "SIEM-DASHBOARD", "WARNING")
                 
                 # SECCIÓN 3: Procesos activos
@@ -1757,7 +1775,8 @@ class VistaSIEM(tk.Frame):
                                     if cpu > 10.0:  # Más del 10% CPU
                                         proceso = ' '.join(partes[10:])[:50]
                                         procesos_alta_cpu.append((proceso, cpu))
-                                except:
+                                except (ValueError, TypeError, AttributeError) as e:
+                                    logging.debug(f'Error en excepción: {e}')
                                     pass
                         
                         self._log_terminal(f"PROCESOS totales: {total_procesos}", "SIEM-DASHBOARD", "INFO")
@@ -1768,7 +1787,8 @@ class VistaSIEM(tk.Frame):
                         else:
                             self._log_terminal("OK No hay procesos con uso excesivo de CPU", "SIEM-DASHBOARD", "INFO")
                     
-                except:
+                except (ValueError, TypeError, OSError) as e:
+                    logging.debug(f'Error en excepción: {e}')
                     self._log_terminal("ADVERTENCIA Error monitoreando procesos", "SIEM-DASHBOARD", "WARNING")
                 
                 # SECCIÓN 4: Estado de logs críticos
@@ -1797,7 +1817,8 @@ class VistaSIEM(tk.Frame):
                                 self._log_terminal(f" {descripcion}: {tamano_mb:.1f}MB", "SIEM-DASHBOARD", "INFO")
                         else:
                             self._log_terminal(f"ERROR {descripcion}: Log no encontrado", "SIEM-DASHBOARD", "ERROR")
-                    except:
+                    except (FileNotFoundError, PermissionError, OSError) as e:
+                        logging.debug(f'Error en excepción: {e}')
                         self._log_terminal(f"ADVERTENCIA {descripcion}: Error accediendo al log", "SIEM-DASHBOARD", "WARNING")
                 
                 # SECCIÓN 5: Verificación de integridad básica
@@ -1934,7 +1955,8 @@ class VistaSIEM(tk.Frame):
                                 except subprocess.TimeoutExpired:
                                     self.after(0, self._actualizar_texto_analisis, 
                                              f"   [TIMEOUT] {descripcion}: Análisis excedió tiempo límite\n")
-                                except:
+                                except (subprocess.SubprocessError, OSError, TimeoutError) as e:
+                                    logging.debug(f'Error en excepción: {e}')
                                     self.after(0, self._actualizar_texto_analisis, 
                                              f"   [ERROR] {descripcion}: No se pudo analizar\n")
                             
@@ -1957,7 +1979,8 @@ class VistaSIEM(tk.Frame):
                                                              f"       • {ip}: {intentos} intentos\n")
                                     else:
                                         self.after(0, self._actualizar_texto_analisis, "   [OK] No hay intentos de login fallidos\n")
-                                except:
+                                except (ValueError, TypeError, AttributeError) as e:
+                                    logging.debug(f'Error en excepción: {e}')
                                     self.after(0, self._actualizar_texto_analisis, "   [ERROR] No se pudo analizar IPs\n")
                             
                             # 4. EVENTOS RECIENTES
@@ -2328,7 +2351,8 @@ class VistaSIEM(tk.Frame):
                                                 try:
                                                     priority_part = linea.split('[Priority:')[1].split(']')[0].strip()
                                                     priority = priority_part
-                                                except:
+                                                except (ValueError, TypeError, AttributeError) as e:
+                                                    logging.debug(f'Error en excepción: {e}')
                                                     pass
                                             
                                             # Determinar nivel según prioridad
@@ -2398,7 +2422,8 @@ class VistaSIEM(tk.Frame):
                             self.after(0, self._actualizar_texto_alertas, f"   • Procesos Suricata activos: {len(pids)}\n")
                         else:
                             self.after(0, self._actualizar_texto_alertas, "   [WARNING] Suricata no parece estar ejecutándose\n")
-                    except:
+                    except (subprocess.SubprocessError, OSError, TimeoutError) as e:
+                        logging.debug(f'Error en excepción: {e}')
                         self.after(0, self._actualizar_texto_alertas, "   [ERROR] No se pudo verificar estado de Suricata\n")
                     
                     self.after(0, self._actualizar_texto_alertas, "\n")
@@ -2607,7 +2632,8 @@ class VistaSIEM(tk.Frame):
                                     space_info = lines[1].split()
                                     if len(space_info) >= 4:
                                         self.after(0, self._actualizar_texto_forense, f"ESPACIO DISPONIBLE: {space_info[3]}\n")
-                        except:
+                        except (subprocess.SubprocessError, OSError, TimeoutError) as e:
+                            logging.debug(f'Error en excepción: {e}')
                             pass
                         
                     else:
@@ -2804,7 +2830,8 @@ ls -la "$OUTPUT_DIR/"
         
         try:
             self.after_idle(_update)
-        except:
+        except (ValueError, TypeError, OSError) as e:
+            logging.debug(f'Error en excepción: {e}')
             pass  # Si no se puede programar, ignorar
     
     def _actualizar_texto_analisis(self, texto):
@@ -2821,7 +2848,8 @@ ls -la "$OUTPUT_DIR/"
         
         try:
             self.after_idle(_update)
-        except:
+        except (ValueError, TypeError, OSError) as e:
+            logging.debug(f'Error en excepción: {e}')
             pass  # Si no se puede programar, ignorar
     
     def _actualizar_texto_alertas(self, texto):
@@ -2838,7 +2866,8 @@ ls -la "$OUTPUT_DIR/"
         
         try:
             self.after_idle(_update)
-        except:
+        except (ValueError, TypeError, OSError) as e:
+            logging.debug(f'Error en excepción: {e}')
             pass  # Si no se puede programar, ignorar
     
     def _actualizar_texto_forense(self, texto):
@@ -2855,7 +2884,8 @@ ls -la "$OUTPUT_DIR/"
         
         try:
             self.after_idle(_update)
-        except:
+        except (ValueError, TypeError, OSError) as e:
+            logging.debug(f'Error en excepción: {e}')
             pass  # Si no se puede programar, ignorar
     
     # Métodos adicionales para completar funcionalidad
@@ -2957,7 +2987,8 @@ ls -la "$OUTPUT_DIR/"
                                      timeout=5)
                     else:
                         self._log_terminal("ADVERTENCIA notify-send no disponible - alertas solo en terminal", "SIEM-ALERTS", "WARNING")
-                except:
+                except (subprocess.SubprocessError, OSError, TimeoutError) as e:
+                    logging.debug(f'Error en excepción: {e}')
                     self._log_terminal("ADVERTENCIA Error verificando sistema de notificaciones", "SIEM-ALERTS", "WARNING")
                 
                 # CONFIGURACIÓN 7: Crear archivo de configuración
@@ -3214,7 +3245,8 @@ ls -la "$OUTPUT_DIR/"
                             self._log_terminal("ADVERTENCIA Sistema no es Kali Linux - Funcionalidad limitada", "SIEM-VERIFY", "WARNING")
                     else:
                         self._log_terminal("No se pudo detectar la distribución", "SIEM-VERIFY", "WARNING")
-                except:
+                except (ValueError, TypeError, AttributeError) as e:
+                    logging.debug(f'Error en excepción: {e}')
                     self._log_terminal("Error verificando distribución", "SIEM-VERIFY", "WARNING")
                 
                 # VERIFICACIÓN 2: Herramientas de monitoreo esenciales
@@ -3242,7 +3274,8 @@ ls -la "$OUTPUT_DIR/"
                             self._log_terminal(f"OK {herramienta}: {descripcion}", "SIEM-VERIFY", "INFO")
                         else:
                             self._log_terminal(f"ERROR {herramienta}: {descripcion} - NO DISPONIBLE", "SIEM-VERIFY", "ERROR")
-                    except:
+                    except (subprocess.SubprocessError, OSError, TimeoutError) as e:
+                        logging.debug(f'Error en excepción: {e}')
                         self._log_terminal(f"ERROR {herramienta}: Error verificando", "SIEM-VERIFY", "ERROR")
                 
                 porcentaje = (herramientas_disponibles / len(herramientas_siem)) * 100
@@ -3281,7 +3314,8 @@ ls -la "$OUTPUT_DIR/"
                             self._log_terminal(f"OK {servicio}: Activo", "SIEM-VERIFY", "INFO")
                         else:
                             self._log_terminal(f"ADVERTENCIA {servicio}: Estado {estado}", "SIEM-VERIFY", "WARNING")
-                    except:
+                    except (subprocess.SubprocessError, OSError, TimeoutError) as e:
+                        logging.debug(f'Error en excepción: {e}')
                         self._log_terminal(f"ERROR {servicio}: Error verificando estado", "SIEM-VERIFY", "WARNING")
                 
                 # VERIFICACIÓN 5: Conectividad de red
@@ -3294,7 +3328,8 @@ ls -la "$OUTPUT_DIR/"
                         self._log_terminal("OK Conectividad externa: OK", "SIEM-VERIFY", "SUCCESS")
                     else:
                         self._log_terminal("ERROR Sin conectividad externa", "SIEM-VERIFY", "ERROR")
-                except:
+                except (subprocess.SubprocessError, OSError, TimeoutError) as e:
+                    logging.debug(f'Error en excepción: {e}')
                     self._log_terminal("ERROR verificando conectividad", "SIEM-VERIFY", "ERROR")
                 
                 # VERIFICACIÓN 6: Capacidades del usuario actual
@@ -3309,7 +3344,8 @@ ls -la "$OUTPUT_DIR/"
                         self._log_terminal("OK Privilegios sudo: Disponibles sin contraseña", "SIEM-VERIFY", "SUCCESS")
                     else:
                         self._log_terminal("ADVERTENCIA Privilegios sudo: Requiere contraseña", "SIEM-VERIFY", "WARNING")
-                except:
+                except (subprocess.SubprocessError, OSError, TimeoutError) as e:
+                    logging.debug(f'Error en excepción: {e}')
                     self._log_terminal("ERROR verificando privilegios", "SIEM-VERIFY", "WARNING")
                 
                 # RESUMEN FINAL
@@ -3756,7 +3792,8 @@ ls -la "$OUTPUT_DIR/"
             if hasattr(self, 'siem_monitoreo_text'):
                 try:
                     self.after_idle(lambda: self._actualizar_texto_monitoreo(mensaje_formateado))
-                except:
+                except (ValueError, TypeError, AttributeError) as e:
+                    logging.debug(f'Error en excepción: {e}')
                     pass  # Si hay error con tkinter, ignorar silenciosamente
             
         except Exception as e:
@@ -3848,7 +3885,8 @@ ls -la "$OUTPUT_DIR/"
                     if tcp_count > 100:
                         self._actualizar_texto_analisis("  ALERTA: Número elevado de conexiones TCP\n")
                     
-            except:
+            except (ValueError, TypeError, AttributeError) as e:
+                logging.debug(f'Error en excepción: {e}')
                 pass  # ss opcional
                 
         except Exception as e:
@@ -3916,7 +3954,8 @@ ls -la "$OUTPUT_DIR/"
                         for huerfano in huerfanos[:5]:
                             self._actualizar_texto_analisis(f"  📍 {huerfano}\n")
                             
-            except:
+            except (FileNotFoundError, PermissionError, OSError) as e:
+                logging.debug(f'Error en excepción: {e}')
                 pass
                 
         except Exception as e:
@@ -3978,7 +4017,8 @@ ls -la "$OUTPUT_DIR/"
                         if len(archivos_permisos) > 5:
                             self._actualizar_texto_analisis(f"  ... y {len(archivos_permisos) - 5} más\n")
                             
-            except:
+            except (ValueError, TypeError, AttributeError) as e:
+                logging.debug(f'Error en excepción: {e}')
                 pass
                 
         except Exception as e:
@@ -4013,7 +4053,8 @@ ls -la "$OUTPUT_DIR/"
                     else:
                         self._actualizar_texto_analisis("No hay actividad sudo reciente\n")
                         
-            except:
+            except (ValueError, TypeError, AttributeError) as e:
+                logging.debug(f'Error en excepción: {e}')
                 self._actualizar_texto_analisis("No se pudo verificar actividad sudo\n")
             
             # Verificar procesos ejecutándose como root
@@ -4042,7 +4083,8 @@ ls -la "$OUTPUT_DIR/"
                     else:
                         self._actualizar_texto_analisis("No se detectaron procesos sospechosos como root\n")
                         
-            except:
+            except (ValueError, TypeError, OSError) as e:
+                logging.debug(f'Error en excepción: {e}')
                 pass
                 
         except Exception as e:
@@ -4091,7 +4133,8 @@ ls -la "$OUTPUT_DIR/"
                         else:
                             self._actualizar_texto_analisis("No se detectaron logins nocturnos recientes\n")
                             
-                except:
+                except (ValueError, TypeError, AttributeError) as e:
+                    logging.debug(f'Error en excepción: {e}')
                     pass
             
             # Verificar procesos iniciados recientemente
@@ -4115,7 +4158,8 @@ ls -la "$OUTPUT_DIR/"
                         if len(procesos_recientes) > 10:
                             self._actualizar_texto_analisis("  (Mostrando solo algunos por brevedad)\n")
                             
-            except:
+            except (ValueError, TypeError, AttributeError) as e:
+                logging.debug(f'Error en excepción: {e}')
                 pass
                 
         except Exception as e:
@@ -4191,7 +4235,8 @@ ls -la "$OUTPUT_DIR/"
                     else:
                         self._actualizar_texto_analisis("No hay intentos de acceso fallidos recientes\n")
                         
-            except:
+            except (ValueError, TypeError, OSError) as e:
+                logging.debug(f'Error en excepción: {e}')
                 self._actualizar_texto_analisis("No se pudieron analizar logs de SSH\n")
                 
         except Exception as e:
@@ -4227,7 +4272,8 @@ ls -la "$OUTPUT_DIR/"
                     else:
                         self._actualizar_texto_analisis("No se detectaron procesos de red sospechosos\n")
                         
-            except:
+            except (ValueError, TypeError, AttributeError) as e:
+                logging.debug(f'Error en excepción: {e}')
                 self._actualizar_texto_analisis("Error analizando correlación red-procesos\n")
                 
         except Exception as e:
@@ -4278,12 +4324,14 @@ ls -la "$OUTPUT_DIR/"
                                 else:
                                     self._actualizar_texto_analisis("No hay modificaciones significativas de archivos\n")
                                     
-                        except:
+                        except (ValueError, TypeError, OSError) as e:
+                            logging.debug(f'Error en excepción: {e}')
                             pass
                     else:
                         self._actualizar_texto_analisis("No hay logins recientes\n")
                         
-            except:
+            except (ValueError, TypeError, OSError) as e:
+                logging.debug(f'Error en excepción: {e}')
                 self._actualizar_texto_analisis("Error analizando correlación archivos-logins\n")
                 
         except Exception as e:
@@ -4306,7 +4354,8 @@ ls -la "$OUTPUT_DIR/"
                                          capture_output=True, text=True, timeout=5)
                 if resultado.returncode == 0:
                     eventos_sospechosos.append("actividad_red")
-            except:
+            except (subprocess.SubprocessError, OSError, TimeoutError) as e:
+                logging.debug(f'Error en excepción: {e}')
                 pass
             
             # 2. Verificar procesos sospechosos
@@ -4316,7 +4365,8 @@ ls -la "$OUTPUT_DIR/"
                 if resultado.returncode == 0:
                     if any(proc in resultado.stdout.lower() for proc in ['nc', 'netcat', 'python']):
                         eventos_sospechosos.append("procesos_sospechosos")
-            except:
+            except (subprocess.SubprocessError, OSError, TimeoutError) as e:
+                logging.debug(f'Error en excepción: {e}')
                 pass
             
             # 3. Verificar intentos de login
@@ -4326,7 +4376,8 @@ ls -la "$OUTPUT_DIR/"
                 if resultado.returncode == 0:
                     if 'Failed' in resultado.stdout or 'authentication' in resultado.stdout:
                         eventos_sospechosos.append("intentos_acceso")
-            except:
+            except (subprocess.SubprocessError, OSError, TimeoutError) as e:
+                logging.debug(f'Error en excepción: {e}')
                 pass
             
             # Evaluar la cadena de eventos

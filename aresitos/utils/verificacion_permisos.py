@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+# -*- coding: utf-8 -*-
 """
 Script de Verificación de Permisos para Ares Aegis
 ==================================================

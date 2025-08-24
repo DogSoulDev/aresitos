@@ -898,7 +898,8 @@ LISTO PARA: Escaneos de vulnerabilidades en entornos Kali Linux 2025
                                          capture_output=True, text=True, timeout=5)
                 if 'kali' in resultado.stdout.lower():
                     return True
-            except:
+            except (subprocess.SubprocessError, OSError, TimeoutError) as e:
+                logging.debug(f'Error en excepción: {e}')
                 pass
             
             return False

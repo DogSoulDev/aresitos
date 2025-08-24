@@ -210,7 +210,8 @@ class ControladorAuditoria(ControladorBase):
                     numeros = re.findall(r'\d+', linea)
                     if numeros:
                         resultado['puntuacion'] = int(numeros[0])
-                except:
+                except (ValueError, IndexError, TypeError) as e:
+                    self.logger.warning(f"Error extrayendo puntuación: {e}")
                     pass
             
             # Extraer warnings/sugerencias
@@ -700,6 +701,326 @@ class ControladorAuditoria(ControladorBase):
             resultado['exito'] = False
         
         return resultado
+    
+    def verificar_rootkits(self, tipo_verificacion: str = "completa") -> Dict[str, Any]:
+        """
+        Verificar rootkits en el sistema usando múltiples herramientas.
+        
+        Args:
+            tipo_verificacion: Tipo de verificación ("rapida", "completa", "profunda")
+            
+        Returns:
+            Dict con resultados de verificación de rootkits
+        """
+        resultado = {
+            'timestamp': datetime.now().isoformat(),
+            'tipo_verificacion': tipo_verificacion,
+            'herramientas_usadas': [],
+            'rootkits_detectados': [],
+            'archivos_sospechosos': [],
+            'procesos_sospechosos': [],
+            'exito': False,
+            'resumen': ''
+        }
+        
+        try:
+            total_detecciones = 0
+            
+            # 1. Verificación con rkhunter si está disponible
+            if self._validar_herramienta_disponible('rkhunter'):
+                resultado['herramientas_usadas'].append('rkhunter')
+                cmd_rkhunter = ['sudo', 'rkhunter', '--check', '--sk', '--rwo']
+                resultado_rkhunter = self._ejecutar_comando_seguro(cmd_rkhunter, timeout=180)
+                
+                if resultado_rkhunter['exito']:
+                    # Analizar salida de rkhunter
+                    if 'Warning' in resultado_rkhunter['stdout'] or 'Infection' in resultado_rkhunter['stdout']:
+                        for linea in resultado_rkhunter['stdout'].split('\n'):
+                            if 'Warning:' in linea or 'Infection:' in linea:
+                                resultado['rootkits_detectados'].append(f"rkhunter: {linea.strip()}")
+                                total_detecciones += 1
+            
+            # 2. Verificación con chkrootkit si está disponible
+            if self._validar_herramienta_disponible('chkrootkit'):
+                resultado['herramientas_usadas'].append('chkrootkit')
+                cmd_chkrootkit = ['sudo', 'chkrootkit']
+                resultado_chkrootkit = self._ejecutar_comando_seguro(cmd_chkrootkit, timeout=180)
+                
+                if resultado_chkrootkit['exito']:
+                    # Analizar salida de chkrootkit
+                    if 'INFECTED' in resultado_chkrootkit['stdout']:
+                        for linea in resultado_chkrootkit['stdout'].split('\n'):
+                            if 'INFECTED' in linea:
+                                resultado['rootkits_detectados'].append(f"chkrootkit: {linea.strip()}")
+                                total_detecciones += 1
+            
+            # 3. Verificación básica de archivos sospechosos
+            archivos_sospechosos = [
+                '/tmp/.hidden', '/tmp/.ice-unix/.hidden', '/dev/shm/.hidden',
+                '/usr/bin/.hidden', '/var/tmp/.hidden'
+            ]
+            
+            for archivo in archivos_sospechosos:
+                if os.path.exists(archivo):
+                    resultado['archivos_sospechosos'].append(archivo)
+                    total_detecciones += 1
+            
+            # 4. Verificación de procesos sospechosos
+            cmd_ps = ['ps', 'aux']
+            resultado_ps = self._ejecutar_comando_seguro(cmd_ps, timeout=30)
+            
+            if resultado_ps['exito']:
+                procesos_sospechosos = ['.hidden', 'rootkit', 'backdoor', '/tmp/...']
+                for linea in resultado_ps['stdout'].split('\n'):
+                    for patron in procesos_sospechosos:
+                        if patron in linea.lower():
+                            resultado['procesos_sospechosos'].append(linea.strip())
+                            total_detecciones += 1
+            
+            resultado['exito'] = True
+            resultado['resumen'] = f"Verificación completada con {len(resultado['herramientas_usadas'])} herramientas. {total_detecciones} detecciones."
+            
+            if total_detecciones == 0:
+                resultado['resumen'] += " Sistema limpio."
+            else:
+                resultado['resumen'] += f" ALERTA: {total_detecciones} posibles amenazas detectadas."
+                
+        except Exception as e:
+            resultado['error'] = str(e)
+            resultado['exito'] = False
+            
+        return resultado
+    
+    def analizar_configuracion(self, tipo_analisis: str = "basico") -> Dict[str, Any]:
+        """
+        Analizar configuración de seguridad del sistema.
+        
+        Args:
+            tipo_analisis: Tipo de análisis ("basico", "intermedio", "avanzado")
+            
+        Returns:
+            Dict con resultados del análisis de configuración
+        """
+        resultado = {
+            'timestamp': datetime.now().isoformat(),
+            'tipo_analisis': tipo_analisis,
+            'configuraciones_analizadas': [],
+            'problemas_encontrados': [],
+            'recomendaciones': [],
+            'puntuacion_seguridad': 0,
+            'exito': False
+        }
+        
+        try:
+            puntuacion = 100  # Empezar con puntuación perfecta
+            
+            # 1. Analizar configuración SSH
+            ssh_config = '/etc/ssh/sshd_config'
+            if os.path.exists(ssh_config):
+                resultado['configuraciones_analizadas'].append('SSH')
+                try:
+                    with open(ssh_config, 'r') as f:
+                        contenido_ssh = f.read()
+                    
+                    # Verificar configuraciones críticas de SSH
+                    if 'PermitRootLogin yes' in contenido_ssh:
+                        resultado['problemas_encontrados'].append('SSH: PermitRootLogin habilitado')
+                        resultado['recomendaciones'].append('Deshabilitar login root SSH')
+                        puntuacion -= 20
+                    
+                    if 'PasswordAuthentication yes' in contenido_ssh:
+                        resultado['problemas_encontrados'].append('SSH: Autenticación por contraseña habilitada')
+                        resultado['recomendaciones'].append('Usar autenticación por clave SSH')
+                        puntuacion -= 10
+                        
+                except Exception as e:
+                    resultado['problemas_encontrados'].append(f'Error leyendo SSH config: {e}')
+            
+            # 2. Analizar configuración de firewall
+            resultado['configuraciones_analizadas'].append('Firewall')
+            cmd_ufw = ['ufw', 'status']
+            resultado_ufw = self._ejecutar_comando_seguro(cmd_ufw, timeout=10)
+            
+            if resultado_ufw['exito']:
+                if 'Status: inactive' in resultado_ufw['stdout']:
+                    resultado['problemas_encontrados'].append('Firewall: UFW inactivo')
+                    resultado['recomendaciones'].append('Activar firewall UFW')
+                    puntuacion -= 25
+            else:
+                resultado['problemas_encontrados'].append('Firewall: UFW no configurado')
+                puntuacion -= 15
+            
+            # 3. Verificar actualizaciones del sistema
+            resultado['configuraciones_analizadas'].append('Actualizaciones')
+            cmd_updates = ['apt', 'list', '--upgradable']
+            resultado_updates = self._ejecutar_comando_seguro(cmd_updates, timeout=30)
+            
+            if resultado_updates['exito']:
+                lineas_updates = resultado_updates['stdout'].count('\n')
+                if lineas_updates > 10:
+                    resultado['problemas_encontrados'].append(f'Sistema: {lineas_updates} actualizaciones pendientes')
+                    resultado['recomendaciones'].append('Actualizar sistema: sudo apt update && sudo apt upgrade')
+                    puntuacion -= 15
+            
+            # 4. Verificar servicios innecesarios
+            resultado['configuraciones_analizadas'].append('Servicios')
+            servicios_riesgosos = ['telnet', 'ftp', 'rsh', 'rlogin']
+            
+            for servicio in servicios_riesgosos:
+                cmd_service = ['systemctl', 'is-active', servicio]
+                resultado_service = self._ejecutar_comando_seguro(cmd_service, timeout=5)
+                
+                if resultado_service['exito'] and 'active' in resultado_service['stdout']:
+                    resultado['problemas_encontrados'].append(f'Servicio inseguro activo: {servicio}')
+                    resultado['recomendaciones'].append(f'Deshabilitar servicio: sudo systemctl disable {servicio}')
+                    puntuacion -= 20
+            
+            # 5. Verificar permisos críticos
+            resultado['configuraciones_analizadas'].append('Permisos')
+            archivos_criticos = ['/etc/passwd', '/etc/shadow', '/etc/sudoers']
+            
+            for archivo in archivos_criticos:
+                if os.path.exists(archivo):
+                    stat = os.stat(archivo)
+                    permisos = oct(stat.st_mode)[-3:]
+                    
+                    if archivo == '/etc/shadow' and permisos != '640':
+                        resultado['problemas_encontrados'].append(f'Permisos incorrectos: {archivo} ({permisos})')
+                        resultado['recomendaciones'].append(f'Corregir permisos: sudo chmod 640 {archivo}')
+                        puntuacion -= 15
+            
+            resultado['puntuacion_seguridad'] = max(0, puntuacion)
+            resultado['exito'] = True
+            
+            # Generar resumen final
+            if resultado['puntuacion_seguridad'] >= 90:
+                nivel_seguridad = "EXCELENTE"
+            elif resultado['puntuacion_seguridad'] >= 75:
+                nivel_seguridad = "BUENO"
+            elif resultado['puntuacion_seguridad'] >= 60:
+                nivel_seguridad = "REGULAR"
+            else:
+                nivel_seguridad = "CRÍTICO"
+            
+            resultado['nivel_seguridad'] = nivel_seguridad
+            resultado['resumen'] = f"Análisis completado. Puntuación: {puntuacion}/100 ({nivel_seguridad})"
+            
+        except Exception as e:
+            resultado['error'] = str(e)
+            resultado['exito'] = False
+            
+        return resultado
+    
+    def obtener_resultados_auditoria(self, filtro: str = "todos") -> Dict[str, Any]:
+        """
+        Obtener resultados de auditorías anteriores.
+        
+        Args:
+            filtro: Filtro para resultados ("todos", "recientes", "criticos")
+            
+        Returns:
+            Dict con resultados de auditorías
+        """
+        resultado = {
+            'timestamp': datetime.now().isoformat(),
+            'filtro_aplicado': filtro,
+            'auditorias_encontradas': [],
+            'total_auditorias': 0,
+            'resumen_estadisticas': {},
+            'exito': False
+        }
+        
+        try:
+            # Buscar archivos de resultados de auditoría
+            directorios_busqueda = [
+                '/var/log/lynis',
+                '/tmp/auditoria_resultados',
+                './logs',
+                './reportes'
+            ]
+            
+            auditorias_encontradas = []
+            
+            for directorio in directorios_busqueda:
+                if os.path.exists(directorio):
+                    try:
+                        archivos = os.listdir(directorio)
+                        for archivo in archivos:
+                            if any(palabra in archivo.lower() for palabra in ['audit', 'lynis', 'security', 'report']):
+                                ruta_completa = os.path.join(directorio, archivo)
+                                if os.path.isfile(ruta_completa):
+                                    stat = os.stat(ruta_completa)
+                                    auditorias_encontradas.append({
+                                        'archivo': archivo,
+                                        'ruta': ruta_completa,
+                                        'tamaño': stat.st_size,
+                                        'fecha_modificacion': datetime.fromtimestamp(stat.st_mtime).isoformat(),
+                                        'tipo': self._determinar_tipo_auditoria(archivo)
+                                    })
+                    except PermissionError:
+                        continue
+            
+            # Aplicar filtros
+            if filtro == "recientes":
+                # Obtener solo auditorías de los últimos 7 días
+                import time
+                hace_semana = time.time() - (7 * 24 * 60 * 60)
+                auditorias_filtradas = [
+                    a for a in auditorias_encontradas 
+                    if os.path.getmtime(a['ruta']) > hace_semana
+                ]
+            elif filtro == "criticos":
+                # Filtrar auditorías que contienen palabras críticas
+                auditorias_filtradas = [
+                    a for a in auditorias_encontradas 
+                    if any(palabra in a['archivo'].lower() for palabra in ['critical', 'high', 'vulnerability'])
+                ]
+            else:
+                auditorias_filtradas = auditorias_encontradas
+            
+            # Ordenar por fecha (más recientes primero)
+            auditorias_filtradas.sort(key=lambda x: x['fecha_modificacion'], reverse=True)
+            
+            # Generar estadísticas
+            tipos_auditoria = {}
+            tamaño_total = 0
+            
+            for auditoria in auditorias_filtradas:
+                tipo = auditoria['tipo']
+                tipos_auditoria[tipo] = tipos_auditoria.get(tipo, 0) + 1
+                tamaño_total += auditoria['tamaño']
+            
+            resultado['auditorias_encontradas'] = auditorias_filtradas[:20]  # Limitar a 20 más recientes
+            resultado['total_auditorias'] = len(auditorias_filtradas)
+            resultado['resumen_estadisticas'] = {
+                'tipos_auditoria': tipos_auditoria,
+                'tamaño_total_mb': round(tamaño_total / (1024*1024), 2),
+                'auditorias_recientes': len([a for a in auditorias_filtradas if 'fecha_modificacion' in a])
+            }
+            resultado['exito'] = True
+            
+        except Exception as e:
+            resultado['error'] = str(e)
+            resultado['exito'] = False
+            
+        return resultado
+    
+    def _determinar_tipo_auditoria(self, nombre_archivo: str) -> str:
+        """Determinar el tipo de auditoría basado en el nombre del archivo."""
+        nombre_lower = nombre_archivo.lower()
+        
+        if 'lynis' in nombre_lower:
+            return 'lynis'
+        elif 'rootkit' in nombre_lower or 'rkhunter' in nombre_lower:
+            return 'rootkits'
+        elif 'nuclei' in nombre_lower:
+            return 'vulnerabilidades'
+        elif 'nmap' in nombre_lower:
+            return 'escaneo_red'
+        elif 'security' in nombre_lower:
+            return 'seguridad_general'
+        else:
+            return 'general'
     
 
 # RESUMEN TÉCNICO: Controlador de auditorías de seguridad para Kali Linux. Coordina 

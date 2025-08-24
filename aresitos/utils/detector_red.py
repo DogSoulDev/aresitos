@@ -14,6 +14,7 @@ import subprocess
 import re
 import socket
 import ipaddress
+import logging
 from typing import Dict, List, Optional, Tuple, Any
 
 
@@ -92,7 +93,8 @@ class DetectorRed:
                 'interfaz': 'auto',
                 'prefijo': 24
             }
-        except:
+        except (ValueError, TypeError, OSError) as e:
+            logging.debug(f'Error en excepción: {e}')
             return {
                 'ip_local': '127.0.0.1',
                 'red_cidr': '127.0.0.0/8',
@@ -118,7 +120,8 @@ class DetectorRed:
         try:
             ip_obj = ipaddress.IPv4Address(ip)
             return ip_obj.is_private
-        except:
+        except (ValueError, TypeError, OSError) as e:
+            logging.debug(f'Error en excepción: {e}')
             return False
     
     @staticmethod
