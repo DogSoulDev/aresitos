@@ -31,6 +31,7 @@ try:
     from aresitos.vista.burp_theme import burp_theme
     from aresitos.vista.vista_herramientas_kali import VistaHerramientasKali
     from aresitos.utils.sudo_manager import SudoManager
+    from aresitos.utils.favicon_manager import aplicar_favicon_aresitos
     BURP_THEME_AVAILABLE = True
 except ImportError:
     BURP_THEME_AVAILABLE = False
@@ -324,6 +325,13 @@ class LoginAresitos:
         self.root = tk.Tk()
         self.root.title("ARESITOS - Autenticacion Segura")
         self.root.geometry("900x700")
+        
+        # NUEVO: Aplicar favicon de ARESITOS
+        try:
+            if aplicar_favicon_aresitos(self.root):
+                print("Favicon ARESITOS aplicado a login")
+        except Exception as e:
+            print(f"Advertencia favicon login: {e}")
         
         # Ventana principal configurada
         
@@ -1030,6 +1038,13 @@ class LoginAresitos:
             ventana_herramientas.geometry("1000x700")
             ventana_herramientas.configure(bg='#2b2b2b')
             
+            # NUEVO: Aplicar favicon a ventana de herramientas
+            try:
+                if aplicar_favicon_aresitos(ventana_herramientas):
+                    print("[LOGIN] Favicon aplicado a ventana herramientas")
+            except Exception as e:
+                print(f"[LOGIN] Advertencia favicon herramientas: {e}")
+            
             # Centrar ventana de herramientas
             ventana_herramientas.update_idletasks()
             x = (ventana_herramientas.winfo_screenwidth() // 2) - (1000 // 2)
@@ -1077,6 +1092,13 @@ class LoginAresitos:
             root_app.withdraw()  # Mantener oculta hasta estar completamente configurada
             root_app.title("Aresitos")
             root_app.configure(bg='#2b2b2b')
+            
+            # NUEVO: Aplicar favicon de ARESITOS a ventana principal
+            try:
+                if aplicar_favicon_aresitos(root_app):
+                    print("[LOGIN] Favicon ARESITOS aplicado a ventana principal")
+            except Exception as e:
+                print(f"[LOGIN] Advertencia favicon: {e}")
             
             print("[LOGIN] Ventana principal configurada con tema Burp Suite")
             

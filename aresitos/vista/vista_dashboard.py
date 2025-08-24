@@ -21,6 +21,7 @@ import sys
 
 try:
     from aresitos.vista.burp_theme import burp_theme
+    from aresitos.utils.favicon_manager import aplicar_favicon_aresitos
     BURP_THEME_AVAILABLE = True
 except ImportError:
     BURP_THEME_AVAILABLE = False
@@ -2147,6 +2148,12 @@ journalctl -u ssh                # Logs de servicio específico
             ventana_notif.title("ARESITOS")
             ventana_notif.geometry("400x100")
             ventana_notif.resizable(False, False)
+            
+            # NUEVO: Aplicar favicon a ventana de notificación
+            try:
+                aplicar_favicon_aresitos(ventana_notif)
+            except Exception:
+                pass  # No mostrar errores en notificaciones
             
             # Ventana de notificación configurada
             

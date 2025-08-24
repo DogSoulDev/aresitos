@@ -155,6 +155,7 @@ def iniciar_aplicacion_clasica():
         from aresitos.vista.vista_principal import VistaPrincipal
         from aresitos.controlador.controlador_principal import ControladorPrincipal  
         from aresitos.modelo.modelo_principal import ModeloPrincipal
+        from aresitos.utils.favicon_manager import aplicar_favicon_aresitos
         
         print("Módulos principales cargados")
         
@@ -162,6 +163,12 @@ def iniciar_aplicacion_clasica():
         root = tk.Tk()
         root.title("ARESITOS - Sistema de Seguridad Cibernética")
         root.geometry("1400x900")
+        
+        # NUEVO: Aplicar favicon de ARESITOS
+        if aplicar_favicon_aresitos(root):
+            print("Favicon ARESITOS aplicado exitosamente")
+        else:
+            print("Advertencia: No se pudo cargar favicon")
         
         # CRÍTICO: Configurar tema oscuro para la ventana principal
         root.configure(bg='#2b2b2b')
