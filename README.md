@@ -63,10 +63,14 @@
 
 ### 🛠️ **Método Automático - Recomendado**
 ```bash
-# Clonar repositorio y configurar automáticamente
+# Clonar repositorio
 git clone https://github.com/DogSoulDev/aresitos.git
 cd aresitos
-chmod +x configurar_kali.sh && sudo ./configurar_kali.sh
+
+# Configurar automáticamente (requiere sudo desde el inicio)
+sudo chmod +x configurar_kali.sh && sudo ./configurar_kali.sh
+
+# Iniciar ARESITOS
 python3 main.py
 ```
 
@@ -76,7 +80,8 @@ python3 main.py
 git clone https://github.com/DogSoulDev/aresitos.git
 cd aresitos
 
-# 2. Configurar sistema Kali
+# 2. Elevar privilegios y configurar sistema Kali
+sudo chmod +x configurar_kali.sh
 sudo ./configurar_kali.sh
 
 # 3. Verificar instalación
@@ -218,6 +223,8 @@ ARESITOS v3.0/
 - 🏗️ **Guía de Desarrollo**: `/documentacion/ARQUITECTURA_DESARROLLO.md`
 - 🛡️ **Auditoría de Seguridad**: `/documentacion/AUDITORIA_SEGURIDAD_ARESITOS.md`
 - 💻 **Terminal Integrado**: `/documentacion/TERMINAL_INTEGRADO.md`
+- ⚙️ **Guía de Instalación**: `/documentacion/GUIA_INSTALACION.md`
+- 🔧 **Mejores Prácticas**: `/documentacion/MEJORES_PRACTICAS_INSTALACION.md`
 
 ### **Repositorios y Contacto:**
 - 🌐 **Repositorio Principal**: https://github.com/DogSoulDev/aresitos

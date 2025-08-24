@@ -21,15 +21,59 @@
 
 ### ⚡ Método Express (30 segundos)
 ```bash
-# Clonar repositorio y configurar automáticamente
-git clone https://github.com/DogSoulDev/aresitos.git && cd aresitos
-chmod +x configurar_kali.sh && sudo ./configurar_kali.sh
+# Clonar repositorio
+git clone https://github.com/DogSoulDev/aresitos.git
+cd aresitos
+
+# Configurar automáticamente con permisos sudo desde el inicio
+sudo chmod +x configurar_kali.sh && sudo ./configurar_kali.sh
+
+# Ejecutar ARESITOS
 python3 main.py
 ```
 
-3. **Ejecutar Aresitos**
+### 🔒 **IMPORTANTE: Permisos Sudo Requeridos**
+ARESITOS v3.0 requiere permisos de administrador desde el inicio para:
+- ✅ Instalación de herramientas de ciberseguridad (nmap, masscan, nuclei)
+- ✅ Configuración de servicios del sistema (auditd, rsyslog, fail2ban)
+- ✅ Configuración de permisos CAP_NET_RAW para escaneos SYN/ACK
+- ✅ Instalación automática de dependencias Python
+- ✅ Configuración de directorios del sistema y logs
+
+**Uso correcto:**
 ```bash
-python3 main.py
+sudo chmod +x configurar_kali.sh
+sudo ./configurar_kali.sh
+```
+
+**❌ Evitar interrupciones:**
+```bash
+# INCORRECTO - puede causar interrupciones
+chmod +x configurar_kali.sh && sudo ./configurar_kali.sh
+
+# CORRECTO - permisos sudo desde el inicio  
+sudo chmod +x configurar_kali.sh && sudo ./configurar_kali.sh
+```
+
+### 🚨 **Resolución de Problemas de Permisos**
+Si encuentras errores de permisos durante la instalación:
+
+1. **Verificar usuario sudo:**
+```bash
+groups $USER | grep sudo
+```
+
+2. **Reejecutar con permisos completos:**
+```bash
+sudo -i
+cd /ruta/a/aresitos
+./configurar_kali.sh
+```
+
+3. **Verificar script ejecutable:**
+```bash
+ls -la configurar_kali.sh
+# Debe mostrar: -rwxr-xr-x
 ```
 
 ## Instalación Detallada
@@ -49,17 +93,18 @@ Resolving deltas: 100% (910/910), done.
 
 ### Paso 2: Configuración Automática
 ```bash
-└─$ cd Aresitos
-└─$ chmod +x configurar_kali.sh
+└─$ cd aresitos
+└─$ sudo chmod +x configurar_kali.sh
 └─$ sudo ./configurar_kali.sh
 [sudo] password for kali: 
 
-🛡️ CONFIGURADOR DE PERMISOS ARES AEGIS PARA KALI LINUX
-==========================================================
+🛡️ CONFIGURADOR ARESITOS v3.0 - ESCANEADOR PROFESIONAL PARA KALI LINUX
+=========================================================================
+[✓] Permisos de administrador verificados
 [INFO] Usuario detectado: kali
 [INFO] Directorio home: /home/kali
 
-[INFO] Este script configurará Ares Aegis para funcionar correctamente en Kali Linux
+[INFO] Este script configurará ARESITOS v3.0 para funcionar correctamente en Kali Linux
 [INFO] Se realizarán las siguientes acciones:
   • Actualizar repositorios
   • Instalar herramientas de seguridad necesarias

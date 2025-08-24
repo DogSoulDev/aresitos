@@ -54,7 +54,25 @@ NC='\033[0m' # No Color
 # Establecer directorio de trabajo del script
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 cd "$SCRIPT_DIR"
+
+# VERIFICACIÓN TEMPRANA DE PERMISOS
+if [[ $EUID -ne 0 ]]; then
+    echo -e "\033[0;31m[✗] ERROR: ARESITOS v3.0 requiere permisos de administrador\033[0m"
+    echo
+    echo -e "\033[1;33m[!] SOLUCIÓN:\033[0m"
+    echo "  sudo chmod +x configurar_kali.sh"
+    echo "  sudo ./configurar_kali.sh"
+    echo
+    echo -e "\033[0;34m[INFO] Permisos requeridos para:\033[0m"
+    echo "  • Instalación de herramientas de ciberseguridad"
+    echo "  • Configuración de servicios del sistema"
+    echo "  • Configuración de permisos de red"
+    echo
+    exit 1
+fi
+
 echo -e "${CYAN}[SETUP]${NC} Directorio de trabajo establecido en: $SCRIPT_DIR"
+echo -e "${GREEN}[✓]${NC} Permisos de administrador verificados"
 
 # Función para imprimir con colores
 print_info() {
@@ -80,8 +98,20 @@ print_header() {
 # Verificar que se ejecuta como root
 check_root() {
     if [[ $EUID -ne 0 ]]; then
+        echo
+        print_error "ARESITOS v3.0 requiere permisos de administrador para configuración completa"
         print_error "Este script debe ejecutarse como root o con sudo"
-        echo "Uso: sudo $0"
+        echo
+        print_info "Uso correcto:"
+        echo "  sudo chmod +x configurar_kali.sh"
+        echo "  sudo ./configurar_kali.sh"
+        echo
+        print_warning "IMPORTANTE: Se requieren permisos sudo para:"
+        echo "  • Instalación de herramientas de ciberseguridad"
+        echo "  • Configuración de servicios del sistema"
+        echo "  • Configuración de permisos CAP_NET_RAW"
+        echo "  • Configuración de auditd y rsyslog"
+        echo
         exit 1
     fi
 }
