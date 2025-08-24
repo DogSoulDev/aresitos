@@ -46,14 +46,16 @@
 - **12 Parámetros**: Auditoría, wordlists, herramientas, logs, configuración
 - **Múltiples Formatos**: JSON, TXT, CSV profesionales
 - **Análisis Estadístico**: Métricas del sistema y operaciones
-- **Alertas Inmediatas**: Notificación de modificaciones no autorizadas
-- **Preservación Forense**: Evidencia digital con cadena de custodia
+- **Logging Automático**: Sistema de logs profesional integrado
+- **Historial Completo**: Preservación automática de todas las operaciones
 
-### 📊 **Sistema de Reportes Completo**
-- **Cobertura Total**: Datos de todos los módulos ARESITOS
-- **12 Parámetros**: Auditoría, wordlists, herramientas, logs, configuración
-- **Múltiples Formatos**: JSON, TXT, CSV profesionales
-- **Análisis Estadístico**: Métricas del sistema y operaciones
+### � **Sistema de Logging Automático Profesional v3.0**
+- **Guardado Automático**: Logs generados automáticamente al finalizar operaciones
+- **Interfaz Unificada**: Botones "Ver Log Terminal" y "Abrir Carpeta Logs" en todos los módulos
+- **Timestamps Únicos**: Nomenclatura consistente con fecha y hora (`modulo_YYYYMMDD_HHMMSS.log`)
+- **Metadatos Completos**: Headers con información del sistema, usuario y versión
+- **Integración Total**: Logs automáticamente incluidos en sistema de reportes
+- **Principios ARESITOS**: Simplicidad, Responsabilidad, Robustez, Eficiencia
 
 ---
 
@@ -301,6 +303,29 @@ chmod +x configurar_kali.sh && sudo ./configurar_kali.sh
 python3 main.py
 ```
 
+### 📝 **Sistema de Logging Automático Profesional v3.0**
+ARESITOS v3.0 integra un sistema de logging profesional que documenta automáticamente todas las operaciones:
+
+#### **Características del Sistema de Logs**
+- **Guardado Automático**: Todos los resultados se guardan automáticamente con timestamps únicos
+- **Interfaz Unificada**: Botones "Ver Log Terminal" y "Abrir Carpeta Logs" en todos los módulos
+- **Nomenclatura Estándar**: `modulename_timestamp.log` para fácil identificación
+- **Metadatos Profesionales**: Headers con información de sistema, timestamps, y configuración
+- **Integración Total**: Los reportes incluyen automáticamente los logs de todos los módulos
+- **Principios ARESITOS**: Simplicidad, Responsabilidad, Robustez, Eficiencia aplicados al logging
+
+#### **Estructura de Directorios**
+```
+aresitos/
+├── logs/                          # Directorio centralizado de logs
+│   ├── escaneador_20250101_120000.log
+│   ├── fim_20250101_120500.log
+│   ├── siem_20250101_121000.log
+│   └── auditoria_20250101_121500.log
+└── reportes/                      # Reportes que integran logs automáticamente
+    └── reporte_completo_timestamp.json
+```
+
 > **🔧 NOTA**: Si experimentas problemas con directorios duplicados, ejecuta:
 > ```bash
 > cd aresitos && sudo ./configurar_kali.sh
@@ -445,18 +470,21 @@ El sistema verifica automáticamente que tengas instaladas +25 herramientas crí
 - **Enumeración Web**: gobuster/feroxbuster para discovery de directorios
 - **Exportación Avanzada**: Reportes JSON/TXT con análisis detallado
 - **Fallback Inteligente**: Adaptación según herramientas instaladas
+- **Logging Automático**: Guardado automático de resultados con timestamps únicos
 
 🛡️ **SIEM**
 - Monitoreo de 50+ puertos críticos en tiempo real
 - Correlación automática de eventos de seguridad
 - Detección de anomalías comportamentales
 - Alertas inteligentes con contexto completo
+- **Logging Automático**: Guardado automático de eventos y alertas SIEM
 
 📁 **FIM**
 - Vigilancia de 60+ directorios críticos del sistema
 - Detección en tiempo real de modificaciones
 - Checksums SHA256 para integridad absoluta
 - Alertas inmediatas de cambios no autorizados
+- **Logging Automático**: Guardado automático de monitoreos y análisis forense
 
 🔒 **Sistema de Cuarentena**
 - Detección automática de malware conocido
@@ -469,6 +497,7 @@ El sistema verifica automáticamente que tengas instaladas +25 herramientas crí
 - Integración completa de todos los módulos
 - Exportación múltiple: JSON, TXT, CSV
 - Templates personalizables por industria
+- **Integración de Logs**: Inclusión automática de logs de todos los módulos
 
 📚 **Gestor de Inteligencia**
 - Base de datos de vulnerabilidades localizada
@@ -481,6 +510,7 @@ El sistema verifica automáticamente que tengas instaladas +25 herramientas crí
 - Chkrootkit con heurísticas avanzadas
 - Análisis de configuraciones de seguridad
 - Recomendaciones priorizadas por riesgo
+- **Logging Automático**: Guardado automático de auditorías Lynis y Nuclei
 
 ---
 
