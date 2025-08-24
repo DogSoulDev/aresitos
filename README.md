@@ -1,16 +1,4 @@
-![ARESITOS](./aresitos/### **🔍 Escaneador Profesional Multi-Engine**
-- **Múltiples Scanners**: nmap, masscan, rustscan con fallback inteligen🔍 **Escaneador Profesional v3.0**
-- **5 Modos de Escaneo**: Integral, Avanzado, Red, Rápido, Profundo
-- **Detección Automática**: Herramientas disponibles y fallback
-- **Múltiples Engines**: nmap, masscan, rustscan, nuclei
-- **Web Discovery**: gobuster, feroxbuster par- 🌐 **Web Discovery**: nuclei (CVE detection), gobuster, feroxbuster, curl
-- 🛡️ **Vulnerability**: Templates nuclei actualizados, análisis automáticoenumeración
-- **Exportación Avanzada**: Reportes detallados y estructurados
-- **100% Nativo**: Solo herramientas nativas de Kali Linux**Detección de Vulnerabilidades**: nuclei con base CVE actualizada
-- **Web Enumeration**: gobuster, feroxbuster, curl para discovery
-- **Análisis Profundo**: Fingerprinting, correlación de servicios
-- **Reportes Estructurados**: JSON/TXT con análisis de criticidad
-- **100% Nativo**: Solo herramientas nativas de Kali Linux 2025os/Aresitos.ico)
+![ARESITOS](./aresitos/recursos/Aresitos.ico)
 
 # ARESITOS - Sistema de Seguridad Cibernética v3.0
 
@@ -36,9 +24,10 @@
 ### 🔍 **Escaneador Profesional Multi-Engine**
 - **Múltiples Scanners**: nmap, masscan, rustscan con fallback inteligente
 - **Detección de Vulnerabilidades**: nuclei con base CVE actualizada
-- **Web Enumeration**: gobuster, ffuf, feroxbuster para discovery
+- **Web Enumeration**: gobuster, feroxbuster, curl para discovery
 - **Análisis Profundo**: Fingerprinting, correlación de servicios
 - **Reportes Estructurados**: JSON/TXT con análisis de criticidad
+- **100% Nativo**: Solo herramientas nativas de Kali Linux 2025
 
 ### 🛡️ **Sistema SIEM Integrado**
 - **Monitoreo Tiempo Real**: 50+ puertos críticos con alertas
@@ -49,6 +38,14 @@
 ### 📁 **File Integrity Monitoring (FIM)**
 - **Vigilancia Continua**: 60+ directorios críticos monitoreados
 - **Detección de Cambios**: Checksums SHA256 para integridad
+- **Alertas Inmediatas**: Notificación de modificaciones no autorizadas
+- **Preservación Forense**: Evidencia digital con cadena de custodia
+
+### 📊 **Sistema de Reportes Completo**
+- **Cobertura Total**: Datos de todos los módulos ARESITOS
+- **12 Parámetros**: Auditoría, wordlists, herramientas, logs, configuración
+- **Múltiples Formatos**: JSON, TXT, CSV profesionales
+- **Análisis Estadístico**: Métricas del sistema y operaciones
 - **Alertas Inmediatas**: Notificación de modificaciones no autorizadas
 - **Preservación Forense**: Evidencia digital con cadena de custodia
 
