@@ -10,16 +10,29 @@
 [![SIEM](https://img.shields.io/badge/SIEM-Integrado-red.svg)](README.md)
 [![FIM](https://img.shields.io/badge/FIM-Real%20Time-purple.svg)](README.md)
 
-**ARESITOS v3.0** es una herramienta de ciberseguridad profesional con un **escaneador de vulnerabilidades de grado empresarial** diseñada para proteger a pentesters, red teams y estudiantes de ciberseguridad. La nueva versión incorpora capacidades avanzadas de escaneo, detección de vulnerabilidades y enumeración automatizada.
+**ARESITOS v3.0** es una suite de ciberseguridad profesional desarrollada con arquitectura MVC y principios SOLID para Kali Linux. Integra un escaneador de vulnerabilidades de grado empresarial, sistema SIEM en tiempo real, monitoreo FIM (File Integrity Monitoring) y módulos de auditoría automatizada. Diseñada para pentesters, red teams y profesionales de ciberseguridad que requieren herramientas nativas, sin dependencias externas y optimizadas para Kali Linux 2025.
 
-### 🎯 **NUEVAS CAPACIDADES v3.0 - ESCANEADOR PROFESIONAL**
-- **🔍 Escaneo Integral**: nmap con detección completa de servicios y scripts NSE
-- **⚡ Escaneo Masivo**: masscan y rustscan para análisis rápido de redes extensas
-- **🛡️ Detección de Vulnerabilidades**: nuclei con templates actualizados automáticamente
-- **🌐 Enumeración Web**: gobuster, ffuf y feroxbuster para discovery completo
-- **📊 Exportación Avanzada**: Reportes en JSON/TXT con análisis detallado
-- **🎛️ Validación Automática**: Verificación inteligente de herramientas disponibles
-- **🔄 Fallback Inteligente**: Adaptación automática según herramientas instaladas
+### 🎯 **CAPACIDADES TÉCNICAS AVANZADAS v3.0**
+**Suite Profesional de Seguridad con Arquitectura MVC/SOLID**
+
+**🔍 Escaneador de Vulnerabilidades Profesional**
+- **Engine Multi-Scanner**: Integración nativa nmap/masscan/rustscan con algoritmos de fallback inteligente
+- **Detection Framework**: nuclei con base de datos CVE actualizada automáticamente, templates personalizados
+- **Web Enumeration**: gobuster/ffuf/feroxbuster para descubrimiento de superficie de ataque
+- **Intelligence Gathering**: Fingerprinting automatizado, correlación de servicios, análisis de dependencias
+- **Export Engine**: Reportes estructurados JSON/TXT con análisis de criticidad y vectores de ataque
+
+**🛡️ Sistema SIEM Integrado**
+- **Real-time Monitoring**: 50+ puertos críticos con detección de anomalías comportamentales
+- **Event Correlation**: Motor de correlación de eventos con machine learning básico
+- **Threat Intelligence**: Base de datos de IoCs local, integración con feeds de amenazas
+- **Alert Management**: Sistema de alertas priorizadas con contexto de amenaza completo
+
+**📁 File Integrity Monitoring (FIM)**
+- **Filesystem Watcher**: Monitoreo en tiempo real de 60+ directorios críticos del sistema
+- **Cryptographic Hashing**: Checksums SHA256 para verificación de integridad absoluta
+- **Change Detection**: Algoritmos de detección de modificaciones no autorizadas con baseline automático
+- **Forensic Preservation**: Preservación de evidencia digital con cadena de custodia
 
 ---
 

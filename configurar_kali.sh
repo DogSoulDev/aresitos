@@ -1,19 +1,29 @@
 #!/bin/bash
 # -*- coding: utf-8 -*-
 #
-# ARESITOS v3.0 - Script de Configuración para Kali Linux
-# =======================================================
+# ARESITOS v3.0 - Configurador Automático para Kali Linux 2025
+# ============================================================
 #
-# Script de configuración automática para preparar Kali Linux
-# para ejecutar ARESITOS con todas las funcionalidades del escaneador profesional.
+# Configurador automático de entorno para ARESITOS v3.0
+# Suite profesional de ciberseguridad con arquitectura MVC/SOLID
 #
-# Funciones principales:
-# - Instalar herramientas de ciberseguridad avanzadas (nmap, masscan, rustscan, nuclei)
-# - Configurar permisos sudo para herramientas específicas de escaneo
-# - Configurar permisos de red para escaneo multiherramienta
-# - Instalar herramientas forenses y SIEM
-# - Actualizar bases de datos de vulnerabilidades
-# - Verificar funcionamiento completo del sistema escaneador
+# FUNCIONALIDADES TÉCNICAS:
+# • Instalación y configuración de arsenal de escaneo empresarial
+# • Configuración de permisos CAP_NET_RAW para escaneos SYN/ACK
+# • Instalación de herramientas core: nmap, masscan, rustscan, nuclei, gobuster
+# • Configuración SIEM: tcpdump, iftop, ss, lsof para monitoreo en tiempo real  
+# • Setup FIM: inotify-tools, permisos de sistema para vigilancia de archivos
+# • Auditoría: lynis, chkrootkit con configuraciones optimizadas
+# • Base de datos de vulnerabilidades: templates nuclei actualizados
+# • Wordlists especializadas: dirb, SecLists para enumeración web
+# • Validación completa: verificación de instalación y permisos
+#
+# ARQUITECTURA NATIVA:
+# Zero dependencias Python externas - 100% stdlib + herramientas Kali
+# Integración via subprocess con fallback inteligente y validación automática
+#
+# COMPATIBILIDAD: Kali Linux 2024/2025, Parrot Security OS
+# USO: sudo ./configurar_kali.sh
 #
 # Autor: DogSoulDev
 # Fecha: 23 de Agosto de 2025

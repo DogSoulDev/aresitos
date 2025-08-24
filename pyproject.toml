@@ -1,12 +1,12 @@
 # ===================================================================
-# ARESITOS v2.0 - CONFIGURACIÓN DEL PROYECTO
-# Suite de Ciberseguridad NATIVA para Kali Linux - ZERO DEPENDENCIAS
+# ARESITOS v3.0 - CONFIGURACIÓN DEL PROYECTO
+# Suite Profesional de Ciberseguridad - Arquitectura MVC/SOLID Nativa
 # ===================================================================
 
 [project]
 name = "aresitos"
-version = "2.0.0"
-description = "Suite de ciberseguridad profesional para Kali Linux con arquitectura 100% nativa - escaneador, FIM, SIEM, auditoria y deteccion malware usando solo Python stdlib + herramientas Kali"
+version = "3.0.0"
+description = "Suite profesional de ciberseguridad con arquitectura MVC/SOLID para Kali Linux. Integra escaneador de vulnerabilidades empresarial (nmap/nuclei/masscan), sistema SIEM en tiempo real, monitoreo FIM y auditoría automatizada. Zero dependencias externas, optimizada para pentesters y red teams."
 readme = "README.md"
 license = {text = "MIT"}
 authors = [
@@ -16,12 +16,12 @@ maintainers = [
     {name = "DogSoulDev", email = "dogsouldev@protonmail.com"}
 ]
 keywords = [
-    "cybersecurity", "vulnerability-scanner", "kali-linux", 
-    "siem", "fim", "security-audit", "penetration-testing",
-    "network-security", "malware-detection", "security-monitoring",
-    "native-python", "zero-dependencies", "stdlib-only",
-    "linux-commands", "kali-tools", "rootkit-detection",
-    "intrusion-detection", "security-assessment"
+    "cybersecurity", "vulnerability-scanner", "penetration-testing", "kali-linux",
+    "siem", "fim", "security-audit", "network-security", "malware-detection", 
+    "mvc-architecture", "solid-principles", "enterprise-security", "real-time-monitoring",
+    "native-python", "zero-dependencies", "professional-scanner", "nuclei-integration",
+    "nmap-automation", "masscan", "threat-intelligence", "security-orchestration",
+    "red-team", "blue-team", "security-assessment", "vulnerability-management"
 ]
 classifiers = [
     "Development Status :: 5 - Production/Stable",
