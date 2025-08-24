@@ -202,15 +202,13 @@ class VistaGestionDatos(tk.Frame):
             btn_frame = tk.Frame(right_frame)
         btn_frame.pack(fill=tk.X, pady=(0, 10))
         
-        # Botones de acción
+        # Botones de acción (SOLO LOS ESENCIALES)
         acciones = [
             (" Cargar", self.cargar_archivo, '#4CAF50'),
             (" Editar", self.editar_archivo, '#2196F3'),
             (" Guardar", self.guardar_archivo, '#FF9800'),
             (" Eliminar", self.eliminar_archivo, '#f44336'),
-            (" Exportar", self.exportar_archivo, '#9C27B0'),
-            (" Análisis Kali", self.analizar_con_kali, '#FF5722'),
-            ("[SECURITY] Formatos", self.mostrar_ayuda_formatos, '#607D8B')
+            (" Exportar", self.exportar_archivo, '#9C27B0')
         ]
         
         for i, (texto, comando, color) in enumerate(acciones):
@@ -230,11 +228,9 @@ class VistaGestionDatos(tk.Frame):
             gestion_frame = tk.Frame(right_frame)
         gestion_frame.pack(fill=tk.X, pady=(5, 10))
         
-        # Botones de gestión de archivos
+        # Botones de gestión de archivos (SOLO ABRIR CARPETA)
         gestión_acciones = [
-            ("[PROCESO] Refrescar", self.cargar_archivos, '#17a2b8'),
-            ("📁 Abrir Carpeta", self.abrir_carpeta_actual, '#007acc'),
-            ("[STATS] Estadísticas", self.obtener_estadisticas_datos, '#6c757d')
+            ("📁 Abrir Carpeta", self.abrir_carpeta_actual, '#007acc')
         ]
         
         for texto, comando, color in gestión_acciones:
@@ -247,30 +243,8 @@ class VistaGestionDatos(tk.Frame):
                 btn = ttk.Button(gestion_frame, text=texto, command=comando)
                 btn.pack(side=tk.LEFT, padx=(0, 5))
         
-        # Frame adicional para herramientas de Kali
-        if self.theme:
-            kali_frame = tk.Frame(right_frame, bg='#2b2b2b')
-        else:
-            kali_frame = tk.Frame(right_frame)
-        kali_frame.pack(fill=tk.X, pady=(5, 10))
-        
-        # Botones de herramientas de Kali
-        herramientas_kali = [
-            (" grep", self.usar_grep_kali, '#607D8B'),
-            (" sort", self.usar_sort_kali, '#795548'),
-            (" wc", self.contar_lineas_kali, '#9E9E9E'),
-            (" uniq", self.lineas_unicas_kali, '#673AB7')
-        ]
-        
-        for texto, comando, color in herramientas_kali:
-            if self.theme:
-                btn = tk.Button(kali_frame, text=texto, command=comando,
-                              bg=color, fg='white', font=('Arial', 9),
-                              relief='flat', padx=12, pady=3)
-                btn.pack(side=tk.LEFT, padx=(0, 3))
-            else:
-                btn = ttk.Button(kali_frame, text=texto, command=comando)
-                btn.pack(side=tk.LEFT, padx=(0, 3))
+        # ELIMINAR HERRAMIENTAS DE KALI (ya no se necesitan)
+        # Las herramientas de Kali han sido eliminadas para simplificar la interfaz
         
         # Área de contenido
         if self.theme:

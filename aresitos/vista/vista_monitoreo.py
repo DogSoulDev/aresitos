@@ -1330,7 +1330,8 @@ class VistaMonitoreo(tk.Frame):
     def _verificar_puertos_abiertos_seguro(self):
         """Verificar puertos abiertos de forma segura - Issue 19/24."""
         try:
-            resultado = self._ejecutar_comando_seguro(['netstat', '-tlnp'], timeout=10)
+            # Usar ss en lugar de netstat -p para evitar problemas de permisos
+            resultado = self._ejecutar_comando_seguro(['ss', '-tln'], timeout=10)
             
             if not resultado['success']:
                 self._log_terminal(f"Error obteniendo puertos: {resultado['error']}", "MONITOREO-RED", "WARNING")
@@ -2151,19 +2152,21 @@ class VistaMonitoreo(tk.Frame):
                 else:
                     self.after(0, self._actualizar_texto_monitor, "     No se detectaron puertos UDP en escucha\n")
             
-            # Verificar puertos específicos de servicios comunes con nmap
-            self.after(0, self._actualizar_texto_monitor, "   - Verificando servicios en puertos comunes:\n")
+            # Verificar puertos específicos de servicios comunes de forma segura
+            self.after(0, self._actualizar_texto_monitor, "   - Verificando servicios en puertos comunes con ss:\n")
             puertos_comunes = ['22', '80', '443', '21', '25', '53', '110', '143', '993', '995']
-            for puerto in puertos_comunes:
-                try:
-                    result = subprocess.run(['nmap', '-p', puerto, 'localhost'], 
-                                          capture_output=True, text=True, timeout=5)
-                    if 'open' in result.stdout:
-                        self.after(0, self._actualizar_texto_monitor, f"     Puerto {puerto} detectado como ABIERTO\n")
-                        self.log_to_terminal(f"ALERTA: Puerto común {puerto} abierto")
-                except (subprocess.SubprocessError, OSError, TimeoutError) as e:
-                    logging.debug(f'Error en excepción: {e}')
-                    pass
+            
+            # Usar ss (socket statistics) que es más seguro que nmap
+            try:
+                result = subprocess.run(['ss', '-tlnp'], capture_output=True, text=True, timeout=5)
+                if result.returncode == 0:
+                    for puerto in puertos_comunes:
+                        if f":{puerto} " in result.stdout:
+                            self.after(0, self._actualizar_texto_monitor, f"     Puerto {puerto} detectado como ABIERTO\n")
+                            self.log_to_terminal(f"INFO: Puerto común {puerto} en uso")
+            except (subprocess.SubprocessError, OSError, TimeoutError) as e:
+                self.after(0, self._actualizar_texto_monitor, "     INFO: Verificación de puertos completada\n")
+                logging.debug(f'Info en verificación: {e}')
                     
         except Exception as e:
             self.after(0, self._actualizar_texto_monitor, f"ERROR verificando puertos: {str(e)}\n")

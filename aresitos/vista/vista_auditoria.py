@@ -131,6 +131,24 @@ class VistaAuditoria(tk.Frame):
                              font=('Arial', 12, 'bold'))
         label_tools.pack(anchor=tk.W, pady=(0, 10))
         
+        # BOTÓN CANCELAR GENERAL (PRIMERO)
+        cancelar_frame = tk.Frame(right_frame, bg=self.colors['bg_secondary'])
+        cancelar_frame.pack(fill=tk.X, pady=(0, 15))
+        
+        self.btn_cancelar_general = tk.Button(
+            cancelar_frame, 
+            text="🛑 CANCELAR TODAS LAS AUDITORÍAS", 
+            command=self.cancelar_todas_auditorias,
+            bg=self.colors['danger'], 
+            fg='white',
+            font=('Arial', 10, 'bold'), 
+            relief='flat',
+            padx=15, 
+            pady=8,
+            state="disabled"
+        )
+        self.btn_cancelar_general.pack(fill=tk.X, pady=2)
+        
         # Crear secciones organizadas
         self._crear_seccion_auditoria_sistema(right_frame)
         self._crear_seccion_deteccion_malware(right_frame)
@@ -664,11 +682,22 @@ class VistaAuditoria(tk.Frame):
             pass  # Widget ya no existe o ha sido destruido
     
     def _habilitar_cancelar(self, habilitar):
-        """Habilitar o deshabilitar botón de cancelar de forma segura."""
+        """Habilitar o deshabilitar botones de cancelar de forma segura."""
         try:
             estado = "normal" if habilitar else "disabled"
+            
+            # Botón cancelar general (nuevo)
+            if hasattr(self, 'btn_cancelar_general') and self.btn_cancelar_general.winfo_exists():
+                self.btn_cancelar_general.config(state=estado)
+                
+            # Botón cancelar individual de auditoría
             if hasattr(self, 'btn_cancelar_auditoria') and self.btn_cancelar_auditoria.winfo_exists():
                 self.btn_cancelar_auditoria.config(state=estado)
+                
+            # Botón cancelar rootkits
+            if hasattr(self, 'btn_cancelar_rootkits') and self.btn_cancelar_rootkits.winfo_exists():
+                self.btn_cancelar_rootkits.config(state=estado)
+                
         except (tk.TclError, AttributeError):
             pass  # Widget ya no existe o ha sido destruido
     
@@ -1115,6 +1144,41 @@ class VistaAuditoria(tk.Frame):
         
         threading.Thread(target=ejecutar, daemon=True).start()
     
+    def cancelar_todas_auditorias(self):
+        """Cancelar TODAS las auditorías activas usando sistema unificado."""
+        try:
+            self._actualizar_texto_auditoria("\n🛑 CANCELANDO TODAS LAS AUDITORÍAS ACTIVAS...\n")
+            
+            # Detener todas las variables de control
+            self.proceso_auditoria_activo = False
+            
+            # Importar sistema unificado
+            from ..utils.detener_procesos import detener_procesos
+            
+            # Callbacks para la vista
+            def callback_actualizacion(mensaje):
+                self._actualizar_texto_auditoria(mensaje)
+            
+            def callback_habilitar():
+                # Habilitar todos los botones nuevamente
+                try:
+                    self.btn_cancelar_general.config(state="disabled")
+                    if hasattr(self, 'btn_cancelar_auditoria'):
+                        self.btn_cancelar_auditoria.config(state="disabled")
+                    if hasattr(self, 'btn_cancelar_rootkits'):
+                        self.btn_cancelar_rootkits.config(state="disabled")
+                except:
+                    pass
+                self._finalizar_auditoria()
+                self._log_terminal("TODAS las auditorías canceladas completamente", "AUDITORIA", "INFO")
+            
+            # Usar sistema unificado para cancelar auditorías
+            detener_procesos.cancelar_auditoria(callback_actualizacion, callback_habilitar)
+                
+        except Exception as e:
+            self._actualizar_texto_auditoria(f"ERROR cancelando todas las auditorías: {e}\n")
+            self._finalizar_auditoria()
+
     def ejecutar_nuclei(self):
         """Ejecutar auditoría completa con nuclei - escáner de vulnerabilidades profesional mejorado."""
         if self.proceso_auditoria_activo:

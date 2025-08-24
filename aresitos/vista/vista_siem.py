@@ -2216,7 +2216,7 @@ class VistaSIEM(tk.Frame):
                             
                             # Dar sugerencias específicas según el error
                             if "pidfile" in error_msg.lower():
-                                self.after(0, self._actualizar_texto_alertas, " SOLUCIÓN: sudo pkill suricata && sudo rm -f /var/run/suricata.pid\n")
+                                self.after(0, self._actualizar_texto_alertas, " SOLUCIÓN: Usar 'Stop Monitor' para detener servicios de forma segura\n")
                             elif "permission" in error_msg.lower():
                                 self.after(0, self._actualizar_texto_alertas, " SOLUCIÓN: Verificar permisos sudo\n")
                             elif "interface" in error_msg.lower():

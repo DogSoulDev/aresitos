@@ -233,8 +233,17 @@ class VistaReportes(tk.Frame):
         self.log_to_terminal("Generando reporte completo del sistema...")
         def generar():
             try:
+                # VALIDACIÓN MEJORADA DEL CONTROLADOR
                 if not self.controlador:
-                    messagebox.showerror("Error", "Controlador no configurado")
+                    self._actualizar_reporte_seguro("ERROR: No hay controlador de reportes configurado.\n")
+                    self._actualizar_reporte_seguro("SOLUCIÓN: Reiniciar ARESITOS para inicializar controladores.\n")
+                    messagebox.showerror("Error", "Controlador de reportes no configurado.\n\nSolución: Reinicie ARESITOS.")
+                    return
+                
+                # Verificar que el controlador tenga los métodos necesarios
+                if not hasattr(self.controlador, 'generar_reporte_completo'):
+                    self._actualizar_reporte_seguro("ERROR: Controlador de reportes incompleto.\n")
+                    messagebox.showerror("Error", "Controlador de reportes no tiene funcionalidad completa.")
                     return
                 
                 self._actualizar_reporte_seguro("", "clear")
@@ -1157,41 +1166,54 @@ class VistaReportes(tk.Frame):
                 'alertas_criticas': []
             }
             
-            # Buscar la vista SIEM y capturar su terminal
+            # BUSCAR VISTA SIEM DE MANERA MÁS ROBUSTA
+            vista_siem = None
+            
+            # Método 1: Buscar en vistas del principal
             if hasattr(self.vista_principal, 'vistas'):
                 for nombre, vista in self.vista_principal.vistas.items():
                     if 'siem' in nombre.lower():
-                        # Capturar contenido del terminal SIEM
-                        if hasattr(vista, 'text_siem'):
-                            try:
-                                contenido_terminal = vista.text_siem.get(1.0, tk.END)
-                                datos['terminal_content'] = contenido_terminal.strip()
-                                datos['terminal_lines'] = len(contenido_terminal.split('\n'))
-                                
-                                # Analizar contenido para extraer eventos de seguridad
-                                lineas = contenido_terminal.split('\n')
-                                for linea in lineas:
-                                    if any(palabra in linea.upper() for palabra in ['CRITICO', 'ALERTA', 'VULNERABILIDAD', 'BACKDOOR', 'MALWARE']):
-                                        datos['alertas_criticas'].append(linea.strip())
-                                    elif any(palabra in linea.upper() for palabra in ['DETECTADO', 'MONITOREO', 'PUERTOS', 'CONEXIONES']):
-                                        datos['eventos_seguridad'].append(linea.strip())
-                                        
-                            except Exception:
-                                datos['terminal_content'] = 'No se pudo capturar terminal SIEM'
-                        
-                        # Capturar estado del SIEM
-                        if hasattr(vista, 'siem_activo'):
-                            datos['siem_activo'] = vista.siem_activo
-                        elif hasattr(vista, 'proceso_siem_activo'):
-                            datos['siem_activo'] = vista.proceso_siem_activo
-                        
-                        # Capturar datos específicos si tiene método
-                        if hasattr(vista, 'obtener_datos_para_reporte'):
-                            datos_especificos = vista.obtener_datos_para_reporte()
-                            if isinstance(datos_especificos, dict):
-                                datos.update(datos_especificos)
-                        
+                        vista_siem = vista
                         break
+            
+            # Método 2: Buscar directamente vista_siem
+            if not vista_siem and hasattr(self.vista_principal, 'vista_siem'):
+                vista_siem = self.vista_principal.vista_siem
+            
+            if vista_siem:
+                # Capturar contenido del terminal SIEM
+                if hasattr(vista_siem, 'text_siem'):
+                    try:
+                        contenido_terminal = vista_siem.text_siem.get(1.0, tk.END)
+                        datos['terminal_content'] = contenido_terminal.strip()
+                        datos['terminal_lines'] = len(contenido_terminal.split('\n'))
+                        
+                        # Analizar contenido para extraer eventos de seguridad
+                        lineas = contenido_terminal.split('\n')
+                        for linea in lineas:
+                            if any(palabra in linea.upper() for palabra in ['CRITICO', 'ALERTA', 'VULNERABILIDAD', 'BACKDOOR', 'MALWARE']):
+                                datos['alertas_criticas'].append(linea.strip())
+                            elif any(palabra in linea.upper() for palabra in ['DETECTADO', 'MONITOREO', 'PUERTOS', 'CONEXIONES']):
+                                datos['eventos_seguridad'].append(linea.strip())
+                                
+                    except Exception:
+                        datos['terminal_content'] = 'No se pudo capturar terminal SIEM'
+                
+                # Capturar estado del SIEM
+                if hasattr(vista_siem, 'siem_activo'):
+                    datos['siem_activo'] = vista_siem.siem_activo
+                elif hasattr(vista_siem, 'proceso_siem_activo'):
+                    datos['siem_activo'] = vista_siem.proceso_siem_activo
+                
+                # Capturar datos específicos si tiene método
+                if hasattr(vista_siem, 'obtener_datos_para_reporte'):
+                    datos_especificos = vista_siem.obtener_datos_para_reporte()
+                    if isinstance(datos_especificos, dict):
+                        datos.update(datos_especificos)
+            else:
+                # Si no se encuentra la vista, usar datos básicos
+                datos['terminal_content'] = 'Vista SIEM no encontrada - datos básicos'
+                datos['nota'] = 'SIEM no disponible para captura'
             
             # Estadísticas del análisis SIEM
             datos['estadisticas'] = {
@@ -1228,41 +1250,63 @@ class VistaReportes(tk.Frame):
                 'procesos_monitoreados': []
             }
             
-            # Buscar la vista de cuarentena y capturar su terminal
+            # BUSCAR VISTA DE CUARENTENA DE MANERA MÁS ROBUSTA
+            vista_cuarentena = None
+            
+            # Método 1: Buscar en vistas del principal
             if hasattr(self.vista_principal, 'vistas'):
                 for nombre, vista in self.vista_principal.vistas.items():
-                    if 'cuarentena' in nombre.lower():
-                        # Capturar contenido del terminal de cuarentena
-                        if hasattr(vista, 'text_terminal'):
-                            try:
-                                contenido_terminal = vista.text_terminal.get(1.0, tk.END)
-                                datos['terminal_content'] = contenido_terminal.strip()
-                                datos['terminal_lines'] = len(contenido_terminal.split('\n'))
-                                
-                                # Analizar contenido para extraer datos de cuarentena
-                                lineas = contenido_terminal.split('\n')
-                                for linea in lineas:
-                                    if any(palabra in linea.upper() for palabra in ['CUARENTENA', 'AISLADO', 'BLOQUEADO']):
-                                        datos['archivos_cuarentena'].append(linea.strip())
-                                    elif any(palabra in linea.upper() for palabra in ['ALERTA', 'SOSPECHOSO', 'MALWARE']):
-                                        datos['alertas_cuarentena'].append(linea.strip())
-                                    elif any(palabra in linea.upper() for palabra in ['PROCESO', 'PID', 'MONITOREO']):
-                                        datos['procesos_monitoreados'].append(linea.strip())
-                                        
-                            except Exception:
-                                datos['terminal_content'] = 'No se pudo capturar terminal cuarentena'
-                        
-                        # Capturar estado específico de cuarentena
-                        if hasattr(vista, 'cuarentena_activa'):
-                            datos['cuarentena_activa'] = vista.cuarentena_activa
-                        
-                        # Capturar datos específicos si tiene método
-                        if hasattr(vista, 'obtener_datos_para_reporte'):
-                            datos_especificos = vista.obtener_datos_para_reporte()
-                            if isinstance(datos_especificos, dict):
-                                datos.update(datos_especificos)
-                        
+                    if 'cuarentena' in nombre.lower() or 'monitoreo' in nombre.lower():
+                        vista_cuarentena = vista
                         break
+            
+            # Método 2: Buscar en notebook tabs
+            if not vista_cuarentena and hasattr(self.vista_principal, 'notebook'):
+                for i in range(self.vista_principal.notebook.index("end")):
+                    tab_text = self.vista_principal.notebook.tab(i, "text")
+                    if 'cuarentena' in tab_text.lower() or 'monitoreo' in tab_text.lower():
+                        widget = self.vista_principal.notebook.nametowidget(self.vista_principal.notebook.tabs()[i])
+                        vista_cuarentena = widget
+                        break
+            
+            # Método 3: Buscar específicamente vista_monitoreo (que tiene cuarentena)
+            if not vista_cuarentena and hasattr(self.vista_principal, 'vista_monitoreo'):
+                vista_cuarentena = self.vista_principal.vista_monitoreo
+            
+            if vista_cuarentena:
+                # Capturar contenido del terminal de cuarentena
+                if hasattr(vista_cuarentena, 'text_terminal'):
+                    try:
+                        contenido_terminal = vista_cuarentena.text_terminal.get(1.0, tk.END)
+                        datos['terminal_content'] = contenido_terminal.strip()
+                        datos['terminal_lines'] = len(contenido_terminal.split('\n'))
+                        
+                        # Analizar contenido para extraer datos de cuarentena
+                        lineas = contenido_terminal.split('\n')
+                        for linea in lineas:
+                            if any(palabra in linea.upper() for palabra in ['CUARENTENA', 'AISLADO', 'BLOQUEADO']):
+                                datos['archivos_cuarentena'].append(linea.strip())
+                            elif any(palabra in linea.upper() for palabra in ['ALERTA', 'SOSPECHOSO', 'MALWARE']):
+                                datos['alertas_cuarentena'].append(linea.strip())
+                            elif any(palabra in linea.upper() for palabra in ['PROCESO', 'PID', 'MONITOREO']):
+                                datos['procesos_monitoreados'].append(linea.strip())
+                                
+                    except Exception:
+                        datos['terminal_content'] = 'No se pudo capturar terminal cuarentena'
+                
+                # Capturar estado específico de cuarentena
+                if hasattr(vista_cuarentena, 'cuarentena_activa'):
+                    datos['cuarentena_activa'] = vista_cuarentena.cuarentena_activa
+                
+                # Capturar datos específicos si tiene método
+                if hasattr(vista_cuarentena, 'obtener_datos_para_reporte'):
+                    datos_especificos = vista_cuarentena.obtener_datos_para_reporte()
+                    if isinstance(datos_especificos, dict):
+                        datos.update(datos_especificos)
+            else:
+                # Si no se encuentra la vista, usar datos básicos
+                datos['terminal_content'] = 'Vista de cuarentena no encontrada - datos básicos'
+                datos['nota'] = 'Cuarentena no disponible para captura'
             
             # Estadísticas del análisis de cuarentena
             datos['estadisticas'] = {
