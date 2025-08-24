@@ -1,10 +1,18 @@
-# Manual Técnico - Aresitos
+# ARESITOS v3.0 - Manual Técnico Consolidado
 
-## ¿Qué es Aresitos?
+## Descripción Técnica
 
-**Aresitos** es una herramienta completa de ciberseguridad diseñada específicamente para Kali Linux. Integra múltiples funciones de seguridad en una sola aplicación fácil de usar.
+**ARESITOS v3.0** es una suite profesional de ciberseguridad desarrollada con arquitectura MVC/SOLID para Kali Linux. Integra escaneador de vulnerabilidades empresarial, sistema SIEM en tiempo real, monitoreo FIM (File Integrity Monitoring) y auditoría automatizada. Diseñada para pentesters, red teams y profesionales de ciberseguridad que requieren herramientas nativas, zero dependencias externas y optimizadas para Kali Linux 2025.
 
-## Arquitectura Técnica de Alto Nivel
+## Arquitectura Técnica Core
+
+### Principios ARESITOS v3.0
+- **MVC/SOLID**: Arquitectura profesional con Single Responsibility, Open/Closed, Liskov Substitution, Interface Segregation y Dependency Inversion
+- **Zero Dependencies**: 100% Python stdlib + herramientas Kali nativas via subprocess  
+- **Thread Safety**: Implementación robusta con validación winfo_exists() y manejo seguro de widgets Tkinter
+- **Professional Scanner**: Engine multi-herramienta con nmap/masscan/rustscan/nuclei y fallback inteligente
+- **Real-time SIEM**: Monitoreo de 50+ puertos críticos con correlación de eventos automatizada
+- **FIM Monitoring**: Vigilancia de 60+ directorios críticos con checksums SHA256 y detección de cambios
 
 ### Thread Safety y Estabilidad
 - **Patrón MVC**: Separación clara entre modelo, vista y controlador

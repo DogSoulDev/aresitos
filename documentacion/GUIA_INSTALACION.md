@@ -1,32 +1,30 @@
-# Guía de Instalación - Aresitos
+# ARESITOS v3.0 - Guía de Instalación Técnica
 
-## ¿Qué necesitas?
+## Requisitos del Sistema
 
-### Sistema Operativo
-- **Kali Linux** (recomendado)
-- **Parrot Security OS** 
-- **Ubuntu/Debian** (funcionalidad limitada)
+### Sistemas Soportados
+- **Kali Linux 2025** (recomendado) - Funcionalidad completa optimizada
+- **Kali Linux 2024** - Compatibilidad total verificada  
+- **Parrot Security OS** - Soporte nativo para todas las funciones
+- **BlackArch Linux** - Funciones básicas, configuración manual requerida
+- **Ubuntu/Debian** - Modo limitado, ideal para desarrollo
 
-### Requisitos Técnicos
-- **Python 3.8** o superior
-- **100MB** de espacio en disco
-- **512MB** de RAM mínimo
-- **Permisos sudo** para herramientas del sistema
+### Especificaciones Técnicas
+- **Python**: 3.9+ con optimizaciones async para escaneador profesional
+- **RAM**: 4GB mínimo, 8GB recomendado para escaneos masivos
+- **Almacenamiento**: 1GB para instalación + templates nuclei
+- **Red**: Capacidad offline, internet para updates de bases de datos
+- **Permisos**: CAP_NET_RAW para escaneos SYN, sudo para configuración inicial
+- **Concurrencia**: Soporte para escaneos paralelos masivos
 
-## Instalación Rápida
+## Instalación Automática (Recomendada)
 
-### 3 Pasos Simples
-
-1. **Descargar Aresitos**
+### ⚡ Método Express (30 segundos)
 ```bash
-git clone https://github.com/DogSoulDev/Aresitos.git
-cd Aresitos
-```
-
-2. **Configurar automáticamente**
-```bash
-chmod +x configurar_kali.sh
-sudo ./configurar_kali.sh
+# Clonar repositorio y configurar automáticamente
+git clone https://github.com/DogSoulDev/aresitos.git && cd aresitos
+chmod +x configurar_kali.sh && sudo ./configurar_kali.sh
+python3 main.py
 ```
 
 3. **Ejecutar Aresitos**

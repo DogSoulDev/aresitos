@@ -97,7 +97,7 @@ except ImportError as e:
     VistaMonitoreo = None
 
 try:
-    from .vista_herramientas import VistaHerramientasKali
+    from .vista_herramientas_kali import VistaHerramientasKali
     vistas_disponibles.append('VistaHerramientasKali')
     logger.debug("Vista Herramientas Kali importada correctamente")
 except ImportError as e:
