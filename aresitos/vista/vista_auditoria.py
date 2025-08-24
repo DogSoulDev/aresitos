@@ -190,7 +190,7 @@ class VistaAuditoria(tk.Frame):
             # Botón ver logs (estilo dashboard, compacto)
             btn_logs = tk.Button(
                 controles_frame,
-                text="VER LOGS",
+                text="VER LOG TERMINAL",
                 command=self.abrir_logs_auditoria,
                 bg=self.colors.get('info', '#007acc'),
                 fg='white',
@@ -198,6 +198,18 @@ class VistaAuditoria(tk.Frame):
                 height=1
             )
             btn_logs.pack(side="left", padx=2, fill="x", expand=True)
+            
+            # Botón abrir carpeta de logs
+            btn_carpeta_logs = tk.Button(
+                controles_frame,
+                text="ABRIR CARPETA LOGS",
+                command=self.abrir_carpeta_logs,
+                bg=self.colors.get('warning', '#ff9800'),
+                fg='white',
+                font=("Arial", 8, "bold"),
+                height=1
+            )
+            btn_carpeta_logs.pack(side="left", padx=2, fill="x", expand=True)
             
             # Área de terminal (misma estética que dashboard, más pequeña)
             self.terminal_output = scrolledtext.ScrolledText(
@@ -378,6 +390,77 @@ class VistaAuditoria(tk.Frame):
                 self.log_to_terminal("WARNING: Carpeta de logs no encontrada")
         except Exception as e:
             self.log_to_terminal(f"ERROR abriendo logs Auditoría: {e}")
+    
+    def abrir_carpeta_logs(self):
+        """
+        ARESITOS: Abrir carpeta de logs Auditoría en explorador de archivos.
+        Principios: Simplicidad, Responsabilidad, Robustez, Eficiencia.
+        """
+        try:
+            import os
+            import platform
+            import subprocess
+            logs_path = os.path.join(os.getcwd(), "logs")
+            if os.path.exists(logs_path):
+                if platform.system() == "Linux":
+                    subprocess.run(["xdg-open", logs_path], check=False)
+                elif platform.system() == "Windows":
+                    subprocess.run(["explorer", logs_path], check=False)
+                self.log_to_terminal("Carpeta de logs abierta en explorador de archivos")
+            else:
+                os.makedirs(logs_path, exist_ok=True)
+                self.log_to_terminal("Carpeta de logs creada y abierta")
+                if platform.system() == "Linux":
+                    subprocess.run(["xdg-open", logs_path], check=False)
+                elif platform.system() == "Windows":
+                    subprocess.run(["explorer", logs_path], check=False)
+        except Exception as e:
+            self.log_to_terminal(f"Error abriendo carpeta de logs: {str(e)}")
+    
+    def guardar_resultado_auditoria(self, contenido_terminal=None):
+        """
+        ARESITOS: Guardar resultados de la auditoría en archivo de log con timestamp.
+        Principios: Simplicidad, Responsabilidad, Robustez, Eficiencia.
+        """
+        try:
+            import os
+            import platform
+            
+            # Crear directorio logs si no existe
+            logs_dir = os.path.join(os.getcwd(), "logs")
+            os.makedirs(logs_dir, exist_ok=True)
+            
+            # Generar timestamp para nombre único
+            timestamp = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
+            nombre_archivo = f"auditoria_sistema_{timestamp}.log"
+            ruta_archivo = os.path.join(logs_dir, nombre_archivo)
+            
+            # Obtener contenido del terminal si no se proporciona
+            if contenido_terminal is None:
+                contenido_terminal = self.terminal_output.get(1.0, tk.END)
+            
+            # Agregar metadatos del sistema
+            metadatos = f"""ARESITOS v3.0 - Reporte Auditoría
+========================================
+Fecha: {datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")}
+Usuario: {os.getenv('USER', 'unknown')}
+Sistema: {platform.system()} {platform.release()}
+Versión Python: {platform.python_version()}
+========================================
+
+"""
+            
+            # Escribir archivo con metadatos y contenido
+            with open(ruta_archivo, 'w', encoding='utf-8') as f:
+                f.write(metadatos)
+                f.write(contenido_terminal)
+            
+            self.log_to_terminal(f"✓ Resultados guardados: {nombre_archivo}")
+            return ruta_archivo
+            
+        except Exception as e:
+            self.log_to_terminal(f"✗ Error guardando resultados: {str(e)}")
+            return None
     
     def log_to_terminal(self, mensaje):
         """Registrar mensaje en el terminal usando función estándar."""
@@ -660,6 +743,18 @@ class VistaAuditoria(tk.Frame):
                     self._actualizar_texto_auditoria(f"ERROR en auditoría Lynis: {str(e)}\n")
                 
                 self._actualizar_texto_auditoria("=== AUDITORÍA LYNIS PROFESIONAL COMPLETADA ===\n\n")
+                
+                # ARESITOS: Guardar automáticamente los resultados cuando la auditoría se completa
+                try:
+                    import os
+                    # Obtener todo el texto de resultados actual
+                    contenido_completo = self.terminal_output.get(1.0, 'end-1c')
+                    archivo_guardado = self.guardar_resultado_auditoria(contenido_completo)
+                    if archivo_guardado:
+                        self._actualizar_texto_auditoria(f"\n[INFO] Resultados automáticamente guardados en: {os.path.basename(archivo_guardado)}\n")
+                        self._actualizar_texto_auditoria("[INFO] Use 'Abrir Carpeta Logs' para acceder al archivo\n")
+                except Exception as e:
+                    self.log_to_terminal(f"Error guardando resultados automáticamente: {str(e)}")
                 
             except Exception as e:
                 self._actualizar_texto_auditoria(f"ERROR CRÍTICO en auditoría Lynis: {str(e)}\n")
@@ -1439,6 +1534,18 @@ class VistaAuditoria(tk.Frame):
                     self._actualizar_texto_auditoria(f"ERROR en auditoría nuclei: {str(e)}\n")
                 
                 self._actualizar_texto_auditoria("=== AUDITORÍA NUCLEI PROFESIONAL COMPLETADA ===\n\n")
+                
+                # ARESITOS: Guardar automáticamente los resultados cuando la auditoría nuclei se completa
+                try:
+                    import os
+                    # Obtener todo el texto de resultados actual
+                    contenido_completo = self.terminal_output.get(1.0, 'end-1c')
+                    archivo_guardado = self.guardar_resultado_auditoria(contenido_completo)
+                    if archivo_guardado:
+                        self._actualizar_texto_auditoria(f"\n[INFO] Resultados automáticamente guardados en: {os.path.basename(archivo_guardado)}\n")
+                        self._actualizar_texto_auditoria("[INFO] Use 'Abrir Carpeta Logs' para acceder al archivo\n")
+                except Exception as e:
+                    self.log_to_terminal(f"Error guardando resultados automáticamente: {str(e)}")
                 
             except Exception as e:
                 self._actualizar_texto_auditoria(f"ERROR CRÍTICO en auditoría nuclei: {str(e)}\n")

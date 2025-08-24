@@ -163,7 +163,7 @@ class VistaFIM(tk.Frame):
             # Botón ver logs (estilo dashboard, compacto)
             btn_logs = tk.Button(
                 controles_frame,
-                text="VER LOGS",
+                text="VER LOG TERMINAL",
                 command=self.abrir_logs_fim,
                 bg=self.colors.get('info', '#007acc'),
                 fg='white',
@@ -171,6 +171,18 @@ class VistaFIM(tk.Frame):
                 height=1
             )
             btn_logs.pack(side="left", padx=2, fill="x", expand=True)
+            
+            # Nuevo botón para abrir carpeta de logs
+            btn_abrir_logs = tk.Button(
+                controles_frame,
+                text="ABRIR CARPETA LOGS",
+                command=self.abrir_carpeta_logs,
+                bg=self.colors.get('info', '#007acc'),
+                fg='white',
+                font=("Arial", 8, "bold"),
+                height=1
+            )
+            btn_abrir_logs.pack(side="left", padx=2, fill="x", expand=True)
             
             # Área de terminal (misma estética que dashboard, más pequeña)
             self.terminal_output = scrolledtext.ScrolledText(
@@ -876,6 +888,18 @@ class VistaFIM(tk.Frame):
                         if fases_con_error == 0:
                             self.after(0, self._actualizar_texto_fim, f"ESTADO GENERAL: OK TODAS LAS FASES COMPLETADAS EXITOSAMENTE\n")
                             self._log_terminal("OK FIM: Todas las fases completadas exitosamente", "FIM", "SUCCESS")
+                            
+                            # ARESITOS: Guardar automáticamente los resultados cuando se completan todas las fases
+                            try:
+                                import os
+                                # Obtener todo el texto de resultados actual
+                                contenido_completo = self.fim_text.get(1.0, 'end-1c')
+                                archivo_guardado = self.guardar_resultado_fim(contenido_completo)
+                                if archivo_guardado:
+                                    self.after(0, self._actualizar_texto_fim, f"\n[INFO] Resultados automáticamente guardados en: {os.path.basename(archivo_guardado)}\n")
+                                    self.after(0, self._actualizar_texto_fim, "[INFO] Use 'Abrir Carpeta Logs' para acceder al archivo\n")
+                            except Exception as e:
+                                self._log_terminal(f"Error guardando resultados automáticamente: {str(e)}", "FIM", "WARNING")
                         else:
                             self.after(0, self._actualizar_texto_fim, f"ESTADO GENERAL: ADVERTENCIA {fases_completadas} fases exitosas, {fases_con_error} con errores\n")
                             self._log_terminal(f"ADVERTENCIA FIM: {fases_completadas} fases exitosas, {fases_con_error} con errores", "FIM", "WARNING")
@@ -1559,6 +1583,18 @@ class VistaFIM(tk.Frame):
             self._actualizar_texto_fim("\nOK MONITOREO AVANZADO FIM COMPLETADO\n")
             self._log_terminal("Monitoreo avanzado FIM completado", "FIM", "SUCCESS")
             
+            # ARESITOS: Guardar automáticamente los resultados en log
+            try:
+                import os
+                # Obtener todo el texto de resultados actual
+                contenido_completo = self.fim_text.get(1.0, 'end-1c')
+                archivo_guardado = self.guardar_resultado_fim(contenido_completo)
+                if archivo_guardado:
+                    self._actualizar_texto_fim(f"\n[INFO] Resultados automáticamente guardados en: {os.path.basename(archivo_guardado)}\n")
+                    self._actualizar_texto_fim("[INFO] Use 'Abrir Carpeta Logs' para acceder al archivo\n")
+            except Exception as e:
+                self._log_terminal(f"Error guardando resultados automáticamente: {str(e)}", "FIM", "WARNING")
+            
         except Exception as e:
             error_msg = f"Error en monitoreo avanzado FIM: {str(e)}"
             self._actualizar_texto_fim(f"ERROR: {error_msg}\n")
@@ -1979,6 +2015,18 @@ class VistaFIM(tk.Frame):
             self._actualizar_texto_fim("\nOK ANÁLISIS FORENSE COMPLETADO\n")
             self._log_terminal("Análisis forense de archivos completado", "FIM", "SUCCESS")
             
+            # ARESITOS: Guardar automáticamente los resultados del análisis forense
+            try:
+                import os
+                # Obtener todo el texto de resultados actual
+                contenido_completo = self.fim_text.get(1.0, 'end-1c')
+                archivo_guardado = self.guardar_resultado_fim(contenido_completo)
+                if archivo_guardado:
+                    self._actualizar_texto_fim(f"\n[INFO] Resultados automáticamente guardados en: {os.path.basename(archivo_guardado)}\n")
+                    self._actualizar_texto_fim("[INFO] Use 'Abrir Carpeta Logs' para acceder al archivo\n")
+            except Exception as e:
+                self._log_terminal(f"Error guardando resultados automáticamente: {str(e)}", "FIM", "WARNING")
+            
         except Exception as e:
             error_msg = f"Error en análisis forense: {str(e)}"
             self._actualizar_texto_fim(f"ERROR ERROR: {error_msg}\n")
@@ -2358,4 +2406,79 @@ class VistaFIM(tk.Frame):
             self.terminal_output.insert(tk.END, f"Error mostrando info seguridad: {e}\n")
         
         self.terminal_output.see(tk.END)
+
+    def guardar_resultado_fim(self, resultados_texto):
+        """Guardar resultados del FIM en archivo log siguiendo principios ARESITOS."""
+        try:
+            import os
+            import datetime
+            
+            # ARESITOS: Crear directorio logs si no existe
+            logs_dir = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(__file__))), "logs")
+            os.makedirs(logs_dir, exist_ok=True)
+            
+            # ARESITOS: Nombre de archivo con timestamp para evitar sobrescribir
+            timestamp = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
+            nombre_archivo = f"fim_monitoreo_{timestamp}.log"
+            ruta_archivo = os.path.join(logs_dir, nombre_archivo)
+            
+            # ARESITOS: Guardar con información contextual
+            with open(ruta_archivo, 'w', encoding='utf-8') as f:
+                f.write("=" * 80 + "\n")
+                f.write(f"ARESITOS AEGIS - LOG DE FIM (FILE INTEGRITY MONITORING)\n")
+                f.write(f"Fecha: {datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')}\n")
+                f.write(f"Versión: ARESITOS v3.0 'Compliance Total'\n")
+                f.write("=" * 80 + "\n\n")
+                f.write(resultados_texto)
+                f.write("\n\n" + "=" * 80 + "\n")
+                f.write("FIN DEL LOG DE FIM ARESITOS\n")
+                f.write("=" * 80 + "\n")
+            
+            self._log_terminal(f"Resultados FIM guardados en: {nombre_archivo}", "FIM", "SUCCESS")
+            return ruta_archivo
+            
+        except Exception as e:
+            self._log_terminal(f"Error guardando log FIM: {str(e)}", "FIM", "ERROR")
+            return None
+
+    def abrir_carpeta_logs(self):
+        """Abrir carpeta de logs siguiendo principios ARESITOS."""
+        try:
+            import os
+            import platform
+            import subprocess
+            
+            # ARESITOS: Determinar ruta de logs
+            logs_dir = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(__file__))), "logs")
+            
+            # ARESITOS: Crear directorio si no existe
+            if not os.path.exists(logs_dir):
+                os.makedirs(logs_dir, exist_ok=True)
+                self._log_terminal("Carpeta logs creada", "FIM", "INFO")
+            
+            # ARESITOS: Abrir carpeta según el sistema operativo
+            sistema = platform.system().lower()
+            
+            if sistema == "windows":
+                # Windows - usar explorer
+                subprocess.run(['explorer', logs_dir], check=False)
+            elif sistema == "linux":
+                # Linux - usar xdg-open o nautilus
+                try:
+                    subprocess.run(['xdg-open', logs_dir], check=False)
+                except FileNotFoundError:
+                    # Fallback para sistemas sin xdg-open
+                    subprocess.run(['nautilus', logs_dir], check=False)
+            elif sistema == "darwin":
+                # macOS - usar open
+                subprocess.run(['open', logs_dir], check=False)
+            else:
+                # Sistema desconocido - mostrar ruta
+                self._log_terminal(f"Carpeta logs: {logs_dir}", "FIM", "INFO")
+                return
+            
+            self._log_terminal(f"Carpeta logs abierta: {logs_dir}", "FIM", "SUCCESS")
+            
+        except Exception as e:
+            self._log_terminal(f"Error abriendo carpeta logs: {str(e)}", "FIM", "ERROR")
 

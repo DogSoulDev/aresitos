@@ -118,7 +118,7 @@ class VistaEscaneo(tk.Frame):
                                             activeforeground='white')
         self.btn_cancelar_escaneo.pack(side="left", padx=(0, 15))
         
-        self.btn_logs = tk.Button(btn_frame, text="Ver Logs", 
+        self.btn_logs = tk.Button(btn_frame, text="Ver Log Terminal", 
                                 command=self.ver_logs,
                                 bg=self.colors['button_bg'], fg='white',
                                 font=('Arial', 10),
@@ -126,6 +126,16 @@ class VistaEscaneo(tk.Frame):
                                 activebackground=self.colors['fg_accent'],
                                 activeforeground='white')
         self.btn_logs.pack(side="left", padx=(0, 10))
+        
+        # Nuevo botón para abrir carpeta de logs
+        self.btn_abrir_logs = tk.Button(btn_frame, text="Abrir Carpeta Logs", 
+                                      command=self.abrir_carpeta_logs,
+                                      bg=self.colors['button_bg'], fg='white',
+                                      font=('Arial', 10),
+                                      relief='flat', padx=15, pady=8,
+                                      activebackground=self.colors['fg_accent'],
+                                      activeforeground='white')
+        self.btn_abrir_logs.pack(side="left", padx=(0, 10))
         
         # Barra de progreso
         self.progress_frame = tk.Frame(main_frame, bg=self.colors['bg_primary'])
@@ -692,14 +702,26 @@ class VistaEscaneo(tk.Frame):
                 self._actualizar_texto_seguro("CRITICO: Se encontraron vulnerabilidades - Revisar inmediatamente\n")
             if total_puertos > 20:
                 self._actualizar_texto_seguro("ATENCION: Muchos puertos abiertos - Revisar superficie de ataque\n")
-            self._actualizar_texto_seguro("🔵 Revisar logs detallados en el módulo SIEM\n")
-            self._actualizar_texto_seguro("🔵 Considerar monitoreo FIM de archivos críticos\n\n")
+            self._actualizar_texto_seguro("REVISAR: logs detallados en el módulo SIEM\n")
+            self._actualizar_texto_seguro("REVISAR: Considerar monitoreo FIM de archivos críticos\n\n")
             
             self._actualizar_texto_seguro("=" * 70 + "\n")
             self._actualizar_texto_seguro("        ESCANEO KALI 2025 COMPLETADO EXITOSAMENTE\n")
             self._actualizar_texto_seguro("=" * 70 + "\n")
             
             self._log_terminal("CONTROLADOR Escaneo Kali 2025 completado con éxito", "ESCANEADOR", "SUCCESS")
+            
+            # ARESITOS: Guardar automáticamente los resultados en log
+            try:
+                import os
+                # Obtener todo el texto de resultados actual
+                contenido_completo = self.text_resultados.get(1.0, 'end-1c')
+                archivo_guardado = self.guardar_resultado_escaneo(contenido_completo)
+                if archivo_guardado:
+                    self._actualizar_texto_seguro(f"\n[INFO] Resultados automáticamente guardados en: {os.path.basename(archivo_guardado)}\n")
+                    self._actualizar_texto_seguro("[INFO] Use 'Abrir Carpeta Logs' para acceder al archivo\n")
+            except Exception as e:
+                self._log_terminal(f"Error guardando resultados automáticamente: {str(e)}", "ESCANEADOR", "WARNING")
             
         except Exception as e:
             self._actualizar_texto_seguro(f"Error mostrando resultados consolidados: {str(e)}\n")
@@ -898,6 +920,18 @@ class VistaEscaneo(tk.Frame):
             self._actualizar_texto_seguro("=" * 60 + "\n")
             
             self._log_terminal("CONTROLADOR Escaneo Kali 2025 completado exitosamente", "ESCANEADOR", "SUCCESS")
+            
+            # ARESITOS: Guardar automáticamente los resultados en log
+            try:
+                import os
+                # Obtener todo el texto de resultados actual
+                contenido_completo = self.text_resultados.get(1.0, 'end-1c')
+                archivo_guardado = self.guardar_resultado_escaneo(contenido_completo)
+                if archivo_guardado:
+                    self._actualizar_texto_seguro(f"\n[INFO] Resultados automáticamente guardados en: {os.path.basename(archivo_guardado)}\n")
+                    self._actualizar_texto_seguro("[INFO] Use 'Abrir Carpeta Logs' para acceder al archivo\n")
+            except Exception as e:
+                self._log_terminal(f"Error guardando resultados automáticamente: {str(e)}", "ESCANEADOR", "WARNING")
             
         except Exception as e:
             self._actualizar_texto_seguro(f"Error mostrando resultados: {str(e)}\n")
@@ -3929,6 +3963,81 @@ class VistaEscaneo(tk.Frame):
             self.after_idle(_update)
         except (tk.TclError, AttributeError):
             pass  # Ventana ya destruida
+
+    def guardar_resultado_escaneo(self, resultados_texto):
+        """Guardar resultados del escaneo en archivo log siguiendo principios ARESITOS."""
+        try:
+            import os
+            import datetime
+            
+            # ARESITOS: Crear directorio logs si no existe
+            logs_dir = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(__file__))), "logs")
+            os.makedirs(logs_dir, exist_ok=True)
+            
+            # ARESITOS: Nombre de archivo con timestamp para evitar sobrescribir
+            timestamp = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
+            nombre_archivo = f"escaneo_resultado_{timestamp}.log"
+            ruta_archivo = os.path.join(logs_dir, nombre_archivo)
+            
+            # ARESITOS: Guardar con información contextual
+            with open(ruta_archivo, 'w', encoding='utf-8') as f:
+                f.write("=" * 80 + "\n")
+                f.write(f"ARESITOS AEGIS - LOG DE ESCANEO\n")
+                f.write(f"Fecha: {datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')}\n")
+                f.write(f"Versión: ARESITOS v3.0 'Compliance Total'\n")
+                f.write("=" * 80 + "\n\n")
+                f.write(resultados_texto)
+                f.write("\n\n" + "=" * 80 + "\n")
+                f.write("FIN DEL LOG DE ESCANEO ARESITOS\n")
+                f.write("=" * 80 + "\n")
+            
+            self._log_terminal(f"Resultados guardados en: {nombre_archivo}", "ESCANEADOR", "SUCCESS")
+            return ruta_archivo
+            
+        except Exception as e:
+            self._log_terminal(f"Error guardando log: {str(e)}", "ESCANEADOR", "ERROR")
+            return None
+
+    def abrir_carpeta_logs(self):
+        """Abrir carpeta de logs siguiendo principios ARESITOS."""
+        try:
+            import os
+            import platform
+            import subprocess
+            
+            # ARESITOS: Determinar ruta de logs
+            logs_dir = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(__file__))), "logs")
+            
+            # ARESITOS: Crear directorio si no existe
+            if not os.path.exists(logs_dir):
+                os.makedirs(logs_dir, exist_ok=True)
+                self._log_terminal("Carpeta logs creada", "ESCANEADOR", "INFO")
+            
+            # ARESITOS: Abrir carpeta según el sistema operativo
+            sistema = platform.system().lower()
+            
+            if sistema == "windows":
+                # Windows - usar explorer
+                subprocess.run(['explorer', logs_dir], check=False)
+            elif sistema == "linux":
+                # Linux - usar xdg-open o nautilus
+                try:
+                    subprocess.run(['xdg-open', logs_dir], check=False)
+                except FileNotFoundError:
+                    # Fallback para sistemas sin xdg-open
+                    subprocess.run(['nautilus', logs_dir], check=False)
+            elif sistema == "darwin":
+                # macOS - usar open
+                subprocess.run(['open', logs_dir], check=False)
+            else:
+                # Sistema desconocido - mostrar ruta
+                self._log_terminal(f"Carpeta logs: {logs_dir}", "ESCANEADOR", "INFO")
+                return
+            
+            self._log_terminal(f"Carpeta logs abierta: {logs_dir}", "ESCANEADOR", "SUCCESS")
+            
+        except Exception as e:
+            self._log_terminal(f"Error abriendo carpeta logs: {str(e)}", "ESCANEADOR", "ERROR")
 
 
 # RESUMEN: Interfaz de escaneo de vulnerabilidades con opciones básicas y avanzadas.

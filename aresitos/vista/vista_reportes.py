@@ -1006,8 +1006,63 @@ class VistaReportes(tk.Frame):
                 'estado': 'captura_completa',
                 'terminal_content': '',
                 'estadisticas': {},
-                'configuracion': {}
+                'configuracion': {},
+                'logs_archivos': [],
+                'ultimo_log_contenido': ''
             }
+            
+            # ARESITOS: Obtener logs de escaneo guardados en carpeta logs/
+            try:
+                import os
+                import glob
+                
+                # Ruta a la carpeta logs del proyecto
+                logs_dir = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(__file__))), "logs")
+                
+                if os.path.exists(logs_dir):
+                    # Buscar archivos de log de escaneo
+                    patron_logs = os.path.join(logs_dir, "escaneo_resultado_*.log")
+                    archivos_logs = glob.glob(patron_logs)
+                    
+                    if archivos_logs:
+                        # Ordenar por fecha de modificación (más reciente primero)
+                        archivos_logs.sort(key=lambda x: os.path.getmtime(x), reverse=True)
+                        
+                        # Obtener información de todos los logs
+                        for archivo_log in archivos_logs[:10]:  # Últimos 10 logs
+                            try:
+                                stat_info = os.stat(archivo_log)
+                                datos['logs_archivos'].append({
+                                    'nombre': os.path.basename(archivo_log),
+                                    'ruta': archivo_log,
+                                    'tamaño': stat_info.st_size,
+                                    'fecha_modificacion': datetime.datetime.fromtimestamp(stat_info.st_mtime).isoformat(),
+                                    'timestamp_archivo': stat_info.st_mtime
+                                })
+                            except Exception as e:
+                                self.log_to_terminal(f"Error procesando log {archivo_log}: {e}")
+                        
+                        # Leer el contenido del log más reciente
+                        if archivos_logs:
+                            try:
+                                with open(archivos_logs[0], 'r', encoding='utf-8') as f:
+                                    datos['ultimo_log_contenido'] = f.read()
+                                datos['ultimo_log_archivo'] = os.path.basename(archivos_logs[0])
+                                self.log_to_terminal(f"Log más reciente incluido: {os.path.basename(archivos_logs[0])}")
+                            except Exception as e:
+                                datos['ultimo_log_contenido'] = f"Error leyendo log más reciente: {str(e)}"
+                                self.log_to_terminal(f"Error leyendo log reciente: {e}")
+                    
+                    datos['total_logs_encontrados'] = len(archivos_logs)
+                    datos['directorio_logs'] = logs_dir
+                else:
+                    datos['logs_archivos'] = []
+                    datos['total_logs_encontrados'] = 0
+                    datos['info_logs'] = 'Directorio logs/ no encontrado'
+                    
+            except Exception as e:
+                datos['error_logs'] = f"Error accediendo logs de escaneo: {str(e)}"
+                self.log_to_terminal(f"Error accediendo logs de escaneo: {e}")
             
             # Buscar la vista de escaneo y capturar su terminal
             if hasattr(self.vista_principal, 'vistas'):
@@ -1022,6 +1077,15 @@ class VistaReportes(tk.Frame):
                             except Exception:
                                 datos['terminal_content'] = 'No se pudo capturar terminal de escaneador'
                         
+                        # ARESITOS: Capturar contenido de text_resultados también
+                        if hasattr(vista, 'text_resultados'):
+                            try:
+                                contenido_resultados = vista.text_resultados.get(1.0, tk.END)
+                                datos['resultados_content'] = contenido_resultados.strip()
+                                datos['resultados_lines'] = len(contenido_resultados.split('\n'))
+                            except Exception:
+                                datos['resultados_content'] = 'No se pudo capturar resultados de escaneador'
+                        
                         # Capturar datos específicos si tiene método
                         if hasattr(vista, 'obtener_datos_para_reporte'):
                             datos_especificos = vista.obtener_datos_para_reporte()
@@ -1035,13 +1099,19 @@ class VistaReportes(tk.Frame):
                         break
             
             # Si no se encontró terminal, marcar como limitado
-            if not datos['terminal_content']:
+            if not datos['terminal_content'] and not datos['ultimo_log_contenido']:
                 datos['estado'] = 'datos_limitados'
-                datos['info'] = 'Terminal de escaneador no accesible'
+                datos['info'] = 'Terminal de escaneador y logs no accesibles'
+            elif datos['ultimo_log_contenido']:
+                datos['estado'] = 'logs_disponibles'
+                datos['info'] = f'Logs de escaneo disponibles: {datos["total_logs_encontrados"]} archivos'
+            
+            self.log_to_terminal(f"Datos de escaneador obtenidos: {datos['total_logs_encontrados']} logs, terminal={'disponible' if datos['terminal_content'] else 'no disponible'}")
             
             return datos
             
         except Exception as e:
+            self.log_to_terminal(f"Error obteniendo datos escaneo: {e}")
             return {
                 'timestamp': datetime.datetime.now().isoformat(),
                 'modulo': 'Escaneador',
@@ -1120,8 +1190,57 @@ class VistaReportes(tk.Frame):
                 'terminal_content': '',
                 'monitor_fim_activo': False,
                 'archivos_monitoreados': [],
-                'alertas_integridad': []
+                'alertas_integridad': [],
+                'logs_archivos': [],
+                'ultimo_log_contenido': ''
             }
+            
+            # ARESITOS: Obtener logs de FIM guardados en carpeta logs/
+            try:
+                import os
+                import glob
+                
+                # Ruta a la carpeta logs del proyecto
+                logs_dir = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(__file__))), "logs")
+                
+                if os.path.exists(logs_dir):
+                    # Buscar archivos de log de FIM
+                    patron_logs = os.path.join(logs_dir, "fim_monitoreo_*.log")
+                    archivos_logs = glob.glob(patron_logs)
+                    
+                    if archivos_logs:
+                        # Ordenar por fecha de modificación (más reciente primero)
+                        archivos_logs.sort(key=lambda x: os.path.getmtime(x), reverse=True)
+                        
+                        # Obtener información de todos los logs
+                        for archivo_log in archivos_logs[:10]:  # Últimos 10 logs
+                            try:
+                                stat_info = os.stat(archivo_log)
+                                datos['logs_archivos'].append({
+                                    'nombre': os.path.basename(archivo_log),
+                                    'ruta': archivo_log,
+                                    'tamaño': stat_info.st_size,
+                                    'fecha_modificacion': datetime.datetime.fromtimestamp(stat_info.st_mtime).isoformat(),
+                                    'timestamp_archivo': stat_info.st_mtime
+                                })
+                            except Exception as e:
+                                self.log_to_terminal(f"Error procesando log FIM {archivo_log}: {e}")
+                        
+                        # Leer el contenido del log más reciente
+                        if archivos_logs:
+                            try:
+                                with open(archivos_logs[0], 'r', encoding='utf-8') as f:
+                                    datos['ultimo_log_contenido'] = f.read()
+                                datos['ultimo_log_archivo'] = os.path.basename(archivos_logs[0])
+                            except Exception as e:
+                                self.log_to_terminal(f"Error leyendo log FIM más reciente: {e}")
+                    
+                    self.log_to_terminal(f"DATOS FIM procesados: {len(datos['logs_archivos'])} logs encontrados")
+                else:
+                    self.log_to_terminal("INFO: Carpeta logs/ no encontrada para FIM")
+                    
+            except Exception as e:
+                self.log_to_terminal(f"Error obteniendo logs FIM: {e}")
             
             # Buscar la vista FIM y capturar su terminal
             if hasattr(self.vista_principal, 'vistas'):
@@ -1189,8 +1308,57 @@ class VistaReportes(tk.Frame):
                 'terminal_content': '',
                 'siem_activo': False,
                 'eventos_seguridad': [],
-                'alertas_criticas': []
+                'alertas_criticas': [],
+                'logs_archivos': [],
+                'ultimo_log_contenido': ''
             }
+            
+            # ARESITOS: Obtener logs de SIEM guardados en carpeta logs/
+            try:
+                import os
+                import glob
+                
+                # Ruta a la carpeta logs del proyecto
+                logs_dir = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(__file__))), "logs")
+                
+                if os.path.exists(logs_dir):
+                    # Buscar archivos de log de SIEM
+                    patron_logs = os.path.join(logs_dir, "siem_eventos_*.log")
+                    archivos_logs = glob.glob(patron_logs)
+                    
+                    if archivos_logs:
+                        # Ordenar por fecha de modificación (más reciente primero)
+                        archivos_logs.sort(key=lambda x: os.path.getmtime(x), reverse=True)
+                        
+                        # Obtener información de todos los logs
+                        for archivo_log in archivos_logs[:10]:  # Últimos 10 logs
+                            try:
+                                stat_info = os.stat(archivo_log)
+                                datos['logs_archivos'].append({
+                                    'nombre': os.path.basename(archivo_log),
+                                    'ruta': archivo_log,
+                                    'tamaño': stat_info.st_size,
+                                    'fecha_modificacion': datetime.datetime.fromtimestamp(stat_info.st_mtime).isoformat(),
+                                    'timestamp_archivo': stat_info.st_mtime
+                                })
+                            except Exception as e:
+                                self.log_to_terminal(f"Error procesando log SIEM {archivo_log}: {e}")
+                        
+                        # Leer el contenido del log más reciente
+                        if archivos_logs:
+                            try:
+                                with open(archivos_logs[0], 'r', encoding='utf-8') as f:
+                                    datos['ultimo_log_contenido'] = f.read()
+                                datos['ultimo_log_archivo'] = os.path.basename(archivos_logs[0])
+                            except Exception as e:
+                                self.log_to_terminal(f"Error leyendo log SIEM más reciente: {e}")
+                    
+                    self.log_to_terminal(f"DATOS SIEM procesados: {len(datos['logs_archivos'])} logs encontrados")
+                else:
+                    self.log_to_terminal("INFO: Carpeta logs/ no encontrada para SIEM")
+                    
+            except Exception as e:
+                self.log_to_terminal(f"Error obteniendo logs SIEM: {e}")
             
             # BUSCAR VISTA SIEM DE MANERA MÁS ROBUSTA
             vista_siem = None
@@ -1661,8 +1829,57 @@ class VistaReportes(tk.Frame):
                 'auditorias_ejecutadas': [],
                 'alertas_seguridad': [],
                 'configuraciones_auditadas': [],
-                'resultados_malware': []
+                'resultados_malware': [],
+                'logs_archivos': [],
+                'ultimo_log_contenido': ''
             }
+            
+            # ARESITOS: Obtener logs de Auditoría guardados en carpeta logs/
+            try:
+                import os
+                import glob
+                
+                # Ruta a la carpeta logs del proyecto
+                logs_dir = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(__file__))), "logs")
+                
+                if os.path.exists(logs_dir):
+                    # Buscar archivos de log de Auditoría
+                    patron_logs = os.path.join(logs_dir, "auditoria_sistema_*.log")
+                    archivos_logs = glob.glob(patron_logs)
+                    
+                    if archivos_logs:
+                        # Ordenar por fecha de modificación (más reciente primero)
+                        archivos_logs.sort(key=lambda x: os.path.getmtime(x), reverse=True)
+                        
+                        # Obtener información de todos los logs
+                        for archivo_log in archivos_logs[:10]:  # Últimos 10 logs
+                            try:
+                                stat_info = os.stat(archivo_log)
+                                datos['logs_archivos'].append({
+                                    'nombre': os.path.basename(archivo_log),
+                                    'ruta': archivo_log,
+                                    'tamaño': stat_info.st_size,
+                                    'fecha_modificacion': datetime.datetime.fromtimestamp(stat_info.st_mtime).isoformat(),
+                                    'timestamp_archivo': stat_info.st_mtime
+                                })
+                            except Exception as e:
+                                self.log_to_terminal(f"Error procesando log Auditoría {archivo_log}: {e}")
+                        
+                        # Leer el contenido del log más reciente
+                        if archivos_logs:
+                            try:
+                                with open(archivos_logs[0], 'r', encoding='utf-8') as f:
+                                    datos['ultimo_log_contenido'] = f.read()
+                                datos['ultimo_log_archivo'] = os.path.basename(archivos_logs[0])
+                            except Exception as e:
+                                self.log_to_terminal(f"Error leyendo log Auditoría más reciente: {e}")
+                    
+                    self.log_to_terminal(f"DATOS AUDITORÍA procesados: {len(datos['logs_archivos'])} logs encontrados")
+                else:
+                    self.log_to_terminal("INFO: Carpeta logs/ no encontrada para Auditoría")
+                    
+            except Exception as e:
+                self.log_to_terminal(f"Error obteniendo logs Auditoría: {e}")
             
             # BUSCAR VISTA DE AUDITORIA DE MANERA ROBUSTA
             vista_auditoria = None
