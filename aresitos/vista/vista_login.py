@@ -31,7 +31,7 @@ try:
     from aresitos.vista.burp_theme import burp_theme
     from aresitos.vista.vista_herramientas_kali import VistaHerramientasKali
     from aresitos.utils.sudo_manager import SudoManager
-    from aresitos.utils.favicon_manager import aplicar_favicon_aresitos
+    from aresitos.utils.favicon_manager import aplicar_favicon_aresitos, aplicar_favicon_kali_optimizado
     BURP_THEME_AVAILABLE = True
 except ImportError:
     BURP_THEME_AVAILABLE = False
@@ -326,10 +326,13 @@ class LoginAresitos:
         self.root.title("ARESITOS - Autenticacion Segura")
         self.root.geometry("900x700")
         
-        # NUEVO: Aplicar favicon de ARESITOS
+        # NUEVO: Aplicar favicon de ARESITOS optimizado para Kali
         try:
-            if aplicar_favicon_aresitos(self.root):
-                print("Favicon ARESITOS aplicado a login")
+            # Intentar método optimizado para Kali primero
+            if aplicar_favicon_kali_optimizado(self.root):
+                print("Favicon ARESITOS aplicado a login (método Kali)")
+            elif aplicar_favicon_aresitos(self.root):
+                print("Favicon ARESITOS aplicado a login (método estándar)")
         except Exception as e:
             print(f"Advertencia favicon login: {e}")
         
@@ -1040,8 +1043,11 @@ class LoginAresitos:
             
             # NUEVO: Aplicar favicon a ventana de herramientas
             try:
-                if aplicar_favicon_aresitos(ventana_herramientas):
-                    print("[LOGIN] Favicon aplicado a ventana herramientas")
+                # Intentar método optimizado para Kali primero
+                if aplicar_favicon_kali_optimizado(ventana_herramientas):
+                    print("[LOGIN] Favicon aplicado a ventana herramientas (método Kali)")
+                elif aplicar_favicon_aresitos(ventana_herramientas):
+                    print("[LOGIN] Favicon aplicado a ventana herramientas (método estándar)")
             except Exception as e:
                 print(f"[LOGIN] Advertencia favicon herramientas: {e}")
             
@@ -1095,8 +1101,11 @@ class LoginAresitos:
             
             # NUEVO: Aplicar favicon de ARESITOS a ventana principal
             try:
-                if aplicar_favicon_aresitos(root_app):
-                    print("[LOGIN] Favicon ARESITOS aplicado a ventana principal")
+                # Intentar método optimizado para Kali primero
+                if aplicar_favicon_kali_optimizado(root_app):
+                    print("[LOGIN] Favicon ARESITOS aplicado a ventana principal (método Kali)")
+                elif aplicar_favicon_aresitos(root_app):
+                    print("[LOGIN] Favicon ARESITOS aplicado a ventana principal (método estándar)")
             except Exception as e:
                 print(f"[LOGIN] Advertencia favicon: {e}")
             

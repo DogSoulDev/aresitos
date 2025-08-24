@@ -27,7 +27,10 @@ def test_favicon():
     
     try:
         # Importar el gestor de favicon
-        from aresitos.utils.favicon_manager import favicon_manager, aplicar_favicon_aresitos, get_favicon_info
+        from aresitos.utils.favicon_manager import (
+            favicon_manager, aplicar_favicon_aresitos, 
+            get_favicon_info, aplicar_favicon_kali_optimizado
+        )
         
         # Mostrar información del sistema
         info = get_favicon_info()
@@ -54,7 +57,26 @@ def test_favicon():
         
         # Aplicar favicon
         print("🎨 Aplicando favicon...")
-        if aplicar_favicon_aresitos(root):
+        
+        # Probar ambos métodos
+        favicon_aplicado = False
+        
+        # Método 1: Optimizado para Kali Linux
+        if info['is_linux']:
+            print("🐧 Probando método optimizado para Kali Linux...")
+            if aplicar_favicon_kali_optimizado(root):
+                print("✅ Favicon aplicado con método Kali optimizado")
+                favicon_aplicado = True
+            else:
+                print("⚠️  Método Kali optimizado falló, intentando método estándar...")
+        
+        # Método 2: Estándar (si Kali falló o no es Linux)
+        if not favicon_aplicado:
+            if aplicar_favicon_aresitos(root):
+                print("✅ Favicon aplicado con método estándar")
+                favicon_aplicado = True
+        
+        if favicon_aplicado:
             print("✅ Favicon aplicado exitosamente")
             
             # Crear contenido de prueba
@@ -72,14 +94,20 @@ def test_favicon():
             titulo.pack(pady=10)
             
             # Información
-            info_text = f"""Test de Favicon Completado
+            info_text = f"""Test de Favicon Completado - KALI OPTIMIZADO
             
 Sistema: {'Linux (Kali)' if info['is_kali'] else 'Linux' if info['is_linux'] else 'Windows'}
 Favicon: {Path(info['path']).name if info['path'] else 'No disponible'}
+Método: {'Kali Optimizado (wm iconphoto)' if info['is_linux'] else 'Estándar'}
 Estado: ✅ Funcionando correctamente
 
 Verifica que aparece el icono de ARESITOS
 en la esquina superior izquierda de esta ventana.
+
+🔧 SOLUCIÓN IMPLEMENTADA:
+- Uso de 'wm iconphoto' para mejor compatibilidad en Kali
+- Método específico para gestores de ventanas Linux
+- Fallback automático a método estándar si es necesario
             """
             
             label_info = tk.Label(

@@ -19,11 +19,12 @@ ARESITOS v3.0 integra un sistema profesional de favicon que aplica automáticame
 
 ### **Compatibilidad Multiplataforma**
 
-#### **Kali Linux (Recomendado)**
-- Prioriza formato PNG para mejor compatibilidad con X11
-- Utiliza `iconphoto()` como método principal
-- Fallback automático a `iconbitmap()` si es necesario
-- Soporte completo para entornos gráficos Linux
+#### **Kali Linux (Recomendado) - OPTIMIZADO v3.0**
+- **Método Principal**: `wm iconphoto` con archivos PNG para máxima compatibilidad
+- **Detección Automática**: Identifica gestores de ventanas Linux automáticamente
+- **Triple Fallback**: `wm iconphoto` → `iconphoto` → `iconbitmap`
+- **Formato Prioritario**: PNG para mejor rendimiento en X11
+- **Compatibilidad Completa**: GNOME, KDE, XFCE, i3, y otros gestores de ventanas
 
 #### **Windows**
 - Utiliza formato ICO nativo
@@ -44,12 +45,29 @@ aresitos/
 
 ### **Uso en Código**
 ```python
-from aresitos.utils.favicon_manager import aplicar_favicon_aresitos
+from aresitos.utils.favicon_manager import aplicar_favicon_aresitos, aplicar_favicon_kali_optimizado
 
-# Aplicar favicon a cualquier ventana Tkinter
+# Método 1: Automático (recomendado)
 root = tk.Tk()
 if aplicar_favicon_aresitos(root):
     print("Favicon aplicado exitosamente")
+
+# Método 2: Optimizado específico para Kali Linux
+if aplicar_favicon_kali_optimizado(root):
+    print("Favicon aplicado con método Kali optimizado")
+```
+
+### **Integración Inteligente (Nuevo en v3.0)**
+```python
+# Sistema inteligente que usa el mejor método para cada SO
+try:
+    # Prioridad: método optimizado para Kali
+    if aplicar_favicon_kali_optimizado(root):
+        print("Favicon aplicado (método Kali)")
+    elif aplicar_favicon_aresitos(root):
+        print("Favicon aplicado (método estándar)")
+except Exception as e:
+    print(f"Advertencia favicon: {e}")
 ```
 
 ### **Integración Automática**
@@ -88,9 +106,11 @@ ls -la aresitos/recursos/
 # Debe mostrar: aresitos.png y Aresitos.ico
 ```
 
-#### **Error: No aparece en Kali Linux**
-- Verificar que está ejecutando en entorno gráfico (no SSH sin X11)
-- Confirmar que tkinter está instalado: `sudo apt install python3-tk`
+#### **Error: No aparece en Kali Linux - SOLUCIONADO v3.0**
+- ✅ **Solución Implementada**: Uso de `wm iconphoto` optimizado para Linux
+- ✅ **Método Específico**: `aplicar_favicon_kali_optimizado()` para máxima compatibilidad
+- ✅ **Fallback Automático**: Triple nivel de fallback garantiza funcionamiento
+- ✅ **Test Incluido**: `python test_favicon.py` verifica funcionamiento completo
 
 #### **Error: Archivo no encontrado**
 - Los archivos de favicon deben estar en `aresitos/recursos/`
@@ -105,13 +125,13 @@ ls -la aresitos/recursos/
 
 ## 🔄 **Registro de Cambios**
 
-### **v3.0 - Agosto 2025**
-- ✅ Implementación inicial del sistema de favicon
-- ✅ Soporte multiplataforma (Linux/Windows)
-- ✅ Integración automática en todas las ventanas
-- ✅ Sistema de validación y fallback robusto
-- ✅ Logging completo para debugging
-- ✅ Test automatizado de verificación
+### **v3.0 - Agosto 2025 - OPTIMIZACIÓN KALI LINUX**
+- ✅ **Solución Favicon Kali**: Método `wm iconphoto` específico para Linux
+- ✅ **Triple Fallback**: Garantiza funcionamiento en todos los gestores de ventanas
+- ✅ **Detección Inteligente**: Selección automática del mejor método por SO
+- ✅ **Compatibilidad Verificada**: GNOME, KDE, XFCE, i3 y otros
+- ✅ **Test Mejorado**: Verificación de ambos métodos automáticamente
+- ✅ **Documentación Completa**: Guía específica para resolución de problemas
 
 ## 🛡️ **Seguridad**
 

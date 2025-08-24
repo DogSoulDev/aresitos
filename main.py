@@ -155,7 +155,7 @@ def iniciar_aplicacion_clasica():
         from aresitos.vista.vista_principal import VistaPrincipal
         from aresitos.controlador.controlador_principal import ControladorPrincipal  
         from aresitos.modelo.modelo_principal import ModeloPrincipal
-        from aresitos.utils.favicon_manager import aplicar_favicon_aresitos
+        from aresitos.utils.favicon_manager import aplicar_favicon_aresitos, aplicar_favicon_kali_optimizado
         
         print("Módulos principales cargados")
         
@@ -164,11 +164,17 @@ def iniciar_aplicacion_clasica():
         root.title("ARESITOS - Sistema de Seguridad Cibernética")
         root.geometry("1400x900")
         
-        # NUEVO: Aplicar favicon de ARESITOS
-        if aplicar_favicon_aresitos(root):
-            print("Favicon ARESITOS aplicado exitosamente")
-        else:
-            print("Advertencia: No se pudo cargar favicon")
+        # NUEVO: Aplicar favicon de ARESITOS optimizado para Kali
+        try:
+            # Intentar método optimizado para Kali primero
+            if aplicar_favicon_kali_optimizado(root):
+                print("Favicon ARESITOS aplicado (método Kali optimizado)")
+            elif aplicar_favicon_aresitos(root):
+                print("Favicon ARESITOS aplicado (método estándar)")
+            else:
+                print("Advertencia: No se pudo cargar favicon")
+        except Exception as e:
+            print(f"Advertencia favicon: {e}")
         
         # CRÍTICO: Configurar tema oscuro para la ventana principal
         root.configure(bg='#2b2b2b')
