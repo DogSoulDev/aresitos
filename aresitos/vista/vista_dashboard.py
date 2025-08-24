@@ -21,7 +21,6 @@ import sys
 
 try:
     from aresitos.vista.burp_theme import burp_theme
-    from aresitos.utils.gestor_iconos import configurar_icono_ventana
     BURP_THEME_AVAILABLE = True
 except ImportError:
     BURP_THEME_AVAILABLE = False
@@ -2138,11 +2137,7 @@ journalctl -u ssh                # Logs de servicio específico
             ventana_notif.geometry("400x100")
             ventana_notif.resizable(False, False)
             
-            # Configurar icono de la ventana de notificación usando gestor centralizado
-            try:
-                configurar_icono_ventana(ventana_notif, "ARESITOS - Notificación del Sistema")
-            except Exception:
-                pass  # Continuar sin icono si hay problemas
+            # Ventana de notificación configurada
             
             # Configurar colores según tipo
             colores = {

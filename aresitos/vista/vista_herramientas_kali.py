@@ -87,7 +87,7 @@ class VistaHerramientasKali(tk.Frame):
         # Logo de Aresitos
         try:
             import os
-            logo_path = os.path.join(os.path.dirname(__file__), '..', 'recursos', 'Aresitos.png')
+            logo_path = os.path.join(os.path.dirname(__file__), '..', 'recursos', 'aresitos.png')
             if os.path.exists(logo_path):
                 self.logo_img = tk.PhotoImage(file=logo_path)
                 logo_label = tk.Label(

@@ -160,13 +160,6 @@ def iniciar_aplicacion_clasica():
         root.title("aresitos")
         root.geometry("1400x900")
         
-        # Configurar icono de la ventana usando gestor centralizado
-        try:
-            from aresitos.utils.gestor_iconos import configurar_icono_ventana
-            configurar_icono_ventana(root, "ARESITOS v2.0 - Herramientas de Seguridad")
-        except Exception as e:
-            print(f"No se pudo cargar el icono de la ventana: {e}")
-        
         # CRÍTICO: Configurar tema oscuro para la ventana principal
         root.configure(bg='#2b2b2b')
         

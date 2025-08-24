@@ -30,7 +30,6 @@ try:
     from aresitos.vista.burp_theme import burp_theme
     from aresitos.vista.vista_herramientas_kali import VistaHerramientasKali
     from aresitos.utils.sudo_manager import SudoManager
-    from aresitos.utils.gestor_iconos import configurar_icono_ventana
     BURP_THEME_AVAILABLE = True
 except ImportError:
     BURP_THEME_AVAILABLE = False
@@ -319,11 +318,7 @@ class LoginAresitos:
         self.root.title("ARESITOS - Autenticacion Segura")
         self.root.geometry("900x700")
         
-        # Configurar icono de la ventana usando gestor centralizado
-        try:
-            configurar_icono_ventana(self.root, "ARESITOS - Autenticacion Segura")
-        except Exception:
-            pass  # Continuar sin icono si hay problemas
+        # Ventana principal configurada
         
         # Configurar tema Burp Suite
         if BURP_THEME_AVAILABLE and burp_theme:
@@ -1017,11 +1012,7 @@ class LoginAresitos:
             ventana_herramientas.geometry("1000x700")
             ventana_herramientas.configure(bg='#2b2b2b')
             
-            # Configurar icono de la ventana de herramientas usando gestor centralizado
-            try:
-                configurar_icono_ventana(ventana_herramientas, "ARESITOS - Configuracion de Herramientas")
-            except Exception:
-                pass  # Continuar sin icono si hay problemas
+            # Ventana de herramientas configurada
             
             # Centrar ventana de herramientas
             ventana_herramientas.update_idletasks()
@@ -1065,22 +1056,14 @@ class LoginAresitos:
             root_app.title("Aresitos")
             root_app.geometry("1400x900")
             
-            # Configurar icono de la ventana si existe
-            try:
-                configurar_icono_ventana(root_app, "ARESITOS v2.0 - Dashboard Principal")
-            except Exception as e:
-                self.escribir_log(f"No se pudo cargar el icono: {e}")
+            # Ventana configurada
             
             # CRÍTICO: Configurar el tema ANTES de crear las vistas
             root_app.configure(bg='#2b2b2b')  # Fondo Burp Suite principal
             
             self.escribir_log("Ventana principal configurada con tema Burp Suite")
             
-            # Configurar icono usando gestor centralizado
-            try:
-                configurar_icono_ventana(root_app, "ARESITOS v2.0 - Dashboard Principal")
-            except Exception:
-                pass
+            # Ventana configurada
             
             self.escribir_log("Inicializando modelo de datos...")
             # Inicializar MVC correctamente
@@ -1103,14 +1086,8 @@ class LoginAresitos:
             y = (root_app.winfo_screenheight() // 2) - (800 // 2)
             root_app.geometry(f"1200x800+{x}+{y}")
             
-            # Configurar icono para la ventana principal usando gestor centralizado
-            try:
-                if configurar_icono_ventana(root_app, "ARESITOS v2.0 - Dashboard Principal"):
-                    self.escribir_log("✓ Ícono de aplicación configurado correctamente")
-                else:
-                    self.escribir_log("INFO Continuando sin icono - archivo no encontrado")
-            except Exception as e:
-                self.escribir_log(f"INFO Error configurando ícono (no crítico): {str(e)}")
+            # Ventana principal configurada
+            self.escribir_log("✓ Ventana de aplicación configurada correctamente")
             
             # Forzar actualización de la ventana
             root_app.update()
