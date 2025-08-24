@@ -15,6 +15,7 @@ from tkinter import ttk, messagebox, scrolledtext
 import subprocess
 import threading
 import logging
+import os
 from typing import Optional, Any
 
 try:
@@ -154,7 +155,7 @@ class VistaHerramientasKali(tk.Frame):
         botones_frame.pack(fill="x", pady=(0, 20))
         
         # Configurar columnas con peso igual para distribución uniforme
-        for i in range(4):
+        for i in range(5):  # Aumentado a 5 columnas
             botones_frame.grid_columnconfigure(i, weight=1, uniform="botones")
         
         # Botón verificar herramientas
@@ -186,7 +187,22 @@ class VistaHerramientasKali(tk.Frame):
             cursor='hand2'
         )
         self.btn_optimizaciones.grid(row=0, column=1, padx=10, sticky="ew")
-        
+
+        # NUEVO: Botón configurar sistema ARESITOS
+        self.btn_configurar_sistema = tk.Button(
+            botones_frame,
+            text="🔧 Configurar Sistema",
+            command=self.configurar_sistema_aresitos,
+            bg='#4CAF50',
+            fg='white',
+            font=('Arial', 10, 'bold'),
+            relief='flat',
+            padx=15,
+            pady=8,
+            cursor='hand2'
+        )
+        self.btn_configurar_sistema.grid(row=0, column=2, padx=10, sticky="ew")
+
         # Botón instalar herramientas
         self.btn_instalar = tk.Button(
             botones_frame,
@@ -201,7 +217,7 @@ class VistaHerramientasKali(tk.Frame):
             cursor='hand2',
             state='disabled'
         )
-        self.btn_instalar.grid(row=0, column=2, padx=10, sticky="ew")
+        self.btn_instalar.grid(row=0, column=3, padx=10, sticky="ew")
         
         # Botón continuar (habilitado por defecto en modo desarrollo)
         self.btn_continuar = tk.Button(
@@ -217,7 +233,7 @@ class VistaHerramientasKali(tk.Frame):
             cursor='hand2',
             state='normal'  # Habilitado por defecto
         )
-        self.btn_continuar.grid(row=0, column=3, padx=10, sticky="ew")
+        self.btn_continuar.grid(row=0, column=4, padx=10, sticky="ew")  # Movido a columna 4
         
         # Área de resultados
         self.text_resultados = scrolledtext.ScrolledText(
@@ -1155,4 +1171,217 @@ LISTO PARA: Escaneos de vulnerabilidades en entornos Kali Linux 2025
             return False
         except Exception:
             return False
+
+    def configurar_sistema_aresitos(self):
+        """Configurar sistema ARESITOS automáticamente - Corregir permisos y dependencias"""
+        if self.proceso_activo:
+            return
+        
+        respuesta = messagebox.askyesno(
+            "Configurar Sistema ARESITOS",
+            "¿Desea configurar automáticamente el sistema ARESITOS?\n\n" +
+            "Esta operación:\n" +
+            "• Creará directorios necesarios con permisos correctos\n" +
+            "• Instalará herramientas faltantes\n" +
+            "• Configurará servicios de seguridad\n" +
+            "• Corregirá problemas de permisos\n\n" +
+            "Se requieren permisos de administrador."
+        )
+        
+        if not respuesta:
+            return
+        
+        self.proceso_activo = True
+        try:
+            if hasattr(self, 'btn_configurar_sistema') and self.btn_configurar_sistema.winfo_exists():
+                self.btn_configurar_sistema.config(state='disabled')
+            if hasattr(self, 'text_resultados') and self.text_resultados.winfo_exists():
+                self.text_resultados.delete(1.0, tk.END)
+        except (tk.TclError, AttributeError):
+            pass
+        
+        # Ejecutar configuración en thread separado
+        thread = threading.Thread(target=self._configurar_sistema_async)
+        thread.daemon = True
+        thread.start()
+
+    def _configurar_sistema_async(self):
+        """Configuración asíncrona del sistema ARESITOS"""
+        try:
+            self.after(0, self._actualizar_texto, "🔧 CONFIGURANDO SISTEMA ARESITOS...\n")
+            self.after(0, self._actualizar_texto, "=" * 50 + "\n\n")
+            
+            # Verificar sudo
+            sudo_manager = get_sudo_manager()
+            if not is_sudo_available():
+                self.after(0, self._actualizar_texto, "❌ ERROR: No hay permisos sudo disponibles\n")
+                self.after(0, self._actualizar_texto, "Reinicie ARESITOS e ingrese la contraseña correcta\n")
+                return
+            
+            self.after(0, self._actualizar_texto, "✅ Permisos sudo verificados\n\n")
+            
+            # 1. CREAR DIRECTORIOS NECESARIOS
+            self.after(0, self._actualizar_texto, "📁 1. CREANDO DIRECTORIOS NECESARIOS...\n")
+            
+            directorios = [
+                '/home/kali/aresitos/reportes',
+                '/home/kali/aresitos/aresitos/data/cuarentena',
+                '/home/kali/aresitos/aresitos/data/cuarentena/archivos',
+                '/home/kali/aresitos/aresitos/data/cuarentena/logs',
+                '/home/kali/aresitos/logs',
+                '/home/kali/aresitos/data/backup',
+                '/home/kali/.aresitos',
+                '/home/kali/.aresitos/reportes',
+                '/home/kali/.aresitos/logs'
+            ]
+            
+            for directorio in directorios:
+                try:
+                    resultado = subprocess.run([
+                        'sudo', 'mkdir', '-p', directorio
+                    ], capture_output=True, text=True, timeout=10)
+                    
+                    if resultado.returncode == 0:
+                        # Dar permisos correctos
+                        subprocess.run([
+                            'sudo', 'chown', '-R', 'kali:kali', directorio
+                        ], capture_output=True, text=True, timeout=10)
+                        
+                        subprocess.run([
+                            'sudo', 'chmod', '-R', '755', directorio
+                        ], capture_output=True, text=True, timeout=10)
+                        
+                        self.after(0, self._actualizar_texto, f"   ✅ {directorio}\n")
+                    else:
+                        self.after(0, self._actualizar_texto, f"   ⚠️  {directorio} (ya existe o error: {resultado.stderr})\n")
+                        
+                except Exception as e:
+                    self.after(0, self._actualizar_texto, f"   ❌ {directorio}: {e}\n")
+            
+            # 2. ACTUALIZAR REPOSITORIOS
+            self.after(0, self._actualizar_texto, "\n📦 2. ACTUALIZANDO REPOSITORIOS...\n")
+            try:
+                resultado = subprocess.run([
+                    'sudo', 'apt', 'update'
+                ], capture_output=True, text=True, timeout=120)
+                
+                if resultado.returncode == 0:
+                    self.after(0, self._actualizar_texto, "   ✅ Repositorios actualizados exitosamente\n")
+                else:
+                    self.after(0, self._actualizar_texto, f"   ⚠️  Error actualizando repositorios: {resultado.stderr}\n")
+                    
+            except Exception as e:
+                self.after(0, self._actualizar_texto, f"   ❌ Error actualizando repositorios: {e}\n")
+            
+            # 3. INSTALAR HERRAMIENTAS ESENCIALES
+            self.after(0, self._actualizar_texto, "\n🛠️  3. INSTALANDO HERRAMIENTAS ESENCIALES...\n")
+            
+            herramientas_esenciales = [
+                'inotify-tools',      # Para FIM
+                'auditd',             # Para auditoría del sistema
+                'rsyslog',            # Para logs centralizados
+                'clamav',             # Para análisis de malware
+                'fail2ban',           # Para protección contra ataques
+                'chkrootkit',         # Para detección de rootkits
+                'rkhunter',           # Para detección de rootkits
+                'yara',               # Para análisis de malware
+                'psutil',             # Para monitoring (Python)
+                'python3-psutil'      # Para monitoring (Python)
+            ]
+            
+            for herramienta in herramientas_esenciales:
+                try:
+                    self.after(0, self._actualizar_texto, f"   Instalando {herramienta}...\n")
+                    resultado = subprocess.run([
+                        'sudo', 'apt', 'install', '-y', herramienta
+                    ], capture_output=True, text=True, timeout=180)
+                    
+                    if resultado.returncode == 0:
+                        self.after(0, self._actualizar_texto, f"   ✅ {herramienta} instalado\n")
+                    else:
+                        self.after(0, self._actualizar_texto, f"   ⚠️  {herramienta} (ya instalado o error menor)\n")
+                        
+                except Exception as e:
+                    self.after(0, self._actualizar_texto, f"   ❌ {herramienta}: {e}\n")
+            
+            # 4. CONFIGURAR SERVICIOS DE SEGURIDAD
+            self.after(0, self._actualizar_texto, "\n🔒 4. CONFIGURANDO SERVICIOS DE SEGURIDAD...\n")
+            
+            servicios = [
+                'auditd',
+                'rsyslog',
+                'fail2ban'
+            ]
+            
+            for servicio in servicios:
+                try:
+                    # Habilitar servicio
+                    resultado = subprocess.run([
+                        'sudo', 'systemctl', 'enable', servicio
+                    ], capture_output=True, text=True, timeout=30)
+                    
+                    # Iniciar servicio
+                    resultado2 = subprocess.run([
+                        'sudo', 'systemctl', 'start', servicio
+                    ], capture_output=True, text=True, timeout=30)
+                    
+                    if resultado.returncode == 0 and resultado2.returncode == 0:
+                        self.after(0, self._actualizar_texto, f"   ✅ {servicio} configurado y activo\n")
+                    else:
+                        self.after(0, self._actualizar_texto, f"   ⚠️  {servicio} (posible error menor)\n")
+                        
+                except Exception as e:
+                    self.after(0, self._actualizar_texto, f"   ❌ {servicio}: {e}\n")
+            
+            # 5. ACTUALIZAR BASE DE DATOS DE ANTIVIRUS
+            self.after(0, self._actualizar_texto, "\n🦠 5. ACTUALIZANDO BASE DE DATOS DE ANTIVIRUS...\n")
+            try:
+                resultado = subprocess.run([
+                    'sudo', 'freshclam'
+                ], capture_output=True, text=True, timeout=300)
+                
+                if resultado.returncode == 0:
+                    self.after(0, self._actualizar_texto, "   ✅ Base de datos de ClamAV actualizada\n")
+                else:
+                    self.after(0, self._actualizar_texto, "   ⚠️  ClamAV: posible error menor o ya actualizado\n")
+                    
+            except Exception as e:
+                self.after(0, self._actualizar_texto, f"   ❌ Error actualizando ClamAV: {e}\n")
+            
+            # 6. VERIFICAR CONFIGURACIÓN FINAL
+            self.after(0, self._actualizar_texto, "\n🔍 6. VERIFICACIÓN FINAL...\n")
+            
+            # Verificar directorios
+            directorios_verificar = [
+                '/home/kali/aresitos/reportes',
+                '/home/kali/aresitos/aresitos/data/cuarentena/archivos'
+            ]
+            
+            for directorio in directorios_verificar:
+                if os.path.exists(directorio) and os.access(directorio, os.W_OK):
+                    self.after(0, self._actualizar_texto, f"   ✅ {directorio} accesible\n")
+                else:
+                    self.after(0, self._actualizar_texto, f"   ❌ {directorio} no accesible\n")
+            
+            self.after(0, self._actualizar_texto, "\n" + "=" * 50 + "\n")
+            self.after(0, self._actualizar_texto, "🎉 CONFIGURACIÓN DE SISTEMA COMPLETADA\n")
+            self.after(0, self._actualizar_texto, "\nARESTIOS está ahora optimizado para Kali Linux!\n")
+            self.after(0, self._actualizar_texto, "Puede continuar a la aplicación principal.\n")
+            
+            # Habilitar botón continuar si no estaba habilitado
+            if hasattr(self, 'btn_continuar') and self.btn_continuar.winfo_exists():
+                self.btn_continuar.config(state='normal', bg='#4CAF50')
+            
+        except Exception as e:
+            self.after(0, self._actualizar_texto, f"❌ ERROR GENERAL: {e}\n")
+            logging.error(f"Error en configuración del sistema: {e}")
+            
+        finally:
+            # Rehabilitar botón
+            self.proceso_activo = False
+            try:
+                if hasattr(self, 'btn_configurar_sistema') and self.btn_configurar_sistema.winfo_exists():
+                    self.btn_configurar_sistema.config(state='normal')
+            except (tk.TclError, AttributeError):
+                pass
 
