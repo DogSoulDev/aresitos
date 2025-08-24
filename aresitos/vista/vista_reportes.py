@@ -630,9 +630,12 @@ class VistaReportes(tk.Frame):
                 
                 # Conexiones sospechosas
                 try:
-                    result = subprocess.run(['ss', '-tuln', '|', 'grep', 'LISTEN'], 
-                                          capture_output=True, text=True, timeout=5, shell=True)
-                    informe["red"]["puertos_escucha"] = len(result.stdout.split('\n')) - 1
+                    # SEGURIDAD: Evitar shell=True, ejecutar ss directamente
+                    result = subprocess.run(['ss', '-tuln'], 
+                                          capture_output=True, text=True, timeout=5)
+                    # Filtrar LISTEN manualmente en Python por seguridad
+                    listen_lines = [line for line in result.stdout.split('\n') if 'LISTEN' in line]
+                    informe["red"]["puertos_escucha"] = len(listen_lines)
                 except (subprocess.SubprocessError, OSError, TimeoutError) as e:
                     logging.debug(f'Error en excepción: {e}')
                     informe["red"]["puertos_escucha"] = 0

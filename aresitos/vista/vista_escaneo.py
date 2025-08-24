@@ -2203,8 +2203,9 @@ class VistaEscaneo(tk.Frame):
         try:
             # Buscar archivos SUID sospechosos
             self._log_terminal("Escaneando archivos SUID sospechosos...", "ESCANEADOR", "INFO")
-            resultado = subprocess.run(['find', '/', '-type', 'f', '-perm', '-4000', '2>/dev/null'], 
-                                     capture_output=True, text=True, timeout=30, shell=True)
+            # SEGURIDAD: Evitar shell=True, usar redirección de stderr en Python
+            resultado = subprocess.run(['find', '/', '-type', 'f', '-perm', '-4000'], 
+                                     capture_output=True, text=True, timeout=30, stderr=subprocess.DEVNULL)
             
             archivos_suid = resultado.stdout.strip().split('\n') if resultado.stdout.strip() else []
             
@@ -2220,8 +2221,9 @@ class VistaEscaneo(tk.Frame):
                     
             # Buscar archivos world-writable
             self._log_terminal("Escaneando archivos world-writable...", "ESCANEADOR", "INFO")
-            resultado = subprocess.run(['find', '/', '-type', 'f', '-perm', '-002', '2>/dev/null'], 
-                                     capture_output=True, text=True, timeout=30, shell=True)
+            # SEGURIDAD: Evitar shell=True, usar stderr=DEVNULL en Python
+            resultado = subprocess.run(['find', '/', '-type', 'f', '-perm', '-002'], 
+                                     capture_output=True, text=True, timeout=30, stderr=subprocess.DEVNULL)
             
             archivos_writable = resultado.stdout.strip().split('\n') if resultado.stdout.strip() else []
             for archivo in archivos_writable[:10]:  # Limitar salida
