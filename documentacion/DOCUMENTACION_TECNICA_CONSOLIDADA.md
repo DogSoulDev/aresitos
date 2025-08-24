@@ -160,11 +160,11 @@ Sistema de información y gestión de eventos de seguridad:
 Gestión de amenazas y análisis de malware:
 
 - **Sistema de cuarentena segura** para archivos sospechosos
-- **Análisis multi-motor** con ClamAV, YARA, Volatility
+- **Análisis multi-motor** con ClamAV, YARA, memstat
 - **Preservación forense** de evidencia digital
 - **Respuesta automática** ante amenazas críticas
 
-**Herramientas Integradas**: clamav, yara, binwalk, volatility3, exiftool
+**Herramientas Integradas**: clamav, yara, binwalk, memstat, exiftool
 
 ## Consideraciones de Seguridad
 
@@ -526,7 +526,7 @@ alertas = controlador_siem.generar_alertas_automaticas()
 5. **Wordlists y Diccionarios** - Gestión recursos + terminal generación
 6. **Reportes** - Exportación resultados + terminal exportación
 7. **FIM** - Monitoreo integridad archivos + terminal inotifywait
-8. **SIEM** - Correlación eventos seguridad + terminal volatility/binwalk
+8. **SIEM** - Correlación eventos seguridad + análisis memoria/binarios
 
 ### **Tema Visual**
 - **Burp Suite**: Esquema colores profesional
@@ -642,7 +642,7 @@ def _obtener_version_herramienta(self, herramienta):
 
 ### 🔍 SIEM (SIEMKali2025)
 - **Correlación**: 1000 eventos/segundo
-- **Forense**: volatility3, binwalk, strings, sleuthkit, foremost
+- **Forense**: memstat, binwalk, strings, sleuthkit, foremost
 - **Detección**: Anomalías y patrones
 - **Almacenamiento**: Logs estructurados + SQLite
 - **Terminal**: Output en tiempo real de análisis forense
@@ -714,7 +714,7 @@ aresitos/
 | Categoría | Herramientas |
 |-----------|-------------|
 | **Escaneadores** | nmap, masscan, gobuster, nuclei, ffuf |
-| **Forense** | volatility3, binwalk, strings, sleuthkit |
+| **Forense** | memstat, binwalk, strings, sleuthkit |
 | **Antimalware** | clamscan, yara |
 | **Monitoreo** | inotifywait, pspy |
 | **Auditoría** | linpeas, chkrootkit, rkhunter |

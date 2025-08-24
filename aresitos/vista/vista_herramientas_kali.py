@@ -688,7 +688,6 @@ LISTO PARA: Escaneos de vulnerabilidades en entornos Kali Linux 2025
                 'strings',        # Extractor de strings (en binutils)
                 'hexdump',        # Editor hexadecimal (en bsdmainutils)
                 'file',           # Identificador de tipos de archivo
-                'volatility3',    # Análisis de memoria
                 
                 # === AUDITORÍA Y MONITOREO ===
                 'chkrootkit',     # Detector de rootkits
@@ -868,7 +867,7 @@ LISTO PARA: Escaneos de vulnerabilidades en entornos Kali Linux 2025
                 '• medusa: sudo apt install -y medusa',
                 '',
                 '🕵️ HERRAMIENTAS FORENSES:',
-                '• volatility3: sudo apt install -y volatility3',
+                '• memstat: sudo apt install -y procps (análisis de memoria nativo)',
                 '• binwalk: sudo apt install -y binwalk',
                 '• foremost: sudo apt install -y foremost',
                 '• strings: sudo apt install -y binutils',

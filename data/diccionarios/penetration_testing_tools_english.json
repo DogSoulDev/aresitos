@@ -20,7 +20,7 @@
     "amass": "Attack surface mapping tool",
     "recon_ng": "Web reconnaissance framework",
     "maltego": "Link analysis and data mining tool",
-    "volatility": "Memory forensics framework",
+    "memstat": "Memory and process analysis tool",
     "binwalk": "Firmware analysis tool",
     "yara": "Malware identification and classification tool",
     "radare2": "Reverse engineering framework",
