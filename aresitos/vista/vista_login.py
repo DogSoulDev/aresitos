@@ -1004,7 +1004,19 @@ class LoginAresitos:
             # Crear ventana separada para herramientas de Kali
             def callback_herramientas_completadas():
                 """Callback para cuando se complete la configuración de herramientas"""
-                self._iniciar_aplicacion_principal()
+                print("[LOGIN] Callback herramientas completadas ejecutado")
+                try:
+                    self._iniciar_aplicacion_principal()
+                except Exception as e:
+                    print(f"[LOGIN] Error en callback herramientas: {e}")
+                    import traceback
+                    traceback.print_exc()
+                    # Fallback - intentar iniciar aplicación principal de forma alternativa
+                    try:
+                        print("[LOGIN] Intentando fallback...")
+                        self._iniciar_aplicacion_principal_fallback()
+                    except Exception as e2:
+                        print(f"[LOGIN] Error en fallback: {e2}")
             
             # Ocultar ventana de login antes de crear la de herramientas
             self.root.withdraw()
@@ -1040,20 +1052,22 @@ class LoginAresitos:
     
     def _iniciar_aplicacion_principal(self):
         """Iniciar la aplicación principal después de configurar herramientas"""
-        self.escribir_log(" Iniciando ARESITOS...")
+        print("[LOGIN] Iniciando aplicación principal...")
         
         try:
+            print("[LOGIN] Importando módulos principales...")
             # Importar módulos principales
             from aresitos.vista.vista_principal import VistaPrincipal
             from aresitos.controlador.controlador_principal import ControladorPrincipal
             from aresitos.modelo.modelo_principal import ModeloPrincipal
             
-            self.escribir_log("Módulos principales importados correctamente")
+            print("[LOGIN] Módulos principales importados correctamente")
             
             # Cerrar ventana de login
+            print("[LOGIN] Cerrando ventana de login...")
             self.root.destroy()
             
-            self.escribir_log("Creando aplicación principal...")
+            print("[LOGIN] Creando aplicación principal...")
             
             # Crear aplicación principal y configurarla completamente ANTES de mostrar
             root_app = tk.Tk()
@@ -1061,30 +1075,31 @@ class LoginAresitos:
             root_app.title("Aresitos")
             root_app.configure(bg='#2b2b2b')
             
-            self.escribir_log("Ventana principal configurada con tema Burp Suite")
+            print("[LOGIN] Ventana principal configurada con tema Burp Suite")
             
-            self.escribir_log("Inicializando modelo de datos...")
+            print("[LOGIN] Inicializando modelo de datos...")
             # Inicializar MVC completamente antes de mostrar
             modelo = ModeloPrincipal()
             
-            self.escribir_log("Creando vista principal...")
+            print("[LOGIN] Creando vista principal...")
             vista = VistaPrincipal(root_app)
             vista.pack(fill="both", expand=True)
             
-            self.escribir_log("Inicializando controlador principal...")
+            print("[LOGIN] Inicializando controlador principal...")
             controlador = ControladorPrincipal(modelo)
             
-            self.escribir_log("Configurando conexión vista-controlador...")
+            print("[LOGIN] Configurando conexión vista-controlador...")
             vista.set_controlador(controlador)
             
             # Calcular posición centrada mientras está oculta
+            print("[LOGIN] Calculando posición de ventana...")
             root_app.update_idletasks()
             x = (root_app.winfo_screenwidth() // 2) - (1200 // 2)
             y = (root_app.winfo_screenheight() // 2) - (800 // 2)
             root_app.geometry(f"1200x800+{x}+{y}")
             
-            self.escribir_log("OK Ventana de aplicación configurada correctamente")
-            self.escribir_log("Aplicación principal configurada. Iniciando interfaz...")
+            print("[LOGIN] Ventana de aplicación configurada correctamente")
+            print("[LOGIN] Aplicación principal configurada. Iniciando interfaz...")
             
             # Mostrar ventana una sola vez, completamente configurada
             root_app.deiconify()
@@ -1092,7 +1107,9 @@ class LoginAresitos:
             # Pequeña pausa para evitar parpadeo
             root_app.after(100, lambda: root_app.focus_force())
             
+            print("[LOGIN] Iniciando mainloop de aplicación principal...")
             root_app.mainloop()
+            print("[LOGIN] Mainloop de aplicación principal terminado")
             
         except ImportError as e:
             # Si no puede importar, usar el main original
@@ -1108,6 +1125,40 @@ class LoginAresitos:
             import traceback
             traceback.print_exc()
             messagebox.showerror("Error", f"Error iniciando aplicación:\n{e}")
+    
+    def _iniciar_aplicacion_principal_fallback(self):
+        """Método fallback para iniciar aplicación principal sin dependencias del login"""
+        print("[LOGIN FALLBACK] Iniciando aplicación principal con método alternativo...")
+        
+        try:
+            # Usar el método del main.py como fallback
+            import subprocess
+            import sys
+            import os
+            
+            # Obtener el directorio del proyecto
+            directorio_proyecto = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+            
+            print(f"[LOGIN FALLBACK] Directorio proyecto: {directorio_proyecto}")
+            
+            # Ejecutar main.py directamente como subprocess
+            cmd = [sys.executable, os.path.join(directorio_proyecto, "main.py"), "--dev"]
+            print(f"[LOGIN FALLBACK] Ejecutando comando: {' '.join(cmd)}")
+            
+            # Cerrar la ventana actual primero
+            try:
+                if hasattr(self, 'root') and self.root.winfo_exists():
+                    self.root.destroy()
+            except:
+                pass
+            
+            # Ejecutar como subprocess independiente
+            subprocess.Popen(cmd, cwd=directorio_proyecto)
+            
+        except Exception as e:
+            print(f"[LOGIN FALLBACK] Error en fallback: {e}")
+            import traceback
+            traceback.print_exc()
 
 def main():
     """Función principal de la aplicación de login"""

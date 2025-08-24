@@ -229,14 +229,16 @@ install_tools() {
         else
             print_success "Templates de nuclei actualizados"
         fi
-    fi
-            else
-                print_warning "nuclei no pudo instalarse via APT"
-            fi
+    else
+        print_info "nuclei no encontrado, intentando instalar..."
+        if sudo apt update >/dev/null 2>&1 && sudo apt install -y nuclei >/dev/null 2>&1; then
+            print_success "nuclei instalado via APT"
+            # Actualizar templates después de instalación
+            sudo -u "$REAL_USER" nuclei -update-templates >/dev/null 2>&1 &
         else
-            print_info "nuclei no encontrado en repositorios, instalación manual requerida"
-            print_info "Para instalar nuclei: go install -v github.com/projectdiscovery/nuclei/v2/cmd/nuclei@latest"
+            print_warning "nuclei no pudo instalarse via APT"
         fi
+    fi
     
     # Verificar herramientas especiales de Go (subfinder, httpx)
     if command -v go >/dev/null 2>&1; then

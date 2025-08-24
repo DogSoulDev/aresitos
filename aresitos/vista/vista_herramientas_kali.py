@@ -850,15 +850,14 @@ LISTO PARA: Escaneos de vulnerabilidades en entornos Kali Linux 2025
                     self.text_resultados.insert(tk.END, "\nAbriendo aplicación principal...\n")
                     self.text_resultados.see(tk.END)
                 
-                # Cerrar esta ventana primero y luego ejecutar callback
-                self.after(800, self._cerrar_ventana_seguro)
-                self.after(1000, self._ejecutar_callback_seguro)
+                # Simplificar: Cerrar ventana y ejecutar callback de forma más directa
+                self.after(500, self._ejecutar_callback_directo)
             else:
                 messagebox.showinfo("Información", 
                                   "Configuración completada exitosamente.\n"
                                   "ARESITOS v2.0 se iniciará automáticamente.")
                 # Si no hay callback, cerrar esta ventana
-                self.after(2000, self._cerrar_ventana_seguro)
+                self.after(1000, self._cerrar_ventana_seguro)
         except (tk.TclError, AttributeError):
             # Widget ya destruido, ignorar silenciosamente
             pass
@@ -897,6 +896,34 @@ LISTO PARA: Escaneos de vulnerabilidades en entornos Kali Linux 2025
             print(f"[HERRAMIENTAS] Error cerrando ventana: {e}")
             if self.callback_completado:
                 self.callback_completado()
+    
+    def _ejecutar_callback_directo(self):
+        """Ejecutar callback de forma directa sin delays complicados"""
+        try:
+            print("[HERRAMIENTAS] Ejecutando callback directo...")
+            
+            # Cerrar ventana primero
+            if hasattr(self, 'master') and self.master.winfo_exists():
+                self.master.destroy()
+            
+            # Ejecutar callback inmediatamente después
+            if self.callback_completado:
+                print("[HERRAMIENTAS] Llamando a callback_completado...")
+                self.callback_completado()
+            else:
+                print("[HERRAMIENTAS] No hay callback_completado disponible")
+                
+        except Exception as e:
+            print(f"[HERRAMIENTAS] Error en callback directo: {e}")
+            import traceback
+            traceback.print_exc()
+            
+            # Fallback - intentar callback de todas formas
+            if self.callback_completado:
+                try:
+                    self.callback_completado()
+                except Exception as e2:
+                    print(f"[HERRAMIENTAS] Error en fallback callback: {e2}")
     
     def _cerrar_ventana_seguro(self):
         """Cerrar ventana de forma segura"""
