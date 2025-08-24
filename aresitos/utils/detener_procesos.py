@@ -166,7 +166,7 @@ class DetenerProcesos:
                 
                 # Procesos de escaneo específicos
                 procesos_escaneo = [
-                    'nmap', 'masscan', 'zmap', 'rustscan', 'unicornscan',
+                    'nmap', 'masscan', 'zmap', 'feroxbuster',
                     'dirb', 'gobuster', 'dirbuster', 'ffuf', 'wfuzz',
                     'nikto', 'sqlmap', 'nuclei', 'whatweb'
                 ]
@@ -210,7 +210,7 @@ class DetenerProcesos:
                 
                 # Procesos de auditoría específicos
                 procesos_auditoria = [
-                    'lynis', 'rkhunter', 'chkrootkit', 'nuclei', 'httpx',
+                    'lynis', 'rkhunter', 'chkrootkit', 'nuclei', 'curl',
                     'linpeas', 'pspy', 'clamav', 'clamscan'
                 ]
                 

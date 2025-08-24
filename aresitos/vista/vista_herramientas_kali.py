@@ -259,12 +259,12 @@ class VistaHerramientasKali(tk.Frame):
             "• Red: nmap, netcat, ip, route, ss, hping3, curl, wget\n" +
             "• Archivos: ls, chmod, chown, cat, sha256sum, md5sum\n\n" +
             "SEGURIDAD Y DETECCIÓN:\n" +
-            "• Anti-rootkit: chkrootkit, rkhunter, lynis, unhide, tiger\n" +
+            "• Anti-rootkit: chkrootkit, rkhunter, lynis, unhide\n" +
             "• Malware: clamav, yara, binwalk, strings, exiftool\n" +
             "• Monitoreo: inotifywait, auditd, systemctl, pspy, aide\n" +
             "• Firewall: iptables, fail2ban-client\n\n" +
             "ANÁLISIS FORENSE:\n" +
-            "• Forense: sleuthkit, autopsy, foremost\n" +
+            "• Forense: sleuthkit, autopsy, foremost, scalpel, testdisk, photorec\n" +
             "• Memoria: hexdump, strings, file, binwalk\n" +
             "• Logs: journalctl, aureport, logwatch, rsyslog\n\n" +
             "🌐 PENETRACIÓN Y AUDITORÍA:\n" +
@@ -444,20 +444,20 @@ LISTO PARA: Escaneos de vulnerabilidades en entornos Kali Linux 2025
                 'inotifywait', 'inotify-tools', 'auditd', 'ausearch', 'aide',
                 'debsums', 'dpkg', 'rpm', 'synaptic',
                 # Anti-rootkit y detección (usadas en escaneador avanzado FASE 3.1)
-                'chkrootkit', 'rkhunter', 'lynis', 'unhide', 'tiger', 'maldet',
+                'chkrootkit', 'rkhunter', 'lynis', 'unhide', 'maldet',
                 # Escaneadores de red y puertos (usados en SIEM y Escaneador FASE 3.1)
-                'nmap', 'masscan', 'rustscan', 'gobuster', 'feroxbuster', 'nikto', 'nuclei', 'httpx',
-                'zmap', 'unicornscan', 'hping3', 'dirb', 'dirbuster',
+                'nmap', 'masscan', 'rustscan', 'gobuster', 'feroxbuster', 'nikto', 'nuclei', 'curl',
+                'zmap', 'hping3', 'dirb', 'dirbuster',
                 # Análisis de servicios y red (expandido FASE 3.1)
                 'netcat', 'netcat-traditional', 'whatweb', 'wfuzz', 'ffuf', 'dirb',
                 'enum4linux', 'smbclient', 'rpcclient', 'ldapsearch',
                 # Cracking y fuerza bruta
                 'hashcat', 'john', 'hydra', 'medusa', 'patator', 'crunch', 'cewl',
                 # Bases de datos y SQL
-                'sqlmap', 'sqlninja', 'sqlite3', 'mysql', 'psql',
+                'sqlmap', 'sqlite3', 'mysql', 'psql',
                 # Análisis de malware (expandido para FIM y cuarentena FASE 3.3)
                 'clamav', 'clamscan', 'freshclam', 'clamav-daemon', 'yara', 'binwalk', 'strings', 'file', 'exiftool',
-                'hexdump', 'foremost', 'sleuthkit', 'autopsy',
+                'hexdump', 'foremost', 'scalpel', 'testdisk', 'photorec', 'sleuthkit', 'autopsy',
                 # FIM y monitoreo avanzado (FASE 3.2 y 3.3)
                 'pspy', 'pspy64', 'pspy32', 'linpeas', 'logger', 'fail2ban-client', 'logwatch',
                 'incron', 'fswatch', 'entr', 'watchman',
@@ -610,10 +610,10 @@ LISTO PARA: Escaneos de vulnerabilidades en entornos Kali Linux 2025
                 # Cracking y passwords
                 'hashcat', 'john', 'hydra', 'medusa', 'patator',
                 # Análisis SQL
-                'sqlmap', 'sqlninja',
+                'sqlmap',
                 # Cuarentena y malware (FASE 3.3 - FIM expandido)
                 'clamav', 'clamav-daemon', 'clamav-freshclam', 'yara', 'binwalk', 'exiftool',
-                'foremost', 'sleuthkit', 'autopsy',
+                'foremost', 'scalpel', 'testdisk', 'photorec', 'sleuthkit', 'autopsy',
                 # SIEM y auditoría (FASE 3.2)
                 'fail2ban', 'aide', 'tripwire', 'samhain',
                 # Herramientas de análisis avanzado (FASE 3)
@@ -635,11 +635,9 @@ LISTO PARA: Escaneos de vulnerabilidades en entornos Kali Linux 2025
                 'dirbuster',      # Fuzzer de directorios GUI
                 'whatweb',        # Identificador de tecnologías web
                 'wafw00f',        # Detector de WAF
-                'httprobe',       # Verificador de servicios HTTP
-                'httpx-toolkit',  # Kit de herramientas HTTP modernas
-                'subfinder',      # Descubrimiento de subdominios
-                'assetfinder',    # Buscador de assets
-                'amass',          # Framework de reconocimiento
+                'amass',          # Framework de reconocimiento (nativo Kali)
+                # NOTA: httprobe, httpx-toolkit, subfinder, assetfinder requieren Go (violación principios ARESITOS)
+                # ALTERNATIVAS NATIVAS: dig, nslookup, curl, wget (ya incluidos)
                 
                 # === HERRAMIENTAS DE RED ===
                 'netcat-openbsd', # Netcat principal en Kali
@@ -649,7 +647,7 @@ LISTO PARA: Escaneos de vulnerabilidades en entornos Kali Linux 2025
                 'fping',          # Ping masivo
                 'hping3',         # Generador de paquetes
                 'zmap',           # Scanner de Internet de alta velocidad
-                'unicornscan',    # Scanner asíncrono
+                # Nota: unicornscan no está en repos oficiales Kali 2025
                 
                 # === FUZZING Y TESTING WEB ===
                 'wfuzz',          # Fuzzer web principal
@@ -657,7 +655,7 @@ LISTO PARA: Escaneos de vulnerabilidades en entornos Kali Linux 2025
                 'burpsuite',      # Suite de testing web
                 'zaproxy',        # OWASP ZAP
                 'commix',         # Inyección de comandos
-                'xsser',          # Testing XSS
+                # Nota: xsser no está en repos oficiales Kali 2025
                 
                 # === CRACKING Y PASSWORDS ===
                 'hashcat',        # Cracker de hashes GPU
@@ -667,12 +665,11 @@ LISTO PARA: Escaneos de vulnerabilidades en entornos Kali Linux 2025
                 'patator',        # Fuzzer modular
                 'crunch',         # Generador de wordlists
                 'cewl',           # Extractor de wordlists web
-                'hashid',         # Identificador de hashes
+                'hash-identifier', # Identificador de hashes (en lugar de hashid)
                 
                 # === ANÁLISIS SQL ===
                 'sqlmap',         # SQL injection principal
-                'sqlninja',       # SQL injection avanzado
-                'bbqsql',         # Blind SQL injection
+                # Nota: sqlninja y bbqsql no están en repos oficiales Kali 2025
                 
                 # === ANÁLISIS DE MALWARE Y FORENSE ===
                 'clamav',         # Antivirus
@@ -683,10 +680,12 @@ LISTO PARA: Escaneos de vulnerabilidades en entornos Kali Linux 2025
                 'binwalk',        # Análisis de binarios
                 'exiftool',       # Análisis de metadatos
                 'foremost',       # Recuperación de archivos
+                'scalpel',        # Recuperación de archivos por patrones
+                'testdisk',       # Recuperación de particiones y archivos
+                'photorec',       # Recuperación de archivos multimedia
                 'sleuthkit',      # Kit forense
                 'autopsy',        # GUI forense
-                'strings',        # Extractor de strings (en binutils)
-                'hexdump',        # Editor hexadecimal (en bsdmainutils)
+                # Nota: strings viene en binutils, hexdump en bsdmainutils
                 'file',           # Identificador de tipos de archivo
                 
                 # === AUDITORÍA Y MONITOREO ===
@@ -711,9 +710,11 @@ LISTO PARA: Escaneos de vulnerabilidades en entornos Kali Linux 2025
                 'iotop',          # Monitor de E/S
                 'iftop',          # Monitor de ancho de banda
                 'nethogs',        # Monitor de ancho de banda por proceso
-                'rekall-core',    # Framework moderno de análisis de memoria forense
-                'strings',        # Extractor de strings
-                'hexedit',        # Editor hexadecimal
+                'debsums',        # Verificación de checksums de paquetes Debian
+                'dpkg',           # Gestor de paquetes Debian
+                'procps',         # Incluye memstat para análisis de memoria y procesos
+                'binutils',       # Incluye strings, objdump, readelf, nm
+                'bsdmainutils',   # Incluye hexdump
                 
                 # === SEGURIDAD DEL SISTEMA ===
                 'fail2ban',       # Protección contra brute force
@@ -721,7 +722,7 @@ LISTO PARA: Escaneos de vulnerabilidades en entornos Kali Linux 2025
                 'chkrootkit',     # Detector de rootkits
                 'rkhunter',       # Hunter de rootkits
                 'lynis',          # Auditor de seguridad
-                'tiger',          # Scanner de seguridad
+                # Nota: tiger no está disponible en repos oficiales Kali 2025
                 
                 # === ANÁLISIS DE TRÁFICO ===
                 'tcpdump',        # Capturador de paquetes
@@ -738,6 +739,7 @@ LISTO PARA: Escaneos de vulnerabilidades en entornos Kali Linux 2025
                 'gdb',            # Debugger
                 'radare2',        # Framework de reversing
                 'objdump',        # Analizador de objetos
+                'osquery',        # Framework SQL para OS (para SIEM avanzado)
                 'nm',             # Lister de símbolos
                 'readelf',        # Lector de ELF
                 
@@ -786,34 +788,19 @@ LISTO PARA: Escaneos de vulnerabilidades en entornos Kali Linux 2025
                     'notas': 'Plataforma de análisis forense digital. Herramienta nativa de Kali Linux'
                 },
                 'rustscan': {
-                    'razon': 'Requiere instalación vía cargo o GitHub',
-                    'comando': 'wget -qO- https://github.com/RustScan/RustScan/releases/latest/download/rustscan_2.3.0_amd64.deb && sudo dpkg -i rustscan_2.3.0_amd64.deb',
-                    'notas': 'Scanner de puertos ultra rápido. Alternativa: cargo install rustscan'
+                    'razon': 'Scanner moderno disponible en repos Kali',
+                    'comando': 'sudo apt install rustscan',
+                    'notas': 'Scanner de puertos ultra rápido. NATIVO EN KALI 2025'
                 },
                 'nuclei': {
-                    'razon': 'Instalación vía GitHub releases más actualizada',
-                    'comando': 'wget -qO- https://github.com/projectdiscovery/nuclei/releases/latest/download/nuclei_3.2.9_linux_amd64.zip | sudo unzip -d /usr/local/bin/',
-                    'notas': 'Scanner de vulnerabilidades moderno. Alternativa: apt install nuclei'
-                },
-                'bbqsql': {
-                    'razon': 'Herramienta Python que requiere instalación especial',
-                    'comando': 'pip3 install bbqsql --break-system-packages',
-                    'notas': 'Blind SQL injection. Alternativa: git clone y instalación manual'
-                },
-                'httprobe': {
-                    'razon': 'Herramienta Go que requiere instalación desde GitHub',
-                    'comando': 'go install github.com/tomnomnom/httprobe@latest',
-                    'notas': 'Verificador de servicios HTTP. Requiere Go instalado'
+                    'razon': 'Scanner moderno disponible en repos Kali',
+                    'comando': 'sudo apt install nuclei',
+                    'notas': 'Scanner de vulnerabilidades moderno. NATIVO EN KALI 2025'
                 }
             }
             
-            # Herramientas adicionales recomendadas para instalación manual
+            # Herramientas adicionales recomendadas - SOLO NATIVAS KALI
             herramientas_manuales = [
-                '🔧 INSTALACIÓN DE GOLANG (Prerequisito para herramientas Go):',
-                '   sudo apt update && sudo apt install -y golang-go',
-                '   export PATH=$PATH:/usr/local/go/bin:$HOME/go/bin',
-                '   echo "export PATH=$PATH:/usr/local/go/bin:$HOME/go/bin" >> ~/.bashrc',
-                '',
                 '🔍 HERRAMIENTAS DE ESCALACIÓN DE PRIVILEGIOS:',
                 '• linpeas.sh: wget https://github.com/peass-ng/PEASS-ng/releases/latest/download/linpeas.sh && chmod +x linpeas.sh',
                 '• winPEAS.exe: wget https://github.com/peass-ng/PEASS-ng/releases/latest/download/winPEASx64.exe',
@@ -828,24 +815,13 @@ LISTO PARA: Escaneos de vulnerabilidades en entornos Kali Linux 2025
                 '  gunzip chisel_1.10.1_linux_amd64.gz && mv chisel_1.10.1_linux_amd64 chisel && chmod +x chisel',
                 '• chisel (Windows): wget https://github.com/jpillora/chisel/releases/latest/download/chisel_1.10.1_windows_amd64.gz',
                 '',
-                '🔍 HERRAMIENTAS DE ENUMERACIÓN WEB (Requieren Go):',
-                '• gobuster: go install github.com/OJ/gobuster/v3@latest',
-                '• ffuf: go install github.com/ffuf/ffuf/v2@latest',
-                '• httpx: go install -v github.com/projectdiscovery/httpx/cmd/httpx@latest',
-                '• subfinder: go install -v github.com/projectdiscovery/subfinder/v2/cmd/subfinder@latest',
-                '• katana: go install github.com/projectdiscovery/katana/cmd/katana@latest',
-                '• nuclei (actualizar): go install -v github.com/projectdiscovery/nuclei/v3/cmd/nuclei@latest',
+                '� PRINCIPIO ARESITOS: SOLO HERRAMIENTAS NATIVAS KALI',
+                '• gobuster: sudo apt install gobuster (NATIVO KALI)',
+                '• ffuf: sudo apt install ffuf (NATIVO KALI)', 
+                '• nuclei: sudo apt install nuclei (NATIVO KALI)',
+                '• NOTA: NO usamos "go install" - Solo repos oficiales',
                 '',
-                '🔍 HERRAMIENTAS DE RECONOCIMIENTO (Requieren Go):',
-                '• amass: go install -v github.com/owasp-amass/amass/v4/...@master',
-                '• gau: go install github.com/lc/gau/v2/cmd/gau@latest',
-                '• waybackurls: go install github.com/tomnomnom/waybackurls@latest',
-                '• anew: go install github.com/tomnomnom/anew@latest',
-                '• gf: go install github.com/tomnomnom/gf@latest',
-                '• assetfinder: go install github.com/tomnomnom/assetfinder@latest',
-                '• httprobe: go install github.com/tomnomnom/httprobe@latest',
-                '',
-                '📚 WORDLISTS Y DICCIONARIOS:',
+                '📚 WORDLISTS Y DICCIONARIOS NATIVOS KALI:',
                 '• SecLists: sudo git clone https://github.com/danielmiessler/SecLists.git /opt/SecLists',
                 '• PayloadsAllTheThings: sudo git clone https://github.com/swisskyrepo/PayloadsAllTheThings.git /opt/PayloadsAllTheThings',
                 '• wordlists Kali: sudo apt update && sudo apt install -y seclists wordlists dirb',
@@ -874,9 +850,8 @@ LISTO PARA: Escaneos de vulnerabilidades en entornos Kali Linux 2025
                 '',
                 '⚙️ CONFIGURACIÓN POST-INSTALACIÓN:',
                 '• Actualizar nuclei templates: nuclei -update-templates',
-                '• Configurar Go PATH: source ~/.bashrc',
-                '• Verificar instalación Go: go version',
-                '• Verificar herramientas: which gobuster ffuf httpx subfinder'
+                '• NOTA: ARESITOS usa SOLO herramientas nativas de Kali',
+                '• Verificación: sudo apt list --installed | grep -E "gobuster|ffuf|nuclei"'
             ]
             
             # Actualizar repositorios usando SudoManager

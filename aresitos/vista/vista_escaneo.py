@@ -2825,7 +2825,7 @@ class VistaEscaneo(tk.Frame):
                 'gobuster': 'Escaneador de directorios/DNS rápido',
                 'ffuf': 'Fuzzer web rápido',
                 'whatweb': 'Identificador de tecnologías web',
-                'httpx': 'Kit de herramientas HTTP',
+                'curl': 'Cliente HTTP nativo',
                 
                 # Seguridad y análisis
                 'chkrootkit': 'Detector de rootkits',
@@ -2859,7 +2859,7 @@ class VistaEscaneo(tk.Frame):
                         # Categorizar herramientas
                         if herramienta in ['nmap', 'masscan', 'zmap', 'rustscan', 'ss', 'netstat', 'lsof', 'iftop', 'nethogs']:
                             categorias_disponibles['red'].append(herramienta)
-                        elif herramienta in ['nikto', 'dirb', 'gobuster', 'ffuf', 'whatweb', 'httpx']:
+                        elif herramienta in ['nikto', 'dirb', 'gobuster', 'ffuf', 'whatweb', 'curl']:
                             categorias_disponibles['web'].append(herramienta)
                         elif herramienta in ['chkrootkit', 'lynis', 'rkhunter', 'clamav', 'yara']:
                             categorias_disponibles['seguridad'].append(herramienta)
@@ -3788,7 +3788,7 @@ class VistaEscaneo(tk.Frame):
         import subprocess
         herramientas_kali = [
             'nmap', 'masscan', 'rustscan', 'nikto', 'dirb', 'gobuster', 
-            'whatweb', 'httpx', 'chkrootkit', 'rkhunter', 'clamav',
+            'whatweb', 'curl', 'chkrootkit', 'rkhunter', 'clamav',
             'binwalk', 'strings', 'lsof', 'pspy'
         ]
         

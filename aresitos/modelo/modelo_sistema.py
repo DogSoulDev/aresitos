@@ -19,7 +19,7 @@ class ModeloUtilidadesSistema:
             'monitoreo_red': ['netstat', 'ss', 'lsof', 'tcpdump', 'iftop'],
             'firewall': ['iptables', 'ufw', 'firewalld', 'nftables'],
             'forensics': ['binwalk', 'foremost', 'exiftool', 'strings'],
-            'web_testing': ['nikto', 'gobuster', 'feroxbuster', 'httpx'],
+            'web_testing': ['nikto', 'gobuster', 'feroxbuster', 'curl'],
             'password_tools': ['john', 'hashcat', 'hydra', 'medusa'],
             'explotacion': ['metasploit-framework', 'sqlmap', 'searchsploit'],
             'analisis_vulnerabilidades': ['nuclei', 'nmap', 'whatweb', 'wpscan'],

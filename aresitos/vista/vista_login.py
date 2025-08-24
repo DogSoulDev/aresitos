@@ -176,7 +176,7 @@ def verificar_kali_linux_criptografico() -> bool:
 HERRAMIENTAS_REQUERIDAS = [
     # Scanners de red criticos modernizados
     'nmap', 'masscan', 'zmap', 'rustscan', 'dnsenum', 'dnsrecon', 'fierce',
-    'sublist3r', 'amass', 'gobuster', 'feroxbuster', 'httpx', 'wfuzz',
+    'sublist3r', 'amass', 'gobuster', 'feroxbuster', 'curl', 'wfuzz',
     
     # Analisis de vulnerabilidades
     'nikto', 'sqlmap', 'wpscan', 'joomscan', 'droopescan', 'nuclei',
@@ -203,7 +203,7 @@ HERRAMIENTAS_REQUERIDAS = [
     'java', 'gcc', 'make', 'cmake', 'openssl',
     
     # Herramientas adicionales modernizadas
-    'burpsuite', 'owasp-zap', 'nuclei', 'xsser', 'weevely',
+    'burpsuite', 'owasp-zap', 'nuclei', 'commix', 'weevely',
     'backdoor-factory', 'shellter', 'veil', 'empire'
 ]
 

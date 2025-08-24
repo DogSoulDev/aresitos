@@ -640,7 +640,7 @@ class ModeloDashboard:
                 'nmap', 'masscan', 'gobuster', 'nikto', 'sqlmap',
                 'hydra', 'john', 'hashcat', 'feroxbuster', 'wfuzz',
                 'tcpdump', 'wireshark', 'tshark', 'aircrack-ng',
-                'nuclei', 'httpx', 'rustscan', 'linpeas', 'pspy'
+                'nuclei', 'curl', 'rustscan', 'linpeas', 'pspy'
             ]
             
             if herramienta not in herramientas_permitidas:

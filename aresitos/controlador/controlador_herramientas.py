@@ -30,9 +30,9 @@ class ControladorHerramientas(ControladorBase):
             'traceroute', 'ping', 'fping', 'arping', 'nbtscan',
             
             # Aplicaciones Web (ACTUALIZADAS)
-            'sqlmap', 'gobuster', 'feroxbuster', 'nikto', 'httpx',
+            'sqlmap', 'gobuster', 'feroxbuster', 'nikto', 'curl',
             'wpscan', 'whatweb', 'nuclei', 'ffuf', 'dirsearch',
-            'zaproxy', 'wapiti', 'ghauri', 'xsser', 'sublist3r',
+            'zaproxy', 'wapiti', 'ghauri', 'commix', 'sublist3r',
             
             # Passwords y Hashing
             'hydra', 'medusa', 'patator', 'hashcat', 'john',
@@ -210,7 +210,7 @@ class ControladorHerramientas(ControladorBase):
             
             # Herramientas de Kali instaladas (MODERNAS)
             herramientas_instaladas = []
-            herramientas_core = ['nmap', 'rustscan', 'sqlmap', 'gobuster', 'nikto', 'httpx', 'nuclei']
+            herramientas_core = ['nmap', 'rustscan', 'sqlmap', 'gobuster', 'nikto', 'curl', 'nuclei']
             
             for herramienta in herramientas_core:
                 try:

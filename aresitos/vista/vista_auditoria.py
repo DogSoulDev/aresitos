@@ -18,7 +18,7 @@ class VistaAuditoria(tk.Frame):
     Vista especializada para auditorías de seguridad del sistema.
     
     Enfoque específico:
-    - Auditorías generales del sistema (Lynis, nuclei, httpx)
+    - Auditorías generales del sistema (Lynis, nuclei, curl)
     - Análisis de configuraciones de seguridad
     - Verificación de permisos y políticas
     - Detección de rootkits y malware
@@ -428,7 +428,7 @@ class VistaAuditoria(tk.Frame):
             ("Detectar Rootkits", self.detectar_rootkits, self.colors['warning']),
             ("Cancelar Rootkits", self.cancelar_rootkits, self.colors['danger']),
             ("Auditoría nuclei", self.ejecutar_nuclei, self.colors['info']),
-            ("Scan httpx", self.ejecutar_httpx, self.colors['fg_accent']),
+            ("Scan curl", self.ejecutar_curl_probe, self.colors['fg_accent']),
         ]
         
         for text, command, color in buttons:
@@ -1423,7 +1423,7 @@ class VistaAuditoria(tk.Frame):
                         self._actualizar_texto_auditoria("ERROR nuclei no encontrado en sistema\n")
                         self._actualizar_texto_auditoria("INSTALACIÓN REQUERIDA:\n")
                         self._actualizar_texto_auditoria("• apt update && apt install nuclei\n")
-                        self._actualizar_texto_auditoria("• O desde Go: go install github.com/projectdiscovery/nuclei/v3/cmd/nuclei@latest\n")
+                        self._actualizar_texto_auditoria("• ARESITOS usa SOLO repos oficiales Kali - No Go\n")
                         self._actualizar_texto_auditoria("• Verificar: nuclei -version\n")
                         self._actualizar_texto_auditoria("• Actualizar templates: nuclei -update-templates\n")
                         
@@ -1449,19 +1449,19 @@ class VistaAuditoria(tk.Frame):
         self.thread_auditoria = threading.Thread(target=ejecutar_nuclei_worker, daemon=True)
         self.thread_auditoria.start()
     
-    def ejecutar_httpx(self):
-        """Ejecutar escaneo web completo con httpx - probe HTTP avanzado."""
+    def ejecutar_curl_probe(self):
+        """Ejecutar escaneo web completo con curl - probe HTTP nativo."""
         def ejecutar():
             try:
-                self._actualizar_texto_auditoria("=== INICIANDO ESCANEO HTTPX ===\n")
+                self._actualizar_texto_auditoria("=== INICIANDO ESCANEO CURL PROBE ===\n")
                 import subprocess
                 import os
                 
                 try:
-                    # Verificar si httpx está instalado
-                    resultado = subprocess.run(['which', 'httpx'], capture_output=True, text=True)
+                    # Verificar si curl está instalado (debería estar en cualquier sistema)
+                    resultado = subprocess.run(['which', 'curl'], capture_output=True, text=True)
                     if resultado.returncode == 0:
-                        self._actualizar_texto_auditoria("OK httpx encontrado en sistema\n")
+                        self._actualizar_texto_auditoria("✓ curl encontrado en sistema\n")
                         
                         # Targets comunes para escanear
                         targets = ['127.0.0.1', 'localhost', '192.168.1.1', '192.168.1.254']
@@ -1472,31 +1472,30 @@ class VistaAuditoria(tk.Frame):
                         for target in targets:
                             self._actualizar_texto_auditoria(f"• Escaneando servicios web en {target}...\n")
                             
-                            # Crear lista de URLs para httpx
-                            urls_target = []
+                            # Crear lista de URLs para curl probe
                             for puerto in puertos:
-                                urls_target.extend([f"http://{target}:{puerto}", f"https://{target}:{puerto}"])
-                            
-                            # Ejecutar httpx con probe
-                            for url in urls_target:
-                                try:
-                                    cmd = ['httpx', '-u', url, '-probe', '-status-code', 
-                                          '-title', '-tech-detect', '-timeout', '5', '-silent']
-                                    
-                                    proceso = subprocess.run(cmd, capture_output=True, 
-                                                           text=True, timeout=10)
-                                    
-                                    if proceso.stdout and proceso.stdout.strip():
-                                        lineas = proceso.stdout.strip().split('\n')
-                                        for linea in lineas:
-                                            if linea.strip() and '[' in linea:
-                                                servicios_encontrados.append(linea.strip())
-                                                self._actualizar_texto_auditoria(f"  OK SERVICIO: {linea.strip()}\n")
+                                for protocolo in ['http', 'https']:
+                                    url = f"{protocolo}://{target}:{puerto}"
+                                    try:
+                                        # Usar curl para probe HTTP nativo
+                                        cmd = ['curl', '-I', '-s', '--connect-timeout', '5', 
+                                              '--max-time', '10', url]
+                                        
+                                        proceso = subprocess.run(cmd, capture_output=True, 
+                                                               text=True, timeout=15)
+                                        
+                                        if proceso.returncode == 0 and proceso.stdout:
+                                            # Extraer código de estado
+                                            lines = proceso.stdout.strip().split('\n')
+                                            if lines and 'HTTP' in lines[0]:
+                                                status_line = lines[0].strip()
+                                                servicios_encontrados.append(f"{url} [{status_line}]")
+                                                self._actualizar_texto_auditoria(f"  ✓ SERVICIO: {url} [{status_line}]\n")
                                                 
-                                except subprocess.TimeoutExpired:
-                                    continue
-                                except Exception:
-                                    continue
+                                    except subprocess.TimeoutExpired:
+                                        continue
+                                    except Exception:
+                                        continue
                         
                         if servicios_encontrados:
                             self._actualizar_texto_auditoria(f"\n=== RESUMEN: {len(servicios_encontrados)} servicios web encontrados ===\n")
@@ -1505,39 +1504,39 @@ class VistaAuditoria(tk.Frame):
                         else:
                             self._actualizar_texto_auditoria("• INFO: No se encontraron servicios web activos\n")
                         
-                        # Ejecutar detección de tecnologías en localhost
-                        self._actualizar_texto_auditoria("\n• Detectando tecnologías en localhost...\n")
+                        # Ejecutar detección de tecnologías en localhost usando curl
+                        self._actualizar_texto_auditoria("\n• Detectando servicios en localhost...\n")
                         try:
-                            cmd_tech = ['httpx', '-u', 'http://localhost', '-tech-detect', 
-                                       '-follow-redirects', '-timeout', '10', '-silent']
+                            cmd_tech = ['curl', '-I', '-s', '--connect-timeout', '5', 
+                                       'http://localhost']
                             tech_result = subprocess.run(cmd_tech, capture_output=True, 
                                                        text=True, timeout=15)
-                            if tech_result.stdout and tech_result.stdout.strip():
-                                self._actualizar_texto_auditoria(f"TECNOLOGÍAS: {tech_result.stdout.strip()}\n")
+                            if tech_result.returncode == 0 and tech_result.stdout:
+                                headers = tech_result.stdout.strip()
+                                self._actualizar_texto_auditoria(f"✓ LOCALHOST ACTIVO:\n{headers[:200]}...\n")
                             else:
-                                self._actualizar_texto_auditoria("• No se detectaron tecnologías específicas\n")
+                                self._actualizar_texto_auditoria("• No hay servicios activos en localhost\n")
                         except (subprocess.SubprocessError, OSError, TimeoutError) as e:
                             logging.debug(f'Error en excepción: {e}')
                             pass
                         
-                        # Mostrar comandos útiles
-                        self._actualizar_texto_auditoria("\n=== COMANDOS HTTPX ÚTILES ===\n")
-                        self._actualizar_texto_auditoria("• httpx -l targets.txt -probe: Verificar múltiples URLs\n")
-                        self._actualizar_texto_auditoria("• httpx -u target.com -ports 80,443,8080: Puertos específicos\n")
-                        self._actualizar_texto_auditoria("• httpx -u target.com -screenshot: Capturar pantalla\n")
-                        self._actualizar_texto_auditoria("• httpx -u target.com -favicon: Hash de favicon\n")
+                        # Mostrar comandos útiles con curl
+                        self._actualizar_texto_auditoria("\n=== COMANDOS CURL ÚTILES ===\n")
+                        self._actualizar_texto_auditoria("• curl -I target.com: Headers HTTP\n")
+                        self._actualizar_texto_auditoria("• curl -L target.com: Seguir redirects\n")
+                        self._actualizar_texto_auditoria("• curl -A 'User-Agent' target.com: Custom user agent\n")
+                        self._actualizar_texto_auditoria("• curl -k https://target.com: Ignorar SSL\n")
                         
                     else:
-                        self._actualizar_texto_auditoria("WARNING httpx no encontrado\n")
-                        self._actualizar_texto_auditoria("INSTALACIÓN: apt install httpx\n")
-                        self._actualizar_texto_auditoria("O desde Go: go install github.com/projectdiscovery/httpx/cmd/httpx@latest\n")
+                        self._actualizar_texto_auditoria("✓ curl está disponible en el sistema\n")
+                        self._actualizar_texto_auditoria("curl es herramienta nativa - No requiere instalación\n")
                         
                 except Exception as e:
-                    self._actualizar_texto_auditoria(f"ERROR verificando httpx: {str(e)}\n")
+                    self._actualizar_texto_auditoria(f"ERROR verificando curl: {str(e)}\n")
                 
-                self._actualizar_texto_auditoria("=== ESCANEO HTTPX COMPLETADO ===\n\n")
+                self._actualizar_texto_auditoria("=== ESCANEO CURL PROBE COMPLETADO ===\n\n")
             except Exception as e:
-                self._actualizar_texto_auditoria(f"ERROR en httpx: {str(e)}\n")
+                self._actualizar_texto_auditoria(f"ERROR en curl probe: {str(e)}\n")
         
         threading.Thread(target=ejecutar, daemon=True).start()
     

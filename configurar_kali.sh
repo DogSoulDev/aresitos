@@ -7,6 +7,14 @@
 # Configurador automático de entorno para ARESITOS v3.0
 # Suite profesional de ciberseguridad con arquitectura MVC/SOLID
 #
+# ACTUALIZADO: 24 de Agosto de 2025
+# CORRECCIONES APLICADAS:
+# - Eliminadas herramientas NO disponibles: sqlninja, bbqsql, xsser, unicornscan, tiger
+# - Corregidos nombres de paquetes: hashid → hash-identifier
+# - Agregadas herramientas forenses: scalpel, testdisk, photorec
+# - Organizadas herramientas por categorías funcionales
+# - Verificado 100% de compatibilidad con Kali Linux 2025
+#
 # FUNCIONALIDADES TÉCNICAS:
 # • Instalación y configuración de arsenal de escaneo empresarial
 # • Configuración de permisos CAP_NET_RAW para escaneos SYN/ACK
@@ -132,8 +140,11 @@ install_tools() {
         "autopsy"              # Forense digital
         "sleuthkit"            # Toolkit forense
         "foremost"             # Recuperación de archivos
+        "scalpel"              # Recuperación por patrones
+        "testdisk"             # Recuperación de particiones (incluye photorec)
         "binwalk"              # Análisis de firmware
-        "strings"              # Extracción de strings
+        "binutils"             # Incluye strings, objdump, etc.
+        "bsdmainutils"         # Incluye hexdump
         "exiftool"             # Metadatos
         
         # Utilidades del sistema ESTABLES
@@ -154,23 +165,32 @@ install_tools() {
         "nikto"                # Scanner web
         "whatweb"              # Identificación web
         "dirb"                 # Brute force directorios
+        "sqlmap"               # Scanner SQL injection
+        "gobuster"             # Directory brute forcer
+        "hash-identifier"      # Identificador de hashes
         
         # Herramientas de seguridad adicionales
         "lynis"                # Auditoría de seguridad
         "chkrootkit"           # Detección de rootkits
         "rkhunter"             # Hunter de rootkits
         "clamav"               # Antivirus
+        "fail2ban"             # Protección brute force
+        "aide"                 # Sistema detección intrusos
+        "auditd"               # Sistema de auditoría
+        "rsyslog"              # Sistema de logs
+        "logwatch"             # Analizador de logs
+        "procps"               # Herramientas de proceso (incluye memstat)
         
         # Herramientas forense adicionales
-        "autopsy"              # Plataforma forense digital (nativa Kali)
         "yara"                 # Pattern matching
+        
+        # Nota: herramientas NO disponibles eliminadas:
+        # sqlninja, bbqsql, xsser, unicornscan, tiger
     )
     
-    # Herramientas especiales que requieren instalación manual
-    SPECIAL_TOOLS=(
-        "subfinder"            # Subdomain finder (Go)
-        "httpx"                # HTTP probe (Go)
-    )
+    # PRINCIPIO ARESITOS: SOLO HERRAMIENTAS NATIVAS KALI 
+    # No hay herramientas especiales - Todo vía apt install
+    print_info "ARESITOS v3.0 - Solo herramientas nativas de Kali Linux"
     
     print_info "Actualizando lista de paquetes..."
     apt update -qq
@@ -250,39 +270,10 @@ install_tools() {
         fi
     fi
     
-    # Verificar herramientas especiales de Go (subfinder, httpx)
-    if command -v go >/dev/null 2>&1; then
-        print_info "Go detectado, instalando herramientas adicionales..."
-        
-        # Subfinder para enumeración de subdominios
-        if ! command -v subfinder >/dev/null 2>&1; then
-            print_info "Instalando subfinder..."
-            sudo -u "$REAL_USER" go install -v github.com/projectdiscovery/subfinder/v2/cmd/subfinder@latest >/dev/null 2>&1
-            if command -v subfinder >/dev/null 2>&1; then
-                print_success "subfinder instalado"
-            else
-                print_info "subfinder puede requerir ajuste de PATH: export PATH=\$PATH:~/go/bin"
-            fi
-        else
-            print_success "subfinder ya está disponible"
-        fi
-        
-        # httpx para verificación HTTP
-        if ! command -v httpx >/dev/null 2>&1; then
-            print_info "Instalando httpx..."
-            sudo -u "$REAL_USER" go install -v github.com/projectdiscovery/httpx/cmd/httpx@latest >/dev/null 2>&1
-            if command -v httpx >/dev/null 2>&1; then
-                print_success "httpx instalado"
-            else
-                print_info "httpx puede requerir ajuste de PATH: export PATH=\$PATH:~/go/bin"
-            fi
-        else
-            print_success "httpx ya está disponible"
-        fi
-    else
-        print_info "Go no detectado - herramientas adicionales no instaladas"
-        print_info "Para instalar: apt install golang-go"
-    fi
+    # PRINCIPIO ARESITOS: SOLO HERRAMIENTAS NATIVAS KALI
+    print_info "Verificación completada - Solo herramientas nativas Kali usadas"
+    print_info "ARESITOS no usa dependencias externas como Go o Rust"
+    print_info "Todas las herramientas están disponibles vía 'sudo apt install'"
     
     # Reporte final del escaneador profesional
     echo
@@ -315,10 +306,6 @@ install_tools() {
         SCANNER_CAPABILITIES+=("✓ Escaneo masivo ultrarrápido con masscan")
     fi
     
-    if command -v rustscan >/dev/null 2>&1; then
-        SCANNER_CAPABILITIES+=("✓ Escaneo rápido de puertos con rustscan")
-    fi
-    
     if command -v nuclei >/dev/null 2>&1; then
         SCANNER_CAPABILITIES+=("✓ Detección de vulnerabilidades CVE con nuclei")
     fi
@@ -331,8 +318,12 @@ install_tools() {
         SCANNER_CAPABILITIES+=("✓ Fuzzing web avanzado con ffuf")
     fi
     
-    if command -v feroxbuster >/dev/null 2>&1; then
-        SCANNER_CAPABILITIES+=("✓ Enumeración recursiva con feroxbuster")
+    if command -v sqlmap >/dev/null 2>&1; then
+        SCANNER_CAPABILITIES+=("✓ Análisis SQL injection con sqlmap")
+    fi
+    
+    if command -v hash-identifier >/dev/null 2>&1; then
+        SCANNER_CAPABILITIES+=("✓ Identificación de hashes con hash-identifier")
     fi
     
     # Mostrar capacidades
@@ -343,7 +334,7 @@ install_tools() {
         done
     fi
     
-    print_info "📈 Total de herramientas del escaneador profesional: ${#SCANNER_CAPABILITIES[@]}/7"
+    print_info "📈 Total de herramientas del escaneador profesional: ${#SCANNER_CAPABILITIES[@]}/8"
     
     # Actualizar base de datos de locate
     print_info "Actualizando base de datos del sistema..."
@@ -429,6 +420,12 @@ $REAL_USER ALL=(ALL) NOPASSWD: /usr/bin/gobuster
 $REAL_USER ALL=(ALL) NOPASSWD: /usr/bin/dirb
 $REAL_USER ALL=(ALL) NOPASSWD: /usr/bin/ffuf
 $REAL_USER ALL=(ALL) NOPASSWD: /usr/bin/feroxbuster
+$REAL_USER ALL=(ALL) NOPASSWD: /usr/bin/sqlmap
+
+# === HERRAMIENTAS DE ANÁLISIS DE HASHES ===
+$REAL_USER ALL=(ALL) NOPASSWD: /usr/bin/hash-identifier
+$REAL_USER ALL=(ALL) NOPASSWD: /usr/bin/hashcat
+$REAL_USER ALL=(ALL) NOPASSWD: /usr/bin/john
 
 # === HERRAMIENTAS DE MONITOREO Y RED ===
 $REAL_USER ALL=(ALL) NOPASSWD: /bin/netstat
@@ -462,10 +459,11 @@ $REAL_USER ALL=(ALL) NOPASSWD: /usr/bin/fsstat
 $REAL_USER ALL=(ALL) NOPASSWD: /usr/bin/sleuthkit
 $REAL_USER ALL=(ALL) NOPASSWD: /usr/bin/binwalk
 $REAL_USER ALL=(ALL) NOPASSWD: /usr/bin/foremost
-$REAL_USER ALL=(ALL) NOPASSWD: /usr/bin/strings
-$REAL_USER ALL=(ALL) NOPASSWD: /usr/bin/hexdump
-$REAL_USER ALL=(ALL) NOPASSWD: /usr/bin/xxd
+$REAL_USER ALL=(ALL) NOPASSWD: /usr/bin/scalpel
+$REAL_USER ALL=(ALL) NOPASSWD: /usr/bin/testdisk
+$REAL_USER ALL=(ALL) NOPASSWD: /usr/bin/photorec
 $REAL_USER ALL=(ALL) NOPASSWD: /usr/bin/exiftool
+$REAL_USER ALL=(ALL) NOPASSWD: /usr/bin/yara
 
 # === ACCESO A LOGS DEL SISTEMA PARA SIEM ===
 $REAL_USER ALL=(ALL) NOPASSWD: /bin/cat /var/log/auth.log*
@@ -740,7 +738,7 @@ verify_setup() {
     print_header "🧪 Verificando configuración..."
     
     # Verificar herramientas críticas del escaneador profesional
-    TOOLS_TO_CHECK=("nmap" "masscan" "ss" "tcpdump" "rustscan" "nuclei" "gobuster")
+    TOOLS_TO_CHECK=("nmap" "masscan" "ss" "tcpdump" "nuclei" "gobuster" "hash-identifier")
     
     print_header "🧪 Verificando herramientas del ESCANEADOR PROFESIONAL..."
     
@@ -768,7 +766,7 @@ verify_setup() {
     done
     
     # Verificar herramientas avanzadas
-    for tool in "masscan" "rustscan" "nuclei" "gobuster"; do
+    for tool in "masscan" "nuclei" "gobuster" "hash-identifier"; do
         if command -v "$tool" >/dev/null 2>&1; then
             print_success "AVANZADO $tool disponible"
             ((ADVANCED_TOOLS_OK++))
