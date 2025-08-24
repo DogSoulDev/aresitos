@@ -1,16 +1,23 @@
 # -*- coding: utf-8 -*-
 """
-ARESITOS - Módulo de Utilidades
-==============================
+ARESITOS v3.0 - Módulo de Utilidades Optimizado
+==============================================
 
-Módulo que contiene utilidades del sistema ARESITOS.
-Incluye sanitización de archivos, verificaciones de seguridad y gestión de permisos.
+Módulo que contiene las utilidades core del sistema ARESITOS v3.0.
+Arquitectura limpia con solo componentes activamente utilizados.
 
-Principios ARESITOS aplicados:
-- Importaciones con manejo de errores específico
-- Logging integrado para trazabilidad
-- Gestión segura de permisos
-- Solo dependencias estándar de Python
+Utilidades Principales:
+- Gestión segura de permisos sudo
+- Sanitización y validación de archivos
+- Seguridad de comandos del sistema
+- Detección de red y conectividad
+- Helper de seguridad integrado
+
+Principios ARESITOS v3.0:
+- Solo importaciones de archivos existentes y utilizados
+- Manejo de errores específico y robusto
+- Logging integrado para trazabilidad completa
+- Zero dependencias externas
 
 Autor: DogSoulDev
 Fecha: 24 de Agosto de 2025
@@ -24,22 +31,7 @@ logger = logging.getLogger(__name__)
 # Lista de utilidades disponibles para tracking
 utilidades_disponibles = []
 
-# Importar utilidades principales con manejo de errores robusto
-try:
-    from .sanitizador_archivos import SanitizadorArchivos
-    utilidades_disponibles.append('SanitizadorArchivos')
-    logger.debug("Sanitizador de Archivos importado correctamente")
-except ImportError as e:
-    logger.warning(f"No se pudo importar SanitizadorArchivos: {e}")
-    SanitizadorArchivos = None
-
-try:
-    from .helper_seguridad import HelperSeguridad
-    utilidades_disponibles.append('HelperSeguridad')
-    logger.debug("Helper de Seguridad importado correctamente")
-except ImportError as e:
-    logger.warning(f"No se pudo importar HelperSeguridad: {e}")
-    HelperSeguridad = None
+# === UTILIDADES CRÍTICAS ===
 
 try:
     from .sudo_manager import SudoManager, get_sudo_manager, execute_sudo, is_sudo_available
@@ -52,7 +44,32 @@ except ImportError as e:
     execute_sudo = None
     is_sudo_available = None
 
-# Utilidades adicionales opcionales
+try:
+    from .seguridad_comandos import ValidadorComandos
+    utilidades_disponibles.append('ValidadorComandos')
+    logger.debug("Validador de Comandos importado correctamente")
+except ImportError as e:
+    logger.warning(f"No se pudo importar ValidadorComandos: {e}")
+    ValidadorComandos = None
+
+try:
+    from .sanitizador_archivos import SanitizadorArchivos
+    utilidades_disponibles.append('SanitizadorArchivos')
+    logger.debug("Sanitizador de Archivos importado correctamente")
+except ImportError as e:
+    logger.warning(f"No se pudo importar SanitizadorArchivos: {e}")
+    SanitizadorArchivos = None
+
+# === UTILIDADES ESPECIALIZADAS ===
+
+try:
+    from .helper_seguridad import HelperSeguridad
+    utilidades_disponibles.append('HelperSeguridad')
+    logger.debug("Helper de Seguridad importado correctamente")
+except ImportError as e:
+    logger.warning(f"No se pudo importar HelperSeguridad: {e}")
+    HelperSeguridad = None
+
 try:
     from .detector_red import DetectorRed
     utilidades_disponibles.append('DetectorRed')
@@ -62,12 +79,12 @@ except ImportError as e:
     DetectorRed = None
 
 try:
-    from .configurar import ConfiguradorAresAegis
-    utilidades_disponibles.append('ConfiguradorAresAegis')
-    logger.debug("Configurador importado correctamente")
+    from .detener_procesos import detener_procesos
+    utilidades_disponibles.append('detener_procesos')
+    logger.debug("Gestor de Procesos importado correctamente")
 except ImportError as e:
-    logger.warning(f"No se pudo importar ConfiguradorAresAegis: {e}")
-    ConfiguradorAresAegis = None
+    logger.warning(f"No se pudo importar detener_procesos: {e}")
+    detener_procesos = None
 
 try:
     from .gestor_permisos import GestorPermisosSeguro
@@ -76,23 +93,6 @@ try:
 except ImportError as e:
     logger.warning(f"No se pudo importar GestorPermisosSeguro: {e}")
     GestorPermisosSeguro = None
-
-try:
-    from .seguridad_comandos import ValidadorComandos
-    utilidades_disponibles.append('ValidadorComandos')
-    logger.debug("Validador de Comandos importado correctamente")
-except ImportError as e:
-    logger.warning(f"No se pudo importar ValidadorComandos: {e}")
-    ValidadorComandos = None
-
-# Importar funciones de verificar_kali (no tiene clases)
-try:
-    from .verificar_kali import verificar_compatibilidad_kali
-    utilidades_disponibles.append('verificar_compatibilidad_kali')
-    logger.debug("Verificador de Kali importado correctamente")
-except ImportError as e:
-    logger.warning(f"No se pudo importar verificar_compatibilidad_kali: {e}")
-    verificar_compatibilidad_kali = None
 
 # Registro de utilidades disponibles
 logger.info(f"Utilidades disponibles: {len(utilidades_disponibles)} utilidades cargadas")
@@ -106,18 +106,9 @@ def verificar_utilidad(nombre_utilidad):
     """Verificar si una utilidad específica está disponible."""
     return nombre_utilidad in utilidades_disponibles
 
-def get_estadisticas_utilidades():
-    """Obtener estadísticas de utilidades cargadas."""
-    return {
-        'total_disponibles': len(utilidades_disponibles),
-        'seguridad': len([u for u in utilidades_disponibles if 'Seguridad' in u or 'Sudo' in u]),
-        'sistema': len([u for u in utilidades_disponibles if 'Sistema' in u or 'Red' in u or 'Kali' in u]),
-        'archivos': len([u for u in utilidades_disponibles if 'Archivo' in u or 'Sanitizador' in u])
-    }
-
 def verificar_dependencias_criticas():
     """Verificar que las dependencias críticas estén disponibles."""
-    criticas = ['SanitizadorArchivos', 'HelperSeguridad', 'SudoManager']
+    criticas = ['SudoManager', 'ValidadorComandos', 'SanitizadorArchivos']
     disponibles = [u for u in criticas if verificar_utilidad(u)]
     
     if len(disponibles) == len(criticas):
@@ -131,25 +122,28 @@ def verificar_dependencias_criticas():
 # Ejecutar verificación inicial
 verificar_dependencias_criticas()
 
+# === EXPORTACIONES VALIDADAS ===
 __all__ = [
-    # Utilidades principales
-    'SanitizadorArchivos', 
-    'HelperSeguridad', 
+    # Gestión de permisos (CRÍTICO)
     'SudoManager', 
     'get_sudo_manager', 
     'execute_sudo', 
     'is_sudo_available',
     
-    # Utilidades adicionales
-    'DetectorRed',
-    'ConfiguradorAresAegis',
-    'GestorPermisosSeguro',
+    # Seguridad de comandos (CRÍTICO)
     'ValidadorComandos',
-    'verificar_compatibilidad_kali',
+    
+    # Sanitización de archivos (CRÍTICO)
+    'SanitizadorArchivos',
+    
+    # Utilidades especializadas
+    'HelperSeguridad',
+    'DetectorRed',
+    'detener_procesos',
+    'GestorPermisosSeguro',
     
     # Funciones utilitarias
     'get_utilidades_disponibles',
     'verificar_utilidad',
-    'get_estadisticas_utilidades',
     'verificar_dependencias_criticas'
 ]

@@ -1,6 +1,6 @@
 # ===================================================================
-# ARESITOS v2.0 - GITIGNORE ACTUALIZADO
-# Suite de Ciberseguridad para Kali Linux
+# ARESITOS v3.0 - GITIGNORE OPTIMIZADO
+# Suite Profesional de Ciberseguridad - Arquitectura MVC/SOLID
 # ===================================================================
 
 # === PYTHON ===
@@ -14,146 +14,73 @@ dist/
 build/
 .eggs/
 
-# === ENTORNOS VIRTUALES ===
+# === ENTORNOS VIRTUALES (no utilizados en ARESITOS) ===
 .env
 .venv
 env/
 venv/
-ENV/
-env.bak/
-venv.bak/
 
 # === LOGS Y REPORTES ===
 logs/*.log
 logs/*.log.*
 *.log
-*.log.*
-data/reportes/
-data/reportes_temp/
-data/cuarentena/
+reportes/temp/
 data/temp/
 
 # === CONFIGURACIONES SENSIBLES ===
 configuracion/*.backup
-configuracion/*.temp
 configuracion/.env
-configuracion/config_local.json
 .env.local
-.env.*.local
 
 # === BASES DE DATOS Y CACHES ===
 data/fim_database.json.backup
 data/vulnerability_database.json.backup
-data/*.db
-data/*.sqlite
+data/*.db.backup
+data/*.sqlite.backup
 data/*.cache
 *.db-journal
 
 # === ARCHIVOS TEMPORALES DEL SISTEMA ===
 .DS_Store
-.DS_Store?
-._*
-.Spotlight-V100
-.Trashes
-ehthumbs.db
 Thumbs.db
 *.tmp
 *.temp
 *~
 *.swp
-*.swo
 
 # === IDEs Y EDITORES ===
-.vscode/
+.vscode/settings.json
 .idea/
 *.sublime-workspace
-*.sublime-project
 
-# === TESTING ===
+# === TESTING (futuro) ===
 .pytest_cache/
 .coverage
-.coverage.*
 htmlcov/
-.tox/
-.nox/
-coverage.xml
-*.cover
-.hypothesis/
-
-# === HERRAMIENTAS DE ANÁLISIS ===
 .mypy_cache/
-.dmypy.json
-dmypy.json
-.pyre/
-.pytype/
 
-# === JUPYTER NOTEBOOKS ===
-.ipynb_checkpoints
-*/.ipynb_checkpoints/*
-profile_default/
-ipython_config.py
-
-# === DOCUMENTACIÓN GENERADA ===
-docs/_build/
-docs/build/
-site/
-
-# === ARCHIVOS DE SISTEMA KALI/LINUX ===
-*.log
-*.pid
-*.lock
-/var/log/
-/tmp/
-.ssh/
-.gnupg/
-
-# === ARCHIVOS ESPECÍFICOS ARESITOS ===
-# Wordlists generadas temporalmente
-data/wordlists/generadas/*.tmp
-data/wordlists/temp/
-
-# Resultados de escaneo temporales
+# === ARCHIVOS ESPECÍFICOS ARESITOS v3.0 ===
+# Datos temporales de escaneo
 data/scans/temp/
 data/scans/*.tmp
 
-# Reportes sensibles
+# Reportes confidenciales
 reportes/confidencial/
 reportes/*.sensitive
 
-# === PREVENIR DUPLICACIONES ===
-/ares_aegis/
-/tests_temp/
-/seguridad_temp/
-/docs_temp/
-/backup_*/
+# Cuarentena activa
+data/cuarentena/
 
-# === ARCHIVOS TEMPORALES VS CODE ===
-**/*.tmp.py
-**/*.temp.py
-**/*.draft.py
-**/*.backup.py
-untitled*
-tempfile_*
-__new_file_*
-
-# === ARCHIVOS DE DESARROLLO ===
-.project
-.pydevproject
-.settings/
-.loadpath
-.externalToolBuilders/
-.cproject
-.autotools
-
-# === ARCHIVOS TEMPORALES ELIMINADOS ===
-# (Sección Windows removida - ARESITOS es exclusivo para Kali Linux)
-
-# === CERTIFICADOS Y LLAVES (SEGURIDAD) ===
+# === CERTIFICADOS Y LLAVES (SEGURIDAD CRÍTICA) ===
 *.pem
 *.key
 *.crt
-*.cer
 *.p12
-*.pfx
 secrets/
 credentials/
+
+# === PREVENIR ARCHIVOS DE DESARROLLO ===
+**/*.tmp.py
+**/*.backup.py
+untitled*
+tempfile_*
