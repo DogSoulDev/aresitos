@@ -7,10 +7,20 @@ Issue 21/24: Optimizado para rendimiento y gestión de memoria.
 import tkinter as tk
 from tkinter import scrolledtext
 import datetime
+import logging
 import gc  # Issue 21/24 - Optimización de memoria
 
 class TerminalMixin:
     """Mixin para agregar funcionalidad de terminal a las vistas."""
+    
+    def _get_logger(self):
+        """Obtener logger de forma segura para el mixin."""
+        # Intentar usar el logger de la vista que implementa el mixin
+        if hasattr(self, 'logger') and getattr(self, 'logger', None):
+            return getattr(self, 'logger')
+        else:
+            # Crear logger temporal para el mixin
+            return logging.getLogger(f"{self.__class__.__module__}.{self.__class__.__name__}")
     
     def get_colors(self):
         """Obtener colores de la vista actual o usar valores por defecto."""
@@ -19,7 +29,7 @@ class TerminalMixin:
             if hasattr(self, 'colors') and isinstance(getattr(self, 'colors'), dict):
                 return getattr(self, 'colors')
         except (ValueError, TypeError, OSError) as e:
-            logging.debug(f'Error en excepción: {e}')
+            self._get_logger().debug(f'Error obteniendo colores de vista: {e}')
             pass
         
         # Colores por defecto del tema Burp Suite
@@ -109,10 +119,10 @@ class TerminalMixin:
                             terminal_global.see(tk.END)
                             terminal_global.config(state='disabled')
                 except (ValueError, TypeError, OSError) as e:
-                    logging.debug(f'Error en excepción: {e}')
+                    self._get_logger().debug(f'Error actualizando terminal global: {e}')
                     pass  # Si falla el terminal global, continuar con el local
         except (ValueError, TypeError, OSError) as e:
-            logging.debug(f'Error en excepción: {e}')
+            self._get_logger().debug(f'Error en actualización de terminal: {e}')
             pass  # Si no hay terminal, ignorar silenciosamente
     
     def agregar_paned_window_con_terminal(self, parent_frame, titulo_vista="ARESITOS"):
@@ -145,7 +155,7 @@ class TerminalMixin:
         try:
             paned_window.sash_place(0, 400, 0)  # Posición inicial del divisor
         except (ValueError, TypeError, OSError) as e:
-            logging.debug(f'Error en excepción: {e}')
+            self._get_logger().debug(f'Error configurando posición del sash: {e}')
             pass  # Si falla, usar posición por defecto
         
         return contenido_frame
@@ -185,6 +195,7 @@ class TerminalMixin:
                     terminal.insert(tk.END, f"\n[{timestamp}] MEMORIA: Buffer optimizado - líneas reducidas\n")
                     terminal.see(tk.END)
                     
-        except Exception as e:
+        except (tk.TclError, ValueError, AttributeError) as e:
             # Silencioso para no interrumpir operación
+            self._get_logger().debug(f'Error en optimización de memoria del terminal: {e}')
             pass

@@ -24,6 +24,7 @@ import hashlib
 import re
 import signal
 import ctypes
+import logging
 from typing import Optional, Dict, List
 
 try:
@@ -296,15 +297,22 @@ class LoginAresitos:
     """
     
     def __init__(self):
+        # Configurar logger siguiendo principios ARESITOS
+        self.logger = logging.getLogger(__name__)
+        
         # Verificar Kali Linux ANTES de crear ventana
         if not verificar_kali_linux_estricto():
             # Verificar si estamos en modo desarrollo
             if '--dev' in sys.argv or '--desarrollo' in sys.argv:
                 print("MODO DESARROLLO: LoginApp en entorno no-Kali")
+                self.logger.warning("Ejecutando en modo desarrollo fuera de Kali Linux")
             else:
                 print("ERROR: ARESITOS requiere Kali Linux")
                 print("Sistema no compatible detectado")
+                self.logger.critical("Sistema no compatible detectado - no es Kali Linux")
                 sys.exit(1)
+        
+        self.logger.info("LoginAresitos inicializado correctamente")
         
         # Inicializar rate limiter
         self.rate_limiter = RateLimiter(max_intentos=3, ventana_tiempo=300)
@@ -563,8 +571,9 @@ class LoginAresitos:
                 # Si hay cualquier error con tkinter, usar print como fallback
                 print(f"[LOGIN] {mensaje_seguro}")
                 
-        except Exception as e:
+        except (tk.TclError, ValueError, AttributeError) as e:
             # Log de fallback en caso de error
+            self.logger.debug(f"Error en logging seguro: {e}")
             print(f"[LOGIN] {mensaje}")  # No mostrar el error técnico
     
     def verificar_entorno_inicial(self):
@@ -597,7 +606,8 @@ class LoginAresitos:
             # Verificar herramientas en hilo separado
             threading.Thread(target=self.verificar_herramientas_inicial, daemon=True).start()
             
-        except Exception as e:
+        except (OSError, subprocess.SubprocessError, ValueError, threading.ThreadError) as e:
+            self.logger.error(f"Error verificando entorno: {e}")
             self.escribir_log(f"Error verificando entorno: {e}")
     
     def verificar_herramientas_inicial(self):
@@ -1143,7 +1153,7 @@ class LoginAresitos:
                 if hasattr(self, 'root') and self.root.winfo_exists():
                     self.root.destroy()
             except (FileNotFoundError, PermissionError, OSError) as e:
-                logging.debug(f'Error en excepción: {e}')
+                self.logger.debug(f'Error cerrando ventana de login: {e}')
                 pass
             
             # Ejecutar como subprocess independiente
