@@ -13,7 +13,7 @@
 - `tripwire`, `samhain` - Sistemas avanzados de integridad
 
 **Análisis Forense Expandido:**
-- `volatility` - Análisis de memoria (versión 2)
+- `autopsy` - Plataforma de análisis forense digital (nativa Kali)
 - `autopsy` - Suite forense completa
 - `tcpdump`, `tshark` - Análisis de tráfico de red
 - `strace`, `ltrace`, `gdb` - Debugging y análisis de procesos
@@ -32,7 +32,7 @@ Las siguientes herramientas requieren instalación manual y han sido documentada
 1. **rustscan** - Escaneador rápido de puertos (requiere Rust)
 2. **pspy32/pspy64** - Monitoreo de procesos sin root
 3. **linpeas** - Script de escalamiento de privilegios
-4. **volatility3** - Análisis de memoria versión 3
+**ELIMINADO: volatility3** - Ya NO tiene soporte activo y no funciona correctamente en Kali 2025. Reemplazado por autopsy.
 5. **httpx/nuclei** - Herramientas de ProjectDiscovery (requieren Go)
 
 ### Información Específica de Fase 3

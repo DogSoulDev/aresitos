@@ -662,7 +662,7 @@ LISTO PARA: Escaneos de vulnerabilidades en entornos Kali Linux 2025
                 'foremost',       # Recuperación de archivos
                 'sleuthkit',      # Kit forense
                 'autopsy',        # GUI forense
-                'volatility3',    # Análisis de memoria
+                'rekall-core',    # Framework moderno de análisis de memoria forense
                 'strings',        # Extractor de strings
                 'hexedit',        # Editor hexadecimal
                 
@@ -731,10 +731,10 @@ LISTO PARA: Escaneos de vulnerabilidades en entornos Kali Linux 2025
                     'comando': 'sudo apt update && sudo apt install -y tripwire',
                     'notas': 'Sistema de detección de intrusos. Configurará automáticamente durante instalación.'
                 },
-                'volatility3': {
-                    'razon': 'Mejor instalación vía pip para última versión',
-                    'comando': 'pip3 install volatility3 --break-system-packages',
-                    'notas': 'Herramienta de análisis de memoria forense. Alternativa: sudo apt install volatility3'
+                'autopsy': {
+                    'razon': 'Plataforma forense nativa de Kali Linux',
+                    'comando': 'sudo apt update && sudo apt install -y autopsy',
+                    'notas': 'Plataforma de análisis forense digital. Herramienta nativa de Kali Linux'
                 },
                 'rustscan': {
                     'razon': 'Requiere instalación vía cargo o GitHub',

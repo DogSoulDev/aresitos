@@ -576,7 +576,7 @@ LISTO PARA: Escaneos de vulnerabilidades en entornos Kali Linux 2025
                 'osquery', 'file', 'hexdump'
             ]
             
-                        # Lista de herramientas esenciales para Kali Linux (ELIMINADOS: sqlninja, volatility3)
+                        # Lista de herramientas esenciales para Kali Linux (ELIMINADOS: sqlninja, volatility - sin soporte)
             paquetes = [
                 # Escaneo de red (actualizado FASE 3.1)
                 'nmap', 'masscan', 'nikto', 'gobuster', 'feroxbuster', 'dirb',
@@ -613,10 +613,10 @@ LISTO PARA: Escaneos de vulnerabilidades en entornos Kali Linux 2025
                     'comando': 'Usar sqlmap como alternativa',
                     'notas': 'sqlninja no está disponible en repositorios actuales'
                 },
-                'volatility3': {
-                    'razon': 'Instalación vía pip, no APT',
-                    'comando': 'pip3 install volatility3',
-                    'notas': 'Herramienta de análisis de memoria forense'
+                'autopsy': {
+                    'razon': 'Plataforma forense nativa de Kali Linux',
+                    'comando': 'sudo apt install autopsy',
+                    'notas': 'Plataforma de análisis forense digital'
                 }
             }
             

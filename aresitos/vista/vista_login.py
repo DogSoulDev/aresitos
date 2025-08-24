@@ -208,7 +208,6 @@ HERRAMIENTAS_REQUERIDAS = [
 
 # Herramientas que requieren instalación manual o tienen problemas de timeout
 HERRAMIENTAS_PROBLEMATICAS = [
-    'volatility',      # No disponible en repositorios estándar
     'autopsy',         # Requiere descarga grande
     'tripwire',        # Timeout frecuente
     'samhain',         # Timeout frecuente  
@@ -624,15 +623,9 @@ class LoginAresitos:
             
             self.escribir_log(f"Verificacion completada: {disponibles}/{total} herramientas disponibles")
             
-            if disponibles >= total * 0.8:
-                self.escribir_log("Excelente: Mas del 80% de herramientas disponibles")
-                self.continue_btn.config(state=tk.NORMAL, bg=self.accent_green)
-            elif disponibles >= total * 0.5:
-                self.escribir_log("Aceptable: Mas del 50% de herramientas disponibles")
-                self.continue_btn.config(state=tk.NORMAL, bg=self.accent_orange)
-            else:
-                self.escribir_log("Insuficiente: Menos del 50% de herramientas disponibles")
-                self.continue_btn.config(state=tk.NORMAL, bg=self.accent_red)
+            # PRINCIPIO ARESITOS: Login SIEMPRE permite continuar, la configuración se hace en vista herramientas
+            self.escribir_log("Sistema listo - configuración detallada disponible en 'Herramientas'")
+            self.continue_btn.config(state=tk.NORMAL, bg=self.accent_green)
             
             if self.herramientas_faltantes:
                 faltan = len(self.herramientas_faltantes)

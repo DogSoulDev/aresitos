@@ -152,7 +152,7 @@ install_tools() {
         "clamav"               # Antivirus
         
         # Herramientas forense adicionales
-        "volatility3"          # Análisis de memoria
+        "autopsy"              # Plataforma forense digital (nativa Kali)
         "yara"                 # Pattern matching
     )
     
