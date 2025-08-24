@@ -1501,6 +1501,14 @@ class VistaFIM(tk.Frame):
         self.controlador = controlador
         self._log_terminal("Controlador FIM establecido", "FIM", "INFO")
     
+    def set_sudo_manager(self, sudo_manager):
+        """Establecer SudoManager heredado de la vista principal"""
+        self.sudo_manager = sudo_manager
+        if sudo_manager and sudo_manager.is_sudo_active():
+            self._log_terminal("SudoManager activo recibido", "FIM", "INFO")
+        else:
+            self._log_terminal("Advertencia: SudoManager no activo", "FIM", "WARNING")
+    
     # ====================== EXPANSION FASE 3.3: FIM AVANZADO ======================
     
     def monitoreo_avanzado_kali(self):

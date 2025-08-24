@@ -71,6 +71,14 @@ class VistaSIEM(tk.Frame):
     def set_controlador(self, controlador):
         self.controlador = controlador
     
+    def set_sudo_manager(self, sudo_manager):
+        """Establecer SudoManager heredado de la vista principal"""
+        self.sudo_manager = sudo_manager
+        if sudo_manager and sudo_manager.is_sudo_active():
+            print("[SIEM] SudoManager activo recibido")
+        else:
+            print("[SIEM] Advertencia: SudoManager no activo")
+    
     def crear_interfaz(self):
         # PanedWindow principal para dividir contenido y terminal
         self.paned_window = tk.PanedWindow(self, orient="vertical", bg=self.colors['bg_primary'])

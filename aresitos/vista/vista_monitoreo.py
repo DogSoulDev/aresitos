@@ -87,6 +87,14 @@ class VistaMonitoreo(tk.Frame):
     def set_controlador(self, controlador):
         self.controlador = controlador
     
+    def set_sudo_manager(self, sudo_manager):
+        """Establecer SudoManager heredado de la vista principal"""
+        self.sudo_manager = sudo_manager
+        if sudo_manager and sudo_manager.is_sudo_active():
+            self.logger.info("SudoManager activo recibido en VistaMonitoreo")
+        else:
+            self.logger.warning("SudoManager no activo en VistaMonitoreo")
+    
     def _ejecutar_comando_seguro(self, comando: list, timeout: int = 30, usar_sudo: bool = False) -> dict:
         """
         Ejecutar comando de sistema de forma segura con manejo de errores

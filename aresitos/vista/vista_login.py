@@ -1006,13 +1006,14 @@ class LoginAresitos:
                 """Callback para cuando se complete la configuración de herramientas"""
                 self._iniciar_aplicacion_principal()
             
+            # Ocultar ventana de login antes de crear la de herramientas
+            self.root.withdraw()
+            
             # Crear nueva ventana para herramientas
-            ventana_herramientas = tk.Toplevel(self.root)
+            ventana_herramientas = tk.Toplevel()  # Sin parent para evitar dependencias
             ventana_herramientas.title("ARESITOS - Configuración de Herramientas Kali")
             ventana_herramientas.geometry("1000x700")
             ventana_herramientas.configure(bg='#2b2b2b')
-            
-            # Ventana de herramientas configurada
             
             # Centrar ventana de herramientas
             ventana_herramientas.update_idletasks()
@@ -1031,6 +1032,9 @@ class LoginAresitos:
             
         except Exception as e:
             self.escribir_log(f"ERROR mostrando vista de herramientas: {str(e)}")
+            import traceback
+            self.escribir_log(f"Detalles del error: {traceback.format_exc()}")
+            self.escribir_log("Intentando continuar a la aplicación principal...")
             # Si falla, continuar directamente a la aplicación principal
             self._iniciar_aplicacion_principal()
     
@@ -1051,53 +1055,42 @@ class LoginAresitos:
             
             self.escribir_log("Creando aplicación principal...")
             
-            # Crear aplicación principal con tema Burp Suite
+            # Crear aplicación principal y configurarla completamente ANTES de mostrar
             root_app = tk.Tk()
+            root_app.withdraw()  # Mantener oculta hasta estar completamente configurada
             root_app.title("Aresitos")
-            root_app.geometry("1400x900")
-            
-            # Ventana configurada
-            
-            # CRÍTICO: Configurar el tema ANTES de crear las vistas
-            root_app.configure(bg='#2b2b2b')  # Fondo Burp Suite principal
+            root_app.configure(bg='#2b2b2b')
             
             self.escribir_log("Ventana principal configurada con tema Burp Suite")
             
-            # Ventana configurada
-            
             self.escribir_log("Inicializando modelo de datos...")
-            # Inicializar MVC correctamente
+            # Inicializar MVC completamente antes de mostrar
             modelo = ModeloPrincipal()
             
             self.escribir_log("Creando vista principal...")
             vista = VistaPrincipal(root_app)
-            vista.pack(fill="both", expand=True)  # CRÍTICO: Hacer que la vista ocupe toda la ventana
+            vista.pack(fill="both", expand=True)
             
             self.escribir_log("Inicializando controlador principal...")
             controlador = ControladorPrincipal(modelo)
             
             self.escribir_log("Configurando conexión vista-controlador...")
-            # CRÍTICO: Conectar el controlador a la vista
             vista.set_controlador(controlador)
             
-            # Centrar ventana principal
+            # Calcular posición centrada mientras está oculta
             root_app.update_idletasks()
             x = (root_app.winfo_screenwidth() // 2) - (1200 // 2)
             y = (root_app.winfo_screenheight() // 2) - (800 // 2)
             root_app.geometry(f"1200x800+{x}+{y}")
             
-            # Ventana principal configurada
             self.escribir_log("OK Ventana de aplicación configurada correctamente")
+            self.escribir_log("Aplicación principal configurada. Iniciando interfaz...")
             
-            # Forzar actualización de la ventana
-            root_app.update()
+            # Mostrar ventana una sola vez, completamente configurada
+            root_app.deiconify()
             
-            self.escribir_log(" Aplicación principal configurada. Iniciando interfaz...")
-            
-            # Mostrar ventana y comenzar loop principal
-            root_app.deiconify()  # Asegurar que la ventana esté visible
-            root_app.lift()       # Traer al frente
-            root_app.focus_force() # Forzar foco
+            # Pequeña pausa para evitar parpadeo
+            root_app.after(100, lambda: root_app.focus_force())
             
             root_app.mainloop()
             

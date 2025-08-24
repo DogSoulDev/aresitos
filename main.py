@@ -1,10 +1,7 @@
 # -*- coding: utf-8 -*-
 """
 aresitos - Punto de Entrada Principal
-==========================            print("[WARNING] MODO DESARROLLO: Ejecutando en entorno no-Kali")
-            print("Algunas funcionalidades pueden no estar disponibles")
-        else:
-            print("ERROR: ARESITOS requiere Kali Linux")=======
+====================================
 
 Punto de entrada principal para aresitos que redirige al sistema
 de login GUI para una mejor experiencia de usuario.
@@ -67,10 +64,11 @@ def verificar_tkinter():
     """Verificar que tkinter esté disponible"""
     try:
         import tkinter as tk
-        # Crear una ventana de prueba para verificar DISPLAY
+        # Verificar tkinter sin crear ventana visible
         test_root = tk.Tk()
         test_root.withdraw()  # Ocultar inmediatamente
-        test_root.destroy()
+        test_root.attributes('-alpha', 0.0)  # Hacer completamente transparente
+        test_root.destroy()  # Destruir inmediatamente
         print("Tkinter disponible y funcional")
     except ImportError:
         raise ImportError("tkinter no está instalado. Ejecute: sudo apt install python3-tk")

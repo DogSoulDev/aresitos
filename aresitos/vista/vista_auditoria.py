@@ -74,6 +74,14 @@ class VistaAuditoria(tk.Frame):
     def set_controlador(self, controlador):
         self.controlador = controlador
     
+    def set_sudo_manager(self, sudo_manager):
+        """Establecer SudoManager heredado de la vista principal"""
+        self.sudo_manager = sudo_manager
+        if sudo_manager and sudo_manager.is_sudo_active():
+            print("[AUDITORIA] SudoManager activo recibido")
+        else:
+            print("[AUDITORIA] Advertencia: SudoManager no activo")
+    
     def crear_interfaz(self):
         """Crear interfaz especializada para auditorías de seguridad."""
         # PanedWindow principal para dividir contenido y terminal

@@ -31,16 +31,23 @@ class VistaHerramientasKali(tk.Frame):
     def __init__(self, parent, callback_completado=None):
         super().__init__(parent)
         
-        # VERIFICACIÓN CRÍTICA: Solo para Kali Linux
-        if not self._verificar_kali_linux():
+        # VERIFICACIÓN CRÍTICA: Solo para Kali Linux (con soporte modo desarrollo)
+        import sys
+        modo_desarrollo = '--dev' in sys.argv or '--desarrollo' in sys.argv
+        
+        if not self._verificar_kali_linux() and not modo_desarrollo:
             messagebox.showerror(
                 "Error - Solo Kali Linux", 
                 "ARESITOS está diseñado exclusivamente para Kali Linux.\n\n"
                 "Sistema detectado no es compatible.\n"
-                "Instale Kali Linux para usar ARESITOS."
+                "Instale Kali Linux para usar ARESITOS.\n\n"
+                "Para desarrollo: usar --dev o --desarrollo"
             )
             self.destroy()
             return
+        
+        if modo_desarrollo:
+            print("[MODO DESARROLLO] VistaHerramientasKali: Ejecutando en entorno no-Kali")
             
         self.controlador = None  # Patrón MVC
         self.callback_completado = callback_completado
@@ -72,11 +79,33 @@ class VistaHerramientasKali(tk.Frame):
             }
             self.configure(bg=self.colors['bg_primary'])
         
+        # CRÍTICO: Verificar estado de sudo heredado del login
+        self._verificar_estado_sudo()
+        
         self.crear_interfaz()
     
     def set_controlador(self, controlador: Optional[Any]):
         """Establecer controlador siguiendo patrón MVC"""
         self.controlador = controlador
+    
+    def _verificar_estado_sudo(self):
+        """Verificar y mostrar el estado de sudo heredado del login"""
+        try:
+            sudo_manager = get_sudo_manager()
+            estado = sudo_manager.get_status()
+            
+            if estado['authenticated'] and estado['active']:
+                print(f"[HERRAMIENTAS] Sudo activo - credenciales heredadas del login")
+                print(f"[HERRAMIENTAS] Timestamp: {estado['timestamp']}")
+                self.sudo_disponible = True
+            else:
+                print(f"[HERRAMIENTAS] Advertencia: Sudo no activo")
+                print(f"[HERRAMIENTAS] Estado: {estado}")
+                self.sudo_disponible = False
+                
+        except Exception as e:
+            print(f"[HERRAMIENTAS] Error verificando sudo: {e}")
+            self.sudo_disponible = False
     
     def crear_interfaz(self):
         """Crear interfaz completa para herramientas Kali"""
@@ -820,8 +849,10 @@ LISTO PARA: Escaneos de vulnerabilidades en entornos Kali Linux 2025
                 if hasattr(self, 'text_resultados') and self.text_resultados.winfo_exists():
                     self.text_resultados.insert(tk.END, "\nAbriendo aplicación principal...\n")
                     self.text_resultados.see(tk.END)
-                # Usar after para ejecutar el callback en el hilo principal
-                self.after(1500, self._ejecutar_callback_seguro)
+                
+                # Cerrar esta ventana primero y luego ejecutar callback
+                self.after(800, self._cerrar_ventana_seguro)
+                self.after(1000, self._ejecutar_callback_seguro)
             else:
                 messagebox.showinfo("Información", 
                                   "Configuración completada exitosamente.\n"
@@ -833,13 +864,39 @@ LISTO PARA: Escaneos de vulnerabilidades en entornos Kali Linux 2025
             pass
     
     def _ejecutar_callback_seguro(self):
-        """Ejecutar callback de forma segura"""
+        """Ejecutar callback de forma segura sin parpadeos"""
         try:
+            # Programar cierre suave con delay para evitar parpadeos
+            if hasattr(self, 'master') and self.master.winfo_exists():
+                # Usar after para delay suave en la transición
+                self.master.after(100, self._cerrar_y_ejecutar_callback)
+            else:
+                # Si no hay master, ejecutar callback directamente
+                if self.callback_completado:
+                    self.callback_completado()
+        except Exception as e:
+            print(f"[HERRAMIENTAS] Error en callback: {e}")
+            # Fallback - ejecutar callback directamente
+            try:
+                if self.callback_completado:
+                    self.callback_completado()
+            except:
+                pass
+    
+    def _cerrar_y_ejecutar_callback(self):
+        """Cerrar ventana y ejecutar callback"""
+        try:
+            # Destruir ventana
+            if hasattr(self, 'master') and self.master.winfo_exists():
+                self.master.destroy()
+            
+            # Ejecutar callback después de cerrar
             if self.callback_completado:
                 self.callback_completado()
-        except Exception:
-            # Error al ejecutar callback, ignorar
-            pass
+        except Exception as e:
+            print(f"[HERRAMIENTAS] Error cerrando ventana: {e}")
+            if self.callback_completado:
+                self.callback_completado()
     
     def _cerrar_ventana_seguro(self):
         """Cerrar ventana de forma segura"""
