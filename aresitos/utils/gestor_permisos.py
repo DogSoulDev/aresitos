@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Gestor de Permisos Seguros para ARESITOS
+Gestor de Permisos Seguros para Ares Aegis
 ==========================================
 
 Este módulo maneja de forma segura la elevación de permisos necesaria
@@ -131,7 +131,7 @@ class GestorPermisosSeguro:
     
     def _crear_logger(self) -> logging.Logger:
         """Crea un logger específico para el gestor de permisos."""
-        logger = logging.getLogger('ARESITOS.GestorPermisosSeguro')
+        logger = logging.getLogger('AresAegis.GestorPermisosSeguro')
         if not logger.handlers:
             handler = logging.StreamHandler()
             formatter = logging.Formatter(
@@ -424,7 +424,7 @@ if __name__ == "__main__":
     # Test del gestor de permisos
     gestor = GestorPermisosSeguro()
     
-    print("=== Reporte de Permisos ARESITOS ===")
+    print("=== Reporte de Permisos Ares Aegis ===")
     reporte = gestor.generar_reporte_permisos()
     
     print(f"Usuario: {reporte['usuario']}")

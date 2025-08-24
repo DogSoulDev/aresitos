@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-ARESITOS - Controlador FIM (File Integrity Monitoring)
+Ares Aegis - Controlador FIM (File Integrity Monitoring)
 Controlador especializado en monitoreo de integridad de archivos para Kali Linux
 """
 
@@ -15,22 +15,15 @@ from typing import Dict, Any, List, Optional, Set
 from pathlib import Path
 
 from aresitos.controlador.controlador_base import ControladorBase
-# Usar el FIM optimizado
-from aresitos.modelo.modelo_fim_kali2025 import FIMKali2025
-from aresitos.modelo.modelo_siem import SIEMKali2025
+from aresitos.modelo.modelo_fim import FIMAvanzado, TipoArchivoFIM, TipoCambioFIM, MetadatosArchivo
+from aresitos.modelo.modelo_siem import SIEM, TipoEvento, SeveridadEvento
 
-# Importar nuevos modelos Kali 2025 optimizados
+# Importar nuevos modelos Kali 2025
 try:
     from aresitos.modelo.modelo_fim_kali2025 import FIMKali2025
     KALI2025_FIM_DISPONIBLE = True
 except ImportError:
     KALI2025_FIM_DISPONIBLE = False
-
-try:
-    from aresitos.modelo.modelo_siem import SIEMKali2025
-    KALI2025_SIEM_DISPONIBLE = True
-except ImportError:
-    KALI2025_SIEM_DISPONIBLE = False
 
 class ControladorFIM(ControladorBase):
     """
@@ -47,13 +40,9 @@ class ControladorFIM(ControladorBase):
         if hasattr(modelo_principal, 'fim_avanzado') and modelo_principal.fim_avanzado:
             self.fim = modelo_principal.fim_avanzado
         else:
-            # Solo crear nueva instancia si no existe - usar FIMKali2025
+            # Solo crear nueva instancia si no existe
             try:
-                if KALI2025_FIM_DISPONIBLE:
-                    self.fim = FIMKali2025()
-                else:
-                    self.logger.warning("FIMKali2025 no disponible")
-                    self.fim = None
+                self.fim = FIMAvanzado()
             except Exception as e:
                 self.logger.error(f"Error inicializando FIM: {e}")
                 self.fim = None
@@ -73,13 +62,9 @@ class ControladorFIM(ControladorBase):
         if hasattr(modelo_principal, 'siem_avanzado') and modelo_principal.siem_avanzado:
             self.siem = modelo_principal.siem_avanzado
         else:
-            # Solo crear nueva instancia si no existe - usar SIEMKali2025
+            # Solo crear nueva instancia si no existe
             try:
-                if KALI2025_SIEM_DISPONIBLE:
-                    self.siem = SIEMKali2025()
-                else:
-                    self.logger.warning("SIEMKali2025 no disponible")
-                    self.siem = None
+                self.siem = SIEM()
             except Exception as e:
                 self.logger.error(f"Error inicializando SIEM: {e}")
                 self.siem = None
@@ -177,21 +162,6 @@ class ControladorFIM(ControladorBase):
         self._detener_monitoreo = False
         
         self.logger.info("Controlador FIM inicializado para Kali Linux")
-
-
-    def inicializar(self):
-        """
-        Inicializa el controlador (requerido por principios ARESITOS).
-        
-        Returns:
-            bool: True si la inicialización es exitosa
-        """
-        try:
-            self.logger.info("ControladorFIM v3.0 inicializado correctamente")
-            return True
-        except Exception as e:
-            self.logger.error(f"Error en inicializar(): {e}")
-            return False
 
     def _validar_ruta_fim(self, ruta: str) -> Dict[str, Any]:
         """
@@ -1248,9 +1218,7 @@ class ControladorFIM(ControladorBase):
         """Registrar evento en el sistema SIEM."""
         try:
             if self.siem:
-                # Usar log en lugar de generar_evento que no existe
-                evento_msg = f"[{tipo}] {descripcion} (Severidad: {severidad})"
-                self.siem.log(evento_msg)
+                self.siem.generar_evento(tipo, descripcion, severidad)
         except Exception as e:
             self.logger.error(f"Error registrando evento SIEM: {e}")
 
@@ -1357,7 +1325,7 @@ class ControladorFIM(ControladorBase):
                 'herramienta': 'inotifywait',
                 'instrucciones_daemon': [
                     "Para ejecutar en background:",
-                    f"nohup {' '.join(cmd_inotify)} > /var/log/aresitos/inotify.log 2>&1 &"
+                    f"nohup {' '.join(cmd_inotify)} > /var/log/ares-aegis/inotify.log 2>&1 &"
                 ]
             }
             
@@ -2462,15 +2430,11 @@ report_url=stdout
                 if self.siem and amenazas:
                     for amenaza in amenazas:
                         try:
-                            if hasattr(self.siem, '_guardar_evento_seguridad'):
-                                evento = {
-                                    'tipo': "ROOTKIT_DETECTADO",
-                                    'descripcion': f"Rootkit detectado: {amenaza.get('nombre', 'Unknown')}",
-                                    'fuente': 'FIM',
-                                    'timestamp': datetime.now().isoformat(),
-                                    'severidad': 'alta'
-                                }
-                                self.siem._guardar_evento_seguridad(evento)
+                            if hasattr(self.siem, 'registrar_evento'):
+                                self.siem.registrar_evento(
+                                    "ROOTKIT_DETECTADO",
+                                    f"Rootkit detectado: {amenaza.get('nombre', 'Unknown')}"
+                                )
                         except Exception as e:
                             self.logger.warning(f"Error registrando amenaza en SIEM: {e}")
             
@@ -2487,3 +2451,4 @@ report_url=stdout
 # alertas automáticas vía SIEM, y análisis de integridad usando herramientas nativas (find, stat, md5sum).
 # Arquitectura asíncrona con threading para monitoreo continuo, siguiendo patrones MVC y principios SOLID
 # para escalabilidad profesional en entornos de ciberseguridad.
+

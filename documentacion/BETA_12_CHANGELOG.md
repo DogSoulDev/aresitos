@@ -16,7 +16,7 @@
 
 ### Iconos y Branding
 - OK **Iconos ARESITOS** configurados en todas las ventanas principales
-  - Ventana de login: Icono de ciberseguridad integrado en código
+  - Ventana de login: `Aresitos.png` con fallback a `Aresitos.ico`
   - Ventana principal: Configurado desde `main.py`
   - Ventana de herramientas Kali: Icono en barra de título
   - Ventanas de notificaciones: Icono consistente
@@ -132,8 +132,8 @@
 
 ### Configuración Mejorada
 - OK **Gestión de iconos simplificada**
-  - Icono de ciberseguridad integrado como prioridad
-  - Sistema de iconos sin archivos externos como fallback
+  - `Aresitos.png` como prioridad con PhotoImage
+  - `Aresitos.ico` como fallback con iconbitmap
   - Manejo de errores robusto
 - OK **Tamaños de ventana optimizados**
   - Login: 900x700 (era 800x600)
@@ -142,13 +142,13 @@
 
 ---
 
-## METRICS **Métricas de Beta 12**
+## 📈 Métricas de Beta 12
 
 ### Estadísticas del Proyecto
 - **FOLDER Archivos totales**: 60+ archivos de código
 - **CONTROL Controladores**: 15 módulos MVC
-- **DATA Modelos**: 19 módulos de datos
-- **UI Vistas**: 13 interfaces especializadas
+- **🗄️ Modelos**: 19 módulos de datos
+- **🖥️ Vistas**: 13 interfaces especializadas
 - **TOOL Utilidades**: 7 módulos de soporte
 - **📚 Documentación**: 12 archivos técnicos
 

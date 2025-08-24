@@ -1,9 +1,9 @@
 {
   "configuracion_global": {
     "version": "1.0",
-    "descripcion": "Configuración de wordlists para ARESITOS",
+    "descripcion": "Configuración de wordlists para Ares Aegis",
     "fecha_creacion": "2025-08-15",
-    "autor": "ARESITOS Security Team"
+    "autor": "Ares Aegis Security Team"
   },
   "categorias_personalizadas": {
     "passwords_web": {

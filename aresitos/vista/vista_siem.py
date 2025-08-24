@@ -18,31 +18,6 @@ except ImportError:
     burp_theme = None
 
 class VistaSIEM(tk.Frame):
-    """
-    VistaSIEM para ARESITOS v3.0 - Sistema de Ciberseguridad Integral.
-    
-    Esta vista implementa los 8 principios fundamentales de ARESITOS:
-    
-    1. Automatización: Procesos automatizados de interfaz
-    2. Robustez: Manejo robusto de errores y excepciones
-    3. Eficiencia: Optimización de recursos y rendimiento
-    4. Seguridad: Validación y sanitización de entradas
-    5. Integración: Conexión seamless con controladores
-    6. Transparencia: Feedback claro y comprensible al usuario
-    7. Optimización: Interfaz responsiva y eficiente
-    8. Simplicidad: Diseño intuitivo y fácil de usar
-    
-    Attributes:
-        controlador: Referencia al controlador asociado
-        logger: Sistema de logging integrado
-        componentes_ui: Elementos de interfaz de usuario
-    
-    Methods:
-        configurar_interfaz(): Configura la interfaz inicial
-        conectar_eventos(): Establece conexiones de eventos
-        actualizar_vista(): Actualiza elementos visuales
-        manejar_errores(): Gestiona errores de interfaz
-    """
     
     def __init__(self, parent):
         super().__init__(parent)
@@ -162,7 +137,7 @@ class VistaSIEM(tk.Frame):
                 text="LIMPIAR",
                 command=self.limpiar_terminal_siem,
                 bg=self.colors.get('warning', '#ffaa00'),
-                fg='#ff6633',
+                fg='white',
                 font=("Arial", 8, "bold"),
                 height=1
             )
@@ -174,7 +149,7 @@ class VistaSIEM(tk.Frame):
                 text="VER LOGS",
                 command=self.abrir_logs_siem,
                 bg=self.colors.get('info', '#007acc'),
-                fg='#ff6633',
+                fg='white',
                 font=("Arial", 8, "bold"),
                 height=1
             )
@@ -282,7 +257,7 @@ class VistaSIEM(tk.Frame):
         except ImportError:
             # Fallback sin validación (modo inseguro)
             self.terminal_output.insert(tk.END, f"\n> {comando}\n")
-            self.terminal_output.insert(tk.END, "[WARNING]  EJECUTANDO SIN VALIDACIÓN DE SEGURIDAD\n")
+            self.terminal_output.insert(tk.END, "⚠️  EJECUTANDO SIN VALIDACIÓN DE SEGURIDAD\n")
             self.terminal_output.see(tk.END)
             self.comando_entry.delete(0, tk.END)
             
@@ -291,7 +266,7 @@ class VistaSIEM(tk.Frame):
             thread.start()
         except Exception as e:
             self.terminal_output.insert(tk.END, f"\n> {comando}\n")
-            self.terminal_output.insert(tk.END, f"[FAIL] Error de seguridad: {e}\n")
+            self.terminal_output.insert(tk.END, f"❌ Error de seguridad: {e}\n")
             self.terminal_output.see(tk.END)
             self.comando_entry.delete(0, tk.END)
     
@@ -346,15 +321,15 @@ class VistaSIEM(tk.Frame):
             comandos = obtener_comandos_disponibles()
             
             self.terminal_output.insert(tk.END, "\n" + "="*60 + "\n")
-            self.terminal_output.insert(tk.END, "[SECURITY]  COMANDOS DISPONIBLES EN ARESITOS v2.0\n")
+            self.terminal_output.insert(tk.END, "🛡️  COMANDOS DISPONIBLES EN ARESITOS v2.0\n")
             self.terminal_output.insert(tk.END, "="*60 + "\n\n")
             
             for categoria, lista_comandos in comandos.items():
-                self.terminal_output.insert(tk.END, f"FOLDER {categoria.upper()}:\n")
+                self.terminal_output.insert(tk.END, f"📂 {categoria.upper()}:\n")
                 comandos_linea = ", ".join(lista_comandos)
                 self.terminal_output.insert(tk.END, f"   {comandos_linea}\n\n")
             
-            self.terminal_output.insert(tk.END, "[TOOLS] COMANDOS ESPECIALES:\n")
+            self.terminal_output.insert(tk.END, "🔧 COMANDOS ESPECIALES:\n")
             self.terminal_output.insert(tk.END, "   ayuda-comandos, info-seguridad, clear/cls\n\n")
             self.terminal_output.insert(tk.END, "="*60 + "\n")
             
@@ -371,10 +346,10 @@ class VistaSIEM(tk.Frame):
             info = validador_comandos.obtener_info_seguridad()
             
             self.terminal_output.insert(tk.END, "\n" + "="*60 + "\n")
-            self.terminal_output.insert(tk.END, "INFORMACIÓN DE SEGURIDAD ARESITOS\n")
+            self.terminal_output.insert(tk.END, "🔐 INFORMACIÓN DE SEGURIDAD ARESITOS\n")
             self.terminal_output.insert(tk.END, "="*60 + "\n\n")
             
-            estado_seguridad = "[OK] SEGURO" if info['es_usuario_kali'] else "[FAIL] INSEGURO"
+            estado_seguridad = "✅ SEGURO" if info['es_usuario_kali'] else "❌ INSEGURO"
             
             self.terminal_output.insert(tk.END, f"Estado: {estado_seguridad}\n")
             self.terminal_output.insert(tk.END, f"Usuario: {info['usuario_actual']}\n")
@@ -505,7 +480,7 @@ class VistaSIEM(tk.Frame):
                                 bg='#2b2b2b', fg='#ff6633', font=('Arial', 12, 'bold'))
             label_logs.pack(anchor=tk.W, pady=(0, 5))
         else:
-            top_frame = ttk.LabelFrame(main_frame, text="📋 Fuentes de Logs", style="Burp.TLabelframe", padding=10)
+            top_frame = ttk.LabelFrame(main_frame, text="Fuentes de Logs", padding=10)
         top_frame.pack(fill=tk.X, pady=(0, 10))
         
         # Lista de archivos de log comunes en Kali
@@ -537,7 +512,7 @@ class VistaSIEM(tk.Frame):
                                   bg='#2b2b2b', fg='#cccccc', selectcolor='#4a4a4a',
                                   activebackground='#3c3c3c', font=('Arial', 9))
             else:
-                cb = ttk.Checkbutton(logs_frame, text=f"📄 {log_name} ({log_path})", variable=var, style="Burp.TCheckbutton")
+                cb = ttk.Checkbutton(logs_frame, text=f"{log_name} ({log_path})", variable=var)
             
             cb.grid(row=i//2, column=i%2, sticky='w', padx=5, pady=2)
         
@@ -570,15 +545,15 @@ class VistaSIEM(tk.Frame):
             btn_frame = tk.Frame(top_frame)
             btn_frame.pack(fill=tk.X, pady=10)
             
-            ttk.Button(btn_frame, text="🔍 Analizar Logs Seleccionados", style="Burp.TButton",
+            ttk.Button(btn_frame, text=" Analizar Logs Seleccionados", 
                       command=self.analizar_logs_seleccionados).pack(side=tk.LEFT, padx=5)
-            ttk.Button(btn_frame, text="🔎 Buscar Patrones", style="Burp.TButton",
+            ttk.Button(btn_frame, text=" Buscar Patrones", 
                       command=self.buscar_patrones).pack(side=tk.LEFT, padx=5)
             
             # NUEVOS BOTONES FASE 3.2 - ANÁLISIS AVANZADO (versión TTK)
-            ttk.Button(btn_frame, text="🔬 Análisis Avanzado", style="Burp.TButton",
+            ttk.Button(btn_frame, text="Análisis Avanzado", 
                       command=self.analizar_patrones_avanzados).pack(side=tk.LEFT, padx=5)
-            ttk.Button(btn_frame, text="⚡ Correlación", style="Burp.TButton",
+            ttk.Button(btn_frame, text="Correlación", 
                       command=self.correlacionar_eventos_avanzado).pack(side=tk.LEFT, padx=5)
         
         # Panel inferior - Resultados de análisis
@@ -588,7 +563,7 @@ class VistaSIEM(tk.Frame):
                                    bg='#2b2b2b', fg='#ff6633', font=('Arial', 12, 'bold'))
             label_results.pack(anchor=tk.W, pady=(0, 5))
         else:
-            bottom_frame = ttk.LabelFrame(main_frame, text="📊 Resultados del Análisis", style="Burp.TLabelframe", padding=10)
+            bottom_frame = ttk.LabelFrame(main_frame, text="Resultados del Análisis", padding=10)
         bottom_frame.pack(fill=tk.BOTH, expand=True)
         
         self.siem_analisis_text = scrolledtext.ScrolledText(bottom_frame, height=15,
@@ -620,7 +595,7 @@ class VistaSIEM(tk.Frame):
                                    bg='#2b2b2b', fg='#ff6633', font=('Arial', 12, 'bold'))
             label_alertas.pack(anchor=tk.W, pady=(0, 5))
         else:
-            left_frame = ttk.LabelFrame(main_frame, text="🚨 Alertas Activas", style="Burp.TLabelframe", padding=10)
+            left_frame = ttk.LabelFrame(main_frame, text="Alertas Activas", padding=10)
         left_frame.pack(side=tk.LEFT, fill=tk.BOTH, expand=True, padx=(0, 10))
         
         self.siem_alertas_text = scrolledtext.ScrolledText(left_frame, height=20, width=60,
@@ -637,7 +612,7 @@ class VistaSIEM(tk.Frame):
                                   bg='#2b2b2b', fg='#ff6633', font=('Arial', 12, 'bold'))
             label_reglas.pack(anchor=tk.W, pady=(0, 10))
         else:
-            right_frame = ttk.LabelFrame(main_frame, text="⚙️ Motor de Correlación", style="Burp.TLabelframe", padding=10)
+            right_frame = ttk.LabelFrame(main_frame, text="Motor de Correlación", padding=10)
         right_frame.pack(side=tk.RIGHT, fill=tk.Y)
         
         # Botones de configuración de alertas
@@ -658,11 +633,11 @@ class VistaSIEM(tk.Frame):
                               bg=bg_color, fg='white', font=('Arial', 9))
                 btn.pack(fill=tk.X, pady=2)
         else:
-            ttk.Button(right_frame, text="🔍 Detectar Intrusion", style="Burp.TButton",
+            ttk.Button(right_frame, text=" Detectar Intrusion", 
                       command=self.detectar_intrusion).pack(fill=tk.X, pady=2)
-            ttk.Button(right_frame, text="🛡️ Activar IDS", style="Burp.TButton",
+            ttk.Button(right_frame, text=" Activar IDS", 
                       command=self.activar_ids).pack(fill=tk.X, pady=2)
-            ttk.Button(right_frame, text="🍯 Monitor Honeypot", style="Burp.TButton", 
+            ttk.Button(right_frame, text=" Monitor Honeypot", 
                       command=self.monitor_honeypot).pack(fill=tk.X, pady=2)
     
     def crear_tab_forense(self):
@@ -687,7 +662,7 @@ class VistaSIEM(tk.Frame):
                                  bg='#2b2b2b', fg='#ff6633', font=('Arial', 12, 'bold'))
             label_tools.pack(anchor=tk.W, pady=(0, 10))
         else:
-            top_frame = ttk.LabelFrame(main_frame, text="🔬 Herramientas Forenses", style="Burp.TLabelframe", padding=10)
+            top_frame = ttk.LabelFrame(main_frame, text="Herramientas Forenses", padding=10)
         top_frame.pack(fill=tk.X, pady=(0, 10))
         
         # Botones de herramientas forenses
@@ -727,12 +702,12 @@ class VistaSIEM(tk.Frame):
                 (" Head/Tail", self.usar_head_tail),
                 (" Check Kali Tools", self.verificar_herramientas_kali),
                 (" Monitor Real-time", self.monitorear_tiempo_real_kali),
-                ("⏹️ Stop Monitor", self.parar_monitoreo),
-                ("🔍 OSQuery Analysis", self.integrar_osquery_kali)
+                (" Stop Monitor", self.parar_monitoreo),
+                (" OSQuery Analysis", self.integrar_osquery_kali)
             ]
             
             for i, (text, command) in enumerate(tools_forenses):
-                ttk.Button(tools_frame, text=text, command=command, style="Burp.TButton").grid(
+                ttk.Button(tools_frame, text=text, command=command).grid(
                     row=i//3, column=i%3, padx=5, pady=2, sticky='ew')
         
         # Panel inferior - Resultados forenses
@@ -742,7 +717,7 @@ class VistaSIEM(tk.Frame):
                                    bg='#2b2b2b', fg='#ff6633', font=('Arial', 12, 'bold'))
             label_forense.pack(anchor=tk.W, pady=(0, 5))
         else:
-            bottom_frame = ttk.LabelFrame(main_frame, text="📋 Resultados Forenses", style="Burp.TLabelframe", padding=10)
+            bottom_frame = ttk.LabelFrame(main_frame, text="Resultados Forenses", padding=10)
         bottom_frame.pack(fill=tk.BOTH, expand=True)
         
         self.siem_forense_text = scrolledtext.ScrolledText(bottom_frame, height=15,
@@ -818,7 +793,7 @@ class VistaSIEM(tk.Frame):
                 self._log_terminal("OK FASE 1 completada exitosamente", "SIEM", "SUCCESS")  # Issue 22/24: Sin emojis
             except Exception as e:
                 fases_con_error += 1
-                self._log_terminal(f"ERROR en FASE 1: {str(e)}", "SIEM", "ERROR")
+                self._log_terminal(f"✗ ERROR en FASE 1: {str(e)}", "SIEM", "ERROR")
                 self._log_terminal("Continuando con la siguiente fase...", "SIEM", "WARNING")
             
             # FASE 2: Monitoreo y protección DNS
@@ -829,7 +804,7 @@ class VistaSIEM(tk.Frame):
                 self._log_terminal("OK FASE 2 completada exitosamente", "SIEM", "SUCCESS")
             except Exception as e:
                 fases_con_error += 1
-                self._log_terminal(f"ERROR en FASE 2: {str(e)}", "SIEM", "ERROR")
+                self._log_terminal(f"✗ ERROR en FASE 2: {str(e)}", "SIEM", "ERROR")
                 self._log_terminal("Continuando con la siguiente fase...", "SIEM", "WARNING")
             
             # FASE 3: Monitoreo de datos de red
@@ -840,7 +815,7 @@ class VistaSIEM(tk.Frame):
                 self._log_terminal("OK FASE 3 completada exitosamente", "SIEM", "SUCCESS")
             except Exception as e:
                 fases_con_error += 1
-                self._log_terminal(f"ERROR en FASE 3: {str(e)}", "SIEM", "ERROR")
+                self._log_terminal(f"✗ ERROR en FASE 3: {str(e)}", "SIEM", "ERROR")
                 self._log_terminal("Continuando con la siguiente fase...", "SIEM", "WARNING")
             
             # FASE 4: Monitoreo de 50 puertos críticos
@@ -851,7 +826,7 @@ class VistaSIEM(tk.Frame):
                 self._log_terminal("OK FASE 4 completada exitosamente", "SIEM", "SUCCESS")
             except Exception as e:
                 fases_con_error += 1
-                self._log_terminal(f"ERROR en FASE 4: {str(e)}", "SIEM", "ERROR")
+                self._log_terminal(f"✗ ERROR en FASE 4: {str(e)}", "SIEM", "ERROR")
                 self._log_terminal("Continuando con la siguiente fase...", "SIEM", "WARNING")
             
             # FASE 5: Detección de anomalías en tiempo real
@@ -862,7 +837,7 @@ class VistaSIEM(tk.Frame):
                 self._log_terminal("OK FASE 5 completada exitosamente", "SIEM", "SUCCESS")
             except Exception as e:
                 fases_con_error += 1
-                self._log_terminal(f"ERROR en FASE 5: {str(e)}", "SIEM", "ERROR")
+                self._log_terminal(f"✗ ERROR en FASE 5: {str(e)}", "SIEM", "ERROR")
                 self._log_terminal("Continuando con la siguiente fase...", "SIEM", "WARNING")
             
             # FASE 6: Monitoreo continuo
@@ -889,7 +864,7 @@ class VistaSIEM(tk.Frame):
                     self._log_terminal("OK FASE 6 completada con monitoreo básico", "SIEM", "SUCCESS")
             except Exception as e:
                 fases_con_error += 1
-                self._log_terminal(f"ERROR en FASE 6: {str(e)}", "SIEM", "ERROR")
+                self._log_terminal(f"✗ ERROR en FASE 6: {str(e)}", "SIEM", "ERROR")
                 self._log_terminal("Fase final completada con errores", "SIEM", "WARNING")
             
             # RESUMEN FINAL DE FASES
@@ -898,7 +873,7 @@ class VistaSIEM(tk.Frame):
                 self.after(0, self._actualizar_texto_monitoreo, f"RESUMEN DE EJECUCIÓN SIEM\n")
                 self.after(0, self._actualizar_texto_monitoreo, f"{'='*50}\n")
                 self.after(0, self._actualizar_texto_monitoreo, f"OK FASES COMPLETADAS: {fases_completadas}/6\n")
-                self.after(0, self._actualizar_texto_monitoreo, f"ERROR: FASES CON ERROR: {fases_con_error}/6\n")
+                self.after(0, self._actualizar_texto_monitoreo, f"✗ FASES CON ERROR: {fases_con_error}/6\n")
                 
                 if fases_con_error == 0:
                     self.after(0, self._actualizar_texto_monitoreo, f"ESTADO GENERAL: OK TODAS LAS FASES COMPLETADAS EXITOSAMENTE\n")
@@ -1560,7 +1535,7 @@ class VistaSIEM(tk.Frame):
     def detener_siem(self):
         """Detener sistema SIEM de forma robusta."""
         try:
-            self._log_terminal("STOP Iniciando detención del sistema SIEM", "SIEM", "WARNING")
+            self._log_terminal("🛑 Iniciando detención del sistema SIEM", "SIEM", "WARNING")
             self._actualizar_texto_monitoreo("DETENIENDO Sistema SIEM...\n")
             
             # 1. Marcar proceso como inactivo INMEDIATAMENTE
@@ -1569,7 +1544,7 @@ class VistaSIEM(tk.Frame):
             
             # 2. Esperar a que el hilo termine (máximo 3 segundos)
             if hasattr(self, 'thread_siem') and self.thread_siem and self.thread_siem.is_alive():
-                self._log_terminal("WAIT Esperando finalización del hilo SIEM...", "SIEM", "INFO")
+                self._log_terminal("⏳ Esperando finalización del hilo SIEM...", "SIEM", "INFO")
                 self.thread_siem.join(timeout=3.0)  # Esperar máximo 3 segundos
                 if self.thread_siem.is_alive():
                     self._log_terminal("Hilo SIEM no respondió en tiempo esperado", "SIEM", "WARNING")
@@ -1746,7 +1721,7 @@ class VistaSIEM(tk.Frame):
                         puertos_criticos_abiertos = [p for p in puertos_abiertos if p in puertos_criticos]
                         
                         if puertos_criticos_abiertos:
-                            self._log_terminal(f"PUERTOS: Puertos críticos abiertos: {', '.join(puertos_criticos_abiertos)}", "SIEM-DASHBOARD", "WARNING")
+                            self._log_terminal(f"🔌 Puertos críticos abiertos: {', '.join(puertos_criticos_abiertos)}", "SIEM-DASHBOARD", "WARNING")
                         else:
                             self._log_terminal("SEGURIDAD No hay puertos críticos abiertos públicamente", "SIEM-DASHBOARD", "INFO")
                     
@@ -2548,7 +2523,7 @@ class VistaSIEM(tk.Frame):
         """Usar Binwalk para análisis de firmware."""
         def ejecutar():
             try:
-                self.after(0, self._actualizar_texto_forense, "FORENSIC BINWALK - Análisis de Firmware\n")
+                self.after(0, self._actualizar_texto_forense, "🔬 BINWALK - Análisis de Firmware\n")
                 self.after(0, self._actualizar_texto_forense, "="*50 + "\n")
                 
                 import subprocess
@@ -2649,7 +2624,7 @@ class VistaSIEM(tk.Frame):
         """Análisis profesional con strings para extracción de cadenas de texto."""
         def ejecutar():
             try:
-                self.after(0, self._actualizar_texto_forense, "STRINGS: ANÁLISIS PROFESIONAL CON STRINGS\n")
+                self.after(0, self._actualizar_texto_forense, "🔤 ANÁLISIS PROFESIONAL CON STRINGS\n")
                 self.after(0, self._actualizar_texto_forense, "="*60 + "\n")
                 
                 import subprocess
@@ -2788,17 +2763,17 @@ ls -la "$OUTPUT_DIR/"
                     "🦠 Análisis de malware y detección de IoCs",
                     "Ingeniería inversa de binarios sospechosos", 
                     "Búsqueda de credenciales hardcodeadas",
-                    "[NETWORK] Extracción de URLs y dominios maliciosos",
+                    "🌐 Extracción de URLs y dominios maliciosos",
                     "📧 Identificación de direcciones de email",
                     "🏠 Descubrimiento de direcciones IP internas",
-                    "KEY Localización de claves criptográficas",
+                    "🔑 Localización de claves criptográficas",
                     "📱 Análisis forense de aplicaciones móviles"
                 ]
                 
                 for caso in casos_uso:
                     self.after(0, self._actualizar_texto_forense, f"  {caso}\n")
                 
-                self.after(0, self._actualizar_texto_forense, f"\nDIR DIRECTORIO DE LOGS: /tmp/aresitos_logs/strings_analysis/\n")
+                self.after(0, self._actualizar_texto_forense, f"\n📁 DIRECTORIO DE LOGS: /tmp/aresitos_logs/strings_analysis/\n")
                 self.after(0, self._actualizar_texto_forense, "ANÁLISIS COMPLETADO\n\n")
                 
             except Exception as e:
@@ -3390,8 +3365,6 @@ ls -la "$OUTPUT_DIR/"
                 self._actualizar_texto_forense("  dcfldd if=/dev/sdX of=imagen.dd hash=sha256 bs=4096\n")
                 self._actualizar_texto_forense(" Análisis de memoria:\n")
                 self._actualizar_texto_forense("  dd if=/proc/kcore of=memoria.dump bs=1M count=100\n")
-                self._actualizar_texto_forense("  bulk_extractor -o output_dir memoria.dump\n")
-                self._actualizar_texto_forense("  strings memoria.dump | grep -i password\n")
                 self._actualizar_texto_forense(" Borrado seguro:\n")
                 self._actualizar_texto_forense("  dd if=/dev/urandom of=/dev/sdX bs=4096\n\n")
                 
@@ -3816,7 +3789,7 @@ ls -la "$OUTPUT_DIR/"
     def _analizar_conexiones_red(self):
         """Analizar conexiones de red sospechosas."""
         try:
-            self._actualizar_texto_analisis("\n[NETWORK] 1. ANÁLISIS DE CONEXIONES DE RED SOSPECHOSAS\n")
+            self._actualizar_texto_analisis("\n🌐 1. ANÁLISIS DE CONEXIONES DE RED SOSPECHOSAS\n")
             self._actualizar_texto_analisis("-" * 50 + "\n")
             
             import subprocess
@@ -3933,7 +3906,7 @@ ls -la "$OUTPUT_DIR/"
                     if huerfanos:
                         self._actualizar_texto_analisis(f"\nProcesos huérfanos detectados: {len(huerfanos)}\n")
                         for huerfano in huerfanos[:5]:
-                            self._actualizar_texto_analisis(f"  POINT {huerfano}\n")
+                            self._actualizar_texto_analisis(f"  📍 {huerfano}\n")
                             
             except:
                 pass
@@ -3944,7 +3917,7 @@ ls -la "$OUTPUT_DIR/"
     def _analizar_actividad_archivos(self):
         """Analizar actividad sospechosa en archivos críticos."""
         try:
-            self._actualizar_texto_analisis("\nDIR 3. ANÁLISIS DE ACTIVIDAD EN ARCHIVOS CRÍTICOS\n")
+            self._actualizar_texto_analisis("\n📁 3. ANÁLISIS DE ACTIVIDAD EN ARCHIVOS CRÍTICOS\n")
             self._actualizar_texto_analisis("-" * 50 + "\n")
             
             import os
@@ -3993,7 +3966,7 @@ ls -la "$OUTPUT_DIR/"
                     if archivos_permisos:
                         self._actualizar_texto_analisis(f"\nARCHIVOS CON PERMISOS SOSPECHOSOS: {len(archivos_permisos)}\n")
                         for archivo in archivos_permisos[:5]:
-                            self._actualizar_texto_analisis(f"  - {archivo}\n")
+                            self._actualizar_texto_analisis(f"  🔸 {archivo}\n")
                         if len(archivos_permisos) > 5:
                             self._actualizar_texto_analisis(f"  ... y {len(archivos_permisos) - 5} más\n")
                             
@@ -4081,7 +4054,7 @@ ls -la "$OUTPUT_DIR/"
             # Determinar si es horario laboral
             es_horario_laboral = 8 <= hora_actual <= 18
             
-            self._actualizar_texto_analisis(f"TIEMPO: Hora actual: {datetime.now().strftime('%H:%M:%S')}\n")
+            self._actualizar_texto_analisis(f"🕐 Hora actual: {datetime.now().strftime('%H:%M:%S')}\n")
             
             if es_horario_laboral:
                 self._actualizar_texto_analisis("Actividad durante horario laboral normal\n")
@@ -4106,7 +4079,7 @@ ls -la "$OUTPUT_DIR/"
                         if logins_nocturnos:
                             self._actualizar_texto_analisis(f"LOGINS NOCTURNOS DETECTADOS: {len(logins_nocturnos)}\n")
                             for login in logins_nocturnos[:3]:
-                                self._actualizar_texto_analisis(f"  POINT {login}\n")
+                                self._actualizar_texto_analisis(f"  📍 {login}\n")
                         else:
                             self._actualizar_texto_analisis("No se detectaron logins nocturnos recientes\n")
                             
@@ -4143,7 +4116,7 @@ ls -la "$OUTPUT_DIR/"
     def correlacionar_eventos_avanzado(self):
         """Correlación avanzada de eventos de seguridad."""
         try:
-            self._actualizar_texto_analisis("CORRELACION: INICIANDO CORRELACIÓN AVANZADA DE EVENTOS\n")
+            self._actualizar_texto_analisis("🔗 INICIANDO CORRELACIÓN AVANZADA DE EVENTOS\n")
             self._actualizar_texto_analisis("=" * 70 + "\n")
             
             # 1. Correlación de intentos de acceso fallidos
@@ -4219,7 +4192,7 @@ ls -la "$OUTPUT_DIR/"
     def _correlacionar_red_procesos(self):
         """Correlacionar actividad de red con procesos activos."""
         try:
-            self._actualizar_texto_analisis("\n[NETWORK] 2. CORRELACIÓN RED-PROCESOS\n")
+            self._actualizar_texto_analisis("\n🌐 2. CORRELACIÓN RED-PROCESOS\n")
             self._actualizar_texto_analisis("-" * 50 + "\n")
             
             import subprocess
@@ -4255,7 +4228,7 @@ ls -la "$OUTPUT_DIR/"
     def _correlacionar_archivos_logins(self):
         """Correlacionar modificaciones de archivos con logins.""" 
         try:
-            self._actualizar_texto_analisis("\nDIR 3. CORRELACIÓN ARCHIVOS-LOGINS\n")
+            self._actualizar_texto_analisis("\n📁 3. CORRELACIÓN ARCHIVOS-LOGINS\n")
             self._actualizar_texto_analisis("-" * 50 + "\n")
             
             import subprocess
@@ -4311,7 +4284,7 @@ ls -la "$OUTPUT_DIR/"
     def _analizar_cadenas_eventos(self):
         """Analizar cadenas de eventos que pueden indicar un ataque."""
         try:
-            self._actualizar_texto_analisis("\nCORRELACION: 4. ANÁLISIS DE CADENAS DE EVENTOS\n")
+            self._actualizar_texto_analisis("\n🔗 4. ANÁLISIS DE CADENAS DE EVENTOS\n")
             self._actualizar_texto_analisis("-" * 50 + "\n")
             
             # Simular análisis de cadena de eventos típica de ataque
@@ -4351,12 +4324,12 @@ ls -la "$OUTPUT_DIR/"
             # Evaluar la cadena de eventos
             if len(eventos_sospechosos) >= 2:
                 self._actualizar_texto_analisis("CADENA DE EVENTOS SOSPECHOSA DETECTADA:\n")
-                self._actualizar_texto_analisis(f"  POINT Eventos correlacionados: {', '.join(eventos_sospechosos)}\n")
+                self._actualizar_texto_analisis(f"  📍 Eventos correlacionados: {', '.join(eventos_sospechosos)}\n")
                 self._actualizar_texto_analisis("  Posible intento de intrusión en progreso\n")
                 self._actualizar_texto_analisis("  Recomendación: Revisar logs detalladamente y considerar medidas defensivas\n")
             elif len(eventos_sospechosos) == 1:
                 self._actualizar_texto_analisis("Evento aislado detectado:\n")
-                self._actualizar_texto_analisis(f"  POINT Tipo: {eventos_sospechosos[0]}\n")
+                self._actualizar_texto_analisis(f"  📍 Tipo: {eventos_sospechosos[0]}\n")
                 self._actualizar_texto_analisis("  Mantener vigilancia\n")
             else:
                 self._actualizar_texto_analisis("No se detectaron cadenas de eventos sospechosas\n")
@@ -4446,3 +4419,4 @@ ls -la "$OUTPUT_DIR/"
             self.after_idle(_update)
         except (tk.TclError, AttributeError):
             pass
+

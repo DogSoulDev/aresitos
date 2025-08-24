@@ -1,4 +1,4 @@
-# ÍNDICE DE CHEATSHEETS DE ARESITOS
+# ÍNDICE DE CHEATSHEETS DE ARES AEGIS
 
 ## Descripción
 Esta carpeta contiene cheatsheets de ciberseguridad para profesionales. Los archivos pueden ser editados, guardados y personalizados según las necesidades del usuario.
@@ -90,7 +90,7 @@ Esta carpeta contiene cheatsheets de ciberseguridad para profesionales. Los arch
 - **Categorías**: Ataques de diccionario, máscaras, reglas, optimización, múltiples formatos hash
 - **Uso**: Auditoría de contraseñas, análisis forense y testing de políticas de seguridad
 
-### 18. **bulk_extractor_forensics.txt**
+### 18. **volatility_memory_forensics.txt**
 - **Descripción**: Framework de análisis forense de memoria RAM más completo
 - **Categorías**: Análisis de procesos, red, registro, archivos, detección de malware, timeline
 - **Uso**: Incident response, análisis forense digital y detección de amenazas avanzadas
@@ -123,7 +123,7 @@ Esta carpeta contiene cheatsheets de ciberseguridad para profesionales. Los arch
 ### Agregar Nuevos Cheatsheets
 1. Crear archivo .txt en la carpeta `data/cheatsheets/`
 2. Actualizar `cheatsheets_config.json` con la nueva categoría
-3. Reiniciar ARESITOS para cargar los cambios
+3. Reiniciar Ares Aegis para cargar los cambios
 
 ### Formato Recomendado
 ```
@@ -147,5 +147,5 @@ comando4                          # Descripción
 - **Compatibilidad**: Todos los sistemas operativos
 
 ---
-**ARESITOS - Suite de Ciberseguridad Profesional**  
+**Ares Aegis - Suite de Ciberseguridad Profesional**  
 Versión: 1.0 | Fecha: Agosto 2025

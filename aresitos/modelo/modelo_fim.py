@@ -31,25 +31,20 @@ import sqlite3
 
 # Evitar warnings de typing
 if TYPE_CHECKING:
-    # Mock class para typing
-    class _FIMAvanzado:
-        def __init__(self, gestor_permisos=None):
-            self.gestor_permisos = gestor_permisos
-            self.configuracion = {}
-            self.base_datos = "data/fim_database.json"
-        
-        def log(self, mensaje: str):
-            print(f"[FIM] {mensaje}")
+    from .modelo_fim import FIMAvanzado as _FIMAvanzado
 else:
-    # Fallback para runtime
-    class _FIMAvanzado:
-        def __init__(self, gestor_permisos=None):
-            self.gestor_permisos = gestor_permisos
-            self.configuracion = {}
-            self.base_datos = "data/fim_database.json"
-        
-        def log(self, mensaje: str):
-            print(f"[FIM] {mensaje}")
+    try:
+        from .modelo_fim import FIMAvanzado as _FIMAvanzado
+    except ImportError:
+        # Fallback si no existe modelo_fim
+        class _FIMAvanzado:
+            def __init__(self, gestor_permisos=None):
+                self.gestor_permisos = gestor_permisos
+                self.configuracion = {}
+                self.base_datos = "data/fim_database.json"
+            
+            def log(self, mensaje: str):
+                print(f"[FIM] {mensaje}")
 
 class FIMKali2025(_FIMAvanzado):  # type: ignore
     """
@@ -82,9 +77,9 @@ class FIMKali2025(_FIMAvanzado):  # type: ignore
                                      capture_output=True, text=True, timeout=5)
                 if result.returncode == 0:
                     self.herramientas_disponibles[herramienta] = result.stdout.strip()
-                    self.log(f"OK {herramienta} disponible en {result.stdout.strip()}")
+                    self.log(f"✓ {herramienta} disponible en {result.stdout.strip()}")
                 else:
-                    self.log(f"INFO {herramienta} no encontrada")
+                    self.log(f"ERROR {herramienta} no encontrada")
             except Exception as e:
                 self.log(f"ERROR verificando {herramienta}: {e}")
     
@@ -711,61 +706,6 @@ rule PossibleMalware
     
     condition:
         $exe at 0 and any of ($sus*)
-
-    def guardar_evento_fim(self, evento):
-        """Guarda evento FIM en base de datos (método CRUD)."""
-        try:
-            if not self.validar_evento_fim(evento):
-                raise ValueError('Evento FIM inválido')
-            # Implementar guardado
-            return True
-        except Exception as e:
-            raise Exception(f'Error guardando evento FIM: {e}')
-
-    def obtener_eventos_fim(self, filtros=None):
-        """Obtiene eventos FIM (método CRUD)."""
-        try:
-            # Implementar consulta
-            return []
-        except Exception as e:
-            raise Exception(f'Error obteniendo eventos FIM: {e}')
-
-    def actualizar_estado_fim(self, evento_id, nuevo_estado):
-        """Actualiza estado de evento FIM (método CRUD)."""
-        try:
-            # Implementar actualización
-            return True
-        except Exception as e:
-            raise Exception(f'Error actualizando evento FIM: {e}')
-
-    def validar_evento_fim(self, evento):
-        """Valida evento FIM (principio de Seguridad)."""
-        if not isinstance(evento, dict):
-            return False
-        
-        campos_requeridos = ['archivo', 'tipo_evento', 'timestamp']
-        for campo in campos_requeridos:
-            if campo not in evento:
-                return False
-        
-        # Validar tipo de evento
-        tipos_validos = ['creado', 'modificado', 'eliminado', 'movido']
-        if evento['tipo_evento'] not in tipos_validos:
-            return False
-        
-        return True
-
-    def validar_ruta_archivo(self, ruta):
-        """Valida ruta de archivo (principio de Seguridad)."""
-        if not ruta or not isinstance(ruta, str):
-            return False
-        
-        # Evitar path traversal
-        if '..' in ruta or ruta.startswith('/'):
-            return False
-        
-        return True
-
 }
         '''
         
@@ -837,63 +777,3 @@ rule PossibleMalware
                 super().log(mensaje)  # type: ignore
         except (ValueError, TypeError, AttributeError):
             pass
-
-    def guardar_datos(self, datos):
-        """Guarda datos en el modelo (método CRUD)."""
-        try:
-            # Implementar guardado específico del modelo
-            return True
-        except Exception as e:
-            raise Exception(f'Error guardando datos: {e}')
-
-    def obtener_datos(self, filtros=None):
-        """Obtiene datos del modelo (método CRUD)."""
-        try:
-            # Implementar consulta específica del modelo
-            return []
-        except Exception as e:
-            raise Exception(f'Error obteniendo datos: {e}')
-
-    def validar_datos_entrada(self, datos):
-        """Valida datos de entrada (principio de Seguridad ARESITOS)."""
-        if not isinstance(datos, dict):
-            return False
-        # Implementar validaciones específicas del modelo
-        return True
-
-    # Métodos CRUD según principios ARESITOS
-    def crear(self, datos):
-        """Crea una nueva entrada (principio de Robustez)."""
-        try:
-            if not self.validar_datos_entrada(datos):
-                raise ValueError('Datos no válidos')
-            # Implementar creación específica
-            return True
-        except Exception as e:
-            raise Exception(f'Error en crear(): {e}')
-
-    def obtener(self, identificador):
-        """Obtiene datos por identificador (principio de Transparencia)."""
-        try:
-            # Implementar búsqueda específica
-            return None
-        except Exception as e:
-            raise Exception(f'Error en obtener(): {e}')
-
-    def actualizar(self, identificador, datos):
-        """Actualiza datos existentes (principio de Eficiencia)."""
-        try:
-            if not self.validar_datos_entrada(datos):
-                raise ValueError('Datos no válidos')
-            # Implementar actualización específica
-            return True
-        except Exception as e:
-            raise Exception(f'Error en actualizar(): {e}')
-
-    def eliminar(self, identificador):
-        """Elimina datos por identificador (principio de Seguridad)."""
-        try:
-            # Implementar eliminación específica
-            return True
-        except Exception as e:
-            raise Exception(f'Error en eliminar(): {e}')

@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-ARESITOS - Constructor de Wordlists
+Ares Aegis - Constructor de Wordlists
 Modelo para generar y gestionar wordlists personalizadas
 """
 
@@ -355,6 +355,6 @@ class ConstructorWordlists:
             return {'exito': False, 'error': str(e)}
 
 
-# RESUMEN: Constructor avanzado de wordlists para ARESITOS.
+# RESUMEN: Constructor avanzado de wordlists para Ares Aegis.
 # Genera wordlists personalizadas, combina listas existentes y optimiza contenido.
 # Incluye validación de seguridad y exportación segura de archivos.

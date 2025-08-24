@@ -3,7 +3,7 @@
 import subprocess
 import re
 import shlex
-from aresitos.modelo.modelo_sistema import ModeloUtilidadesSistema
+from aresitos.modelo.modelo_utilidades_sistema import ModeloUtilidadesSistema
 
 class ControladorHerramientas:
     
@@ -40,7 +40,7 @@ class ControladorHerramientas:
             
             # Forense y Análisis (ESENCIALES)
             'binwalk', 'foremost', 'exiftool', 'strings', 'file',
-            'hexdump', 'xxd', 'grep', 'find', 'locate', 'bulk_extractor',
+            'hexdump', 'xxd', 'grep', 'find', 'locate',
             
             # Exploits y Post-Explotación
             'searchsploit', 'exploitdb', 'linpeas', 'pspy',
@@ -182,6 +182,7 @@ class ControladorHerramientas:
             info['error_info'] = str(e)
         
         return info
+        return self.utilidades_sistema.verificar_herramientas_kali_completo()
     
     def verificar_herramienta_especifica(self, nombre_herramienta):
         # SECURITY FIX: Validar entrada antes de ejecutar comando
@@ -374,3 +375,4 @@ class ControladorHerramientas:
 # verificación, instalación y ejecución de herramientas de ciberseguridad. Integración 
 # directa con apt-get y comandos del sistema, arquitectura MVC con principios SOLID, 
 # sin dependencias externas para administración profesional de herramientas.
+

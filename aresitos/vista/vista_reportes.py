@@ -17,31 +17,6 @@ except ImportError:
     burp_theme = None
 
 class VistaReportes(tk.Frame):
-    """
-    VistaReportes para ARESITOS v3.0 - Sistema de Ciberseguridad Integral.
-    
-    Esta vista implementa los 8 principios fundamentales de ARESITOS:
-    
-    1. Automatización: Procesos automatizados de interfaz
-    2. Robustez: Manejo robusto de errores y excepciones
-    3. Eficiencia: Optimización de recursos y rendimiento
-    4. Seguridad: Validación y sanitización de entradas
-    5. Integración: Conexión seamless con controladores
-    6. Transparencia: Feedback claro y comprensible al usuario
-    7. Optimización: Interfaz responsiva y eficiente
-    8. Simplicidad: Diseño intuitivo y fácil de usar
-    
-    Attributes:
-        controlador: Referencia al controlador asociado
-        logger: Sistema de logging integrado
-        componentes_ui: Elementos de interfaz de usuario
-    
-    Methods:
-        configurar_interfaz(): Configura la interfaz inicial
-        conectar_eventos(): Establece conexiones de eventos
-        actualizar_vista(): Actualiza elementos visuales
-        manejar_errores(): Gestiona errores de interfaz
-    """
     
     def __init__(self, parent):
         super().__init__(parent)
@@ -182,13 +157,11 @@ class VistaReportes(tk.Frame):
         ]
         
         for texto, comando in botones_generar:
-            # PRINCIPIO ARESITOS: Botones consistentes y funcionales
-            btn = ttk.Button(
-                right_frame, 
-                text=texto, 
-                style="Burp.TButton", 
-                command=comando
-            )
+            btn = tk.Button(right_frame, text=texto, command=comando,
+                           bg=self.colors['fg_accent'], fg=self.colors['bg_primary'],
+                           font=('Arial', 10, 'bold'),
+                           relief='flat', padx=10, pady=5,
+                           activebackground=self.colors['warning'])
             btn.pack(fill=tk.X, pady=5)
         
         # Separador con tema
@@ -205,13 +178,11 @@ class VistaReportes(tk.Frame):
         ]
         
         for texto, comando in botones_gestion:
-            # PRINCIPIO ARESITOS: Gestión sistemática de reportes
-            btn = ttk.Button(
-                right_frame, 
-                text=texto, 
-                style="Burp.TButton", 
-                command=comando
-            )
+            btn = tk.Button(right_frame, text=texto, command=comando,
+                           bg=self.colors['bg_primary'], fg=self.colors['fg_primary'],
+                           font=('Arial', 10),
+                           relief='flat', padx=10, pady=5,
+                           activebackground=self.colors['bg_secondary'])
             btn.pack(fill=tk.X, pady=5)
         
         # Frame de información con tema
@@ -248,13 +219,11 @@ class VistaReportes(tk.Frame):
         ]
         
         for texto, comando in botones_kali:
-            # PRINCIPIO ARESITOS: Herramientas específicas de Kali Linux
-            btn = ttk.Button(
-                kali_frame, 
-                text=texto, 
-                style="Burp.TButton", 
-                command=comando
-            )
+            btn = tk.Button(kali_frame, text=texto, command=comando,
+                           bg=self.colors['info'], fg=self.colors['bg_primary'],
+                           font=('Arial', 9, 'bold'),
+                           relief='flat', padx=8, pady=3,
+                           activebackground=self.colors['warning'])
             btn.pack(fill=tk.X, pady=2)
         
         # Crear terminal integrado
@@ -778,7 +747,7 @@ class VistaReportes(tk.Frame):
                 text="LIMPIAR",
                 command=self.limpiar_terminal_reportes,
                 bg=self.colors.get('warning', '#ffaa00'),
-                fg='#ff6633',
+                fg='white',
                 font=("Arial", 8, "bold"),
                 height=1
             )
@@ -790,7 +759,7 @@ class VistaReportes(tk.Frame):
                 text="VER LOGS",
                 command=self.abrir_logs_reportes,
                 bg=self.colors.get('info', '#007acc'),
-                fg='#ff6633',
+                fg='white',
                 font=("Arial", 8, "bold"),
                 height=1
             )
@@ -1489,3 +1458,4 @@ class VistaReportes(tk.Frame):
             self.after_idle(_update)
         except (tk.TclError, AttributeError):
             pass
+

@@ -1,9 +1,4 @@
 # -*- coding: utf-8 -*-
-"""
-ARESITOS V3 - Vista Gestión de Datos Optimizada
-Vista unificada para gestión de Wordlists y Diccionarios
-OPTIMIZADO: Python nativo + Kali tools + Thread Safety + Acceso Dinámico
-"""
 
 import tkinter as tk
 from tkinter import ttk, scrolledtext, filedialog, messagebox
@@ -13,98 +8,48 @@ import logging
 import datetime
 import threading
 from pathlib import Path
-from concurrent.futures import ThreadPoolExecutor
-from typing import Dict, List, Any, Optional, Union
 
 try:
     from aresitos.vista.burp_theme import burp_theme
     BURP_THEME_AVAILABLE = True
 except ImportError:
     BURP_THEME_AVAILABLE = False
-    burp_theme = None
 
 class VistaGestionDatos(tk.Frame):
     """
     Vista unificada para gestión de Wordlists y Diccionarios.
-    OPTIMIZADO con PRINCIPIOS ARESITOS V3: Thread Safety + Acceso Dinámico + Kali Tools
     Simplicidad y funcionalidad siguiendo el patrón visual de Burp Suite.
     """
     
     def __init__(self, parent):
         super().__init__(parent)
+        self.controlador = None
+        self.vista_principal = parent  # Referencia al padre para acceder al terminal
         
-        # Thread Safety (PRINCIPIO ARESITOS V3)
-        self._lock = threading.RLock()
-        self._cache = {}
-        self._thread_pool = ThreadPoolExecutor(max_workers=2, thread_name_prefix="VistaGestionDatos")
+        # Configurar logging
+        self.logger = logging.getLogger(__name__)
         
-        # Inicialización thread-safe
-        with self._lock:
-            self.controlador = None
-            self.vista_principal = parent  # Referencia al padre para acceder al terminal
-            
-            # Configurar logging
-            self.logger = logging.getLogger(__name__)
-            
-            # Variables de estado thread-safe
-            self.tipo_actual = "wordlists"  # "wordlists" o "diccionarios"
-            self.archivo_seleccionado = None
-            self.datos_actuales = {}
-            self._estado_inicializado = False
-            
-            # Configuración del tema Burp Suite con fallback dinámico
-            self._configurar_tema_dinamico()
-            
-            # Rutas de datos con validación
-            self._configurar_rutas_datos()
-            
-            # Crear interfaz
-            self.crear_interfaz()
-            self.cargar_archivos()
-            
-            self._estado_inicializado = True
-    
-    def _configurar_tema_dinamico(self):
-        """Configurar tema con acceso dinámico y fallback robusto (PRINCIPIO ARESITOS V3)."""
-        try:
-            if BURP_THEME_AVAILABLE and burp_theme:
-                self.theme = burp_theme
-                # Acceso dinámico a colores con getattr
-                self.colors = {
-                    'bg_primary': getattr(burp_theme, 'get_color', lambda x: '#2b2b2b')('bg_primary'),
-                    'bg_secondary': getattr(burp_theme, 'get_color', lambda x: '#1e1e1e')('bg_secondary'),
-                    'fg_primary': getattr(burp_theme, 'get_color', lambda x: '#ffffff')('fg_primary'),
-                    'fg_accent': getattr(burp_theme, 'get_color', lambda x: '#ff6633')('fg_accent'),
-                    'success': getattr(burp_theme, 'get_color', lambda x: '#00ff88')('success'),
-                    'warning': getattr(burp_theme, 'get_color', lambda x: '#ffcc00')('warning'),
-                    'danger': getattr(burp_theme, 'get_color', lambda x: '#ff4444')('danger'),
-                    'info': getattr(burp_theme, 'get_color', lambda x: '#44aaff')('info')
-                }
-                self.configure(bg=self.colors['bg_primary'])
-                
-                # Configurar estilos TTK con acceso dinámico
-                style = ttk.Style()
-                configure_method = getattr(burp_theme, 'configure_ttk_style', None)
-                if configure_method:
-                    configure_method(style)
-                    
-            else:
-                self.theme = None
-                # Colores por defecto para compatibilidad
-                self.colors = {
-                    'bg_primary': '#f0f0f0',
-                    'bg_secondary': '#ffffff',
-                    'fg_primary': '#000000',
-                    'fg_accent': '#0066cc',
-                    'success': '#008800',
-                    'warning': '#ff8800',
-                    'danger': '#cc0000',
-                    'info': '#0066cc'
-                }
-                
-        except Exception as e:
-            self.logger.warning(f"Error configurando tema: {e}, usando tema por defecto")
+        # Configuración del tema Burp Suite
+        if BURP_THEME_AVAILABLE and burp_theme:
+            self.theme = burp_theme
+            # Diccionario de colores consistente con otras vistas
+            self.colors = {
+                'bg_primary': burp_theme.get_color('bg_primary'),      # #2b2b2b
+                'bg_secondary': burp_theme.get_color('bg_secondary'),  # #1e1e1e  
+                'fg_primary': burp_theme.get_color('fg_primary'),      # #ffffff
+                'fg_accent': burp_theme.get_color('fg_accent'),        # #ff6633
+                'success': burp_theme.get_color('success'),            # #00ff88
+                'warning': burp_theme.get_color('warning'),            # #ffcc00
+                'danger': burp_theme.get_color('danger'),              # #ff4444
+                'info': burp_theme.get_color('info')                   # #44aaff
+            }
+            self.configure(bg=self.colors['bg_primary'])
+            # Configurar estilos TTK
+            style = ttk.Style()
+            burp_theme.configure_ttk_style(style)
+        else:
             self.theme = None
+            # Colores por defecto para compatibilidad
             self.colors = {
                 'bg_primary': '#f0f0f0',
                 'bg_secondary': '#ffffff',
@@ -115,109 +60,25 @@ class VistaGestionDatos(tk.Frame):
                 'danger': '#cc0000',
                 'info': '#0066cc'
             }
-    
-    def _configurar_rutas_datos(self):
-        """Configurar rutas de datos con validación y creación automática (PRINCIPIO ARESITOS V3)."""
-        try:
-            # Rutas de datos con validación
-            self.ruta_wordlists = Path("data/wordlists")
-            self.ruta_diccionarios = Path("data/diccionarios")
-            
-            # Crear directorios si no existen (Python nativo)
-            for ruta in [self.ruta_wordlists, self.ruta_diccionarios]:
-                try:
-                    ruta.mkdir(parents=True, exist_ok=True)
-                    self.logger.info(f"OK Ruta de datos verificada: {ruta}")
-                except Exception as e:
-                    self.logger.warning(f"No se pudo crear ruta {ruta}: {e}")
-                    
-            # Cache de rutas válidas
-            self._cache['rutas_validas'] = {
-                'wordlists': self.ruta_wordlists.exists(),
-                'diccionarios': self.ruta_diccionarios.exists()
-            }
-            
-        except Exception as e:
-            self.logger.error(f"Error configurando rutas de datos: {e}")
-            # Fallback a rutas por defecto
-            self.ruta_wordlists = Path("data/wordlists")
-            self.ruta_diccionarios = Path("data/diccionarios")
+        
+        # Rutas de datos
+        self.ruta_wordlists = Path("data/wordlists")
+        self.ruta_diccionarios = Path("data/diccionarios")
+        
+        # Variables de estado
+        self.tipo_actual = "wordlists"  # "wordlists" o "diccionarios"
+        self.archivo_seleccionado = None
+        self.datos_actuales = {}
+        
+        self.crear_interfaz()
+        self.cargar_archivos()
     
     def set_controlador(self, controlador):
-        """Establecer controlador con acceso dinámico (PRINCIPIO ARESITOS V3)."""
-        with self._lock:
-            self.controlador = controlador
-            self.logger.info("Controlador establecido en VistaGestionDatos")
-            
-            # Cargar datos desde el controlador con acceso dinámico
-            self._actualizar_desde_controlador_dinamico()
-    
-    def _actualizar_desde_controlador_dinamico(self):
-        """Actualizar datos desde controlador con acceso dinámico (PRINCIPIO ARESITOS V3)."""
-        if not self.controlador:
-            return
+        self.controlador = controlador
+        self.logger.info("Controlador establecido en VistaGestionDatos")
         
-        try:
-            # Acceso dinámico a métodos del controlador
-            if self.tipo_actual == "wordlists":
-                metodo_wordlists = getattr(self.controlador, 'obtener_wordlists_disponibles', None)
-                if metodo_wordlists:
-                    wordlists_data = metodo_wordlists()
-                    count = len(wordlists_data) if wordlists_data else 0
-                    self.logger.info(f"OK Wordlists disponibles: {count}")
-                    self._cache['wordlists_data'] = wordlists_data
-                    
-            else:
-                metodo_diccionarios = getattr(self.controlador, 'obtener_diccionarios_disponibles', None)
-                if metodo_diccionarios:
-                    diccionarios_data = metodo_diccionarios()
-                    count = len(diccionarios_data) if diccionarios_data else 0
-                    self.logger.info(f"OK Diccionarios disponibles: {count}")
-                    self._cache['diccionarios_data'] = diccionarios_data
-                    
-            # Actualizar estadísticas dinámicamente
-            self._obtener_estadisticas_dinamicas()
-            
-        except Exception as e:
-            self.logger.error(f"Error actualizando desde controlador: {e}")
-    
-    def _obtener_estadisticas_dinamicas(self):
-        """Obtener estadísticas con acceso dinámico (PRINCIPIO ARESITOS V3)."""
-        if not self.controlador:
-            return {}
-        
-        try:
-            # Intentar acceso dinámico al modelo principal
-            modelo = getattr(self.controlador, 'modelo_principal', None)
-            if modelo:
-                metodo_stats = getattr(modelo, 'obtener_estadisticas_generales', None)
-                if metodo_stats:
-                    estadisticas = metodo_stats()
-                    self.logger.info(f"OK Estadísticas obtenidas: {len(estadisticas) if estadisticas else 0} elementos")
-                    self._cache['estadisticas'] = estadisticas
-                    return estadisticas
-                    
-            # Fallback: obtener estadísticas básicas localmente
-            stats_locales = self._generar_estadisticas_locales()
-            self._cache['estadisticas'] = stats_locales
-            return stats_locales
-                    
-        except Exception as e:
-            self.logger.error(f"Error obteniendo estadísticas: {e}")
-            return {}
-    
-    def _generar_estadisticas_locales(self):
-        """Generar estadísticas locales como fallback (PRINCIPIO ARESITOS V3)."""
-        try:
-            stats = {
-                'wordlists_count': len(list(self.ruta_wordlists.glob('*.txt'))) + len(list(self.ruta_wordlists.glob('*.json'))) if self.ruta_wordlists.exists() else 0,
-                'diccionarios_count': len(list(self.ruta_diccionarios.glob('*.json'))) if self.ruta_diccionarios.exists() else 0,
-                'timestamp': datetime.datetime.now().isoformat()
-            }
-            return stats
-        except Exception as e:
-            self.logger.error(f"Error generando estadísticas locales: {e}")
-            return {'error': str(e)}
+        # Cargar datos desde el controlador si está disponible
+        self.actualizar_desde_controlador()
     
     def crear_interfaz(self):
         """Crear interfaz principal con estilo Burp Suite."""
@@ -273,20 +134,12 @@ class VistaGestionDatos(tk.Frame):
                                             relief='flat', padx=20, pady=8)
             self.btn_diccionarios.pack(side=tk.LEFT)
         else:
-            self.btn_wordlists = ttk.Button(
-                selector_frame, 
-                text="📝 Wordlists", 
-                style="Burp.TButton",
-                command=lambda: self.cambiar_tipo("wordlists")
-            )
+            self.btn_wordlists = ttk.Button(selector_frame, text=" Wordlists", 
+                                          command=lambda: self.cambiar_tipo("wordlists"))
             self.btn_wordlists.pack(side=tk.LEFT, padx=(0, 10))
             
-            self.btn_diccionarios = ttk.Button(
-                selector_frame, 
-                text="📚 Diccionarios", 
-                style="Burp.TButton",
-                command=lambda: self.cambiar_tipo("diccionarios")
-            )
+            self.btn_diccionarios = ttk.Button(selector_frame, text=" Diccionarios", 
+                                             command=lambda: self.cambiar_tipo("diccionarios"))
             self.btn_diccionarios.pack(side=tk.LEFT)
     
     def crear_panel_archivos(self, parent):
@@ -294,7 +147,7 @@ class VistaGestionDatos(tk.Frame):
         if self.theme:
             left_frame = tk.Frame(parent, bg='#2b2b2b')
         else:
-            left_frame = ttk.LabelFrame(parent, text="📁 Archivos Disponibles", style="Burp.TLabelframe", padding=10)
+            left_frame = ttk.LabelFrame(parent, text="Archivos Disponibles", padding=10)
         left_frame.pack(side=tk.LEFT, fill=tk.BOTH, expand=True, padx=(0, 10))
         
         if self.theme:
@@ -334,7 +187,7 @@ class VistaGestionDatos(tk.Frame):
         if self.theme:
             right_frame = tk.Frame(parent, bg='#2b2b2b')
         else:
-            right_frame = ttk.LabelFrame(parent, text="⚡ Acciones y Contenido", style="Burp.TLabelframe", padding=10)
+            right_frame = ttk.LabelFrame(parent, text="Acciones y Contenido", padding=10)
         right_frame.pack(side=tk.RIGHT, fill=tk.BOTH, expand=True)
         
         if self.theme:
@@ -367,7 +220,7 @@ class VistaGestionDatos(tk.Frame):
                               relief='flat', padx=15, pady=5)
                 btn.pack(side=tk.LEFT, padx=(0, 5))
             else:
-                btn = ttk.Button(btn_frame, text=texto, style="Burp.TButton", command=comando)
+                btn = ttk.Button(btn_frame, text=texto, command=comando)
                 btn.pack(side=tk.LEFT, padx=(0, 5))
         
         # Frame adicional para gestión de archivos
@@ -379,8 +232,8 @@ class VistaGestionDatos(tk.Frame):
         
         # Botones de gestión de archivos
         gestión_acciones = [
-            ("Refrescar", self.cargar_archivos, '#17a2b8'),
-            ("DIR Abrir Carpeta", self.abrir_carpeta_actual, '#007acc'),
+            ("🔄 Refrescar", self.cargar_archivos, '#17a2b8'),
+            ("📁 Abrir Carpeta", self.abrir_carpeta_actual, '#007acc'),
             ("[STATS] Estadísticas", self.obtener_estadisticas_datos, '#6c757d')
         ]
         
@@ -391,7 +244,7 @@ class VistaGestionDatos(tk.Frame):
                               relief='flat', padx=10, pady=3)
                 btn.pack(side=tk.LEFT, padx=(0, 5))
             else:
-                btn = ttk.Button(gestion_frame, text=texto, style="Burp.TButton", command=comando)
+                btn = ttk.Button(gestion_frame, text=texto, command=comando)
                 btn.pack(side=tk.LEFT, padx=(0, 5))
         
         # Frame adicional para herramientas de Kali
@@ -416,7 +269,7 @@ class VistaGestionDatos(tk.Frame):
                               relief='flat', padx=12, pady=3)
                 btn.pack(side=tk.LEFT, padx=(0, 3))
             else:
-                btn = ttk.Button(kali_frame, text=texto, style="Burp.TButton", command=comando)
+                btn = ttk.Button(kali_frame, text=texto, command=comando)
                 btn.pack(side=tk.LEFT, padx=(0, 3))
         
         # Área de contenido
@@ -433,171 +286,97 @@ class VistaGestionDatos(tk.Frame):
         self.text_contenido.pack(fill=tk.BOTH, expand=True)
     
     def cambiar_tipo(self, nuevo_tipo):
-        """Cambiar entre wordlists y diccionarios con thread safety (PRINCIPIO ARESITOS V3)."""
-        with self._lock:
-            try:
-                self.logger.info(f"CAMBIO: Cambiando tipo de gestión de datos a: {nuevo_tipo}")
-                self.tipo_actual = nuevo_tipo
-                
-                # Actualizar botones con acceso dinámico al tema
-                if hasattr(self, 'theme') and self.theme:
-                    if nuevo_tipo == "wordlists":
-                        getattr(self.btn_wordlists, 'config', lambda **kwargs: None)(bg='#ff6633')
-                        getattr(self.btn_diccionarios, 'config', lambda **kwargs: None)(bg='#404040')
-                    else:
-                        getattr(self.btn_wordlists, 'config', lambda **kwargs: None)(bg='#404040')
-                        getattr(self.btn_diccionarios, 'config', lambda **kwargs: None)(bg='#ff6633')
-                
-                # Limpiar selección y contenido de forma thread-safe
-                self.archivo_seleccionado = None
-                self._actualizar_contenido_seguro("", "clear")
-                
-                # Usar ThreadPoolExecutor para actualización asíncrona
-                def actualizar_async():
-                    try:
-                        # Llamar al controlador con acceso dinámico
-                        if self.controlador:
-                            if nuevo_tipo == "wordlists":
-                                metodo_wordlists = getattr(self.controlador, 'obtener_wordlists_disponibles', None)
-                                if metodo_wordlists:
-                                    wordlists_data = metodo_wordlists()
-                                    self.logger.info(f"OK Wordlists disponibles: {len(wordlists_data) if wordlists_data else 0}")
-                            else:
-                                metodo_diccionarios = getattr(self.controlador, 'obtener_diccionarios_disponibles', None)
-                                if metodo_diccionarios:
-                                    diccionarios_data = metodo_diccionarios()
-                                    self.logger.info(f"OK Diccionarios disponibles: {len(diccionarios_data) if diccionarios_data else 0}")
-                                    
-                            # Actualizar estadísticas en la vista
-                            self._actualizar_desde_controlador_dinamico()
-                        
-                        # Recargar archivos en el hilo principal
-                        self.after_idle(self.cargar_archivos)
-                        
-                    except Exception as e:
-                        self.logger.error(f"Error en actualización asíncrona: {e}")
-                
-                # Ejecutar actualización en thread pool
-                self._thread_pool.submit(actualizar_async)
-                
-            except Exception as e:
-                self.logger.error(f"Error cambiando tipo de gestión: {e}")
+        """Cambiar entre wordlists y diccionarios."""
+        try:
+            self.logger.info(f"Cambiando tipo de gestión de datos a: {nuevo_tipo}")
+            self.tipo_actual = nuevo_tipo
+            
+            # Actualizar botones
+            if self.theme:
+                if nuevo_tipo == "wordlists":
+                    self.btn_wordlists['bg'] = '#ff6633'
+                    self.btn_diccionarios['bg'] = '#404040'
+                else:
+                    self.btn_wordlists['bg'] = '#404040'
+                    self.btn_diccionarios['bg'] = '#ff6633'
+            
+            # Limpiar selección y contenido
+            self.archivo_seleccionado = None
+            self._actualizar_contenido_seguro("", "clear")
+            
+            # Llamar al controlador para obtener datos específicos del tipo
+            if self.controlador:
+                if nuevo_tipo == "wordlists":
+                    wordlists_data = self.controlador.obtener_wordlists_disponibles()
+                    self.logger.info(f"Wordlists disponibles: {len(wordlists_data) if wordlists_data else 0}")
+                else:
+                    diccionarios_data = self.controlador.obtener_diccionarios_disponibles()
+                    self.logger.info(f"Diccionarios disponibles: {len(diccionarios_data) if diccionarios_data else 0}")
+                    
+                # Actualizar estadísticas en la vista
+                self.actualizar_desde_controlador()
+            
+            # Recargar archivos
+            self.cargar_archivos()
+            
+        except Exception as e:
+            self.logger.error(f"Error cambiando tipo de gestión: {e}")
     
     def cargar_archivos(self):
-        """Cargar lista de archivos con validación robusta (PRINCIPIO ARESITOS V3)."""
-        try:
-            # Limpiar lista existente
-            if hasattr(self, 'lista_archivos'):
-                self.lista_archivos.delete(0, tk.END)
+        """Cargar lista de archivos según el tipo seleccionado."""
+        self.lista_archivos.delete(0, tk.END)
+        
+        if self.tipo_actual == "wordlists":
+            ruta = self.ruta_wordlists
+            extensiones = ['.txt', '.json']
+            tipo_str = "wordlists"
+        else:
+            ruta = self.ruta_diccionarios
+            extensiones = ['.json']
+            tipo_str = "diccionarios"
+        
+        if ruta.exists():
+            archivos = []
+            for ext in extensiones:
+                archivos.extend(ruta.glob(f'*{ext}'))
             
-            # Determinar ruta y extensiones según tipo
-            if self.tipo_actual == "wordlists":
-                ruta = getattr(self, 'ruta_wordlists', Path("data/wordlists"))
-                extensiones = ['.txt', '.json']
-                tipo_str = "wordlists"
-            else:
-                ruta = getattr(self, 'ruta_diccionarios', Path("data/diccionarios"))
-                extensiones = ['.json']
-                tipo_str = "diccionarios"
+            # Ordenar archivos
+            archivos.sort(key=lambda x: x.name.lower())
             
-            if ruta.exists():
-                archivos = []
-                # Buscar archivos con manejo de errores por extensión
-                for ext in extensiones:
-                    try:
-                        archivos.extend(ruta.glob(f'*{ext}'))
-                    except Exception as e:
-                        self.logger.warning(f"Error buscando archivos {ext}: {e}")
-                
-                # Ordenar archivos de forma segura
-                try:
-                    archivos.sort(key=lambda x: x.name.lower())
-                except Exception as e:
-                    self.logger.warning(f"Error ordenando archivos: {e}")
-                
-                # Mostrar información de refresco
-                self._log_terminal(f"ACTUALIZANDO: Actualizando lista de {tipo_str}... Encontrados {len(archivos)} archivos", "GESTION")
-                
-                # Agregar archivos a la lista con iconos
-                for archivo in archivos:
-                    try:
-                        # Mostrar nombre del archivo con icono según tipo
-                        icono = "📄" if archivo.suffix == '.json' else "NOTE"
-                        display_name = f"{icono} {archivo.name}"
-                        
-                        if hasattr(self, 'lista_archivos'):
-                            self.lista_archivos.insert(tk.END, display_name)
-                    except Exception as e:
-                        self.logger.warning(f"Error agregando archivo {archivo}: {e}")
-                
-                # Mensaje de confirmación
-                if archivos:
-                    self._log_terminal(f"OK Lista de {tipo_str} actualizada correctamente", "GESTION")
-                    
-                    # Actualizar cache con información de archivos
-                    self._cache[f'{tipo_str}_files'] = {
-                        'count': len(archivos),
-                        'files': [f.name for f in archivos],
-                        'timestamp': datetime.datetime.now().isoformat()
-                    }
+            # Mostrar información de refresco
+            self._log_terminal(f"🔄 Actualizando lista de {tipo_str}... Encontrados {len(archivos)} archivos", "GESTION")
+            
+            for archivo in archivos:
+                # Mostrar nombre del archivo con icono según tipo
+                if archivo.suffix == '.json':
+                    icono = "📄"
                 else:
-                    self._log_terminal(f"WARNING No se encontraron {tipo_str} en la carpeta", "GESTION", "WARNING")
+                    icono = "📝"
+                self.lista_archivos.insert(tk.END, f"{icono} {archivo.name}")
+            
+            # Mensaje de confirmación
+            if archivos:
+                self._log_terminal(f"✓ Lista de {tipo_str} actualizada correctamente", "GESTION")
             else:
-                self._log_terminal(f"ERROR Carpeta de {tipo_str} no encontrada: {ruta}", "GESTION", "ERROR")
-                # Intentar crear la carpeta
-                try:
-                    ruta.mkdir(parents=True, exist_ok=True)
-                    self._log_terminal(f"OK Carpeta de {tipo_str} creada: {ruta}", "GESTION")
-                except Exception as e:
-                    self._log_terminal(f"ERROR Error creando carpeta {tipo_str}: {e}", "GESTION", "ERROR")
-                    
-        except Exception as e:
-            self.logger.error(f"Error cargando archivos: {e}")
-            self._log_terminal(f"ERROR Error general cargando {self.tipo_actual}: {e}", "GESTION", "ERROR")
+                self._log_terminal(f"[WARNING] No se encontraron {tipo_str} en la carpeta", "GESTION", "WARNING")
+        else:
+            self._log_terminal(f"[FAIL] Carpeta de {tipo_str} no encontrada: {ruta}", "GESTION", "ERROR")
     
     def on_archivo_seleccionado(self, event):
-        """Manejar selección de archivo con validación robusta (PRINCIPIO ARESITOS V3)."""
-        try:
-            # Verificar que la lista existe y tiene selección
-            if not hasattr(self, 'lista_archivos'):
-                return
-                
-            selection = self.lista_archivos.curselection()
-            if not selection:
-                return
-                
-            # Obtener nombre del archivo de forma segura
-            try:
-                nombre_mostrado = self.lista_archivos.get(selection[0])
-                # Quitar el icono del nombre de forma robusta
-                if ' ' in nombre_mostrado:
-                    nombre_archivo = nombre_mostrado.split(' ', 1)[1]
-                else:
-                    nombre_archivo = nombre_mostrado
-            except (IndexError, AttributeError) as e:
-                self.logger.warning(f"Error obteniendo nombre de archivo seleccionado: {e}")
-                return
+        """Manejar selección de archivo."""
+        selection = self.lista_archivos.curselection()
+        if selection:
+            nombre_archivo = self.lista_archivos.get(selection[0])
+            # Quitar el icono del nombre
+            nombre_archivo = nombre_archivo.split(' ', 1)[1]
             
-            # Determinar ruta con acceso dinámico
             if self.tipo_actual == "wordlists":
-                base_path = getattr(self, 'ruta_wordlists', Path("data/wordlists"))
+                archivo_path = self.ruta_wordlists / nombre_archivo
             else:
-                base_path = getattr(self, 'ruta_diccionarios', Path("data/diccionarios"))
+                archivo_path = self.ruta_diccionarios / nombre_archivo
             
-            archivo_path = base_path / nombre_archivo
-            
-            # Validar que el archivo existe
-            if archivo_path.exists():
-                self.archivo_seleccionado = archivo_path
-                self.mostrar_contenido_archivo()
-                self._log_terminal(f"DIR Archivo seleccionado: {nombre_archivo}", "GESTION")
-            else:
-                self._log_terminal(f"ERROR Archivo no encontrado: {nombre_archivo}", "GESTION", "ERROR")
-                self.archivo_seleccionado = None
-                
-        except Exception as e:
-            self.logger.error(f"Error en selección de archivo: {e}")
-            self._log_terminal(f"ERROR Error seleccionando archivo: {e}", "GESTION", "ERROR")
+            self.archivo_seleccionado = archivo_path
+            self.mostrar_contenido_archivo()
     
     def mostrar_contenido_archivo(self):
         """Mostrar contenido del archivo seleccionado."""
@@ -637,158 +416,72 @@ class VistaGestionDatos(tk.Frame):
             messagebox.showerror("Error", f"Error al cargar archivo: {str(e)}")
     
     def cargar_archivo(self):
-        """Cargar archivo externo con validación de seguridad optimizada (PRINCIPIO ARESITOS V3)."""
-        try:
-            # Importación dinámica de módulos de seguridad
+        """Cargar archivo externo con validación de seguridad."""
+        from aresitos.utils.sanitizador_archivos import SanitizadorArchivos
+        from aresitos.utils.helper_seguridad import HelperSeguridad
+        
+        # Mostrar información de seguridad al usuario
+        if not HelperSeguridad.mostrar_info_carga_archivo(self.tipo_actual):
+            self.log_to_terminal("CANCEL Usuario canceló la carga por información de seguridad")
+            return
+        
+        self.log_to_terminal(f"Cargando archivo {self.tipo_actual}...")
+        
+        # Obtener filtros seguros para el diálogo
+        sanitizador = SanitizadorArchivos()
+        filetypes = sanitizador.generar_filtros_dialogo(self.tipo_actual)
+        
+        archivo = filedialog.askopenfilename(
+            title=f"Cargar {self.tipo_actual.capitalize()}",
+            filetypes=filetypes
+        )
+        
+        if archivo:
             try:
-                from aresitos.utils.sanitizador_archivos import SanitizadorArchivos
-                from aresitos.utils.helper_seguridad import HelperSeguridad
-                seguridad_disponible = True
-            except ImportError:
-                self.logger.warning("Módulos de seguridad no disponibles, continuando sin validación")
-                seguridad_disponible = False
-            
-            # Mostrar información de seguridad si está disponible
-            if seguridad_disponible:
-                if not getattr(HelperSeguridad, 'mostrar_info_carga_archivo', lambda x: True)(self.tipo_actual):
-                    self._log_terminal("ERROR Usuario canceló la carga por información de seguridad", "GESTION")
+                # VALIDACIÓN DE SEGURIDAD
+                self.log_to_terminal(f"SECURE Validando archivo: {os.path.basename(archivo)}")
+                
+                resultado_validacion = sanitizador.validar_archivo(archivo, self.tipo_actual)
+                
+                # Usar helper para mostrar resultado de validación
+                if not HelperSeguridad.mostrar_resultado_validacion(resultado_validacion):
+                    self.log_to_terminal("CANCEL Carga cancelada por validación de seguridad")
                     return
-            
-            self._log_terminal(f"FOLDER Cargando archivo {self.tipo_actual}...", "GESTION")
-            
-            # Configurar filtros de diálogo de forma dinámica
-            if seguridad_disponible:
-                sanitizador = SanitizadorArchivos()
-                filetypes = getattr(sanitizador, 'generar_filtros_dialogo', lambda x: [("Todos los archivos", "*.*")])(self.tipo_actual)
-            else:
-                # Filtros por defecto sin validación
-                if self.tipo_actual == "wordlists":
-                    filetypes = [("Archivos de texto", "*.txt"), ("Archivos JSON", "*.json"), ("Todos los archivos", "*.*")]
-                else:
-                    filetypes = [("Archivos JSON", "*.json"), ("Todos los archivos", "*.*")]
-            
-            # Diálogo de selección de archivo
-            archivo = filedialog.askopenfilename(
-                title=f"Cargar {self.tipo_actual.capitalize()}",
-                filetypes=filetypes
-            )
-            
-            if archivo:
-                # Validación de seguridad si está disponible
-                if seguridad_disponible:
-                    self._log_terminal(f"LOCK Validando archivo: {os.path.basename(archivo)}", "GESTION")
-                    
-                    resultado_validacion = getattr(sanitizador, 'validar_archivo', lambda x, y: {'valido': True})(archivo, self.tipo_actual)
-                    
-                    # Usar helper para mostrar resultado de validación
-                    if not getattr(HelperSeguridad, 'mostrar_resultado_validacion', lambda x: True)(resultado_validacion):
-                        self._log_terminal("ERROR Carga cancelada por validación de seguridad", "GESTION")
-                        return
-                    
-                    self._log_terminal(f"OK Archivo validado correctamente", "GESTION")
+                
+                self.log_to_terminal(f"SECURE Archivo validado correctamente")
                 
                 # Copiar archivo a la carpeta correspondiente
                 archivo_origen = Path(archivo)
                 if self.tipo_actual == "wordlists":
-                    base_path = getattr(self, 'ruta_wordlists', Path("data/wordlists"))
+                    destino = self.ruta_wordlists / archivo_origen.name
                 else:
-                    base_path = getattr(self, 'ruta_diccionarios', Path("data/diccionarios"))
-                
-                destino = base_path / archivo_origen.name
+                    destino = self.ruta_diccionarios / archivo_origen.name
                 
                 # Crear directorio si no existe
-                try:
-                    destino.parent.mkdir(parents=True, exist_ok=True)
-                except Exception as e:
-                    self.logger.warning(f"Error creando directorio: {e}")
+                destino.parent.mkdir(parents=True, exist_ok=True)
                 
-                # Copiar archivo de forma segura
-                try:
-                    import shutil
-                    shutil.copy2(archivo_origen, destino)
-                    self._log_terminal(f"OK Archivo copiado a: {destino.name}", "GESTION")
-                except Exception as e:
-                    self._log_terminal(f"ERROR Error copiando archivo: {e}", "GESTION", "ERROR")
-                    messagebox.showerror("Error", f"Error al copiar archivo: {str(e)}")
-                    return
+                # Copiar archivo
+                import shutil
+                shutil.copy2(archivo_origen, destino)
                 
-                # Recargar lista de forma asíncrona
-                def recargar_async():
-                    self.after_idle(self.cargar_archivos)
+                self.log_to_terminal(f"OK Archivo copiado a: {destino.name}")
                 
-                self._thread_pool.submit(recargar_async)
+                # Recargar lista
+                self.cargar_archivos()
                 
-                self._log_terminal(f"NOTE Lista de {self.tipo_actual} actualizada", "GESTION")
+                self.log_to_terminal(f"LISTA Lista de {self.tipo_actual} actualizada")
                 messagebox.showinfo("Éxito", f"Archivo cargado exitosamente:\n{destino.name}")
                 
-        except Exception as e:
-            error_msg = f"Error al cargar archivo: {str(e)}"
-            self._log_terminal(f"ERROR {error_msg}", "GESTION", "ERROR")
-            messagebox.showerror("Error", error_msg)
+            except Exception as e:
+                self.log_to_terminal(f"ERROR Error al cargar archivo: {str(e)}")
+                messagebox.showerror("Error", f"Error al cargar archivo: {str(e)}")
     
     def mostrar_ayuda_formatos(self):
-        """Mostrar ayuda sobre formatos con acceso dinámico (PRINCIPIO ARESITOS V3)."""
-        try:
-            # Importación dinámica del helper de seguridad
-            try:
-                from aresitos.utils.helper_seguridad import HelperSeguridad
-                self._log_terminal(f"INFO Mostrando ayuda de formatos para {self.tipo_actual}", "GESTION")
-                metodo_ayuda = getattr(HelperSeguridad, 'mostrar_ayuda_formatos', None)
-                if metodo_ayuda:
-                    metodo_ayuda(self.tipo_actual)
-                else:
-                    self._mostrar_ayuda_formatos_fallback()
-            except ImportError:
-                self.logger.warning("Helper de seguridad no disponible, mostrando ayuda básica")
-                self._mostrar_ayuda_formatos_fallback()
-                
-        except Exception as e:
-            self.logger.error(f"Error mostrando ayuda de formatos: {e}")
-            self._mostrar_ayuda_formatos_fallback()
-    
-    def _mostrar_ayuda_formatos_fallback(self):
-        """Ayuda de formatos básica como fallback (PRINCIPIO ARESITOS V3)."""
-        try:
-            if self.tipo_actual == "wordlists":
-                ayuda = """
-FORMATOS SOPORTADOS PARA WORDLISTS:
-
-NOTE Archivos .txt:
-- Una palabra/línea por línea
-- Codificación UTF-8 recomendada
-- Tamaño máximo: 100MB
-
-📄 Archivos .json:
-- Array de strings: ["palabra1", "palabra2"]
-- Objeto con metadatos: {"words": [...], "info": {...}}
-
-EJEMPLOS:
-Archivo .txt:
-admin
-password
-123456
-
-Archivo .json:
-["admin", "password", "123456"]
-                """
-            else:
-                ayuda = """
-FORMATOS SOPORTADOS PARA DICCIONARIOS:
-
-📄 Archivos .json únicamente:
-- Objeto JSON válido
-- Estructura flexible
-- Codificación UTF-8
-
-EJEMPLOS:
-{"passwords": ["admin", "123456"], "users": ["admin", "user"]}
-{"type": "login", "data": {...}}
-                """
-            
-            messagebox.showinfo(f"Ayuda - {self.tipo_actual.capitalize()}", ayuda)
-            
-        except Exception as e:
-            messagebox.showerror("Error", f"Error mostrando ayuda: {e}")
+        """Mostrar ayuda sobre formatos de archivo soportados."""
+        from aresitos.utils.helper_seguridad import HelperSeguridad
+        
+        self.log_to_terminal(f"INFO Mostrando ayuda de formatos para {self.tipo_actual}")
+        HelperSeguridad.mostrar_ayuda_formatos(self.tipo_actual)
     
     def editar_archivo(self):
         """Habilitar edición del archivo actual."""
@@ -936,14 +629,41 @@ EJEMPLOS:
                 messagebox.showerror("Error", f"Error al exportar archivo: {str(e)}")
     
     def actualizar_desde_controlador(self):
-        """Actualizar datos desde el controlador (método de compatibilidad)."""
-        # Delegar al método dinámico optimizado
-        self._actualizar_desde_controlador_dinamico()
+        """Actualizar datos desde el controlador si está disponible"""
+        if not self.controlador:
+            return
+        
+        try:
+            # Si el controlador tiene gestores de wordlists/diccionarios, usarlos
+            if hasattr(self.controlador, 'modelo_principal'):
+                modelo = self.controlador.modelo_principal
+                
+                if hasattr(modelo, 'gestor_wordlists') and modelo.gestor_wordlists:
+                    self.logger.info("Datos de wordlists disponibles desde controlador")
+                    
+                if hasattr(modelo, 'gestor_diccionarios') and modelo.gestor_diccionarios:
+                    self.logger.info("Datos de diccionarios disponibles desde controlador")
+                    
+        except Exception as e:
+            self.logger.error(f"Error actualizando desde controlador: {e}")
     
     def obtener_estadisticas_datos(self):
-        """Obtener estadísticas de datos (método de compatibilidad)."""
-        # Delegar al método dinámico optimizado
-        return self._obtener_estadisticas_dinamicas()
+        """Obtener estadísticas de datos a través del controlador"""
+        if not self.controlador:
+            return {}
+        
+        try:
+            if hasattr(self.controlador, 'modelo_principal'):
+                modelo = self.controlador.modelo_principal
+                if hasattr(modelo, 'obtener_estadisticas_generales'):
+                    estadisticas = modelo.obtener_estadisticas_generales()
+                    self.logger.info(f"Estadísticas obtenidas: {estadisticas}")
+                    return estadisticas
+                    
+        except Exception as e:
+            self.logger.error(f"Error obteniendo estadísticas: {e}")
+            
+        return {}
     
     def _log_terminal(self, mensaje, modulo="GESTION", nivel="INFO"):
         """Registrar mensaje en el terminal integrado global."""
@@ -1323,7 +1043,7 @@ EJEMPLOS:
             if not es_valido:
                 # Mostrar error de seguridad
                 self.terminal_output.insert(tk.END, f"{mensaje}\n")
-                self.terminal_output.insert(tk.END, "TIP Use 'ayuda-comandos' para ver comandos disponibles\n")
+                self.terminal_output.insert(tk.END, "💡 Use 'ayuda-comandos' para ver comandos disponibles\n")
                 self.terminal_output.see(tk.END)
                 self.comando_entry.delete(0, tk.END)
                 return
@@ -1465,7 +1185,7 @@ EJEMPLOS:
             if archivos_validos:
                 self._log_terminal(f"INFO {len(archivos_validos)} {tipo_carpeta} disponibles {extensiones_msg}:", "GESTION")
                 for archivo in sorted(archivos_validos)[:8]:  # Mostrar primeros 8
-                    extension_icon = "📄" if archivo.endswith('.json') else "NOTE"
+                    extension_icon = "📄" if archivo.endswith('.json') else "📝"
                     self._log_terminal(f"   {extension_icon} {archivo}", "GESTION")
                 
                 if len(archivos_validos) > 8:
@@ -1560,7 +1280,7 @@ EJEMPLOS:
             self.terminal_output.insert(tk.END, "="*60 + "\n\n")
             
             for categoria, lista_comandos in comandos.items():
-                self.terminal_output.insert(tk.END, f"FOLDER {categoria.upper()}:\n")
+                self.terminal_output.insert(tk.END, f"📂 {categoria.upper()}:\n")
                 comandos_linea = ", ".join(lista_comandos)
                 self.terminal_output.insert(tk.END, f"   {comandos_linea}\n\n")
             
@@ -1581,7 +1301,7 @@ EJEMPLOS:
             info = validador_comandos.obtener_info_seguridad()
             
             self.terminal_output.insert(tk.END, "\n" + "="*60 + "\n")
-            self.terminal_output.insert(tk.END, "SEGURIDAD: INFORMACIÓN DE SEGURIDAD ARESITOS - GESTIÓN DATOS\n")
+            self.terminal_output.insert(tk.END, "🔐 INFORMACIÓN DE SEGURIDAD ARESITOS - GESTIÓN DATOS\n")
             self.terminal_output.insert(tk.END, "="*60 + "\n\n")
             
             estado_seguridad = "[OK] SEGURO" if info['es_usuario_kali'] else "[FAIL] INSEGURO"
@@ -1599,3 +1319,4 @@ EJEMPLOS:
             self.terminal_output.insert(tk.END, f"Error mostrando info seguridad: {e}\n")
         
         self.terminal_output.see(tk.END)
+

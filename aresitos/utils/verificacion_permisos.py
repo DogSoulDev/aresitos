@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Script de Verificación de Permisos para ARESITOS
+Script de Verificación de Permisos para Ares Aegis
 ==================================================
 
 Este script verifica que el gestor de permisos esté funcionando
@@ -49,7 +49,7 @@ def verificar_gestor_permisos():
         
         # Mostrar reporte
         print("\n" + "="*60)
-        print("[SHIELD] REPORTE DE PERMISOS ARESITOS")
+        print("[SHIELD] REPORTE DE PERMISOS ARES AEGIS")
         print("="*60)
         
         print(f"\n[USER] Usuario actual: {reporte['usuario']}")
@@ -166,7 +166,7 @@ def verificar_gestor_permisos():
         return False
 
 if __name__ == "__main__":
-    print(" ARESITOS - Verificación de Permisos")
+    print(" Ares Aegis - Verificación de Permisos")
     print("=" * 50)
     
     exito = verificar_gestor_permisos()
@@ -175,3 +175,4 @@ if __name__ == "__main__":
     
     exit_code = 0 if exito else 1
     sys.exit(exit_code)
+

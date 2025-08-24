@@ -57,7 +57,7 @@ Esta carpeta contiene la documentación técnica completa de **Aresitos - Herram
 
 ## Soporte
 
-- **Repositorio**: https://github.com/DogSoulDev/Aresitos
+- **Repositorio**: https://github.com/DogSoulDev/aresitos
 - **Email**: dogsouldev@protonmail.com
 
 ---

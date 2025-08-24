@@ -1,678 +1,519 @@
 # -*- coding: utf-8 -*-
 """
-ARESITOS - Modelo Escaneador Unificado v3.0
-==========================================
+ARESITOS - Modelo Escaneador Kali Linux 2025
+===========================================
 
-Sistema de escaneo unificado que consolida todas las funcionalidades 
-de escaneo de seguridad en un único archivo optimizado.
+Extensión del escaneador base con herramientas modernas de Kali Linux 2025.
+Solo herramientas que se instalan fácilmente con 'apt install'.
 
-Funcionalidades integradas:
-- Escaneo de sistema (procesos, servicios, integridad)
-- Escaneo de red (puertos, servicios, DNS)
-- Herramientas Kali Linux (nmap, rustscan, nuclei, masscan, nikto)
-- Análisis de vulnerabilidades
-- Detección de servicios web
-- Análisis forense básico
-
-Principios ARESITOS aplicados:
-- Archivo único consolidado
-- Python nativo + Kali tools únicamente
-- Sin dependencias externas
-- Código limpio y optimizado
-- MVC arquitectura respetada
-- Sin emoticonos/tokens decorativos
+Herramientas integradas:
+- nmap: Motor principal de escaneo
+- masscan: Escaneo rápido inicial  
+- gobuster: Enumeración de directorios web
+- nikto: Análisis de vulnerabilidades web
+- nuclei: Scanner moderno de vulnerabilidades
+- ffuf: Fuzzing web moderno
+- metasploit: Framework de explotación
+- sqlmap: Testing de inyecciones SQL
+- hydra: Ataques de fuerza bruta
 
 Autor: DogSoulDev
-Fecha: Agosto 2025
-Versión: ARESITOS v3.0
+Fecha: 19 de Agosto de 2025
 """
 
 import subprocess
-import socket
 import threading
 import json
-import time
-import logging
 import os
-import sys
-import psutil
+import time
+from typing import Dict, List, Any, Optional, TYPE_CHECKING
 from datetime import datetime
-from typing import Dict, Any, List, Optional, Tuple
-from enum import Enum
-from dataclasses import dataclass, asdict
 
+# Evitar warnings de typing usando TYPE_CHECKING
+if TYPE_CHECKING:
+    from .modelo_escaneador_avanzado import EscaneadorAvanzado as _EscaneadorAvanzado
+else:
+    try:
+        from .modelo_escaneador_avanzado import EscaneadorAvanzado as _EscaneadorAvanzado
+    except ImportError:
+        try:
+            from .modelo_escaneador_base import EscaneadorBase as _EscaneadorAvanzado
+        except ImportError:
+            # Fallback completo si no existe ninguno
+            class _EscaneadorAvanzado:
+                def __init__(self, gestor_permisos=None):
+                    self.gestor_permisos = gestor_permisos
+                    self.configuracion = {}
+                
+                def log(self, mensaje: str):
+                    print(f"[ESCANEADOR] {mensaje}")
 
-class TipoEscaneo(Enum):
-    """Tipos de escaneo disponibles."""
-    RED = "red"
-    SISTEMA = "sistema" 
-    VULNERABILIDADES = "vulnerabilidades"
-    WEB = "web"
-    COMPLETO = "completo"
-
-
-class NivelCriticidad(Enum):
-    """Niveles de criticidad para vulnerabilidades."""
-    BAJA = "baja"
-    MEDIA = "media"
-    ALTA = "alta"
-    CRITICA = "critica"
-
-
-@dataclass
-class ResultadoEscaneo:
-    """Estructura para resultados de escaneo."""
-    timestamp: datetime
-    objetivo: str
-    tipo: TipoEscaneo
-    hosts_detectados: List[Dict[str, Any]]
-    puertos_abiertos: List[Dict[str, Any]]
-    vulnerabilidades: List[Dict[str, Any]]
-    servicios_detectados: List[Dict[str, Any]]
-    errores: List[str]
-    herramientas_usadas: List[str]
-    duracion: float
-    
-    def to_dict(self) -> Dict[str, Any]:
-        """Convertir a diccionario."""
-        resultado = asdict(self)
-        resultado['timestamp'] = self.timestamp.isoformat()
-        resultado['tipo'] = self.tipo.value if hasattr(self.tipo, 'value') else str(self.tipo)
-        return resultado
-
-
-@dataclass 
-class ConfiguracionEscaneo:
-    """Configuración para escaneos."""
-    tipo: TipoEscaneo = TipoEscaneo.COMPLETO
-    timeout: int = 300
-    threads: int = 10
-    incluir_vulns: bool = True
-    escaneo_web: bool = True
-    usar_sudo: bool = False
-
-
-class EscaneadorCompleto:
+class EscaneadorKali2025(_EscaneadorAvanzado):  # type: ignore
     """
-    Escaneador completo y unificado ARESITOS v3.0
-    
-    Integra todas las funcionalidades de escaneo de seguridad
-    en una clase unificada y optimizada.
+    Escaneador avanzado con herramientas Kali Linux 2025
     """
     
     def __init__(self, gestor_permisos=None):
-        self.version = "3.0"
-        self.gestor_permisos = gestor_permisos
-        self.logger = logging.getLogger(__name__)
-        self.escaneando = False
-        self.progreso = 0
-        self.ultimo_resultado = None
-        
-        # Configuración por defecto
-        self.configuracion = {
-            'timeout_comandos': 300,
-            'max_threads': 10,
-            'usar_sudo': False,
-            'herramientas_disponibles': []
+        super().__init__(gestor_permisos)
+        self.herramientas_kali = {
+            'nmap': '/usr/bin/nmap',
+            'masscan': '/usr/bin/masscan', 
+            'gobuster': '/usr/bin/gobuster',
+            'nikto': '/usr/bin/nikto',
+            'nuclei': '/usr/bin/nuclei',
+            'ffuf': '/usr/bin/ffuf',
+            'metasploit': '/usr/bin/msfconsole',
+            'sqlmap': '/usr/bin/sqlmap',
+            'hydra': '/usr/bin/hydra'
         }
+        self.verificar_herramientas()
+    
+    def verificar_herramientas(self):
+        """Verifica qué herramientas están disponibles"""
+        self.herramientas_disponibles = {}
         
-        # Verificar herramientas disponibles
-        self._verificar_herramientas()
-        
-        self.logger.info(f"EscaneadorCompleto v{self.version} inicializado")
-        self.logger.info(f"Herramientas disponibles: {len(self.configuracion['herramientas_disponibles'])}")
-
-    def _verificar_herramientas(self):
-        """Verificar disponibilidad de herramientas."""
-        herramientas = [
-            'nmap', 'rustscan', 'masscan', 'nuclei', 
-            'nikto', 'whatweb', 'gobuster', 'dig'
-        ]
-        
-        disponibles = []
-        for herramienta in herramientas:
+        for herramienta, ruta in self.herramientas_kali.items():
             try:
-                resultado = subprocess.run(
-                    ['which', herramienta] if os.name != 'nt' else ['where', herramienta],
-                    capture_output=True, 
-                    text=True, 
-                    timeout=5
-                )
-                if resultado.returncode == 0:
-                    disponibles.append(herramienta)
-            except:
-                pass
-        
-        self.configuracion['herramientas_disponibles'] = disponibles
-        self.logger.debug(f"Herramientas verificadas: {disponibles}")
-
-    def escanear(self, objetivo: str, tipo_escaneo: str = "completo", 
-                configuracion: Optional[ConfiguracionEscaneo] = None) -> ResultadoEscaneo:
+                result = subprocess.run(['which', herramienta], 
+                                     capture_output=True, text=True, timeout=5)
+                if result.returncode == 0:
+                    self.herramientas_disponibles[herramienta] = result.stdout.strip()
+                    self.log(f"✓ {herramienta} disponible en {result.stdout.strip()}")
+                else:
+                    self.log(f"✓ {herramienta} no encontrada")
+            except Exception as e:
+                self.log(f"✓ Error verificando {herramienta}: {e}")
+    
+    def escaneo_rapido_masscan(self, objetivo: str, puertos: str = "1-65535") -> Dict[str, Any]:
         """
-        Realizar escaneo según tipo especificado.
-        
-        Args:
-            objetivo: IP, rango o hostname a escanear
-            tipo_escaneo: Tipo de escaneo (red, sistema, vulnerabilidades, web, completo)
-            configuracion: Configuración específica del escaneo
-            
-        Returns:
-            ResultadoEscaneo: Resultado del escaneo realizado
+        Escaneo inicial rápido con masscan para identificar puertos abiertos
         """
-        if self.escaneando:
-            raise RuntimeError("Ya hay un escaneo en progreso")
-            
-        self.escaneando = True
-        self.progreso = 0
-        inicio = time.time()
+        self.log(f"[START] Iniciando escaneo rápido masscan: {objetivo}")
+        
+        if 'masscan' not in self.herramientas_disponibles:
+            return {"error": "masscan no disponible"}
         
         try:
-            if configuracion is None:
-                configuracion = ConfiguracionEscaneo()
+            # Comando masscan optimizado
+            cmd = [
+                'masscan',
+                objetivo,
+                '-p', puertos,
+                '--rate', '1000',
+                '--output-format', 'json',
+                '--output-filename', '/tmp/masscan_output.json'
+            ]
             
-            resultado = ResultadoEscaneo(
-                timestamp=datetime.now(),
-                objetivo=objetivo,
-                tipo=TipoEscaneo(tipo_escaneo) if tipo_escaneo in [t.value for t in TipoEscaneo] else TipoEscaneo.COMPLETO,
-                hosts_detectados=[],
-                puertos_abiertos=[],
-                vulnerabilidades=[],
-                servicios_detectados=[],
-                errores=[],
-                herramientas_usadas=[],
-                duracion=0.0
-            )
+            # Ejecutar masscan
+            result = subprocess.run(cmd, capture_output=True, text=True, timeout=300)
             
-            # Ejecutar escaneos según tipo
-            if tipo_escaneo in ["red", "completo"]:
-                self._escanear_red(objetivo, resultado, configuracion)
-                self.progreso = 30
-                
-            if tipo_escaneo in ["sistema", "completo"]:
-                self._escanear_sistema(resultado, configuracion)
-                self.progreso = 60
-                
-            if tipo_escaneo in ["vulnerabilidades", "completo"]:
-                self._escanear_vulnerabilidades(objetivo, resultado, configuracion)
-                self.progreso = 80
-                
-            if tipo_escaneo in ["web", "completo"]:
-                self._escanear_web(objetivo, resultado, configuracion)
-                
-            self.progreso = 100
-            resultado.duracion = time.time() - inicio
-            self.ultimo_resultado = resultado.to_dict()
-            
-            self.logger.info(f"Escaneo completado en {resultado.duracion:.2f}s")
-            return resultado
-            
-        except Exception as e:
-            self.logger.error(f"Error en escaneo: {e}")
-            raise
-        finally:
-            self.escaneando = False
-
-    def _escanear_red(self, objetivo: str, resultado: ResultadoEscaneo, 
-                     configuracion: ConfiguracionEscaneo):
-        """Escanear red con herramientas disponibles."""
-        self.logger.info(f"Iniciando escaneo de red: {objetivo}")
-        
-        # Resolver DNS primero
-        self._resolver_dns(objetivo, resultado)
-        
-        # Escanear con herramientas disponibles
-        if 'nmap' in self.configuracion['herramientas_disponibles']:
-            self._escanear_con_nmap(objetivo, resultado)
-        
-        if 'rustscan' in self.configuracion['herramientas_disponibles']:
-            self._escanear_con_rustscan(objetivo, resultado)
-        elif 'masscan' in self.configuracion['herramientas_disponibles']:
-            self._escanear_con_masscan(objetivo, resultado)
-            
-        # Detectar servicios en puertos encontrados
-        if resultado.puertos_abiertos:
-            self._detectar_servicios(objetivo, resultado)
-
-    def _escanear_sistema(self, resultado: ResultadoEscaneo, 
-                         configuracion: ConfiguracionEscaneo):
-        """Escanear sistema local."""
-        self.logger.info("Iniciando escaneo de sistema")
-        
-        try:
-            # Analizar procesos
-            self._analizar_procesos(resultado)
-            
-            # Obtener métricas del sistema
-            self._obtener_metricas_sistema(resultado)
-            
-        except Exception as e:
-            resultado.errores.append(f"Error en escaneo de sistema: {str(e)}")
-
-    def _escanear_vulnerabilidades(self, objetivo: str, resultado: ResultadoEscaneo,
-                                  configuracion: ConfiguracionEscaneo):
-        """Escanear vulnerabilidades con nuclei."""
-        if 'nuclei' in self.configuracion['herramientas_disponibles']:
-            self._escanear_con_nuclei(objetivo, resultado)
-
-    def _escanear_web(self, objetivo: str, resultado: ResultadoEscaneo,
-                     configuracion: ConfiguracionEscaneo):
-        """Escanear servicios web."""
-        if 'nikto' in self.configuracion['herramientas_disponibles']:
-            self._escanear_con_nikto(objetivo, resultado)
-            
-        if 'whatweb' in self.configuracion['herramientas_disponibles']:
-            self._detectar_tecnologias_web(objetivo, resultado)
-
-    def _escanear_con_nmap(self, objetivo: str, resultado: ResultadoEscaneo):
-        """Escanear con nmap."""
-        try:
-            cmd = ['nmap', '-sS', '-O', '-sV', '--top-ports', '1000', objetivo]
-            
-            proc = subprocess.run(cmd, capture_output=True, text=True, timeout=self.configuracion['timeout_comandos'])
-            resultado.herramientas_usadas.append('nmap')
-            
-            # Parsear resultados nmap
-            lineas = proc.stdout.split('\n')
-            for linea in lineas:
-                if '/tcp' in linea and 'open' in linea:
-                    partes = linea.split()
-                    if len(partes) >= 3:
-                        puerto = partes[0].split('/')[0]
-                        servicio = partes[2] if len(partes) > 2 else 'unknown'
-                        resultado.puertos_abiertos.append({
-                            'puerto': int(puerto),
-                            'protocolo': 'tcp',
-                            'estado': 'abierto',
-                            'servicio': servicio
-                        })
-                        
-        except subprocess.TimeoutExpired:
-            resultado.errores.append("Timeout en escaneo nmap")
-        except Exception as e:
-            resultado.errores.append(f"Error con nmap: {str(e)}")
-
-    def _escanear_con_rustscan(self, objetivo: str, resultado: ResultadoEscaneo):
-        """Escanear con rustscan."""
-        try:
-            cmd = ['rustscan', '-a', objetivo, '--', '-sV']
-            
-            proc = subprocess.run(cmd, capture_output=True, text=True, timeout=120)
-            resultado.herramientas_usadas.append('rustscan')
-            
-            # Parsear resultados
-            lineas = proc.stdout.split('\n')
-            for linea in lineas:
-                if 'Open' in linea and ':' in linea:
-                    try:
-                        puerto = int(linea.split(':')[1].strip())
-                        resultado.puertos_abiertos.append({
-                            'puerto': puerto,
-                            'protocolo': 'tcp',
-                            'estado': 'abierto',
-                            'servicio': 'unknown'
-                        })
-                    except:
-                        continue
-                        
-        except subprocess.TimeoutExpired:
-            resultado.errores.append("Timeout en escaneo rustscan")
-        except Exception as e:
-            resultado.errores.append(f"Error con rustscan: {str(e)}")
-
-    def _escanear_con_masscan(self, objetivo: str, resultado: ResultadoEscaneo):
-        """Escanear con masscan."""
-        try:
-            cmd = ['masscan', objetivo, '-p1-1000', '--rate=1000']
-            
-            proc = subprocess.run(cmd, capture_output=True, text=True, timeout=180)
-            resultado.herramientas_usadas.append('masscan')
-            
-            # Parsear resultados
-            self._parsear_masscan_output(proc.stdout, resultado)
-            
-        except subprocess.TimeoutExpired:
-            resultado.errores.append("Timeout en escaneo masscan")
-        except Exception as e:
-            resultado.errores.append(f"Error con masscan: {str(e)}")
-
-    def _escanear_con_nuclei(self, objetivo: str, resultado: ResultadoEscaneo):
-        """Escanear vulnerabilidades con nuclei."""
-        try:
-            cmd = ['nuclei', '-t', '/usr/share/nuclei-templates/', '-u', objetivo, '-j']
-            
-            proc = subprocess.run(cmd, capture_output=True, text=True, timeout=600)
-            resultado.herramientas_usadas.append('nuclei')
-            
-            # Parsear resultados JSON
-            lineas = proc.stdout.split('\n')
-            for linea in lineas:
-                if linea.strip():
-                    try:
-                        vuln = json.loads(linea)
-                        resultado.vulnerabilidades.append({
-                            'tipo': vuln.get('info', {}).get('name', 'Unknown'),
-                            'severidad': vuln.get('info', {}).get('severity', 'low'),
-                            'descripcion': vuln.get('info', {}).get('description', ''),
-                            'url': vuln.get('matched-at', ''),
-                            'cvss': 0.0
-                        })
-                    except:
-                        continue
-                        
-        except subprocess.TimeoutExpired:
-            resultado.errores.append("Timeout en escaneo nuclei")
-        except Exception as e:
-            resultado.errores.append(f"Error con nuclei: {str(e)}")
-
-    def _escanear_con_nikto(self, objetivo: str, resultado: ResultadoEscaneo):
-        """Escanear con nikto."""
-        try:
-            cmd = ['nikto', '-h', objetivo, '-Format', 'txt']
-            
-            proc = subprocess.run(cmd, capture_output=True, text=True, timeout=300)
-            resultado.herramientas_usadas.append('nikto')
-            
-            # Parsear resultados
-            lineas = proc.stdout.split('\n')
-            for linea in lineas:
-                if '+ ' in linea and ('OSVDB' in linea or 'CVE' in linea):
-                    resultado.vulnerabilidades.append({
-                        'tipo': 'web_vulnerability',
-                        'descripcion': linea.strip(),
-                        'severidad': 'media',
-                        'cvss': 5.0
-                    })
-                    
-        except subprocess.TimeoutExpired:
-            resultado.errores.append("Timeout en escaneo nikto")
-        except Exception as e:
-            resultado.errores.append(f"Error con nikto: {str(e)}")
-
-    def _detectar_tecnologias_web(self, objetivo: str, resultado: ResultadoEscaneo):
-        """Detectar tecnologías web con whatweb."""
-        try:
-            cmd = ['whatweb', '--log-json=/tmp/whatweb_out.json', objetivo]
-            
-            proc = subprocess.run(cmd, capture_output=True, text=True, timeout=120)
-            resultado.herramientas_usadas.append('whatweb')
-            
-            # Leer resultados JSON
-            try:
-                with open('/tmp/whatweb_out.json', 'r') as f:
-                    for line in f:
-                        data = json.loads(line)
-                        if 'plugins' in data:
-                            for plugin, info in data['plugins'].items():
-                                if isinstance(info, dict) and info:
-                                    resultado.servicios_detectados.append({
-                                        'tecnologia': plugin,
-                                        'version': info.get('version', [''])[0] if 'version' in info else '',
-                                        'descripcion': str(info),
-                                        'url': objetivo
-                                    })
-            except:
-                pass
-                
-        except Exception as e:
-            resultado.errores.append(f"Error con whatweb: {str(e)}")
-
-    def _resolver_dns(self, objetivo: str, resultado: ResultadoEscaneo):
-        """Resolver DNS del objetivo."""
-        try:
-            import socket
-            ip = socket.gethostbyname(objetivo)
-            hostname = socket.gethostbyaddr(ip)[0]
-            
-            resultado.hosts_detectados.append({
-                'ip': ip,
-                'hostname': hostname,
-                'estado': 'activo'
-            })
-            
-        except Exception as e:
-            # Si falla DNS, asumir que es IP directa
-            resultado.hosts_detectados.append({
-                'ip': objetivo,
-                'hostname': '',
-                'estado': 'activo'
-            })
-
-    def _analizar_procesos(self, resultado: ResultadoEscaneo):
-        """Analizar procesos del sistema."""
-        try:
-            procesos_sospechosos = []
-            
-            for proc in psutil.process_iter(['pid', 'name', 'cpu_percent', 'memory_percent']):
+            if result.returncode == 0:
+                # Leer resultados JSON
                 try:
-                    info = proc.info
-                    # Detectar procesos con alto uso de recursos
-                    if info['cpu_percent'] > 80 or info['memory_percent'] > 50:
-                        procesos_sospechosos.append({
-                            'pid': info['pid'],
-                            'nombre': info['name'],
-                            'cpu': info['cpu_percent'],
-                            'memoria': info['memory_percent']
-                        })
-                except:
-                    continue
-            
-            if procesos_sospechosos:
-                resultado.vulnerabilidades.append({
-                    'tipo': 'system_high_resource_usage',
-                    'descripcion': f"Procesos con alto uso de recursos detectados: {len(procesos_sospechosos)}",
-                    'severidad': 'media',
-                    'detalles': procesos_sospechosos
-                })
+                    with open('/tmp/masscan_output.json', 'r') as f:
+                        datos = json.load(f)
+                    
+                    puertos_abiertos = []
+                    for item in datos:
+                        if 'ports' in item:
+                            for puerto in item['ports']:
+                                puertos_abiertos.append({
+                                    'ip': item['ip'],
+                                    'puerto': puerto['port'],
+                                    'protocolo': puerto['proto'],
+                                    'timestamp': item['timestamp']
+                                })
+                    
+                    self.log(f"✓ Masscan completado: {len(puertos_abiertos)} puertos encontrados")
+                    return {
+                        "exito": True,
+                        "puertos_abiertos": puertos_abiertos,
+                        "total_puertos": len(puertos_abiertos),
+                        "herramienta": "masscan"
+                    }
+                except Exception as e:
+                    self.log(f"✓ Error procesando resultados masscan: {e}")
+                    return {"error": f"Error procesando resultados: {e}"}
+            else:
+                self.log(f"✓ Error masscan: {result.stderr}")
+                return {"error": result.stderr}
                 
         except Exception as e:
-            resultado.errores.append(f"Error analizando procesos: {str(e)}")
-
-    def _obtener_metricas_sistema(self, resultado: ResultadoEscaneo):
-        """Obtener métricas del sistema."""
+            self.log(f"✓ Error ejecutando masscan: {e}")
+            return {"error": str(e)}
+    
+    def escaneo_detallado_nmap(self, objetivo: str, puertos_encontrados: Optional[List[int]] = None) -> Dict[str, Any]:
+        """
+        Escaneo detallado con nmap basado en puertos encontrados por masscan
+        """
+        self.log(f"ANALIZANDO Iniciando escaneo detallado nmap: {objetivo}")
+        
+        if 'nmap' not in self.herramientas_disponibles:
+            return {"error": "nmap no disponible"}
+        
         try:
-            cpu_percent = psutil.cpu_percent(interval=1)
-            memoria = psutil.virtual_memory()
-            disco = psutil.disk_usage('/')
+            # Si hay puertos específicos, usarlos; sino, top ports
+            if puertos_encontrados:
+                puertos_str = ','.join(map(str, puertos_encontrados))
+                self.log(f"Escaneando puertos específicos: {puertos_str}")
+            else:
+                puertos_str = "--top-ports=1000"
+                self.log("Escaneando top 1000 puertos")
             
-            metricas = {
-                'cpu_uso': cpu_percent,
-                'memoria_uso': memoria.percent,
-                'disco_uso': disco.percent,
-                'procesos_activos': len(psutil.pids())
+            # Comando nmap completo
+            cmd = [
+                'nmap',
+                '-sV',  # Detección de versiones
+                '-sC',  # Scripts por defecto
+                '-O',   # Detección de OS
+                '--version-intensity', '5',
+                '-oX', '/tmp/nmap_output.xml',
+                '-oN', '/tmp/nmap_output.txt'
+            ]
+            
+            if puertos_encontrados:
+                cmd.extend(['-p', puertos_str])
+            else:
+                cmd.append('--top-ports=1000')
+            
+            cmd.append(objetivo)
+            
+            # Ejecutar nmap
+            result = subprocess.run(cmd, capture_output=True, text=True, timeout=600)
+            
+            if result.returncode == 0:
+                # Procesar resultados
+                servicios = self._procesar_resultados_nmap('/tmp/nmap_output.txt')
+                
+                self.log(f"✓ Nmap completado: {len(servicios)} servicios detectados")
+                return {
+                    "exito": True,
+                    "servicios": servicios,
+                    "archivo_xml": '/tmp/nmap_output.xml',
+                    "archivo_txt": '/tmp/nmap_output.txt',
+                    "herramienta": "nmap"
+                }
+            else:
+                self.log(f"✓ Error nmap: {result.stderr}")
+                return {"error": result.stderr}
+                
+        except Exception as e:
+            self.log(f"✓ Error ejecutando nmap: {e}")
+            return {"error": str(e)}
+    
+    def escaneo_web_gobuster(self, url: str, wordlist: Optional[str] = None) -> Dict[str, Any]:
+        """
+        Enumeración de directorios web con gobuster
+        """
+        self.log(f"WEB Iniciando escaneo web gobuster: {url}")
+        
+        if 'gobuster' not in self.herramientas_disponibles:
+            return {"error": "gobuster no disponible"}
+        
+        try:
+            # Wordlist por defecto - modernizada
+            if not wordlist:
+                wordlist = "/usr/share/wordlists/seclists/Discovery/Web-Content/directory-list-2.3-medium.txt"
+                if not os.path.exists(wordlist):
+                    wordlist = "/usr/share/wordlists/seclists/Discovery/Web-Content/common.txt"
+            
+            # Comando gobuster
+            cmd = [
+                'gobuster',
+                'dir',
+                '-u', url,
+                '-w', wordlist,
+                '-t', '50',  # 50 threads
+                '-x', 'php,html,txt,js,asp,aspx',  # Extensiones
+                '-o', '/tmp/gobuster_output.txt',
+                '--no-error'
+            ]
+            
+            # Ejecutar gobuster
+            result = subprocess.run(cmd, capture_output=True, text=True, timeout=300)
+            
+            # Procesar resultados (gobuster siempre retorna 0)
+            directorios = self._procesar_resultados_gobuster('/tmp/gobuster_output.txt')
+            
+            self.log(f"✓ Gobuster completado: {len(directorios)} directorios encontrados")
+            return {
+                "exito": True,
+                "directorios": directorios,
+                "total_encontrados": len(directorios),
+                "herramienta": "gobuster"
             }
             
-            # Alertas por alto uso de recursos
-            if cpu_percent > 90:
-                resultado.vulnerabilidades.append({
-                    'tipo': 'high_cpu_usage',
-                    'descripcion': f"Alto uso de CPU: {cpu_percent}%",
-                    'severidad': 'alta'
-                })
-                
-            if memoria.percent > 90:
-                resultado.vulnerabilidades.append({
-                    'tipo': 'high_memory_usage', 
-                    'descripcion': f"Alto uso de memoria: {memoria.percent}%",
-                    'severidad': 'alta'
-                })
-                
         except Exception as e:
-            resultado.errores.append(f"Error obteniendo métricas: {str(e)}")
-
-    def _detectar_servicios(self, objetivo: str, resultado: ResultadoEscaneo):
-        """Detectar servicios en puertos abiertos."""
-        servicios_comunes = {
-            21: "ftp", 22: "ssh", 23: "telnet", 25: "smtp",
-            53: "dns", 80: "http", 110: "pop3", 143: "imap",
-            443: "https", 993: "imaps", 995: "pop3s"
-        }
-        
-        for puerto_info in resultado.puertos_abiertos:
-            puerto = puerto_info.get("puerto")
-            if puerto in servicios_comunes:
-                puerto_info["servicio"] = servicios_comunes[puerto]
-                resultado.servicios_detectados.append({
-                    "puerto": puerto,
-                    "servicio": servicios_comunes[puerto],
-                    "version": "detectando...",
-                    "banner": ""
-                })
-
-    def _parsear_masscan_output(self, output: str, resultado: ResultadoEscaneo):
-        """Parsear salida de masscan."""
-        lineas = output.split('\n')
-        
-        for linea in lineas:
-            if 'open' in linea.lower():
-                partes = linea.split()
-                if len(partes) >= 4:
-                    try:
-                        puerto = int(partes[3].split('/')[0])
-                        protocolo = partes[3].split('/')[1] if '/' in partes[3] else 'tcp'
-                        
-                        resultado.puertos_abiertos.append({
-                            "puerto": puerto,
-                            "protocolo": protocolo,
-                            "estado": "abierto",
-                            "servicio": "unknown"
-                        })
-                    except (ValueError, IndexError):
-                        continue
-
-    # MÉTODOS DE COMPATIBILIDAD LEGACY
-    def escanear_completo(self, objetivo, tipo_escaneo="completo"):
-        """Interfaz de compatibilidad."""
-        resultado = self.escanear(objetivo, tipo_escaneo)
-        return resultado.to_dict()
+            self.log(f"✓ Error ejecutando gobuster: {e}")
+            return {"error": str(e)}
     
-    def escanear_sistema(self, tipo_escaneo="completo"):
-        """Interfaz de compatibilidad para escaneo de sistema."""
-        resultado = self.escanear("localhost", "sistema")
-        return resultado.to_dict()
-    
-    def escanear_red(self, objetivo):
-        """Interfaz de compatibilidad para escaneo de red."""
-        resultado = self.escanear(objetivo, "red")
-        return resultado.to_dict()
-    
-    def escanear_puertos(self, objetivo, protocolo="tcp"):
-        """Interfaz de compatibilidad para escaneo de puertos."""
-        resultado = self.escanear(objetivo, "red")
-        return resultado.to_dict()
-
-    def generar_reporte_completo(self):
-        """Generar reporte completo del último escaneo."""
-        if not self.ultimo_resultado:
-            return {"error": "No hay resultados de escaneo disponibles"}
+    def escaneo_vulnerabilidades_nuclei(self, objetivo: str) -> Dict[str, Any]:
+        """
+        Escaneo de vulnerabilidades con nuclei
+        """
+        self.log(f"[TARGET] Iniciando escaneo nuclei: {objetivo}")
         
-        reporte = {
+        if 'nuclei' not in self.herramientas_disponibles:
+            return {"error": "nuclei no disponible"}
+        
+        try:
+            # Comando nuclei
+            cmd = [
+                'nuclei',
+                '-target', objetivo,
+                '-json',
+                '-o', '/tmp/nuclei_output.json',
+                '-severity', 'medium,high,critical',
+                '-concurrency', '25'
+            ]
+            
+            # Ejecutar nuclei
+            result = subprocess.run(cmd, capture_output=True, text=True, timeout=600)
+            
+            # Procesar resultados JSON
+            vulnerabilidades = self._procesar_resultados_nuclei('/tmp/nuclei_output.json')
+            
+            self.log(f"✓ Nuclei completado: {len(vulnerabilidades)} vulnerabilidades encontradas")
+            return {
+                "exito": True,
+                "vulnerabilidades": vulnerabilidades,
+                "total_vulnerabilidades": len(vulnerabilidades),
+                "herramienta": "nuclei"
+            }
+            
+        except Exception as e:
+            self.log(f"✓ Error ejecutando nuclei: {e}")
+            return {"error": str(e)}
+    
+    def fuzzing_web_ffuf(self, url: str, wordlist: Optional[str] = None) -> Dict[str, Any]:
+        """
+        Fuzzing web moderno con ffuf
+        """
+        self.log(f"✓ Iniciando fuzzing ffuf: {url}")
+        
+        if 'ffuf' not in self.herramientas_disponibles:
+            return {"error": "ffuf no disponible"}
+        
+        try:
+            # Wordlist por defecto - modernizada
+            if not wordlist:
+                wordlist = "/usr/share/wordlists/seclists/Discovery/Web-Content/common.txt"
+            
+            # Comando ffuf
+            cmd = [
+                'ffuf',
+                '-u', f"{url}/FUZZ",
+                '-w', wordlist,
+                '-o', '/tmp/ffuf_output.json',
+                '-of', 'json',
+                '-mc', '200,204,301,302,307,401,403',  # Match codes
+                '-t', '40'  # Threads
+            ]
+            
+            # Ejecutar ffuf
+            result = subprocess.run(cmd, capture_output=True, text=True, timeout=300)
+            
+            # Procesar resultados
+            resultados = self._procesar_resultados_ffuf('/tmp/ffuf_output.json')
+            
+            self.log(f"✓ FFUF completado: {len(resultados)} endpoints encontrados")
+            return {
+                "exito": True,
+                "endpoints": resultados,
+                "total_endpoints": len(resultados),
+                "herramienta": "ffuf"
+            }
+            
+        except Exception as e:
+            self.log(f"✓ Error ejecutando ffuf: {e}")
+            return {"error": str(e)}
+    
+    def escaneo_completo_kali2025(self, objetivo: str) -> Dict[str, Any]:
+        """
+        Escaneo completo usando todas las herramientas Kali 2025 disponibles
+        """
+        self.log(f"[START] INICIANDO ESCANEO COMPLETO KALI 2025: {objetivo}")
+        
+        resultados = {
+            "objetivo": objetivo,
             "timestamp": datetime.now().isoformat(),
-            "tipo": "reporte_completo",
-            "resumen": {
-                "hosts_detectados": len(self.ultimo_resultado.get("hosts_detectados", [])),
-                "puertos_abiertos": len([p for p in self.ultimo_resultado.get("puertos_abiertos", []) 
-                                       if p.get("estado") == "abierto"]),
-                "vulnerabilidades": len(self.ultimo_resultado.get("vulnerabilidades", []))
-            },
-            "detalles": self.ultimo_resultado
+            "herramientas_utilizadas": [],
+            "fases": {}
         }
         
-        return reporte
-
-    def detener_escaneo(self):
-        """Detener escaneo en progreso."""
-        self.escaneando = False
+        # FASE 1: Escaneo rápido con masscan
+        self.log("FASE 1: Reconocimiento inicial con masscan")
+        resultado_masscan = self.escaneo_rapido_masscan(objetivo)
+        resultados["fases"]["masscan"] = resultado_masscan
+        if resultado_masscan.get("exito"):
+            resultados["herramientas_utilizadas"].append("masscan")
+            puertos_encontrados = [p["puerto"] for p in resultado_masscan["puertos_abiertos"]]
+        else:
+            puertos_encontrados = None
         
-    def esta_escaneando(self) -> bool:
-        """Verificar si está escaneando."""
-        return self.escaneando
-
-    def obtener_progreso(self) -> int:
-        """Obtener progreso actual."""
-        return self.progreso
-
-    def obtener_capacidades(self) -> List[str]:
-        """Obtener capacidades del escaneador."""
-        return [
-            "Escaneo de puertos TCP/UDP",
-            "Detección de servicios",
-            "Análisis de vulnerabilidades", 
-            "Escaneo de sistema",
-            "Resolución DNS",
-            "Métricas de sistema",
-            f"Herramientas disponibles: {len(self.configuracion['herramientas_disponibles'])}"
-        ]
-
-    def obtener_estadisticas(self) -> Dict[str, Any]:
-        """Obtener estadísticas del escaneador."""
-        return {
-            'version': self.version,
-            'herramientas_disponibles': self.configuracion['herramientas_disponibles'],
-            'ultimo_escaneo': self.ultimo_resultado.get('timestamp') if self.ultimo_resultado else None,
-            'capacidades': len(self.obtener_capacidades())
+        # FASE 2: Escaneo detallado con nmap
+        self.log("FASE 2: Análisis detallado con nmap")
+        resultado_nmap = self.escaneo_detallado_nmap(objetivo, puertos_encontrados)
+        resultados["fases"]["nmap"] = resultado_nmap
+        if resultado_nmap.get("exito"):
+            resultados["herramientas_utilizadas"].append("nmap")
+        
+        # FASE 3: Escaneo de vulnerabilidades con nuclei
+        self.log("FASE 3: Detección de vulnerabilidades con nuclei")
+        resultado_nuclei = self.escaneo_vulnerabilidades_nuclei(objetivo)
+        resultados["fases"]["nuclei"] = resultado_nuclei
+        if resultado_nuclei.get("exito"):
+            resultados["herramientas_utilizadas"].append("nuclei")
+        
+        # FASE 4: Si hay servicios web, escanear con gobuster y ffuf
+        servicios_web = self._detectar_servicios_web(resultado_nmap.get("servicios", []))
+        if servicios_web:
+            self.log("FASE 4: Análisis web con gobuster y ffuf")
+            for servicio_web in servicios_web:
+                url = f"http://{servicio_web['ip']}:{servicio_web['puerto']}"
+                
+                # Gobuster
+                resultado_gobuster = self.escaneo_web_gobuster(url)
+                resultados["fases"][f"gobuster_{servicio_web['puerto']}"] = resultado_gobuster
+                if resultado_gobuster.get("exito"):
+                    resultados["herramientas_utilizadas"].append("gobuster")
+                
+                # FFUF
+                resultado_ffuf = self.fuzzing_web_ffuf(url)
+                resultados["fases"][f"ffuf_{servicio_web['puerto']}"] = resultado_ffuf
+                if resultado_ffuf.get("exito"):
+                    resultados["herramientas_utilizadas"].append("ffuf")
+        
+        # Resumen final
+        total_puertos = len(resultado_masscan.get("puertos_abiertos", []))
+        total_servicios = len(resultado_nmap.get("servicios", []))
+        total_vulnerabilidades = len(resultado_nuclei.get("vulnerabilidades", []))
+        
+        resultados["resumen"] = {
+            "puertos_abiertos": total_puertos,
+            "servicios_detectados": total_servicios,
+            "vulnerabilidades_encontradas": total_vulnerabilidades,
+            "herramientas_utilizadas": len(set(resultados["herramientas_utilizadas"])),
+            "duracion": "calculada_en_vista"
         }
+        
+        self.log(f"✓ ESCANEO COMPLETO FINALIZADO")
+        self.log(f"RESUMEN: {total_puertos} puertos, {total_servicios} servicios, {total_vulnerabilidades} vulnerabilidades")
+        
+        return resultados
     
-    # Métodos CRUD para ARESITOS
-    def crear(self, datos):
-        """Crea una nueva configuración de escaneo."""
+    def _procesar_resultados_nmap(self, archivo: str) -> List[Dict[str, Any]]:
+        """Procesa archivo de resultados de nmap"""
+        servicios = []
         try:
-            if not isinstance(datos, dict):
-                raise ValueError("Los datos deben ser un diccionario")
-            # Implementar creación específica
-            return True
+            if os.path.exists(archivo):
+                with open(archivo, 'r') as f:
+                    contenido = f.read()
+                    # Parseo robusto de resultados nmap usando Python nativo
+                    # Compatible con formato estándar nmap (texto plano)
+                    lines = contenido.split('\n')
+                    for line in lines:
+                        if '/tcp' in line and 'open' in line:
+                            parts = line.split()
+                            if len(parts) >= 3:
+                                puerto = parts[0].split('/')[0]
+                                estado = parts[1]
+                                servicio = parts[2] if len(parts) > 2 else 'unknown'
+                                servicios.append({
+                                    'puerto': int(puerto),
+                                    'estado': estado,
+                                    'servicio': servicio,
+                                    'linea_completa': line.strip()
+                                })
         except Exception as e:
-            raise Exception(f'Error en crear(): {e}')
+            self.log(f"Error procesando nmap: {e}")
+        return servicios
     
-    def obtener(self, identificador):
-        """Obtiene configuración por identificador."""
+    def _procesar_resultados_gobuster(self, archivo: str) -> List[Dict[str, Any]]:
+        """Procesa archivo de resultados de gobuster"""
+        directorios = []
         try:
-            # Implementar búsqueda específica
-            return None
+            if os.path.exists(archivo):
+                with open(archivo, 'r') as f:
+                    lines = f.readlines()
+                    for line in lines:
+                        if line.startswith('/') and '(Status:' in line:
+                            parts = line.split('(Status:')
+                            if len(parts) >= 2:
+                                directorio = parts[0].strip()
+                                status_info = parts[1].strip()
+                                directorios.append({
+                                    'directorio': directorio,
+                                    'status': status_info,
+                                    'linea_completa': line.strip()
+                                })
         except Exception as e:
-            raise Exception(f'Error en obtener(): {e}')
+            self.log(f"Error procesando gobuster: {e}")
+        return directorios
     
-    def actualizar(self, identificador, datos):
-        """Actualiza configuración existente."""
+    def _procesar_resultados_nuclei(self, archivo: str) -> List[Dict[str, Any]]:
+        """Procesa archivo JSON de resultados de nuclei"""
+        vulnerabilidades = []
         try:
-            if not isinstance(datos, dict):
-                raise ValueError("Los datos deben ser un diccionario")
-            # Implementar actualización específica
-            return True
+            if os.path.exists(archivo):
+                with open(archivo, 'r') as f:
+                    lines = f.readlines()
+                    for line in lines:
+                        if line.strip():
+                            try:
+                                vuln = json.loads(line)
+                                vulnerabilidades.append({
+                                    'template_id': vuln.get('template-id', 'unknown'),
+                                    'name': vuln.get('info', {}).get('name', 'unknown'),
+                                    'severity': vuln.get('info', {}).get('severity', 'unknown'),
+                                    'host': vuln.get('host', 'unknown'),
+                                    'matched_at': vuln.get('matched-at', 'unknown')
+                                })
+                            except json.JSONDecodeError:
+                                continue
         except Exception as e:
-            raise Exception(f'Error en actualizar(): {e}')
+            self.log(f"Error procesando nuclei: {e}")
+        return vulnerabilidades
     
-    def eliminar(self, identificador):
-        """Elimina configuración por identificador."""
+    def _procesar_resultados_ffuf(self, archivo: str) -> List[Dict[str, Any]]:
+        """Procesa archivo JSON de resultados de ffuf"""
+        resultados = []
         try:
-            # Implementar eliminación específica
-            return True
+            if os.path.exists(archivo):
+                with open(archivo, 'r') as f:
+                    data = json.load(f)
+                    for result in data.get('results', []):
+                        resultados.append({
+                            'url': result.get('url', 'unknown'),
+                            'status': result.get('status', 0),
+                            'length': result.get('length', 0),
+                            'words': result.get('words', 0),
+                            'lines': result.get('lines', 0)
+                        })
         except Exception as e:
-            raise Exception(f'Error en eliminar(): {e}')
-
-
-# Aliases para compatibilidad
-EscaneadorSistema = EscaneadorCompleto
-EscaneadorRed = EscaneadorCompleto
-class EscaneadorCRUD:
-    def guardar_datos(self, datos):
-        """Guarda datos en el modelo (método CRUD)."""
+            self.log(f"Error procesando ffuf: {e}")
+        return resultados
+    
+    def _detectar_servicios_web(self, servicios: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
+        """Detecta servicios web para análisis adicional"""
+        servicios_web = []
+        puertos_web = [80, 443, 8080, 8443, 8000, 8008, 9090]
+        
+        for servicio in servicios:
+            if (servicio.get('puerto') in puertos_web or 
+                'http' in servicio.get('servicio', '').lower()):
+                servicios_web.append(servicio)
+        
+        return servicios_web
+    
+    def log(self, mensaje: str):
+        """Log de actividades del escaneador"""
+        timestamp = datetime.now().strftime("%H:%M:%S")
+        print(f"[ESCANEADOR KALI2025] {timestamp}: {mensaje}")
+        
+        # También llamar al log del padre si existe
         try:
-            # Implementar guardado específico del modelo
-            return True
-        except Exception as e:
-            raise Exception(f'Error guardando datos: {e}')
-
-    def obtener_datos(self, filtros=None):
-        """Obtiene datos del modelo (método CRUD)."""
-        try:
-            # Implementar consulta específica del modelo
-            return []
-        except Exception as e:
-            raise Exception(f'Error obteniendo datos: {e}')
-
-    def validar_datos_entrada(self, datos):
-        """Valida datos de entrada (principio de Seguridad ARESITOS)."""
-        if not isinstance(datos, dict):
-            return False
-        # Implementar validaciones específicas del modelo
-        return True
+            if hasattr(super(), 'log'):
+                super().log(mensaje)  # type: ignore
+        except (ValueError, TypeError, AttributeError):
+            pass

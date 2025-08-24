@@ -218,3 +218,4 @@ class ControladorReportes:
 # Coordina generación, almacenamiento y exportación de reportes en múltiples formatos 
 # (JSON, TXT, HTML). Arquitectura MVC con responsabilidad única, sin dependencias 
 # externas, optimizado para documentación profesional de análisis de ciberseguridad.
+

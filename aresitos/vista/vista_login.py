@@ -209,7 +209,7 @@ HERRAMIENTAS_REQUERIDAS = [
 
 # Herramientas que requieren instalación manual o tienen problemas de timeout
 HERRAMIENTAS_PROBLEMATICAS = [
-    'bulk_extractor',  # Análisis forense estable disponible en APT
+    'volatility',      # No disponible en repositorios estándar
     'autopsy',         # Requiere descarga grande
     'tripwire',        # Timeout frecuente
     'samhain',         # Timeout frecuente  
@@ -429,11 +429,15 @@ class LoginAresitos:
             bg=self.bg_secondary
         ).pack(anchor=tk.W, padx=10, pady=(10, 5))
         
-        self.password_entry = ttk.Entry(
+        self.password_entry = tk.Entry(
             login_frame,
             show="*",
             font=("Arial", 12),
-            style="Burp.TEntry"
+            bg=self.bg_tertiary,
+            fg=self.fg_primary,
+            insertbackground=self.accent_blue,
+            relief=tk.FLAT,
+            bd=5
         )
         self.password_entry.pack(fill=tk.X, padx=10, pady=(0, 10))
         self.password_entry.bind('<Return>', lambda e: self.verificar_password())
@@ -442,19 +446,27 @@ class LoginAresitos:
         btn_frame = tk.Frame(login_frame, bg=self.bg_secondary)
         btn_frame.pack(fill=tk.X, padx=10, pady=(0, 10))
         
-        self.login_btn = ttk.Button(
+        self.login_btn = tk.Button(
             btn_frame,
             text="Verificar Root",
-            style="Burp.TButton",
-            command=self.verificar_password
+            font=("Arial", 11, "bold"),
+            bg=self.accent_green,
+            fg="#ffffff",
+            relief=tk.FLAT,
+            command=self.verificar_password,
+            cursor='hand2'
         )
         self.login_btn.pack(side=tk.LEFT, padx=(0, 10))
         
-        self.skip_btn = ttk.Button(
+        self.skip_btn = tk.Button(
             btn_frame,
             text="Continuar sin Root",
-            style="Burp.TButton",
-            command=self.continuar_sin_root
+            font=("Arial", 10),
+            bg=self.accent_red,
+            fg="#ffffff",
+            relief=tk.FLAT,
+            command=self.continuar_sin_root,
+            cursor='hand2'
         )
         self.skip_btn.pack(side=tk.LEFT)
         
@@ -667,14 +679,14 @@ class LoginAresitos:
         
         rutas_posibles = [
             aresitos_root,  # Ruta calculada desde el script
-            "/home/kali/Aresitos",
-            "/home/kali/Desktop/Aresitos", 
-            "/home/kali/ARESITOS",
-            "/home/kali/Desktop/ARESITOS",
-            os.path.expanduser("~/Aresitos"),
-            os.path.expanduser("~/Desktop/Aresitos"),
-            os.path.expanduser("~/ARESITOS"),
-            os.path.expanduser("~/Desktop/ARESITOS")
+            "/home/kali/aresitos",
+            "/home/kali/Desktop/aresitos", 
+            "/home/kali/Ares-Aegis",
+            "/home/kali/Desktop/Ares-Aegis",
+            os.path.expanduser("~/aresitos"),
+            os.path.expanduser("~/Desktop/aresitos"),
+            os.path.expanduser("~/Ares-Aegis"),
+            os.path.expanduser("~/Desktop/Ares-Aegis")
         ]
         
         return rutas_posibles
@@ -689,8 +701,8 @@ class LoginAresitos:
             
             # Permisos seguros para configuración (solo escritura para propietario)
             f"chmod -R 755 {shlex.quote(os.path.join(ruta_proyecto, 'configuración'))}",
-            f"chmod 644 {shlex.quote(os.path.join(ruta_proyecto, 'configuración', 'Aresitos_config.json'))} 2>/dev/null || true",
-            f"chmod 644 {shlex.quote(os.path.join(ruta_proyecto, 'configuración', 'Aresitos_config_kali.json'))} 2>/dev/null || true",
+            f"chmod 644 {shlex.quote(os.path.join(ruta_proyecto, 'configuración', 'aresitos_config.json'))} 2>/dev/null || true",
+            f"chmod 644 {shlex.quote(os.path.join(ruta_proyecto, 'configuración', 'aresitos_config_kali.json'))} 2>/dev/null || true",
             
             # Permisos seguros para data y logs (solo usuario puede escribir)
             f"chmod -R 755 {shlex.quote(os.path.join(ruta_proyecto, 'data'))} 2>/dev/null || true",
@@ -702,7 +714,7 @@ class LoginAresitos:
             
             # Crear directorios necesarios con permisos seguros
             f"mkdir -p {shlex.quote(os.path.join(ruta_proyecto, 'logs'))} && chmod 755 {shlex.quote(os.path.join(ruta_proyecto, 'logs'))}",
-            f"mkdir -p /tmp/Aresitos_quarantine && chmod 755 /tmp/Aresitos_quarantine",
+            f"mkdir -p /tmp/aresitos_quarantine && chmod 755 /tmp/aresitos_quarantine",
             
             # Herramientas de Kali Linux
             "chmod +x /usr/bin/nmap 2>/dev/null || true",
@@ -746,7 +758,7 @@ class LoginAresitos:
         # Verificación final de permisos
         try:
             main_py = os.path.join(ruta_proyecto, 'main.py')
-            config_file = os.path.join(ruta_proyecto, 'configuración', 'Aresitos_config.json')
+            config_file = os.path.join(ruta_proyecto, 'configuración', 'aresitos_config.json')
             
             if os.access(main_py, os.X_OK):
                 self.escribir_log("main.py ejecutable")
@@ -922,8 +934,8 @@ class LoginAresitos:
             herramientas_problematicas = [h for h in herramientas if h in HERRAMIENTAS_PROBLEMATICAS]
             
             if herramientas_problematicas:
-                self.escribir_log(f"[WARNING]  Omitiendo herramientas problemáticas: {', '.join(herramientas_problematicas)}")
-                self.escribir_log("TIP Instale manualmente con: sudo apt install <herramienta>")
+                self.escribir_log(f"⚠️  Omitiendo herramientas problemáticas: {', '.join(herramientas_problematicas)}")
+                self.escribir_log("💡 Instale manualmente con: sudo apt install <herramienta>")
             
             # Instalar herramientas seguras una por una
             for herramienta in herramientas_seguras[:8]:  # Aumentamos a 8 pero solo seguras
@@ -948,21 +960,21 @@ class LoginAresitos:
                     )
                     
                     if result.returncode == 0:
-                        self.escribir_log(f"[OK] {herramienta} instalado correctamente")
+                        self.escribir_log(f"✅ {herramienta} instalado correctamente")
                         # Remover de la lista de faltantes
                         if herramienta in self.herramientas_faltantes:
                             self.herramientas_faltantes.remove(herramienta)
                     else:
-                        self.escribir_log(f"[FAIL] Error instalando {herramienta}")
+                        self.escribir_log(f"❌ Error instalando {herramienta}")
                         if "package not found" in result.stderr.lower():
-                            self.escribir_log(f"TIP {herramienta} no disponible en repositorios")
+                            self.escribir_log(f"💡 {herramienta} no disponible en repositorios")
                         elif "timeout" in str(result.stderr).lower():
-                            self.escribir_log(f"TIMEOUT: {herramienta} timeout - requiere instalación manual")
+                            self.escribir_log(f"⏱️  {herramienta} timeout - requiere instalación manual")
                             
                 except subprocess.TimeoutExpired:
-                    self.escribir_log(f"TIMEOUT: Timeout instalando {herramienta} - continuando...")
+                    self.escribir_log(f"⏱️  Timeout instalando {herramienta} - continuando...")
                 except Exception as e:
-                    self.escribir_log(f"[FAIL] Error inesperado con {herramienta}: {e}")
+                    self.escribir_log(f"❌ Error inesperado con {herramienta}: {e}")
             self.escribir_log(" Instalación automática completada")
             
             # Limpiar password de memoria
@@ -1094,7 +1106,7 @@ class LoginAresitos:
             # Configurar icono para la ventana principal usando gestor centralizado
             try:
                 if configurar_icono_ventana(root_app, "ARESITOS v2.0 - Dashboard Principal"):
-                    self.escribir_log("CONFIGURACION: Ícono de aplicación configurado correctamente")
+                    self.escribir_log("✓ Ícono de aplicación configurado correctamente")
                 else:
                     self.escribir_log("INFO Continuando sin icono - archivo no encontrado")
             except Exception as e:
@@ -1170,3 +1182,4 @@ def main():
 
 if __name__ == "__main__":
     main()
+

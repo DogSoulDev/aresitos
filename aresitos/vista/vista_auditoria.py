@@ -29,11 +29,8 @@ class VistaAuditoria(tk.Frame):
     def __init__(self, parent):
         super().__init__(parent)
         self.controlador = None
-        self.logger = None
+        self.logger = logging.getLogger(__name__)
         self.vista_principal = parent  # Referencia al padre para acceder al terminal
-        
-        # Inicializar logger de forma robusta siguiendo principios ARESITOS
-        self._inicializar_logger()
         
         # Estados únicos de auditoría
         self.proceso_auditoria_activo = False
@@ -74,77 +71,8 @@ class VistaAuditoria(tk.Frame):
         
         self.crear_interfaz()
     
-    def _inicializar_logger(self):
-        """
-        Inicializar logger de forma robusta siguiendo principios ARESITOS.
-        
-        Principios aplicados:
-        - Robustez: Manejo de errores en inicialización
-        - Automatización: Configuración automática
-        - Transparencia: Logs claros sobre el estado
-        """
-        try:
-            self.logger = logging.getLogger(__name__)
-            if not self.logger.handlers:
-                # Configurar handler básico si no existe
-                handler = logging.StreamHandler()
-                formatter = logging.Formatter(
-                    '%(asctime)s - %(name)s - %(levelname)s - %(message)s'
-                )
-                handler.setFormatter(formatter)
-                self.logger.addHandler(handler)
-                self.logger.setLevel(logging.INFO)
-            
-            self.logger.info("Logger Vista Auditoría inicializado correctamente")
-            
-        except Exception as e:
-            # Fallback a print si hay problemas con logging
-            print(f"ERROR inicializando logger Vista Auditoría: {e}")
-            self.logger = None
-    
     def set_controlador(self, controlador):
-        """
-        Establecer controlador con validación robusta siguiendo principios ARESITOS.
-        
-        Principios aplicados:
-        - Robustez: Validación completa del controlador
-        - Seguridad: Verificación de métodos requeridos
-        - Transparencia: Logs de estado de configuración
-        """
-        try:
-            if controlador is None:
-                if self.logger:
-                    self.logger.warning("Controlador es None - funcionalidad limitada")
-                self.controlador = None
-                return
-                
-            # Validar métodos esenciales del controlador
-            metodos_requeridos = [
-                'ejecutar_deteccion_rootkits',
-                'analizar_servicios_sistema', 
-                'verificar_permisos_criticos'
-            ]
-            
-            metodos_faltantes = []
-            for metodo in metodos_requeridos:
-                if not hasattr(controlador, metodo):
-                    metodos_faltantes.append(metodo)
-            
-            if metodos_faltantes:
-                if self.logger:
-                    self.logger.warning(f"Controlador sin métodos: {metodos_faltantes}")
-                # Aceptar controlador parcialmente funcional
-                
-            self.controlador = controlador
-            if self.logger:
-                self.logger.info("Controlador establecido correctamente en Vista Auditoría")
-                
-        except Exception as e:
-            if self.logger:
-                self.logger.error(f"Error estableciendo controlador: {e}")
-            else:
-                print(f"ERROR estableciendo controlador Vista Auditoría: {e}")
-            self.controlador = None
+        self.controlador = controlador
     
     def crear_interfaz(self):
         """Crear interfaz especializada para auditorías de seguridad."""
@@ -153,7 +81,7 @@ class VistaAuditoria(tk.Frame):
         self.paned_window.pack(fill="both", expand=True, padx=5, pady=5)
         
         # Frame superior para el contenido principal
-        contenido_frame = ttk.Frame(self.paned_window, style="Burp.TFrame")
+        contenido_frame = tk.Frame(self.paned_window, bg=self.colors['bg_primary'])
         self.paned_window.add(contenido_frame, minsize=400)
         
         # Frame del título con tema Burp Suite
@@ -185,10 +113,6 @@ class VistaAuditoria(tk.Frame):
                                                        font=('Consolas', 10),
                                                        relief='flat', bd=1)
         self.auditoria_text.pack(fill=tk.BOTH, expand=True)
-        
-        # Configurar tema Burp para widget Text siguiendo principios ARESITOS
-        if hasattr(self, 'theme') and self.theme:
-            self.theme.configure_text_widget(self.auditoria_text)
         
         # Panel derecho - Herramientas de Auditoría con tema Burp Suite
         right_frame = tk.Frame(main_frame, bg=self.colors['bg_secondary'])
@@ -226,20 +150,26 @@ class VistaAuditoria(tk.Frame):
             controles_frame.pack(fill="x", padx=5, pady=2)
             
             # Botón limpiar terminal (estilo dashboard, compacto)
-            btn_limpiar = ttk.Button(
+            btn_limpiar = tk.Button(
                 controles_frame,
                 text="LIMPIAR",
                 command=self.limpiar_terminal_auditoria,
-                style="Burp.TButton"
+                bg=self.colors.get('warning', '#ffaa00'),
+                fg='white',
+                font=("Arial", 8, "bold"),
+                height=1
             )
             btn_limpiar.pack(side="left", padx=2, fill="x", expand=True)
             
             # Botón ver logs (estilo dashboard, compacto)
-            btn_logs = ttk.Button(
+            btn_logs = tk.Button(
                 controles_frame,
                 text="VER LOGS",
                 command=self.abrir_logs_auditoria,
-                style="Burp.TButton"
+                bg=self.colors.get('info', '#007acc'),
+                fg='white',
+                font=("Arial", 8, "bold"),
+                height=1
             )
             btn_logs.pack(side="left", padx=2, fill="x", expand=True)
             
@@ -254,10 +184,6 @@ class VistaAuditoria(tk.Frame):
                 selectbackground='#333333'
             )
             self.terminal_output.pack(fill="both", expand=True, padx=5, pady=5)
-            
-            # Configurar tema Burp para widget Text siguiendo principios ARESITOS
-            if hasattr(self, 'theme') and self.theme:
-                self.theme.configure_text_widget(self.terminal_output)
             
             # Frame para entrada de comandos (como Dashboard)
             entrada_frame = tk.Frame(terminal_frame, bg='#1e1e1e')
@@ -1859,3 +1785,4 @@ class VistaAuditoria(tk.Frame):
             self.terminal_output.insert(tk.END, f"Error mostrando info seguridad: {e}\n")
         
         self.terminal_output.see(tk.END)
+

@@ -49,15 +49,15 @@ def _actualizar_widget_seguro(self, texto, modo="append"):
 ```
 
 #### Archivos Corregidos
-- OK `vista_herramientas_kali.py` - Protecciones completas
-- OK `vista_gestion_datos.py` - `_actualizar_contenido_seguro()`
-- OK `vista_dashboard.py` - `_actualizar_terminal_seguro()`
-- OK `vista_escaneo.py` - Protecciones principales 
-- OK `vista_siem.py` - Correcciones + compliance
-- OK `vista_reportes.py` - Métodos duales
-- OK `vista_auditoria.py` - Protecciones mejoradas
-- OK `vista_fim.py` - Protecciones mejoradas
-- OK `vista_monitoreo.py` - Ya implementado correctamente
+- ✅ `vista_herramientas_kali.py` - Protecciones completas
+- ✅ `vista_gestion_datos.py` - `_actualizar_contenido_seguro()`
+- ✅ `vista_dashboard.py` - `_actualizar_terminal_seguro()`
+- ✅ `vista_escaneo.py` - Protecciones principales 
+- ✅ `vista_siem.py` - Correcciones + compliance
+- ✅ `vista_reportes.py` - Métodos duales
+- ✅ `vista_auditoria.py` - Protecciones mejoradas
+- ✅ `vista_fim.py` - Protecciones mejoradas
+- ✅ `vista_monitoreo.py` - Ya implementado correctamente
 
 #### Beneficios Conseguidos
 - **Estabilidad**: Eliminación total de crashes por TclError
@@ -67,27 +67,27 @@ def _actualizar_widget_seguro(self, texto, modo="append"):
 
 ## Funcionalidades Principales
 
-### SCAN Escáner de Vulnerabilidades
+### 🔍 Escáner de Vulnerabilidades
 - Detección automática de vulnerabilidades
 - Integración con herramientas nativas de Kali
 - Reportes detallados de seguridad
 
-### SECURE Sistema SIEM
+### 🛡️ Sistema SIEM
 - Monitoreo de seguridad en tiempo real
 - Análisis de logs del sistema
 - Detección de eventos anómalos
 
-### FOLDER File Integrity Monitoring (FIM)
+### 📁 File Integrity Monitoring (FIM)
 - Monitoreo de cambios en archivos críticos
 - Alertas de modificaciones no autorizadas
 - Base de datos de integridad de archivos
 
-### LOCK Sistema de Cuarentena
+### 🔒 Sistema de Cuarentena
 - Aislamiento automático de archivos sospechosos
 - Gestión segura de amenazas detectadas
 - Restauración controlada de archivos
 
-### DATA Dashboard y Reportes
+### 📊 Dashboard y Reportes
 - Panel de control centralizado
 - Reportes profesionales en PDF
 - Métricas de seguridad en tiempo real
@@ -152,11 +152,11 @@ Sistema de información y gestión de eventos de seguridad:
 Gestión de amenazas y análisis de malware:
 
 - **Sistema de cuarentena segura** para archivos sospechosos
-- **Análisis multi-motor** con ClamAV, YARA, Bulk_extractor
+- **Análisis multi-motor** con ClamAV, YARA, Volatility
 - **Preservación forense** de evidencia digital
 - **Respuesta automática** ante amenazas críticas
 
-**Herramientas Integradas**: clamav, yara, binwalk, bulk_extractor, exiftool
+**Herramientas Integradas**: clamav, yara, binwalk, volatility3, exiftool
 
 ## Consideraciones de Seguridad
 
@@ -246,7 +246,7 @@ CREATE TABLE archivos_cuarentena (
 ## Gestión de Configuración
 
 ### Archivo Principal
-**Ubicación**: `configuración/Aresitos_config.json`
+**Ubicación**: `configuración/aresitos_config.json`
 
 Configuración centralizada para:
 - Parámetros de escaneo y umbrales de detección
@@ -390,7 +390,7 @@ La integración nativa con herramientas especializadas de Kali Linux, junto con 
 - **Forense**: Preservación evidencia
 - **Base datos**: cuarentena_kali2025.db
 
-## DATA **Bases de Datos**
+## 📊 **Bases de Datos**
 
 ### **SQLite Schemas**
 ```sql
@@ -414,10 +414,10 @@ CREATE TABLE amenazas_cuarentena (
 );
 ```
 
-## CONFIG **Configuración**
+## ⚙️ **Configuración**
 
 ### **Archivos de Configuración**
-- `Aresitos_config_kali.json`: Configuración principal Kali
+- `aresitos_config_kali.json`: Configuración principal Kali
 - `textos_castellano_corregido.json`: Localización español
 - `wordlists_config.json`: Configuración diccionarios
 
@@ -430,7 +430,7 @@ data/
 └── *.db                 # Bases datos SQLite
 ```
 
-## TOOL **Desarrollo y Mantenimiento**
+## 🔧 **Desarrollo y Mantenimiento**
 
 ### **Estándares de Código**
 - **PEP 8**: Estilo Python estándar
@@ -463,7 +463,7 @@ logging.basicConfig(
 )
 ```
 
-## TARGET **Flujo de Ejecución**
+## 🎯 **Flujo de Ejecución**
 
 ### **Inicialización Sistema**
 1. **Verificación entorno**: SO, permisos, herramientas
@@ -487,7 +487,7 @@ eventos = controlador_siem.obtener_eventos_correlacionados()
 alertas = controlador_siem.generar_alertas_automaticas()
 ```
 
-## METRICS **Métricas y Rendimiento**
+## 📈 **Métricas y Rendimiento**
 
 ### **Optimizaciones Implementadas**
 - **Threading**: Operaciones no bloqueantes
@@ -501,7 +501,7 @@ alertas = controlador_siem.generar_alertas_automaticas()
 - **CPU**: < 5% uso background monitoreo
 - **Almacenamiento**: < 50MB bases datos típicas
 
-## UI **Interfaz Usuario**
+## 🎨 **Interfaz Usuario**
 
 ### **Sistema de Terminales Integrados**
 - **48 Terminales Activos**: Feedback en tiempo real para todas las operaciones
@@ -518,7 +518,7 @@ alertas = controlador_siem.generar_alertas_automaticas()
 5. **Wordlists y Diccionarios** - Gestión recursos + terminal generación
 6. **Reportes** - Exportación resultados + terminal exportación
 7. **FIM** - Monitoreo integridad archivos + terminal inotifywait
-8. **SIEM** - Correlación eventos seguridad + terminal bulk_extractor/binwalk
+8. **SIEM** - Correlación eventos seguridad + terminal volatility/binwalk
 
 ### **Tema Visual**
 - **Burp Suite**: Esquema colores profesional
@@ -531,7 +531,7 @@ alertas = controlador_siem.generar_alertas_automaticas()
 
 *Documentación actualizada para ARESITOS v2.0 - DogSoulDev*RESITOS v2.0 - Documentación Técnica Consolidada
 
-## SYMBOL AUDITORÍA DE SEGURIDAD
+## � AUDITORÍA DE SEGURIDAD
 
 ### Vulnerabilidades Corregidas
 
@@ -598,43 +598,43 @@ def _obtener_version_herramienta(self, herramienta):
 - **Impacto**: Medio - Seguridad defensiva para entrada no validada
 - **Mitigación**: Validación redundante con lista blanca de herramientas
 
-## SYMBOLLIST RESUMEN EJECUTIVO
+## �📋 RESUMEN EJECUTIVO
 
 **ARESITOS v2.0** es una suite de ciberseguridad **exclusiva para Kali Linux** desarrollada con **arquitectura MVC**, **100% Python stdlib** y **tema Burp Suite**.
 
-### TARGET CARACTERÍSTICAS PRINCIPALES
+### 🎯 CARACTERÍSTICAS PRINCIPALES
 
-- **ARCH Arquitectura**: MVC (Modelo-Vista-Controlador) pura
+- **🏗️ Arquitectura**: MVC (Modelo-Vista-Controlador) pura
 - **🐍 Stack**: 100% Python biblioteca estándar (sin dependencias externas)
 - **🐧 Plataforma**: Exclusivo Kali Linux 2025
-- **UI Tema**: Burp Suite (#2b2b2b, #ff6633)
-- **FAST Rendimiento**: Threading nativo + subprocess para herramientas Linux
+- **🎨 Tema**: Burp Suite (#2b2b2b, #ff6633)
+- **⚡ Rendimiento**: Threading nativo + subprocess para herramientas Linux
 
-## TOOLS FUNCIONALIDADES CORE
+## 🛠️ FUNCIONALIDADES CORE
 
-### TERMINAL **Sistema de Terminales Integrados**
+### �️ **Sistema de Terminales Integrados**
 - **48 Terminales Activos**: Uno por cada operación crítica
 - **TerminalMixin**: Funcionalidad reutilizable log_to_terminal()
 - **Threading**: Operaciones no bloqueantes con feedback visual
 - **PanedWindow**: Layout profesional dividido controles/terminal
 - **Burp Theme**: Colores consistentes #2b2b2b fondo, #ffffff texto
 
-### SYMBOL📡 Escaneador (EscaneadorKali2025)
+### �📡 Escaneador (EscaneadorKali2025)
 - **Herramientas**: nmap, masscan, gobuster, nuclei, ffuf
 - **Capacidades**: Puertos, servicios, vulnerabilidades, directorios
 - **Rendimiento**: 1000 puertos <30 segundos
 - **Terminal**: Feedback tiempo real de todos los escaneos
 
-### SECURE FIM - File Integrity Monitoring (FIMKali2025)
+### 🛡️ FIM - File Integrity Monitoring (FIMKali2025)
 - **Algoritmo**: SHA-256 exclusivamente
 - **Monitoreo**: Tiempo real con inotifywait
 - **Forense**: Integration con linpeas, chkrootkit, rkhunter
 - **Base de datos**: SQLite embebida
 - **Terminal**: Log en tiempo real de cambios detectados
 
-### SCAN SIEM (SIEMKali2025)
+### 🔍 SIEM (SIEMKali2025)
 - **Correlación**: 1000 eventos/segundo
-- **Forense**: bulk_extractor, binwalk, strings, sleuthkit, foremost
+- **Forense**: volatility3, binwalk, strings, sleuthkit, foremost
 - **Detección**: Anomalías y patrones
 - **Almacenamiento**: Logs estructurados + SQLite
 - **Terminal**: Output en tiempo real de análisis forense
@@ -646,19 +646,19 @@ def _obtener_version_herramienta(self, herramienta):
 - **Retención**: 30 días configurable
 - **Terminal**: Log detallado de análisis y cuarentena
 
-### DATA Dashboard + Monitoreo
+### 📊 Dashboard + Monitoreo
 - **Métricas**: CPU, RAM, procesos, red
 - **Visualización**: Tiempo real
 - **Comandos**: ps, top, free, df, ss
 - **Terminal**: Monitoreo continuo del sistema
 
-### REPORTS **Reportes**
+### 📈 Reportes
 - **Formatos**: JSON, TXT, HTML, CSV
 - **Integración**: Todos los componentes
 - **Exportación**: Automática
 - **Terminal**: Progreso de generación y exportación
 
-## ARCH ARQUITECTURA TÉCNICA
+## 🏗️ ARQUITECTURA TÉCNICA
 
 ### Estructura MVC
 ```
@@ -683,7 +683,7 @@ aresitos/
 - **Error handling**: Recuperación automática
 - **PanedWindow**: Layout profesional para terminales integrados
 
-## TOOL CORRECCIONES IMPLEMENTADAS
+## 🔧 CORRECCIONES IMPLEMENTADAS
 
 ### Seguridad Criptográfica
 - **Eliminado**: MD5, SHA-1 (vulnerables)
@@ -700,13 +700,13 @@ aresitos/
 - **Kali2025**: Módulos específicos para herramientas modernas
 - **Stdlib**: Sin frameworks externos (Flask, Django, etc.)
 
-## LAUNCH MEJORAS IMPLEMENTADAS
+## 🚀 MEJORAS IMPLEMENTADAS
 
 ### Herramientas Modernizadas
 | Categoría | Herramientas |
 |-----------|-------------|
 | **Escaneadores** | nmap, masscan, gobuster, nuclei, ffuf |
-| **Forense** | bulk_extractor, binwalk, strings, sleuthkit |
+| **Forense** | volatility3, binwalk, strings, sleuthkit |
 | **Antimalware** | clamscan, yara |
 | **Monitoreo** | inotifywait, pspy |
 | **Auditoría** | linpeas, chkrootkit, rkhunter |
@@ -718,7 +718,7 @@ aresitos/
 - **Memory**: Gestión eficiente
 - **Database**: Índices optimizados
 
-## DATA MÉTRICAS DE CALIDAD
+## 📊 MÉTRICAS DE CALIDAD
 
 ### Antes vs Después
 | Métrica | Antes | Después | Mejora |
@@ -734,7 +734,7 @@ aresitos/
 - **Controladores**: 27 archivos (tras limpieza)
 - **Total**: 110 archivos Python (optimizados)
 
-## TARGET NAVEGACIÓN PRINCIPAL
+## 🎯 NAVEGACIÓN PRINCIPAL
 
 ### Interfaz (8 Tabs)
 1. **Dashboard** - Métricas del sistema
@@ -755,11 +755,11 @@ python main.py
 python main.py --dev
 ```
 
-## LOCK CONFIGURACIÓN
+## 🔒 CONFIGURACIÓN
 
 ### Archivos de Configuración
-- `configuración/Aresitos_config_completo.json` - Configuración avanzada
-- `configuración/Aresitos_config_kali.json` - Específico Kali Linux
+- `configuración/aresitos_config_completo.json` - Configuración avanzada
+- `configuración/aresitos_config_kali.json` - Específico Kali Linux
 - `configuración/textos_castellano_corregido.json` - Interfaz español
 
 ### Parámetros Críticos
@@ -768,7 +768,7 @@ python main.py --dev
 - **Verificación**: Herramientas Kali automática
 - **Tema**: kali_dark (Burp Suite)
 
-## OK ESTADO ACTUAL
+## ✅ ESTADO ACTUAL
 
 **VERSIÓN**: 2.0.0  
 **ESTADO**: Producción  

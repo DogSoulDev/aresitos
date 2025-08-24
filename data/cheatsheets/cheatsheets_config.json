@@ -1,7 +1,7 @@
 {
     "cheatsheets_config": {
         "version": "1.0",
-        "descripcion": "Configuración de cheatsheets para ARESITOS",
+        "descripcion": "Configuración de cheatsheets para Ares Aegis",
         "categorias": [
             {
                 "id": "nmap",
@@ -106,9 +106,9 @@
                 "descripcion": "Herramienta avanzada de cracking de passwords"
             },
             {
-                "id": "bulk_extractor",
-                "nombre": "Bulk Extractor - Forensic Analysis",
-                "archivo": "bulk_extractor_forensics.txt",
+                "id": "volatility",
+                "nombre": "Volatility - Memory Forensics",
+                "archivo": "volatility_memory_forensics.txt",
                 "descripcion": "Framework de análisis forense de memoria"
             }
         ],

@@ -244,3 +244,4 @@ TIP Los reportes contienen información de:
             f"Ayuda - Formatos {tipo_archivo.capitalize()}", 
             mensaje
         )
+

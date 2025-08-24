@@ -197,7 +197,7 @@ else:
 
 ---
 
-## METRICS **MÉTRICAS DE CALIDAD MVC**
+## 📈 MÉTRICAS DE CALIDAD MVC
 
 ### **COBERTURA DE CONEXIONES**
 - **Vistas con controlador**: 8/8 (100%) OK

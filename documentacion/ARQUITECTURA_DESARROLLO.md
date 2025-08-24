@@ -118,7 +118,7 @@ paned.pack(fill='both', expand=True)
 - **Gestión Datos**: Operaciones archivos
 ```
 
-## CONFIG **Capa CONTROLADOR**
+## ⚙️ **Capa CONTROLADOR**
 
 ### **Responsabilidades**
 - Coordinación MVC
@@ -135,7 +135,7 @@ controlador_siem_nuevo.py           # Event Management
 controlador_cuarentena.py           # Gestión malware
 ```
 
-## TOOL **Utilidades Sistema**
+## 🔧 **Utilidades Sistema**
 
 ### **Módulos Utils**
 ```python
@@ -145,7 +145,7 @@ verificar_kali.py          # Detección entorno
 configurar.py              # Setup automático
 ```
 
-## DATA **Persistencia Datos**
+## 🗄️ **Persistencia Datos**
 
 ### **Bases Datos SQLite**
 ```sql
@@ -169,7 +169,7 @@ CREATE TABLE amenazas_cuarentena (
 ```
 
 ### **Configuración JSON**
-- `Aresitos_config_kali.json`: Configuración principal
+- `aresitos_config_kali.json`: Configuración principal
 - `textos_castellano_corregido.json`: Localización
 - `wordlists_config.json`: Diccionarios
 
@@ -195,7 +195,7 @@ def escaneo_async(self, objetivo):
 - **Events**: Sincronización operaciones
 - **Locks**: Protección recursos compartidos
 
-## LOCK **Seguridad Implementada**
+## 🔒 **Seguridad Implementada**
 
 ### **Validación Entrada**
 ```python
@@ -225,7 +225,7 @@ def ejecutar_comando_seguro(self, comando: List[str]) -> str:
         return "Timeout: Comando tardó más de 30 segundos"
 ```
 
-## METRICS **Optimización Rendimiento**
+## 📈 **Optimización Rendimiento**
 
 ### **Gestión Memoria**
 - **Lazy loading**: Carga módulos bajo demanda
@@ -237,7 +237,7 @@ def ejecutar_comando_seguro(self, comando: List[str]) -> str:
 - **Async operations**: Operaciones no bloqueantes
 - **Connection pooling**: Reutilización conexiones DB
 
-## TARGET **Flujo Desarrollo**
+## 🎯 **Flujo Desarrollo**
 
 ### **1. Inicialización**
 ```python
@@ -272,7 +272,7 @@ controlador.set_modelo(modelo)
 3. **Módulos** → Funcionalidades específicas
 4. **Logs** → Trazabilidad operaciones
 
-## SCAN **Testing y QA**
+## 🔍 **Testing y QA**
 
 ### **Verificación Sintaxis**
 ```bash
@@ -299,7 +299,7 @@ def test_mvc_integration():
     assert resultado['status'] == 'success'
 ```
 
-## DATA **Métricas Calidad**
+## 📊 **Métricas Calidad**
 
 ### **Estructura Código**
 - **Archivos Python**: 50 total
@@ -329,7 +329,7 @@ def test_mvc_integration():
 - Login → Herramientas → App principal
 - Interfaz consistente y profesional
 
-#### CONTROL CONTROLADOR (Coordinación)
+#### 🎮 CONTROLADOR (Coordinación)
 ```python
 aresitos/controlador/
 ├── controlador_principal_nuevo.py     # Coordinador MVC
@@ -344,7 +344,7 @@ aresitos/controlador/
 - Threading para UI responsiva
 - Coordinación de herramientas
 
-## TOOL PATRONES DE DESARROLLO
+## 🔧 PATRONES DE DESARROLLO
 
 ### 1. Ejecución de Herramientas
 ```python
@@ -384,7 +384,7 @@ def operacion_asincrona(self):
 ```python
 def cargar_configuracion():
     """Configuración unificada JSON"""
-    ruta_config = "configuración/Aresitos_config_kali.json"
+    ruta_config = "configuración/aresitos_config_kali.json"
     try:
         with open(ruta_config, 'r', encoding='utf-8') as f:
             return json.load(f)
@@ -409,7 +409,7 @@ def init_database():
     return conn
 ```
 
-## SECURE PRINCIPIOS DE SEGURIDAD
+## 🛡️ PRINCIPIOS DE SEGURIDAD
 
 ### Criptografía Moderna
 - **Eliminado**: MD5, SHA-1 (vulnerables)
@@ -419,10 +419,10 @@ def init_database():
 
 ### Ejecución Segura
 ```python
-# ERROR NUNCA hacer esto (shell injection)
+# ❌ NUNCA hacer esto (shell injection)
 os.system(f"nmap {target}")
 
-# OK Forma segura
+# ✅ Forma segura
 subprocess.run(['nmap', '-sV', target], capture_output=True)
 ```
 
@@ -438,7 +438,7 @@ def validar_ip(ip):
         return False
 ```
 
-## DATA COMPONENTES PRINCIPALES
+## 📊 COMPONENTES PRINCIPALES
 
 ### EscaneadorKali2025
 ```python
@@ -491,7 +491,7 @@ class CuarentenaKali2025:
         """exiftool + file + hexdump"""
 ```
 
-## LAUNCH MEJORAS IMPLEMENTADAS v2.0
+## 🚀 MEJORAS IMPLEMENTADAS v2.0
 
 ### **🆕 Sistema Terminal Integrado**
 - **48 terminales activos**: Logs en tiempo real por módulo
@@ -515,10 +515,10 @@ class CuarentenaKali2025:
 - **🆕 Buffer terminales**: Gestión eficiente de logs
 
 ### **Calidad de Código v2.0**
-- **OK 0 errores sintaxis**: Código completamente limpio
-- **OK 0 duplicaciones**: Textos profesionales
-- **OK 80+ correcciones**: Calidad mejorada
-- **OK Tema consistente**: Burp Suite en todo el sistema
+- **✅ 0 errores sintaxis**: Código completamente limpio
+- **✅ 0 duplicaciones**: Textos profesionales
+- **✅ 80+ correcciones**: Calidad mejorada
+- **✅ Tema consistente**: Burp Suite en todo el sistema
 
 ### Error Handling Robusto
 ```python
@@ -534,7 +534,7 @@ def operacion_con_recovery(self):
         return self.modo_seguro()
 ```
 
-## METRICS MÉTRICAS DE DESARROLLO
+## 📈 MÉTRICAS DE DESARROLLO
 
 ### Cobertura de Código
 - **Modelos**: 46 archivos (100% funcionales)

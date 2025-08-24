@@ -34,27 +34,6 @@ sudo ./configurar_kali.sh
 python3 main.py
 ```
 
-## Instalación Rápida de RustScan (Recomendada)
-
-**RustScan es el escaneador de puertos más rápido del mundo. Para obtener máximo rendimiento en ARESITOS:**
-
-```bash
-# Instalar Rust (requerido una sola vez)
-curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
-source ~/.cargo/env
-
-# Instalar RustScan
-cargo install rustscan
-
-# Verificar instalación
-rustscan --version
-```
-
-**Beneficios de RustScan:**
-- Escaneado 65,535 puertos en menos de 3 segundos
-- Integración nativa con nmap para scripts NSE
-- Compatible con todas las funciones de ARESITOS
-
 ## Instalación Detallada
 
 ### Paso 1: Clonación del Repositorio
@@ -77,12 +56,12 @@ Resolving deltas: 100% (910/910), done.
 └─$ sudo ./configurar_kali.sh
 [sudo] password for kali: 
 
-SECURE CONFIGURADOR DE PERMISOS ARESITOS PARA KALI LINUX
+🛡️ CONFIGURADOR DE PERMISOS ARES AEGIS PARA KALI LINUX
 ==========================================================
 [INFO] Usuario detectado: kali
 [INFO] Directorio home: /home/kali
 
-[INFO] Este script configurará ARESITOS para funcionar correctamente en Kali Linux
+[INFO] Este script configurará Ares Aegis para funcionar correctamente en Kali Linux
 [INFO] Se realizarán las siguientes acciones:
   • Actualizar repositorios
   • Instalar herramientas de seguridad necesarias
@@ -187,8 +166,8 @@ PERMISOS Configurando permisos de red...
 [✓] Usuario añadido al grupo netdev
 
 CONFIG Configurando sudo para ARESITOS v2.0...
-/etc/sudoers.d/Aresitos-v2: parsed OK
-[✓] Configuración sudo creada en /etc/sudoers.d/Aresitos-v2
+/etc/sudoers.d/aresitos-v2: parsed OK
+[✓] Configuración sudo creada en /etc/sudoers.d/aresitos-v2
 ```
 
 ### Paso 8: Configuración Python
@@ -240,7 +219,7 @@ COMPLETADO CONFIGURACIÓN COMPLETADA
   1. Cierre y reabra la terminal para aplicar cambios de grupo
   2. Execute el script de prueba: python3 /home/kali/test_ares_permissions.py
   3. Execute la verificación de permisos: python3 verificacion_permisos.py
-  4. Inicie ARESITOS: python3 main.py
+  4. Inicie Ares Aegis: python3 main.py
 ```
 
 ### Paso 10: Inicio de la Aplicación
@@ -260,7 +239,7 @@ Iniciando interfaz gráfica...
 ### Script de Configuración `configurar_kali.sh`
 El script de configuración automática realiza todas las tareas necesarias para preparar Kali Linux:
 
-#### OK **Herramientas Críticas Instaladas**
+#### ✅ **Herramientas Críticas Instaladas**
 - **python3-dev, python3-venv, python3-tk**: Entorno Python completo
 - **curl, wget, git**: Herramientas de descarga y control de versiones
 - **nmap**: Escaneador de red principal
@@ -269,7 +248,7 @@ El script de configuración automática realiza todas las tareas necesarias para
 - **netcat-openbsd**: Utilidad de red versátil
 - **htop, lsof, psmisc**: Monitoreo de sistema y procesos
 
-#### OK **Herramientas de Seguridad Opcionales**
+#### ✅ **Herramientas de Seguridad Opcionales**
 - **masscan**: Escaneador de puertos de alta velocidad
 - **gobuster**: Enumeración de directorios web
 - **nikto**: Escaneador de vulnerabilidades web
@@ -282,33 +261,17 @@ El script de configuración automática realiza todas las tareas necesarias para
 - **feroxbuster**: Fuzzing de directorios
 - **httpx-toolkit**: Herramientas HTTP modernas
 
-#### IMPORTANTE **Herramientas que Requieren Instalación Manual**
-- **rustscan**: Escaneador ultrarrápido (RECOMENDADO para máximo rendimiento)
+#### ⚠️ **Herramientas que Requieren Instalación Manual**
+- **rustscan**: Escaneador moderno (requiere Rust)
   ```bash
-  # Instalación rápida (opción 1 - RECOMENDADA)
-  curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
-  source ~/.cargo/env
-  cargo install rustscan
-  
-  # Instalación alternativa (opción 2)
-  sudo apt install cargo
+  # Para instalar rustscan manualmente:
   cargo install rustscan
   ```
 
-- **strings**: Extracción de cadenas de texto de archivos binarios
-  ```bash
-  # Instalar binutils (incluye strings)
-  sudo apt update
-  sudo apt install binutils
-  
-  # Verificar instalación
-  strings --version
-  ```
-
-#### TOOL **Configuraciones Automáticas**
+#### 🔧 **Configuraciones Automáticas**
 1. **Permisos de Red**: Configuración de nmap y tcpdump sin sudo
 2. **Grupos de Usuario**: Adición a grupos wireshark y netdev
-3. **Configuración Sudo**: Archivo `/etc/sudoers.d/Aresitos-v2` para herramientas específicas
+3. **Configuración Sudo**: Archivo `/etc/sudoers.d/aresitos-v2` para herramientas específicas
 4. **Dependencias Python**: Instalación vía APT para compatibilidad con Kali 2024+
 5. **Permisos de Archivos**: Configuración automática de todos los permisos necesarios
 
@@ -321,7 +284,7 @@ El script verifica automáticamente:
 - Creación de scripts de prueba
 
 #### Herramientas de Análisis Forense
-- **bulk_extractor**: Framework de análisis forense estable
+- **volatility3**: Framework de análisis forense de memoria
 - **binwalk**: Análisis y extracción de firmware
 - **strings**: Extracción de cadenas de texto de archivos binarios
 - **file**: Identificación de tipos de archivo por contenido
@@ -350,7 +313,7 @@ python3 main.py --dev
 ## Estructura Post-Instalación
 
 ```
-aresitos/
+Aresitos/
 ├── main.py                     # Punto de entrada principal
 ├── configurar_kali.sh          # Script de configuración automática
 ├── aresitos/                   # Módulo principal de la aplicación
@@ -397,7 +360,7 @@ Al ejecutar Aresitos, debe tener acceso a los siguientes módulos:
 5. **Gestión de Datos**: Wordlists y diccionarios con terminal de generación
 6. **Reportes**: Exportación de resultados con terminal de análisis
 7. **FIM**: Monitoreo de integridad con terminal inotifywait
-8. **SIEM**: Correlación de eventos con terminales Bulk_extractor/Binwalk
+8. **SIEM**: Correlación de eventos con terminales Volatility/Binwalk
 
 #### Verificación de Interfaz
 Cada vista debe mostrar:
@@ -408,7 +371,7 @@ Cada vista debe mostrar:
 # - 48 terminales activos en total
 ```
 
-## LOCK **Permisos y Seguridad**
+## 🔒 **Permisos y Seguridad**
 
 ## Configuración de Permisos y Seguridad
 
@@ -521,14 +484,14 @@ ps aux | grep python3 | grep aresitos
 
 ### Indicadores de Salud del Sistema
 Verificar que estén operativos:
-- OK **Herramientas de Kali**: Todas disponibles y funcionales
-- OK **Bases de datos**: Creadas y accesibles en directorio data/
-- OK **Permisos**: Configurados correctamente para ejecución
-- OK **Interfaz**: Todos los módulos cargan sin errores
-- OK **Terminales**: Terminales integrados funcionando en cada vista
-- OK **Layout**: Diseño PanedWindow con división controles/terminal
-- OK **Threading**: Operaciones no bloqueantes activas
-- OK **Logs**: Archivo de logs generándose en directorio logs/
+- ✅ **Herramientas de Kali**: Todas disponibles y funcionales
+- ✅ **Bases de datos**: Creadas y accesibles en directorio data/
+- ✅ **Permisos**: Configurados correctamente para ejecución
+- ✅ **Interfaz**: Todos los módulos cargan sin errores
+- ✅ **Terminales**: Terminales integrados funcionando en cada vista
+- ✅ **Layout**: Diseño PanedWindow con división controles/terminal
+- ✅ **Threading**: Operaciones no bloqueantes activas
+- ✅ **Logs**: Archivo de logs generándose en directorio logs/
 
 ## Guía de Primer Uso
 
@@ -594,7 +557,7 @@ freshclam
 updatedb
 ```
 
-## OK VERIFICACIÓN FINAL
+## ✅ VERIFICACIÓN FINAL
 
 ### Script de Verificación
 ```python
@@ -615,45 +578,45 @@ def verificar_herramienta(comando):
 def main():
     herramientas = [
         'nmap', 'masscan', 'gobuster', 'nuclei', 'ffuf',
-        'bulk_extractor', 'binwalk', 'sleuthkit', 'foremost', 'exiftool',
+        'volatility3', 'binwalk', 'sleuthkit', 'foremost', 'exiftool',
         'clamscan', 'yara', 'inotifywait', 'chkrootkit', 'rkhunter'
     ]
     
-    print("SCAN VERIFICANDO HERRAMIENTAS KALI...")
+    print("🔍 VERIFICANDO HERRAMIENTAS KALI...")
     errores = []
     
     for herramienta in herramientas:
         if verificar_herramienta(herramienta):
-            print(f"OK {herramienta}")
+            print(f"✅ {herramienta}")
         else:
-            print(f"ERROR {herramienta}")
+            print(f"❌ {herramienta}")
             errores.append(herramienta)
     
     # Verificar estructura de archivos
-    print("\nFOLDER VERIFICANDO ESTRUCTURA...")
+    print("\n📁 VERIFICANDO ESTRUCTURA...")
     archivos_criticos = [
         'main.py',
         'aresitos/__init__.py',
         'aresitos/modelo/modelo_escaneador_kali2025.py',
         'aresitos/vista/vista_principal.py',
         'aresitos/controlador/controlador_principal_nuevo.py',
-        'configuración/Aresitos_config_kali.json'
+        'configuración/aresitos_config_kali.json'
     ]
     
     for archivo in archivos_criticos:
         if os.path.exists(archivo):
-            print(f"OK {archivo}")
+            print(f"✅ {archivo}")
         else:
-            print(f"ERROR {archivo}")
+            print(f"❌ {archivo}")
             errores.append(archivo)
     
     # Resultado final
     if errores:
-        print(f"\nERROR VERIFICACIÓN FALLIDA. Errores: {len(errores)}")
+        print(f"\n❌ VERIFICACIÓN FALLIDA. Errores: {len(errores)}")
         print("Ejecutar: sudo ./configurar_kali.sh")
         return False
     else:
-        print("\nOK SISTEMA VERIFICADO - LISTO PARA USAR")
+        print("\n✅ SISTEMA VERIFICADO - LISTO PARA USAR")
         print("Ejecutar: python main.py")
         return True
 
@@ -661,7 +624,7 @@ if __name__ == "__main__":
     main()
 ```
 
-## TOOLS SOLUCIÓN DE PROBLEMAS
+## 🛠️ SOLUCIÓN DE PROBLEMAS
 
 ### Errores Comunes
 
@@ -670,7 +633,7 @@ if __name__ == "__main__":
 # Error típico:
 # Could not get lock /var/lib/dpkg/lock-frontend. It is held by process XXXXX (apt)
 
-# OK SOLUCIÓN RECOMENDADA (Método Seguro):
+# ✅ SOLUCIÓN RECOMENDADA (Método Seguro):
 # 1. Esperar 5-10 minutos (otro proceso puede estar actualizando)
 # 2. Verificar procesos activos:
 sudo ps aux | grep apt
@@ -683,7 +646,7 @@ sudo lsof /var/lib/dpkg/lock
 # 4. Terminar proceso específico (sustituir XXXXX por el PID real):
 sudo kill -9 XXXXX
 
-# WARNING MÉTODO DE ÚLTIMO RECURSO (Solo si lo anterior no funciona):
+# ⚠️ MÉTODO DE ÚLTIMO RECURSO (Solo si lo anterior no funciona):
 sudo rm /var/lib/dpkg/lock-frontend
 sudo rm /var/lib/dpkg/lock
 sudo rm /var/cache/apt/archives/lock
@@ -727,16 +690,16 @@ python -c "import sys; print(sys.version)"
 # Verificar instalación completa
 python -c "
 import sqlite3, threading, subprocess, json, hashlib
-print('OK Python stdlib OK')
+print('✅ Python stdlib OK')
 "
 
 # Verificar herramientas críticas
-nmap --version && echo "OK nmap OK"
-clamscan --version && echo "OK clamscan OK"
-inotifywait --help && echo "OK inotify OK"
+nmap --version && echo "✅ nmap OK"
+clamscan --version && echo "✅ clamscan OK"
+inotifywait --help && echo "✅ inotify OK"
 ```
 
-## LIST CHECKLIST DE INSTALACIÓN
+## 📋 CHECKLIST DE INSTALACIÓN
 
 - [ ] **Kali Linux 2025** instalado y actualizado
 - [ ] **Git** disponible para clonar repositorio
@@ -748,7 +711,7 @@ inotifywait --help && echo "OK inotify OK"
 - [ ] **Verificar** con `python verificacion_final.py`
 - [ ] **Probar** ejecución con `python main.py`
 
-## TARGET COMANDOS ESENCIALES
+## 🎯 COMANDOS ESENCIALES
 
 ```bash
 # Instalación completa paso a paso
@@ -760,7 +723,7 @@ python verificacion_final.py
 python main.py
 
 # Verificación rápida
-python -c "import Aresitos; print('OK ARESITOS OK')"
+python -c "import aresitos; print('ARESITOS OK')"
 
 # Debug mode
 python main.py --dev
@@ -769,19 +732,19 @@ python main.py --dev
 tail -f logs/aresitos.log
 ```
 
-## LIST NOTAS IMPORTANTES DE INSTALACIÓN
+## 📋 NOTAS IMPORTANTES DE INSTALACIÓN
 
-### OK **Instalación Exitosa - Indicadores**
+### ✅ **Instalación Exitosa - Indicadores**
 Si la instalación es exitosa, verás estos mensajes:
 ```
 [✓] Todas las herramientas ESENCIALES instaladas correctamente
-[✓] Configuración sudo creada en /etc/sudoers.d/Aresitos-v2
+[✓] Configuración sudo creada en /etc/sudoers.d/aresitos-v2
 [✓] Configuración Python completada
 COMPLETADO CONFIGURACIÓN COMPLETADA
-[✓] ARESITOS está configurado para Kali Linux
+[✓] Ares Aegis está configurado para Kali Linux
 ```
 
-### WARNING **Advertencias Normales (No son errores)**
+### ⚠️ **Advertencias Normales (No son errores)**
 Estos mensajes son normales y no impiden el funcionamiento:
 ```
 [WARN] No se pudo instalar rustscan (continuando...)
@@ -827,29 +790,10 @@ sudo ./configurar_kali.sh  # Reejecutar configuración
 **Si rustscan no está disponible:**
 ```bash
 # ARESITOS funciona sin rustscan, usa nmap como alternativa
-# Para instalar rustscan manualmente (MÉTODO RECOMENDADO):
-
-# OPCIÓN 1: Instalación directa con rustup (MÁS RÁPIDA)
+# Para instalar rustscan manualmente:
 curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
 source ~/.cargo/env
 cargo install rustscan
-
-# OPCIÓN 2: Instalación con cargo del sistema
-sudo apt install cargo
-cargo install rustscan
-
-# Verificar instalación
-rustscan --version
-```
-
-**Si strings no está disponible:**
-```bash
-# strings es parte del paquete binutils
-sudo apt update
-sudo apt install binutils
-
-# Verificar instalación
-strings --version
 ```
 
 **Si fallan las dependencias Python:**
@@ -860,7 +804,7 @@ strings --version
 
 ---
 
-**FEATURE INSTALACIÓN COMPLETADA**  
+**✨ INSTALACIÓN COMPLETADA**  
 *Una vez que veas "Iniciando interfaz gráfica..." tu instalación está lista.*
 
 ---

@@ -7,7 +7,13 @@ import os
 import logging
 import threading
 import datetime
-import subprocess
+
+# Importar SudoManager para prevenir crashes
+try:
+    from aresitos.utils.sudo_manager import SudoManager
+    SUDO_MANAGER_DISPONIBLE = True
+except ImportError:
+    SUDO_MANAGER_DISPONIBLE = False
 
 try:
     from aresitos.vista.burp_theme import burp_theme
@@ -17,31 +23,6 @@ except ImportError:
     burp_theme = None
 
 class VistaMonitoreo(tk.Frame):
-    """
-    VistaMonitoreo para ARESITOS v3.0 - Sistema de Ciberseguridad Integral.
-    
-    Esta vista implementa los 8 principios fundamentales de ARESITOS:
-    
-    1. Automatización: Procesos automatizados de interfaz
-    2. Robustez: Manejo robusto de errores y excepciones
-    3. Eficiencia: Optimización de recursos y rendimiento
-    4. Seguridad: Validación y sanitización de entradas
-    5. Integración: Conexión seamless con controladores
-    6. Transparencia: Feedback claro y comprensible al usuario
-    7. Optimización: Interfaz responsiva y eficiente
-    8. Simplicidad: Diseño intuitivo y fácil de usar
-    
-    Attributes:
-        controlador: Referencia al controlador asociado
-        logger: Sistema de logging integrado
-        componentes_ui: Elementos de interfaz de usuario
-    
-    Methods:
-        configurar_interfaz(): Configura la interfaz inicial
-        conectar_eventos(): Establece conexiones de eventos
-        actualizar_vista(): Actualiza elementos visuales
-        manejar_errores(): Gestiona errores de interfaz
-    """
     
     def __init__(self, parent):
         super().__init__(parent)
@@ -51,6 +32,18 @@ class VistaMonitoreo(tk.Frame):
         self.monitor_red_activo = False
         self.thread_red = None
         self.vista_principal = parent  # Referencia al padre para acceder al terminal
+        
+        # Inicializar SudoManager para prevenir crashes
+        if SUDO_MANAGER_DISPONIBLE:
+            try:
+                self.sudo_manager = SudoManager()
+                self.logger.info("SudoManager inicializado para VistaMonitoreo")
+            except Exception as e:
+                self.logger.warning(f"Error inicializando SudoManager: {e}")
+                self.sudo_manager = None
+        else:
+            self.sudo_manager = None
+            self.logger.warning("SudoManager no disponible en VistaMonitoreo")
         
         # Configurar tema y colores de manera consistente
         if BURP_THEME_AVAILABLE and burp_theme:
@@ -109,18 +102,19 @@ class VistaMonitoreo(tk.Frame):
         import subprocess
         
         try:
-            # Si se requiere sudo, agregar al inicio del comando
-            if usar_sudo:
-                comando = ['sudo'] + comando
-                
-            # Ejecutar comando
-            resultado = subprocess.run(
-                comando,
-                capture_output=True,
-                text=True,
-                timeout=timeout,
-                check=False
-            )
+            if usar_sudo and self.sudo_manager and self.sudo_manager.is_sudo_active():
+                # Usar SudoManager para comandos que requieren privilegios
+                comando_str = ' '.join(comando)
+                resultado = self.sudo_manager.execute_sudo_command(comando_str, timeout=timeout)
+            else:
+                # Ejecutar comando normal
+                resultado = subprocess.run(
+                    comando,
+                    capture_output=True,
+                    text=True,
+                    timeout=timeout,
+                    check=False
+                )
             
             return {
                 'success': resultado.returncode == 0,
@@ -194,7 +188,7 @@ class VistaMonitoreo(tk.Frame):
                 text="LIMPIAR",
                 command=self.limpiar_terminal_monitoreo,
                 bg=self.colors.get('warning', '#ffaa00'),
-                fg='#ff6633',
+                fg='white',
                 font=("Arial", 8, "bold"),
                 height=1
             )
@@ -206,7 +200,7 @@ class VistaMonitoreo(tk.Frame):
                 text="VER LOGS",
                 command=self.abrir_logs_monitoreo,
                 bg=self.colors.get('info', '#007acc'),
-                fg='#ff6633',
+                fg='white',
                 font=("Arial", 8, "bold"),
                 height=1
             )
@@ -228,11 +222,9 @@ class VistaMonitoreo(tk.Frame):
             entrada_frame = tk.Frame(terminal_frame, bg='#1e1e1e')
             entrada_frame.pack(fill="x", padx=5, pady=2)
             
-            ttk.Label(
-                entrada_frame, 
-                text="COMANDO:",
-                style="Burp.TLabel"
-            ).pack(side="left", padx=(0, 5))
+            tk.Label(entrada_frame, text="COMANDO:",
+                    bg='#1e1e1e', fg='#00ff00',
+                    font=("Arial", 9, "bold")).pack(side="left", padx=(0, 5))
             
             self.comando_entry = tk.Entry(
                 entrada_frame,
@@ -302,7 +294,7 @@ class VistaMonitoreo(tk.Frame):
             if not es_valido:
                 # Mostrar error de seguridad
                 self.terminal_output.insert(tk.END, f"{mensaje}\n")
-                self.terminal_output.insert(tk.END, "TIP Use 'ayuda-comandos' para ver comandos disponibles\n")
+                self.terminal_output.insert(tk.END, "INFO: Use 'ayuda-comandos' para ver comandos disponibles\n")
                 self.terminal_output.see(tk.END)
                 self.comando_entry.delete(0, tk.END)
                 return
@@ -320,7 +312,7 @@ class VistaMonitoreo(tk.Frame):
         except ImportError:
             # Fallback sin validación (modo inseguro)
             self.terminal_output.insert(tk.END, f"\n> {comando}\n")
-            self.terminal_output.insert(tk.END, "[WARNING]  EJECUTANDO SIN VALIDACIÓN DE SEGURIDAD\n")
+            self.terminal_output.insert(tk.END, "WARNING: EJECUTANDO SIN VALIDACION DE SEGURIDAD\n")
             self.terminal_output.see(tk.END)
             self.comando_entry.delete(0, tk.END)
             
@@ -329,7 +321,7 @@ class VistaMonitoreo(tk.Frame):
             thread.start()
         except Exception as e:
             self.terminal_output.insert(tk.END, f"\n> {comando}\n")
-            self.terminal_output.insert(tk.END, f"[FAIL] Error de seguridad: {e}\n")
+            self.terminal_output.insert(tk.END, f"ERROR: Error de seguridad: {e}\n")
             self.terminal_output.see(tk.END)
             self.comando_entry.delete(0, tk.END)
     
@@ -384,15 +376,15 @@ class VistaMonitoreo(tk.Frame):
             comandos = obtener_comandos_disponibles()
             
             self.terminal_output.insert(tk.END, "\n" + "="*60 + "\n")
-            self.terminal_output.insert(tk.END, "[SECURITY]  COMANDOS DISPONIBLES EN ARESITOS v2.0\n")
+            self.terminal_output.insert(tk.END, "🛡️  COMANDOS DISPONIBLES EN ARESITOS v2.0\n")
             self.terminal_output.insert(tk.END, "="*60 + "\n\n")
             
             for categoria, lista_comandos in comandos.items():
-                self.terminal_output.insert(tk.END, f"FOLDER {categoria.upper()}:\n")
+                self.terminal_output.insert(tk.END, f"📂 {categoria.upper()}:\n")
                 comandos_linea = ", ".join(lista_comandos)
                 self.terminal_output.insert(tk.END, f"   {comandos_linea}\n\n")
             
-            self.terminal_output.insert(tk.END, "[TOOLS] COMANDOS ESPECIALES:\n")
+            self.terminal_output.insert(tk.END, "🔧 COMANDOS ESPECIALES:\n")
             self.terminal_output.insert(tk.END, "   ayuda-comandos, info-seguridad, clear/cls\n\n")
             self.terminal_output.insert(tk.END, "="*60 + "\n")
             
@@ -409,10 +401,10 @@ class VistaMonitoreo(tk.Frame):
             info = validador_comandos.obtener_info_seguridad()
             
             self.terminal_output.insert(tk.END, "\n" + "="*60 + "\n")
-            self.terminal_output.insert(tk.END, "SEGURIDAD: INFORMACIÓN DE SEGURIDAD ARESITOS\n")
+            self.terminal_output.insert(tk.END, "🔐 INFORMACIÓN DE SEGURIDAD ARESITOS\n")
             self.terminal_output.insert(tk.END, "="*60 + "\n\n")
             
-            estado_seguridad = "[OK] SEGURO" if info['es_usuario_kali'] else "[FAIL] INSEGURO"
+            estado_seguridad = "✅ SEGURO" if info['es_usuario_kali'] else "❌ INSEGURO"
             
             self.terminal_output.insert(tk.END, f"Estado: {estado_seguridad}\n")
             self.terminal_output.insert(tk.END, f"Usuario: {info['usuario_actual']}\n")
@@ -523,12 +515,9 @@ class VistaMonitoreo(tk.Frame):
         titulo_frame = tk.Frame(self.frame_monitor, bg='#2b2b2b')
         titulo_frame.pack(fill="x", pady=(0, 15))
         
-        # PRINCIPIO ARESITOS: Título claro y consistente del monitor
-        titulo_label = ttk.Label(
-            titulo_frame, 
-            text="🖥️ MONITOR DEL SISTEMA", 
-            style="Burp.TLabel"
-        )
+        titulo_label = tk.Label(titulo_frame, text=" MONITOR DEL SISTEMA", 
+                              font=('Arial', 14, 'bold'),
+                              bg='#2b2b2b', fg='#ff6633')
         titulo_label.pack()
         
         # Frame de controles con tema
@@ -568,12 +557,9 @@ class VistaMonitoreo(tk.Frame):
                                         activebackground='#505050', activeforeground='white')
         self.btn_cancelar_red.pack(side="left", padx=(0, 10))
         
-        # PRINCIPIO ARESITOS: Estado claro y visible del monitoreo
-        self.label_estado = ttk.Label(
-            control_frame, 
-            text="🔴 Estado: Detenido",
-            style="Burp.TLabel"
-        )
+        self.label_estado = tk.Label(control_frame, text="Estado: Detenido",
+                                   bg='#2b2b2b', fg='#ffffff',
+                                   font=('Arial', 10))
         self.label_estado.pack(side="right", padx=(10, 0))
         
         # Área de texto con tema
@@ -1687,6 +1673,17 @@ class VistaMonitoreo(tk.Frame):
         from aresitos.utils.sanitizador_archivos import SanitizadorArchivos
         from aresitos.utils.helper_seguridad import HelperSeguridad
         
+        # Importar SudoManager para prevenir crashes
+        try:
+            from aresitos.utils.sudo_manager import SudoManager
+            sudo_manager = SudoManager()
+            if not sudo_manager.is_sudo_active():
+                self.text_cuarentena.insert(tk.END, "WARNING SUDO NO ACTIVO: Verificar permisos en otras ventanas de ARESITOS\n")
+                messagebox.showwarning("Permisos", "Sudo no activo. Algunas operaciones pueden fallar.")
+        except ImportError:
+            sudo_manager = None
+            self.text_cuarentena.insert(tk.END, "WARNING SudoManager no disponible - usando modo básico\n")
+        
         # Mostrar advertencia especial para cuarentena
         if not HelperSeguridad.mostrar_advertencia_cuarentena():
             self.text_cuarentena.insert(tk.END, "CANCEL Usuario canceló la operación de cuarentena\n")
@@ -1720,10 +1717,13 @@ class VistaMonitoreo(tk.Frame):
                 self.text_cuarentena.insert(tk.END, f"INFO: Archivo encontrado - Tamaño: {file_stat.st_size} bytes\n")
             except PermissionError:
                 self.text_cuarentena.insert(tk.END, f"WARNING Sin permisos para acceder a {archivo}\n")
-                respuesta = messagebox.askyesno("Permisos", 
-                                              "Sin permisos de acceso. ¿Continuar de todos modos?")
-                if not respuesta:
-                    return
+                if sudo_manager:
+                    self.text_cuarentena.insert(tk.END, "INFO: Usando SudoManager para acceso con privilegios\n")
+                else:
+                    respuesta = messagebox.askyesno("Permisos", 
+                                                  "Sin permisos de acceso. ¿Continuar de todos modos?")
+                    if not respuesta:
+                        return
             
             # VALIDACIÓN BÁSICA DE SEGURIDAD (menos restrictiva para cuarentena)
             sanitizador = SanitizadorArchivos()
@@ -1731,20 +1731,20 @@ class VistaMonitoreo(tk.Frame):
             # Solo verificar ruta y nombre seguro, no contenido (puede ser malicioso)
             if not sanitizador._validar_ruta_segura(archivo):
                 error_msg = "Ruta de archivo no segura"
-                self.text_cuarentena.insert(tk.END, f"ERROR: Error de seguridad: {error_msg}\n")
+                self.text_cuarentena.insert(tk.END, f"✗ Error de seguridad: {error_msg}\n")
                 messagebox.showerror("Error de Seguridad", error_msg)
                 return
             
             if not sanitizador._validar_nombre_archivo(archivo):
                 error_msg = "Nombre de archivo contiene caracteres peligrosos"
-                self.text_cuarentena.insert(tk.END, f"ERROR: Error de seguridad: {error_msg}\n")
+                self.text_cuarentena.insert(tk.END, f"✗ Error de seguridad: {error_msg}\n")
                 messagebox.showerror("Error de Seguridad", error_msg)
                 return
             
             # Verificar tamaño razonable
             if not sanitizador._validar_tamano(archivo):
                 error_msg = "Archivo demasiado grande para cuarentena"
-                self.text_cuarentena.insert(tk.END, f"ERROR: Error: {error_msg}\n")
+                self.text_cuarentena.insert(tk.END, f"✗ Error: {error_msg}\n")
                 messagebox.showerror("Error", error_msg)
                 return
             
@@ -1788,7 +1788,7 @@ class VistaMonitoreo(tk.Frame):
             
             # Log adicional para debugging
             import logging
-            logger = logging.getLogger("ARESITOS.VistaMonitoreo")
+            logger = logging.getLogger("AresAegis.VistaMonitoreo")
             logger.error(f"Error crítico en agregar_a_cuarentena: {e}", exc_info=True)
     
     def listar_cuarentena(self):
@@ -1862,7 +1862,7 @@ class VistaMonitoreo(tk.Frame):
             
             # Log adicional para debugging
             import logging
-            logger = logging.getLogger("ARESITOS.VistaMonitoreo")
+            logger = logging.getLogger("AresAegis.VistaMonitoreo")
             logger.error(f"Error en listar_cuarentena: {e}", exc_info=True)
         
         if not archivos:
@@ -1902,6 +1902,15 @@ class VistaMonitoreo(tk.Frame):
             if not respuesta2:
                 self.text_cuarentena.insert(tk.END, "CANCEL Usuario canceló limpieza de cuarentena en segunda confirmación\n")
                 return
+            
+            # Importar SudoManager para operaciones seguras
+            try:
+                from aresitos.utils.sudo_manager import SudoManager
+                sudo_manager = SudoManager()
+                if not sudo_manager.is_sudo_active():
+                    self.text_cuarentena.insert(tk.END, "WARNING SUDO NO ACTIVO: La operacion puede fallar\n")
+            except ImportError:
+                sudo_manager = None
             
             # Mostrar progreso
             self.text_cuarentena.insert(tk.END, "PROCESSING Iniciando limpieza de cuarentena...\n")
@@ -1943,7 +1952,7 @@ class VistaMonitoreo(tk.Frame):
             
             # Log adicional para debugging
             import logging
-            logger = logging.getLogger("ARESITOS.VistaMonitoreo")
+            logger = logging.getLogger("AresAegis.VistaMonitoreo")
             logger.error(f"Error crítico en limpiar_cuarentena: {e}", exc_info=True)
     
     def _iniciar_monitoreo_linux_avanzado(self):
@@ -2163,3 +2172,4 @@ class VistaMonitoreo(tk.Frame):
 
 
 # RESUMEN: Sistema de monitoreo de red y procesos usando herramientas nativas.
+

@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-ARESITOS v3.0 - Controlador de Monitoreo Avanzado
+Ares Aegis - Controlador de Monitoreo Avanzado
 Controlador especializado en monitoreo integral del sistema
 Integra funcionalidad avanzada de detección de anomalías y procesos sospechosos
 """
@@ -10,7 +10,7 @@ import time
 import subprocess
 from typing import Dict, Any, List, Optional
 from aresitos.modelo.modelo_monitor import Monitor
-from aresitos.modelo.modelo_siem import SIEMKali2025
+from aresitos.modelo.modelo_siem import SIEM
 
 class ControladorMonitoreo:
     """
@@ -26,25 +26,11 @@ class ControladorMonitoreo:
         
         # Crear SIEM si no existe para integración
         if not hasattr(self.modelo_principal, 'siem'):
-            self.siem = SIEMKali2025()
+            self.siem = SIEM()
             self.monitor.siem = self.siem
         else:
             self.siem = self.modelo_principal.siem
     
-
-    def inicializar(self):
-        """
-        Inicializa el controlador (requerido por principios ARESITOS).
-        
-        Returns:
-            bool: True si la inicialización es exitosa
-        """
-        try:
-            self.logger.info("ControladorMonitoreo v3.0 inicializado correctamente")
-            return True
-        except Exception as e:
-            self.logger.error(f"Error en inicializar(): {e}")
-            return False
     def iniciar_monitoreo(self) -> Dict[str, Any]:
         """Iniciar monitoreo completo del sistema."""
         resultado = self.monitor.iniciar_monitoreo_completo()
@@ -202,18 +188,18 @@ class ControladorMonitoreo:
         datos_sistema = self.monitor.obtener_datos_sistema_recientes(1)
         datos_red = self._obtener_datos_red_seguros(1)
         
-        reporte = "# REPORTE DE MONITOREO - ARESITOS\n\n"
+        reporte = "#  REPORTE DE MONITOREO - ARES AEGIS\n\n"
         
         if datos_sistema:
             sistema = datos_sistema[0].get('sistema', {})
-            reporte += f"## ESTADO DEL SISTEMA\n"
+            reporte += f"##  ESTADO DEL SISTEMA\n"
             reporte += f"- **CPU**: {sistema.get('cpu', 'N/A')}%\n"
             reporte += f"- **Memoria**: {sistema.get('memoria', 'N/A')}%\n"
             reporte += f"- **Disco**: {sistema.get('disco', 'N/A')}%\n\n"
         
         if datos_red:
             red = datos_red[0]
-            reporte += f"## ESTADO DE RED\n"
+            reporte += f"##  ESTADO DE RED\n"
             reporte += f"- **Conexiones**: {red.get('conexiones_activas', 'N/A')}\n"
             reporte += f"- **Tráfico**: {red.get('trafico_total', {}).get('bytes_recibidos', 'N/A')} bytes\n\n"
         
@@ -352,3 +338,4 @@ class ControladorMonitoreo:
 # compatibilidad con la interfaz gráfica original mientras proporciona capacidades
 # avanzadas del proyecto original. Arquitectura MVC con integración SIEM para
 # análisis profesional de seguridad en entornos Kali Linux.
+

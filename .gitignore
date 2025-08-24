@@ -1,11 +1,7 @@
 # ===================================================================
-# ARESITOS v3.0 - GITIGNORE ACTUALIZADO  
+# ARESITOS v2.0 - GITIGNORE ACTUALIZADO
 # Suite de Ciberseguridad para Kali Linux
 # ===================================================================
-
-# === CASE SENSITIVITY TRACKING ===
-# Archivos de configuración para case sensitivity (incluir en repo)
-!.gitconfig-case-sensitivity
 
 # === PYTHON ===
 __pycache__/

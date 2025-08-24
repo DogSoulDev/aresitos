@@ -1,20 +1,19 @@
 # ===================================================================
-# ARESITOS V3.0 OPTIMIZADO - CONFIGURACIÓN DEL PROYECTO
+# ARESITOS v2.0 - CONFIGURACIÓN DEL PROYECTO
 # Suite de Ciberseguridad NATIVA para Kali Linux - ZERO DEPENDENCIAS
-# OPTIMIZADA SIGUIENDO PRINCIPIOS ARESITOS V3
 # ===================================================================
 
 [project]
-name = "Aresitos"
-version = "3.0.0-optimizada"
-description = "Suite de ciberseguridad profesional OPTIMIZADA para Kali Linux con arquitectura 100% nativa - escaneador consolidado, FIM Kali2025, SIEM avanzado, monitor nativo y cuarentena optimizada usando solo Python stdlib + herramientas Kali Linux"
+name = "aresitos"
+version = "2.0.0"
+description = "Suite de ciberseguridad profesional para Kali Linux con arquitectura 100% nativa - escaneador, FIM, SIEM, auditoria y deteccion malware usando solo Python stdlib + herramientas Kali"
 readme = "README.md"
 license = {text = "MIT"}
 authors = [
-    {name = "DogSoulDev + ARESITOS Security Team", email = "dogsouldev@protonmail.com"}
+    {name = "DogSoulDev", email = "dogsouldev@protonmail.com"}
 ]
 maintainers = [
-    {name = "DogSoulDev + ARESITOS Security Team", email = "dogsouldev@protonmail.com"}
+    {name = "DogSoulDev", email = "dogsouldev@protonmail.com"}
 ]
 keywords = [
     "cybersecurity", "vulnerability-scanner", "kali-linux", 
@@ -54,11 +53,11 @@ dependencies = []
 # ===================================================================
 # ARQUITECTURA NATIVA - ZERO DEPENDENCIAS DE PRODUCCION
 # ===================================================================
-# ARESITOS v3.0 NO requiere dependencias para funcionar
+# ARESITOS v2.0 NO requiere dependencias para funcionar
 # Solo utiliza Python stdlib + herramientas Kali Linux nativas
 # 
 # INSTALACION DIRECTA:
-# git clone <repo> && cd Aresitos && python3 main.py
+# git clone <repo> && cd Ares-Aegis && python3 main.py
 # ===================================================================
 
 # Dependencias SOLO para desarrollo (opcionales)
@@ -102,20 +101,20 @@ docs = [
 # ===================================================================
 
 [project.urls]
-Homepage = "https://github.com/DogSoulDev/Aresitos"
-Documentation = "https://github.com/DogSoulDev/Aresitos/blob/master/README.md"
-Repository = "https://github.com/DogSoulDev/Aresitos.git"
-"Bug Tracker" = "https://github.com/DogSoulDev/Aresitos/issues"
-Changelog = "https://github.com/DogSoulDev/Aresitos/blob/master/CHANGELOG.md"
-"Security Policy" = "https://github.com/DogSoulDev/Aresitos/blob/master/SECURITY.md"
-"Architecture" = "https://github.com/DogSoulDev/Aresitos/blob/master/documentacion/desarrollo/ARQUITECTURA_NATIVA.md"
+Homepage = "https://github.com/DogSoulDev/aresitos"
+Documentation = "https://github.com/DogSoulDev/aresitos/blob/master/README.md"
+Repository = "https://github.com/DogSoulDev/aresitos.git"
+"Bug Tracker" = "https://github.com/DogSoulDev/aresitos/issues"
+Changelog = "https://github.com/DogSoulDev/aresitos/blob/master/CHANGELOG.md"
+"Security Policy" = "https://github.com/DogSoulDev/aresitos/blob/master/SECURITY.md"
+"Architecture" = "https://github.com/DogSoulDev/aresitos/blob/master/documentacion/desarrollo/ARQUITECTURA_NATIVA.md"
 
 [project.scripts]
-Aresitos = "main:main"
-Aresitos-scanner = "aresitos.controlador.controlador_escaneo:main"
-Aresitos-fim = "aresitos.controlador.controlador_fim:main"
-Aresitos-siem = "aresitos.controlador.controlador_siem_nuevo:main"
-Aresitos-dashboard = "aresitos.controlador.controlador_dashboard:main"
+aresitos = "main:main"
+aresitos-scanner = "aresitos.controlador.controlador_escaneo:main"
+aresitos-fim = "aresitos.controlador.controlador_fim:main"
+aresitos-siem = "aresitos.controlador.controlador_siem_nuevo:main"
+aresitos-dashboard = "aresitos.controlador.controlador_dashboard:main"
 
 # ===================================================================
 # HERRAMIENTAS DE DESARROLLO
@@ -248,7 +247,7 @@ packages = ["aresitos"]
 include-package-data = true
 
 [tool.setuptools.package-data]
-Aresitos = [
+aresitos = [
     "recursos/*.ico",
     "recursos/cheatsheets/*.md",
     "configuracion/*.json"

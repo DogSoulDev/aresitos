@@ -1,8 +1,8 @@
 {
-  "aresitos": {
-    "titulo": "ARESITOS - Auditoría de Seguridad para Kali Linux",
+  "ares_aegis": {
+    "titulo": "Ares Aegis - Auditoría de Seguridad para Kali Linux",
     "subtitulo": "Sistema de Análisis Integral para Profesionales en Ciberseguridad",
-    "descripcion": "ARESITOS es una herramienta especializada para auditorías de seguridad desarrollada específicamente para profesionales en ciberseguridad y hacking ético."
+    "descripcion": "Ares Aegis es una herramienta especializada para auditorías de seguridad desarrollada específicamente para profesionales en ciberseguridad y hacking ético."
   },
   "interfaz": {
     "menu_principal": {

@@ -55,7 +55,7 @@ class ValidadorComandos:
             # Comandos de análisis y forense
             'forense': [
                 'strings', 'hexdump', 'xxd', 'file', 'exiftool',
-                'binwalk', 'foremost', 'bulk_extractor', 'chkrootkit',
+                'binwalk', 'foremost', 'volatility', 'chkrootkit',
                 'rkhunter', 'lynis', 'aide', 'tripwire', 'samhain'
             ],
             

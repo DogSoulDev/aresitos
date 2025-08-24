@@ -10,7 +10,7 @@ from tkinter import PhotoImage
 
 # Importar todas las vistas disponibles
 from aresitos.vista.vista_dashboard import VistaDashboard
-from aresitos.vista.vista_escaneador import VistaEscaneador as VistaEscaneo
+from aresitos.vista.vista_escaneo import VistaEscaneo
 from aresitos.vista.vista_monitoreo import VistaMonitoreo
 from aresitos.vista.vista_auditoria import VistaAuditoria
 from aresitos.vista.vista_datos import VistaGestionDatos
@@ -26,54 +26,12 @@ except ImportError:
     burp_theme = None
 
 class VistaPrincipal(tk.Frame):
-    """
-    VistaPrincipal para ARESITOS v3.0 - Sistema de Ciberseguridad Integral.
-    
-    Esta vista implementa los 8 principios fundamentales de ARESITOS:
-    
-    1. Automatización: Procesos automatizados de interfaz
-    2. Robustez: Manejo robusto de errores y excepciones
-    3. Eficiencia: Optimización de recursos y rendimiento
-    4. Seguridad: Validación y sanitización de entradas
-    5. Integración: Conexión seamless con controladores
-    6. Transparencia: Feedback claro y comprensible al usuario
-    7. Optimización: Interfaz responsiva y eficiente
-    8. Simplicidad: Diseño intuitivo y fácil de usar
-    
-    Attributes:
-        controlador: Referencia al controlador asociado
-        logger: Sistema de logging integrado
-        componentes_ui: Elementos de interfaz de usuario
-    
-    Methods:
-        configurar_interfaz(): Configura la interfaz inicial
-        conectar_eventos(): Establece conexiones de eventos
-        actualizar_vista(): Actualiza elementos visuales
-        manejar_errores(): Gestiona errores de interfaz
-    """
     def __init__(self, parent):
         super().__init__(parent)
         self.controlador = None
         
         # Configurar logging
         self.logger = logging.getLogger(__name__)
-        
-        # Aplicar icono ARESITOS a la ventana principal (CRÍTICO para Kali)
-        try:
-            from ..utils.gestor_iconos import GestorIconos
-            # Obtener la ventana raíz (parent de este Frame)
-            root_window = parent
-            while hasattr(root_window, 'master') and root_window.master:
-                root_window = root_window.master
-            
-            # Aplicar icono con método optimizado para Kali Linux
-            icono_aplicado = GestorIconos.aplicar_icono_ventana(root_window)
-            if icono_aplicado:
-                self.logger.info("Icono ARESITOS aplicado correctamente")
-            else:
-                self.logger.warning("No se pudo aplicar icono ARESITOS")
-        except Exception as e:
-            self.logger.warning(f"Error aplicando icono ARESITOS: {e}")
         
         # Solo aplicar tema si está disponible
         if BURP_THEME_AVAILABLE:
@@ -124,7 +82,7 @@ class VistaPrincipal(tk.Frame):
             self.logger.warning("WARN Vista Dashboard no disponible")
             
         if hasattr(self.controlador, 'controlador_escaneador'):
-            self.vista_escaneo.establecer_controlador(self.controlador.controlador_escaneador)
+            self.vista_escaneo.set_controlador(self.controlador.controlador_escaneador)
             self.logger.info("OK Vista Escaneo conectada")
         else:
             self.logger.warning("WARN Controlador Escaneador no disponible")
@@ -331,7 +289,7 @@ class VistaPrincipal(tk.Frame):
         if self.theme:
             status_frame = tk.Frame(self, bg=self.theme.get_color('bg_secondary'), height=25)
         else:
-            status_frame = tk.Frame(self, bg='#3c3c3c', height=25)  # Gris oscuro Burp Suite
+            status_frame = tk.Frame(self, bg='#f0f0f0', height=25)
         status_frame.pack(fill="x", padx=2, pady=(0, 2))
         status_frame.pack_propagate(False)
         
@@ -339,18 +297,18 @@ class VistaPrincipal(tk.Frame):
         if self.theme:
             self.status_label = tk.Label(
                 status_frame,
-                text="ARESITOS v3.0 - Listo | PYTHON NATIVO + KALI TOOLS",
-                font=('Consolas', 9),
-                fg=self.theme.get_color('fg_secondary'),
+                text="ARESITOS Ready - Todos los sistemas operativos",
+                font=("Arial", 8),
+                fg=self.theme.get_color('fg_primary'),
                 bg=self.theme.get_color('bg_secondary')
             )
         else:
             self.status_label = tk.Label(
                 status_frame,
-                text="ARESITOS v3.0 - Listo | PYTHON NATIVO + KALI TOOLS",
-                font=('Consolas', 9),
-                bg='#3c3c3c',  # Gris oscuro Burp Suite
-                fg='#cccccc'   # Texto gris claro
+                text="ARESITOS Ready - Todos los sistemas operativos",
+                font=("Arial", 8),
+                fg='#000000',
+                bg='#f0f0f0'
             )
         self.status_label.pack(side="left", padx=10, pady=3)
         
@@ -358,18 +316,18 @@ class VistaPrincipal(tk.Frame):
         if self.theme:
             tech_label = tk.Label(
                 status_frame,
-                text="Kali Linux | ARESITOS V3",
-                font=('Consolas', 8),
-                fg=self.theme.get_color('fg_accent'),
+                text="Python Native | No External Dependencies",
+                font=("Arial", 8),
+                fg=self.theme.get_color('fg_secondary'),
                 bg=self.theme.get_color('bg_secondary')
             )
         else:
             tech_label = tk.Label(
                 status_frame,
-                text="Kali Linux | ARESITOS V3",
-                font=('Consolas', 8),
-                fg='#ff6633',  # Naranja Burp Suite
-                bg='#3c3c3c'   # Gris oscuro Burp Suite
+                text="Python Native | No External Dependencies",
+                font=("Arial", 8),
+                fg='#666666',
+                bg='#f0f0f0'
             )
         tech_label.pack(side="right", padx=10, pady=3)
     
@@ -411,7 +369,7 @@ class VistaPrincipal(tk.Frame):
             self.status_label.configure(text=mensaje)
     
     def optimizar_sistema_completo(self):
-        """Issue 21/24: Optimización global del sistema Aresitos"""
+        """Issue 21/24: Optimización global del sistema aresitos"""
         """Optimizar memoria y rendimiento de todas las vistas activas"""
         try:
             optimizaciones_realizadas = []
@@ -473,3 +431,4 @@ class VistaPrincipal(tk.Frame):
 
 # RESUMEN: Vista principal de la aplicación con interfaz de pestañas para módulos.
 # Issue 21/24: Incluye optimización global de memoria y rendimiento del sistema.
+

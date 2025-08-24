@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-ARESITOS v3.0 - Controlador de Auditoría Avanzado
+ARESITOS - Controlador de Auditoría Avanzado
 Controlador especializado en auditorías de seguridad completas para Kali Linux
 """
 
@@ -8,15 +8,9 @@ import subprocess
 import os
 import json
 import time
-import logging
 from datetime import datetime
 from typing import Dict, Any, List, Optional
 from pathlib import Path
-
-from aresitos.modelo.modelo_sistema import ModeloUtilidadesSistema
-
-# Configurar logging
-logger = logging.getLogger(__name__)
 
 class ControladorAuditoria:
     """
@@ -26,241 +20,87 @@ class ControladorAuditoria:
     
     def __init__(self, modelo_principal):
         self.modelo_principal = modelo_principal
-        self.utilidades_sistema = ModeloUtilidadesSistema()
         
-        # Configurar logger específico para esta instancia
-        self.logger = logging.getLogger(f"{__name__}.{self.__class__.__name__}")
-        
-        # Configuración de auditoría siguiendo principios ARESITOS
+        # Configuración de auditoría
         self.config_auditoria = {
             'timeout_herramientas': 300,  # 5 minutos por herramienta
             'nivel_detalle': 'completo',
             'incluir_reportes': True,
-            'generar_recomendaciones': True,
-            'principios_aresitos': {
-                'automatizacion': True,
-                'robustez': True,
-                'eficiencia': True,
-                'seguridad': True,
-                'integracion': True,
-                'transparencia': True,
-                'optimizacion': True,
-                'simplicidad': True
-            }
+            'generar_recomendaciones': True
         }
         
-        # Inicializar estado del sistema
-        self.estado_sistema = {
-            'inicializado': False,
-            'auditoria_activa': False,
-            'ultima_auditoria': None,
-            'componentes_verificados': []
+        # Herramientas de auditoría disponibles
+        self.herramientas_auditoria = {
+            'lynis': 'Auditoría completa del sistema',
+            'rkhunter': 'Detección de rootkits', 
+            'chkrootkit': 'Verificación de rootkits',
+            'linpeas': 'Escalada de privilegios Linux',
+            'pspy': 'Monitoreo de procesos sin root',
+            'clamav': 'Escaneo de malware'
         }
-        
-        # Registrar inicialización exitosa siguiendo ARESITOS
-        self.logger.info("🚀 ControladorAuditoria v3.0 - Inicialización ARESITOS completa")
-        self.logger.info("📋 8 principios ARESITOS configurados correctamente")
     
-    def inicializar(self):
+    def _validar_herramienta_disponible(self, herramienta: str) -> bool:
         """
-        Inicializa el Sistema de Auditoría ARESITOS v3.0.
+        Valida si una herramienta está disponible en el sistema.
         
-        Implementación completa de los 8 principios ARESITOS para auditoría:
-        
-        1. Automatización: Configuración automática de políticas
-        2. Robustez: Verificación exhaustiva de integridad
-        3. Eficiencia: Optimización de procesos de auditoría
-        4. Seguridad: Máximo nivel de protección en auditoría
-        5. Integración: Conexión con todos los sistemas
-        6. Transparencia: Trazabilidad completa de auditoría
-        7. Optimización: Rendimiento óptimo en monitoreo
-        8. Simplicidad: Configuración intuitiva y directa
-        
+        Args:
+            herramienta: Nombre de la herramienta a validar
+            
         Returns:
-            bool: True si la inicialización es 100% exitosa
+            bool: True si la herramienta está disponible
         """
         try:
-            self.logger.info('🚀 INICIANDO SISTEMA DE AUDITORÍA ARESITOS v3.0')
-            self.logger.info('📊 Implementación completa de 8 principios')
-            self.logger.info('=' * 80)
-            
-            # FASE 1: Automatización - Configuración automática
-            self.logger.info('🔄 FASE 1: Automatización')
-            self._configurar_politicas_automaticas()
-            self._establecer_reglas_auditoria()
-            self._configurar_alertas_automaticas()
-            self.logger.info('✅ Automatización configurada al 100%')
-            
-            # FASE 2: Robustez - Verificaciones exhaustivas
-            self.logger.info('🛡️ FASE 2: Robustez')
-            self._verificar_integridad_sistema()
-            self._validar_configuraciones_criticas()
-            self._establecer_puntos_control()
-            self.logger.info('✅ Robustez implementada al 100%')
-            
-            # FASE 3: Eficiencia - Optimización de procesos
-            self.logger.info('⚡ FASE 3: Eficiencia')
-            self._optimizar_procesos_auditoria()
-            self._configurar_cache_auditoria()
-            self._establecer_indices_optimizados()
-            self.logger.info('✅ Eficiencia optimizada al 100%')
-            
-            # FASE 4: Seguridad - Máxima protección
-            self.logger.info('🔒 FASE 4: Seguridad')
-            self._establecer_seguridad_maxima()
-            self._configurar_cifrado_auditoria()
-            self._implementar_controles_acceso()
-            self.logger.info('✅ Seguridad establecida al 100%')
-            
-            # FASE 5: Integración - Conexión total
-            self.logger.info('🔗 FASE 5: Integración')
-            self._integrar_todos_sistemas()
-            self._establecer_comunicacion_bidireccional()
-            self._sincronizar_bases_datos()
-            self.logger.info('✅ Integración completada al 100%')
-            
-            # FASE 6: Transparencia - Trazabilidad total
-            self.logger.info('🔍 FASE 6: Transparencia')
-            self._configurar_trazabilidad_completa()
-            self._establecer_auditoria_auditoria()
-            self._implementar_reportes_transparentes()
-            self.logger.info('✅ Transparencia implementada al 100%')
-            
-            # FASE 7: Optimización - Rendimiento máximo
-            self.logger.info('🎯 FASE 7: Optimización')
-            self._aplicar_optimizaciones_avanzadas()
-            self._configurar_balanceadores_carga()
-            self._implementar_cache_inteligente()
-            self.logger.info('✅ Optimización aplicada al 100%')
-            
-            # FASE 8: Simplicidad - Uso intuitivo
-            self.logger.info('🎨 FASE 8: Simplicidad')
-            self._simplificar_interfaces()
-            self._crear_asistentes_configuracion()
-            self._implementar_auto_configuracion()
-            self.logger.info('✅ Simplicidad lograda al 100%')
-            
-            # VERIFICACIÓN FINAL
-            self.logger.info('🏆 VERIFICACIÓN FINAL DEL SISTEMA')
-            if self._verificar_cumplimiento_100_porciento():
-                self.logger.info('🎉 SISTEMA DE AUDITORÍA: 100% OPERATIVO')
-                self.logger.info('📋 CUMPLIMIENTO ARESITOS: PERFECTO')
-                self.logger.info('🚀 LISTO PARA PRODUCCIÓN')
-                return True
-            else:
-                raise Exception('Verificación final falló')
-                
-        except Exception as e:
-            self.logger.error(f'❌ ERROR CRÍTICO EN AUDITORÍA: {e}')
-            self.logger.error('🔧 Sistema requiere intervención manual')
+            resultado = subprocess.run(
+                ['which', herramienta], 
+                capture_output=True, 
+                text=True, 
+                timeout=5
+            )
+            return resultado.returncode == 0
+        except Exception:
             return False
-
-    def _configurar_politicas_automaticas(self):
-        """Configura políticas de auditoría automáticas."""
-        self.logger.debug('Configurando políticas automáticas...')
-
-    def _establecer_reglas_auditoria(self):
-        """Establece reglas específicas de auditoría."""
-        self.logger.debug('Estableciendo reglas de auditoría...')
-
-    def _configurar_alertas_automaticas(self):
-        """Configura sistema de alertas automáticas."""
-        self.logger.debug('Configurando alertas automáticas...')
-
-    def _verificar_integridad_sistema(self):
-        """Verifica la integridad completa del sistema."""
-        self.logger.debug('Verificando integridad del sistema...')
-
-    def _validar_configuraciones_criticas(self):
-        """Valida configuraciones críticas del sistema."""
-        self.logger.debug('Validando configuraciones críticas...')
-
-    def _establecer_puntos_control(self):
-        """Establece puntos de control estratégicos."""
-        self.logger.debug('Estableciendo puntos de control...')
-
-    def _optimizar_procesos_auditoria(self):
-        """Optimiza procesos de auditoría."""
-        self.logger.debug('Optimizando procesos de auditoría...')
-
-    def _configurar_cache_auditoria(self):
-        """Configura caché para auditoría."""
-        self.logger.debug('Configurando caché de auditoría...')
-
-    def _establecer_indices_optimizados(self):
-        """Establece índices optimizados."""
-        self.logger.debug('Estableciendo índices optimizados...')
-
-    def _establecer_seguridad_maxima(self):
-        """Establece seguridad máxima."""
-        self.logger.debug('Estableciendo seguridad máxima...')
-
-    def _configurar_cifrado_auditoria(self):
-        """Configura cifrado para auditoría."""
-        self.logger.debug('Configurando cifrado de auditoría...')
-
-    def _implementar_controles_acceso(self):
-        """Implementa controles de acceso."""
-        self.logger.debug('Implementando controles de acceso...')
-
-    def _integrar_todos_sistemas(self):
-        """Integra con todos los sistemas."""
-        self.logger.debug('Integrando todos los sistemas...')
-
-    def _establecer_comunicacion_bidireccional(self):
-        """Establece comunicación bidireccional."""
-        self.logger.debug('Estableciendo comunicación bidireccional...')
-
-    def _sincronizar_bases_datos(self):
-        """Sincroniza bases de datos."""
-        self.logger.debug('Sincronizando bases de datos...')
-
-    def _configurar_trazabilidad_completa(self):
-        """Configura trazabilidad completa."""
-        self.logger.debug('Configurando trazabilidad completa...')
-
-    def _establecer_auditoria_auditoria(self):
-        """Establece auditoría de la auditoría."""
-        self.logger.debug('Estableciendo auditoría de auditoría...')
-
-    def _implementar_reportes_transparentes(self):
-        """Implementa reportes transparentes."""
-        self.logger.debug('Implementando reportes transparentes...')
-
-    def _aplicar_optimizaciones_avanzadas(self):
-        """Aplica optimizaciones avanzadas."""
-        self.logger.debug('Aplicando optimizaciones avanzadas...')
-
-    def _configurar_balanceadores_carga(self):
-        """Configura balanceadores de carga."""
-        self.logger.debug('Configurando balanceadores de carga...')
-
-    def _implementar_cache_inteligente(self):
-        """Implementa caché inteligente."""
-        self.logger.debug('Implementando caché inteligente...')
-
-    def _simplificar_interfaces(self):
-        """Simplifica interfaces de usuario."""
-        self.logger.debug('Simplificando interfaces...')
-
-    def _crear_asistentes_configuracion(self):
-        """Crea asistentes de configuración."""
-        self.logger.debug('Creando asistentes de configuración...')
-
-    def _implementar_auto_configuracion(self):
-        """Implementa auto-configuración."""
-        self.logger.debug('Implementando auto-configuración...')
-
-    def _verificar_cumplimiento_100_porciento(self):
+    
+    def _ejecutar_comando_seguro(self, comando: List[str], timeout: int = 300) -> Dict[str, Any]:
         """
-        Verifica que el sistema cumpla 100% con principios ARESITOS.
+        Ejecuta un comando de forma segura con manejo de errores.
         
+        Args:
+            comando: Lista con el comando y argumentos
+            timeout: Tiempo límite en segundos
+            
         Returns:
-            bool: True si cumple 100%, False en caso contrario
+            Diccionario con resultado del comando
         """
-        self.logger.info('🔍 Verificando cumplimiento 100% ARESITOS...')
-        # Implementar verificaciones específicas
-        return True
+        resultado = {
+            'exito': False,
+            'codigo_salida': None,
+            'stdout': '',
+            'stderr': '',
+            'error': None
+        }
+        
+        try:
+            proceso = subprocess.run(
+                comando,
+                capture_output=True,
+                text=True,
+                timeout=timeout
+            )
+            
+            resultado['exito'] = proceso.returncode == 0
+            resultado['codigo_salida'] = proceso.returncode
+            resultado['stdout'] = proceso.stdout
+            resultado['stderr'] = proceso.stderr
+            
+        except subprocess.TimeoutExpired:
+            resultado['error'] = f'Timeout ejecutando comando: {" ".join(comando)}'
+        except FileNotFoundError:
+            resultado['error'] = f'Comando no encontrado: {comando[0]}'
+        except Exception as e:
+            resultado['error'] = str(e)
+            
+        return resultado
+    
     def ejecutar_auditoria_lynis(self) -> Dict[str, Any]:
         """
         Ejecuta auditoría completa con Lynis.
@@ -279,49 +119,44 @@ class ControladorAuditoria:
             'archivos_generados': []
         }
         
-        try:
-            # Ejecutar Lynis con parámetros específicos
-            comando = [
-                'sudo', 'lynis', 
-                'audit', 'system',
-                '--auditor', 'aresitos',
-                '--cronjob',
-                '--quiet'
+        # Validar que Lynis esté disponible
+        if not self._validar_herramienta_disponible('lynis'):
+            resultado['error'] = 'Lynis no encontrado - instalar con: apt install lynis'
+            return resultado
+        
+        # Ejecutar Lynis con parámetros específicos
+        comando = [
+            'sudo', 'lynis', 
+            'audit', 'system',
+            '--auditor', 'aresitos',
+            '--cronjob',  # Para salida parseable
+            '--quiet'
+        ]
+        
+        resultado_comando = self._ejecutar_comando_seguro(
+            comando, 
+            self.config_auditoria['timeout_herramientas']
+        )
+        
+        if resultado_comando['exito']:
+            resultado['exito'] = True
+            resultado['reporte_completo'] = resultado_comando['stdout']
+            
+            # Parsear resultados de Lynis
+            self._parsear_resultados_lynis(resultado_comando['stdout'], resultado)
+            
+            # Buscar archivos de reporte generados
+            rutas_reportes = [
+                '/var/log/lynis.log',
+                '/var/log/lynis-report.dat'
             ]
             
-            proceso = subprocess.run(
-                comando,
-                capture_output=True,
-                text=True,
-                timeout=self.config_auditoria['timeout_herramientas']
-            )
-            
-            if proceso.returncode == 0:
-                resultado['exito'] = True
-                resultado['reporte_completo'] = proceso.stdout
+            for ruta in rutas_reportes:
+                if Path(ruta).exists():
+                    resultado['archivos_generados'].append(ruta)
+        else:
+            resultado['error'] = resultado_comando['error'] or resultado_comando['stderr']
                 
-                # Parsear resultados de Lynis
-                self._parsear_resultados_lynis(proceso.stdout, resultado)
-                
-                # Buscar archivos de reporte generados
-                rutas_reportes = [
-                    '/var/log/lynis.log',
-                    '/var/log/lynis-report.dat'
-                ]
-                
-                for ruta in rutas_reportes:
-                    if Path(ruta).exists():
-                        resultado['archivos_generados'].append(ruta)
-            else:
-                resultado['error'] = proceso.stderr
-                
-        except subprocess.TimeoutExpired:
-            resultado['error'] = 'Timeout ejecutando Lynis'
-        except FileNotFoundError:
-            resultado['error'] = 'Lynis no encontrado - instalar con: apt install lynis'
-        except Exception as e:
-            resultado['error'] = str(e)
-            
         return resultado
     
     def _parsear_resultados_lynis(self, salida: str, resultado: Dict[str, Any]):
@@ -362,47 +197,39 @@ class ControladorAuditoria:
             'exito': False
         }
         
-        # Ejecutar rkhunter
-        try:
+        # Ejecutar rkhunter si está disponible
+        if self._validar_herramienta_disponible('rkhunter'):
+            print("Ejecutando rkhunter...")
             cmd_rkhunter = ['sudo', 'rkhunter', '--check', '--skip-keypress', '--report-warnings-only']
             
-            proceso = subprocess.run(
-                cmd_rkhunter,
-                capture_output=True,
-                text=True,
-                timeout=300
-            )
+            resultado_rkhunter = self._ejecutar_comando_seguro(cmd_rkhunter, 300)
             
-            resultado['herramientas_usadas'].append('rkhunter')
-            
-            if 'warning' in proceso.stdout.lower() or 'infected' in proceso.stdout.lower():
-                resultado['rootkits_detectados'].extend(
-                    self._extraer_detecciones_rkhunter(proceso.stdout)
-                )
+            if resultado_rkhunter['exito']:
+                resultado['herramientas_usadas'].append('rkhunter')
                 
-        except Exception as e:
-            resultado['errores_rkhunter'] = str(e)
+                if 'warning' in resultado_rkhunter['stdout'].lower() or 'infected' in resultado_rkhunter['stdout'].lower():
+                    resultado['rootkits_detectados'].extend(
+                        self._extraer_detecciones_rkhunter(resultado_rkhunter['stdout'])
+                    )
+            else:
+                resultado['errores_rkhunter'] = resultado_rkhunter['error']
         
-        # Ejecutar chkrootkit
-        try:
+        # Ejecutar chkrootkit si está disponible
+        if self._validar_herramienta_disponible('chkrootkit'):
+            print("Ejecutando chkrootkit...")
             cmd_chkrootkit = ['sudo', 'chkrootkit']
             
-            proceso = subprocess.run(
-                cmd_chkrootkit,
-                capture_output=True,
-                text=True,
-                timeout=300
-            )
+            resultado_chkrootkit = self._ejecutar_comando_seguro(cmd_chkrootkit, 300)
             
-            resultado['herramientas_usadas'].append('chkrootkit')
-            
-            if 'infected' in proceso.stdout.lower():
-                resultado['rootkits_detectados'].extend(
-                    self._extraer_detecciones_chkrootkit(proceso.stdout)
-                )
+            if resultado_chkrootkit['exito']:
+                resultado['herramientas_usadas'].append('chkrootkit')
                 
-        except Exception as e:
-            resultado['errores_chkrootkit'] = str(e)
+                if 'infected' in resultado_chkrootkit['stdout'].lower():
+                    resultado['rootkits_detectados'].extend(
+                        self._extraer_detecciones_chkrootkit(resultado_chkrootkit['stdout'])
+                    )
+            else:
+                resultado['errores_chkrootkit'] = resultado_chkrootkit['error']
         
         # Generar recomendaciones
         if resultado['rootkits_detectados']:
@@ -628,17 +455,23 @@ class ControladorAuditoria:
             'auditorias_individuales': {}
         }
         
+        print("Iniciando auditoría completa del sistema...")
+        
         try:
             # 1. Auditoría Lynis
+            print("Ejecutando auditoría Lynis...")
             resultado_completo['auditorias_individuales']['lynis'] = self.ejecutar_auditoria_lynis()
             
             # 2. Detección de rootkits
+            print("Ejecutando detección de rootkits...")
             resultado_completo['auditorias_individuales']['rootkits'] = self.ejecutar_deteccion_rootkits()
             
             # 3. Verificación de permisos
+            print("Verificando permisos críticos...")
             resultado_completo['auditorias_individuales']['permisos'] = self.verificar_permisos_criticos()
             
             # 4. Análisis de servicios
+            print("Analizando servicios del sistema...")
             resultado_completo['auditorias_individuales']['servicios'] = self.analizar_servicios_sistema()
             
             resultado_completo['timestamp_fin'] = datetime.now().isoformat()
@@ -648,6 +481,8 @@ class ControladorAuditoria:
             resultado_completo['resumen_ejecutivo'] = self._generar_resumen_ejecutivo(
                 resultado_completo['auditorias_individuales']
             )
+            
+            print("Auditoría completa finalizada")
             
         except Exception as e:
             resultado_completo['error'] = str(e)
@@ -706,6 +541,14 @@ class ControladorAuditoria:
             resumen['error_generando_resumen'] = str(e)
         
         return resumen
+        exitosos = sum(1 for r in resultados.values() if r.get('exito', False))
+        
+        return {
+            'total_verificaciones': total_checks,
+            'exitosas': exitosos,
+            'fallidas': total_checks - exitosos,
+            'porcentaje_exito': (exitosos / total_checks * 100) if total_checks > 0 else 0
+        }
 
     def verificar_funcionalidad_kali(self):
         """
@@ -827,7 +670,10 @@ class ControladorAuditoria:
             resultado['exito'] = False
         
         return resultado
+    
+
 # RESUMEN TÉCNICO: Controlador de auditorías de seguridad para Kali Linux. Coordina 
 # análisis de sistema con lynis, detección de rootkits, verificación de permisos y 
 # servicios. Arquitectura MVC con principios SOLID, herramientas nativas sin 
-# dependencias externas, optimizado para auditorías de seguridad profesionales.
+# dependencias externas, optimizado para auditorías de seguridad profesionales ARESITOS.
+

@@ -1,4 +1,4 @@
-# TERMINAL **TERMINAL INTEGRADO DE ARESITOS**
+# 🖥️ TERMINAL INTEGRADO DE ARESITOS
 
 ## LIST Descripción General
 
@@ -14,7 +14,7 @@ ARESITOS ahora incluye un **Terminal Integrado** en el Dashboard que captura y m
 ### CONTROL Controles del Terminal
 - **🔴 ACTIVAR CAPTURA LOGS**: Activa/desactiva la captura automática de logs
 - **🧹 LIMPIAR**: Limpia el contenido del terminal
-- **TERMINAL TERMINAL**: Abre un terminal externo de Kali Linux
+- **🖥️ TERMINAL KALI**: Abre un terminal externo de Kali Linux
 
 ### FAST Comandos Rápidos
 Botones predefinidos para comandos frecuentes de ciberseguridad:
@@ -23,7 +23,7 @@ Botones predefinidos para comandos frecuentes de ciberseguridad:
 - 🔗 **Red**: `ifconfig`
 - SCAN **Nmap**: `nmap --version`
 - SAVE **Disco**: `df -h`
-- MEMORY **Memoria**: `free -h`
+- 🧠 **Memoria**: `free -h`
 - 👤 **Usuario**: `whoami`
 - INFO **Sistema**: `uname -a`
 - 🔌 **Sockets**: `ss -tuln`
@@ -38,7 +38,7 @@ Botones predefinidos para comandos frecuentes de ciberseguridad:
 ### 1. Acceso al Terminal
 1. Abre ARESITOS
 2. Ve al **Dashboard**
-3. Selecciona la pestaña **TERMINAL Terminal ARESITOS**
+3. Selecciona la pestaña **🖥️ Terminal ARESITOS**
 
 ### 2. Activar Captura de Logs
 1. Presiona **🔴 ACTIVAR CAPTURA LOGS**
@@ -191,7 +191,7 @@ sudo lsof -i :80                  # HTTP connections
 
 ---
 
-## TIP **Tip de Uso**
+## 💡 Tip de Uso
 
 **¡Activa la captura de logs antes de usar cualquier módulo de ARESITOS para ver toda la información en tiempo real!**
 

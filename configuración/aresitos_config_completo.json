@@ -1,0 +1,103 @@
+{
+    "sistema": {
+        "version": "2.0.0",
+        "nombre": "ARESITOS",
+        "descripcion": "Suite de Ciberseguridad para Kali Linux",
+        "arquitectura": "python_nativo_linux_kali",
+        "debug": false,
+        "log_level": "INFO",
+        "max_hilos": 4,
+        "timeout_operaciones": 60,
+        "solo_kali_linux": true,
+        "verificacion_herramientas_kali": true
+    },
+    "escaneador": {
+        "puerto_inicial": 1,
+        "puerto_final": 65535,
+        "timeout_conexion": 3,
+        "max_puertos_simultaneos": 100,
+        "intentos_maximos": 3,
+        "herramientas_kali": ["nmap", "masscan", "nikto", "gobuster", "nuclei"],
+        "escalado_privilegios": false,
+        "escaneo_agresivo": false
+    },
+    "monitor": {
+        "intervalo_actualizacion": 5,
+        "max_procesos_mostrar": 50,
+        "alertas_cpu": 85,
+        "alertas_memoria": 80,
+        "alertas_disco": 90,
+        "monitor_red": true,
+        "comandos_linux": ["ps", "top", "free", "df", "ss"]
+    },
+    "siem": {
+        "max_eventos": 10000,
+        "niveles_log": ["debug", "info", "warning", "error", "critical"],
+        "archivo_eventos": "logs/eventos_siem.log",
+        "rotacion_logs": true,
+        "deteccion_anomalias": true,
+        "correlacion_eventos": true,
+        "backup_eventos": true
+    },
+    "reportes": {
+        "directorio_reportes": "logs/reportes",
+        "formatos_soportados": ["json", "txt", "html", "csv"],
+        "max_reportes_guardados": 100,
+        "incluir_graficos": false,
+        "compresion_reportes": true,
+        "encriptacion_reportes": false
+    },
+    "seguridad": {
+        "verificar_integridad": true,
+        "logs_auditoria": true,
+        "nivel_paranoia": "alto",
+        "backup_automatico": true,
+        "verificacion_permisos": true,
+        "deteccion_modificaciones": true,
+        "cuarentena_automatica": true,
+        "verificacion_firma_digital": false
+    },
+    "interfaz": {
+        "tema": "kali_dark",
+        "idioma": "es",
+        "resolucion_minima": "1400x900",
+        "animaciones": false,
+        "notificaciones": true,
+        "modo_pantalla_completa": false,
+        "ocultar_informacion_sensible": true
+    },
+    "red": {
+        "timeout_ping": 3,
+        "max_intentos_conexion": 3,
+        "detectar_proxies": false,
+        "usar_tor": false,
+        "verificar_ssl": true,
+        "usar_ipv6": true,
+        "rate_limiting": true
+    },
+    "fim": {
+        "directorios_monitoreados": ["/etc", "/home", "/var/log"],
+        "algoritmo_hash": "sha256",
+        "verificacion_integridad": true,
+        "alertas_tiempo_real": true,
+        "backup_archivos_criticos": true
+    },
+    "cuarentena": {
+        "directorio_cuarentena": "data/cuarentena",
+        "encriptacion_archivos": true,
+        "tiempo_retencion_dias": 30,
+        "analisis_automatico": true,
+        "notificaciones_cuarentena": true
+    },
+    "herramientas_kali": {
+        "verificar_disponibilidad": true,
+        "actualizar_automaticamente": false,
+        "herramientas_criticas": [
+            "nmap", "masscan", "nikto", "gobuster", "nuclei",
+            "hydra", "john", "hashcat", "metasploit", "sqlmap"
+        ],
+        "herramientas_opcionales": [
+            "burpsuite", "wireshark", "aircrack-ng", "recon-ng"
+        ]
+    }
+}

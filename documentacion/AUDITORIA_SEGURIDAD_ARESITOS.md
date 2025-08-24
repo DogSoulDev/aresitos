@@ -143,7 +143,7 @@ except Exception as e:
 - Testing validaciones seguridad
 - Documentación medidas implementadas
 
-## METRICS **Métricas Seguridad**
+## 📈 **Métricas Seguridad**
 
 ### **Antes vs Después Auditoría**
 | Métrica | Antes | Después | Mejora |
