@@ -172,15 +172,12 @@ class VistaFIM(tk.Frame):
             controles_frame = tk.Frame(parent_frame, bg=self.colors['bg_secondary'])
             controles_frame.pack(fill="x", padx=5, pady=2)
             
-            # Botón limpiar terminal (estilo dashboard, compacto)
-            btn_limpiar = ttk.Button(style="Burp.TButton", 
+            # Botón limpiar terminal - PRINCIPIO ARESITOS: Interfaz limpia y funcional
+            btn_limpiar = ttk.Button(
                 controles_frame,
-                text="LIMPIAR",
-                command=self.limpiar_terminal_fim,
-                bg=self.colors.get('warning', '#ffaa00'),
-                fg='#ff6633',
-                font=("Arial", 8, "bold"),
-                height=1
+                text="🧹 LIMPIAR",
+                style="Burp.TButton", 
+                command=self.limpiar_terminal_fim
             )
             btn_limpiar.pack(side="left", padx=2, fill="x", expand=True)
             

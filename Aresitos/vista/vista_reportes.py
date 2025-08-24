@@ -182,11 +182,13 @@ class VistaReportes(tk.Frame):
         ]
         
         for texto, comando in botones_generar:
-            btn = ttk.Button(style="Burp.TButton",right_frame, text=texto, command=comando,
-                           bg=self.colors['fg_accent'], fg=self.colors['bg_primary'],
-                           font=('Arial', 10, 'bold'),
-                           relief='flat', padx=10, pady=5,
-                           activebackground=self.colors['warning'])
+            # PRINCIPIO ARESITOS: Botones consistentes y funcionales
+            btn = ttk.Button(
+                right_frame, 
+                text=texto, 
+                style="Burp.TButton", 
+                command=comando
+            )
             btn.pack(fill=tk.X, pady=5)
         
         # Separador con tema
@@ -203,11 +205,13 @@ class VistaReportes(tk.Frame):
         ]
         
         for texto, comando in botones_gestion:
-            btn = ttk.Button(style="Burp.TButton",right_frame, text=texto, command=comando,
-                           bg=self.colors['bg_primary'], fg=self.colors['fg_primary'],
-                           font=('Arial', 10),
-                           relief='flat', padx=10, pady=5,
-                           activebackground=self.colors['bg_secondary'])
+            # PRINCIPIO ARESITOS: Gestión sistemática de reportes
+            btn = ttk.Button(
+                right_frame, 
+                text=texto, 
+                style="Burp.TButton", 
+                command=comando
+            )
             btn.pack(fill=tk.X, pady=5)
         
         # Frame de información con tema
@@ -244,11 +248,13 @@ class VistaReportes(tk.Frame):
         ]
         
         for texto, comando in botones_kali:
-            btn = ttk.Button(style="Burp.TButton",kali_frame, text=texto, command=comando,
-                           bg=self.colors['info'], fg=self.colors['bg_primary'],
-                           font=('Arial', 9, 'bold'),
-                           relief='flat', padx=8, pady=3,
-                           activebackground=self.colors['warning'])
+            # PRINCIPIO ARESITOS: Herramientas específicas de Kali Linux
+            btn = ttk.Button(
+                kali_frame, 
+                text=texto, 
+                style="Burp.TButton", 
+                command=comando
+            )
             btn.pack(fill=tk.X, pady=2)
         
         # Crear terminal integrado

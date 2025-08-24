@@ -273,12 +273,20 @@ class VistaGestionDatos(tk.Frame):
                                             relief='flat', padx=20, pady=8)
             self.btn_diccionarios.pack(side=tk.LEFT)
         else:
-            self.btn_wordlists = ttk.Button(style="Burp.TButton",selector_frame, text=" Wordlists", 
-                                          command=lambda: self.cambiar_tipo("wordlists"))
+            self.btn_wordlists = ttk.Button(
+                selector_frame, 
+                text="📝 Wordlists", 
+                style="Burp.TButton",
+                command=lambda: self.cambiar_tipo("wordlists")
+            )
             self.btn_wordlists.pack(side=tk.LEFT, padx=(0, 10))
             
-            self.btn_diccionarios = ttk.Button(style="Burp.TButton",selector_frame, text=" Diccionarios", 
-                                             command=lambda: self.cambiar_tipo("diccionarios"))
+            self.btn_diccionarios = ttk.Button(
+                selector_frame, 
+                text="📚 Diccionarios", 
+                style="Burp.TButton",
+                command=lambda: self.cambiar_tipo("diccionarios")
+            )
             self.btn_diccionarios.pack(side=tk.LEFT)
     
     def crear_panel_archivos(self, parent):
@@ -286,7 +294,7 @@ class VistaGestionDatos(tk.Frame):
         if self.theme:
             left_frame = tk.Frame(parent, bg='#2b2b2b')
         else:
-            left_frame = ttk.LabelFrame(style="Burp.TLabelframe",parent, text="Archivos Disponibles", padding=10)
+            left_frame = ttk.LabelFrame(parent, text="📁 Archivos Disponibles", style="Burp.TLabelframe", padding=10)
         left_frame.pack(side=tk.LEFT, fill=tk.BOTH, expand=True, padx=(0, 10))
         
         if self.theme:
@@ -326,7 +334,7 @@ class VistaGestionDatos(tk.Frame):
         if self.theme:
             right_frame = tk.Frame(parent, bg='#2b2b2b')
         else:
-            right_frame = ttk.LabelFrame(style="Burp.TLabelframe",parent, text="Acciones y Contenido", padding=10)
+            right_frame = ttk.LabelFrame(parent, text="⚡ Acciones y Contenido", style="Burp.TLabelframe", padding=10)
         right_frame.pack(side=tk.RIGHT, fill=tk.BOTH, expand=True)
         
         if self.theme:
@@ -359,7 +367,7 @@ class VistaGestionDatos(tk.Frame):
                               relief='flat', padx=15, pady=5)
                 btn.pack(side=tk.LEFT, padx=(0, 5))
             else:
-                btn = ttk.Button(style="Burp.TButton",btn_frame, text=texto, command=comando)
+                btn = ttk.Button(btn_frame, text=texto, style="Burp.TButton", command=comando)
                 btn.pack(side=tk.LEFT, padx=(0, 5))
         
         # Frame adicional para gestión de archivos
@@ -383,7 +391,7 @@ class VistaGestionDatos(tk.Frame):
                               relief='flat', padx=10, pady=3)
                 btn.pack(side=tk.LEFT, padx=(0, 5))
             else:
-                btn = ttk.Button(style="Burp.TButton",gestion_frame, text=texto, command=comando)
+                btn = ttk.Button(gestion_frame, text=texto, style="Burp.TButton", command=comando)
                 btn.pack(side=tk.LEFT, padx=(0, 5))
         
         # Frame adicional para herramientas de Kali
@@ -408,7 +416,7 @@ class VistaGestionDatos(tk.Frame):
                               relief='flat', padx=12, pady=3)
                 btn.pack(side=tk.LEFT, padx=(0, 3))
             else:
-                btn = ttk.Button(style="Burp.TButton",kali_frame, text=texto, command=comando)
+                btn = ttk.Button(kali_frame, text=texto, style="Burp.TButton", command=comando)
                 btn.pack(side=tk.LEFT, padx=(0, 3))
         
         # Área de contenido

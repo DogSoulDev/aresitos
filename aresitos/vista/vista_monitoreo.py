@@ -523,9 +523,12 @@ class VistaMonitoreo(tk.Frame):
         titulo_frame = tk.Frame(self.frame_monitor, bg='#2b2b2b')
         titulo_frame.pack(fill="x", pady=(0, 15))
         
-        titulo_label = ttk.Label(style="Burp.TLabel",titulo_frame, text=" MONITOR DEL SISTEMA", 
-                              font=('Arial', 14, 'bold'),
-                              bg='#2b2b2b', fg='#ff6633')
+        # PRINCIPIO ARESITOS: Título claro y consistente del monitor
+        titulo_label = ttk.Label(
+            titulo_frame, 
+            text="🖥️ MONITOR DEL SISTEMA", 
+            style="Burp.TLabel"
+        )
         titulo_label.pack()
         
         # Frame de controles con tema
@@ -565,9 +568,12 @@ class VistaMonitoreo(tk.Frame):
                                         activebackground='#505050', activeforeground='white')
         self.btn_cancelar_red.pack(side="left", padx=(0, 10))
         
-        self.label_estado = ttk.Label(style="Burp.TLabel",control_frame, text="Estado: Detenido",
-                                   bg='#2b2b2b', fg='#ffffff',
-                                   font=('Arial', 10))
+        # PRINCIPIO ARESITOS: Estado claro y visible del monitoreo
+        self.label_estado = ttk.Label(
+            control_frame, 
+            text="🔴 Estado: Detenido",
+            style="Burp.TLabel"
+        )
         self.label_estado.pack(side="right", padx=(10, 0))
         
         # Área de texto con tema

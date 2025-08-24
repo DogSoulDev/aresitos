@@ -122,7 +122,7 @@ class VistaHerramientasKali(tk.Frame):
                 'success': getattr(burp_theme, 'get_color', lambda x: '#00ff00')('success'),
                 'warning': getattr(burp_theme, 'get_color', lambda x: '#ffaa00')('warning')
             }
-                self.configure(bg=self.colors['bg_primary'])
+            self.configure(bg=self.colors['bg_primary'])
                 
         except Exception as e:
             self.logger.warning(f"Error configurando tema: {e}")
@@ -342,48 +342,30 @@ class VistaHerramientasKali(tk.Frame):
     def _crear_botones_herramientas(self, botones_frame, main_frame):
         """Crear botones de herramientas con acceso dinámico (PRINCIPIO ARESITOS V3)."""
         try:
-            # Botón verificar herramientas
-            self.btn_verificar = ttk.Button(style="Burp.TButton",
+            # Botón verificar herramientas - PRINCIPIO ARESITOS: TTK con estilo consistente
+            self.btn_verificar = ttk.Button(
                 botones_frame,
-                text="Verificar Herramientas",
-                command=self.verificar_herramientas,
-                bg=self.colors['button_bg'],
-                fg='white',
-                font=('Arial', 10, 'bold'),
-                relief='flat',
-                padx=15,
-                pady=8,
-                cursor='hand2'
+                text="🔍 Verificar Herramientas",
+                style="Burp.TButton",
+                command=self.verificar_herramientas
             )
             self.btn_verificar.grid(row=0, column=0, padx=10, sticky="ew")
             
-            # Botón mostrar optimizaciones
-            self.btn_optimizaciones = ttk.Button(style="Burp.TButton",
+            # Botón mostrar optimizaciones - PRINCIPIO ARESITOS: Interfaz clara e intuitiva
+            self.btn_optimizaciones = ttk.Button(
                 botones_frame,
-                text="Ver Optimizaciones",
-                command=self.mostrar_optimizaciones,
-                bg='#9C27B0',
-                fg='white',
-                font=('Arial', 10, 'bold'),
-                relief='flat',
-                padx=15,
-                pady=8,
-                cursor='hand2'
+                text="⚡ Ver Optimizaciones",
+                style="Burp.TButton",
+                command=self.mostrar_optimizaciones
             )
             self.btn_optimizaciones.grid(row=0, column=1, padx=10, sticky="ew")
             
-            # Botón instalar herramientas
-            self.btn_instalar = ttk.Button(style="Burp.TButton",
+            # Botón instalar herramientas - PRINCIPIO ARESITOS: Automatización de instalación
+            self.btn_instalar = ttk.Button(
                 botones_frame,
-                text="Instalar Faltantes",
+                text="⚙️ Instalar Faltantes",
+                style="Burp.TButton",
                 command=self.instalar_herramientas,
-                bg=self.colors['warning'],
-                fg='white',
-                font=('Arial', 10, 'bold'),
-                relief='flat',
-                padx=15,
-                pady=8,
-                cursor='hand2',
                 state='disabled'
             )
             self.btn_instalar.grid(row=0, column=2, padx=10, sticky="ew")
@@ -397,18 +379,12 @@ class VistaHerramientasKali(tk.Frame):
     def _crear_resto_interfaz(self, botones_frame, main_frame):
         """Crear el resto de la interfaz (PRINCIPIO ARESITOS V3)."""
         try:
-            # Botón continuar (habilitado por defecto en modo desarrollo)
-            self.btn_continuar = ttk.Button(style="Burp.TButton",
+            # Botón continuar - PRINCIPIO ARESITOS: Progreso fluido hacia aplicación principal
+            self.btn_continuar = ttk.Button(
                 botones_frame,
-                text="Continuar a ARESITOS",
+                text="✅ Continuar a ARESITOS",
+                style="Burp.TButton",
                 command=self.continuar_aplicacion,
-                bg=self.colors['success'],
-                fg='white',
-                font=('Arial', 10, 'bold'),
-                relief='flat',
-                padx=15,
-                pady=8,
-                cursor='hand2',
                 state='normal'  # Habilitado por defecto
             )
             self.btn_continuar.grid(row=0, column=3, padx=10, sticky="ew")
