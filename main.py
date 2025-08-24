@@ -254,7 +254,7 @@ def verificar_dependencias_nativas():
     faltantes = []
     
     # ThreadPoolExecutor para verificación paralela
-    with get_thread_pool() as executor:
+    with ThreadPoolExecutor(max_workers=4, thread_name_prefix="ARESITOS-Deps") as executor:
         futures = {}
         
         for modulo, descripcion in dependencias_criticas:
@@ -358,7 +358,7 @@ def _ejecutar_login_gui(directorio_actual):
     print("Iniciando con interfaz de login...")
     try:
         # ThreadPoolExecutor para carga asíncrona
-        with get_thread_pool() as executor:
+        with ThreadPoolExecutor(max_workers=2, thread_name_prefix="ARESITOS-Login") as executor:
             # Importar de forma thread-safe
             sys.path.insert(0, str(directorio_actual))
             
@@ -435,7 +435,7 @@ def iniciar_aplicacion_clasica():
             modules = {}
             
             # ThreadPoolExecutor para importaciones paralelas
-            with get_thread_pool() as executor:
+            with ThreadPoolExecutor(max_workers=3, thread_name_prefix="ARESITOS-Import") as executor:
                 futures = {
                     executor.submit(__import__, module_path, fromlist=[module_name]): module_name
                     for module_name, module_path in module_imports.items()
@@ -539,7 +539,7 @@ def verificar_permisos_inicio():
         try:
             with resource_manager("permissions_check") as resource:
                 # ThreadPoolExecutor para verificaciones paralelas
-                with get_thread_pool() as executor:
+                with ThreadPoolExecutor(max_workers=2, thread_name_prefix="ARESITOS-Perms") as executor:
                     # Verificar capacidades de nmap
                     nmap_future = executor.submit(_check_nmap_capabilities)
                     sudo_future = executor.submit(_check_sudo_permissions)
@@ -595,10 +595,10 @@ def verificacion_estabilidad_sistema():
                 "aresitos/vista/vista_principal.py",
                 "aresitos/controlador/controlador_principal.py", 
                 "aresitos/modelo/modelo_principal.py",
-                "aresitos/modelo/modelo_escaneador_consolidado.py",
+                "aresitos/modelo/modelo_escaneador.py",
                 "aresitos/modelo/modelo_siem.py",
                 "aresitos/modelo/modelo_fim.py",
-                "aresitos/modelo/modelo_cuarentena.py",
+                "aresitos/modelo/modelo_cuarentena_kali2025.py",
                 "aresitos/utils/sudo_manager.py",
                 "aresitos/vista/terminal_mixin.py"
             ],
@@ -616,7 +616,7 @@ def verificacion_estabilidad_sistema():
         }
         
         # ThreadPoolExecutor para verificaciones paralelas
-        with get_thread_pool() as executor:
+        with ThreadPoolExecutor(max_workers=4, thread_name_prefix="ARESITOS-Verify") as executor:
             # Verificar archivos críticos
             file_futures = {
                 executor.submit(os.path.exists, archivo): ("CRÍTICO", archivo)

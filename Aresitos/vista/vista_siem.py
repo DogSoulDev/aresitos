@@ -505,7 +505,7 @@ class VistaSIEM(tk.Frame):
                                 bg='#2b2b2b', fg='#ff6633', font=('Arial', 12, 'bold'))
             label_logs.pack(anchor=tk.W, pady=(0, 5))
         else:
-            top_frame = ttk.LabelFrame(style="Burp.TLabelframe",main_frame, text="Fuentes de Logs", padding=10)
+            top_frame = ttk.LabelFrame(main_frame, text="📋 Fuentes de Logs", style="Burp.TLabelframe", padding=10)
         top_frame.pack(fill=tk.X, pady=(0, 10))
         
         # Lista de archivos de log comunes en Kali
@@ -537,7 +537,7 @@ class VistaSIEM(tk.Frame):
                                   bg='#2b2b2b', fg='#cccccc', selectcolor='#4a4a4a',
                                   activebackground='#3c3c3c', font=('Arial', 9))
             else:
-                cb = ttk.Checkbutton(style="Burp.TCheckbutton",logs_frame, text=f"{log_name} ({log_path})", variable=var)
+                cb = ttk.Checkbutton(logs_frame, text=f"📄 {log_name} ({log_path})", variable=var, style="Burp.TCheckbutton")
             
             cb.grid(row=i//2, column=i%2, sticky='w', padx=5, pady=2)
         
@@ -570,15 +570,15 @@ class VistaSIEM(tk.Frame):
             btn_frame = tk.Frame(top_frame)
             btn_frame.pack(fill=tk.X, pady=10)
             
-            ttk.Button(style="Burp.TButton",btn_frame, text=" Analizar Logs Seleccionados", 
+            ttk.Button(btn_frame, text="🔍 Analizar Logs Seleccionados", style="Burp.TButton",
                       command=self.analizar_logs_seleccionados).pack(side=tk.LEFT, padx=5)
-            ttk.Button(style="Burp.TButton",btn_frame, text=" Buscar Patrones", 
+            ttk.Button(btn_frame, text="🔎 Buscar Patrones", style="Burp.TButton",
                       command=self.buscar_patrones).pack(side=tk.LEFT, padx=5)
             
             # NUEVOS BOTONES FASE 3.2 - ANÁLISIS AVANZADO (versión TTK)
-            ttk.Button(style="Burp.TButton",btn_frame, text="Análisis Avanzado", 
+            ttk.Button(btn_frame, text="🔬 Análisis Avanzado", style="Burp.TButton",
                       command=self.analizar_patrones_avanzados).pack(side=tk.LEFT, padx=5)
-            ttk.Button(style="Burp.TButton",btn_frame, text="Correlación", 
+            ttk.Button(btn_frame, text="⚡ Correlación", style="Burp.TButton",
                       command=self.correlacionar_eventos_avanzado).pack(side=tk.LEFT, padx=5)
         
         # Panel inferior - Resultados de análisis
@@ -588,7 +588,7 @@ class VistaSIEM(tk.Frame):
                                    bg='#2b2b2b', fg='#ff6633', font=('Arial', 12, 'bold'))
             label_results.pack(anchor=tk.W, pady=(0, 5))
         else:
-            bottom_frame = ttk.LabelFrame(style="Burp.TLabelframe",main_frame, text="Resultados del Análisis", padding=10)
+            bottom_frame = ttk.LabelFrame(main_frame, text="📊 Resultados del Análisis", style="Burp.TLabelframe", padding=10)
         bottom_frame.pack(fill=tk.BOTH, expand=True)
         
         self.siem_analisis_text = scrolledtext.ScrolledText(bottom_frame, height=15,
@@ -620,7 +620,7 @@ class VistaSIEM(tk.Frame):
                                    bg='#2b2b2b', fg='#ff6633', font=('Arial', 12, 'bold'))
             label_alertas.pack(anchor=tk.W, pady=(0, 5))
         else:
-            left_frame = ttk.LabelFrame(style="Burp.TLabelframe",main_frame, text="Alertas Activas", padding=10)
+            left_frame = ttk.LabelFrame(main_frame, text="🚨 Alertas Activas", style="Burp.TLabelframe", padding=10)
         left_frame.pack(side=tk.LEFT, fill=tk.BOTH, expand=True, padx=(0, 10))
         
         self.siem_alertas_text = scrolledtext.ScrolledText(left_frame, height=20, width=60,
@@ -637,7 +637,7 @@ class VistaSIEM(tk.Frame):
                                   bg='#2b2b2b', fg='#ff6633', font=('Arial', 12, 'bold'))
             label_reglas.pack(anchor=tk.W, pady=(0, 10))
         else:
-            right_frame = ttk.LabelFrame(style="Burp.TLabelframe",main_frame, text="Motor de Correlación", padding=10)
+            right_frame = ttk.LabelFrame(main_frame, text="⚙️ Motor de Correlación", style="Burp.TLabelframe", padding=10)
         right_frame.pack(side=tk.RIGHT, fill=tk.Y)
         
         # Botones de configuración de alertas
@@ -658,11 +658,11 @@ class VistaSIEM(tk.Frame):
                               bg=bg_color, fg='white', font=('Arial', 9))
                 btn.pack(fill=tk.X, pady=2)
         else:
-            ttk.Button(style="Burp.TButton",right_frame, text=" Detectar Intrusion", 
+            ttk.Button(right_frame, text="🔍 Detectar Intrusion", style="Burp.TButton",
                       command=self.detectar_intrusion).pack(fill=tk.X, pady=2)
-            ttk.Button(style="Burp.TButton",right_frame, text=" Activar IDS", 
+            ttk.Button(right_frame, text="🛡️ Activar IDS", style="Burp.TButton",
                       command=self.activar_ids).pack(fill=tk.X, pady=2)
-            ttk.Button(style="Burp.TButton",right_frame, text=" Monitor Honeypot", 
+            ttk.Button(right_frame, text="🍯 Monitor Honeypot", style="Burp.TButton", 
                       command=self.monitor_honeypot).pack(fill=tk.X, pady=2)
     
     def crear_tab_forense(self):
@@ -687,7 +687,7 @@ class VistaSIEM(tk.Frame):
                                  bg='#2b2b2b', fg='#ff6633', font=('Arial', 12, 'bold'))
             label_tools.pack(anchor=tk.W, pady=(0, 10))
         else:
-            top_frame = ttk.LabelFrame(style="Burp.TLabelframe",main_frame, text="Herramientas Forenses", padding=10)
+            top_frame = ttk.LabelFrame(main_frame, text="🔬 Herramientas Forenses", style="Burp.TLabelframe", padding=10)
         top_frame.pack(fill=tk.X, pady=(0, 10))
         
         # Botones de herramientas forenses
@@ -727,12 +727,12 @@ class VistaSIEM(tk.Frame):
                 (" Head/Tail", self.usar_head_tail),
                 (" Check Kali Tools", self.verificar_herramientas_kali),
                 (" Monitor Real-time", self.monitorear_tiempo_real_kali),
-                (" Stop Monitor", self.parar_monitoreo),
-                (" OSQuery Analysis", self.integrar_osquery_kali)
+                ("⏹️ Stop Monitor", self.parar_monitoreo),
+                ("🔍 OSQuery Analysis", self.integrar_osquery_kali)
             ]
             
             for i, (text, command) in enumerate(tools_forenses):
-                ttk.Button(style="Burp.TButton",tools_frame, text=text, command=command).grid(
+                ttk.Button(tools_frame, text=text, command=command, style="Burp.TButton").grid(
                     row=i//3, column=i%3, padx=5, pady=2, sticky='ew')
         
         # Panel inferior - Resultados forenses
@@ -742,7 +742,7 @@ class VistaSIEM(tk.Frame):
                                    bg='#2b2b2b', fg='#ff6633', font=('Arial', 12, 'bold'))
             label_forense.pack(anchor=tk.W, pady=(0, 5))
         else:
-            bottom_frame = ttk.LabelFrame(style="Burp.TLabelframe",main_frame, text="Resultados Forenses", padding=10)
+            bottom_frame = ttk.LabelFrame(main_frame, text="📋 Resultados Forenses", style="Burp.TLabelframe", padding=10)
         bottom_frame.pack(fill=tk.BOTH, expand=True)
         
         self.siem_forense_text = scrolledtext.ScrolledText(bottom_frame, height=15,
