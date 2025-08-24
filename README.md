@@ -1,4 +1,16 @@
-![ARESITOS](./aresitos/recursos/Aresitos.ico)
+![ARESITOS](./aresitos/### **🔍 Escaneador Profesional Multi-Engine**
+- **Múltiples Scanners**: nmap, masscan, rustscan con fallback inteligen🔍 **Escaneador Profesional v3.0**
+- **5 Modos de Escaneo**: Integral, Avanzado, Red, Rápido, Profundo
+- **Detección Automática**: Herramientas disponibles y fallback
+- **Múltiples Engines**: nmap, masscan, rustscan, nuclei
+- **Web Discovery**: gobuster, feroxbuster par- 🌐 **Web Discovery**: nuclei (CVE detection), gobuster, feroxbuster, curl
+- 🛡️ **Vulnerability**: Templates nuclei actualizados, análisis automáticoenumeración
+- **Exportación Avanzada**: Reportes detallados y estructurados
+- **100% Nativo**: Solo herramientas nativas de Kali Linux**Detección de Vulnerabilidades**: nuclei con base CVE actualizada
+- **Web Enumeration**: gobuster, feroxbuster, curl para discovery
+- **Análisis Profundo**: Fingerprinting, correlación de servicios
+- **Reportes Estructurados**: JSON/TXT con análisis de criticidad
+- **100% Nativo**: Solo herramientas nativas de Kali Linux 2025os/Aresitos.ico)
 
 # ARESITOS - Sistema de Seguridad Cibernética v3.0
 
@@ -10,7 +22,7 @@
 [![SIEM](https://img.shields.io/badge/SIEM-Integrado-red.svg)](README.md)
 [![FIM](https://img.shields.io/badge/FIM-Real%20Time-purple.svg)](README.md)
 
-**ARESITOS v3.0** es una suite profesional de ciberseguridad con arquitectura MVC/SOLID diseñada específicamente para Kali Linux 2025. Integra escaneador de vulnerabilidades profesional, sistema SIEM en tiempo real, monitoreo FIM (File Integrity Monitoring), sistema de cuarentena inteligente y configuración automática del sistema. Desarrollado para pentesters, red teams y profesionales de ciberseguridad que requieren herramientas nativas, sin dependencias externas y completamente optimizadas.
+**ARESITOS v3.0** es una suite profesional de ciberseguridad con arquitectura MVC/SOLID diseñada específicamente para Kali Linux 2025. Integra escaneador de vulnerabilidades profesional con herramientas 100% nativas, sistema SIEM en tiempo real, monitoreo FIM (File Integrity Monitoring), sistema de cuarentena inteligente y configuración automática del sistema. Desarrollado para pentesters, red teams y profesionales de ciberseguridad que requieren herramientas nativas Kali, sin dependencias externas y completamente optimizadas.
 
 ## 🚀 **CARACTERÍSTICAS PRINCIPALES v3.0**
 
@@ -263,9 +275,10 @@ Hasta que volvamos a vernos.
 **🔍 Escaneador de Vulnerabilidades Profesional**
 - **Engine Multi-Scanner**: Integración nativa nmap/masscan/rustscan con algoritmos de fallback inteligente
 - **Detection Framework**: nuclei con base de datos CVE actualizada automáticamente, templates personalizados
-- **Web Enumeration**: gobuster/ffuf/feroxbuster para descubrimiento de superficie de ataque
+- **Web Enumeration**: gobuster/feroxbuster/curl para descubrimiento de superficie de ataque
 - **Intelligence Gathering**: Fingerprinting automatizado, correlación de servicios, análisis de dependencias
 - **Export Engine**: Reportes estructurados JSON/TXT con análisis de criticidad y vectores de ataque
+- **100% Nativo Kali**: Solo herramientas disponibles via apt install, sin dependencias externas
 
 **🛡️ Sistema SIEM Integrado**
 - **Real-time Monitoring**: 50+ puertos críticos con detección de anomalías comportamentales
@@ -432,7 +445,7 @@ El sistema verifica automáticamente que tengas instaladas +25 herramientas crí
 - **Detección Automática**: Validación y uso de herramientas disponibles
 - **Integración nuclei**: Templates actualizados, detección de CVEs
 - **Escaneo Masivo**: masscan/rustscan para análisis de redes completas
-- **Enumeración Web**: gobuster/ffuf para discovery de directorios
+- **Enumeración Web**: gobuster/feroxbuster para discovery de directorios
 - **Exportación Avanzada**: Reportes JSON/TXT con análisis detallado
 - **Fallback Inteligente**: Adaptación según herramientas instaladas
 
