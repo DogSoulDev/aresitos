@@ -636,6 +636,10 @@ LISTO PARA: Escaneos de vulnerabilidades en entornos Kali Linux 2025
                 'whatweb',        # Identificador de tecnologías web
                 'wafw00f',        # Detector de WAF
                 'httprobe',       # Verificador de servicios HTTP
+                'httpx-toolkit',  # Kit de herramientas HTTP modernas
+                'subfinder',      # Descubrimiento de subdominios
+                'assetfinder',    # Buscador de assets
+                'amass',          # Framework de reconocimiento
                 
                 # === HERRAMIENTAS DE RED ===
                 'netcat-openbsd', # Netcat principal en Kali
@@ -644,6 +648,8 @@ LISTO PARA: Escaneos de vulnerabilidades en entornos Kali Linux 2025
                 'arp-scan',       # Scanner ARP
                 'fping',          # Ping masivo
                 'hping3',         # Generador de paquetes
+                'zmap',           # Scanner de Internet de alta velocidad
+                'unicornscan',    # Scanner asíncrono
                 
                 # === FUZZING Y TESTING WEB ===
                 'wfuzz',          # Fuzzer web principal
@@ -672,12 +678,40 @@ LISTO PARA: Escaneos de vulnerabilidades en entornos Kali Linux 2025
                 'clamav',         # Antivirus
                 'clamav-daemon',  # Daemon de ClamAV
                 'clamtk',         # GUI para ClamAV
+                'clamav-freshclam', # Actualizador de firmas
                 'yara',           # Motor de detección de malware
                 'binwalk',        # Análisis de binarios
                 'exiftool',       # Análisis de metadatos
                 'foremost',       # Recuperación de archivos
                 'sleuthkit',      # Kit forense
                 'autopsy',        # GUI forense
+                'strings',        # Extractor de strings (en binutils)
+                'hexdump',        # Editor hexadecimal (en bsdmainutils)
+                'file',           # Identificador de tipos de archivo
+                'volatility3',    # Análisis de memoria
+                
+                # === AUDITORÍA Y MONITOREO ===
+                'chkrootkit',     # Detector de rootkits
+                'rkhunter',       # Cazador de rootkits
+                'lynis',          # Auditor de seguridad
+                'aide',           # Sistema de detección de intrusos
+                'tripwire',       # Monitor de integridad
+                'samhain',        # Sistema de detección de intrusos
+                'fail2ban',       # Protección contra ataques
+                'auditd',         # Sistema de auditoría
+                'rsyslog',        # Sistema de logs
+                'logwatch',       # Analizador de logs
+                'logrotate',      # Rotador de logs
+                
+                # === MONITOREO DE SISTEMA (Para FIM y SIEM) ===
+                'inotify-tools',  # Herramientas de monitoreo de archivos
+                'incron',         # Cron basado en inotify
+                'psmisc',         # Herramientas de procesos (incluye pstree)
+                'lsof',           # Listador de archivos abiertos
+                'htop',           # Monitor de procesos avanzado
+                'iotop',          # Monitor de E/S
+                'iftop',          # Monitor de ancho de banda
+                'nethogs',        # Monitor de ancho de banda por proceso
                 'rekall-core',    # Framework moderno de análisis de memoria forense
                 'strings',        # Extractor de strings
                 'hexedit',        # Editor hexadecimal
@@ -776,26 +810,74 @@ LISTO PARA: Escaneos de vulnerabilidades en entornos Kali Linux 2025
             
             # Herramientas adicionales recomendadas para instalación manual
             herramientas_manuales = [
-                'linpeas.sh: wget https://github.com/carlospolop/PEASS-ng/releases/latest/download/linpeas.sh && chmod +x linpeas.sh',
-                'winpeas.exe: wget https://github.com/carlospolop/PEASS-ng/releases/latest/download/winPEAS.exe',
-                'pspy64: wget https://github.com/DominicBreuker/pspy/releases/latest/download/pspy64 && chmod +x pspy64',
-                'pspy32: wget https://github.com/DominicBreuker/pspy/releases/latest/download/pspy32 && chmod +x pspy32',
-                'chisel: wget https://github.com/jpillora/chisel/releases/latest/download/chisel_1.9.1_linux_amd64.gz && gunzip chisel_1.9.1_linux_amd64.gz && chmod +x chisel_1.9.1_linux_amd64',
-                'gobuster: Actualizar con: go install github.com/OJ/gobuster/v3@latest',
-                'ffuf: Actualizar con: go install github.com/ffuf/ffuf@latest',
-                'amass: go install -v github.com/owasp-amass/amass/v3/...@master',
-                'subfinder: go install -v github.com/projectdiscovery/subfinder/v2/cmd/subfinder@latest',
-                'httpx: go install -v github.com/projectdiscovery/httpx/cmd/httpx@latest',
-                'katana: go install github.com/projectdiscovery/katana/cmd/katana@latest',
-                'gau: go install github.com/lc/gau/v2/cmd/gau@latest',
-                'waybackurls: go install github.com/tomnomnom/waybackurls@latest',
-                'anew: go install github.com/tomnomnom/anew@latest',
-                'gf: go install github.com/tomnomnom/gf@latest',
-                'assetfinder: go install github.com/tomnomnom/assetfinder@latest',
-                'SecLists: git clone https://github.com/danielmiessler/SecLists.git /opt/SecLists',
-                'PayloadsAllTheThings: git clone https://github.com/swisskyrepo/PayloadsAllTheThings.git /opt/PayloadsAllTheThings',
-                'wordlists: apt update && apt install -y seclists wordlists dirb',
-                'rockyou.txt: gunzip /usr/share/wordlists/rockyou.txt.gz (si no está descomprimido)'
+                '🔧 INSTALACIÓN DE GOLANG (Prerequisito para herramientas Go):',
+                '   sudo apt update && sudo apt install -y golang-go',
+                '   export PATH=$PATH:/usr/local/go/bin:$HOME/go/bin',
+                '   echo "export PATH=$PATH:/usr/local/go/bin:$HOME/go/bin" >> ~/.bashrc',
+                '',
+                '🔍 HERRAMIENTAS DE ESCALACIÓN DE PRIVILEGIOS:',
+                '• linpeas.sh: wget https://github.com/peass-ng/PEASS-ng/releases/latest/download/linpeas.sh && chmod +x linpeas.sh',
+                '• winPEAS.exe: wget https://github.com/peass-ng/PEASS-ng/releases/latest/download/winPEASx64.exe',
+                '• winPEAS.bat: wget https://github.com/peass-ng/PEASS-ng/releases/latest/download/winPEAS.bat',
+                '',
+                '📊 HERRAMIENTAS DE MONITOREO:',
+                '• pspy64: wget https://github.com/DominicBreuker/pspy/releases/latest/download/pspy64 && chmod +x pspy64',
+                '• pspy32: wget https://github.com/DominicBreuker/pspy/releases/latest/download/pspy32 && chmod +x pspy32',
+                '',
+                '🌐 HERRAMIENTAS DE TÚNELES Y PIVOTING:',
+                '• chisel (Linux x64): wget https://github.com/jpillora/chisel/releases/latest/download/chisel_1.10.1_linux_amd64.gz',
+                '  gunzip chisel_1.10.1_linux_amd64.gz && mv chisel_1.10.1_linux_amd64 chisel && chmod +x chisel',
+                '• chisel (Windows): wget https://github.com/jpillora/chisel/releases/latest/download/chisel_1.10.1_windows_amd64.gz',
+                '',
+                '🔍 HERRAMIENTAS DE ENUMERACIÓN WEB (Requieren Go):',
+                '• gobuster: go install github.com/OJ/gobuster/v3@latest',
+                '• ffuf: go install github.com/ffuf/ffuf/v2@latest',
+                '• httpx: go install -v github.com/projectdiscovery/httpx/cmd/httpx@latest',
+                '• subfinder: go install -v github.com/projectdiscovery/subfinder/v2/cmd/subfinder@latest',
+                '• katana: go install github.com/projectdiscovery/katana/cmd/katana@latest',
+                '• nuclei (actualizar): go install -v github.com/projectdiscovery/nuclei/v3/cmd/nuclei@latest',
+                '',
+                '🔍 HERRAMIENTAS DE RECONOCIMIENTO (Requieren Go):',
+                '• amass: go install -v github.com/owasp-amass/amass/v4/...@master',
+                '• gau: go install github.com/lc/gau/v2/cmd/gau@latest',
+                '• waybackurls: go install github.com/tomnomnom/waybackurls@latest',
+                '• anew: go install github.com/tomnomnom/anew@latest',
+                '• gf: go install github.com/tomnomnom/gf@latest',
+                '• assetfinder: go install github.com/tomnomnom/assetfinder@latest',
+                '• httprobe: go install github.com/tomnomnom/httprobe@latest',
+                '',
+                '📚 WORDLISTS Y DICCIONARIOS:',
+                '• SecLists: sudo git clone https://github.com/danielmiessler/SecLists.git /opt/SecLists',
+                '• PayloadsAllTheThings: sudo git clone https://github.com/swisskyrepo/PayloadsAllTheThings.git /opt/PayloadsAllTheThings',
+                '• wordlists Kali: sudo apt update && sudo apt install -y seclists wordlists dirb',
+                '• rockyou.txt: sudo gunzip /usr/share/wordlists/rockyou.txt.gz (si está comprimido)',
+                '',
+                '🛠️ HERRAMIENTAS ADICIONALES DE KALI:',
+                '• feroxbuster: sudo apt install -y feroxbuster',
+                '• rustscan: sudo apt install -y rustscan',
+                '• masscan: sudo apt install -y masscan',
+                '• sqlmap: sudo apt install -y sqlmap',
+                '• nikto: sudo apt install -y nikto',
+                '• dirb: sudo apt install -y dirb',
+                '• dirbuster: sudo apt install -y dirbuster',
+                '',
+                '🔐 HERRAMIENTAS DE CRACKING:',
+                '• hashcat: sudo apt install -y hashcat hashcat-utils',
+                '• john: sudo apt install -y john',
+                '• hydra: sudo apt install -y hydra',
+                '• medusa: sudo apt install -y medusa',
+                '',
+                '🕵️ HERRAMIENTAS FORENSES:',
+                '• volatility3: sudo apt install -y volatility3',
+                '• binwalk: sudo apt install -y binwalk',
+                '• foremost: sudo apt install -y foremost',
+                '• strings: sudo apt install -y binutils',
+                '',
+                '⚙️ CONFIGURACIÓN POST-INSTALACIÓN:',
+                '• Actualizar nuclei templates: nuclei -update-templates',
+                '• Configurar Go PATH: source ~/.bashrc',
+                '• Verificar instalación Go: go version',
+                '• Verificar herramientas: which gobuster ffuf httpx subfinder'
             ]
             
             # Actualizar repositorios usando SudoManager
