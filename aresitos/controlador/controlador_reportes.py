@@ -127,8 +127,8 @@ class ControladorReportes(ControladorBase):
         """Valida que el formato sea permitido"""
         return formato.lower() in self.formatos_permitidos
     
-    def generar_reporte_completo(self, datos_escaneo=None, datos_monitoreo=None, datos_utilidades=None, datos_fim=None, datos_siem=None, datos_cuarentena=None, datos_terminal_principal=None):
-        """Genera reporte completo incluyendo todos los módulos optimizados para Kali - Issue 20/24"""
+    def generar_reporte_completo(self, datos_escaneo=None, datos_monitoreo=None, datos_utilidades=None, datos_fim=None, datos_siem=None, datos_cuarentena=None, datos_auditoria=None, datos_wordlists=None, datos_herramientas_kali=None, datos_logs_centralizados=None, datos_configuracion_sistema=None, datos_terminal_principal=None):
+        """Genera reporte completo incluyendo TODOS los módulos de ARESITOS v3.0 - Issue 20/24"""
         return self.reportes.generar_reporte_completo(
             datos_escaneo or {}, 
             datos_monitoreo or {}, 
@@ -136,6 +136,11 @@ class ControladorReportes(ControladorBase):
             datos_fim or {},
             datos_siem or {},
             datos_cuarentena or {},
+            datos_auditoria or {},
+            datos_wordlists or {},
+            datos_herramientas_kali or {},
+            datos_logs_centralizados or {},
+            datos_configuracion_sistema or {},
             datos_terminal_principal or {}
         )
     
