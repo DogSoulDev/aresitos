@@ -542,10 +542,15 @@ class ControladorEscaneo(ControladorBase):
             # SECURITY: Usar objetivo validado en todas las operaciones
             # Escaneo completo con objetivo seguro (usa el método principal)
             self.logger.info(f" Ejecutando escaneo completo para {objetivo_seguro}")
-            resultado_escaneo = self.escáner.escanear_completo(objetivo_seguro)
+            resultado_escaneo = self.escáner.escaneo_completo_kali2025(objetivo_seguro)
             
             # Extraer componentes individuales del resultado
-            puertos_resultado = resultado_escaneo.puertos_abiertos if hasattr(resultado_escaneo, 'puertos_abiertos') and resultado_escaneo.puertos_abiertos else []
+            # Extraer puertos del resultado del escaneo
+            puertos_resultado = []
+            if resultado_escaneo.get('fases', {}).get('masscan', {}).get('puertos_abiertos'):
+                puertos_resultado = resultado_escaneo['fases']['masscan']['puertos_abiertos']
+            elif resultado_escaneo.get('fases', {}).get('nmap', {}).get('servicios'):
+                puertos_resultado = resultado_escaneo['fases']['nmap']['servicios']
             conexiones_resultado = {'conexiones_activas': len(puertos_resultado), 'detalles': 'Extraído del escaneo completo'}
             
             # Obtener análisis de logs del SIEM
@@ -648,15 +653,21 @@ class ControladorEscaneo(ControladorBase):
             
             # Realizar escaneo avanzado para obtener más detalles
             self.logger.info(f" Ejecutando escaneo avanzado para {objetivo_seguro}")
-            resultado_avanzado = self.escáner.escanear_completo(objetivo_seguro)
+            resultado_avanzado = self.escáner.escaneo_completo_kali2025(objetivo_seguro)
             
             # Extraer información específica del resultado avanzado
             servicios = []
             deteccion_os = {'sistema': 'Desconocido', 'version': 'No detectada'}
-            vulnerabilidades = resultado_avanzado.vulnerabilidades if hasattr(resultado_avanzado, 'vulnerabilidades') and resultado_avanzado.vulnerabilidades else []
+            vulnerabilidades = []
+            if resultado_avanzado.get('fases', {}).get('nuclei', {}).get('vulnerabilidades'):
+                vulnerabilidades = resultado_avanzado['fases']['nuclei']['vulnerabilidades']
             
-            # Simular detección básica de servicios basada en puertos
-            puertos_abiertos = resultado_avanzado.puertos_abiertos if hasattr(resultado_avanzado, 'puertos_abiertos') and resultado_avanzado.puertos_abiertos else []
+            # Extraer puertos abiertos del resultado  
+            puertos_abiertos = []
+            if resultado_avanzado.get('fases', {}).get('masscan', {}).get('puertos_abiertos'):
+                puertos_abiertos = resultado_avanzado['fases']['masscan']['puertos_abiertos']
+            elif resultado_avanzado.get('fases', {}).get('nmap', {}).get('servicios'):
+                puertos_abiertos = resultado_avanzado['fases']['nmap']['servicios']
             for puerto in puertos_abiertos:
                 if isinstance(puerto, dict) and 'puerto' in puerto:
                     port_num = puerto['puerto']

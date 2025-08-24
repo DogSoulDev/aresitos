@@ -11,8 +11,8 @@ from datetime import datetime
 from typing import Dict, Any, Optional, List
 
 from aresitos.controlador.controlador_base import ControladorBase
-from aresitos.controlador.controlador_gestor_configuracion import GestorConfiguracion
-from aresitos.controlador.controlador_gestor_componentes import GestorComponentes
+from aresitos.controlador.controlador_configuracion import GestorConfiguracion
+from aresitos.controlador.controlador_componentes import GestorComponentes
 
 class ControladorPrincipal(ControladorBase):
     """
@@ -54,7 +54,7 @@ class ControladorPrincipal(ControladorBase):
             from .controlador_monitoreo import ControladorMonitoreo
             from .controlador_herramientas import ControladorHerramientas
             from .controlador_fim import ControladorFIM
-            from .controlador_siem_nuevo import ControladorSIEM
+            from .controlador_siem import ControladorSIEM
             from .controlador_cuarentena import ControladorCuarentena
             
             self.controlador_escaneador = ControladorEscaneo(modelo_principal)
@@ -64,7 +64,7 @@ class ControladorPrincipal(ControladorBase):
             self.controlador_herramientas = ControladorHerramientas(modelo_principal)
             self.controlador_fim = ControladorFIM(modelo_principal)
             self.controlador_siem = ControladorSIEM(modelo_principal)
-            self.controlador_cuarentena = ControladorCuarentena()
+            self.controlador_cuarentena = ControladorCuarentena(modelo_principal)
             
             self.logger.info("Controladores específicos inicializados")
         except Exception as e:
@@ -93,7 +93,7 @@ class ControladorPrincipal(ControladorBase):
             
             # 1. Verificar sistema básico
             if self.gestor_componentes:
-                resultado_basico = self.gestor_componentes.inicializar_sistema_basico()
+                resultado_basico = self.gestor_componentes.inicializar_componentes_ordenado()
                 if not resultado_basico.get('exito'):
                     return {
                         'exito': False,
@@ -284,7 +284,7 @@ class ControladorPrincipal(ControladorBase):
             with self._lock:
                 self._estado_sistema['modo_operacion'] = nuevo_modo
             
-            self.logger.info(f"Modo de operación cambiado: {modo_anterior} -> {nuevo_modo}")
+            self.logger.info(f"Modo de operación cambiado: {modo_anterior} → {nuevo_modo}")
             
             return {
                 'exito': True,
@@ -329,7 +329,7 @@ class ControladorPrincipal(ControladorBase):
     def configurar_conexiones_controladores(self):
         """Configurar conexiones entre controladores para integración."""
         try:
-            self.logger.info("[POST-EXPLOIT] Configurando conexiones entre controladores...")
+            self.logger.info("Configurando conexiones entre controladores...")
             
             conexiones_exitosas = 0
             
@@ -341,7 +341,7 @@ class ControladorPrincipal(ControladorBase):
                         controlador_fim=self.controlador_fim
                     )
                     conexiones_exitosas += 1
-                    self.logger.info("✓ SIEM → Cuarentena + FIM configurado")
+                    self.logger.info("SIEM → Cuarentena + FIM configurado")
                 except Exception as e:
                     self.logger.error(f"Error configurando SIEM → Cuarentena + FIM: {e}")
             
@@ -350,7 +350,7 @@ class ControladorPrincipal(ControladorBase):
                 try:
                     self.controlador_fim.configurar_notificacion_siem(self.controlador_siem)
                     conexiones_exitosas += 1
-                    self.logger.info("✓ FIM → SIEM configurado")
+                    self.logger.info("FIM → SIEM configurado")
                 except Exception as e:
                     self.logger.error(f"Error configurando FIM → SIEM: {e}")
             
@@ -364,12 +364,12 @@ class ControladorPrincipal(ControladorBase):
                             controlador_cuarentena=self.controlador_cuarentena
                         )
                         conexiones_exitosas += 1
-                        self.logger.info("✓ Escaneador → SIEM + FIM + Cuarentena configurado")
+                        self.logger.info("Escaneador → SIEM + FIM + Cuarentena configurado")
                 except Exception as e:
                     self.logger.error(f"Error configurando integraciones del escaneador: {e}")
             
             # Verificar integraciones activas
-            self.logger.info(f"[POST-EXPLOIT] Conexiones configuradas exitosamente: {conexiones_exitosas}")
+            self.logger.info(f"Conexiones configuradas exitosamente: {conexiones_exitosas}")
             
             return {
                 'exito': True,
@@ -431,14 +431,6 @@ class ControladorPrincipal(ControladorBase):
                 'mensaje': 'Controlador de wordlists no configurado en esta versión'
             }
             
-            return {
-                'total_wordlists': 0,
-                'categorias': [],
-                'total_entradas': 0,
-                'disponibles': False,
-                'error': 'Gestor de wordlists no disponible'
-            }
-            
         except Exception as e:
             self.logger.error(f"Error obteniendo wordlists disponibles: {e}")
             return {
@@ -475,14 +467,6 @@ class ControladorPrincipal(ControladorBase):
                 'mensaje': 'Controlador de diccionarios no configurado en esta versión'
             }
             
-            return {
-                'total_diccionarios': 0,
-                'categorias': [],
-                'total_entradas': 0,
-                'disponibles': False,
-                'error': 'Gestor de diccionarios no disponible'
-            }
-            
         except Exception as e:
             self.logger.error(f"Error obteniendo diccionarios disponibles: {e}")
             return {
@@ -494,8 +478,7 @@ class ControladorPrincipal(ControladorBase):
             }
     
     def estabilizar_sistema_completo(self):
-        """Issue 23/24: Estabilización final del sistema"""
-        """Verificar y estabilizar todos los componentes del sistema"""
+        """Issue 23/24: Estabilización final del sistema - Verificar y estabilizar todos los componentes del sistema"""
         try:
             estabilizaciones = []
             

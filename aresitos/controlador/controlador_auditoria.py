@@ -12,14 +12,16 @@ from datetime import datetime
 from typing import Dict, Any, List, Optional
 from pathlib import Path
 
-class ControladorAuditoria:
+from aresitos.controlador.controlador_base import ControladorBase
+
+class ControladorAuditoria(ControladorBase):
     """
     Controlador avanzado para auditorías de seguridad.
     Integra múltiples herramientas de Kali Linux para análisis completo.
     """
     
     def __init__(self, modelo_principal):
-        self.modelo_principal = modelo_principal
+        super().__init__(modelo_principal, "ControladorAuditoria")
         
         # Configuración de auditoría
         self.config_auditoria = {
@@ -38,6 +40,42 @@ class ControladorAuditoria:
             'pspy': 'Monitoreo de procesos sin root',
             'clamav': 'Escaneo de malware'
         }
+    
+    async def _inicializar_impl(self) -> Dict[str, Any]:
+        """Implementación de inicialización específica para auditorías."""
+        try:
+            # Verificar herramientas de auditoría disponibles
+            herramientas_disponibles = {}
+            for herramienta, descripcion in self.herramientas_auditoria.items():
+                disponible = self._validar_herramienta_disponible(herramienta)
+                herramientas_disponibles[herramienta] = {
+                    'disponible': disponible,
+                    'descripcion': descripcion
+                }
+            
+            # Verificar si al menos algunas herramientas están disponibles
+            herramientas_ok = sum(1 for h in herramientas_disponibles.values() if h['disponible'])
+            
+            if herramientas_ok == 0:
+                return {
+                    'exito': False,
+                    'error': 'No hay herramientas de auditoría disponibles',
+                    'herramientas_disponibles': herramientas_disponibles,
+                    'recomendacion': 'Instalar herramientas: sudo apt install lynis rkhunter chkrootkit'
+                }
+            
+            return {
+                'exito': True,
+                'mensaje': f'Controlador de auditoría inicializado con {herramientas_ok} herramientas',
+                'herramientas_disponibles': herramientas_disponibles,
+                'herramientas_count': herramientas_ok
+            }
+            
+        except Exception as e:
+            return {
+                'exito': False,
+                'error': f'Error inicializando controlador de auditoría: {str(e)}'
+            }
     
     def _validar_herramienta_disponible(self, herramienta: str) -> bool:
         """
@@ -541,14 +579,6 @@ class ControladorAuditoria:
             resumen['error_generando_resumen'] = str(e)
         
         return resumen
-        exitosos = sum(1 for r in resultados.values() if r.get('exito', False))
-        
-        return {
-            'total_verificaciones': total_checks,
-            'exitosas': exitosos,
-            'fallidas': total_checks - exitosos,
-            'porcentaje_exito': (exitosos / total_checks * 100) if total_checks > 0 else 0
-        }
 
     def verificar_funcionalidad_kali(self):
         """

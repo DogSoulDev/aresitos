@@ -30,13 +30,15 @@ class ControladorSIEM(ControladorBase):
     Enfoque en funcionalidad básica sin dependencias externas.
     """
     
-    def __init__(self, modelo_principal=None):
-        # Si no hay modelo principal, crear uno básico mock
+    def __init__(self, modelo_principal):
+        """
+        Inicializar controlador SIEM.
+        
+        Args:
+            modelo_principal: Modelo principal del sistema (requerido)
+        """
         if modelo_principal is None:
-            class MockModeloPrincipal:
-                def __init__(self):
-                    self.siem_avanzado = None
-            modelo_principal = MockModeloPrincipal()
+            raise ValueError("Modelo principal es requerido para ControladorSIEM")
             
         super().__init__(modelo_principal, "ControladorSIEM")
         
@@ -95,8 +97,8 @@ class ControladorSIEM(ControladorBase):
             # Verificar o crear modelo SIEM
             if not self.siem:
                 try:
-                    from aresitos.modelo.modelo_siem import SIEM
-                    self.siem = SIEM()
+                    from aresitos.modelo.modelo_siem import SIEMKali2025
+                    self.siem = SIEMKali2025()
                     self.logger.info("Modelo SIEM creado internamente")
                 except ImportError:
                     self.logger.warning("Modelo SIEM no disponible, usando sistema básico")
@@ -124,7 +126,15 @@ class ControladorSIEM(ControladorBase):
             # Intentar usar modelo SIEM si está disponible
             if self.siem and hasattr(self.siem, 'generar_evento'):
                 try:
-                    self.siem.generar_evento(tipo_evento, descripcion, severidad)
+                    # Usar método disponible del modelo SIEM
+                    evento = {
+                        'tipo': tipo_evento,
+                        'descripcion': descripcion,
+                        'severidad': severidad,
+                        'timestamp': datetime.now().isoformat(),
+                        'fuente': 'ControladorSIEM'
+                    }
+                    self.siem._guardar_evento_seguridad(evento)
                     with self._lock:
                         self._contadores['eventos_totales'] += 1
                         self._contadores['eventos_por_tipo'][tipo_evento] += 1
@@ -238,7 +248,30 @@ class ControladorSIEM(ControladorBase):
             # Intentar usar modelo SIEM si está disponible
             if self.siem and hasattr(self.siem, 'obtener_eventos_recientes'):
                 try:
-                    eventos_modelo = self.siem.obtener_eventos_recientes(limite)
+                    # Usar método disponible para obtener eventos desde BD
+                    eventos_modelo = []
+                    try:
+                        import sqlite3
+                        if hasattr(self.siem, 'db_path') and os.path.exists(self.siem.db_path):
+                            with sqlite3.connect(self.siem.db_path) as conn:
+                                cursor = conn.cursor()
+                                cursor.execute('''
+                                    SELECT timestamp, tipo, severidad, descripcion, fuente
+                                    FROM eventos_seguridad 
+                                    ORDER BY timestamp DESC 
+                                    LIMIT ?
+                                ''', (limite,))
+                                for row in cursor.fetchall():
+                                    eventos_modelo.append({
+                                        'timestamp': row[0],
+                                        'tipo': row[1],
+                                        'severidad': row[2],
+                                        'descripcion': row[3],
+                                        'fuente': row[4]
+                                    })
+                    except Exception as e:
+                        self.logger.error(f"Error accediendo a eventos SIEM: {e}")
+                        eventos_modelo = []
                     # Asegurarse de que devolvemos el formato correcto
                     if isinstance(eventos_modelo, list):
                         return {
@@ -534,7 +567,8 @@ class ControladorSIEM(ControladorBase):
             if self.siem:
                 # Analizar logs del sistema si está disponible
                 try:
-                    resultado_analisis = self.siem.analizar_logs_sistema()
+                    # Usar método disponible del modelo SIEM para análisis
+                    resultado_analisis = self.siem.analisis_completo_siem_kali2025()
                     eventos_generados = resultado_analisis.get('eventos_generados', 0)
                     
                     if eventos_generados > 0:
@@ -621,7 +655,7 @@ class ControladorSIEM(ControladorBase):
                 directorio_logs = getattr(self, 'directorio_logs', '/tmp/ares_siem_logs')
                 if os.path.exists(directorio_logs) and os.access(directorio_logs, os.W_OK):
                     verificaciones['sistema_archivos'] = True
-                    detalles.append("✓ Sistema de archivos: OK")
+                    detalles.append("OK Sistema de archivos: OK")
                 else:
                     detalles.append("ERROR Sistema de archivos: Sin permisos de escritura")
             except Exception as e:
@@ -640,12 +674,12 @@ class ControladorSIEM(ControladorBase):
                 
                 if herramientas_disponibles >= len(herramientas_kali) * 0.75:
                     verificaciones['herramientas_siem'] = True
-                    detalles.append(f"✓ Herramientas SIEM: {herramientas_disponibles}/{len(herramientas_kali)} disponibles")
+                    detalles.append(f"OK Herramientas SIEM: {herramientas_disponibles}/{len(herramientas_kali)} disponibles")
                 else:
                     detalles.append(f"ADVERTENCIA Herramientas SIEM: Solo {herramientas_disponibles}/{len(herramientas_kali)} disponibles")
                     
             except Exception as e:
-                detalles.append(f"✓ Herramientas SIEM: Error - {str(e)}")
+                detalles.append(f"OK Herramientas SIEM: Error - {str(e)}")
             
             # Verificar logs del sistema
             try:
@@ -658,19 +692,19 @@ class ControladorSIEM(ControladorBase):
                 
                 if logs_encontrados >= len(logs_sistema) * 0.67:
                     verificaciones['logs_sistema'] = True
-                    detalles.append(f"✓ Logs del sistema: {logs_encontrados}/{len(logs_sistema)} accesibles")
+                    detalles.append(f"OK Logs del sistema: {logs_encontrados}/{len(logs_sistema)} accesibles")
                 else:
                     detalles.append(f"ADVERTENCIA Logs del sistema: Solo {logs_encontrados}/{len(logs_sistema)} accesibles")
                     
             except Exception as e:
-                detalles.append(f"✓ Logs del sistema: Error - {str(e)}")
+                detalles.append(f"OK Logs del sistema: Error - {str(e)}")
             
             # Verificar permisos
             try:
                 usuario_actual = os.getenv('USER', 'unknown')
                 if usuario_actual == 'root':
                     verificaciones['permisos'] = True
-                    detalles.append("✓ Permisos: Usuario root detectado")
+                    detalles.append("OK Permisos: Usuario root detectado")
                 else:
                     # Verificar si puede ejecutar sudo
                     try:
@@ -678,13 +712,13 @@ class ControladorSIEM(ControladorBase):
                                               capture_output=True, text=True, timeout=5)
                         if result.returncode == 0:
                             verificaciones['permisos'] = True
-                            detalles.append("✓ Permisos: Usuario con acceso sudo")
+                            detalles.append("OK Permisos: Usuario con acceso sudo")
                         else:
                             detalles.append("ADVERTENCIA Permisos: Usuario sin privilegios administrativos")
                     except (subprocess.TimeoutExpired, subprocess.CalledProcessError, FileNotFoundError):
                         detalles.append("ADVERTENCIA Permisos: No se pudo verificar acceso sudo")
             except Exception as e:
-                detalles.append(f"✓ Permisos: Error verificando - {str(e)}")
+                detalles.append(f"OK Permisos: Error verificando - {str(e)}")
             
             # Calcular puntuación general
             puntuacion = sum(verificaciones.values()) / len(verificaciones) * 100
@@ -724,9 +758,9 @@ class ControladorSIEM(ControladorBase):
             self.controlador_fim = controlador_fim
             
             if controlador_cuarentena:
-                self.logger.info("✓ Referencia a Controlador Cuarentena configurada")
+                self.logger.info("OK Referencia a Controlador Cuarentena configurada")
             if controlador_fim:
-                self.logger.info("✓ Referencia a Controlador FIM configurada")
+                self.logger.info("OK Referencia a Controlador FIM configurada")
                 
         except Exception as e:
             self.logger.error(f"Error configurando referencias de controladores: {e}")

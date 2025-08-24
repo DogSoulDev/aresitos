@@ -138,24 +138,12 @@ class GestorComponentes:
     def _inicializar_siem(self) -> Dict[str, Any]:
         """Inicializar componente SIEM."""
         try:
-            # Usar modelo existente
-            try:
-                from aresitos.modelo.modelo_siem import SIEMKali2025 as ModeloSIEM
-                siem_instance = ModeloSIEM()
-            except ImportError:
-                # Crear clase mock básica si no existe
-                class MockSIEM:
-                    def generar_evento(self, tipo, mensaje, nivel):
-                        pass
-                    def obtener_estadisticas(self):
-                        return {"eventos": 0, "estado": "mock"}
-                    def log(self, mensaje):
-                        print(f"[MOCK SIEM] {mensaje}")
-                
-                siem_instance = MockSIEM()
+            # Usar modelo real existente
+            from aresitos.modelo.modelo_siem import SIEMKali2025 as ModeloSIEM
+            siem_instance = ModeloSIEM()
             
-            # SIEM inicializado - no verificar métodos específicos
-            # Los métodos varían entre implementaciones
+            # SIEM inicializado correctamente
+            self.logger.info("SIEM real inicializado con SIEMKali2025")
             
             # Guardar referencia
             self._componentes_estado['siem']['instancia'] = siem_instance
@@ -174,25 +162,17 @@ class GestorComponentes:
     def _inicializar_fim(self) -> Dict[str, Any]:
         """Inicializar componente FIM."""
         try:
-            # Usar modelo existente
-            try:
-                from aresitos.modelo.modelo_fim import FIMKali2025 as ModeloFIM
-                fim_instance = ModeloFIM()
-            except ImportError:
-                # Crear clase mock básica si no existe
-                class MockFIM:
-                    def __init__(self, siem=None):
-                        self.siem = siem
-                    def obtener_estadisticas(self):
-                        return {"archivos_monitoreados": 0, "estado": "mock"}
-                
-                fim_instance = MockFIM(siem=self._componentes_estado['siem']['instancia'])
+            # Usar modelo real existente
+            from aresitos.modelo.modelo_fim import FIMKali2025 as ModeloFIM
+            fim_instance = ModeloFIM()
             
             # Verificar funcionalidad básica
             if hasattr(fim_instance, 'obtener_estadisticas'):
                 stats = fim_instance.obtener_estadisticas()
                 if not isinstance(stats, dict):
                     raise Exception("FIM no retorna estadísticas válidas")
+            
+            self.logger.info("FIM real inicializado con FIMKali2025")
             
             # Guardar referencia
             self._componentes_estado['fim']['instancia'] = fim_instance
@@ -211,23 +191,12 @@ class GestorComponentes:
     def _inicializar_escaneador(self) -> Dict[str, Any]:
         """Inicializar componente Escaneador."""
         try:
-            # Usar modelo existente
-            try:
-                from aresitos.modelo.modelo_escaneador import EscaneadorKali2025 as ModeloEscaneador
-                escaneador_instance = ModeloEscaneador()
-            except ImportError:
-                # Crear clase mock básica si no existe
-                class MockEscaneador:
-                    def __init__(self, siem=None):
-                        self.siem = siem
-                    def obtener_estadisticas(self):
-                        return {"escaneos_realizados": 0, "estado": "mock"}
-                
-                escaneador_instance = MockEscaneador(siem=self._componentes_estado['siem']['instancia'])
+            # Usar modelo real existente
+            from aresitos.modelo.modelo_escaneador import EscaneadorKali2025 as ModeloEscaneador
+            escaneador_instance = ModeloEscaneador()
             
-            # Configurar escáner básico - sin verificación de herramientas
-            self.logger.info("Escaneador avanzado inicializado sin verificación de herramientas")
-            # El escáner usará herramientas nativas de Linux disponibles
+            # Configurar escáner real con herramientas Kali
+            self.logger.info("Escaneador real inicializado con EscaneadorKali2025")
             
             # Guardar referencia
             self._componentes_estado['escáner']['instancia'] = escaneador_instance
@@ -246,20 +215,11 @@ class GestorComponentes:
     def _inicializar_cuarentena(self) -> Dict[str, Any]:
         """Inicializar componente Cuarentena."""
         try:
-            # Sistema de cuarentena es opcional - usar mock directo
-            self.logger.warning("Sistema de cuarentena no implementado - usando mock")
-            # Crear clase mock básica
-            class MockGestorCuarentena:
-                def obtener_estadisticas(self):
-                    return {"total_archivos": 0, "estado": "no_disponible"}
-                
-                def procesar_amenaza(self, amenaza):
-                    return False
+            # Usar modelo real existente de cuarentena
+            from aresitos.modelo.modelo_cuarentena import CuarentenaKali2025 as ModeloCuarentena
+            cuarentena_instance = ModeloCuarentena()
             
-            GestorCuarentena = MockGestorCuarentena
-            
-            # Crear instancia Cuarentena
-            cuarentena_instance = GestorCuarentena()
+            self.logger.info("Cuarentena real inicializada con CuarentenaKali2025")
             
             # Verificar funcionalidad básica
             if hasattr(cuarentena_instance, 'obtener_estadisticas'):

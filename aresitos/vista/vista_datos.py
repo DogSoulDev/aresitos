@@ -232,7 +232,7 @@ class VistaGestionDatos(tk.Frame):
         
         # Botones de gestión de archivos
         gestión_acciones = [
-            ("🔄 Refrescar", self.cargar_archivos, '#17a2b8'),
+            ("[PROCESO] Refrescar", self.cargar_archivos, '#17a2b8'),
             ("📁 Abrir Carpeta", self.abrir_carpeta_actual, '#007acc'),
             ("[STATS] Estadísticas", self.obtener_estadisticas_datos, '#6c757d')
         ]
@@ -344,7 +344,7 @@ class VistaGestionDatos(tk.Frame):
             archivos.sort(key=lambda x: x.name.lower())
             
             # Mostrar información de refresco
-            self._log_terminal(f"🔄 Actualizando lista de {tipo_str}... Encontrados {len(archivos)} archivos", "GESTION")
+            self._log_terminal(f"[PROCESO] Actualizando lista de {tipo_str}... Encontrados {len(archivos)} archivos", "GESTION")
             
             for archivo in archivos:
                 # Mostrar nombre del archivo con icono según tipo
@@ -356,7 +356,7 @@ class VistaGestionDatos(tk.Frame):
             
             # Mensaje de confirmación
             if archivos:
-                self._log_terminal(f"✓ Lista de {tipo_str} actualizada correctamente", "GESTION")
+                self._log_terminal(f"OK Lista de {tipo_str} actualizada correctamente", "GESTION")
             else:
                 self._log_terminal(f"[WARNING] No se encontraron {tipo_str} en la carpeta", "GESTION", "WARNING")
         else:
@@ -1043,7 +1043,7 @@ class VistaGestionDatos(tk.Frame):
             if not es_valido:
                 # Mostrar error de seguridad
                 self.terminal_output.insert(tk.END, f"{mensaje}\n")
-                self.terminal_output.insert(tk.END, "💡 Use 'ayuda-comandos' para ver comandos disponibles\n")
+                self.terminal_output.insert(tk.END, "[SUGERENCIA] Use 'ayuda-comandos' para ver comandos disponibles\n")
                 self.terminal_output.see(tk.END)
                 self.comando_entry.delete(0, tk.END)
                 return
@@ -1280,7 +1280,7 @@ class VistaGestionDatos(tk.Frame):
             self.terminal_output.insert(tk.END, "="*60 + "\n\n")
             
             for categoria, lista_comandos in comandos.items():
-                self.terminal_output.insert(tk.END, f"📂 {categoria.upper()}:\n")
+                self.terminal_output.insert(tk.END, f"[CATEGORIA] {categoria.upper()}:\n")
                 comandos_linea = ", ".join(lista_comandos)
                 self.terminal_output.insert(tk.END, f"   {comandos_linea}\n\n")
             

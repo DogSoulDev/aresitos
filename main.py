@@ -1,7 +1,10 @@
 # -*- coding: utf-8 -*-
 """
 aresitos - Punto de Entrada Principal
-=====================================
+==========================            print("[WARNING] MODO DESARROLLO: Ejecutando en entorno no-Kali")
+            print("Algunas funcionalidades pueden no estar disponibles")
+        else:
+            print("ERROR: ARESITOS requiere Kali Linux")=======
 
 Punto de entrada principal para aresitos que redirige al sistema
 de login GUI para una mejor experiencia de usuario.
@@ -68,7 +71,7 @@ def verificar_tkinter():
         test_root = tk.Tk()
         test_root.withdraw()  # Ocultar inmediatamente
         test_root.destroy()
-        print("OK Tkinter disponible y funcional")
+        print("Tkinter disponible y funcional")
     except ImportError:
         raise ImportError("tkinter no está instalado. Ejecute: sudo apt install python3-tk")
     except Exception as e:
@@ -79,7 +82,7 @@ def verificar_tkinter():
 
 def main():
     """Función principal que redirige al login GUI con flujo escalonado"""
-    print("aresitos - Sistema de Seguridad Cibernética")
+    print("ARESITOS - Sistema de Seguridad Cibernética")
     print("=" * 50)
     
     # Issue 23/24: Verificación de estabilidad del sistema
@@ -93,12 +96,12 @@ def main():
     # Verificar Kali Linux antes de continuar
     if not verificar_kali_linux():
         if verificar_modo_desarrollo():
-            print("[WARNING]  MODO DESARROLLO: Ejecutando en entorno no-Kali")
-            print("   Algunas funcionalidades pueden no estar disponibles")
+            print("[WARNING] MODO DESARROLLO: Ejecutando en entorno no-Kali")
+            print("  Algunas funcionalidades pueden no estar disponibles")
         else:
             print("ERROR: ARESITOS requiere Kali Linux")
-            print("Sistema operativo no compatible detectado")
-            print("Para desarrollo: usar --dev o --desarrollo")
+            print("  Sistema operativo no compatible detectado")
+            print("  Para desarrollo: usar --dev o --desarrollo")
             sys.exit(1)
     
     # Configurar permisos básicos de archivos antes de continuar
@@ -134,9 +137,11 @@ def main():
             
         except ImportError as e:
             print(f"Error importando vista login: {e}")
+            print(f"Detalles: {str(e)}")
             print("Intentando con método clásico...")
         except Exception as e:
             print(f"Error ejecutando vista login: {e}")
+            print(f"Detalles: {str(e)}")
             print("Intentando con método clásico...")
     
     # Fallback al método original solo si falla el login
@@ -153,11 +158,11 @@ def iniciar_aplicacion_clasica():
         from aresitos.controlador.controlador_principal import ControladorPrincipal  
         from aresitos.modelo.modelo_principal import ModeloPrincipal
         
-        print("Modulos principales cargados")
+        print("Módulos principales cargados")
         
         # Crear aplicación principal con tema Burp Suite
         root = tk.Tk()
-        root.title("aresitos")
+        root.title("ARESITOS - Sistema de Seguridad Cibernética")
         root.geometry("1400x900")
         
         # CRÍTICO: Configurar tema oscuro para la ventana principal
@@ -182,18 +187,18 @@ def iniciar_aplicacion_clasica():
         y = (root.winfo_screenheight() // 2) - (900 // 2)
         root.geometry(f"1400x900+{x}+{y}")
         
-        print("aresitos iniciado exitosamente")
-        print("OK Dashboard completo cargado - Funcional")
-        print("OK Tema Burp Suite aplicado")
-        print("OK Herramientas modernizadas configuradas")
+        print("ARESITOS iniciado exitosamente")
+        print("Dashboard completo cargado - Funcional")
+        print("Tema Burp Suite aplicado")
+        print("Herramientas Kali Linux configuradas")
         
         # Ejecutar aplicación
         root.mainloop()
         
     except ImportError as e:
         print(f"Error importando módulos: {e}")
-        print("Verifique la instalación de ARESITOS")
-        print("Ejecute: python configurar.py")
+        print("  Verifique la instalación de ARESITOS")
+        print("  Ejecute: python configurar.py")
     except Exception as e:
         print(f"Error iniciando aplicación: {e}")
         import traceback
@@ -209,15 +214,15 @@ def verificar_permisos_inicio():
                                   capture_output=True, text=True, timeout=5)
             
             if "cap_net_raw" not in result.stdout:
-                print("AVISO: nmap podria no tener permisos para SYN scan")
-                print("Para funcionalidad completa: sudo python configurar.py")
+                print("AVISO: nmap podría no tener permisos para SYN scan")
+                print("  Para funcionalidad completa: sudo python configurar.py")
             
             # Verificar sudo sin contraseña
             result_sudo = subprocess.run(["sudo", "-n", "true"], 
                                        capture_output=True, timeout=5)
             if result_sudo.returncode != 0:
                 print("sudo requiere contraseña - use el login GUI")
-                print("Ejecute: python -m aresitos.vista.vista_login")
+                print("  Ejecute: python -m aresitos.vista.vista_login")
                 
         except (subprocess.TimeoutExpired, subprocess.CalledProcessError, FileNotFoundError):
             pass  # No mostrar errores si no se puede verificar
@@ -240,31 +245,34 @@ def verificacion_estabilidad_sistema():
     
     for archivo in archivos_criticos:
         if os.path.exists(archivo):
-            verificaciones.append(f"OK Archivo crítico: {archivo}")
+            verificaciones.append(f"Archivo crítico: {archivo}")
         else:
-            verificaciones.append(f"ERROR Archivo faltante: {archivo}")
+            verificaciones.append(f"Archivo faltante: {archivo}")
     
-    # Verificar configuraciones
-    configs = ["configuración/aresitos_config.json", "configuración/aresitos_config_kali.json"]
+    # Verificar configuraciones (usar archivos que realmente existen)
+    configs = [
+        "configuración/aresitos_config_completo.json", 
+        "configuración/textos_castellano_corregido.json"
+    ]
     for config in configs:
         if os.path.exists(config):
-            verificaciones.append(f"OK Configuración: {config}")
+            verificaciones.append(f"Configuración: {config}")
         else:
-            verificaciones.append(f"ERROR Configuración faltante: {config}")
+            verificaciones.append(f"Configuración faltante: {config}")
     
     # Verificar directorios de datos
     directorios = ["data", "logs", "data/cheatsheets", "data/wordlists"]
     for directorio in directorios:
         if os.path.exists(directorio):
-            verificaciones.append(f"OK Directorio: {directorio}")
+            verificaciones.append(f"Directorio: {directorio}")
         else:
-            verificaciones.append(f"WARN Directorio faltante: {directorio}")
+            verificaciones.append(f"Directorio faltante: {directorio}")
     
     # Mostrar resultados
     for verificacion in verificaciones:
         print(f"  {verificacion}")
     
-    errores = [v for v in verificaciones if v.startswith("ERROR")]
+    errores = [v for v in verificaciones if "faltante" in v]
     if errores:
         print(f"\nERRORES DETECTADOS: {len(errores)}")
         return False

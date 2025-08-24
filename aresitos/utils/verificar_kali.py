@@ -35,7 +35,7 @@ def verificar_compatibilidad_kali():
     print(f"  Sistema detectado: {sistema}")
     
     if sistema == "Linux":
-        print("OK Sistema Linux detectado")
+        print("Sistema Linux detectado")
         resultados['sistema_operativo'] = True
         
         # Verificar si es Kali específicamente
@@ -74,13 +74,13 @@ def verificar_compatibilidad_kali():
                                          text=True, 
                                          timeout=3)
                 if resultado.returncode == 0:
-                    print(f"  OK {herramienta}: {resultado.stdout.strip()}")
+                    print(f"  {herramienta}: {resultado.stdout.strip()}")
                     resultados['herramientas_core'].append(herramienta)
                 else:
-                    print(f"  ERROR {herramienta}: No encontrado")
+                    print(f"  {herramienta}: No encontrado")
                     resultados['herramientas_faltantes'].append(herramienta)
             except (ValueError, TypeError, AttributeError):
-                print(f"  ERROR {herramienta}: Error verificando")
+                print(f"  {herramienta}: Error verificando")
                 resultados['herramientas_faltantes'].append(herramienta)
     
     # 3. Verificar permisos

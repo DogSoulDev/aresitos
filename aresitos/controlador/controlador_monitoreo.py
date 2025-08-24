@@ -9,27 +9,58 @@ import os
 import time
 import subprocess
 from typing import Dict, Any, List, Optional
-from aresitos.modelo.modelo_monitor import Monitor
-from aresitos.modelo.modelo_siem import SIEM
 
-class ControladorMonitoreo:
+from aresitos.controlador.controlador_base import ControladorBase
+from aresitos.modelo.modelo_monitor import MonitorAvanzadoNativo
+from aresitos.modelo.modelo_siem import SIEMKali2025
+
+
+class ControladorMonitoreo(ControladorBase):
     """
     Controlador de monitoreo que integra capacidades avanzadas de análisis
     mientras mantiene compatibilidad con la interfaz gráfica actual.
     """
     
     def __init__(self, modelo_principal):
-        self.modelo_principal = modelo_principal
+        super().__init__(modelo_principal, "ControladorMonitoreo")
         
-        # Usar Monitor de compatibilidad que incluye funcionalidad avanzada
-        self.monitor = Monitor()
+        # Usar Monitor nativo avanzado
+        self.monitor = MonitorAvanzadoNativo()
         
         # Crear SIEM si no existe para integración
         if not hasattr(self.modelo_principal, 'siem'):
-            self.siem = SIEM()
+            self.siem = SIEMKali2025()
             self.monitor.siem = self.siem
         else:
             self.siem = self.modelo_principal.siem
+    
+    async def _inicializar_impl(self) -> Dict[str, Any]:
+        """
+        Implementación específica de inicialización para ControladorMonitoreo.
+        
+        Returns:
+            Dict con resultado de la inicialización específica
+        """
+        try:
+            self.logger.info("Ejecutando inicialización específica de ControladorMonitoreo")
+            
+            # Verificar que el monitor esté disponible
+            if not self.monitor:
+                return {'exito': False, 'error': 'Monitor no disponible'}
+            
+            # Verificar que el SIEM esté disponible
+            if not self.siem:
+                return {'exito': False, 'error': 'SIEM no disponible'}
+            
+            # Inicialización básica completada
+            self.logger.info("ControladorMonitoreo inicializado correctamente")
+            
+            return {'exito': True, 'mensaje': 'ControladorMonitoreo inicializado correctamente'}
+            
+        except Exception as e:
+            error_msg = f"Error en inicialización específica de ControladorMonitoreo: {e}"
+            self.logger.error(error_msg)
+            return {'exito': False, 'error': error_msg}
     
     def iniciar_monitoreo(self) -> Dict[str, Any]:
         """Iniciar monitoreo completo del sistema."""

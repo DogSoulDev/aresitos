@@ -566,7 +566,7 @@ class VistaAuditoria(tk.Frame):
                                         lineas_importantes.append(f"INFO {linea}")
                             
                             # Mostrar resumen de hallazgos
-                            self._actualizar_texto_auditoria(f"✓ Auditoría completada - Procesando {len(lineas_importantes)} hallazgos\n")
+                            self._actualizar_texto_auditoria(f"OK Auditoría completada - Procesando {len(lineas_importantes)} hallazgos\n")
                             self._actualizar_texto_auditoria(f"WARNING Advertencias encontradas: {warnings_count}\n")
                             self._actualizar_texto_auditoria(f"TIP Sugerencias de mejora: {suggestions_count}\n\n")
                             
@@ -591,9 +591,9 @@ class VistaAuditoria(tk.Frame):
                                     try:
                                         stat_info = os.stat(reporte)
                                         size_kb = stat_info.st_size / 1024
-                                        self._actualizar_texto_auditoria(f"✓ Reporte disponible: {reporte} ({size_kb:.1f} KB)\n")
+                                        self._actualizar_texto_auditoria(f"OK Reporte disponible: {reporte} ({size_kb:.1f} KB)\n")
                                     except:
-                                        self._actualizar_texto_auditoria(f"✓ Reporte disponible: {reporte}\n")
+                                        self._actualizar_texto_auditoria(f"OK Reporte disponible: {reporte}\n")
                         
                         # Recomendaciones específicas para Kali Linux
                         self._actualizar_texto_auditoria("\n=== RECOMENDACIONES KALI LINUX ===\n")
@@ -822,13 +822,13 @@ class VistaAuditoria(tk.Frame):
                     self.after(0, self._actualizar_texto_auditoria, "\nFASE 5: Ejecutando detector del controlador\n")
                     resultado = self.controlador.ejecutar_deteccion_rootkits()
                     if resultado.get('exito'):
-                        self.after(0, self._actualizar_texto_auditoria, "✓ Detección de rootkits completada\n")
+                        self.after(0, self._actualizar_texto_auditoria, "OK Detección de rootkits completada\n")
                         if 'rootkits_detectados' in resultado:
                             count = resultado['rootkits_detectados']
                             if count > 0:
                                 self.after(0, self._actualizar_texto_auditoria, f"ADVERTENCIA {count} posibles rootkits detectados\n")
                             else:
-                                self.after(0, self._actualizar_texto_auditoria, "✓ No se detectaron rootkits\n")
+                                self.after(0, self._actualizar_texto_auditoria, "OK No se detectaron rootkits\n")
                         if 'salida' in resultado:
                             self.after(0, self._actualizar_texto_auditoria, f"\nDETALLES:\n{resultado['salida']}\n")
                     else:
@@ -937,13 +937,13 @@ class VistaAuditoria(tk.Frame):
                 if self.controlador:
                     resultado = self.controlador.verificar_permisos_criticos()
                     if resultado.get('exito'):
-                        self.after(0, self._actualizar_texto_auditoria, "✓ Verificación de permisos completada\n")
+                        self.after(0, self._actualizar_texto_auditoria, "OK Verificación de permisos completada\n")
                         if 'permisos_incorrectos' in resultado:
                             count = resultado['permisos_incorrectos']
                             if count > 0:
                                 self.after(0, self._actualizar_texto_auditoria, f"ADVERTENCIA {count} permisos incorrectos detectados\n")
                             else:
-                                self.after(0, self._actualizar_texto_auditoria, "✓ Todos los permisos están correctos\n")
+                                self.after(0, self._actualizar_texto_auditoria, "OK Todos los permisos están correctos\n")
                         if 'detalles' in resultado:
                             self.after(0, self._actualizar_texto_auditoria, f"\nDETALLES:\n{resultado['detalles']}\n")
                     else:
@@ -978,7 +978,7 @@ class VistaAuditoria(tk.Frame):
                         except Exception as e:
                             self.after(0, self._actualizar_texto_auditoria, f"ERROR {ruta}: Error - {str(e)}\n")
                     
-                    self.after(0, self._actualizar_texto_auditoria, "\n✓ Verificación de permisos completada\n")
+                    self.after(0, self._actualizar_texto_auditoria, "\nOK Verificación de permisos completada\n")
             except Exception as e:
                 self.after(0, self._actualizar_texto_auditoria, f"ERROR verificando permisos: {str(e)}\n")
         
@@ -1075,13 +1075,13 @@ class VistaAuditoria(tk.Frame):
                                     # Terminar proceso específico
                                     subprocess.run(['kill', '-TERM', pid.strip()], 
                                                 capture_output=True)
-                                    self._actualizar_texto_auditoria(f"✓ Terminado proceso {proceso} (PID: {pid.strip()})\n")
+                                    self._actualizar_texto_auditoria(f"OK Terminado proceso {proceso} (PID: {pid.strip()})\n")
                                     procesos_terminados += 1
                     except Exception as e:
                         continue
                 
                 if procesos_terminados > 0:
-                    self._actualizar_texto_auditoria(f"✓ COMPLETADO: {procesos_terminados} procesos de rootkits terminados\n")
+                    self._actualizar_texto_auditoria(f"OK COMPLETADO: {procesos_terminados} procesos de rootkits terminados\n")
                 else:
                     self._actualizar_texto_auditoria("• INFO: No se encontraron procesos de detección de rootkits activos\n")
                     
@@ -1093,7 +1093,7 @@ class VistaAuditoria(tk.Frame):
                     except:
                         pass
                         
-                self._actualizar_texto_auditoria("✓ Limpieza de archivos temporales completada\n")
+                self._actualizar_texto_auditoria("OK Limpieza de archivos temporales completada\n")
                 self._actualizar_texto_auditoria("=== CANCELACIÓN ROOTKITS COMPLETADA ===\n\n")
                 
             except Exception as e:
@@ -1138,7 +1138,7 @@ class VistaAuditoria(tk.Frame):
                         update_result = subprocess.run(['nuclei', '-update-templates'], 
                                                      capture_output=True, text=True, timeout=300)
                         if update_result.returncode == 0:
-                            self._actualizar_texto_auditoria("✓ Templates nuclei actualizados exitosamente\n")
+                            self._actualizar_texto_auditoria("OK Templates nuclei actualizados exitosamente\n")
                         else:
                             self._actualizar_texto_auditoria("WARNING Error actualizando templates, usando existentes\n")
                         
@@ -1151,7 +1151,7 @@ class VistaAuditoria(tk.Frame):
                         local_targets = ['127.0.0.1', 'localhost']
                         for target in local_targets:
                             targets.append(target)
-                            self._actualizar_texto_auditoria(f"  ✓ Objetivo local: {target}\n")
+                            self._actualizar_texto_auditoria(f"  OK Objetivo local: {target}\n")
                         
                         # 2. Detectar IPs locales con múltiples métodos
                         try:
@@ -1166,7 +1166,7 @@ class VistaAuditoria(tk.Frame):
                                                       '172.26.', '172.27.', '172.28.', '172.29.', '172.30.', '172.31.')) 
                                         and ip not in targets):
                                         targets.append(ip)
-                                        self._actualizar_texto_auditoria(f"  ✓ IP local detectada: {ip}\n")
+                                        self._actualizar_texto_auditoria(f"  OK IP local detectada: {ip}\n")
                                         
                             # Método gateway
                             route_result = subprocess.run(['ip', 'route', 'show', 'default'], 
@@ -1175,7 +1175,7 @@ class VistaAuditoria(tk.Frame):
                                 gateway = route_result.stdout.split('via')[1].split()[0]
                                 if gateway not in targets:
                                     targets.append(gateway)
-                                    self._actualizar_texto_auditoria(f"  ✓ Gateway detectado: {gateway}\n")
+                                    self._actualizar_texto_auditoria(f"  OK Gateway detectado: {gateway}\n")
                             
                             # 3. Detectar servicios web activos localmente
                             common_ports = ['80', '443', '8080', '8443', '3000', '5000', '8000', '9000']
@@ -1191,7 +1191,7 @@ class VistaAuditoria(tk.Frame):
                                             web_target = f"http://{local_ip}:{port}"
                                             if web_target not in targets:
                                                 targets.append(web_target)
-                                                self._actualizar_texto_auditoria(f"  ✓ Servicio web detectado: {web_target}\n")
+                                                self._actualizar_texto_auditoria(f"  OK Servicio web detectado: {web_target}\n")
                                     except:
                                         pass
                                         
@@ -1251,9 +1251,9 @@ class VistaAuditoria(tk.Frame):
                                                 if linea.strip() and '[' in linea:  # Filtrar líneas válidas
                                                     self._actualizar_texto_auditoria(f"  • {linea}\n")
                                         else:
-                                            self._actualizar_texto_auditoria(f"✓ Sin vulnerabilidades {descripcion.lower()} en {target}\n")
+                                            self._actualizar_texto_auditoria(f"OK Sin vulnerabilidades {descripcion.lower()} en {target}\n")
                                     else:
-                                        self._actualizar_texto_auditoria(f"✓ Sin vulnerabilidades {descripcion.lower()} en {target}\n")
+                                        self._actualizar_texto_auditoria(f"OK Sin vulnerabilidades {descripcion.lower()} en {target}\n")
                                         
                                     time.sleep(2)  # Pausa entre escaneos
                                     
@@ -1310,7 +1310,7 @@ class VistaAuditoria(tk.Frame):
                                             if len(resultados) > 5:
                                                 self._actualizar_texto_auditoria(f"    ... y {len(resultados) - 5} más\n")
                                         else:
-                                            self._actualizar_texto_auditoria(f"  ✓ Sin {descripcion.lower()} en {target}\n")
+                                            self._actualizar_texto_auditoria(f"  OK Sin {descripcion.lower()} en {target}\n")
                                     
                                 except subprocess.TimeoutExpired:
                                     self._actualizar_texto_auditoria(f"    WARNING Timeout template {descripcion} en {target}\n")
@@ -1319,9 +1319,9 @@ class VistaAuditoria(tk.Frame):
                         
                         # Resumen final mejorado
                         self._actualizar_texto_auditoria(f"\n=== RESUMEN AUDITORÍA NUCLEI PROFESIONAL ===\n")
-                        self._actualizar_texto_auditoria(f"✓ Objetivos escaneados: {len(targets)}\n")
-                        self._actualizar_texto_auditoria(f"✓ Templates ejecutados: {len(templates_especializados)}\n")
-                        self._actualizar_texto_auditoria(f"✓ Total vulnerabilidades encontradas: {vulnerabilidades_totales}\n")
+                        self._actualizar_texto_auditoria(f"OK Objetivos escaneados: {len(targets)}\n")
+                        self._actualizar_texto_auditoria(f"OK Templates ejecutados: {len(templates_especializados)}\n")
+                        self._actualizar_texto_auditoria(f"OK Total vulnerabilidades encontradas: {vulnerabilidades_totales}\n")
                         
                         if vulnerabilidades_totales > 20:
                             self._actualizar_texto_auditoria(f"CRITICO ALERTA: Sistema altamente vulnerable ({vulnerabilidades_totales} issues)\n")
@@ -1330,7 +1330,7 @@ class VistaAuditoria(tk.Frame):
                         elif vulnerabilidades_totales > 0:
                             self._actualizar_texto_auditoria(f"WARNING MENOR: Pocas vulnerabilidades detectadas\n")
                         else:
-                            self._actualizar_texto_auditoria(f"✓ SEGURO: Sistema sin vulnerabilidades detectables con nuclei\n")
+                            self._actualizar_texto_auditoria(f"OK SEGURO: Sistema sin vulnerabilidades detectables con nuclei\n")
                         
                         # Comandos útiles mejorados
                         self._actualizar_texto_auditoria("\n=== COMANDOS NUCLEI AVANZADOS RECOMENDADOS ===\n")
@@ -1382,7 +1382,7 @@ class VistaAuditoria(tk.Frame):
                     # Verificar si httpx está instalado
                     resultado = subprocess.run(['which', 'httpx'], capture_output=True, text=True)
                     if resultado.returncode == 0:
-                        self._actualizar_texto_auditoria("✓ httpx encontrado en sistema\n")
+                        self._actualizar_texto_auditoria("OK httpx encontrado en sistema\n")
                         
                         # Targets comunes para escanear
                         targets = ['127.0.0.1', 'localhost', '192.168.1.1', '192.168.1.254']
@@ -1412,7 +1412,7 @@ class VistaAuditoria(tk.Frame):
                                         for linea in lineas:
                                             if linea.strip() and '[' in linea:
                                                 servicios_encontrados.append(linea.strip())
-                                                self._actualizar_texto_auditoria(f"  ✓ SERVICIO: {linea.strip()}\n")
+                                                self._actualizar_texto_auditoria(f"  OK SERVICIO: {linea.strip()}\n")
                                                 
                                 except subprocess.TimeoutExpired:
                                     continue

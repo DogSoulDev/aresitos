@@ -77,13 +77,13 @@ class ModeloDashboard:
         except subprocess.TimeoutExpired:
             return {
                 'exito': False,
-                'error': f'Comando {" ".join(comando)} excedió timeout de {timeout}s',
+                'error': f'WARNING Comando {" ".join(comando)} excedió timeout de {timeout}s',
                 'timeout': True
             }
         except Exception as e:
             return {
                 'exito': False,
-                'error': f'Error ejecutando comando: {str(e)}'
+                'error': f'ERROR Error ejecutando comando: {str(e)}'
             }
     
     def _cache_get(self, key: str) -> Optional[Any]:
@@ -646,7 +646,7 @@ class ModeloDashboard:
             if herramienta not in herramientas_permitidas:
                 return {
                     'exito': False,
-                    'error': f'Herramienta {herramienta} no permitida'
+                    'error': f'WARNING Herramienta {herramienta} no permitida'
                 }
             
             # Verificar si la herramienta existe
@@ -655,7 +655,7 @@ class ModeloDashboard:
             if not check_resultado['exito']:
                 return {
                     'exito': False,
-                    'error': f'Herramienta {herramienta} no encontrada en el sistema'
+                    'error': f'ERROR Herramienta {herramienta} no encontrada en el sistema'
                 }
             
             # Construir comando completo

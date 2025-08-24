@@ -1,14 +1,17 @@
 # -*- coding: utf-8 -*-
+"""
+ARESITOS - Controlador de Reportes
+Controlador de Reportes para ARESITOS v3.0 - Sistema de Ciberseguridad Integral.
+"""
 
 import os
 import re
 import logging
+from aresitos.controlador.controlador_base import ControladorBase
 from aresitos.modelo.modelo_reportes import ModeloReportes
 
-# Configurar logging
-logger = logging.getLogger(__name__)
 
-class ControladorReportes:
+class ControladorReportes(ControladorBase):
     """
     Controlador de Reportes para ARESITOS v3.0 - Sistema de Ciberseguridad Integral.
     
@@ -46,7 +49,7 @@ class ControladorReportes:
     """
     
     def __init__(self, modelo_principal):
-        self.modelo_principal = modelo_principal
+        super().__init__(modelo_principal, "ControladorReportes")
         self.reportes = ModeloReportes()
         
         # Validaciones de seguridad
@@ -54,7 +57,7 @@ class ControladorReportes:
         self.patron_nombre_archivo = re.compile(r'^[a-zA-Z0-9_-]+$')
         
         # Registrar inicialización exitosa
-        logger.info("ControladorReportes v3.0 inicializado correctamente")
+        self.logger.info("ControladorReportes v3.0 inicializado correctamente")
     
     def inicializar(self):
         """
@@ -64,11 +67,41 @@ class ControladorReportes:
             bool: True si la inicialización es exitosa
         """
         try:
-            logger.info("Inicializando ControladorReportes")
+            self.logger.info("Inicializando ControladorReportes")
             return True
         except Exception as e:
-            logger.error(f"Error en inicializar(): {e}")
+            self.logger.error(f"Error en inicializar(): {e}")
             return False
+    
+    async def _inicializar_impl(self):
+        """
+        Implementación específica de inicialización para ControladorReportes.
+        
+        Returns:
+            Dict con resultado de la inicialización específica
+        """
+        try:
+            # Inicializar componentes específicos del controlador de reportes
+            self.logger.info("Ejecutando inicialización específica de ControladorReportes")
+            
+            # Verificar que el modelo de reportes esté disponible
+            if not self.reportes:
+                return {'exito': False, 'error': 'Modelo de reportes no disponible'}
+            
+            # Verificar directorio de reportes usando ruta relativa
+            directorio_reportes = os.path.join(os.path.dirname(__file__), '..', '..', 'reportes')
+            directorio_reportes = os.path.abspath(directorio_reportes)
+            
+            if not os.path.exists(directorio_reportes):
+                os.makedirs(directorio_reportes, exist_ok=True)
+                self.logger.info(f"Directorio de reportes creado: {directorio_reportes}")
+            
+            return {'exito': True, 'mensaje': 'ControladorReportes inicializado correctamente'}
+            
+        except Exception as e:
+            error_msg = f"Error en inicialización específica de ControladorReportes: {e}"
+            self.logger.error(error_msg)
+            return {'exito': False, 'error': error_msg}
         
     def _validar_nombre_archivo(self, nombre_archivo):
         """Valida que el nombre de archivo sea seguro"""

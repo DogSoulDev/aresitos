@@ -28,7 +28,7 @@ class ConfiguradorAresAegis:
         print(" Configurador Automático de Ares Aegis")
         print("=" * 50)
         print(f"Sistema: {self.sistema}")
-        print(f"Kali Linux: {'OK Sí' if self.es_kali else 'ERROR No'}")
+        print(f"Kali Linux: {'Sí' if self.es_kali else 'No'}")
         print(f"Directorio: {self.directorio_base}")
         print()
     
@@ -48,10 +48,10 @@ class ConfiguradorAresAegis:
         
         version = sys.version_info
         if version.major < 3 or (version.major == 3 and version.minor < 6):
-            print("ERROR Se requiere Python 3.6 o superior")
+            print("Se requiere Python 3.6 o superior")
             return False
         
-        print(f"OK Python {version.major}.{version.minor}.{version.micro}")
+        print(f"Python {version.major}.{version.minor}.{version.micro}")
         return True
     
     def verificar_permisos(self):
@@ -81,7 +81,7 @@ class ConfiguradorAresAegis:
                                               capture_output=True, timeout=2)
                         sudo_disponible = result.returncode == 0
                         if sudo_disponible:
-                            print("OK Sudo disponible")
+                            print("Sudo disponible")
                             return True
                     except (subprocess.TimeoutExpired, subprocess.CalledProcessError, FileNotFoundError):
                         pass

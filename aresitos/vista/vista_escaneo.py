@@ -274,7 +274,7 @@ class VistaEscaneo(tk.Frame):
             if not es_valido:
                 # Mostrar error de seguridad
                 self._actualizar_terminal_seguro(f"{mensaje}\n")
-                self._actualizar_terminal_seguro("💡 Use 'ayuda-comandos' para ver comandos disponibles\n")
+                self._actualizar_terminal_seguro("[SUGERENCIA] Use 'ayuda-comandos' para ver comandos disponibles\n")
                 self.comando_entry.delete(0, tk.END)
                 return
             
@@ -290,7 +290,7 @@ class VistaEscaneo(tk.Frame):
         except ImportError:
             # Fallback sin validación (modo inseguro)
             self.terminal_output.insert(tk.END, f"\n> {comando}\n")
-            self.terminal_output.insert(tk.END, "⚠️  EJECUTANDO SIN VALIDACIÓN DE SEGURIDAD\n")
+            self.terminal_output.insert(tk.END, "ADVERTENCIA️  EJECUTANDO SIN VALIDACIÓN DE SEGURIDAD\n")
             self.terminal_output.see(tk.END)
             self.comando_entry.delete(0, tk.END)
             
@@ -299,7 +299,7 @@ class VistaEscaneo(tk.Frame):
             thread.start()
         except Exception as e:
             self.terminal_output.insert(tk.END, f"\n> {comando}\n")
-            self.terminal_output.insert(tk.END, f"❌ Error de seguridad: {e}\n")
+            self.terminal_output.insert(tk.END, f"ERROR Error de seguridad: {e}\n")
             self.terminal_output.see(tk.END)
             self.comando_entry.delete(0, tk.END)
     
@@ -531,10 +531,10 @@ class VistaEscaneo(tk.Frame):
                             resultados_totales["resultados"].append(resultado)
                             self._log_terminal(f"CONTROLADOR Escaneo de {objetivo} completado", "ESCANEADOR", "SUCCESS")
                         else:
-                            self._log_terminal(f"✗ Error en escaneo de {objetivo}: {resultado.get('error', 'Error desconocido')}", "ESCANEADOR", "ERROR")
+                            self._log_terminal(f"ERROR Error en escaneo de {objetivo}: {resultado.get('error', 'Error desconocido')}", "ESCANEADOR", "ERROR")
                             
                     except Exception as e:
-                        self._log_terminal(f"✗ Excepción escaneando {objetivo}: {str(e)}", "ESCANEADOR", "ERROR")
+                        self._log_terminal(f"ERROR Excepción escaneando {objetivo}: {str(e)}", "ESCANEADOR", "ERROR")
                         continue
                 
                 # Mostrar resultados consolidados
@@ -900,7 +900,7 @@ class VistaEscaneo(tk.Frame):
                 
             except Exception as e:
                 fases_con_error += 1
-                self._log_terminal(f"✗ ERROR en FASE 1: {str(e)}", "ESCANEADOR", "ERROR")
+                self._log_terminal(f"ERROR ERROR en FASE 1: {str(e)}", "ESCANEADOR", "ERROR")
             
             # FASE 2: Análisis de red básico
             try:
@@ -926,7 +926,7 @@ class VistaEscaneo(tk.Frame):
                 
             except Exception as e:
                 fases_con_error += 1
-                self._log_terminal(f"✗ ERROR en FASE 2: {str(e)}", "ESCANEADOR", "ERROR")
+                self._log_terminal(f"ERROR ERROR en FASE 2: {str(e)}", "ESCANEADOR", "ERROR")
             
             # FASE 3: Puertos en escucha
             try:
@@ -947,7 +947,7 @@ class VistaEscaneo(tk.Frame):
                 
             except Exception as e:
                 fases_con_error += 1
-                self._log_terminal(f"✗ ERROR en FASE 3: {str(e)}", "ESCANEADOR", "ERROR")
+                self._log_terminal(f"ERROR ERROR en FASE 3: {str(e)}", "ESCANEADOR", "ERROR")
             
             # FASE 4: Procesos activos
             try:
@@ -972,7 +972,7 @@ class VistaEscaneo(tk.Frame):
                 
             except Exception as e:
                 fases_con_error += 1
-                self._log_terminal(f"✗ ERROR en FASE 4: {str(e)}", "ESCANEADOR", "ERROR")
+                self._log_terminal(f"ERROR ERROR en FASE 4: {str(e)}", "ESCANEADOR", "ERROR")
             
             # FASE 5: Servicios del sistema
             try:
@@ -995,7 +995,7 @@ class VistaEscaneo(tk.Frame):
                 
             except Exception as e:
                 fases_con_error += 1
-                self._log_terminal(f"✗ ERROR en FASE 5: {str(e)}", "ESCANEADOR", "ERROR")
+                self._log_terminal(f"ERROR ERROR en FASE 5: {str(e)}", "ESCANEADOR", "ERROR")
             
             # FASE 6: Verificación de herramientas de seguridad
             try:
@@ -1012,7 +1012,7 @@ class VistaEscaneo(tk.Frame):
                             disponibles.append(herramienta)
                             self._actualizar_texto_seguro(f"  CONTROLADOR {herramienta}: {resultado.stdout.strip()}\n")
                         else:
-                            self._actualizar_texto_seguro(f"  ✗ {herramienta}: No disponible\n")
+                            self._actualizar_texto_seguro(f"  ERROR {herramienta}: No disponible\n")
                     except:
                         self._actualizar_texto_seguro(f"  ? {herramienta}: Error verificando\n")
                 
@@ -1023,7 +1023,7 @@ class VistaEscaneo(tk.Frame):
                 
             except Exception as e:
                 fases_con_error += 1
-                self._log_terminal(f"✗ ERROR en FASE 6: {str(e)}", "ESCANEADOR", "ERROR")
+                self._log_terminal(f"ERROR ERROR en FASE 6: {str(e)}", "ESCANEADOR", "ERROR")
             
             # FASE 7: Resumen de seguridad
             try:
@@ -1050,7 +1050,7 @@ class VistaEscaneo(tk.Frame):
                 
             except Exception as e:
                 fases_con_error += 1
-                self._log_terminal(f"✗ ERROR en FASE 7: {str(e)}", "ESCANEADOR", "ERROR")
+                self._log_terminal(f"ERROR ERROR en FASE 7: {str(e)}", "ESCANEADOR", "ERROR")
             
             # Resumen final
             self._actualizar_texto_seguro("\n" + "=" * 60 + "\n")
@@ -1062,7 +1062,7 @@ class VistaEscaneo(tk.Frame):
             
             if fases_con_error == 0:
                 self._actualizar_texto_seguro("OK ESCANEO COMPLETADO SIN ERRORES\n")
-                self._log_terminal("🎉 Escaneo básico completado exitosamente", "ESCANEADOR", "SUCCESS")
+                self._log_terminal("[EXITO] Escaneo básico completado exitosamente", "ESCANEADOR", "SUCCESS")
             elif fases_completadas > fases_con_error:
                 self._actualizar_texto_seguro("WARNING ESCANEO COMPLETADO CON ADVERTENCIAS\n")
                 self._log_terminal("WARNING Escaneo básico completado con advertencias", "ESCANEADOR", "WARNING")
@@ -1882,7 +1882,7 @@ class VistaEscaneo(tk.Frame):
         
         self._actualizar_texto_seguro("\nCAPACIDADES PRINCIPALES:\n")
         for capacidad in estadisticas["capacidades"]:
-            self._actualizar_texto_seguro(f"  ✓ {capacidad}\n")
+            self._actualizar_texto_seguro(f"  OK {capacidad}\n")
         
         self._actualizar_texto_seguro("\nTIPOS DE ESCANEO DISPONIBLES:\n")
         for tipo, descripcion in estadisticas["tipos_escaneo"].items():
@@ -3768,11 +3768,11 @@ class VistaEscaneo(tk.Frame):
             comandos = validador_comandos.obtener_comandos_disponibles()
             
             self.terminal_output.insert(tk.END, "\n" + "="*60 + "\n")
-            self.terminal_output.insert(tk.END, "🛡️  COMANDOS DISPONIBLES EN ARESITOS v2.0 - ESCANEADOR\n")
+            self.terminal_output.insert(tk.END, "  COMANDOS DISPONIBLES EN ARESITOS v2.0 - ESCANEADOR\n")
             self.terminal_output.insert(tk.END, "="*60 + "\n\n")
             
             for categoria, lista_comandos in comandos.items():
-                self.terminal_output.insert(tk.END, f"📂 {categoria.upper()}:\n")
+                self.terminal_output.insert(tk.END, f"[CATEGORIA] {categoria.upper()}:\n")
                 comandos_linea = ", ".join(lista_comandos)
                 self.terminal_output.insert(tk.END, f"   {comandos_linea}\n\n")
             
@@ -3796,7 +3796,7 @@ class VistaEscaneo(tk.Frame):
             self.terminal_output.insert(tk.END, "🔐 INFORMACIÓN DE SEGURIDAD ARESITOS - ESCANEADOR\n")
             self.terminal_output.insert(tk.END, "="*60 + "\n\n")
             
-            estado_seguridad = "✅ SEGURO" if info['es_usuario_kali'] else "❌ INSEGURO"
+            estado_seguridad = "OK SEGURO" if info['es_usuario_kali'] else "ERROR INSEGURO"
             
             self.terminal_output.insert(tk.END, f"Estado: {estado_seguridad}\n")
             self.terminal_output.insert(tk.END, f"Usuario: {info['usuario_actual']}\n")

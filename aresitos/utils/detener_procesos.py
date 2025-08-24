@@ -51,7 +51,7 @@ class DetenerProcesos:
                 self._limpiar_archivos_temporales(archivos_temp, callback_actualizacion)
                 
                 if procesos_terminados > 0:
-                    callback_actualizacion(f"✓ COMPLETADO: {procesos_terminados} procesos SIEM terminados\n")
+                    callback_actualizacion(f"OK COMPLETADO: {procesos_terminados} procesos SIEM terminados\n")
                 else:
                     callback_actualizacion("• INFO: No se encontraron procesos SIEM activos\n")
                 
@@ -94,7 +94,7 @@ class DetenerProcesos:
                 self._limpiar_archivos_temporales(archivos_temp, callback_actualizacion)
                 
                 if procesos_terminados > 0:
-                    callback_actualizacion(f"✓ COMPLETADO: {procesos_terminados} procesos de monitoreo terminados\n")
+                    callback_actualizacion(f"OK COMPLETADO: {procesos_terminados} procesos de monitoreo terminados\n")
                 else:
                     callback_actualizacion("• INFO: No se encontraron procesos de monitoreo activos\n")
                 
@@ -131,7 +131,7 @@ class DetenerProcesos:
                 try:
                     subprocess.run(['pkill', '-f', 'inotifywait.*fim'], 
                                 capture_output=True)
-                    callback_actualizacion("✓ Monitores inotify FIM detenidos\n")
+                    callback_actualizacion("OK Monitores inotify FIM detenidos\n")
                 except Exception:
                     pass
                 
@@ -145,7 +145,7 @@ class DetenerProcesos:
                 self._limpiar_archivos_temporales(archivos_temp, callback_actualizacion)
                 
                 if procesos_terminados > 0:
-                    callback_actualizacion(f"✓ COMPLETADO: {procesos_terminados} procesos FIM terminados\n")
+                    callback_actualizacion(f"OK COMPLETADO: {procesos_terminados} procesos FIM terminados\n")
                 else:
                     callback_actualizacion("• INFO: No se encontraron procesos FIM activos\n")
                 
@@ -189,7 +189,7 @@ class DetenerProcesos:
                 self._limpiar_archivos_temporales(archivos_temp, callback_actualizacion)
                 
                 if procesos_terminados > 0:
-                    callback_actualizacion(f"✓ COMPLETADO: {procesos_terminados} procesos de escaneo cancelados\n")
+                    callback_actualizacion(f"OK COMPLETADO: {procesos_terminados} procesos de escaneo cancelados\n")
                 else:
                     callback_actualizacion("• INFO: No se encontraron procesos de escaneo activos\n")
                 
@@ -233,7 +233,7 @@ class DetenerProcesos:
                 self._limpiar_archivos_temporales(archivos_temp, callback_actualizacion)
                 
                 if procesos_terminados > 0:
-                    callback_actualizacion(f"✓ COMPLETADO: {procesos_terminados} procesos de auditoría cancelados\n")
+                    callback_actualizacion(f"OK COMPLETADO: {procesos_terminados} procesos de auditoría cancelados\n")
                 else:
                     callback_actualizacion("• INFO: No se encontraron procesos de auditoría activos\n")
                 
@@ -265,7 +265,7 @@ class DetenerProcesos:
                                 # Terminar proceso específico
                                 subprocess.run(['kill', '-TERM', pid.strip()], 
                                             capture_output=True)
-                                callback_actualizacion(f"✓ Terminado {tipo} {proceso} (PID: {pid.strip()})\n")
+                                callback_actualizacion(f"OK Terminado {tipo} {proceso} (PID: {pid.strip()})\n")
                                 procesos_terminados += 1
                                 
                                 # Esperar un poco y verificar si sigue vivo
@@ -276,7 +276,7 @@ class DetenerProcesos:
                                     # Aún vivo, usar SIGKILL
                                     subprocess.run(['kill', '-KILL', pid.strip()], 
                                                 capture_output=True)
-                                    callback_actualizacion(f"✓ Forzado término de {proceso} (PID: {pid.strip()})\n")
+                                    callback_actualizacion(f"OK Forzado término de {proceso} (PID: {pid.strip()})\n")
                                     
                             except Exception:
                                 continue
@@ -301,7 +301,7 @@ class DetenerProcesos:
                             try:
                                 subprocess.run(['kill', '-TERM', pid.strip()], 
                                             capture_output=True)
-                                callback_actualizacion(f"✓ Terminado proceso Python (PID: {pid.strip()})\n")
+                                callback_actualizacion(f"OK Terminado proceso Python (PID: {pid.strip()})\n")
                                 procesos_terminados += 1
                             except Exception:
                                 continue
@@ -317,7 +317,7 @@ class DetenerProcesos:
             try:
                 if os.path.exists(archivo):
                     os.remove(archivo)
-                    callback_actualizacion(f"✓ Limpiado archivo temporal: {archivo}\n")
+                    callback_actualizacion(f"OK Limpiado archivo temporal: {archivo}\n")
             except Exception:
                 pass
 

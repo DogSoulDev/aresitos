@@ -376,11 +376,11 @@ class VistaMonitoreo(tk.Frame):
             comandos = obtener_comandos_disponibles()
             
             self.terminal_output.insert(tk.END, "\n" + "="*60 + "\n")
-            self.terminal_output.insert(tk.END, "🛡️  COMANDOS DISPONIBLES EN ARESITOS v2.0\n")
+            self.terminal_output.insert(tk.END, "COMANDOS DISPONIBLES EN ARESITOS v2.0\n")
             self.terminal_output.insert(tk.END, "="*60 + "\n\n")
             
             for categoria, lista_comandos in comandos.items():
-                self.terminal_output.insert(tk.END, f"📂 {categoria.upper()}:\n")
+                self.terminal_output.insert(tk.END, f"{categoria.upper()}:\n")
                 comandos_linea = ", ".join(lista_comandos)
                 self.terminal_output.insert(tk.END, f"   {comandos_linea}\n\n")
             
@@ -404,7 +404,7 @@ class VistaMonitoreo(tk.Frame):
             self.terminal_output.insert(tk.END, "🔐 INFORMACIÓN DE SEGURIDAD ARESITOS\n")
             self.terminal_output.insert(tk.END, "="*60 + "\n\n")
             
-            estado_seguridad = "✅ SEGURO" if info['es_usuario_kali'] else "❌ INSEGURO"
+            estado_seguridad = "OK SEGURO" if info['es_usuario_kali'] else "ERROR INSEGURO"
             
             self.terminal_output.insert(tk.END, f"Estado: {estado_seguridad}\n")
             self.terminal_output.insert(tk.END, f"Usuario: {info['usuario_actual']}\n")
@@ -1731,20 +1731,20 @@ class VistaMonitoreo(tk.Frame):
             # Solo verificar ruta y nombre seguro, no contenido (puede ser malicioso)
             if not sanitizador._validar_ruta_segura(archivo):
                 error_msg = "Ruta de archivo no segura"
-                self.text_cuarentena.insert(tk.END, f"✗ Error de seguridad: {error_msg}\n")
+                self.text_cuarentena.insert(tk.END, f"ERROR Error de seguridad: {error_msg}\n")
                 messagebox.showerror("Error de Seguridad", error_msg)
                 return
             
             if not sanitizador._validar_nombre_archivo(archivo):
                 error_msg = "Nombre de archivo contiene caracteres peligrosos"
-                self.text_cuarentena.insert(tk.END, f"✗ Error de seguridad: {error_msg}\n")
+                self.text_cuarentena.insert(tk.END, f"ERROR Error de seguridad: {error_msg}\n")
                 messagebox.showerror("Error de Seguridad", error_msg)
                 return
             
             # Verificar tamaño razonable
             if not sanitizador._validar_tamano(archivo):
                 error_msg = "Archivo demasiado grande para cuarentena"
-                self.text_cuarentena.insert(tk.END, f"✗ Error: {error_msg}\n")
+                self.text_cuarentena.insert(tk.END, f"ERROR Error: {error_msg}\n")
                 messagebox.showerror("Error", error_msg)
                 return
             
@@ -1752,13 +1752,15 @@ class VistaMonitoreo(tk.Frame):
             
             # Crear controlador de cuarentena directamente si no está disponible
             from aresitos.controlador.controlador_cuarentena import ControladorCuarentena
-            controlador_cuarentena = ControladorCuarentena()
+            # Crear modelo principal básico para el controlador
+            modelo_principal = {'cuarentena': None}
+            controlador_cuarentena = ControladorCuarentena(modelo_principal)
             
             # Mostrar progreso
             self.text_cuarentena.insert(tk.END, "PROCESSING Iniciando proceso de cuarentena...\n")
             self.text_cuarentena.update()
             
-            resultado = controlador_cuarentena.poner_archivo_en_cuarentena(archivo)
+            resultado = controlador_cuarentena.poner_en_cuarentena(archivo)
             
             if resultado["exito"]:
                 self.text_cuarentena.insert(tk.END, f"OK Archivo agregado a cuarentena: {os.path.basename(archivo)}\n")  # Issue 22/24: Sin emojis
@@ -1795,7 +1797,9 @@ class VistaMonitoreo(tk.Frame):
         """Listar archivos en cuarentena con manejo robusto de errores"""
         try:
             from aresitos.controlador.controlador_cuarentena import ControladorCuarentena
-            controlador_cuarentena = ControladorCuarentena()
+            # Crear modelo principal básico para el controlador
+            modelo_principal = {'cuarentena': None}
+            controlador_cuarentena = ControladorCuarentena(modelo_principal)
             
             self.text_cuarentena.delete(1.0, tk.END)
             self.text_cuarentena.insert(tk.END, "=== ARCHIVOS EN CUARENTENA ===\n\n")
@@ -1831,7 +1835,7 @@ class VistaMonitoreo(tk.Frame):
                     
             # Obtener resumen adicional con manejo de errores
             try:
-                resumen = controlador_cuarentena.obtener_resumen_cuarentena()
+                resumen = controlador_cuarentena.obtener_estadisticas()
                 if resumen:
                     self.text_cuarentena.insert(tk.END, f"\n=== RESUMEN ===\n")
                     total = resumen.get('total_archivos', 0)

@@ -27,18 +27,13 @@ from datetime import datetime, timedelta
 import sqlite3
 from collections import defaultdict
 
-# Evitar warnings de typing - usar fallback directo
-class _SIEMAvanzado:
-    def __init__(self, gestor_permisos=None):
-        self.gestor_permisos = gestor_permisos
-        self.configuracion = {}
-    
-    def log(self, mensaje: str):
-        print(f"[SIEM] {mensaje}")
+# Importar clase base real
+from .modelo_siem_base import SIEMBase
 
-class SIEMKali2025(_SIEMAvanzado):  # type: ignore
+class SIEMKali2025(SIEMBase):  # type: ignore
     """
-    SIEM avanzado con herramientas Kali Linux 2025
+    SIEM avanzado con herramientas Kali Linux 2025.
+    Hereda de SIEMBase para funcionalidad común.
     """
     
     def __init__(self, gestor_permisos=None):
@@ -51,36 +46,43 @@ class SIEMKali2025(_SIEMAvanzado):  # type: ignore
             'lynis': '/usr/bin/lynis',
             'rsyslog': '/usr/sbin/rsyslogd'
         }
-        self.base_datos_siem = "data/siem_kali2025.db"
         self.monitores_activos = {}
         self.reglas_correlacion = []
-        self.verificar_herramientas()
-        self.inicializar_base_datos()
+        # La clase base ya inicializa la BD básica, agregamos funcionalidad específica
+        self._inicializar_tablas_siem()
+        self._verificar_herramientas_siem()
         self.cargar_reglas_correlacion()
     
-    def verificar_herramientas(self):
-        """Verifica qué herramientas SIEM están disponibles"""
-        self.herramientas_disponibles = {}
+    def _verificar_herramientas_siem(self):
+        """Verifica qué herramientas SIEM específicas están disponibles"""
+        import subprocess
         
         for herramienta, ruta in self.herramientas_siem.items():
             try:
                 result = subprocess.run(['which', herramienta], 
                                      capture_output=True, text=True, timeout=5)
                 if result.returncode == 0:
+                    # Agregar a herramientas disponibles de la clase base
+                    if not hasattr(self, 'herramientas_disponibles'):
+                        self.herramientas_disponibles = {}
                     self.herramientas_disponibles[herramienta] = result.stdout.strip()
-                    self.log(f"OK {herramienta} disponible en {result.stdout.strip()}")
+                    self.log(f"SIEM: {herramienta} disponible en {result.stdout.strip()}")
                 else:
-                    self.log(f"INFO {herramienta} no encontrada")
+                    self.log(f"SIEM: {herramienta} no encontrada")
             except Exception as e:
-                self.log(f"ERROR Error verificando {herramienta}: {e}")
+                self.log(f"Error verificando {herramienta}: {e}")
     
-    def inicializar_base_datos(self):
-        """Inicializa base de datos SQLite para SIEM"""
+    def verificar_herramientas(self):
+        """Wrapper para compatibilidad"""
+        return self._verificar_herramientas_siem()
+    
+    def _inicializar_tablas_siem(self):
+        """Inicializa tablas específicas de SIEM en la base de datos"""
         try:
             # Crear directorio si no existe
-            os.makedirs(os.path.dirname(self.base_datos_siem), exist_ok=True)
+            os.makedirs(os.path.dirname(self.db_path), exist_ok=True)
             
-            conn = sqlite3.connect(self.base_datos_siem)
+            conn = sqlite3.connect(self.db_path)
             cursor = conn.cursor()
             
             # Tabla para eventos de seguridad
@@ -400,7 +402,7 @@ class SIEMKali2025(_SIEMAvanzado):  # type: ignore
     def _guardar_evento_seguridad(self, evento: Dict[str, Any]):
         """Guarda evento de seguridad en base de datos"""
         try:
-            conn = sqlite3.connect(self.base_datos_siem)
+            conn = sqlite3.connect(self.db_path)
             cursor = conn.cursor()
             
             cursor.execute('''
@@ -449,7 +451,7 @@ class SIEMKali2025(_SIEMAvanzado):  # type: ignore
     def _buscar_eventos_similares(self, evento: Dict[str, Any], regla: Dict[str, Any]) -> List[Dict[str, Any]]:
         """Busca eventos similares en la ventana de tiempo especificada"""
         try:
-            conn = sqlite3.connect(self.base_datos_siem)
+            conn = sqlite3.connect(self.db_path)
             cursor = conn.cursor()
             
             # Calcular ventana de tiempo
@@ -481,7 +483,7 @@ class SIEMKali2025(_SIEMAvanzado):  # type: ignore
     def _generar_alerta(self, regla: Dict[str, Any], eventos: List[Dict[str, Any]]):
         """Genera una alerta basada en la regla disparada"""
         try:
-            conn = sqlite3.connect(self.base_datos_siem)
+            conn = sqlite3.connect(self.db_path)
             cursor = conn.cursor()
             
             descripcion = f"{regla['descripcion']} - {len(eventos)} eventos detectados"
@@ -741,7 +743,7 @@ class SIEMKali2025(_SIEMAvanzado):  # type: ignore
     def _guardar_auditoria_sistema(self, herramienta: str, hallazgos: List[Dict[str, Any]]):
         """Guarda resultados de auditoría en base de datos"""
         try:
-            conn = sqlite3.connect(self.base_datos_siem)
+            conn = sqlite3.connect(self.db_path)
             cursor = conn.cursor()
             
             for hallazgo in hallazgos:
@@ -766,7 +768,7 @@ class SIEMKali2025(_SIEMAvanzado):  # type: ignore
     def _guardar_estadisticas_red(self, estadisticas: Dict[str, Any]):
         """Guarda estadísticas de red en base de datos"""
         try:
-            conn = sqlite3.connect(self.base_datos_siem)
+            conn = sqlite3.connect(self.db_path)
             cursor = conn.cursor()
             
             conexiones = estadisticas.get('conexiones_activas', {})

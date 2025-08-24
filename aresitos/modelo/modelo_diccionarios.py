@@ -18,10 +18,10 @@ class ModeloGestorDiccionarios:
         directorio_data = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(__file__))), "data", "diccionarios")
         
         if not os.path.exists(directorio_data):
-            print(f" Directorio data/diccionarios no encontrado: {directorio_data}")
+            print(f"WARNING Directorio data/diccionarios no encontrado: {directorio_data}")
             return
         
-        print(f" Escaneando diccionarios en: {directorio_data}")
+        print(f"OK Escaneando diccionarios en: {directorio_data}")
         
         # Detectar automáticamente todos los archivos JSON
         try:
@@ -29,13 +29,13 @@ class ModeloGestorDiccionarios:
             archivos_json = [f for f in archivos_en_directorio if f.endswith('.json')]
             
             if not archivos_json:
-                print(" No se encontraron archivos JSON en data/diccionarios")
+                print("WARNING No se encontraron archivos JSON en data/diccionarios")
                 return
             
-            print(f" Encontrados {len(archivos_json)} archivos JSON")
+            print(f"OK Encontrados {len(archivos_json)} archivos JSON")
             
         except Exception as e:
-            print(f" Error listando directorio: {e}")
+            print(f"ERROR Error listando directorio: {e}")
             return
         
         diccionarios_cargados = 0
@@ -55,9 +55,9 @@ class ModeloGestorDiccionarios:
                     diccionarios_cargados += 1
                     
             except Exception as e:
-                print(f" Error cargando {archivo}: {e}")
+                print(f"ERROR Error cargando {archivo}: {e}")
         
-        print(f" {diccionarios_cargados} diccionarios cargados exitosamente")
+        print(f"OK {diccionarios_cargados} diccionarios cargados exitosamente")
         
         # Crear índice actualizado
         self._crear_indice_diccionarios()
@@ -65,7 +65,7 @@ class ModeloGestorDiccionarios:
     def _procesar_diccionario_json(self, nombre: str, datos: Any, archivo_origen: str) -> bool:
         """Procesa un archivo JSON y lo integra en los diccionarios"""
         try:
-            print(f" Procesando: {archivo_origen}")
+            print(f"OK Procesando: {archivo_origen}")
             
             if isinstance(datos, dict):
                 # Caso 1: Diccionario con múltiples categorías
@@ -80,7 +80,7 @@ class ModeloGestorDiccionarios:
                                 'datos': contenido,
                                 'origen': archivo_origen
                             }
-                            print(f"    Lista '{categoria}': {len(contenido)} elementos")
+                            print(f"    OK Lista '{categoria}': {len(contenido)} elementos")
                         
                         elif isinstance(contenido, dict):
                             self.diccionarios_predefinidos[nombre_categoria] = {
@@ -89,7 +89,7 @@ class ModeloGestorDiccionarios:
                                 'datos': contenido,
                                 'origen': archivo_origen
                             }
-                            print(f"    Diccionario '{categoria}': {len(contenido)} claves")
+                            print(f"    OK Diccionario '{categoria}': {len(contenido)} claves")
                 
                 # Caso 2: Diccionario simple
                 else:
@@ -99,7 +99,7 @@ class ModeloGestorDiccionarios:
                         'datos': datos,
                         'origen': archivo_origen
                     }
-                    print(f"    Diccionario '{nombre}': {len(datos)} claves")
+                    print(f"    OK Diccionario '{nombre}': {len(datos)} claves")
             
             elif isinstance(datos, list):
                 # Caso 3: Lista directa
@@ -109,16 +109,16 @@ class ModeloGestorDiccionarios:
                     'datos': datos,
                     'origen': archivo_origen
                 }
-                print(f"    Lista '{nombre}': {len(datos)} elementos")
+                print(f"    OK Lista '{nombre}': {len(datos)} elementos")
             
             else:
-                print(f"    Formato no reconocido en {archivo_origen}")
+                print(f"    ADVERTENCIA Formato no reconocido en {archivo_origen}")
                 return False
             
             return True
             
         except Exception as e:
-            print(f" Error procesando {archivo_origen}: {e}")
+            print(f"ERROR Error procesando {archivo_origen}: {e}")
             return False
     
     def _crear_directorio_diccionarios(self) -> str:
@@ -281,7 +281,7 @@ class ModeloGestorDiccionarios:
     def cargar_diccionario(self, ruta_origen: str, nombre_destino: Optional[str] = None) -> Dict[str, Any]:
         try:
             if not os.path.exists(ruta_origen):
-                return {'exito': False, 'error': 'Archivo no encontrado'}
+                return {'exito': False, 'error': 'ERROR Archivo no encontrado'}
             
             if not nombre_destino:
                 nombre_destino = os.path.splitext(os.path.basename(ruta_origen))[0]
@@ -305,7 +305,7 @@ class ModeloGestorDiccionarios:
             }
             
         except json.JSONDecodeError:
-            return {'exito': False, 'error': 'El archivo no es un JSON válido'}
+            return {'exito': False, 'error': 'ERROR El archivo no es un JSON válido'}
         except Exception as e:
             return {'exito': False, 'error': str(e)}
     

@@ -1,15 +1,26 @@
 # -*- coding: utf-8 -*-
+"""
+ARESITOS - Controlador de Herramientas
+Gestiona la ejecución segura de herramientas de Kali Linux
+"""
 
 import subprocess
 import re
 import shlex
-from aresitos.modelo.modelo_utilidades_sistema import ModeloUtilidadesSistema
+import os
+from typing import Dict, Any
 
-class ControladorHerramientas:
+from aresitos.controlador.controlador_base import ControladorBase
+
+
+class ControladorHerramientas(ControladorBase):
+    """
+    Controlador para gestión segura de herramientas de Kali Linux.
+    Implementa lista blanca y validación de comandos.
+    """
     
     def __init__(self, modelo_principal):
-        self.modelo_principal = modelo_principal
-        self.utilidades_sistema = ModeloUtilidadesSistema()
+        super().__init__(modelo_principal, "ControladorHerramientas")
         
         # Lista blanca de herramientas de Kali Linux (SECURITY FIX)
         # KALI OPTIMIZATION: Herramientas modernas de fácil instalación
@@ -67,6 +78,41 @@ class ControladorHerramientas:
             '--target', '-t', '--port', '-p', '--output', '-o',
             '--verbose', '--scan', '--list', '--info'
         }
+    
+    async def _inicializar_impl(self) -> Dict[str, Any]:
+        """
+        Implementación específica de inicialización para ControladorHerramientas.
+        
+        Returns:
+            Dict con resultado de la inicialización específica
+        """
+        try:
+            self.logger.info("Ejecutando inicialización específica de ControladorHerramientas")
+            
+            # Verificar que las herramientas básicas estén disponibles
+            herramientas_basicas = ['nmap', 'ping', 'grep', 'find']
+            herramientas_disponibles = 0
+            
+            for herramienta in herramientas_basicas:
+                try:
+                    result = subprocess.run(['which', herramienta], 
+                                         capture_output=True, text=True, timeout=5)
+                    if result.returncode == 0:
+                        herramientas_disponibles += 1
+                except Exception:
+                    pass
+            
+            if herramientas_disponibles == 0:
+                return {'exito': False, 'error': 'No se encontraron herramientas básicas del sistema'}
+            
+            self.logger.info(f"ControladorHerramientas inicializado - {herramientas_disponibles}/{len(herramientas_basicas)} herramientas básicas disponibles")
+            
+            return {'exito': True, 'mensaje': 'ControladorHerramientas inicializado correctamente'}
+            
+        except Exception as e:
+            error_msg = f"Error en inicialización específica de ControladorHerramientas: {e}"
+            self.logger.error(error_msg)
+            return {'exito': False, 'error': error_msg}
     
     def _validar_nombre_herramienta(self, nombre_herramienta):
         """
@@ -182,7 +228,6 @@ class ControladorHerramientas:
             info['error_info'] = str(e)
         
         return info
-        return self.utilidades_sistema.verificar_herramientas_kali_completo()
     
     def verificar_herramienta_especifica(self, nombre_herramienta):
         # SECURITY FIX: Validar entrada antes de ejecutar comando

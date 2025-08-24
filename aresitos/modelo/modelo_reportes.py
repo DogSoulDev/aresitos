@@ -49,64 +49,71 @@ class ModeloReportes:
             # Normalizar el path
             directorio = self._normalizar_path(directorio)
             
-            # Verificar que estamos dentro del proyecto
-            if not directorio.startswith(proyecto_dir):
-                raise ValueError("Directorio fuera del proyecto")
-            
+            # Crear directorio si no existe
             if not os.path.exists(directorio):
-                os.makedirs(directorio, mode=0o755)  # Permisos normales para el proyecto
+                os.makedirs(directorio, mode=0o755)
+                logging.info(f"Directorio de reportes creado: {directorio}")
+            
+            # Verificar permisos de escritura
+            if not os.access(directorio, os.W_OK):
+                logging.error(f"Sin permisos de escritura en directorio de reportes: {directorio}")
+                raise PermissionError(f"Sin permisos de escritura: {directorio}")
+            
+            # Verificar que es realmente un directorio
+            if not os.path.isdir(directorio):
+                raise OSError(f"La ruta no es un directorio válido: {directorio}")
                 
             return directorio
+            
         except Exception as e:
-            logging.error(f"Error creando directorio de reportes: {str(e)}")
-            # Fallback a directorio temporal dentro del proyecto
-            try:
-                proyecto_dir = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-                temp_dir = os.path.join(proyecto_dir, "reportes_temp")
-                os.makedirs(temp_dir, exist_ok=True)
-                return temp_dir
-            except:
-                import tempfile
-                return tempfile.mkdtemp(prefix="aresitos_reportes_")
-    
+            logging.error(f"Error creando directorio de reportes: {e}")
+            # Fallback a directorio temporal del sistema
+            directorio_temporal = os.path.join(os.path.expanduser("~"), ".aresitos", "reportes")
+            os.makedirs(directorio_temporal, exist_ok=True)
+            logging.warning(f"Usando directorio temporal: {directorio_temporal}")
+            return directorio_temporal
+
     def generar_reporte_completo(self, datos_escaneo: Dict, datos_monitoreo: Dict, datos_utilidades: Dict, datos_fim: Optional[Dict] = None, datos_siem: Optional[Dict] = None, datos_cuarentena: Optional[Dict] = None, datos_terminal_principal: Optional[Dict] = None) -> Dict[str, Any]:
-        timestamp = datetime.datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
+        """Genera un reporte completo con todos los datos recopilados"""
         
-        # Inicializar datos opcionales - Issue 20/24
-        datos_fim = datos_fim or {}
-        datos_siem = datos_siem or {}
-        datos_cuarentena = datos_cuarentena or {}
-        datos_terminal_principal = datos_terminal_principal or {}
+        # Validar datos de entrada
+        if not self.validar_datos_reporte({'escaneo': datos_escaneo, 'monitoreo': datos_monitoreo, 'utilidades': datos_utilidades}):
+            raise ValueError("Datos de entrada inválidos para generar reporte")
+        
+        timestamp = datetime.datetime.now()
+        fecha_formateada = timestamp.strftime("%Y-%m-%d %H:%M:%S")
         
         reporte = {
-            "timestamp": timestamp,
-            "fecha_generacion": datetime.datetime.now().isoformat(),
-            "version": "ARESITOS v2.0.0-kali-optimized",
-            "resumen": {
-                "total_herramientas": len(datos_utilidades.get('herramientas', [])),
-                "servicios_activos": len(datos_utilidades.get('servicios', [])),
-                "problemas_permisos": len(datos_utilidades.get('permisos_archivos', [])),
-                "alertas_escaneo": len(datos_escaneo.get('alertas', [])),
-                "eventos_monitoreo": len(datos_monitoreo.get('eventos', [])),
-                "cambios_fim": len(datos_fim.get('cambios_detectados', [])),
-                "alertas_siem": len(datos_siem.get('alertas_generadas', [])),
-                "archivos_cuarentena": len(datos_cuarentena.get('archivos_aislados', [])),
-                "terminal_principal_lineas": datos_terminal_principal.get('terminal_lines', 0)
+            'version': 'ARESITOS v3.0',
+            'fecha_generacion': fecha_formateada,
+            'timestamp': timestamp.isoformat(),
+            'tipo': 'completo',
+            'resumen': {
+                'total_herramientas': len(datos_utilidades.get('herramientas_disponibles', [])),
+                'servicios_activos': len(datos_monitoreo.get('servicios', [])),
+                'problemas_permisos': len(datos_utilidades.get('problemas_permisos', [])),
+                'alertas_escaneo': len(datos_escaneo.get('alertas', [])),
+                'eventos_monitoreo': len(datos_monitoreo.get('eventos', [])),
+                'cambios_fim': len(datos_fim.get('cambios', [])) if datos_fim else 0,
+                'alertas_siem': len(datos_siem.get('alertas', [])) if datos_siem else 0,
+                'archivos_cuarentena': len(datos_cuarentena.get('archivos', [])) if datos_cuarentena else 0,
+                'terminal_principal_lineas': datos_terminal_principal.get('lineas_ejecutadas', 0) if datos_terminal_principal else 0
             },
-            "datos": {
-                "escaneo": datos_escaneo,
-                "monitoreo": datos_monitoreo,
-                "utilidades": datos_utilidades,
-                "fim": datos_fim,
-                "siem": datos_siem,
-                "cuarentena": datos_cuarentena,
-                "terminal_principal": datos_terminal_principal
+            'detalles': {
+                'escaneo': datos_escaneo,
+                'monitoreo': datos_monitoreo,
+                'utilidades': datos_utilidades,
+                'fim': datos_fim,
+                'siem': datos_siem,
+                'cuarentena': datos_cuarentena,
+                'terminal_principal': datos_terminal_principal
             }
         }
         
         return reporte
-    
+
     def generar_reporte_texto(self, reporte: Dict) -> str:
+        """Genera version en texto plano del reporte"""
         version = reporte.get('version', 'ARESITOS')
         texto = f"""
 REPORTE DE SEGURIDAD {version}
@@ -124,81 +131,101 @@ Cambios FIM detectados: {reporte['resumen'].get('cambios_fim', 0)}
 Alertas SIEM generadas: {reporte['resumen'].get('alertas_siem', 0)}
 Archivos en cuarentena: {reporte['resumen'].get('archivos_cuarentena', 0)}
 Terminal principal - lineas: {reporte['resumen'].get('terminal_principal_lineas', 0)}
-
-DETALLES
---------
+"""
+        return texto
 
     def validar_datos_reporte(self, datos):
-        """Valida datos para reporte (principio de Seguridad)."""
+        """Valida datos para reporte (principio de Seguridad)"""
         if not isinstance(datos, dict):
             return False
         
-        # Validar estructura mínima
-        if 'tipo' not in datos or 'contenido' not in datos:
+        # Validar estructura minima
+        if not datos:
             return False
-        
-        # Validar tipo de reporte
-        tipos_validos = ['escaneo', 'monitoreo', 'fim', 'siem', 'auditoria']
-        if datos['tipo'] not in tipos_validos:
+            
+        # Validar que contiene al menos algunos datos válidos
+        campos_requeridos = ['escaneo', 'monitoreo', 'utilidades']
+        if not any(campo in datos for campo in campos_requeridos):
             return False
-        
+            
         return True
 
     def validar_formato_salida(self, formato):
-        """Valida formato de salida (principio de Seguridad)."""
-        formatos_validos = ['json', 'txt', 'html', 'pdf']
-        return formato.lower() in formatos_validos if formato else False
+        """Valida formato de salida permitido"""
+        formatos_permitidos = ['json', 'txt']
+        return formato.lower() in formatos_permitidos
 
-"""
-        
-        if reporte['datos']['utilidades'].get('herramientas'):
-            texto += "\nHerramientas del Sistema:\n"
-            for herramienta in reporte['datos']['utilidades']['herramientas']:
-                texto += f"- {herramienta}\n"
-        
-        if reporte['datos']['utilidades'].get('servicios'):
-            texto += "\nServicios Activos:\n"
-            for servicio in reporte['datos']['utilidades']['servicios']:
-                texto += f"- {servicio}\n"
-        
-        # Agregar información de FIM
-        if reporte['datos'].get('fim') and reporte['datos']['fim'].get('cambios_detectados'):
-            texto += "\nCambios de Integridad de Archivos (FIM):\n"
-            for cambio in reporte['datos']['fim']['cambios_detectados']:
-                texto += f"- {cambio}\n"
-        
-        # Agregar información de SIEM
-        if reporte['datos'].get('siem') and reporte['datos']['siem'].get('alertas_generadas'):
-            texto += "\nAlertas del Sistema SIEM:\n"
-            for alerta in reporte['datos']['siem']['alertas_generadas']:
-                texto += f"- {alerta}\n"
-        
-        # Agregar información de cuarentena
-        if reporte['datos'].get('cuarentena') and reporte['datos']['cuarentena'].get('archivos_aislados'):
-            texto += "\nArchivos en Cuarentena:\n"
-            for archivo in reporte['datos']['cuarentena']['archivos_aislados']:
-                texto += f"- {archivo}\n"
-        
-        # Agregar información del terminal principal - Issue 20/24
-        if reporte['datos'].get('terminal_principal'):
-            terminal_data = reporte['datos']['terminal_principal']
-            if terminal_data.get('estado') == 'captura_completa':
-                texto += "\nTerminal Principal de Aresitos:\n"
-                if terminal_data.get('eventos_sistema'):
-                    texto += "Eventos del Sistema:\n"
-                    for evento in terminal_data['eventos_sistema'][:10]:  # Limitar a 10 eventos
-                        texto += f"- {evento}\n"
-                if terminal_data.get('comandos_ejecutados'):
-                    texto += "Comandos Ejecutados:\n"
-                    for comando in terminal_data['comandos_ejecutados'][:10]:  # Limitar a 10 comandos
-                        texto += f"- {comando}\n"
-                estadisticas = terminal_data.get('estadisticas', {})
-                texto += f"Estadísticas Terminal: {estadisticas.get('lineas_terminal', 0)} líneas, "
-                texto += f"{estadisticas.get('eventos_sistema', 0)} eventos, "
-                texto += f"{estadisticas.get('comandos_ejecutados', 0)} comandos\n"
-        
-        return texto
-    
+    def obtener_estadisticas_reportes(self) -> Dict[str, Any]:
+        """Obtiene estadísticas de reportes generados"""
+        try:
+            reportes = self.listar_reportes()
+            
+            total_reportes = len(reportes)
+            tipos_reportes = {}
+            reportes_por_fecha = {}
+            
+            for reporte_info in reportes:
+                # Contar por tipo si existe el campo
+                tipo = reporte_info.get('tipo', 'desconocido')
+                tipos_reportes[tipo] = tipos_reportes.get(tipo, 0) + 1
+                
+                # Contar por fecha
+                fecha = reporte_info.get('fecha_creacion', '').split(' ')[0]  # Solo la fecha
+                if fecha:
+                    reportes_por_fecha[fecha] = reportes_por_fecha.get(fecha, 0) + 1
+            
+            return {
+                'total_reportes': total_reportes,
+                'tipos_reportes': tipos_reportes,
+                'reportes_por_fecha': reportes_por_fecha,
+                'directorio_reportes': self.directorio_reportes
+            }
+            
+        except Exception as e:
+            logging.error(f"Error obteniendo estadísticas de reportes: {e}")
+            return {
+                'total_reportes': 0,
+                'tipos_reportes': {},
+                'reportes_por_fecha': {},
+                'directorio_reportes': self.directorio_reportes,
+                'error': str(e)
+            }
+
+    def limpiar_reportes_antiguos(self, dias_antiguedad: int = 30) -> int:
+        """Limpia reportes más antiguos que el número de días especificado"""
+        try:
+            reportes_eliminados = 0
+            fecha_limite = datetime.datetime.now() - datetime.timedelta(days=dias_antiguedad)
+            
+            for archivo in os.listdir(self.directorio_reportes):
+                ruta_archivo = os.path.join(self.directorio_reportes, archivo)
+                
+                # Validar que es un archivo y no un directorio
+                if not os.path.isfile(ruta_archivo):
+                    continue
+                
+                # Verificar extensión
+                if not any(archivo.endswith(ext) for ext in ['.json', '.txt']):
+                    continue
+                
+                # Verificar fecha de modificación
+                fecha_modificacion = datetime.datetime.fromtimestamp(os.path.getmtime(ruta_archivo))
+                
+                if fecha_modificacion < fecha_limite:
+                    try:
+                        os.remove(ruta_archivo)
+                        reportes_eliminados += 1
+                        logging.info(f"Reporte antiguo eliminado: {archivo}")
+                    except Exception as e:
+                        logging.error(f"Error eliminando reporte {archivo}: {e}")
+            
+            logging.info(f"Limpieza completada. Reportes eliminados: {reportes_eliminados}")
+            return reportes_eliminados
+            
+        except Exception as e:
+            logging.error(f"Error en limpieza de reportes antiguos: {e}")
+            return 0
+
     def guardar_reporte_json(self, reporte: Dict, nombre_archivo: Optional[str] = None) -> bool:
         """Guarda reporte JSON con validaciones de seguridad"""
         try:
@@ -220,19 +247,15 @@ DETALLES
                 return False
             
             with open(ruta_archivo, 'w', encoding='utf-8') as f:
-                json.dump(reporte, f, indent=2, ensure_ascii=False)
+                json.dump(reporte, f, indent=2, ensure_ascii=False, default=str)
             
+            logging.info(f"Reporte JSON guardado exitosamente: {ruta_archivo}")
             return True
-        except PermissionError:
-            logging.error("Sin permisos para escribir archivo JSON")
-            return False
-        except IOError:
-            logging.error("Error de E/S al escribir archivo JSON")
-            return False
+            
         except Exception as e:
-            logging.error(f"Error no específico guardando JSON: {type(e).__name__}")
+            logging.error(f"Error guardando reporte JSON: {e}")
             return False
-    
+
     def guardar_reporte_texto(self, reporte: Dict, nombre_archivo: Optional[str] = None) -> bool:
         """Guarda reporte texto con validaciones de seguridad"""
         try:
@@ -258,68 +281,73 @@ DETALLES
             with open(ruta_archivo, 'w', encoding='utf-8') as f:
                 f.write(texto_reporte)
             
+            logging.info(f"Reporte texto guardado exitosamente: {ruta_archivo}")
             return True
-        except PermissionError:
-            logging.error("Sin permisos para escribir archivo de texto")
-            return False
-        except IOError:
-            logging.error("Error de E/S al escribir archivo de texto")
-            return False
+            
         except Exception as e:
-            logging.error(f"Error no específico guardando texto: {type(e).__name__}")
+            logging.error(f"Error guardando reporte texto: {e}")
             return False
-    
+
     def listar_reportes(self) -> List[Dict[str, Any]]:
         """Lista reportes con validaciones de seguridad"""
         reportes = []
         
         try:
-            # Verificar que el directorio existe y es accesible
             if not os.path.exists(self.directorio_reportes):
-                logging.warning("Directorio de reportes no existe")
-                return reportes
-                
-            if not os.path.isdir(self.directorio_reportes):
-                logging.error("Ruta de reportes no es un directorio")
+                logging.warning(f"Directorio de reportes no existe: {self.directorio_reportes}")
                 return reportes
             
             for archivo in os.listdir(self.directorio_reportes):
-                # Validar extensión permitida
-                extension = os.path.splitext(archivo)[1]
-                if extension not in self.extensiones_permitidas:
-                    continue
-                
-                # Validar nombre de archivo completo
-                if not self._validar_nombre_archivo_seguro(archivo):
-                    logging.warning(f"Archivo con nombre inseguro omitido: {archivo}")
-                    continue
-                
-                ruta_completa = os.path.join(self.directorio_reportes, archivo)
-                ruta_completa = self._normalizar_path(ruta_completa)
-                
-                # Verificar que el archivo está dentro del directorio permitido
-                if not ruta_completa.startswith(self.directorio_reportes):
-                    logging.warning(f"Archivo fuera del directorio permitido: {archivo}")
-                    continue
-                
                 try:
-                    stat_info = os.stat(ruta_completa)
+                    ruta_archivo = os.path.join(self.directorio_reportes, archivo)
                     
-                    reportes.append({
-                        'nombre': archivo,
-                        'ruta': ruta_completa,
-                        'tamaño': stat_info.st_size,
-                        'modificado': datetime.datetime.fromtimestamp(stat_info.st_mtime).strftime("%Y-%m-%d %H:%M:%S")
-                    })
-                except (OSError, PermissionError):
-                    logging.warning(f"No se pudo acceder al archivo: {archivo}")
+                    # Validaciones de seguridad
+                    if not os.path.isfile(ruta_archivo):
+                        continue
+                    
+                    if not self._validar_nombre_archivo_seguro(archivo):
+                        continue
+                    
+                    # Obtener información del archivo
+                    stat_info = os.stat(ruta_archivo)
+                    fecha_creacion = datetime.datetime.fromtimestamp(stat_info.st_ctime)
+                    fecha_modificacion = datetime.datetime.fromtimestamp(stat_info.st_mtime)
+                    tamaño = stat_info.st_size
+                    
+                    # Determinar tipo por extensión
+                    if archivo.endswith('.json'):
+                        tipo = 'json'
+                        # Intentar obtener tipo desde el contenido JSON
+                        try:
+                            with open(ruta_archivo, 'r', encoding='utf-8') as f:
+                                contenido = json.load(f)
+                                tipo = contenido.get('tipo', 'json')
+                        except:
+                            pass
+                    elif archivo.endswith('.txt'):
+                        tipo = 'texto'
+                    else:
+                        tipo = 'desconocido'
+                    
+                    reporte_info = {
+                        'nombre_archivo': archivo,
+                        'ruta_completa': ruta_archivo,
+                        'tipo': tipo,
+                        'tamaño_bytes': tamaño,
+                        'fecha_creacion': fecha_creacion.strftime("%Y-%m-%d %H:%M:%S"),
+                        'fecha_modificacion': fecha_modificacion.strftime("%Y-%m-%d %H:%M:%S")
+                    }
+                    
+                    reportes.append(reporte_info)
+                    
+                except Exception as e:
+                    logging.warning(f"Error procesando archivo {archivo}: {e}")
                     continue
-                    
-        except PermissionError:
-            logging.error("Sin permisos para acceder al directorio de reportes")
-        except OSError:
-            logging.error("Error de sistema al listar reportes")
+            
+            # Ordenar por fecha de modificación (más recientes primero)
+            reportes.sort(key=lambda x: x['fecha_modificacion'], reverse=True)
+            
         except Exception as e:
-            logging.error(f"Error no específico listando reportes: {type(e).__name__}")
+            logging.error(f"Error listando reportes: {e}")
         
-        return sorted(reportes, key=lambda x: x['modificado'], reverse=True)
+        return reportes

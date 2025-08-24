@@ -257,7 +257,7 @@ class VistaSIEM(tk.Frame):
         except ImportError:
             # Fallback sin validación (modo inseguro)
             self.terminal_output.insert(tk.END, f"\n> {comando}\n")
-            self.terminal_output.insert(tk.END, "⚠️  EJECUTANDO SIN VALIDACIÓN DE SEGURIDAD\n")
+            self.terminal_output.insert(tk.END, "ADVERTENCIA️  EJECUTANDO SIN VALIDACIÓN DE SEGURIDAD\n")
             self.terminal_output.see(tk.END)
             self.comando_entry.delete(0, tk.END)
             
@@ -266,7 +266,7 @@ class VistaSIEM(tk.Frame):
             thread.start()
         except Exception as e:
             self.terminal_output.insert(tk.END, f"\n> {comando}\n")
-            self.terminal_output.insert(tk.END, f"❌ Error de seguridad: {e}\n")
+            self.terminal_output.insert(tk.END, f"ERROR Error de seguridad: {e}\n")
             self.terminal_output.see(tk.END)
             self.comando_entry.delete(0, tk.END)
     
@@ -321,11 +321,11 @@ class VistaSIEM(tk.Frame):
             comandos = obtener_comandos_disponibles()
             
             self.terminal_output.insert(tk.END, "\n" + "="*60 + "\n")
-            self.terminal_output.insert(tk.END, "🛡️  COMANDOS DISPONIBLES EN ARESITOS v2.0\n")
+            self.terminal_output.insert(tk.END, "  COMANDOS DISPONIBLES EN ARESITOS v2.0\n")
             self.terminal_output.insert(tk.END, "="*60 + "\n\n")
             
             for categoria, lista_comandos in comandos.items():
-                self.terminal_output.insert(tk.END, f"📂 {categoria.upper()}:\n")
+                self.terminal_output.insert(tk.END, f"[CATEGORIA] {categoria.upper()}:\n")
                 comandos_linea = ", ".join(lista_comandos)
                 self.terminal_output.insert(tk.END, f"   {comandos_linea}\n\n")
             
@@ -349,7 +349,7 @@ class VistaSIEM(tk.Frame):
             self.terminal_output.insert(tk.END, "🔐 INFORMACIÓN DE SEGURIDAD ARESITOS\n")
             self.terminal_output.insert(tk.END, "="*60 + "\n\n")
             
-            estado_seguridad = "✅ SEGURO" if info['es_usuario_kali'] else "❌ INSEGURO"
+            estado_seguridad = "OK SEGURO" if info['es_usuario_kali'] else "ERROR INSEGURO"
             
             self.terminal_output.insert(tk.END, f"Estado: {estado_seguridad}\n")
             self.terminal_output.insert(tk.END, f"Usuario: {info['usuario_actual']}\n")
@@ -793,7 +793,7 @@ class VistaSIEM(tk.Frame):
                 self._log_terminal("OK FASE 1 completada exitosamente", "SIEM", "SUCCESS")  # Issue 22/24: Sin emojis
             except Exception as e:
                 fases_con_error += 1
-                self._log_terminal(f"✗ ERROR en FASE 1: {str(e)}", "SIEM", "ERROR")
+                self._log_terminal(f"ERROR ERROR en FASE 1: {str(e)}", "SIEM", "ERROR")
                 self._log_terminal("Continuando con la siguiente fase...", "SIEM", "WARNING")
             
             # FASE 2: Monitoreo y protección DNS
@@ -804,7 +804,7 @@ class VistaSIEM(tk.Frame):
                 self._log_terminal("OK FASE 2 completada exitosamente", "SIEM", "SUCCESS")
             except Exception as e:
                 fases_con_error += 1
-                self._log_terminal(f"✗ ERROR en FASE 2: {str(e)}", "SIEM", "ERROR")
+                self._log_terminal(f"ERROR ERROR en FASE 2: {str(e)}", "SIEM", "ERROR")
                 self._log_terminal("Continuando con la siguiente fase...", "SIEM", "WARNING")
             
             # FASE 3: Monitoreo de datos de red
@@ -815,7 +815,7 @@ class VistaSIEM(tk.Frame):
                 self._log_terminal("OK FASE 3 completada exitosamente", "SIEM", "SUCCESS")
             except Exception as e:
                 fases_con_error += 1
-                self._log_terminal(f"✗ ERROR en FASE 3: {str(e)}", "SIEM", "ERROR")
+                self._log_terminal(f"ERROR ERROR en FASE 3: {str(e)}", "SIEM", "ERROR")
                 self._log_terminal("Continuando con la siguiente fase...", "SIEM", "WARNING")
             
             # FASE 4: Monitoreo de 50 puertos críticos
@@ -826,7 +826,7 @@ class VistaSIEM(tk.Frame):
                 self._log_terminal("OK FASE 4 completada exitosamente", "SIEM", "SUCCESS")
             except Exception as e:
                 fases_con_error += 1
-                self._log_terminal(f"✗ ERROR en FASE 4: {str(e)}", "SIEM", "ERROR")
+                self._log_terminal(f"ERROR ERROR en FASE 4: {str(e)}", "SIEM", "ERROR")
                 self._log_terminal("Continuando con la siguiente fase...", "SIEM", "WARNING")
             
             # FASE 5: Detección de anomalías en tiempo real
@@ -837,7 +837,7 @@ class VistaSIEM(tk.Frame):
                 self._log_terminal("OK FASE 5 completada exitosamente", "SIEM", "SUCCESS")
             except Exception as e:
                 fases_con_error += 1
-                self._log_terminal(f"✗ ERROR en FASE 5: {str(e)}", "SIEM", "ERROR")
+                self._log_terminal(f"ERROR ERROR en FASE 5: {str(e)}", "SIEM", "ERROR")
                 self._log_terminal("Continuando con la siguiente fase...", "SIEM", "WARNING")
             
             # FASE 6: Monitoreo continuo
@@ -864,7 +864,7 @@ class VistaSIEM(tk.Frame):
                     self._log_terminal("OK FASE 6 completada con monitoreo básico", "SIEM", "SUCCESS")
             except Exception as e:
                 fases_con_error += 1
-                self._log_terminal(f"✗ ERROR en FASE 6: {str(e)}", "SIEM", "ERROR")
+                self._log_terminal(f"ERROR ERROR en FASE 6: {str(e)}", "SIEM", "ERROR")
                 self._log_terminal("Fase final completada con errores", "SIEM", "WARNING")
             
             # RESUMEN FINAL DE FASES
@@ -873,7 +873,7 @@ class VistaSIEM(tk.Frame):
                 self.after(0, self._actualizar_texto_monitoreo, f"RESUMEN DE EJECUCIÓN SIEM\n")
                 self.after(0, self._actualizar_texto_monitoreo, f"{'='*50}\n")
                 self.after(0, self._actualizar_texto_monitoreo, f"OK FASES COMPLETADAS: {fases_completadas}/6\n")
-                self.after(0, self._actualizar_texto_monitoreo, f"✗ FASES CON ERROR: {fases_con_error}/6\n")
+                self.after(0, self._actualizar_texto_monitoreo, f"ERROR FASES CON ERROR: {fases_con_error}/6\n")
                 
                 if fases_con_error == 0:
                     self.after(0, self._actualizar_texto_monitoreo, f"ESTADO GENERAL: OK TODAS LAS FASES COMPLETADAS EXITOSAMENTE\n")

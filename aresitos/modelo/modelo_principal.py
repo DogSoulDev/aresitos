@@ -27,15 +27,15 @@ class ModeloPrincipal:
             
             # Inicializar gestor de wordlists
             try:
-                from aresitos.modelo.modelo_gestor_wordlists import ModeloGestorWordlists
+                from aresitos.modelo.modelo_wordlists_gestor import ModeloGestorWordlists
                 self.gestor_wordlists = ModeloGestorWordlists()
                 print("Gestor de Wordlists inicializado")
             except Exception as e:
-                print("Error inicializando gestor de wordlists: {e}")
+                print(f"Error inicializando gestor de wordlists: {e}")
             
             # Inicializar gestor de diccionarios
             try:
-                from aresitos.modelo.modelo_gestor_diccionarios import ModeloGestorDiccionarios
+                from aresitos.modelo.modelo_diccionarios import ModeloGestorDiccionarios
                 self.gestor_diccionarios = ModeloGestorDiccionarios()
                 print("Gestor de Diccionarios inicializado")
             except Exception as e:
@@ -43,16 +43,16 @@ class ModeloPrincipal:
             
             # Inicializar componentes avanzados
             try:
-                from aresitos.modelo.modelo_escaneador_avanzado_real import EscaneadorAvanzadoReal
-                self.escaneador_avanzado = EscaneadorAvanzadoReal()
+                from aresitos.modelo.modelo_escaneador import EscaneadorKali2025
+                self.escaneador_avanzado = EscaneadorKali2025()
                 print("Escaneador Avanzado inicializado")
             except Exception as e:
                 print(f"Error inicializando escáner avanzado: {e}")
                 self.escaneador_avanzado = None
             
             try:
-                from aresitos.modelo.modelo_siem import SIEMAvanzadoNativo
-                self.siem_avanzado = SIEMAvanzadoNativo()
+                from aresitos.modelo.modelo_siem import SIEMKali2025
+                self.siem_avanzado = SIEMKali2025()
                 print("SIEM Avanzado inicializado")
             except Exception as e:
                 print(f"Error inicializando SIEM avanzado: {e}")
@@ -65,8 +65,8 @@ class ModeloPrincipal:
                 print(f"Error inicializando monitor avanzado: {e}")
             
             try:
-                from aresitos.modelo.modelo_fim import FIMAvanzado
-                self.fim_avanzado = FIMAvanzado()
+                from aresitos.modelo.modelo_fim import FIMKali2025
+                self.fim_avanzado = FIMKali2025()
                 print("FIM Avanzado inicializado")
             except Exception as e:
                 print(f"Error inicializando FIM avanzado: {e}")

@@ -31,24 +31,14 @@ import sqlite3
 
 # Evitar warnings de typing
 if TYPE_CHECKING:
-    from .modelo_fim import FIMAvanzado as _FIMAvanzado
+    from .modelo_fim_base import FIMBase as _FIMBase
 else:
-    try:
-        from .modelo_fim import FIMAvanzado as _FIMAvanzado
-    except ImportError:
-        # Fallback si no existe modelo_fim
-        class _FIMAvanzado:
-            def __init__(self, gestor_permisos=None):
-                self.gestor_permisos = gestor_permisos
-                self.configuracion = {}
-                self.base_datos = "data/fim_database.json"
-            
-            def log(self, mensaje: str):
-                print(f"[FIM] {mensaje}")
+    from .modelo_fim_base import FIMBase as _FIMBase
 
-class FIMKali2025(_FIMAvanzado):  # type: ignore
+class FIMKali2025(_FIMBase):  # type: ignore
     """
-    File Integrity Monitoring avanzado con herramientas Kali Linux 2025
+    File Integrity Monitoring avanzado con herramientas Kali Linux 2025.
+    Hereda de FIMBase para funcionalidad común.
     """
     
     def __init__(self, gestor_permisos=None):
@@ -62,14 +52,34 @@ class FIMKali2025(_FIMAvanzado):  # type: ignore
             'yara': '/usr/bin/yara',
             'clamscan': '/usr/bin/clamscan'
         }
-        self.base_datos_sqlite = "data/fim_kali2025.db"
         self.monitores_activos = {}
-        self.verificar_herramientas()
-        self.inicializar_base_datos()
+        # Agregar herramientas FIM a la configuración base
+        # La clase base ya inicializa la BD básica, agregamos tablas específicas
+        self._inicializar_tablas_fim()
+        self._verificar_herramientas_fim()
+    
+    def _verificar_herramientas_fim(self):
+        """Verifica qué herramientas FIM específicas están disponibles"""
+        import subprocess
+        
+        for herramienta, ruta in self.herramientas_fim.items():
+            try:
+                result = subprocess.run(['which', herramienta], 
+                                     capture_output=True, text=True, timeout=5)
+                if result.returncode == 0:
+                    # Agregar a herramientas disponibles de la clase base
+                    if not hasattr(self, 'herramientas_disponibles'):
+                        self.herramientas_disponibles = {}
+                    self.herramientas_disponibles[herramienta] = result.stdout.strip()
+                    self.log(f"FIM: {herramienta} disponible en {result.stdout.strip()}")
+                else:
+                    self.log(f"FIM: {herramienta} no encontrada")
+            except Exception as e:
+                self.log(f"Error verificando {herramienta}: {e}")
     
     def verificar_herramientas(self):
-        """Verifica qué herramientas FIM están disponibles"""
-        self.herramientas_disponibles = {}
+        """Wrapper para compatibilidad"""
+        return self._verificar_herramientas_fim()
         
         for herramienta, ruta in self.herramientas_fim.items():
             try:
@@ -77,19 +87,19 @@ class FIMKali2025(_FIMAvanzado):  # type: ignore
                                      capture_output=True, text=True, timeout=5)
                 if result.returncode == 0:
                     self.herramientas_disponibles[herramienta] = result.stdout.strip()
-                    self.log(f"✓ {herramienta} disponible en {result.stdout.strip()}")
+                    self.log(f"OK {herramienta} disponible en {result.stdout.strip()}")
                 else:
                     self.log(f"ERROR {herramienta} no encontrada")
             except Exception as e:
                 self.log(f"ERROR verificando {herramienta}: {e}")
     
-    def inicializar_base_datos(self):
-        """Inicializa base de datos SQLite para FIM"""
+    def _inicializar_tablas_fim(self):
+        """Inicializa tablas específicas de FIM en la base de datos"""
         try:
             # Crear directorio si no existe
-            os.makedirs(os.path.dirname(self.base_datos_sqlite), exist_ok=True)
+            os.makedirs(os.path.dirname(self.db_path), exist_ok=True)
             
-            conn = sqlite3.connect(self.base_datos_sqlite)
+            conn = sqlite3.connect(self.db_path)
             cursor = conn.cursor()
             
             # Tabla para archivos monitoreados
@@ -149,7 +159,7 @@ class FIMKali2025(_FIMAvanzado):  # type: ignore
             
             conn.commit()
             conn.close()
-            self.log("✓ Base de datos FIM Kali2025 inicializada")
+            self.log("OK Base de datos FIM Kali2025 inicializada")
             
         except Exception as e:
             self.log(f"ERROR inicializando base de datos: {e}")
@@ -179,9 +189,9 @@ class FIMKali2025(_FIMAvanzado):  # type: ignore
                         'timestamp_inicio': datetime.now().isoformat()
                     }
                 else:
-                    self.log(f"✓ Ruta no existe: {ruta}")
+                    self.log(f"OK Ruta no existe: {ruta}")
             
-            self.log(f"✓ Monitoreo iniciado en {len(self.monitores_activos)} rutas")
+            self.log(f"OK Monitoreo iniciado en {len(self.monitores_activos)} rutas")
             return {
                 "exito": True,
                 "rutas_monitoreadas": len(self.monitores_activos),
@@ -189,7 +199,7 @@ class FIMKali2025(_FIMAvanzado):  # type: ignore
             }
             
         except Exception as e:
-            self.log(f"✓ Error iniciando monitoreo: {e}")
+            self.log(f"OK Error iniciando monitoreo: {e}")
             return {"error": str(e)}
     
     def _monitorear_ruta_inotify(self, ruta: str):
@@ -224,7 +234,7 @@ class FIMKali2025(_FIMAvanzado):  # type: ignore
                     self._procesar_evento_inotify(line.strip())
                     
         except Exception as e:
-            self.log(f"✓ Error en monitor inotify {ruta}: {e}")
+            self.log(f"OK Error en monitor inotify {ruta}: {e}")
     
     def _procesar_evento_inotify(self, linea_evento: str):
         """Procesa evento de inotify y lo guarda en base de datos"""
@@ -236,7 +246,7 @@ class FIMKali2025(_FIMAvanzado):  # type: ignore
                 timestamp = partes[2]
                 
                 # Guardar en base de datos
-                conn = sqlite3.connect(self.base_datos_sqlite)
+                conn = sqlite3.connect(self.db_path)
                 cursor = conn.cursor()
                 
                 # Buscar o crear archivo en base de datos
@@ -279,7 +289,7 @@ class FIMKali2025(_FIMAvanzado):  # type: ignore
                 self.log(f"STRINGS Evento FIM: {evento} en {archivo}")
                 
         except Exception as e:
-            self.log(f"✓ Error procesando evento inotify: {e}")
+            self.log(f"OK Error procesando evento inotify: {e}")
     
     def escaneo_rootkits_chkrootkit(self) -> Dict[str, Any]:
         """
@@ -300,7 +310,7 @@ class FIMKali2025(_FIMAvanzado):  # type: ignore
             # Guardar detecciones en base de datos
             self._guardar_detecciones_rootkit('chkrootkit', detecciones)
             
-            self.log(f"✓ Chkrootkit completado: {len(detecciones)} detecciones")
+            self.log(f"OK Chkrootkit completado: {len(detecciones)} detecciones")
             return {
                 "exito": True,
                 "detecciones": detecciones,
@@ -309,7 +319,7 @@ class FIMKali2025(_FIMAvanzado):  # type: ignore
             }
             
         except Exception as e:
-            self.log(f"✓ Error ejecutando chkrootkit: {e}")
+            self.log(f"OK Error ejecutando chkrootkit: {e}")
             return {"error": str(e)}
     
     def escaneo_rootkits_rkhunter(self) -> Dict[str, Any]:
@@ -335,7 +345,7 @@ class FIMKali2025(_FIMAvanzado):  # type: ignore
             # Guardar detecciones
             self._guardar_detecciones_rootkit('rkhunter', detecciones)
             
-            self.log(f"✓ Rkhunter completado: {len(detecciones)} detecciones")
+            self.log(f"OK Rkhunter completado: {len(detecciones)} detecciones")
             return {
                 "exito": True,
                 "detecciones": detecciones,
@@ -344,7 +354,7 @@ class FIMKali2025(_FIMAvanzado):  # type: ignore
             }
             
         except Exception as e:
-            self.log(f"✓ Error ejecutando rkhunter: {e}")
+            self.log(f"OK Error ejecutando rkhunter: {e}")
             return {"error": str(e)}
     
     def auditoria_sistema_linpeas(self) -> Dict[str, Any]:
@@ -363,7 +373,7 @@ class FIMKali2025(_FIMAvanzado):  # type: ignore
             
             problemas = self._procesar_resultados_linpeas(result.stdout)
             
-            self.log(f"✓ Linpeas completado: {len(problemas)} problemas detectados")
+            self.log(f"OK Linpeas completado: {len(problemas)} problemas detectados")
             return {
                 "exito": True,
                 "problemas_seguridad": problemas,
@@ -372,7 +382,7 @@ class FIMKali2025(_FIMAvanzado):  # type: ignore
             }
             
         except Exception as e:
-            self.log(f"✓ Error ejecutando linpeas: {e}")
+            self.log(f"OK Error ejecutando linpeas: {e}")
             return {"error": str(e)}
     
     def escaneo_malware_yara(self, directorio: str, reglas_yara: Optional[str] = None) -> Dict[str, Any]:
@@ -407,7 +417,7 @@ class FIMKali2025(_FIMAvanzado):  # type: ignore
             # Guardar en base de datos
             self._guardar_analisis_yara(detecciones)
             
-            self.log(f"✓ YARA completado: {len(detecciones)} detecciones")
+            self.log(f"OK YARA completado: {len(detecciones)} detecciones")
             return {
                 "exito": True,
                 "detecciones_malware": detecciones,
@@ -416,7 +426,7 @@ class FIMKali2025(_FIMAvanzado):  # type: ignore
             }
             
         except Exception as e:
-            self.log(f"✓ Error ejecutando YARA: {e}")
+            self.log(f"OK Error ejecutando YARA: {e}")
             return {"error": str(e)}
     
     def escaneo_antivirus_clamav(self, directorio: str) -> Dict[str, Any]:
@@ -441,7 +451,7 @@ class FIMKali2025(_FIMAvanzado):  # type: ignore
             
             infectados = self._procesar_resultados_clamav(result.stdout)
             
-            self.log(f"✓ ClamAV completado: {len(infectados)} archivos infectados")
+            self.log(f"OK ClamAV completado: {len(infectados)} archivos infectados")
             return {
                 "exito": True,
                 "archivos_infectados": infectados,
@@ -450,7 +460,7 @@ class FIMKali2025(_FIMAvanzado):  # type: ignore
             }
             
         except Exception as e:
-            self.log(f"✓ Error ejecutando ClamAV: {e}")
+            self.log(f"OK Error ejecutando ClamAV: {e}")
             return {"error": str(e)}
     
     def analisis_completo_fim_kali2025(self, rutas_criticas: List[str]) -> Dict[str, Any]:
@@ -527,7 +537,7 @@ class FIMKali2025(_FIMAvanzado):  # type: ignore
             "monitoreo_activo": len(self.monitores_activos)
         }
         
-        self.log("✓ ANÁLISIS COMPLETO FIM FINALIZADO")
+        self.log("OK ANÁLISIS COMPLETO FIM FINALIZADO")
         return resultados
     
     def _obtener_info_archivo(self, ruta: str) -> Dict[str, Any]:
@@ -720,7 +730,7 @@ rule PossibleMalware
     def _guardar_detecciones_rootkit(self, herramienta: str, detecciones: List[Dict[str, Any]]):
         """Guarda detecciones de rootkit en base de datos"""
         try:
-            conn = sqlite3.connect(self.base_datos_sqlite)
+            conn = sqlite3.connect(self.db_path)
             cursor = conn.cursor()
             
             for deteccion in detecciones:
@@ -745,7 +755,7 @@ rule PossibleMalware
     def _guardar_analisis_yara(self, detecciones: List[Dict[str, Any]]):
         """Guarda análisis YARA en base de datos"""
         try:
-            conn = sqlite3.connect(self.base_datos_sqlite)
+            conn = sqlite3.connect(self.db_path)
             cursor = conn.cursor()
             
             for deteccion in detecciones:
