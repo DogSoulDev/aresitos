@@ -605,144 +605,309 @@ LISTO PARA: Escaneos de vulnerabilidades en entornos Kali Linux 2025
                 'osquery', 'file', 'hexdump'
             ]
             
-                        # Lista de herramientas esenciales para Kali Linux (ELIMINADOS: sqlninja, volatility3)
+                        # Lista de herramientas esenciales optimizada para Kali Linux 2024+
             paquetes = [
-                # Escaneo de red (actualizado FASE 3.1)
-                'nmap', 'masscan', 'nikto', 'gobuster', 'feroxbuster', 'dirb',
-                # Servicios de red (FASE 3.1)
-                'netcat-traditional', 'whatweb', 'wfuzz', 'ffuf',
-                # Cracking y passwords
-                'hashcat', 'john', 'hydra', 'medusa', 'patator',
-                # Análisis SQL
-                'sqlmap',
-                # Cuarentena y malware (FASE 3.3 - FIM expandido)
-                'clamav', 'clamav-daemon', 'clamav-freshclam', 'yara', 'binwalk', 'exiftool',
-                'foremost', 'sleuthkit', 'autopsy',
-                # SIEM y auditoría (FASE 3.2) - REMOVIDOS PROBLEMÁTICOS
-                'fail2ban', 'aide',
-                # Herramientas de análisis avanzado (FASE 3)
-                'tcpdump', 'wireshark', 'tshark', 'strace', 'ltrace', 'gdb',
-                'osquery', 'file', 'hexdump'
+                # === ESCANEO DE RED Y RECONNAISSANCE ===
+                'nmap',           # Scanner de puertos principal
+                'masscan',        # Scanner de puertos ultra rápido
+                'rustscan',       # Scanner moderno en Rust
+                'nuclei',         # Scanner de vulnerabilidades moderno
+                'nikto',          # Scanner web clásico
+                'gobuster',       # Fuzzer de directorios en Go
+                'feroxbuster',    # Fuzzer de directorios en Rust
+                'dirb',           # Fuzzer de directorios clásico
+                'dirbuster',      # Fuzzer de directorios GUI
+                'whatweb',        # Identificador de tecnologías web
+                'wafw00f',        # Detector de WAF
+                'httprobe',       # Verificador de servicios HTTP
+                
+                # === HERRAMIENTAS DE RED ===
+                'netcat-openbsd', # Netcat principal en Kali
+                'socat',          # Socket relay avanzado
+                'netdiscover',    # Descubrimiento de hosts
+                'arp-scan',       # Scanner ARP
+                'fping',          # Ping masivo
+                'hping3',         # Generador de paquetes
+                
+                # === FUZZING Y TESTING WEB ===
+                'wfuzz',          # Fuzzer web principal
+                'ffuf',           # Fuzzer rápido en Go
+                'burpsuite',      # Suite de testing web
+                'zaproxy',        # OWASP ZAP
+                'commix',         # Inyección de comandos
+                'xsser',          # Testing XSS
+                
+                # === CRACKING Y PASSWORDS ===
+                'hashcat',        # Cracker de hashes GPU
+                'john',           # John the Ripper
+                'hydra',          # Brute force login
+                'medusa',         # Brute force alternativo
+                'patator',        # Fuzzer modular
+                'crunch',         # Generador de wordlists
+                'cewl',           # Extractor de wordlists web
+                'hashid',         # Identificador de hashes
+                
+                # === ANÁLISIS SQL ===
+                'sqlmap',         # SQL injection principal
+                'sqlninja',       # SQL injection avanzado
+                'bbqsql',         # Blind SQL injection
+                
+                # === ANÁLISIS DE MALWARE Y FORENSE ===
+                'clamav',         # Antivirus
+                'clamav-daemon',  # Daemon de ClamAV
+                'clamtk',         # GUI para ClamAV
+                'yara',           # Motor de detección de malware
+                'binwalk',        # Análisis de binarios
+                'exiftool',       # Análisis de metadatos
+                'foremost',       # Recuperación de archivos
+                'sleuthkit',      # Kit forense
+                'autopsy',        # GUI forense
+                'volatility3',    # Análisis de memoria
+                'strings',        # Extractor de strings
+                'hexedit',        # Editor hexadecimal
+                
+                # === SEGURIDAD DEL SISTEMA ===
+                'fail2ban',       # Protección contra brute force
+                'aide',           # Sistema de detección de intrusos
+                'chkrootkit',     # Detector de rootkits
+                'rkhunter',       # Hunter de rootkits
+                'lynis',          # Auditor de seguridad
+                'tiger',          # Scanner de seguridad
+                
+                # === ANÁLISIS DE TRÁFICO ===
+                'tcpdump',        # Capturador de paquetes
+                'wireshark',      # Analizador de protocolos GUI
+                'tshark',         # Wireshark CLI
+                'ettercap-text-only', # MITM attacks
+                'dsniff',         # Sniffing tools
+                'tcpflow',        # Reconstructor de sesiones TCP
+                'ngrep',          # Grep para tráfico de red
+                
+                # === HERRAMIENTAS DE DESARROLLO ===
+                'strace',         # Tracer de system calls
+                'ltrace',         # Tracer de library calls
+                'gdb',            # Debugger
+                'radare2',        # Framework de reversing
+                'objdump',        # Analizador de objetos
+                'nm',             # Lister de símbolos
+                'readelf',        # Lector de ELF
+                
+                # === HERRAMIENTAS BÁSICAS ESENCIALES ===
+                'curl',           # Cliente HTTP
+                'wget',           # Descargador
+                'file',           # Identificador de tipos de archivo
+                'xxd',            # Dumper hexadecimal
+                'base64',         # Codificador base64
+                'openssl',        # Herramientas de cifrado
+                'gpg',            # GnuPG
+                'zip',            # Compresor
+                'unzip',          # Descompresor
+                'p7zip-full',     # 7zip completo
+                'git',            # Control de versiones
+                
+                # === UTILIDADES DE SISTEMA ===
+                'htop',           # Monitor de procesos
+                'iotop',          # Monitor de I/O
+                'nethogs',        # Monitor de ancho de banda
+                'ss',             # Socket statistics
+                'lsof',           # List open files
+                'tree',           # Visualizador de directorios
+                'jq',             # Procesador JSON
+                'xmlstarlet',     # Procesador XML
+                
+                # === HERRAMIENTAS PYTHON PARA SEGURIDAD ===
+                'python3-pip',    # Gestor de paquetes Python
+                'python3-dev',    # Headers de desarrollo Python
+                'python3-setuptools', # Herramientas de setup Python
+                'python3-requests',   # Librería HTTP Python
+                'python3-beautifulsoup4', # Parser HTML Python
+                'python3-lxml',       # Procesador XML Python
             ]
             
-            # Herramientas problemáticas que requieren instalación manual especial
+            # Herramientas que requieren instalación especial o configuración adicional
             herramientas_problematicas = {
                 'tripwire': {
                     'razon': 'Requiere configuración interactiva y puede tardar +10 minutos',
-                    'comando': 'sudo apt install tripwire',
-                    'notas': 'Configurará automáticamente durante instalación. Responder prompts.'
-                },
-                'samhain': {
-                    'razon': 'Configuración compleja y dependencias especiales',
-                    'comando': 'sudo apt install samhain',
-                    'notas': 'Herramienta de integridad avanzada. Configuración manual requerida.'
-                },
-                'sqlninja': {
-                    'razon': 'Paquete obsoleto en Kali Linux 2025',
-                    'comando': 'Usar sqlmap como alternativa',
-                    'notas': 'sqlninja no está disponible en repositorios actuales'
+                    'comando': 'sudo apt update && sudo apt install -y tripwire',
+                    'notas': 'Sistema de detección de intrusos. Configurará automáticamente durante instalación.'
                 },
                 'volatility3': {
-                    'razon': 'Instalación vía pip, no APT',
-                    'comando': 'pip3 install volatility3',
-                    'notas': 'Herramienta de análisis de memoria forense'
+                    'razon': 'Mejor instalación vía pip para última versión',
+                    'comando': 'pip3 install volatility3 --break-system-packages',
+                    'notas': 'Herramienta de análisis de memoria forense. Alternativa: sudo apt install volatility3'
+                },
+                'rustscan': {
+                    'razon': 'Requiere instalación vía cargo o GitHub',
+                    'comando': 'wget -qO- https://github.com/RustScan/RustScan/releases/latest/download/rustscan_2.3.0_amd64.deb && sudo dpkg -i rustscan_2.3.0_amd64.deb',
+                    'notas': 'Scanner de puertos ultra rápido. Alternativa: cargo install rustscan'
+                },
+                'nuclei': {
+                    'razon': 'Instalación vía GitHub releases más actualizada',
+                    'comando': 'wget -qO- https://github.com/projectdiscovery/nuclei/releases/latest/download/nuclei_3.2.9_linux_amd64.zip | sudo unzip -d /usr/local/bin/',
+                    'notas': 'Scanner de vulnerabilidades moderno. Alternativa: apt install nuclei'
+                },
+                'bbqsql': {
+                    'razon': 'Herramienta Python que requiere instalación especial',
+                    'comando': 'pip3 install bbqsql --break-system-packages',
+                    'notas': 'Blind SQL injection. Alternativa: git clone y instalación manual'
+                },
+                'httprobe': {
+                    'razon': 'Herramienta Go que requiere instalación desde GitHub',
+                    'comando': 'go install github.com/tomnomnom/httprobe@latest',
+                    'notas': 'Verificador de servicios HTTP. Requiere Go instalado'
                 }
             }
             
-            # Herramientas que requieren instalación manual (se informará al usuario):
+            # Herramientas adicionales recomendadas para instalación manual
             herramientas_manuales = [
-                'rustscan: cargo install rustscan (requiere Rust)',
-                'httpx: go install github.com/projectdiscovery/httpx/cmd/httpx@latest (requiere Go)',
-                'nuclei: go install github.com/projectdiscovery/nuclei/v2/cmd/nuclei@latest (requiere Go)',
-                'linpeas: wget https://github.com/carlospolop/PEASS-ng/releases/latest/download/linpeas.sh',
-                'pspy64: wget https://github.com/DominicBreuker/pspy/releases/latest/download/pspy64',
-                'pspy32: wget https://github.com/DominicBreuker/pspy/releases/latest/download/pspy32',
-                'dirbuster: Ya incluido en Kali en /usr/share/dirbuster/',
-                'strings: Parte del paquete binutils (generalmente ya instalado)'
+                'linpeas.sh: wget https://github.com/carlospolop/PEASS-ng/releases/latest/download/linpeas.sh && chmod +x linpeas.sh',
+                'winpeas.exe: wget https://github.com/carlospolop/PEASS-ng/releases/latest/download/winPEAS.exe',
+                'pspy64: wget https://github.com/DominicBreuker/pspy/releases/latest/download/pspy64 && chmod +x pspy64',
+                'pspy32: wget https://github.com/DominicBreuker/pspy/releases/latest/download/pspy32 && chmod +x pspy32',
+                'chisel: wget https://github.com/jpillora/chisel/releases/latest/download/chisel_1.9.1_linux_amd64.gz && gunzip chisel_1.9.1_linux_amd64.gz && chmod +x chisel_1.9.1_linux_amd64',
+                'gobuster: Actualizar con: go install github.com/OJ/gobuster/v3@latest',
+                'ffuf: Actualizar con: go install github.com/ffuf/ffuf@latest',
+                'amass: go install -v github.com/owasp-amass/amass/v3/...@master',
+                'subfinder: go install -v github.com/projectdiscovery/subfinder/v2/cmd/subfinder@latest',
+                'httpx: go install -v github.com/projectdiscovery/httpx/cmd/httpx@latest',
+                'katana: go install github.com/projectdiscovery/katana/cmd/katana@latest',
+                'gau: go install github.com/lc/gau/v2/cmd/gau@latest',
+                'waybackurls: go install github.com/tomnomnom/waybackurls@latest',
+                'anew: go install github.com/tomnomnom/anew@latest',
+                'gf: go install github.com/tomnomnom/gf@latest',
+                'assetfinder: go install github.com/tomnomnom/assetfinder@latest',
+                'SecLists: git clone https://github.com/danielmiessler/SecLists.git /opt/SecLists',
+                'PayloadsAllTheThings: git clone https://github.com/swisskyrepo/PayloadsAllTheThings.git /opt/PayloadsAllTheThings',
+                'wordlists: apt update && apt install -y seclists wordlists dirb',
+                'rockyou.txt: gunzip /usr/share/wordlists/rockyou.txt.gz (si no está descomprimido)'
             ]
             
             # Actualizar repositorios usando SudoManager
+            self.after(0, self._actualizar_texto, "=== INICIANDO INSTALACIÓN DE HERRAMIENTAS KALI ===\n")
+            self.after(0, self._actualizar_texto, f"Total de herramientas a instalar: {len(paquetes)}\n\n")
+            
             self.after(0, self._actualizar_texto, "Actualizando repositorios...\n")
-            result = sudo_manager.execute_sudo_command('apt update', timeout=120)
+            result = sudo_manager.execute_sudo_command('apt update', timeout=180)
             
             if result.returncode == 0:
-                self.after(0, self._actualizar_texto, "OK Repositorios actualizados\n\n")
+                self.after(0, self._actualizar_texto, "✓ Repositorios actualizados correctamente\n\n")
             else:
-                self.after(0, self._actualizar_texto, f"ERROR actualizando repositorios: {result.stderr}\n\n")
+                self.after(0, self._actualizar_texto, f"⚠ ERROR actualizando repositorios: {result.stderr[:200]}...\n")
+                self.after(0, self._actualizar_texto, "Continuando con instalación...\n\n")
             
             # Instalar paquetes uno por uno para mejor control de errores
-            self.after(0, self._actualizar_texto, "Instalando herramientas...\n")
+            self.after(0, self._actualizar_texto, "=== INSTALANDO HERRAMIENTAS ===\n")
             
             paquetes_exitosos = []
             paquetes_fallidos = []
+            paquetes_ya_instalados = []
             
-            for paquete in paquetes:
+            for i, paquete in enumerate(paquetes, 1):
                 try:
-                    self.after(0, self._actualizar_texto, f"Instalando {paquete}...\n")
+                    self.after(0, self._actualizar_texto, f"[{i}/{len(paquetes)}] Instalando {paquete}...\n")
                     
-                    # Usar SudoManager en lugar de sudo directo
-                    result = sudo_manager.execute_sudo_command(f'apt install -y {paquete}', timeout=120)
+                    # Usar SudoManager con timeout extendido para paquetes grandes
+                    result = sudo_manager.execute_sudo_command(f'apt install -y {paquete}', timeout=180)
                     
                     if result.returncode == 0:
                         paquetes_exitosos.append(paquete)
-                        self.after(0, self._actualizar_texto, f"OK {paquete} instalado correctamente\n")
+                        self.after(0, self._actualizar_texto, f"  ✓ {paquete} instalado correctamente\n")
                     else:
-                        paquetes_fallidos.append(paquete)
-                        error_msg = result.stderr.strip()
-                        
-                        # Identificar errores comunes y dar instrucciones específicas
-                        if "Unable to locate package" in error_msg or "E: Package" in error_msg:
-                            self.after(0, self._actualizar_texto, f"ERROR instalando {paquete}: Paquete no encontrado en repositorios\n")
-                            self.after(0, self._actualizar_texto, f"  SOLUCIÓN: Instale manualmente con: sudo apt update && sudo apt install {paquete}\n")
-                            self.after(0, self._actualizar_texto, f"  ALTERNATIVA: Busque en: https://kali.org/tools/ para instalación alternativa\n")
-                        elif "WARNING: apt does not have a stable CLI interface" in error_msg:
-                            self.after(0, self._actualizar_texto, f"WARNING {paquete}: Advertencia de compatibilidad APT (no es error crítico)\n")
-                            self.after(0, self._actualizar_texto, f"  SOLUCIÓN: Instale manualmente con: sudo apt install {paquete}\n")
-                        elif "externally-managed-environment" in error_msg:
-                            self.after(0, self._actualizar_texto, f"ERROR instalando {paquete}: Entorno Python gestionado externamente\n")
-                            self.after(0, self._actualizar_texto, f"  SOLUCIÓN: Instale con pipx: pipx install {paquete}\n")
-                            self.after(0, self._actualizar_texto, f"  ALTERNATIVA: python3 -m pip install --user {paquete} --break-system-packages\n")
+                        # Verificar si ya está instalado
+                        check_result = sudo_manager.execute_sudo_command(f'dpkg -l | grep "^ii.*{paquete}"', timeout=10)
+                        if check_result.returncode == 0 and paquete in check_result.stdout:
+                            paquetes_ya_instalados.append(paquete)
+                            self.after(0, self._actualizar_texto, f"  ℹ {paquete} ya estaba instalado\n")
                         else:
-                            self.after(0, self._actualizar_texto, f"ERROR instalando {paquete}: {error_msg[:100]}...\n")
-                            self.after(0, self._actualizar_texto, f"  SOLUCIÓN: Instale manualmente con: sudo apt install {paquete}\n")
-                            self.after(0, self._actualizar_texto, f"  DOCUMENTACIÓN: Consulte documentación específica de la herramienta\n")
+                            paquetes_fallidos.append(paquete)
+                            error_msg = result.stderr.strip() if result.stderr else "Error desconocido"
+                            
+                            # Identificar errores comunes y dar instrucciones específicas
+                            if "Unable to locate package" in error_msg or "E: Package" in error_msg or "has no installation candidate" in error_msg:
+                                self.after(0, self._actualizar_texto, f"  ✗ {paquete}: Paquete no encontrado en repositorios\n")
+                                self.after(0, self._actualizar_texto, f"    💡 Solución: sudo apt update && sudo apt install {paquete}\n")
+                                self.after(0, self._actualizar_texto, f"    📖 Buscar en: https://www.kali.org/tools/{paquete}/\n")
+                            elif "already installed" in error_msg:
+                                paquetes_ya_instalados.append(paquete)
+                                self.after(0, self._actualizar_texto, f"  ℹ {paquete} ya estaba instalado (detectado en stderr)\n")
+                            elif "externally-managed-environment" in error_msg:
+                                self.after(0, self._actualizar_texto, f"  ⚠ {paquete}: Entorno Python gestionado externamente\n")
+                                self.after(0, self._actualizar_texto, f"    💡 Usar: pipx install {paquete} o pip3 install --user {paquete}\n")
+                            elif "DPKG_LOCK" in error_msg or "dpkg frontend is locked" in error_msg:
+                                self.after(0, self._actualizar_texto, f"  ⏳ {paquete}: Sistema de paquetes ocupado\n")
+                                self.after(0, self._actualizar_texto, f"    💡 Esperar o ejecutar: sudo killall apt apt-get\n")
+                            else:
+                                self.after(0, self._actualizar_texto, f"  ✗ {paquete}: {error_msg[:150]}...\n")
+                                self.after(0, self._actualizar_texto, f"    💡 Instalación manual: sudo apt install {paquete}\n")
                         
                 except subprocess.TimeoutExpired:
                     paquetes_fallidos.append(paquete)
-                    self.after(0, self._actualizar_texto, f"TIMEOUT instalando {paquete}\n")
-                    self.after(0, self._actualizar_texto, f"  SOLUCIÓN: Instale manualmente con más tiempo: sudo apt install {paquete}\n")
-                    self.after(0, self._actualizar_texto, f"  NOTA: Puede requerir descargas grandes o dependencias complejas\n")
+                    self.after(0, self._actualizar_texto, f"  ⏱ {paquete}: Timeout en instalación\n")
+                    self.after(0, self._actualizar_texto, f"    💡 Reintentar con: sudo apt install {paquete}\n")
                 except Exception as e:
                     paquetes_fallidos.append(paquete)
-                    self.after(0, self._actualizar_texto, f"ERROR instalando {paquete}: {str(e)[:100]}...\n")
-                    self.after(0, self._actualizar_texto, f"  SOLUCIÓN: Revise permisos e instale manualmente: sudo apt install {paquete}\n")
-                    self.after(0, self._actualizar_texto, f"  VERIFICACIÓN: Verifique conectividad y repositorios actualizados\n")
+                    self.after(0, self._actualizar_texto, f"  ✗ {paquete}: Error inesperado: {str(e)[:100]}...\n")
+                    self.after(0, self._actualizar_texto, f"    💡 Instalación manual: sudo apt install {paquete}\n")
             
-            # Mostrar resumen
-            self.after(0, self._actualizar_texto, f"\n{'='*50}\n")
-            self.after(0, self._actualizar_texto, f"RESUMEN DE INSTALACIÓN\n")
-            self.after(0, self._actualizar_texto, f"{'='*50}\n")
-            self.after(0, self._actualizar_texto, f"OK Instalados correctamente: {len(paquetes_exitosos)}\n")
-            self.after(0, self._actualizar_texto, f"ERROR Errores de instalación: {len(paquetes_fallidos)}\n\n")
+            # Mostrar resumen final detallado
+            total_herramientas = len(paquetes)
+            exitosas = len(paquetes_exitosos)
+            ya_instaladas = len(paquetes_ya_instalados)
+            fallidas = len(paquetes_fallidos)
+            
+            self.after(0, self._actualizar_texto, f"\n{'='*60}\n")
+            self.after(0, self._actualizar_texto, f"🎯 RESUMEN FINAL DE INSTALACIÓN KALI LINUX\n")
+            self.after(0, self._actualizar_texto, f"{'='*60}\n")
+            self.after(0, self._actualizar_texto, f"📊 Total de herramientas procesadas: {total_herramientas}\n")
+            self.after(0, self._actualizar_texto, f"✅ Instaladas correctamente: {exitosas}\n")
+            self.after(0, self._actualizar_texto, f"ℹ️  Ya estaban instaladas: {ya_instaladas}\n")
+            self.after(0, self._actualizar_texto, f"❌ Fallaron en instalación: {fallidas}\n")
+            
+            # Calcular porcentaje de éxito
+            disponibles = exitosas + ya_instaladas
+            porcentaje_exito = (disponibles / total_herramientas) * 100 if total_herramientas > 0 else 0
+            
+            if porcentaje_exito >= 90:
+                self.after(0, self._actualizar_texto, f"🎉 EXCELENTE: {porcentaje_exito:.1f}% de herramientas disponibles\n")
+            elif porcentaje_exito >= 70:
+                self.after(0, self._actualizar_texto, f"👍 BUENO: {porcentaje_exito:.1f}% de herramientas disponibles\n")
+            else:
+                self.after(0, self._actualizar_texto, f"⚠️  PARCIAL: {porcentaje_exito:.1f}% de herramientas disponibles\n")
             
             if paquetes_fallidos:
-                self.after(0, self._actualizar_texto, f"HERRAMIENTAS QUE REQUIEREN INSTALACIÓN MANUAL:\n")
+                self.after(0, self._actualizar_texto, f"\n🔧 HERRAMIENTAS QUE REQUIEREN ATENCIÓN:\n")
                 for paquete in paquetes_fallidos:
                     self.after(0, self._actualizar_texto, f"   • {paquete}\n")
-                self.after(0, self._actualizar_texto, f"\nCOMANDOS PARA INSTALACIÓN MANUAL:\n")
-                self.after(0, self._actualizar_texto, f"sudo apt update\n")
+                
+                self.after(0, self._actualizar_texto, f"\n📋 COMANDOS PARA INSTALACIÓN MANUAL:\n")
+                self.after(0, self._actualizar_texto, f"sudo apt update && sudo apt upgrade -y\n")
                 for paquete in paquetes_fallidos:
-                    self.after(0, self._actualizar_texto, f"sudo apt install {paquete}\n")
-                self.after(0, self._actualizar_texto, f"\nRECURSOS ADICIONALES:\n")
-                self.after(0, self._actualizar_texto, f"• Kali Tools: https://kali.org/tools/\n")
-                self.after(0, self._actualizar_texto, f"• Documentation: https://kali.org/docs/\n")
-                self.after(0, self._actualizar_texto, f"• Forum Support: https://forums.kali.org/\n")
+                    self.after(0, self._actualizar_texto, f"sudo apt install -y {paquete}\n")
+                
+                self.after(0, self._actualizar_texto, f"\n🔗 RECURSOS ÚTILES:\n")
+                self.after(0, self._actualizar_texto, f"• Kali Tools Database: https://www.kali.org/tools/\n")
+                self.after(0, self._actualizar_texto, f"• Kali Documentation: https://www.kali.org/docs/\n")
+                self.after(0, self._actualizar_texto, f"• Community Support: https://forums.kali.org/\n")
+                self.after(0, self._actualizar_texto, f"• Package Search: https://pkg.kali.org/\n")
             
-            if paquetes_fallidos:
-                self.after(0, self._actualizar_texto, "PAQUETES CON ERRORES:\n")
-                for paquete in paquetes_fallidos:
-                    self.after(0, self._actualizar_texto, f"  • {paquete}\n")
-                self.after(0, self._actualizar_texto, "\nEstos paquetes pueden no estar disponibles en este sistema.\n")
+            # Mostrar información sobre herramientas problemáticas
+            if herramientas_problematicas:
+                self.after(0, self._actualizar_texto, f"\n🚨 HERRAMIENTAS QUE REQUIEREN INSTALACIÓN ESPECIAL:\n")
+                for herramienta, info in herramientas_problematicas.items():
+                    self.after(0, self._actualizar_texto, f"\n• {herramienta.upper()}:\n")
+                    self.after(0, self._actualizar_texto, f"  Razón: {info['razon']}\n")
+                    self.after(0, self._actualizar_texto, f"  Comando: {info['comando']}\n")
+                    self.after(0, self._actualizar_texto, f"  Notas: {info['notas']}\n")
+            
+            # Mostrar herramientas adicionales recomendadas
+            self.after(0, self._actualizar_texto, f"\n⭐ HERRAMIENTAS ADICIONALES RECOMENDADAS:\n")
+            self.after(0, self._actualizar_texto, f"Las siguientes herramientas son muy útiles pero requieren instalación manual:\n\n")
+            for herramienta in herramientas_manuales[:10]:  # Mostrar solo las primeras 10
+                self.after(0, self._actualizar_texto, f"• {herramienta}\n")
+            
+            self.after(0, self._actualizar_texto, f"\n🔥 INSTALACIÓN COMPLETADA\n")
+            self.after(0, self._actualizar_texto, f"Su sistema Kali Linux está ahora optimizado para ARESITOS\n")
+            self.after(0, self._actualizar_texto, f"{'='*60}\n")
             
             # Considerar exitoso si al menos el 70% se instaló
             if len(paquetes_exitosos) >= len(paquetes) * 0.7:
