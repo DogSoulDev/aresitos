@@ -1,5 +1,5 @@
 
-![ARESITOS](aresitos/recursos/aresitos.ico)
+![ARESITOS](aresitos/recursos/aresitos.png)
 
 # ARESITOS - Herramienta de Ciberseguridad
 
