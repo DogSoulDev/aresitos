@@ -56,7 +56,7 @@ class ControladorPrincipal(ControladorBase):
             from .controlador_fim import ControladorFIM
             from .controlador_siem import ControladorSIEM
             from .controlador_cuarentena import ControladorCuarentena
-            
+
             self.controlador_escaneador = ControladorEscaneo(modelo_principal)
             self.controlador_auditoria = ControladorAuditoria(modelo_principal)
             self.controlador_reportes = ControladorReportes(modelo_principal)
@@ -65,10 +65,14 @@ class ControladorPrincipal(ControladorBase):
             self.controlador_fim = ControladorFIM(modelo_principal)
             self.controlador_siem = ControladorSIEM(modelo_principal)
             self.controlador_cuarentena = ControladorCuarentena(modelo_principal)
-            
-            self.logger.info("Controladores específicos inicializados")
+
+            self.logger.info("Controladores específicos inicializados correctamente.")
         except Exception as e:
-            self.logger.error(f"Error inicializando controladores específicos: {e}")
+            import traceback
+            mensaje_error = f"[ARESITOS] Error crítico al inicializar los controladores específicos: {e}\n" \
+                            + traceback.format_exc()
+            print(mensaje_error)
+            self.logger.error(mensaje_error)
             self.controlador_escaneador = None
             self.controlador_auditoria = None
             self.controlador_reportes = None
