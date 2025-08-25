@@ -22,15 +22,35 @@ except ImportError:
     BURP_THEME_AVAILABLE = False
     burp_theme = None
 
+class ThreadSafeFlag:
+    """Clase para bandera thread-safe - ARESITOS"""
+    def __init__(self):
+        self.flag = False
+        self.lock = threading.Lock()
+    
+    def is_set(self):
+        with self.lock:
+            return self.flag
+    
+    def set(self):
+        with self.lock:
+            self.flag = True
+    
+    def clear(self):
+        with self.lock:
+            self.flag = False
+
 class VistaMonitoreo(tk.Frame):
     
     def __init__(self, parent):
         super().__init__(parent)
         self.controlador = None
         self.logger = logging.getLogger(__name__)
-        self.monitor_activo = False
-        self.monitor_red_activo = False
-        self.thread_red = None
+        
+        # Uso de banderas thread-safe para evitar crashes y deslogueos (principios ARESITOS)
+        self.flag_monitoreo = ThreadSafeFlag()
+        self.flag_red = ThreadSafeFlag()
+        
         self.vista_principal = parent  # Referencia al padre para acceder al terminal
         
         # Inicializar SudoManager para prevenir crashes
@@ -623,24 +643,19 @@ class VistaMonitoreo(tk.Frame):
         self.log_to_terminal("Iniciando monitoreo del sistema...")
         if not self.controlador:
             self._log_terminal("Iniciando monitoreo con comandos nativos de Linux", "MONITOREO", "INFO")
-            
         self._log_terminal("Iniciando monitoreo completo del sistema con herramientas Kali", "MONITOREO", "INFO")
-        
-        # Iniciar monitoreo a través del controlador si está disponible
+        # Resetear bandera thread-safe
+        self.flag_monitoreo.clear()
         try:
             if self.controlador and self.controlador.iniciar_monitoreo():
-                self.monitor_activo = True
                 self.btn_iniciar_monitor.config(state="disabled")
                 self.btn_detener_monitor.config(state="normal")
                 self.label_estado.config(text="Estado: Activo")
                 self.text_monitor.insert(tk.END, "Monitoreo completo iniciado con controlador...\n")
                 self._log_terminal("Monitoreo del controlador iniciado exitosamente", "MONITOREO", "SUCCESS")
-                self.log_to_terminal("OK Monitoreo iniciado exitosamente")  # Issue 22/24: Sin emojis
-                
-                # Iniciar monitoreo avanzado en thread separado
+                self.log_to_terminal("OK Monitoreo iniciado exitosamente")
                 threading.Thread(target=self._monitoreo_avanzado_linux, daemon=True).start()
-                
-                self.after(2000, self.actualizar_monitoreo)  # Actualizar cada 2 segundos
+                self.after(2000, self.actualizar_monitoreo)
             else:
                 self._log_terminal("Ejecutando monitoreo avanzado con comandos Linux", "MONITOREO", "INFO")
                 self._iniciar_monitoreo_linux_avanzado()
@@ -650,7 +665,7 @@ class VistaMonitoreo(tk.Frame):
 
     def _iniciar_monitoreo_basico(self):
         """Iniciar monitoreo básico cuando el controlador no está disponible."""
-        self.monitor_activo = True
+        self.flag_monitoreo.clear()
         self.btn_iniciar_monitor.config(state="disabled")
         self.btn_detener_monitor.config(state="normal")
         self.label_estado.config(text="Estado: Activo (Básico)")
@@ -666,7 +681,7 @@ class VistaMonitoreo(tk.Frame):
         
         try:
             ciclo = 0
-            while self.monitor_activo:
+            while not self.flag_monitoreo.is_set():
                 ciclo += 1
                 self._log_terminal(f"Ciclo de monitoreo #{ciclo} iniciado", "MONITOREO", "INFO")
                 
@@ -694,7 +709,7 @@ class VistaMonitoreo(tk.Frame):
                 
                 # Pausa entre ciclos (15 segundos)
                 for i in range(15):
-                    if not self.monitor_activo:
+                    if self.flag_monitoreo.is_set():
                         break
                     time.sleep(1)
                     
@@ -976,7 +991,7 @@ class VistaMonitoreo(tk.Frame):
         if self.controlador:
             self.controlador.detener_monitoreo()
         
-        self.monitor_activo = False
+        self.flag_monitoreo.set()
         
         # Callbacks para la vista
         def callback_actualizacion(mensaje):
@@ -994,7 +1009,7 @@ class VistaMonitoreo(tk.Frame):
         detener_procesos.detener_monitoreo(callback_actualizacion, callback_habilitar)
     
     def actualizar_monitoreo(self):
-        if not self.monitor_activo or not self.controlador:
+        if self.flag_monitoreo.is_set() or not self.controlador:
             return
             
         estado = self.controlador.obtener_estado_monitoreo()
@@ -1021,7 +1036,7 @@ class VistaMonitoreo(tk.Frame):
             self.text_monitor.insert(tk.END, info + "\n")
             self.text_monitor.see(tk.END)
         
-        if self.monitor_activo:
+        if not self.flag_monitoreo.is_set():
             self.after(2000, self.actualizar_monitoreo)
     
     def monitorear_red(self):
@@ -1032,12 +1047,12 @@ class VistaMonitoreo(tk.Frame):
                                  "Por favor, reinicie la aplicación.")
             return
         
-        if self.monitor_red_activo:
+        if self.flag_red.is_set():
             messagebox.showwarning("Advertencia", "Ya hay un monitoreo de red en curso.")
             return
         
         try:
-            self.monitor_red_activo = True
+            self.flag_red.clear()
             self.btn_red.config(state="disabled")
             self.btn_cancelar_red.config(state="normal")
             self.text_monitor.insert(tk.END, "\n === MONITOREO COMPLETO DE RED INICIADO ===\n")
@@ -1064,7 +1079,7 @@ class VistaMonitoreo(tk.Frame):
             errores_consecutivos = 0
             max_errores = 3
             
-            while self.monitor_red_activo and errores_consecutivos < max_errores:
+            while not self.flag_red.is_set() and errores_consecutivos < max_errores:
                 ciclo += 1
                 ciclo_exitoso = True
                 
@@ -1072,7 +1087,7 @@ class VistaMonitoreo(tk.Frame):
                     self._log_terminal(f"Ciclo de monitoreo de red #{ciclo}", "MONITOREO-RED", "INFO")
                     
                     # FASE 1: Detectar dispositivos conectados a la red (con timeout y manejo de errores)
-                    if self.monitor_red_activo:
+                    if not self.flag_red.is_set():
                         try:
                             self._log_terminal("FASE 1: Detectando dispositivos conectados a la red", "MONITOREO-RED", "INFO")
                             self._detectar_dispositivos_red_seguro()
@@ -1081,7 +1096,7 @@ class VistaMonitoreo(tk.Frame):
                             ciclo_exitoso = False
                     
                     # FASE 2: Monitorear interfaces de red activas
-                    if self.monitor_red_activo:
+                    if not self.flag_red.is_set():
                         try:
                             self._log_terminal("FASE 2: Monitoreando interfaces de red activas", "MONITOREO-RED", "INFO")
                             self._monitorear_interfaces_red_seguro()
@@ -1090,7 +1105,7 @@ class VistaMonitoreo(tk.Frame):
                             ciclo_exitoso = False
                     
                     # FASE 3: Verificar conexiones activas
-                    if self.monitor_red_activo:
+                    if not self.flag_red.is_set():
                         try:
                             self._log_terminal("FASE 3: Verificando conexiones de red activas", "MONITOREO-RED", "INFO")
                             self._monitorear_conexiones_activas_seguro()
@@ -1099,7 +1114,7 @@ class VistaMonitoreo(tk.Frame):
                             ciclo_exitoso = False
                     
                     # FASE 4: Verificar puertos abiertos del sistema local
-                    if self.monitor_red_activo:
+                    if not self.flag_red.is_set():
                         try:
                             self._log_terminal("FASE 4: Verificando puertos abiertos del sistema local", "MONITOREO-RED", "INFO")
                             self._verificar_puertos_abiertos_seguro()
@@ -1108,7 +1123,7 @@ class VistaMonitoreo(tk.Frame):
                             ciclo_exitoso = False
                     
                     # FASE 5: Monitorear tráfico de red
-                    if self.monitor_red_activo:
+                    if not self.flag_red.is_set():
                         try:
                             self._log_terminal("FASE 5: Monitoreando trafico de red", "MONITOREO-RED", "INFO")
                             self._monitorear_trafico_red_seguro()
@@ -1117,7 +1132,7 @@ class VistaMonitoreo(tk.Frame):
                             ciclo_exitoso = False
                     
                     # FASE 6: Verificar configuración de red
-                    if self.monitor_red_activo:
+                    if not self.flag_red.is_set():
                         try:
                             self._log_terminal("FASE 6: Verificando configuracion de red", "MONITOREO-RED", "INFO")
                             self._verificar_configuracion_red_seguro()
@@ -1134,7 +1149,7 @@ class VistaMonitoreo(tk.Frame):
                     
                     # Pausa entre ciclos (15 segundos) con verificación de estado
                     for i in range(15):
-                        if not self.monitor_red_activo:
+                        if self.flag_red.is_set():
                             break
                         time.sleep(1)
                         
@@ -1144,13 +1159,11 @@ class VistaMonitoreo(tk.Frame):
                     
                     # Pausa más larga tras error
                     for i in range(5):
-                        if not self.monitor_red_activo:
+                        if self.flag_red.is_set():
                             break
                         time.sleep(1)
-                        
             if errores_consecutivos >= max_errores:
                 self._log_terminal(f"Monitoreo detenido: {max_errores} errores consecutivos detectados", "MONITOREO-RED", "ERROR")
-                        
         except Exception as e:
             self._log_terminal(f"Error fatal en monitoreo de red: {str(e)}", "MONITOREO-RED", "ERROR")
         finally:
@@ -1189,9 +1202,9 @@ class VistaMonitoreo(tk.Frame):
                     
                     # Escanear solo primeras 5 IPs para evitar timeouts largos
                     for i in range(1, 6):
-                        if not self.monitor_red_activo:
+                        if not self.flag_red.is_set():
                             break
-                            
+                        
                         ip = f"{red_base}.{i}"
                         resultado_ping = self._ejecutar_comando_seguro(['ping', '-c', '1', '-W', '1', ip], timeout=3)
                         
@@ -1233,7 +1246,7 @@ class VistaMonitoreo(tk.Frame):
                     red_base = red.split('/')[0].rsplit('.', 1)[0]
                     
                     for i in range(1, 20):  # Escanear primeros 20 IPs
-                        if not self.monitor_red_activo:
+                        if not self.flag_red.is_set():
                             break
                             
                         ip = f"{red_base}.{i}"
@@ -1492,7 +1505,7 @@ class VistaMonitoreo(tk.Frame):
             self._log_terminal(f"Conexiones activas: {conexiones_tcp} TCP, {conexiones_udp} UDP", "MONITOREO-RED", "INFO")
             
             # Mostrar puertos más relevantes
-            puertos_importantes = ['22', '80', '443', '21', '25', '53', '23', '3389']
+            puertos_importantes = ['22', '80', '443', '21', '25', '53', '110', '143', '993', '995']
             for protocolo, puerto, direccion in puertos_abiertos:
                 if puerto in puertos_importantes:
                     self._log_terminal(f"PUERTO IMPORTANTE: {protocolo} {puerto} en {direccion}", "MONITOREO-RED", "WARNING")
@@ -1641,9 +1654,8 @@ class VistaMonitoreo(tk.Frame):
     
     def _mostrar_resultados_red(self, resultados):
         """Mostrar resultados del monitoreo de red."""
-        if not self.monitor_red_activo:
+        if self.flag_red.is_set():
             return
-            
         for resultado in resultados:
             self.text_monitor.insert(tk.END, f"{resultado}\n")
         
@@ -1655,7 +1667,7 @@ class VistaMonitoreo(tk.Frame):
     
     def _finalizar_monitoreo_red(self):
         """Finalizar monitoreo de red."""
-        self.monitor_red_activo = False
+        self.flag_red.set()
         self.btn_red.config(state="normal")
         self.btn_cancelar_red.config(state="disabled")
         self.thread_red = None
@@ -1663,8 +1675,8 @@ class VistaMonitoreo(tk.Frame):
     
     def cancelar_monitoreo_red(self):
         """Cancelar el monitoreo de red."""
-        if self.monitor_red_activo:
-            self.monitor_red_activo = False
+        if not self.flag_red.is_set():
+            self.flag_red.set()
             self.text_monitor.insert(tk.END, "\n Monitoreo de red cancelado por el usuario.\n")
             self._finalizar_monitoreo_red()
     
