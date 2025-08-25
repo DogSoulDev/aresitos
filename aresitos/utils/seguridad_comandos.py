@@ -16,7 +16,6 @@ import re
 import platform
 import getpass
 import subprocess
-import logging
 from typing import Tuple, List, Dict, Optional, Any
 
 # Importaciones específicas para Linux
@@ -32,14 +31,8 @@ class ValidadorComandos:
     """Validador de seguridad para comandos de terminal en ARESITOS"""
     
     def __init__(self):
-        # Configurar logger siguiendo principios ARESITOS
-        self.logger = logging.getLogger(__name__)
-        
         self.usuario_actual = getpass.getuser()
         self.sistema = platform.system()
-        
-        self.logger.info(f"ValidadorComandos inicializado para usuario: {self.usuario_actual}")
-        self.logger.debug(f"Sistema detectado: {self.sistema}")
         
         # Comandos permitidos por categoría
         self.comandos_permitidos = {
@@ -62,7 +55,7 @@ class ValidadorComandos:
             # Comandos de análisis y forense
             'forense': [
                 'strings', 'hexdump', 'xxd', 'file', 'exiftool',
-                'binwalk', 'foremost', 'autopsy', 'chkrootkit',
+                'binwalk', 'foremost', 'volatility', 'chkrootkit',
                 'rkhunter', 'lynis', 'aide', 'tripwire', 'samhain'
             ],
             
@@ -132,8 +125,7 @@ class ValidadorComandos:
                     contenido = f.read()
                     if 'kali' not in contenido.lower():
                         return False
-            except (FileNotFoundError, PermissionError, OSError) as e:
-                self.logger.debug(f'Error verificando OS: {e}')
+            except:
                 return False
             
             # Verificar grupos de seguridad (solo en Linux)
@@ -146,14 +138,12 @@ class ValidadorComandos:
                         grupos_str = resultado.stdout.strip()
                         grupos_requeridos = ['sudo', 'kali']
                         return any(grupo in grupos_str for grupo in grupos_requeridos)
-                except (subprocess.SubprocessError, OSError, TimeoutError) as e:
-                    self.logger.debug(f'Error verificando grupos de usuario: {e}')
+                except:
                     pass
             
             return True  # Si llegamos aquí, usuario kali en Kali Linux
             
-        except (ValueError, TypeError, AttributeError) as e:
-            self.logger.debug(f'Error general en verificación de usuario: {e}')
+        except Exception:
             return False
     
     def sanitizar_comando(self, comando: str) -> str:

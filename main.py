@@ -1,7 +1,10 @@
 # -*- coding: utf-8 -*-
 """
 aresitos - Punto de Entrada Principal
-====================================
+==========================            print("[WARNING] MODO DESARROLLO: Ejecutando en entorno no-Kali")
+            print("Algunas funcionalidades pueden no estar disponibles")
+        else:
+            print("ERROR: ARESITOS requiere Kali Linux")=======
 
 Punto de entrada principal para aresitos que redirige al sistema
 de login GUI para una mejor experiencia de usuario.
@@ -64,11 +67,10 @@ def verificar_tkinter():
     """Verificar que tkinter esté disponible"""
     try:
         import tkinter as tk
-        # Verificar tkinter sin crear ventana visible
+        # Crear una ventana de prueba para verificar DISPLAY
         test_root = tk.Tk()
         test_root.withdraw()  # Ocultar inmediatamente
-        test_root.attributes('-alpha', 0.0)  # Hacer completamente transparente
-        test_root.destroy()  # Destruir inmediatamente
+        test_root.destroy()
         print("Tkinter disponible y funcional")
     except ImportError:
         raise ImportError("tkinter no está instalado. Ejecute: sudo apt install python3-tk")
@@ -155,7 +157,6 @@ def iniciar_aplicacion_clasica():
         from aresitos.vista.vista_principal import VistaPrincipal
         from aresitos.controlador.controlador_principal import ControladorPrincipal  
         from aresitos.modelo.modelo_principal import ModeloPrincipal
-        from aresitos.utils.favicon_manager import aplicar_favicon_aresitos, aplicar_favicon_kali_optimizado
         
         print("Módulos principales cargados")
         
@@ -163,18 +164,6 @@ def iniciar_aplicacion_clasica():
         root = tk.Tk()
         root.title("ARESITOS - Sistema de Seguridad Cibernética")
         root.geometry("1400x900")
-        
-        # NUEVO: Aplicar favicon de ARESITOS optimizado para Kali
-        try:
-            # Intentar método optimizado para Kali primero
-            if aplicar_favicon_kali_optimizado(root):
-                print("Favicon ARESITOS aplicado (método Kali optimizado)")
-            elif aplicar_favicon_aresitos(root):
-                print("Favicon ARESITOS aplicado (método estándar)")
-            else:
-                print("Advertencia: No se pudo cargar favicon")
-        except Exception as e:
-            print(f"Advertencia favicon: {e}")
         
         # CRÍTICO: Configurar tema oscuro para la ventana principal
         root.configure(bg='#2b2b2b')

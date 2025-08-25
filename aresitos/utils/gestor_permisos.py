@@ -1,5 +1,4 @@
 #!/usr/bin/env python3
-# -*- coding: utf-8 -*-
 """
 Gestor de Permisos Seguros para Ares Aegis
 ==========================================

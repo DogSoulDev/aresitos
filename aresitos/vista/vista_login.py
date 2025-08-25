@@ -24,14 +24,12 @@ import hashlib
 import re
 import signal
 import ctypes
-import logging
 from typing import Optional, Dict, List
 
 try:
     from aresitos.vista.burp_theme import burp_theme
     from aresitos.vista.vista_herramientas_kali import VistaHerramientasKali
     from aresitos.utils.sudo_manager import SudoManager
-    from aresitos.utils.favicon_manager import aplicar_favicon_aresitos, aplicar_favicon_kali_optimizado
     BURP_THEME_AVAILABLE = True
 except ImportError:
     BURP_THEME_AVAILABLE = False
@@ -177,7 +175,7 @@ def verificar_kali_linux_criptografico() -> bool:
 HERRAMIENTAS_REQUERIDAS = [
     # Scanners de red criticos modernizados
     'nmap', 'masscan', 'zmap', 'rustscan', 'dnsenum', 'dnsrecon', 'fierce',
-    'sublist3r', 'amass', 'gobuster', 'feroxbuster', 'curl', 'wfuzz',
+    'sublist3r', 'amass', 'gobuster', 'feroxbuster', 'httpx', 'wfuzz',
     
     # Analisis de vulnerabilidades
     'nikto', 'sqlmap', 'wpscan', 'joomscan', 'droopescan', 'nuclei',
@@ -204,12 +202,13 @@ HERRAMIENTAS_REQUERIDAS = [
     'java', 'gcc', 'make', 'cmake', 'openssl',
     
     # Herramientas adicionales modernizadas
-    'burpsuite', 'owasp-zap', 'nuclei', 'commix', 'weevely',
+    'burpsuite', 'owasp-zap', 'nuclei', 'xsser', 'weevely',
     'backdoor-factory', 'shellter', 'veil', 'empire'
 ]
 
 # Herramientas que requieren instalación manual o tienen problemas de timeout
 HERRAMIENTAS_PROBLEMATICAS = [
+    'volatility',      # No disponible en repositorios estándar
     'autopsy',         # Requiere descarga grande
     'tripwire',        # Timeout frecuente
     'samhain',         # Timeout frecuente  
@@ -298,22 +297,15 @@ class LoginAresitos:
     """
     
     def __init__(self):
-        # Configurar logger siguiendo principios ARESITOS
-        self.logger = logging.getLogger(__name__)
-        
         # Verificar Kali Linux ANTES de crear ventana
         if not verificar_kali_linux_estricto():
             # Verificar si estamos en modo desarrollo
             if '--dev' in sys.argv or '--desarrollo' in sys.argv:
                 print("MODO DESARROLLO: LoginApp en entorno no-Kali")
-                self.logger.warning("Ejecutando en modo desarrollo fuera de Kali Linux")
             else:
                 print("ERROR: ARESITOS requiere Kali Linux")
                 print("Sistema no compatible detectado")
-                self.logger.critical("Sistema no compatible detectado - no es Kali Linux")
                 sys.exit(1)
-        
-        self.logger.info("LoginAresitos inicializado correctamente")
         
         # Inicializar rate limiter
         self.rate_limiter = RateLimiter(max_intentos=3, ventana_tiempo=300)
@@ -325,16 +317,6 @@ class LoginAresitos:
         self.root = tk.Tk()
         self.root.title("ARESITOS - Autenticacion Segura")
         self.root.geometry("900x700")
-        
-        # NUEVO: Aplicar favicon de ARESITOS optimizado para Kali
-        try:
-            # Intentar método optimizado para Kali primero
-            if aplicar_favicon_kali_optimizado(self.root):
-                print("Favicon ARESITOS aplicado a login (método Kali)")
-            elif aplicar_favicon_aresitos(self.root):
-                print("Favicon ARESITOS aplicado a login (método estándar)")
-        except Exception as e:
-            print(f"Advertencia favicon login: {e}")
         
         # Ventana principal configurada
         
@@ -582,9 +564,8 @@ class LoginAresitos:
                 # Si hay cualquier error con tkinter, usar print como fallback
                 print(f"[LOGIN] {mensaje_seguro}")
                 
-        except (tk.TclError, ValueError, AttributeError) as e:
+        except Exception as e:
             # Log de fallback en caso de error
-            self.logger.debug(f"Error en logging seguro: {e}")
             print(f"[LOGIN] {mensaje}")  # No mostrar el error técnico
     
     def verificar_entorno_inicial(self):
@@ -617,8 +598,7 @@ class LoginAresitos:
             # Verificar herramientas en hilo separado
             threading.Thread(target=self.verificar_herramientas_inicial, daemon=True).start()
             
-        except (OSError, subprocess.SubprocessError, ValueError, threading.ThreadError) as e:
-            self.logger.error(f"Error verificando entorno: {e}")
+        except Exception as e:
             self.escribir_log(f"Error verificando entorno: {e}")
     
     def verificar_herramientas_inicial(self):
@@ -644,9 +624,15 @@ class LoginAresitos:
             
             self.escribir_log(f"Verificacion completada: {disponibles}/{total} herramientas disponibles")
             
-            # PRINCIPIO ARESITOS: Login SIEMPRE permite continuar, la configuración se hace en vista herramientas
-            self.escribir_log("Sistema listo - configuración detallada disponible en 'Herramientas'")
-            self.continue_btn.config(state=tk.NORMAL, bg=self.accent_green)
+            if disponibles >= total * 0.8:
+                self.escribir_log("Excelente: Mas del 80% de herramientas disponibles")
+                self.continue_btn.config(state=tk.NORMAL, bg=self.accent_green)
+            elif disponibles >= total * 0.5:
+                self.escribir_log("Aceptable: Mas del 50% de herramientas disponibles")
+                self.continue_btn.config(state=tk.NORMAL, bg=self.accent_orange)
+            else:
+                self.escribir_log("Insuficiente: Menos del 50% de herramientas disponibles")
+                self.continue_btn.config(state=tk.NORMAL, bg=self.accent_red)
             
             if self.herramientas_faltantes:
                 faltan = len(self.herramientas_faltantes)
@@ -1018,38 +1004,15 @@ class LoginAresitos:
             # Crear ventana separada para herramientas de Kali
             def callback_herramientas_completadas():
                 """Callback para cuando se complete la configuración de herramientas"""
-                print("[LOGIN] Callback herramientas completadas ejecutado")
-                try:
-                    self._iniciar_aplicacion_principal()
-                except Exception as e:
-                    print(f"[LOGIN] Error en callback herramientas: {e}")
-                    import traceback
-                    traceback.print_exc()
-                    # Fallback - intentar iniciar aplicación principal de forma alternativa
-                    try:
-                        print("[LOGIN] Intentando fallback...")
-                        self._iniciar_aplicacion_principal_fallback()
-                    except Exception as e2:
-                        print(f"[LOGIN] Error en fallback: {e2}")
-            
-            # Ocultar ventana de login antes de crear la de herramientas
-            self.root.withdraw()
+                self._iniciar_aplicacion_principal()
             
             # Crear nueva ventana para herramientas
-            ventana_herramientas = tk.Toplevel()  # Sin parent para evitar dependencias
+            ventana_herramientas = tk.Toplevel(self.root)
             ventana_herramientas.title("ARESITOS - Configuración de Herramientas Kali")
             ventana_herramientas.geometry("1000x700")
             ventana_herramientas.configure(bg='#2b2b2b')
             
-            # NUEVO: Aplicar favicon a ventana de herramientas
-            try:
-                # Intentar método optimizado para Kali primero
-                if aplicar_favicon_kali_optimizado(ventana_herramientas):
-                    print("[LOGIN] Favicon aplicado a ventana herramientas (método Kali)")
-                elif aplicar_favicon_aresitos(ventana_herramientas):
-                    print("[LOGIN] Favicon aplicado a ventana herramientas (método estándar)")
-            except Exception as e:
-                print(f"[LOGIN] Advertencia favicon herramientas: {e}")
+            # Ventana de herramientas configurada
             
             # Centrar ventana de herramientas
             ventana_herramientas.update_idletasks()
@@ -1076,74 +1039,70 @@ class LoginAresitos:
     
     def _iniciar_aplicacion_principal(self):
         """Iniciar la aplicación principal después de configurar herramientas"""
-        print("[LOGIN] Iniciando aplicación principal...")
+        self.escribir_log(" Iniciando ARESITOS...")
         
         try:
-            print("[LOGIN] Importando módulos principales...")
             # Importar módulos principales
             from aresitos.vista.vista_principal import VistaPrincipal
             from aresitos.controlador.controlador_principal import ControladorPrincipal
             from aresitos.modelo.modelo_principal import ModeloPrincipal
             
-            print("[LOGIN] Módulos principales importados correctamente")
+            self.escribir_log("Módulos principales importados correctamente")
             
             # Cerrar ventana de login
-            print("[LOGIN] Cerrando ventana de login...")
             self.root.destroy()
             
-            print("[LOGIN] Creando aplicación principal...")
+            self.escribir_log("Creando aplicación principal...")
             
-            # Crear aplicación principal y configurarla completamente ANTES de mostrar
+            # Crear aplicación principal con tema Burp Suite
             root_app = tk.Tk()
-            root_app.withdraw()  # Mantener oculta hasta estar completamente configurada
             root_app.title("Aresitos")
-            root_app.configure(bg='#2b2b2b')
+            root_app.geometry("1400x900")
             
-            # NUEVO: Aplicar favicon de ARESITOS a ventana principal
-            try:
-                # Intentar método optimizado para Kali primero
-                if aplicar_favicon_kali_optimizado(root_app):
-                    print("[LOGIN] Favicon ARESITOS aplicado a ventana principal (método Kali)")
-                elif aplicar_favicon_aresitos(root_app):
-                    print("[LOGIN] Favicon ARESITOS aplicado a ventana principal (método estándar)")
-            except Exception as e:
-                print(f"[LOGIN] Advertencia favicon: {e}")
+            # Ventana configurada
             
-            print("[LOGIN] Ventana principal configurada con tema Burp Suite")
+            # CRÍTICO: Configurar el tema ANTES de crear las vistas
+            root_app.configure(bg='#2b2b2b')  # Fondo Burp Suite principal
             
-            print("[LOGIN] Inicializando modelo de datos...")
-            # Inicializar MVC completamente antes de mostrar
+            self.escribir_log("Ventana principal configurada con tema Burp Suite")
+            
+            # Ventana configurada
+            
+            self.escribir_log("Inicializando modelo de datos...")
+            # Inicializar MVC correctamente
             modelo = ModeloPrincipal()
             
-            print("[LOGIN] Creando vista principal...")
+            self.escribir_log("Creando vista principal...")
             vista = VistaPrincipal(root_app)
-            vista.pack(fill="both", expand=True)
+            vista.pack(fill="both", expand=True)  # CRÍTICO: Hacer que la vista ocupe toda la ventana
             
-            print("[LOGIN] Inicializando controlador principal...")
+            self.escribir_log("Inicializando controlador principal...")
             controlador = ControladorPrincipal(modelo)
             
-            print("[LOGIN] Configurando conexión vista-controlador...")
+            self.escribir_log("Configurando conexión vista-controlador...")
+            # CRÍTICO: Conectar el controlador a la vista
             vista.set_controlador(controlador)
             
-            # Calcular posición centrada mientras está oculta
-            print("[LOGIN] Calculando posición de ventana...")
+            # Centrar ventana principal
             root_app.update_idletasks()
             x = (root_app.winfo_screenwidth() // 2) - (1200 // 2)
             y = (root_app.winfo_screenheight() // 2) - (800 // 2)
             root_app.geometry(f"1200x800+{x}+{y}")
             
-            print("[LOGIN] Ventana de aplicación configurada correctamente")
-            print("[LOGIN] Aplicación principal configurada. Iniciando interfaz...")
+            # Ventana principal configurada
+            self.escribir_log("OK Ventana de aplicación configurada correctamente")
             
-            # Mostrar ventana una sola vez, completamente configurada
-            root_app.deiconify()
+            # Forzar actualización de la ventana
+            root_app.update()
             
-            # Pequeña pausa para evitar parpadeo
-            root_app.after(100, lambda: root_app.focus_force())
+            self.escribir_log(" Aplicación principal configurada. Iniciando interfaz...")
             
-            print("[LOGIN] Iniciando mainloop de aplicación principal...")
+            # Mostrar ventana y comenzar loop principal
+            root_app.deiconify()  # Asegurar que la ventana esté visible
+            root_app.lift()       # Traer al frente
+            root_app.focus_force() # Forzar foco
+            
             root_app.mainloop()
-            print("[LOGIN] Mainloop de aplicación principal terminado")
             
         except ImportError as e:
             # Si no puede importar, usar el main original
@@ -1159,41 +1118,6 @@ class LoginAresitos:
             import traceback
             traceback.print_exc()
             messagebox.showerror("Error", f"Error iniciando aplicación:\n{e}")
-    
-    def _iniciar_aplicacion_principal_fallback(self):
-        """Método fallback para iniciar aplicación principal sin dependencias del login"""
-        print("[LOGIN FALLBACK] Iniciando aplicación principal con método alternativo...")
-        
-        try:
-            # Usar el método del main.py como fallback
-            import subprocess
-            import sys
-            import os
-            
-            # Obtener el directorio del proyecto
-            directorio_proyecto = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-            
-            print(f"[LOGIN FALLBACK] Directorio proyecto: {directorio_proyecto}")
-            
-            # Ejecutar main.py directamente como subprocess
-            cmd = [sys.executable, os.path.join(directorio_proyecto, "main.py"), "--dev"]
-            print(f"[LOGIN FALLBACK] Ejecutando comando: {' '.join(cmd)}")
-            
-            # Cerrar la ventana actual primero
-            try:
-                if hasattr(self, 'root') and self.root.winfo_exists():
-                    self.root.destroy()
-            except (FileNotFoundError, PermissionError, OSError) as e:
-                self.logger.debug(f'Error cerrando ventana de login: {e}')
-                pass
-            
-            # Ejecutar como subprocess independiente
-            subprocess.Popen(cmd, cwd=directorio_proyecto)
-            
-        except Exception as e:
-            print(f"[LOGIN FALLBACK] Error en fallback: {e}")
-            import traceback
-            traceback.print_exc()
 
 def main():
     """Función principal de la aplicación de login"""

@@ -125,18 +125,12 @@ class VistaReportes(tk.Frame):
                                bg=self.colors['bg_secondary'], fg=self.colors['fg_primary'])
         config_label.pack(anchor=tk.W)
         
-        # Variables para incluir módulos - COMPLETO ARESITOS v3.0
         self.incluir_dashboard = tk.BooleanVar(value=True)
         self.incluir_escaneo = tk.BooleanVar(value=True)
         self.incluir_monitoreo = tk.BooleanVar(value=True)
         self.incluir_fim = tk.BooleanVar(value=True)
         self.incluir_siem = tk.BooleanVar(value=True)
         self.incluir_cuarentena = tk.BooleanVar(value=True)
-        # NUEVOS MÓDULOS ARESITOS v3.0
-        self.incluir_auditoria = tk.BooleanVar(value=True)
-        self.incluir_wordlists = tk.BooleanVar(value=True)
-        self.incluir_kali = tk.BooleanVar(value=True)
-        self.incluir_logs = tk.BooleanVar(value=True)
         
         opciones = [
             ("Datos de Dashboard", self.incluir_dashboard),
@@ -144,12 +138,7 @@ class VistaReportes(tk.Frame):
             ("Datos de Monitoreo y Cuarentena", self.incluir_monitoreo),
             ("Datos de FIM (File Integrity)", self.incluir_fim),
             ("Datos de SIEM (Herramientas Forenses)", self.incluir_siem),
-            ("Estado de Cuarentena", self.incluir_cuarentena),
-            # NUEVOS MÓDULOS ARESITOS v3.0
-            ("Datos de Auditoría de Seguridad", self.incluir_auditoria),
-            ("Gestión de Wordlists y Diccionarios", self.incluir_wordlists),
-            ("Herramientas Kali Linux", self.incluir_kali),
-            ("Logs Centralizados del Sistema", self.incluir_logs)
+            ("Estado de Cuarentena", self.incluir_cuarentena)
         ]
         
         for texto, variable in opciones:
@@ -244,17 +233,8 @@ class VistaReportes(tk.Frame):
         self.log_to_terminal("Generando reporte completo del sistema...")
         def generar():
             try:
-                # VALIDACIÓN MEJORADA DEL CONTROLADOR
                 if not self.controlador:
-                    self._actualizar_reporte_seguro("ERROR: No hay controlador de reportes configurado.\n")
-                    self._actualizar_reporte_seguro("SOLUCIÓN: Reiniciar ARESITOS para inicializar controladores.\n")
-                    messagebox.showerror("Error", "Controlador de reportes no configurado.\n\nSolución: Reinicie ARESITOS.")
-                    return
-                
-                # Verificar que el controlador tenga los métodos necesarios
-                if not hasattr(self.controlador, 'generar_reporte_completo'):
-                    self._actualizar_reporte_seguro("ERROR: Controlador de reportes incompleto.\n")
-                    messagebox.showerror("Error", "Controlador de reportes no tiene funcionalidad completa.")
+                    messagebox.showerror("Error", "Controlador no configurado")
                     return
                 
                 self._actualizar_reporte_seguro("", "clear")
@@ -262,7 +242,7 @@ class VistaReportes(tk.Frame):
                 
                 self.log_to_terminal("DATOS Recopilando datos del sistema...")
                 
-                # Obtener datos reales de cada módulo - AMPLIADO ARESITOS v3.0
+                # Obtener datos reales de cada módulo
                 datos_dashboard = self._obtener_datos_dashboard() if self.incluir_dashboard.get() else None
                 datos_escaneo = self._obtener_datos_escaneo() if self.incluir_escaneo.get() else None  
                 datos_monitoreo = self._obtener_datos_monitoreo() if self.incluir_monitoreo.get() else None
@@ -270,19 +250,12 @@ class VistaReportes(tk.Frame):
                 datos_siem = self._obtener_datos_siem() if self.incluir_siem.get() else None
                 datos_cuarentena = self._obtener_datos_cuarentena() if self.incluir_cuarentena.get() else None
                 
-                # NUEVOS MÓDULOS - COBERTURA COMPLETA ARESITOS v3.0
-                datos_auditoria = self._obtener_datos_auditoria() if self.incluir_auditoria.get() else None
-                datos_wordlists = self._obtener_datos_wordlists() if self.incluir_wordlists.get() else None
-                datos_herramientas_kali = self._obtener_datos_herramientas_kali() if self.incluir_kali.get() else None
-                datos_logs_centralizados = self._obtener_logs_centralizados() if self.incluir_logs.get() else None
-                
-                # Capturar configuración del sistema y terminal principal
+                # Capturar terminal principal de Aresitos - Issue 20/24
                 datos_terminal_principal = self._obtener_terminal_principal()
-                datos_configuracion_sistema = self._obtener_configuracion_sistema()
                 
-                self.log_to_terminal("REPORTE Generando reporte PROFESIONAL con TODOS los módulos de ARESITOS...")
+                self.log_to_terminal("REPORTE Generando reporte con módulos seleccionados...")
                 
-                # Llamar con parámetros COMPLETOS - ARESITOS v3.0 PROFESIONAL
+                # Llamar con parámetros correctos incluyendo terminal principal - Issue 20/24
                 self.reporte_actual = self.controlador.generar_reporte_completo(
                     datos_escaneo=datos_escaneo,
                     datos_monitoreo=datos_monitoreo, 
@@ -290,11 +263,6 @@ class VistaReportes(tk.Frame):
                     datos_fim=datos_fim,
                     datos_siem=datos_siem,
                     datos_cuarentena=datos_cuarentena,
-                    datos_auditoria=datos_auditoria,
-                    datos_wordlists=datos_wordlists,
-                    datos_herramientas_kali=datos_herramientas_kali,
-                    datos_logs_centralizados=datos_logs_centralizados,
-                    datos_configuracion_sistema=datos_configuracion_sistema,
                     datos_terminal_principal=datos_terminal_principal
                 )
                 
@@ -653,12 +621,9 @@ class VistaReportes(tk.Frame):
                 
                 # Conexiones sospechosas
                 try:
-                    # SEGURIDAD: Evitar shell=True, ejecutar ss directamente
-                    result = subprocess.run(['ss', '-tuln'], 
-                                          capture_output=True, text=True, timeout=5)
-                    # Filtrar LISTEN manualmente en Python por seguridad
-                    listen_lines = [line for line in result.stdout.split('\n') if 'LISTEN' in line]
-                    informe["red"]["puertos_escucha"] = len(listen_lines)
+                    result = subprocess.run(['ss', '-tuln', '|', 'grep', 'LISTEN'], 
+                                          capture_output=True, text=True, timeout=5, shell=True)
+                    informe["red"]["puertos_escucha"] = len(result.stdout.split('\n')) - 1
                 except (subprocess.SubprocessError, OSError, TimeoutError) as e:
                     logging.debug(f'Error en excepción: {e}')
                     informe["red"]["puertos_escucha"] = 0
@@ -1006,63 +971,8 @@ class VistaReportes(tk.Frame):
                 'estado': 'captura_completa',
                 'terminal_content': '',
                 'estadisticas': {},
-                'configuracion': {},
-                'logs_archivos': [],
-                'ultimo_log_contenido': ''
+                'configuracion': {}
             }
-            
-            # ARESITOS: Obtener logs de escaneo guardados en carpeta logs/
-            try:
-                import os
-                import glob
-                
-                # Ruta a la carpeta logs del proyecto
-                logs_dir = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(__file__))), "logs")
-                
-                if os.path.exists(logs_dir):
-                    # Buscar archivos de log de escaneo
-                    patron_logs = os.path.join(logs_dir, "escaneo_resultado_*.log")
-                    archivos_logs = glob.glob(patron_logs)
-                    
-                    if archivos_logs:
-                        # Ordenar por fecha de modificación (más reciente primero)
-                        archivos_logs.sort(key=lambda x: os.path.getmtime(x), reverse=True)
-                        
-                        # Obtener información de todos los logs
-                        for archivo_log in archivos_logs[:10]:  # Últimos 10 logs
-                            try:
-                                stat_info = os.stat(archivo_log)
-                                datos['logs_archivos'].append({
-                                    'nombre': os.path.basename(archivo_log),
-                                    'ruta': archivo_log,
-                                    'tamaño': stat_info.st_size,
-                                    'fecha_modificacion': datetime.datetime.fromtimestamp(stat_info.st_mtime).isoformat(),
-                                    'timestamp_archivo': stat_info.st_mtime
-                                })
-                            except Exception as e:
-                                self.log_to_terminal(f"Error procesando log {archivo_log}: {e}")
-                        
-                        # Leer el contenido del log más reciente
-                        if archivos_logs:
-                            try:
-                                with open(archivos_logs[0], 'r', encoding='utf-8') as f:
-                                    datos['ultimo_log_contenido'] = f.read()
-                                datos['ultimo_log_archivo'] = os.path.basename(archivos_logs[0])
-                                self.log_to_terminal(f"Log más reciente incluido: {os.path.basename(archivos_logs[0])}")
-                            except Exception as e:
-                                datos['ultimo_log_contenido'] = f"Error leyendo log más reciente: {str(e)}"
-                                self.log_to_terminal(f"Error leyendo log reciente: {e}")
-                    
-                    datos['total_logs_encontrados'] = len(archivos_logs)
-                    datos['directorio_logs'] = logs_dir
-                else:
-                    datos['logs_archivos'] = []
-                    datos['total_logs_encontrados'] = 0
-                    datos['info_logs'] = 'Directorio logs/ no encontrado'
-                    
-            except Exception as e:
-                datos['error_logs'] = f"Error accediendo logs de escaneo: {str(e)}"
-                self.log_to_terminal(f"Error accediendo logs de escaneo: {e}")
             
             # Buscar la vista de escaneo y capturar su terminal
             if hasattr(self.vista_principal, 'vistas'):
@@ -1077,15 +987,6 @@ class VistaReportes(tk.Frame):
                             except Exception:
                                 datos['terminal_content'] = 'No se pudo capturar terminal de escaneador'
                         
-                        # ARESITOS: Capturar contenido de text_resultados también
-                        if hasattr(vista, 'text_resultados'):
-                            try:
-                                contenido_resultados = vista.text_resultados.get(1.0, tk.END)
-                                datos['resultados_content'] = contenido_resultados.strip()
-                                datos['resultados_lines'] = len(contenido_resultados.split('\n'))
-                            except Exception:
-                                datos['resultados_content'] = 'No se pudo capturar resultados de escaneador'
-                        
                         # Capturar datos específicos si tiene método
                         if hasattr(vista, 'obtener_datos_para_reporte'):
                             datos_especificos = vista.obtener_datos_para_reporte()
@@ -1099,19 +1000,13 @@ class VistaReportes(tk.Frame):
                         break
             
             # Si no se encontró terminal, marcar como limitado
-            if not datos['terminal_content'] and not datos['ultimo_log_contenido']:
+            if not datos['terminal_content']:
                 datos['estado'] = 'datos_limitados'
-                datos['info'] = 'Terminal de escaneador y logs no accesibles'
-            elif datos['ultimo_log_contenido']:
-                datos['estado'] = 'logs_disponibles'
-                datos['info'] = f'Logs de escaneo disponibles: {datos["total_logs_encontrados"]} archivos'
-            
-            self.log_to_terminal(f"Datos de escaneador obtenidos: {datos['total_logs_encontrados']} logs, terminal={'disponible' if datos['terminal_content'] else 'no disponible'}")
+                datos['info'] = 'Terminal de escaneador no accesible'
             
             return datos
             
         except Exception as e:
-            self.log_to_terminal(f"Error obteniendo datos escaneo: {e}")
             return {
                 'timestamp': datetime.datetime.now().isoformat(),
                 'modulo': 'Escaneador',
@@ -1190,57 +1085,8 @@ class VistaReportes(tk.Frame):
                 'terminal_content': '',
                 'monitor_fim_activo': False,
                 'archivos_monitoreados': [],
-                'alertas_integridad': [],
-                'logs_archivos': [],
-                'ultimo_log_contenido': ''
+                'alertas_integridad': []
             }
-            
-            # ARESITOS: Obtener logs de FIM guardados en carpeta logs/
-            try:
-                import os
-                import glob
-                
-                # Ruta a la carpeta logs del proyecto
-                logs_dir = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(__file__))), "logs")
-                
-                if os.path.exists(logs_dir):
-                    # Buscar archivos de log de FIM
-                    patron_logs = os.path.join(logs_dir, "fim_monitoreo_*.log")
-                    archivos_logs = glob.glob(patron_logs)
-                    
-                    if archivos_logs:
-                        # Ordenar por fecha de modificación (más reciente primero)
-                        archivos_logs.sort(key=lambda x: os.path.getmtime(x), reverse=True)
-                        
-                        # Obtener información de todos los logs
-                        for archivo_log in archivos_logs[:10]:  # Últimos 10 logs
-                            try:
-                                stat_info = os.stat(archivo_log)
-                                datos['logs_archivos'].append({
-                                    'nombre': os.path.basename(archivo_log),
-                                    'ruta': archivo_log,
-                                    'tamaño': stat_info.st_size,
-                                    'fecha_modificacion': datetime.datetime.fromtimestamp(stat_info.st_mtime).isoformat(),
-                                    'timestamp_archivo': stat_info.st_mtime
-                                })
-                            except Exception as e:
-                                self.log_to_terminal(f"Error procesando log FIM {archivo_log}: {e}")
-                        
-                        # Leer el contenido del log más reciente
-                        if archivos_logs:
-                            try:
-                                with open(archivos_logs[0], 'r', encoding='utf-8') as f:
-                                    datos['ultimo_log_contenido'] = f.read()
-                                datos['ultimo_log_archivo'] = os.path.basename(archivos_logs[0])
-                            except Exception as e:
-                                self.log_to_terminal(f"Error leyendo log FIM más reciente: {e}")
-                    
-                    self.log_to_terminal(f"DATOS FIM procesados: {len(datos['logs_archivos'])} logs encontrados")
-                else:
-                    self.log_to_terminal("INFO: Carpeta logs/ no encontrada para FIM")
-                    
-            except Exception as e:
-                self.log_to_terminal(f"Error obteniendo logs FIM: {e}")
             
             # Buscar la vista FIM y capturar su terminal
             if hasattr(self.vista_principal, 'vistas'):
@@ -1308,106 +1154,44 @@ class VistaReportes(tk.Frame):
                 'terminal_content': '',
                 'siem_activo': False,
                 'eventos_seguridad': [],
-                'alertas_criticas': [],
-                'logs_archivos': [],
-                'ultimo_log_contenido': ''
+                'alertas_criticas': []
             }
             
-            # ARESITOS: Obtener logs de SIEM guardados en carpeta logs/
-            try:
-                import os
-                import glob
-                
-                # Ruta a la carpeta logs del proyecto
-                logs_dir = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(__file__))), "logs")
-                
-                if os.path.exists(logs_dir):
-                    # Buscar archivos de log de SIEM
-                    patron_logs = os.path.join(logs_dir, "siem_eventos_*.log")
-                    archivos_logs = glob.glob(patron_logs)
-                    
-                    if archivos_logs:
-                        # Ordenar por fecha de modificación (más reciente primero)
-                        archivos_logs.sort(key=lambda x: os.path.getmtime(x), reverse=True)
-                        
-                        # Obtener información de todos los logs
-                        for archivo_log in archivos_logs[:10]:  # Últimos 10 logs
-                            try:
-                                stat_info = os.stat(archivo_log)
-                                datos['logs_archivos'].append({
-                                    'nombre': os.path.basename(archivo_log),
-                                    'ruta': archivo_log,
-                                    'tamaño': stat_info.st_size,
-                                    'fecha_modificacion': datetime.datetime.fromtimestamp(stat_info.st_mtime).isoformat(),
-                                    'timestamp_archivo': stat_info.st_mtime
-                                })
-                            except Exception as e:
-                                self.log_to_terminal(f"Error procesando log SIEM {archivo_log}: {e}")
-                        
-                        # Leer el contenido del log más reciente
-                        if archivos_logs:
-                            try:
-                                with open(archivos_logs[0], 'r', encoding='utf-8') as f:
-                                    datos['ultimo_log_contenido'] = f.read()
-                                datos['ultimo_log_archivo'] = os.path.basename(archivos_logs[0])
-                            except Exception as e:
-                                self.log_to_terminal(f"Error leyendo log SIEM más reciente: {e}")
-                    
-                    self.log_to_terminal(f"DATOS SIEM procesados: {len(datos['logs_archivos'])} logs encontrados")
-                else:
-                    self.log_to_terminal("INFO: Carpeta logs/ no encontrada para SIEM")
-                    
-            except Exception as e:
-                self.log_to_terminal(f"Error obteniendo logs SIEM: {e}")
-            
-            # BUSCAR VISTA SIEM DE MANERA MÁS ROBUSTA
-            vista_siem = None
-            
-            # Método 1: Buscar en vistas del principal
+            # Buscar la vista SIEM y capturar su terminal
             if hasattr(self.vista_principal, 'vistas'):
                 for nombre, vista in self.vista_principal.vistas.items():
                     if 'siem' in nombre.lower():
-                        vista_siem = vista
-                        break
-            
-            # Método 2: Buscar directamente vista_siem
-            if not vista_siem and hasattr(self.vista_principal, 'vista_siem'):
-                vista_siem = self.vista_principal.vista_siem
-            
-            if vista_siem:
-                # Capturar contenido del terminal SIEM
-                if hasattr(vista_siem, 'text_siem'):
-                    try:
-                        contenido_terminal = vista_siem.text_siem.get(1.0, tk.END)
-                        datos['terminal_content'] = contenido_terminal.strip()
-                        datos['terminal_lines'] = len(contenido_terminal.split('\n'))
-                        
-                        # Analizar contenido para extraer eventos de seguridad
-                        lineas = contenido_terminal.split('\n')
-                        for linea in lineas:
-                            if any(palabra in linea.upper() for palabra in ['CRITICO', 'ALERTA', 'VULNERABILIDAD', 'BACKDOOR', 'MALWARE']):
-                                datos['alertas_criticas'].append(linea.strip())
-                            elif any(palabra in linea.upper() for palabra in ['DETECTADO', 'MONITOREO', 'PUERTOS', 'CONEXIONES']):
-                                datos['eventos_seguridad'].append(linea.strip())
+                        # Capturar contenido del terminal SIEM
+                        if hasattr(vista, 'text_siem'):
+                            try:
+                                contenido_terminal = vista.text_siem.get(1.0, tk.END)
+                                datos['terminal_content'] = contenido_terminal.strip()
+                                datos['terminal_lines'] = len(contenido_terminal.split('\n'))
                                 
-                    except Exception:
-                        datos['terminal_content'] = 'No se pudo capturar terminal SIEM'
-                
-                # Capturar estado del SIEM
-                if hasattr(vista_siem, 'siem_activo'):
-                    datos['siem_activo'] = vista_siem.siem_activo
-                elif hasattr(vista_siem, 'proceso_siem_activo'):
-                    datos['siem_activo'] = vista_siem.proceso_siem_activo
-                
-                # Capturar datos específicos si tiene método
-                if hasattr(vista_siem, 'obtener_datos_para_reporte'):
-                    datos_especificos = vista_siem.obtener_datos_para_reporte()
-                    if isinstance(datos_especificos, dict):
-                        datos.update(datos_especificos)
-            else:
-                # Si no se encuentra la vista, usar datos básicos
-                datos['terminal_content'] = 'Vista SIEM no encontrada - datos básicos'
-                datos['nota'] = 'SIEM no disponible para captura'
+                                # Analizar contenido para extraer eventos de seguridad
+                                lineas = contenido_terminal.split('\n')
+                                for linea in lineas:
+                                    if any(palabra in linea.upper() for palabra in ['CRITICO', 'ALERTA', 'VULNERABILIDAD', 'BACKDOOR', 'MALWARE']):
+                                        datos['alertas_criticas'].append(linea.strip())
+                                    elif any(palabra in linea.upper() for palabra in ['DETECTADO', 'MONITOREO', 'PUERTOS', 'CONEXIONES']):
+                                        datos['eventos_seguridad'].append(linea.strip())
+                                        
+                            except Exception:
+                                datos['terminal_content'] = 'No se pudo capturar terminal SIEM'
+                        
+                        # Capturar estado del SIEM
+                        if hasattr(vista, 'siem_activo'):
+                            datos['siem_activo'] = vista.siem_activo
+                        elif hasattr(vista, 'proceso_siem_activo'):
+                            datos['siem_activo'] = vista.proceso_siem_activo
+                        
+                        # Capturar datos específicos si tiene método
+                        if hasattr(vista, 'obtener_datos_para_reporte'):
+                            datos_especificos = vista.obtener_datos_para_reporte()
+                            if isinstance(datos_especificos, dict):
+                                datos.update(datos_especificos)
+                        
+                        break
             
             # Estadísticas del análisis SIEM
             datos['estadisticas'] = {
@@ -1444,63 +1228,41 @@ class VistaReportes(tk.Frame):
                 'procesos_monitoreados': []
             }
             
-            # BUSCAR VISTA DE CUARENTENA DE MANERA MÁS ROBUSTA
-            vista_cuarentena = None
-            
-            # Método 1: Buscar en vistas del principal
+            # Buscar la vista de cuarentena y capturar su terminal
             if hasattr(self.vista_principal, 'vistas'):
                 for nombre, vista in self.vista_principal.vistas.items():
-                    if 'cuarentena' in nombre.lower() or 'monitoreo' in nombre.lower():
-                        vista_cuarentena = vista
-                        break
-            
-            # Método 2: Buscar en notebook tabs
-            if not vista_cuarentena and hasattr(self.vista_principal, 'notebook'):
-                for i in range(self.vista_principal.notebook.index("end")):
-                    tab_text = self.vista_principal.notebook.tab(i, "text")
-                    if 'cuarentena' in tab_text.lower() or 'monitoreo' in tab_text.lower():
-                        widget = self.vista_principal.notebook.nametowidget(self.vista_principal.notebook.tabs()[i])
-                        vista_cuarentena = widget
-                        break
-            
-            # Método 3: Buscar específicamente vista_monitoreo (que tiene cuarentena)
-            if not vista_cuarentena and hasattr(self.vista_principal, 'vista_monitoreo'):
-                vista_cuarentena = self.vista_principal.vista_monitoreo
-            
-            if vista_cuarentena:
-                # Capturar contenido del terminal de cuarentena
-                if hasattr(vista_cuarentena, 'text_terminal'):
-                    try:
-                        contenido_terminal = vista_cuarentena.text_terminal.get(1.0, tk.END)
-                        datos['terminal_content'] = contenido_terminal.strip()
-                        datos['terminal_lines'] = len(contenido_terminal.split('\n'))
-                        
-                        # Analizar contenido para extraer datos de cuarentena
-                        lineas = contenido_terminal.split('\n')
-                        for linea in lineas:
-                            if any(palabra in linea.upper() for palabra in ['CUARENTENA', 'AISLADO', 'BLOQUEADO']):
-                                datos['archivos_cuarentena'].append(linea.strip())
-                            elif any(palabra in linea.upper() for palabra in ['ALERTA', 'SOSPECHOSO', 'MALWARE']):
-                                datos['alertas_cuarentena'].append(linea.strip())
-                            elif any(palabra in linea.upper() for palabra in ['PROCESO', 'PID', 'MONITOREO']):
-                                datos['procesos_monitoreados'].append(linea.strip())
+                    if 'cuarentena' in nombre.lower():
+                        # Capturar contenido del terminal de cuarentena
+                        if hasattr(vista, 'text_terminal'):
+                            try:
+                                contenido_terminal = vista.text_terminal.get(1.0, tk.END)
+                                datos['terminal_content'] = contenido_terminal.strip()
+                                datos['terminal_lines'] = len(contenido_terminal.split('\n'))
                                 
-                    except Exception:
-                        datos['terminal_content'] = 'No se pudo capturar terminal cuarentena'
-                
-                # Capturar estado específico de cuarentena
-                if hasattr(vista_cuarentena, 'cuarentena_activa'):
-                    datos['cuarentena_activa'] = vista_cuarentena.cuarentena_activa
-                
-                # Capturar datos específicos si tiene método
-                if hasattr(vista_cuarentena, 'obtener_datos_para_reporte'):
-                    datos_especificos = vista_cuarentena.obtener_datos_para_reporte()
-                    if isinstance(datos_especificos, dict):
-                        datos.update(datos_especificos)
-            else:
-                # Si no se encuentra la vista, usar datos básicos
-                datos['terminal_content'] = 'Vista de cuarentena no encontrada - datos básicos'
-                datos['nota'] = 'Cuarentena no disponible para captura'
+                                # Analizar contenido para extraer datos de cuarentena
+                                lineas = contenido_terminal.split('\n')
+                                for linea in lineas:
+                                    if any(palabra in linea.upper() for palabra in ['CUARENTENA', 'AISLADO', 'BLOQUEADO']):
+                                        datos['archivos_cuarentena'].append(linea.strip())
+                                    elif any(palabra in linea.upper() for palabra in ['ALERTA', 'SOSPECHOSO', 'MALWARE']):
+                                        datos['alertas_cuarentena'].append(linea.strip())
+                                    elif any(palabra in linea.upper() for palabra in ['PROCESO', 'PID', 'MONITOREO']):
+                                        datos['procesos_monitoreados'].append(linea.strip())
+                                        
+                            except Exception:
+                                datos['terminal_content'] = 'No se pudo capturar terminal cuarentena'
+                        
+                        # Capturar estado específico de cuarentena
+                        if hasattr(vista, 'cuarentena_activa'):
+                            datos['cuarentena_activa'] = vista.cuarentena_activa
+                        
+                        # Capturar datos específicos si tiene método
+                        if hasattr(vista, 'obtener_datos_para_reporte'):
+                            datos_especificos = vista.obtener_datos_para_reporte()
+                            if isinstance(datos_especificos, dict):
+                                datos.update(datos_especificos)
+                        
+                        break
             
             # Estadísticas del análisis de cuarentena
             datos['estadisticas'] = {
@@ -1525,171 +1287,64 @@ class VistaReportes(tk.Frame):
             }
     
     def _obtener_terminal_principal(self):
-        """Obtener contenido COMPLETO del terminal principal de ARESITOS - v3.0."""
+        """Obtener contenido del terminal principal de Aresitos - Issue 20/24."""
         try:
             datos = {
                 'timestamp': datetime.datetime.now().isoformat(),
                 'modulo': 'Terminal_Principal',
                 'estado': 'captura_completa',
                 'terminal_content': '',
-                'terminales_encontrados': [],
                 'comandos_ejecutados': [],
-                'eventos_sistema': [],
-                'estadisticas_uso': {}
+                'eventos_sistema': []
             }
             
-            # BUSCAR TODOS LOS TERMINALES DISPONIBLES - MÚLTIPLES MÉTODOS
-            terminales_encontrados = []
-            
-            # Método 1: Terminal principal directo
+            # Buscar el terminal principal
             if hasattr(self.vista_principal, 'text_terminal'):
                 try:
-                    contenido = self.vista_principal.text_terminal.get(1.0, tk.END)
-                    terminales_encontrados.append({
-                        'nombre': 'Terminal Principal',
-                        'contenido': contenido,
-                        'lineas': len(contenido.split('\n'))
-                    })
-                except Exception as e:
-                    self.log_to_terminal(f"WARNING Terminal principal no accesible: {e}")
+                    contenido_terminal = self.vista_principal.text_terminal.get(1.0, tk.END)
+                    datos['terminal_content'] = contenido_terminal.strip()
+                    datos['terminal_lines'] = len(contenido_terminal.split('\n'))
+                    
+                    # Analizar contenido del terminal principal
+                    lineas = contenido_terminal.split('\n')
+                    for linea in lineas:
+                        if any(palabra in linea.upper() for palabra in ['COMANDO', 'EJECUTANDO', 'INICIANDO']):
+                            datos['comandos_ejecutados'].append(linea.strip())
+                        elif any(palabra in linea.upper() for palabra in ['ARESITOS', 'SISTEMA', 'CARGANDO']):
+                            datos['eventos_sistema'].append(linea.strip())
+                            
+                except Exception:
+                    datos['terminal_content'] = 'No se pudo capturar terminal principal'
             
-            # Método 2: Buscar terminales en todas las vistas
-            if hasattr(self.vista_principal, 'notebook'):
-                for i in range(self.vista_principal.notebook.index("end")):
-                    try:
-                        tab_widget = self.vista_principal.notebook.nametowidget(
-                            self.vista_principal.notebook.tabs()[i]
-                        )
-                        tab_text = self.vista_principal.notebook.tab(i, "text")
-                        
-                        # Buscar widgets de terminal en cada pestaña
-                        for widget in tab_widget.winfo_children():
-                            if self._buscar_terminales_recursivo(widget, tab_text, terminales_encontrados):
-                                pass
-                    except Exception as e:
-                        continue
+            # Si tiene terminal alterno
+            elif hasattr(self.vista_principal, 'terminal_frame') and hasattr(self.vista_principal.terminal_frame, 'text_terminal'):
+                try:
+                    contenido_terminal = self.vista_principal.terminal_frame.text_terminal.get(1.0, tk.END)
+                    datos['terminal_content'] = contenido_terminal.strip()
+                    datos['terminal_lines'] = len(contenido_terminal.split('\n'))
+                except Exception:
+                    datos['terminal_content'] = 'Terminal principal no accesible'
             
-            # Consolidar información de terminales
-            datos['terminales_encontrados'] = terminales_encontrados
+            # Estadísticas del terminal principal
+            datos['estadisticas'] = {
+                'comandos_ejecutados': len(datos['comandos_ejecutados']),
+                'eventos_sistema': len(datos['eventos_sistema']),
+                'lineas_terminal': datos.get('terminal_lines', 0)
+            }
             
-            # Compilar contenido completo
-            contenido_completo = ""
-            for terminal in terminales_encontrados:
-                contenido_completo += f"\n=== {terminal['nombre']} ===\n"
-                contenido_completo += terminal['contenido']
-                contenido_completo += f"\n=== Fin {terminal['nombre']} ===\n"
+            # Si no se encontró terminal, marcar como limitado
+            if not datos['terminal_content']:
+                datos['estado'] = 'datos_limitados'
+                datos['info'] = 'Terminal principal no accesible'
             
-            datos['terminal_content'] = contenido_completo
-            datos['total_terminales'] = len(terminales_encontrados)
-            
-            # Analizar contenido agregado
-            if contenido_completo:
-                lineas = contenido_completo.split('\n')
-                datos['estadisticas_uso'] = {
-                    'total_lineas': len(lineas),
-                    'lineas_con_comandos': len([l for l in lineas if l.strip().startswith('[') or 'EJECUTAR' in l]),
-                    'lineas_error': len([l for l in lineas if 'ERROR' in l.upper()]),
-                    'lineas_warning': len([l for l in lineas if 'WARNING' in l.upper()]),
-                    'lineas_info': len([l for l in lineas if 'INFO' in l.upper()]),
-                    'comandos_sistema': len([l for l in lineas if any(cmd in l for cmd in ['sudo', 'apt', 'systemctl', 'service'])])
-                }
-            
-            self.log_to_terminal(f"TERMINAL {datos['total_terminales']} terminales capturados")
             return datos
             
         except Exception as e:
-            self.log_to_terminal(f"ERROR al obtener terminal principal: {e}")
             return {
-                'error': str(e),
                 'timestamp': datetime.datetime.now().isoformat(),
-                'modulo': 'Terminal_Principal'
-            }
-
-    def _buscar_terminales_recursivo(self, widget, tab_name, terminales_encontrados):
-        """Buscar widgets de terminal de manera recursiva."""
-        try:
-            # Verificar si es un widget de texto/terminal
-            if hasattr(widget, 'get') and hasattr(widget, 'insert'):
-                try:
-                    contenido = widget.get("1.0", tk.END)
-                    if contenido.strip() and len(contenido) > 50:  # Solo contenidos significativos
-                        terminales_encontrados.append({
-                            'nombre': f'Terminal {tab_name}',
-                            'contenido': contenido,
-                            'lineas': len(contenido.split('\n')),
-                            'widget_class': widget.__class__.__name__
-                        })
-                        return True
-                except:
-                    pass
-            
-            # Buscar recursivamente en hijos
-            for child in widget.winfo_children():
-                self._buscar_terminales_recursivo(child, tab_name, terminales_encontrados)
-                
-        except Exception:
-            pass
-        return False
-
-    def _obtener_configuracion_sistema(self):
-        """Obtener configuración completa del sistema ARESITOS."""
-        try:
-            import platform
-            import psutil
-            
-            config = {
-                'timestamp': datetime.datetime.now().isoformat(),
-                'sistema_operativo': platform.system(),
-                'version_os': platform.release(),
-                'arquitectura': platform.machine(),
-                'python_version': platform.python_version(),
-                'aresitos_version': '3.0',
-                'componentes_activos': [],
-                'rendimiento_sistema': {}
-            }
-            
-            # Información de rendimiento del sistema
-            try:
-                config['rendimiento_sistema'] = {
-                    'memoria_total_gb': psutil.virtual_memory().total // (1024**3),
-                    'memoria_disponible_gb': psutil.virtual_memory().available // (1024**3),
-                    'memoria_uso_porcentaje': psutil.virtual_memory().percent,
-                    'cpu_count': psutil.cpu_count(),
-                    'cpu_uso_porcentaje': psutil.cpu_percent(interval=1),
-                    'disco_total_gb': psutil.disk_usage('/').total // (1024**3) if platform.system() != 'Windows' else psutil.disk_usage('C:\\').total // (1024**3),
-                    'disco_libre_gb': psutil.disk_usage('/').free // (1024**3) if platform.system() != 'Windows' else psutil.disk_usage('C:\\').free // (1024**3),
-                    'procesos_activos': len(psutil.pids())
-                }
-            except Exception as e:
-                config['rendimiento_sistema'] = {'error': f'No se pudo obtener info de rendimiento: {e}'}
-            
-            # Verificar componentes de ARESITOS activos
-            if hasattr(self.vista_principal, 'notebook'):
-                config['componentes_activos'] = [
-                    self.vista_principal.notebook.tab(i, "text") 
-                    for i in range(self.vista_principal.notebook.index("end"))
-                ]
-            
-            # Información de archivos de configuración
-            config['archivos_configuracion'] = []
-            config_dirs = ['configuración', 'data', 'logs']
-            for config_dir in config_dirs:
-                if os.path.exists(config_dir):
-                    try:
-                        archivos = [f for f in os.listdir(config_dir) if f.endswith(('.json', '.conf', '.cfg'))]
-                        config['archivos_configuracion'].extend([os.path.join(config_dir, f) for f in archivos])
-                    except Exception:
-                        pass
-            
-            self.log_to_terminal(f"SISTEMA Configuración capturada - {config['sistema_operativo']} {config['version_os']}")
-            return config
-            
-        except Exception as e:
-            self.log_to_terminal(f"ERROR al obtener configuración del sistema: {e}")
-            return {
-                'error': str(e),
-                'timestamp': datetime.datetime.now().isoformat(),
-                'sistema_operativo': 'Desconocido'
+                'modulo': 'Terminal_Principal',
+                'error': f'Error obteniendo terminal principal: {str(e)}',
+                'estado': 'error'
             }
     
     def abrir_logs_reportes(self):
@@ -1817,320 +1472,4 @@ class VistaReportes(tk.Frame):
             self.after_idle(_update)
         except (tk.TclError, AttributeError):
             pass
-
-    def _obtener_datos_auditoria(self):
-        """Obtener datos completos del módulo de auditoría - ARESITOS v3.0."""
-        try:
-            datos = {
-                'timestamp': datetime.datetime.now().isoformat(),
-                'modulo': 'Auditoria',
-                'estado': 'captura_completa',
-                'terminal_content': '',
-                'auditorias_ejecutadas': [],
-                'alertas_seguridad': [],
-                'configuraciones_auditadas': [],
-                'resultados_malware': [],
-                'logs_archivos': [],
-                'ultimo_log_contenido': ''
-            }
-            
-            # ARESITOS: Obtener logs de Auditoría guardados en carpeta logs/
-            try:
-                import os
-                import glob
-                
-                # Ruta a la carpeta logs del proyecto
-                logs_dir = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(__file__))), "logs")
-                
-                if os.path.exists(logs_dir):
-                    # Buscar archivos de log de Auditoría
-                    patron_logs = os.path.join(logs_dir, "auditoria_sistema_*.log")
-                    archivos_logs = glob.glob(patron_logs)
-                    
-                    if archivos_logs:
-                        # Ordenar por fecha de modificación (más reciente primero)
-                        archivos_logs.sort(key=lambda x: os.path.getmtime(x), reverse=True)
-                        
-                        # Obtener información de todos los logs
-                        for archivo_log in archivos_logs[:10]:  # Últimos 10 logs
-                            try:
-                                stat_info = os.stat(archivo_log)
-                                datos['logs_archivos'].append({
-                                    'nombre': os.path.basename(archivo_log),
-                                    'ruta': archivo_log,
-                                    'tamaño': stat_info.st_size,
-                                    'fecha_modificacion': datetime.datetime.fromtimestamp(stat_info.st_mtime).isoformat(),
-                                    'timestamp_archivo': stat_info.st_mtime
-                                })
-                            except Exception as e:
-                                self.log_to_terminal(f"Error procesando log Auditoría {archivo_log}: {e}")
-                        
-                        # Leer el contenido del log más reciente
-                        if archivos_logs:
-                            try:
-                                with open(archivos_logs[0], 'r', encoding='utf-8') as f:
-                                    datos['ultimo_log_contenido'] = f.read()
-                                datos['ultimo_log_archivo'] = os.path.basename(archivos_logs[0])
-                            except Exception as e:
-                                self.log_to_terminal(f"Error leyendo log Auditoría más reciente: {e}")
-                    
-                    self.log_to_terminal(f"DATOS AUDITORÍA procesados: {len(datos['logs_archivos'])} logs encontrados")
-                else:
-                    self.log_to_terminal("INFO: Carpeta logs/ no encontrada para Auditoría")
-                    
-            except Exception as e:
-                self.log_to_terminal(f"Error obteniendo logs Auditoría: {e}")
-            
-            # BUSCAR VISTA DE AUDITORIA DE MANERA ROBUSTA
-            vista_auditoria = None
-            
-            # Método 1: Buscar en vistas del principal
-            if hasattr(self.vista_principal, 'vistas'):
-                for nombre, vista in self.vista_principal.vistas.items():
-                    if 'auditoria' in nombre.lower():
-                        vista_auditoria = vista
-                        break
-            
-            # Método 2: Buscar por atributos del notebook
-            if not vista_auditoria and hasattr(self.vista_principal, 'notebook'):
-                for i in range(self.vista_principal.notebook.index("end")):
-                    tab_text = self.vista_principal.notebook.tab(i, "text")
-                    if 'audit' in tab_text.lower():
-                        vista_auditoria = self.vista_principal.notebook.nametowidget(
-                            self.vista_principal.notebook.tabs()[i]
-                        )
-                        break
-            
-            # Método 3: Buscar por atributo directo
-            if not vista_auditoria and hasattr(self.vista_principal, 'vista_auditoria'):
-                vista_auditoria = self.vista_principal.vista_auditoria
-            
-            if vista_auditoria:
-                # Capturar contenido del terminal de auditoría
-                if hasattr(vista_auditoria, 'text_terminal'):
-                    try:
-                        datos['terminal_content'] = vista_auditoria.text_terminal.get("1.0", tk.END)
-                    except:
-                        datos['terminal_content'] = "Terminal de auditoría no accesible"
-                
-                # Capturar estado de procesos de auditoría
-                if hasattr(vista_auditoria, 'proceso_activo'):
-                    datos['proceso_auditoria_activo'] = vista_auditoria.proceso_activo
-                
-                # Capturar botones de cancelar habilitados
-                if hasattr(vista_auditoria, 'btn_cancelar_general'):
-                    try:
-                        datos['cancelar_disponible'] = vista_auditoria.btn_cancelar_general['state'] != 'disabled'
-                    except:
-                        datos['cancelar_disponible'] = False
-                
-                self.log_to_terminal(f"AUDITORIA Datos capturados correctamente")
-            else:
-                datos['error'] = 'Vista de auditoría no encontrada'
-                self.log_to_terminal("WARNING Vista de auditoría no localizada")
-            
-            return datos
-            
-        except Exception as e:
-            self.log_to_terminal(f"ERROR al obtener datos de auditoría: {e}")
-            return {
-                'error': str(e),
-                'timestamp': datetime.datetime.now().isoformat(),
-                'modulo': 'Auditoria'
-            }
-
-    def _obtener_datos_wordlists(self):
-        """Obtener datos completos del módulo de gestión de datos/wordlists - ARESITOS v3.0."""
-        try:
-            datos = {
-                'timestamp': datetime.datetime.now().isoformat(),
-                'modulo': 'Wordlists_Diccionarios',
-                'estado': 'captura_completa',
-                'terminal_content': '',
-                'archivos_cargados': [],
-                'estadisticas_archivos': {},
-                'operaciones_realizadas': []
-            }
-            
-            # BUSCAR VISTA DE DATOS DE MANERA ROBUSTA
-            vista_datos = None
-            
-            # Método 1: Buscar en vistas del principal
-            if hasattr(self.vista_principal, 'vistas'):
-                for nombre, vista in self.vista_principal.vistas.items():
-                    if 'datos' in nombre.lower() or 'wordlist' in nombre.lower():
-                        vista_datos = vista
-                        break
-            
-            # Método 2: Buscar por atributos del notebook
-            if not vista_datos and hasattr(self.vista_principal, 'notebook'):
-                for i in range(self.vista_principal.notebook.index("end")):
-                    tab_text = self.vista_principal.notebook.tab(i, "text")
-                    if 'wordlist' in tab_text.lower() or 'diccionario' in tab_text.lower():
-                        vista_datos = self.vista_principal.notebook.nametowidget(
-                            self.vista_principal.notebook.tabs()[i]
-                        )
-                        break
-            
-            # Método 3: Buscar por atributo directo
-            if not vista_datos and hasattr(self.vista_principal, 'vista_gestion_datos'):
-                vista_datos = self.vista_principal.vista_gestion_datos
-            
-            if vista_datos:
-                # Capturar contenido del terminal de gestión
-                if hasattr(vista_datos, 'text_terminal'):
-                    try:
-                        datos['terminal_content'] = vista_datos.text_terminal.get("1.0", tk.END)
-                    except:
-                        datos['terminal_content'] = "Terminal de gestión no accesible"
-                
-                # Capturar lista de archivos actual
-                if hasattr(vista_datos, 'lista_archivos'):
-                    try:
-                        datos['archivos_cargados'] = list(vista_datos.lista_archivos.get(0, tk.END))
-                    except:
-                        datos['archivos_cargados'] = []
-                
-                # Capturar tipo de datos seleccionado
-                if hasattr(vista_datos, 'tipo_actual'):
-                    datos['tipo_seleccionado'] = vista_datos.tipo_actual
-                
-                # Capturar contenido de archivo seleccionado
-                if hasattr(vista_datos, 'text_contenido'):
-                    try:
-                        contenido = vista_datos.text_contenido.get("1.0", tk.END)
-                        datos['contenido_preview'] = contenido[:500] + "..." if len(contenido) > 500 else contenido
-                    except:
-                        datos['contenido_preview'] = "Contenido no accesible"
-                
-                self.log_to_terminal(f"WORDLISTS Datos capturados correctamente")
-            else:
-                datos['error'] = 'Vista de gestión de datos no encontrada'
-                self.log_to_terminal("WARNING Vista de gestión de datos no localizada")
-            
-            return datos
-            
-        except Exception as e:
-            self.log_to_terminal(f"ERROR al obtener datos de wordlists: {e}")
-            return {
-                'error': str(e),
-                'timestamp': datetime.datetime.now().isoformat(),
-                'modulo': 'Wordlists_Diccionarios'
-            }
-
-    def _obtener_datos_herramientas_kali(self):
-        """Obtener datos completos del módulo de herramientas Kali - ARESITOS v3.0."""
-        try:
-            datos = {
-                'timestamp': datetime.datetime.now().isoformat(),
-                'modulo': 'Herramientas_Kali',
-                'estado': 'captura_completa',
-                'herramientas_verificadas': [],
-                'optimizaciones_aplicadas': [],
-                'instalaciones_realizadas': [],
-                'sistema_kali_info': {}
-            }
-            
-            # BUSCAR VISTA DE HERRAMIENTAS KALI DE MANERA ROBUSTA
-            vista_kali = None
-            
-            # Método 1: Buscar en vistas del principal
-            if hasattr(self.vista_principal, 'vistas'):
-                for nombre, vista in self.vista_principal.vistas.items():
-                    if 'kali' in nombre.lower() or 'herramientas' in nombre.lower():
-                        vista_kali = vista
-                        break
-            
-            # Método 2: Buscar por atributos del notebook (si existe pestaña)
-            if not vista_kali and hasattr(self.vista_principal, 'notebook'):
-                for i in range(self.vista_principal.notebook.index("end")):
-                    tab_text = self.vista_principal.notebook.tab(i, "text")
-                    if 'kali' in tab_text.lower() or 'herramientas' in tab_text.lower():
-                        vista_kali = self.vista_principal.notebook.nametowidget(
-                            self.vista_principal.notebook.tabs()[i]
-                        )
-                        break
-            
-            # Método 3: Buscar por atributo directo
-            if not vista_kali and hasattr(self.vista_principal, 'vista_herramientas_kali'):
-                vista_kali = self.vista_principal.vista_herramientas_kali
-            
-            if vista_kali:
-                # Capturar estado de verificación de herramientas
-                if hasattr(vista_kali, 'herramientas_verificadas'):
-                    datos['herramientas_verificadas'] = vista_kali.herramientas_verificadas
-                
-                # Capturar optimizaciones disponibles
-                if hasattr(vista_kali, 'optimizaciones_disponibles'):
-                    datos['optimizaciones_aplicadas'] = vista_kali.optimizaciones_disponibles
-                
-                # Información del sistema Kali
-                import subprocess
-                try:
-                    # Verificar distribución de manera segura
-                    result = subprocess.run(['lsb_release', '-d'], 
-                                          capture_output=True, text=True, timeout=5)
-                    datos['sistema_kali_info']['distribucion'] = result.stdout.strip()
-                except:
-                    datos['sistema_kali_info']['distribucion'] = "No disponible"
-                
-                self.log_to_terminal(f"KALI Datos capturados correctamente")
-            else:
-                datos['error'] = 'Vista de herramientas Kali no encontrada'
-                self.log_to_terminal("WARNING Vista de herramientas Kali no localizada")
-            
-            return datos
-            
-        except Exception as e:
-            self.log_to_terminal(f"ERROR al obtener datos de herramientas Kali: {e}")
-            return {
-                'error': str(e),
-                'timestamp': datetime.datetime.now().isoformat(),
-                'modulo': 'Herramientas_Kali'
-            }
-
-    def _obtener_logs_centralizados(self):
-        """Obtener todos los logs centralizados de ARESITOS - ARESITOS v3.0."""
-        try:
-            datos_logs = {
-                'timestamp': datetime.datetime.now().isoformat(),
-                'logs_sistema': {},
-                'logs_aplicacion': {},
-                'logs_seguridad': {},
-                'archivos_log_encontrados': []
-            }
-            
-            # Directorios de logs de ARESITOS
-            directorios_logs = [
-                'logs',
-                'data',
-                'reportes'
-            ]
-            
-            for directorio in directorios_logs:
-                if os.path.exists(directorio):
-                    for archivo in os.listdir(directorio):
-                        if archivo.endswith('.log') or archivo.endswith('.txt'):
-                            ruta_completa = os.path.join(directorio, archivo)
-                            datos_logs['archivos_log_encontrados'].append(ruta_completa)
-                            
-                            # Leer últimas líneas de logs importantes
-                            if archivo.endswith('.log'):
-                                try:
-                                    with open(ruta_completa, 'r', encoding='utf-8') as f:
-                                        lines = f.readlines()
-                                        # Últimas 50 líneas
-                                        datos_logs['logs_sistema'][archivo] = ''.join(lines[-50:])
-                                except Exception as e:
-                                    datos_logs['logs_sistema'][archivo] = f"Error leyendo log: {e}"
-            
-            self.log_to_terminal(f"LOGS {len(datos_logs['archivos_log_encontrados'])} archivos de log encontrados")
-            return datos_logs
-            
-        except Exception as e:
-            self.log_to_terminal(f"ERROR al obtener logs centralizados: {e}")
-            return {
-                'error': str(e),
-                'timestamp': datetime.datetime.now().isoformat()
-            }
 

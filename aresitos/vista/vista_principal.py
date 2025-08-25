@@ -8,9 +8,6 @@ import gc  # Issue 21/24 - Optimización de memoria
 import threading  # Issue 21/24 - Gestión de hilos
 from tkinter import PhotoImage
 
-# Importar SudoManager para mantener credenciales durante toda la sesión
-from aresitos.utils.sudo_manager import get_sudo_manager, SudoManager
-
 # Importar todas las vistas disponibles
 from aresitos.vista.vista_dashboard import VistaDashboard
 from aresitos.vista.vista_escaneo import VistaEscaneo
@@ -35,9 +32,6 @@ class VistaPrincipal(tk.Frame):
         
         # Configurar logging
         self.logger = logging.getLogger(__name__)
-        
-        # CRÍTICO: Inicializar SudoManager heredado del login
-        self._inicializar_sudo_manager()
         
         # Solo aplicar tema si está disponible
         if BURP_THEME_AVAILABLE:
@@ -75,58 +69,6 @@ class VistaPrincipal(tk.Frame):
                                ('active', self.theme.get_color('bg_tertiary'))],
                      foreground=[('selected', self.theme.get_color('bg_primary')),
                                ('active', self.theme.get_color('fg_primary'))])
-    
-    def _inicializar_sudo_manager(self):
-        """Inicializar y verificar el estado del SudoManager heredado del login"""
-        try:
-            self.sudo_manager = get_sudo_manager()
-            estado = self.sudo_manager.get_status()
-            
-            if estado['authenticated'] and estado['active']:
-                self.logger.info(f"SudoManager activo - credenciales heredadas del login")
-                self.logger.info(f"Timestamp sudo: {estado['timestamp']}")
-                self.sudo_disponible = True
-            else:
-                self.logger.warning(f"SudoManager no activo en vista principal")
-                self.logger.warning(f"Estado sudo: {estado}")
-                self.sudo_disponible = False
-                
-        except Exception as e:
-            self.logger.error(f"Error inicializando SudoManager: {e}")
-            self.sudo_manager = None
-            self.sudo_disponible = False
-    
-    def _propagar_credenciales_sudo(self):
-        """Propagar credenciales sudo a todas las vistas hijas"""
-        if not self.sudo_disponible:
-            self.logger.warning("Sudo no disponible - no se pueden propagar credenciales")
-            return
-        
-        vistas_con_sudo = [
-            ('vista_escaneo', 'Vista de Escaneo'),
-            ('vista_monitoreo', 'Vista de Monitoreo'),
-            ('vista_auditoria', 'Vista de Auditoría'),
-            ('vista_fim', 'Vista FIM'),
-            ('vista_siem', 'Vista SIEM')
-        ]
-        
-        for vista_attr, nombre in vistas_con_sudo:
-            try:
-                if hasattr(self, vista_attr):
-                    vista = getattr(self, vista_attr)
-                    
-                    # Verificar si la vista tiene método para establecer sudo
-                    if hasattr(vista, 'set_sudo_manager'):
-                        vista.set_sudo_manager(self.sudo_manager)
-                        self.logger.info(f"Credenciales sudo propagadas a {nombre}")
-                    elif hasattr(vista, 'sudo_manager'):
-                        vista.sudo_manager = self.sudo_manager
-                        self.logger.info(f"SudoManager asignado a {nombre}")
-                    else:
-                        self.logger.debug(f"{nombre} no requiere credenciales sudo")
-                        
-            except Exception as e:
-                self.logger.error(f"Error propagando sudo a {nombre}: {e}")
 
     def set_controlador(self, controlador):
         self.controlador = controlador
@@ -141,18 +83,9 @@ class VistaPrincipal(tk.Frame):
             
         if hasattr(self.controlador, 'controlador_escaneador'):
             self.vista_escaneo.set_controlador(self.controlador.controlador_escaneador)
-            self.logger.info("OK Vista Escaneo conectada con controlador_escaneador")
+            self.logger.info("OK Vista Escaneo conectada")
         else:
             self.logger.warning("WARN Controlador Escaneador no disponible")
-            # Crear controlador básico como fallback
-            try:
-                # Usar import ya disponible al cargar el módulo
-                from aresitos.controlador.controlador_escaneo import ControladorEscaneo
-                controlador_escaneo_fallback = ControladorEscaneo(self.controlador.modelo_principal)
-                self.vista_escaneo.set_controlador(controlador_escaneo_fallback)
-                self.logger.info("OK Controlador Escaneo fallback creado y conectado")
-            except Exception as e:
-                self.logger.error(f"ERROR creando controlador escaneo fallback: {e}")
             
         if hasattr(self.controlador, 'controlador_monitoreo'):
             self.vista_monitoreo.set_controlador(self.controlador.controlador_monitoreo)
@@ -191,20 +124,17 @@ class VistaPrincipal(tk.Frame):
         else:
             self.logger.warning("WARN Controlador SIEM no disponible")
         
-        # CRÍTICO: Propagar credenciales sudo a todas las vistas
-        self._propagar_credenciales_sudo()
-        
         # Inicializar vista con datos del controlador
         self.actualizar_vista_principal()
     
     def obtener_terminal_integrado(self):
         """Obtener referencia al terminal integrado global del dashboard."""
-        # Usar import ya declarado al inicio del archivo
+        from aresitos.vista.vista_dashboard import VistaDashboard
         return VistaDashboard.obtener_terminal_global()
     
     def log_actividad(self, mensaje, modulo="GENERAL", nivel="INFO"):
         """Registrar actividad en el terminal integrado global."""
-        # Usar import ya declarado al inicio del archivo
+        from aresitos.vista.vista_dashboard import VistaDashboard
         VistaDashboard.log_actividad_global(mensaje, modulo, nivel)
 
     def crear_widgets(self):
@@ -446,7 +376,7 @@ class VistaPrincipal(tk.Frame):
             
             # Optimizar SudoManager
             try:
-                # Usar import ya declarado al inicio del archivo
+                from aresitos.utils.sudo_manager import get_sudo_manager
                 sudo_manager = get_sudo_manager()
                 resultado = sudo_manager.optimize_memory()
                 optimizaciones_realizadas.append(f"SudoManager: {resultado}")

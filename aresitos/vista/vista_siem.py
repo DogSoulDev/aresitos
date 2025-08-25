@@ -71,14 +71,6 @@ class VistaSIEM(tk.Frame):
     def set_controlador(self, controlador):
         self.controlador = controlador
     
-    def set_sudo_manager(self, sudo_manager):
-        """Establecer SudoManager heredado de la vista principal"""
-        self.sudo_manager = sudo_manager
-        if sudo_manager and sudo_manager.is_sudo_active():
-            print("[SIEM] SudoManager activo recibido")
-        else:
-            print("[SIEM] Advertencia: SudoManager no activo")
-    
     def crear_interfaz(self):
         # PanedWindow principal para dividir contenido y terminal
         self.paned_window = tk.PanedWindow(self, orient="vertical", bg=self.colors['bg_primary'])
@@ -154,7 +146,7 @@ class VistaSIEM(tk.Frame):
             # Botón ver logs (estilo dashboard, compacto)
             btn_logs = tk.Button(
                 controles_frame,
-                text="VER LOG TERMINAL",
+                text="VER LOGS",
                 command=self.abrir_logs_siem,
                 bg=self.colors.get('info', '#007acc'),
                 fg='white',
@@ -162,18 +154,6 @@ class VistaSIEM(tk.Frame):
                 height=1
             )
             btn_logs.pack(side="left", padx=2, fill="x", expand=True)
-            
-            # Botón abrir carpeta de logs
-            btn_carpeta_logs = tk.Button(
-                controles_frame,
-                text="ABRIR CARPETA LOGS",
-                command=self.abrir_carpeta_logs,
-                bg=self.colors.get('warning', '#ff9800'),
-                fg='white',
-                font=("Arial", 8, "bold"),
-                height=1
-            )
-            btn_carpeta_logs.pack(side="left", padx=2, fill="x", expand=True)
             
             # Área de terminal (misma estética que dashboard, más pequeña)
             self.terminal_output = scrolledtext.ScrolledText(
@@ -400,71 +380,6 @@ class VistaSIEM(tk.Frame):
                 self.log_to_terminal("WARNING: Carpeta de logs no encontrada")
         except Exception as e:
             self.log_to_terminal(f"ERROR abriendo logs SIEM: {e}")
-    
-    def abrir_carpeta_logs(self):
-        """
-        ARESITOS: Abrir carpeta de logs SIEM en explorador de archivos.
-        Principios: Simplicidad, Responsabilidad, Robustez, Eficiencia.
-        """
-        try:
-            logs_path = os.path.join(os.getcwd(), "logs")
-            if os.path.exists(logs_path):
-                if platform.system() == "Linux":
-                    subprocess.run(["xdg-open", logs_path], check=False)
-                elif platform.system() == "Windows":
-                    subprocess.run(["explorer", logs_path], check=False)
-                self.log_to_terminal("Carpeta de logs abierta en explorador de archivos")
-            else:
-                os.makedirs(logs_path, exist_ok=True)
-                self.log_to_terminal("Carpeta de logs creada y abierta")
-                if platform.system() == "Linux":
-                    subprocess.run(["xdg-open", logs_path], check=False)
-                elif platform.system() == "Windows":
-                    subprocess.run(["explorer", logs_path], check=False)
-        except Exception as e:
-            self.log_to_terminal(f"Error abriendo carpeta de logs: {str(e)}")
-    
-    def guardar_resultado_siem(self, contenido_terminal=None):
-        """
-        ARESITOS: Guardar resultados del SIEM en archivo de log con timestamp.
-        Principios: Simplicidad, Responsabilidad, Robustez, Eficiencia.
-        """
-        try:
-            # Crear directorio logs si no existe
-            logs_dir = os.path.join(os.getcwd(), "logs")
-            os.makedirs(logs_dir, exist_ok=True)
-            
-            # Generar timestamp para nombre único
-            timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-            nombre_archivo = f"siem_eventos_{timestamp}.log"
-            ruta_archivo = os.path.join(logs_dir, nombre_archivo)
-            
-            # Obtener contenido del terminal si no se proporciona
-            if contenido_terminal is None:
-                contenido_terminal = self.terminal_output.get(1.0, tk.END)
-            
-            # Agregar metadatos del sistema
-            metadatos = f"""ARESITOS v3.0 - Reporte SIEM
-========================================
-Fecha: {datetime.now().strftime("%Y-%m-%d %H:%M:%S")}
-Usuario: {os.getenv('USER', 'unknown')}
-Sistema: {platform.system()} {platform.release()}
-Versión Python: {platform.python_version()}
-========================================
-
-"""
-            
-            # Escribir archivo con metadatos y contenido
-            with open(ruta_archivo, 'w', encoding='utf-8') as f:
-                f.write(metadatos)
-                f.write(contenido_terminal)
-            
-            self.log_to_terminal(f"✓ Resultados guardados: {nombre_archivo}")
-            return ruta_archivo
-            
-        except Exception as e:
-            self.log_to_terminal(f"✗ Error guardando resultados: {str(e)}")
-            return None
     
     def log_to_terminal(self, mensaje):
         """Registrar mensaje en el terminal con formato estándar."""
@@ -963,18 +878,6 @@ Versión Python: {platform.python_version()}
                 if fases_con_error == 0:
                     self.after(0, self._actualizar_texto_monitoreo, f"ESTADO GENERAL: OK TODAS LAS FASES COMPLETADAS EXITOSAMENTE\n")
                     self._log_terminal("OK SIEM: Todas las fases completadas exitosamente", "SIEM", "SUCCESS")
-                    
-                    # ARESITOS: Guardar automáticamente los resultados cuando SIEM se completa exitosamente
-                    try:
-                        import os
-                        # Obtener todo el texto de resultados actual
-                        contenido_completo = self.terminal_output.get(1.0, 'end-1c')
-                        archivo_guardado = self.guardar_resultado_siem(contenido_completo)
-                        if archivo_guardado:
-                            self.after(0, self._actualizar_texto_monitoreo, f"\n[INFO] Resultados automáticamente guardados en: {os.path.basename(archivo_guardado)}\n")
-                            self.after(0, self._actualizar_texto_monitoreo, "[INFO] Use 'Abrir Carpeta Logs' para acceder al archivo\n")
-                    except Exception as e:
-                        self._log_terminal(f"Error guardando resultados automáticamente: {str(e)}", "SIEM", "WARNING")
                 else:
                     self.after(0, self._actualizar_texto_monitoreo, f"ESTADO GENERAL: {fases_completadas} fases exitosas, {fases_con_error} con errores\n")
                     self._log_terminal(f"SIEM: {fases_completadas} fases exitosas, {fases_con_error} con errores", "SIEM", "WARNING")
@@ -1022,8 +925,7 @@ Versión Python: {platform.python_version()}
                     self._log_terminal(f"Firewall iptables - {reglas} reglas activas", "SIEM", "INFO")
                 else:
                     self._log_terminal("Firewall iptables no disponible", "SIEM", "WARNING")
-            except (subprocess.SubprocessError, OSError, TimeoutError) as e:
-                logging.debug(f'Error en excepción: {e}')
+            except:
                 self._log_terminal("No se pudo verificar iptables", "SIEM", "WARNING")
                 
         except Exception as e:
@@ -1075,8 +977,7 @@ Versión Python: {platform.python_version()}
                     self._log_terminal("Resolucion DNS funcionando correctamente", "SIEM", "INFO")
                 else:
                     self._log_terminal("PROBLEMA DNS: Fallo en resolucion", "SIEM", "ERROR")
-            except (subprocess.SubprocessError, OSError, TimeoutError) as e:
-                logging.debug(f'Error en excepción: {e}')
+            except:
                 self._log_terminal("PROBLEMA DNS: No se pudo probar resolucion", "SIEM", "WARNING")
                 
         except Exception as e:
@@ -1123,8 +1024,7 @@ Versión Python: {platform.python_version()}
                                 proceso = parte_users.split('(')[1].split(')')[0]
                             else:
                                 proceso = 'desconocido'
-                        except (ValueError, TypeError, AttributeError) as e:
-                            logging.debug(f'Error en excepción: {e}')
+                        except:
                             proceso = 'desconocido'
                             
                         if proceso not in procesos_red:
@@ -1329,8 +1229,7 @@ Versión Python: {platform.python_version()}
             import ipaddress
             ip_obj = ipaddress.ip_address(ip)
             return ip_obj.is_private or ip_obj.is_loopback or ip_obj.is_link_local
-        except (ValueError, TypeError, OSError) as e:
-            logging.debug(f'Error en excepción: {e}')
+        except:
             # Verificación manual para IPs comunes
             return (ip.startswith('192.168.') or 
                    ip.startswith('10.') or 
@@ -1374,8 +1273,7 @@ Versión Python: {platform.python_version()}
                                 # Reportar IPs más agresivas
                                 for ip, intentos in sorted(ips_atacantes.items(), key=lambda x: x[1], reverse=True)[:3]:
                                     self._log_terminal(f"IP AGRESIVA: {ip} ({intentos} intentos)", "SIEM", "ERROR")
-                    except (ValueError, TypeError, AttributeError) as e:
-                        logging.debug(f'Error en excepción: {e}')
+                    except:
                         pass
                     break  # Solo verificar el primer log disponible
             
@@ -1393,8 +1291,7 @@ Versión Python: {platform.python_version()}
                                 puerto_remoto = int(remote_addr.split(':')[-1])
                                 if puerto_remoto > 50000:  # Puertos muy altos
                                     puertos_altos.append(puerto_remoto)
-                            except (ValueError, TypeError, AttributeError) as e:
-                                logging.debug(f'Error en excepción: {e}')
+                            except:
                                 pass
                 
                 if len(puertos_altos) > 10:
@@ -1430,8 +1327,7 @@ Versión Python: {platform.python_version()}
                         elif cpu > 50.0:
                             self._log_terminal(f"ALERTA CPU: Proceso {proceso} usando {cpu}% CPU", "SIEM", "WARNING")
                             
-            except (ValueError, TypeError, OSError) as e:
-                logging.debug(f'Error en excepción: {e}')
+            except:
                 pass
                 
             # Verificar uso excesivo de memoria
@@ -1449,8 +1345,7 @@ Versión Python: {platform.python_version()}
                         if memoria > 20.0:
                             self._log_terminal(f"ANOMALIA MEMORIA: Proceso {proceso} usando {memoria}% RAM", "SIEM", "WARNING")
                             
-            except (ValueError, TypeError, AttributeError) as e:
-                logging.debug(f'Error en excepción: {e}')
+            except:
                 pass
                 
             # Verificar conexiones de red sospechosas
@@ -1468,8 +1363,7 @@ Versión Python: {platform.python_version()}
                 elif conexiones_establecidas > 20:
                     self._log_terminal(f"ALERTA RED: Muchas conexiones activas ({conexiones_establecidas})", "SIEM", "WARNING")
                     
-            except (ValueError, TypeError, AttributeError) as e:
-                logging.debug(f'Error en excepción: {e}')
+            except:
                 pass
                 
             # Verificar logs del sistema en busca de fallos recientes
@@ -1485,8 +1379,7 @@ Versión Python: {platform.python_version()}
                 else:
                     self._log_terminal(f"Sistema estable - {errores} errores en la ultima hora", "SIEM", "INFO")
                     
-            except (ValueError, TypeError, AttributeError) as e:
-                logging.debug(f'Error en excepción: {e}')
+            except:
                 pass
                 
             self._log_terminal("Deteccion de anomalias completada", "SIEM", "INFO")
@@ -1512,8 +1405,7 @@ Versión Python: {platform.python_version()}
                         self._log_terminal("Conectividad de red OK", "SIEM", "INFO")
                     else:
                         self._log_terminal("PROBLEMA: Sin conectividad de red", "SIEM", "ERROR")
-                except (subprocess.SubprocessError, OSError, TimeoutError) as e:
-                    logging.debug(f'Error en excepción: {e}')
+                except:
                     self._log_terminal("No se pudo verificar conectividad", "SIEM", "WARNING")
                     
                 time.sleep(25)  # Issue 21/24: Optimizado de 30 a 25 segundos antes del siguiente ciclo
@@ -1545,8 +1437,7 @@ Versión Python: {platform.python_version()}
                             "severidad": "HIGH",
                             "detalles": f"Comando: journalctl para eventos SSH recientes"
                         })
-            except (ValueError, TypeError, AttributeError) as e:
-                logging.debug(f'Error en excepción: {e}')
+            except:
                 pass
             
             # 2. Verificar puertos abiertos no autorizados
@@ -1561,8 +1452,7 @@ Versión Python: {platform.python_version()}
                             "severidad": "HIGH",
                             "detalles": f"Puertos encontrados: {', '.join([p.split()[3] for p in puertos_abiertos[:3]])}"
                         })
-            except (subprocess.SubprocessError, OSError, TimeoutError) as e:
-                logging.debug(f'Error en excepción: {e}')
+            except:
                 pass
             
             # 3. Verificar procesos sospechosos
@@ -1578,8 +1468,7 @@ Versión Python: {platform.python_version()}
                             "severidad": "CRITICAL",
                             "detalles": f"Procesos: {', '.join([p.split()[10] for p in procesos_sospechosos[:2] if len(p.split()) > 10])}"
                         })
-            except (ValueError, TypeError, AttributeError) as e:
-                logging.debug(f'Error en excepción: {e}')
+            except:
                 pass
             
             # 4. Verificar conexiones de red inusuales
@@ -1595,8 +1484,7 @@ Versión Python: {platform.python_version()}
                             "severidad": "MEDIUM",
                             "detalles": f"IPs externas: {', '.join([line.split()[4].split(':')[0] for line in conexiones_externas[:3] if ':' in line])}"
                         })
-            except (ValueError, TypeError, AttributeError) as e:
-                logging.debug(f'Error en excepción: {e}')
+            except:
                 pass
             
             # Procesar eventos detectados reales
@@ -1700,18 +1588,6 @@ Versión Python: {platform.python_version()}
             if controlador_detenido:
                 self._actualizar_texto_monitoreo("SISTEMA SIEM DETENIDO COMPLETAMENTE\n\n")
                 self._log_terminal("Sistema SIEM detenido completamente", "SIEM", "SUCCESS")
-                
-                # ARESITOS: Guardar automáticamente los resultados cuando SIEM se detiene
-                try:
-                    import os
-                    # Obtener todo el texto de resultados actual
-                    contenido_completo = self.terminal_output.get(1.0, 'end-1c')
-                    archivo_guardado = self.guardar_resultado_siem(contenido_completo)
-                    if archivo_guardado:
-                        self._actualizar_texto_monitoreo(f"\n[INFO] Resultados automáticamente guardados en: {os.path.basename(archivo_guardado)}\n")
-                        self._actualizar_texto_monitoreo("[INFO] Use 'Abrir Carpeta Logs' para acceder al archivo\n")
-                except Exception as e:
-                    self._log_terminal(f"Error guardando resultados automáticamente: {str(e)}", "SIEM", "WARNING")
             else:
                 self._actualizar_texto_monitoreo("SIEM detenido con advertencias\n\n")
                 self._log_terminal("SIEM detenido con advertencias", "SIEM", "WARNING")
@@ -1729,8 +1605,7 @@ Versión Python: {platform.python_version()}
                 self._habilitar_botones_siem(True)  # Forzar habilitación de botones
                 self._actualizar_texto_monitoreo("SIEM detenido forzosamente tras error\n\n")
                 self._log_terminal("SIEM detenido forzosamente", "SIEM", "ERROR")
-            except (FileNotFoundError, PermissionError, OSError) as e:
-                logging.debug(f'Error en excepción: {e}')
+            except:
                 self._log_terminal("ERROR CRÍTICO: No se pudo actualizar interfaz", "SIEM", "ERROR")
     
     def _finalizar_siem(self):
@@ -1809,8 +1684,7 @@ Versión Python: {platform.python_version()}
                             usado = memoria_info[2]
                             disponible = memoria_info[6] if len(memoria_info) > 6 else memoria_info[3]
                             self._log_terminal(f"MEMORIA: {usado}/{total} usado, {disponible} disponible", "SIEM-DASHBOARD", "INFO")
-                except (subprocess.SubprocessError, OSError, TimeoutError) as e:
-                    logging.debug(f'Error en excepción: {e}')
+                except:
                     self._log_terminal("No se pudieron obtener métricas del sistema", "SIEM-DASHBOARD", "WARNING")
                 
                 # SECCIÓN 2: Conexiones de red activas
@@ -1851,8 +1725,7 @@ Versión Python: {platform.python_version()}
                         else:
                             self._log_terminal("SEGURIDAD No hay puertos críticos abiertos públicamente", "SIEM-DASHBOARD", "INFO")
                     
-                except (ValueError, TypeError, OSError) as e:
-                    logging.debug(f'Error en excepción: {e}')
+                except:
                     self._log_terminal("ADVERTENCIA Error analizando conexiones de red", "SIEM-DASHBOARD", "WARNING")
                 
                 # SECCIÓN 3: Procesos activos
@@ -1876,8 +1749,7 @@ Versión Python: {platform.python_version()}
                                     if cpu > 10.0:  # Más del 10% CPU
                                         proceso = ' '.join(partes[10:])[:50]
                                         procesos_alta_cpu.append((proceso, cpu))
-                                except (ValueError, TypeError, AttributeError) as e:
-                                    logging.debug(f'Error en excepción: {e}')
+                                except:
                                     pass
                         
                         self._log_terminal(f"PROCESOS totales: {total_procesos}", "SIEM-DASHBOARD", "INFO")
@@ -1888,8 +1760,7 @@ Versión Python: {platform.python_version()}
                         else:
                             self._log_terminal("OK No hay procesos con uso excesivo de CPU", "SIEM-DASHBOARD", "INFO")
                     
-                except (ValueError, TypeError, OSError) as e:
-                    logging.debug(f'Error en excepción: {e}')
+                except:
                     self._log_terminal("ADVERTENCIA Error monitoreando procesos", "SIEM-DASHBOARD", "WARNING")
                 
                 # SECCIÓN 4: Estado de logs críticos
@@ -1918,8 +1789,7 @@ Versión Python: {platform.python_version()}
                                 self._log_terminal(f" {descripcion}: {tamano_mb:.1f}MB", "SIEM-DASHBOARD", "INFO")
                         else:
                             self._log_terminal(f"ERROR {descripcion}: Log no encontrado", "SIEM-DASHBOARD", "ERROR")
-                    except (FileNotFoundError, PermissionError, OSError) as e:
-                        logging.debug(f'Error en excepción: {e}')
+                    except:
                         self._log_terminal(f"ADVERTENCIA {descripcion}: Error accediendo al log", "SIEM-DASHBOARD", "WARNING")
                 
                 # SECCIÓN 5: Verificación de integridad básica
@@ -2056,8 +1926,7 @@ Versión Python: {platform.python_version()}
                                 except subprocess.TimeoutExpired:
                                     self.after(0, self._actualizar_texto_analisis, 
                                              f"   [TIMEOUT] {descripcion}: Análisis excedió tiempo límite\n")
-                                except (subprocess.SubprocessError, OSError, TimeoutError) as e:
-                                    logging.debug(f'Error en excepción: {e}')
+                                except:
                                     self.after(0, self._actualizar_texto_analisis, 
                                              f"   [ERROR] {descripcion}: No se pudo analizar\n")
                             
@@ -2080,8 +1949,7 @@ Versión Python: {platform.python_version()}
                                                              f"       • {ip}: {intentos} intentos\n")
                                     else:
                                         self.after(0, self._actualizar_texto_analisis, "   [OK] No hay intentos de login fallidos\n")
-                                except (ValueError, TypeError, AttributeError) as e:
-                                    logging.debug(f'Error en excepción: {e}')
+                                except:
                                     self.after(0, self._actualizar_texto_analisis, "   [ERROR] No se pudo analizar IPs\n")
                             
                             # 4. EVENTOS RECIENTES
@@ -2317,7 +2185,7 @@ Versión Python: {platform.python_version()}
                             
                             # Dar sugerencias específicas según el error
                             if "pidfile" in error_msg.lower():
-                                self.after(0, self._actualizar_texto_alertas, " SOLUCIÓN: Usar 'Stop Monitor' para detener servicios de forma segura\n")
+                                self.after(0, self._actualizar_texto_alertas, " SOLUCIÓN: sudo pkill suricata && sudo rm -f /var/run/suricata.pid\n")
                             elif "permission" in error_msg.lower():
                                 self.after(0, self._actualizar_texto_alertas, " SOLUCIÓN: Verificar permisos sudo\n")
                             elif "interface" in error_msg.lower():
@@ -2452,8 +2320,7 @@ Versión Python: {platform.python_version()}
                                                 try:
                                                     priority_part = linea.split('[Priority:')[1].split(']')[0].strip()
                                                     priority = priority_part
-                                                except (ValueError, TypeError, AttributeError) as e:
-                                                    logging.debug(f'Error en excepción: {e}')
+                                                except:
                                                     pass
                                             
                                             # Determinar nivel según prioridad
@@ -2523,8 +2390,7 @@ Versión Python: {platform.python_version()}
                             self.after(0, self._actualizar_texto_alertas, f"   • Procesos Suricata activos: {len(pids)}\n")
                         else:
                             self.after(0, self._actualizar_texto_alertas, "   [WARNING] Suricata no parece estar ejecutándose\n")
-                    except (subprocess.SubprocessError, OSError, TimeoutError) as e:
-                        logging.debug(f'Error en excepción: {e}')
+                    except:
                         self.after(0, self._actualizar_texto_alertas, "   [ERROR] No se pudo verificar estado de Suricata\n")
                     
                     self.after(0, self._actualizar_texto_alertas, "\n")
@@ -2733,8 +2599,7 @@ Versión Python: {platform.python_version()}
                                     space_info = lines[1].split()
                                     if len(space_info) >= 4:
                                         self.after(0, self._actualizar_texto_forense, f"ESPACIO DISPONIBLE: {space_info[3]}\n")
-                        except (subprocess.SubprocessError, OSError, TimeoutError) as e:
-                            logging.debug(f'Error en excepción: {e}')
+                        except:
                             pass
                         
                     else:
@@ -2931,8 +2796,7 @@ ls -la "$OUTPUT_DIR/"
         
         try:
             self.after_idle(_update)
-        except (ValueError, TypeError, OSError) as e:
-            logging.debug(f'Error en excepción: {e}')
+        except:
             pass  # Si no se puede programar, ignorar
     
     def _actualizar_texto_analisis(self, texto):
@@ -2949,8 +2813,7 @@ ls -la "$OUTPUT_DIR/"
         
         try:
             self.after_idle(_update)
-        except (ValueError, TypeError, OSError) as e:
-            logging.debug(f'Error en excepción: {e}')
+        except:
             pass  # Si no se puede programar, ignorar
     
     def _actualizar_texto_alertas(self, texto):
@@ -2967,8 +2830,7 @@ ls -la "$OUTPUT_DIR/"
         
         try:
             self.after_idle(_update)
-        except (ValueError, TypeError, OSError) as e:
-            logging.debug(f'Error en excepción: {e}')
+        except:
             pass  # Si no se puede programar, ignorar
     
     def _actualizar_texto_forense(self, texto):
@@ -2985,8 +2847,7 @@ ls -la "$OUTPUT_DIR/"
         
         try:
             self.after_idle(_update)
-        except (ValueError, TypeError, OSError) as e:
-            logging.debug(f'Error en excepción: {e}')
+        except:
             pass  # Si no se puede programar, ignorar
     
     # Métodos adicionales para completar funcionalidad
@@ -3088,8 +2949,7 @@ ls -la "$OUTPUT_DIR/"
                                      timeout=5)
                     else:
                         self._log_terminal("ADVERTENCIA notify-send no disponible - alertas solo en terminal", "SIEM-ALERTS", "WARNING")
-                except (subprocess.SubprocessError, OSError, TimeoutError) as e:
-                    logging.debug(f'Error en excepción: {e}')
+                except:
                     self._log_terminal("ADVERTENCIA Error verificando sistema de notificaciones", "SIEM-ALERTS", "WARNING")
                 
                 # CONFIGURACIÓN 7: Crear archivo de configuración
@@ -3346,8 +3206,7 @@ ls -la "$OUTPUT_DIR/"
                             self._log_terminal("ADVERTENCIA Sistema no es Kali Linux - Funcionalidad limitada", "SIEM-VERIFY", "WARNING")
                     else:
                         self._log_terminal("No se pudo detectar la distribución", "SIEM-VERIFY", "WARNING")
-                except (ValueError, TypeError, AttributeError) as e:
-                    logging.debug(f'Error en excepción: {e}')
+                except:
                     self._log_terminal("Error verificando distribución", "SIEM-VERIFY", "WARNING")
                 
                 # VERIFICACIÓN 2: Herramientas de monitoreo esenciales
@@ -3375,8 +3234,7 @@ ls -la "$OUTPUT_DIR/"
                             self._log_terminal(f"OK {herramienta}: {descripcion}", "SIEM-VERIFY", "INFO")
                         else:
                             self._log_terminal(f"ERROR {herramienta}: {descripcion} - NO DISPONIBLE", "SIEM-VERIFY", "ERROR")
-                    except (subprocess.SubprocessError, OSError, TimeoutError) as e:
-                        logging.debug(f'Error en excepción: {e}')
+                    except:
                         self._log_terminal(f"ERROR {herramienta}: Error verificando", "SIEM-VERIFY", "ERROR")
                 
                 porcentaje = (herramientas_disponibles / len(herramientas_siem)) * 100
@@ -3415,8 +3273,7 @@ ls -la "$OUTPUT_DIR/"
                             self._log_terminal(f"OK {servicio}: Activo", "SIEM-VERIFY", "INFO")
                         else:
                             self._log_terminal(f"ADVERTENCIA {servicio}: Estado {estado}", "SIEM-VERIFY", "WARNING")
-                    except (subprocess.SubprocessError, OSError, TimeoutError) as e:
-                        logging.debug(f'Error en excepción: {e}')
+                    except:
                         self._log_terminal(f"ERROR {servicio}: Error verificando estado", "SIEM-VERIFY", "WARNING")
                 
                 # VERIFICACIÓN 5: Conectividad de red
@@ -3429,8 +3286,7 @@ ls -la "$OUTPUT_DIR/"
                         self._log_terminal("OK Conectividad externa: OK", "SIEM-VERIFY", "SUCCESS")
                     else:
                         self._log_terminal("ERROR Sin conectividad externa", "SIEM-VERIFY", "ERROR")
-                except (subprocess.SubprocessError, OSError, TimeoutError) as e:
-                    logging.debug(f'Error en excepción: {e}')
+                except:
                     self._log_terminal("ERROR verificando conectividad", "SIEM-VERIFY", "ERROR")
                 
                 # VERIFICACIÓN 6: Capacidades del usuario actual
@@ -3445,8 +3301,7 @@ ls -la "$OUTPUT_DIR/"
                         self._log_terminal("OK Privilegios sudo: Disponibles sin contraseña", "SIEM-VERIFY", "SUCCESS")
                     else:
                         self._log_terminal("ADVERTENCIA Privilegios sudo: Requiere contraseña", "SIEM-VERIFY", "WARNING")
-                except (subprocess.SubprocessError, OSError, TimeoutError) as e:
-                    logging.debug(f'Error en excepción: {e}')
+                except:
                     self._log_terminal("ERROR verificando privilegios", "SIEM-VERIFY", "WARNING")
                 
                 # RESUMEN FINAL
@@ -3893,8 +3748,7 @@ ls -la "$OUTPUT_DIR/"
             if hasattr(self, 'siem_monitoreo_text'):
                 try:
                     self.after_idle(lambda: self._actualizar_texto_monitoreo(mensaje_formateado))
-                except (ValueError, TypeError, AttributeError) as e:
-                    logging.debug(f'Error en excepción: {e}')
+                except:
                     pass  # Si hay error con tkinter, ignorar silenciosamente
             
         except Exception as e:
@@ -3986,8 +3840,7 @@ ls -la "$OUTPUT_DIR/"
                     if tcp_count > 100:
                         self._actualizar_texto_analisis("  ALERTA: Número elevado de conexiones TCP\n")
                     
-            except (ValueError, TypeError, AttributeError) as e:
-                logging.debug(f'Error en excepción: {e}')
+            except:
                 pass  # ss opcional
                 
         except Exception as e:
@@ -4055,8 +3908,7 @@ ls -la "$OUTPUT_DIR/"
                         for huerfano in huerfanos[:5]:
                             self._actualizar_texto_analisis(f"  📍 {huerfano}\n")
                             
-            except (FileNotFoundError, PermissionError, OSError) as e:
-                logging.debug(f'Error en excepción: {e}')
+            except:
                 pass
                 
         except Exception as e:
@@ -4118,8 +3970,7 @@ ls -la "$OUTPUT_DIR/"
                         if len(archivos_permisos) > 5:
                             self._actualizar_texto_analisis(f"  ... y {len(archivos_permisos) - 5} más\n")
                             
-            except (ValueError, TypeError, AttributeError) as e:
-                logging.debug(f'Error en excepción: {e}')
+            except:
                 pass
                 
         except Exception as e:
@@ -4154,8 +4005,7 @@ ls -la "$OUTPUT_DIR/"
                     else:
                         self._actualizar_texto_analisis("No hay actividad sudo reciente\n")
                         
-            except (ValueError, TypeError, AttributeError) as e:
-                logging.debug(f'Error en excepción: {e}')
+            except:
                 self._actualizar_texto_analisis("No se pudo verificar actividad sudo\n")
             
             # Verificar procesos ejecutándose como root
@@ -4184,8 +4034,7 @@ ls -la "$OUTPUT_DIR/"
                     else:
                         self._actualizar_texto_analisis("No se detectaron procesos sospechosos como root\n")
                         
-            except (ValueError, TypeError, OSError) as e:
-                logging.debug(f'Error en excepción: {e}')
+            except:
                 pass
                 
         except Exception as e:
@@ -4234,8 +4083,7 @@ ls -la "$OUTPUT_DIR/"
                         else:
                             self._actualizar_texto_analisis("No se detectaron logins nocturnos recientes\n")
                             
-                except (ValueError, TypeError, AttributeError) as e:
-                    logging.debug(f'Error en excepción: {e}')
+                except:
                     pass
             
             # Verificar procesos iniciados recientemente
@@ -4259,8 +4107,7 @@ ls -la "$OUTPUT_DIR/"
                         if len(procesos_recientes) > 10:
                             self._actualizar_texto_analisis("  (Mostrando solo algunos por brevedad)\n")
                             
-            except (ValueError, TypeError, AttributeError) as e:
-                logging.debug(f'Error en excepción: {e}')
+            except:
                 pass
                 
         except Exception as e:
@@ -4336,8 +4183,7 @@ ls -la "$OUTPUT_DIR/"
                     else:
                         self._actualizar_texto_analisis("No hay intentos de acceso fallidos recientes\n")
                         
-            except (ValueError, TypeError, OSError) as e:
-                logging.debug(f'Error en excepción: {e}')
+            except:
                 self._actualizar_texto_analisis("No se pudieron analizar logs de SSH\n")
                 
         except Exception as e:
@@ -4373,8 +4219,7 @@ ls -la "$OUTPUT_DIR/"
                     else:
                         self._actualizar_texto_analisis("No se detectaron procesos de red sospechosos\n")
                         
-            except (ValueError, TypeError, AttributeError) as e:
-                logging.debug(f'Error en excepción: {e}')
+            except:
                 self._actualizar_texto_analisis("Error analizando correlación red-procesos\n")
                 
         except Exception as e:
@@ -4425,14 +4270,12 @@ ls -la "$OUTPUT_DIR/"
                                 else:
                                     self._actualizar_texto_analisis("No hay modificaciones significativas de archivos\n")
                                     
-                        except (ValueError, TypeError, OSError) as e:
-                            logging.debug(f'Error en excepción: {e}')
+                        except:
                             pass
                     else:
                         self._actualizar_texto_analisis("No hay logins recientes\n")
                         
-            except (ValueError, TypeError, OSError) as e:
-                logging.debug(f'Error en excepción: {e}')
+            except:
                 self._actualizar_texto_analisis("Error analizando correlación archivos-logins\n")
                 
         except Exception as e:
@@ -4455,8 +4298,7 @@ ls -la "$OUTPUT_DIR/"
                                          capture_output=True, text=True, timeout=5)
                 if resultado.returncode == 0:
                     eventos_sospechosos.append("actividad_red")
-            except (subprocess.SubprocessError, OSError, TimeoutError) as e:
-                logging.debug(f'Error en excepción: {e}')
+            except:
                 pass
             
             # 2. Verificar procesos sospechosos
@@ -4466,8 +4308,7 @@ ls -la "$OUTPUT_DIR/"
                 if resultado.returncode == 0:
                     if any(proc in resultado.stdout.lower() for proc in ['nc', 'netcat', 'python']):
                         eventos_sospechosos.append("procesos_sospechosos")
-            except (subprocess.SubprocessError, OSError, TimeoutError) as e:
-                logging.debug(f'Error en excepción: {e}')
+            except:
                 pass
             
             # 3. Verificar intentos de login
@@ -4477,8 +4318,7 @@ ls -la "$OUTPUT_DIR/"
                 if resultado.returncode == 0:
                     if 'Failed' in resultado.stdout or 'authentication' in resultado.stdout:
                         eventos_sospechosos.append("intentos_acceso")
-            except (subprocess.SubprocessError, OSError, TimeoutError) as e:
-                logging.debug(f'Error en excepción: {e}')
+            except:
                 pass
             
             # Evaluar la cadena de eventos

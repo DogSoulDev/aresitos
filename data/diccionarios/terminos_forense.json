@@ -4,7 +4,7 @@
   "artifact": "Evidencia digital dejada por actividad en el sistema",
   "imaging": "Proceso de crear copia exacta de un dispositivo",
   "carving": "Recuperación de archivos sin metadatos del sistema de archivos",
-  "memstat": "Análisis de memoria y procesos del sistema",
+  "volatility": "Análisis de memoria volátil (RAM)",
   "steganography": "Técnica de ocultar información en otros medios",
   "chain_custody": "Cadena de custodia de evidencia digital",
   "write_blocker": "Dispositivo que previene escritura en evidencia",

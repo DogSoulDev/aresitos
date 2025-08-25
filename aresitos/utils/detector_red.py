@@ -14,7 +14,6 @@ import subprocess
 import re
 import socket
 import ipaddress
-import logging
 from typing import Dict, List, Optional, Tuple, Any
 
 

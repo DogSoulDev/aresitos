@@ -1,18 +1,10 @@
-# ARESITOS v3.0 - Manual Técnico Consolidado
+# Manual Técnico - Aresitos
 
-## Descripción Técnica
+## ¿Qué es Aresitos?
 
-**ARESITOS v3.0** es una suite profesional de ciberseguridad desarrollada con arquitectura MVC/SOLID para Kali Linux. Integra escaneador de vulnerabilidades empresarial, sistema SIEM en tiempo real, monitoreo FIM (File Integrity Monitoring) y auditoría automatizada. Diseñada para pentesters, red teams y profesionales de ciberseguridad que requieren herramientas nativas, zero dependencias externas y optimizadas para Kali Linux 2025.
+**Aresitos** es una herramienta completa de ciberseguridad diseñada específicamente para Kali Linux. Integra múltiples funciones de seguridad en una sola aplicación fácil de usar.
 
-## Arquitectura Técnica Core
-
-### Principios ARESITOS v3.0
-- **MVC/SOLID**: Arquitectura profesional con Single Responsibility, Open/Closed, Liskov Substitution, Interface Segregation y Dependency Inversion
-- **Zero Dependencies**: 100% Python stdlib + herramientas Kali nativas via subprocess  
-- **Thread Safety**: Implementación robusta con validación winfo_exists() y manejo seguro de widgets Tkinter
-- **Professional Scanner**: Engine multi-herramienta con nmap/masscan/rustscan/nuclei y fallback inteligente
-- **Real-time SIEM**: Monitoreo de 50+ puertos críticos con correlación de eventos automatizada
-- **FIM Monitoring**: Vigilancia de 60+ directorios críticos con checksums SHA256 y detección de cambios
+## Arquitectura Técnica de Alto Nivel
 
 ### Thread Safety y Estabilidad
 - **Patrón MVC**: Separación clara entre modelo, vista y controlador
@@ -160,11 +152,11 @@ Sistema de información y gestión de eventos de seguridad:
 Gestión de amenazas y análisis de malware:
 
 - **Sistema de cuarentena segura** para archivos sospechosos
-- **Análisis multi-motor** con ClamAV, YARA, memstat
+- **Análisis multi-motor** con ClamAV, YARA, Volatility
 - **Preservación forense** de evidencia digital
 - **Respuesta automática** ante amenazas críticas
 
-**Herramientas Integradas**: clamav, yara, binwalk, memstat, exiftool
+**Herramientas Integradas**: clamav, yara, binwalk, volatility3, exiftool
 
 ## Consideraciones de Seguridad
 
@@ -526,7 +518,7 @@ alertas = controlador_siem.generar_alertas_automaticas()
 5. **Wordlists y Diccionarios** - Gestión recursos + terminal generación
 6. **Reportes** - Exportación resultados + terminal exportación
 7. **FIM** - Monitoreo integridad archivos + terminal inotifywait
-8. **SIEM** - Correlación eventos seguridad + análisis memoria/binarios
+8. **SIEM** - Correlación eventos seguridad + terminal volatility/binwalk
 
 ### **Tema Visual**
 - **Burp Suite**: Esquema colores profesional
@@ -642,7 +634,7 @@ def _obtener_version_herramienta(self, herramienta):
 
 ### 🔍 SIEM (SIEMKali2025)
 - **Correlación**: 1000 eventos/segundo
-- **Forense**: memstat, binwalk, strings, sleuthkit, foremost
+- **Forense**: volatility3, binwalk, strings, sleuthkit, foremost
 - **Detección**: Anomalías y patrones
 - **Almacenamiento**: Logs estructurados + SQLite
 - **Terminal**: Output en tiempo real de análisis forense
@@ -714,7 +706,7 @@ aresitos/
 | Categoría | Herramientas |
 |-----------|-------------|
 | **Escaneadores** | nmap, masscan, gobuster, nuclei, ffuf |
-| **Forense** | memstat, binwalk, strings, sleuthkit |
+| **Forense** | volatility3, binwalk, strings, sleuthkit |
 | **Antimalware** | clamscan, yara |
 | **Monitoreo** | inotifywait, pspy |
 | **Auditoría** | linpeas, chkrootkit, rkhunter |

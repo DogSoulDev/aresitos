@@ -18,7 +18,7 @@ class VistaAuditoria(tk.Frame):
     Vista especializada para auditorías de seguridad del sistema.
     
     Enfoque específico:
-    - Auditorías generales del sistema (Lynis, nuclei, curl)
+    - Auditorías generales del sistema (Lynis, nuclei, httpx)
     - Análisis de configuraciones de seguridad
     - Verificación de permisos y políticas
     - Detección de rootkits y malware
@@ -74,14 +74,6 @@ class VistaAuditoria(tk.Frame):
     def set_controlador(self, controlador):
         self.controlador = controlador
     
-    def set_sudo_manager(self, sudo_manager):
-        """Establecer SudoManager heredado de la vista principal"""
-        self.sudo_manager = sudo_manager
-        if sudo_manager and sudo_manager.is_sudo_active():
-            print("[AUDITORIA] SudoManager activo recibido")
-        else:
-            print("[AUDITORIA] Advertencia: SudoManager no activo")
-    
     def crear_interfaz(self):
         """Crear interfaz especializada para auditorías de seguridad."""
         # PanedWindow principal para dividir contenido y terminal
@@ -131,24 +123,6 @@ class VistaAuditoria(tk.Frame):
                              font=('Arial', 12, 'bold'))
         label_tools.pack(anchor=tk.W, pady=(0, 10))
         
-        # BOTÓN CANCELAR GENERAL (PRIMERO)
-        cancelar_frame = tk.Frame(right_frame, bg=self.colors['bg_secondary'])
-        cancelar_frame.pack(fill=tk.X, pady=(0, 15))
-        
-        self.btn_cancelar_general = tk.Button(
-            cancelar_frame, 
-            text="🛑 CANCELAR TODAS LAS AUDITORÍAS", 
-            command=self.cancelar_todas_auditorias,
-            bg=self.colors['danger'], 
-            fg='white',
-            font=('Arial', 10, 'bold'), 
-            relief='flat',
-            padx=15, 
-            pady=8,
-            state="disabled"
-        )
-        self.btn_cancelar_general.pack(fill=tk.X, pady=2)
-        
         # Crear secciones organizadas
         self._crear_seccion_auditoria_sistema(right_frame)
         self._crear_seccion_deteccion_malware(right_frame)
@@ -190,7 +164,7 @@ class VistaAuditoria(tk.Frame):
             # Botón ver logs (estilo dashboard, compacto)
             btn_logs = tk.Button(
                 controles_frame,
-                text="VER LOG TERMINAL",
+                text="VER LOGS",
                 command=self.abrir_logs_auditoria,
                 bg=self.colors.get('info', '#007acc'),
                 fg='white',
@@ -198,18 +172,6 @@ class VistaAuditoria(tk.Frame):
                 height=1
             )
             btn_logs.pack(side="left", padx=2, fill="x", expand=True)
-            
-            # Botón abrir carpeta de logs
-            btn_carpeta_logs = tk.Button(
-                controles_frame,
-                text="ABRIR CARPETA LOGS",
-                command=self.abrir_carpeta_logs,
-                bg=self.colors.get('warning', '#ff9800'),
-                fg='white',
-                font=("Arial", 8, "bold"),
-                height=1
-            )
-            btn_carpeta_logs.pack(side="left", padx=2, fill="x", expand=True)
             
             # Área de terminal (misma estética que dashboard, más pequeña)
             self.terminal_output = scrolledtext.ScrolledText(
@@ -391,77 +353,6 @@ class VistaAuditoria(tk.Frame):
         except Exception as e:
             self.log_to_terminal(f"ERROR abriendo logs Auditoría: {e}")
     
-    def abrir_carpeta_logs(self):
-        """
-        ARESITOS: Abrir carpeta de logs Auditoría en explorador de archivos.
-        Principios: Simplicidad, Responsabilidad, Robustez, Eficiencia.
-        """
-        try:
-            import os
-            import platform
-            import subprocess
-            logs_path = os.path.join(os.getcwd(), "logs")
-            if os.path.exists(logs_path):
-                if platform.system() == "Linux":
-                    subprocess.run(["xdg-open", logs_path], check=False)
-                elif platform.system() == "Windows":
-                    subprocess.run(["explorer", logs_path], check=False)
-                self.log_to_terminal("Carpeta de logs abierta en explorador de archivos")
-            else:
-                os.makedirs(logs_path, exist_ok=True)
-                self.log_to_terminal("Carpeta de logs creada y abierta")
-                if platform.system() == "Linux":
-                    subprocess.run(["xdg-open", logs_path], check=False)
-                elif platform.system() == "Windows":
-                    subprocess.run(["explorer", logs_path], check=False)
-        except Exception as e:
-            self.log_to_terminal(f"Error abriendo carpeta de logs: {str(e)}")
-    
-    def guardar_resultado_auditoria(self, contenido_terminal=None):
-        """
-        ARESITOS: Guardar resultados de la auditoría en archivo de log con timestamp.
-        Principios: Simplicidad, Responsabilidad, Robustez, Eficiencia.
-        """
-        try:
-            import os
-            import platform
-            
-            # Crear directorio logs si no existe
-            logs_dir = os.path.join(os.getcwd(), "logs")
-            os.makedirs(logs_dir, exist_ok=True)
-            
-            # Generar timestamp para nombre único
-            timestamp = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
-            nombre_archivo = f"auditoria_sistema_{timestamp}.log"
-            ruta_archivo = os.path.join(logs_dir, nombre_archivo)
-            
-            # Obtener contenido del terminal si no se proporciona
-            if contenido_terminal is None:
-                contenido_terminal = self.terminal_output.get(1.0, tk.END)
-            
-            # Agregar metadatos del sistema
-            metadatos = f"""ARESITOS v3.0 - Reporte Auditoría
-========================================
-Fecha: {datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")}
-Usuario: {os.getenv('USER', 'unknown')}
-Sistema: {platform.system()} {platform.release()}
-Versión Python: {platform.python_version()}
-========================================
-
-"""
-            
-            # Escribir archivo con metadatos y contenido
-            with open(ruta_archivo, 'w', encoding='utf-8') as f:
-                f.write(metadatos)
-                f.write(contenido_terminal)
-            
-            self.log_to_terminal(f"✓ Resultados guardados: {nombre_archivo}")
-            return ruta_archivo
-            
-        except Exception as e:
-            self.log_to_terminal(f"✗ Error guardando resultados: {str(e)}")
-            return None
-    
     def log_to_terminal(self, mensaje):
         """Registrar mensaje en el terminal usando función estándar."""
         self._log_terminal(mensaje, "AUDITORIA", "INFO")
@@ -511,7 +402,7 @@ Versión Python: {platform.python_version()}
             ("Detectar Rootkits", self.detectar_rootkits, self.colors['warning']),
             ("Cancelar Rootkits", self.cancelar_rootkits, self.colors['danger']),
             ("Auditoría nuclei", self.ejecutar_nuclei, self.colors['info']),
-            ("Scan curl", self.ejecutar_curl_probe, self.colors['fg_accent']),
+            ("Scan httpx", self.ejecutar_httpx, self.colors['fg_accent']),
         ]
         
         for text, command, color in buttons:
@@ -701,8 +592,7 @@ Versión Python: {platform.python_version()}
                                         stat_info = os.stat(reporte)
                                         size_kb = stat_info.st_size / 1024
                                         self._actualizar_texto_auditoria(f"OK Reporte disponible: {reporte} ({size_kb:.1f} KB)\n")
-                                    except (FileNotFoundError, PermissionError, OSError) as e:
-                                        logging.debug(f'Error en excepción: {e}')
+                                    except:
                                         self._actualizar_texto_auditoria(f"OK Reporte disponible: {reporte}\n")
                         
                         # Recomendaciones específicas para Kali Linux
@@ -744,18 +634,6 @@ Versión Python: {platform.python_version()}
                 
                 self._actualizar_texto_auditoria("=== AUDITORÍA LYNIS PROFESIONAL COMPLETADA ===\n\n")
                 
-                # ARESITOS: Guardar automáticamente los resultados cuando la auditoría se completa
-                try:
-                    import os
-                    # Obtener todo el texto de resultados actual
-                    contenido_completo = self.terminal_output.get(1.0, 'end-1c')
-                    archivo_guardado = self.guardar_resultado_auditoria(contenido_completo)
-                    if archivo_guardado:
-                        self._actualizar_texto_auditoria(f"\n[INFO] Resultados automáticamente guardados en: {os.path.basename(archivo_guardado)}\n")
-                        self._actualizar_texto_auditoria("[INFO] Use 'Abrir Carpeta Logs' para acceder al archivo\n")
-                except Exception as e:
-                    self.log_to_terminal(f"Error guardando resultados automáticamente: {str(e)}")
-                
             except Exception as e:
                 self._actualizar_texto_auditoria(f"ERROR CRÍTICO en auditoría Lynis: {str(e)}\n")
             finally:
@@ -777,22 +655,11 @@ Versión Python: {platform.python_version()}
             pass  # Widget ya no existe o ha sido destruido
     
     def _habilitar_cancelar(self, habilitar):
-        """Habilitar o deshabilitar botones de cancelar de forma segura."""
+        """Habilitar o deshabilitar botón de cancelar de forma segura."""
         try:
             estado = "normal" if habilitar else "disabled"
-            
-            # Botón cancelar general (nuevo)
-            if hasattr(self, 'btn_cancelar_general') and self.btn_cancelar_general.winfo_exists():
-                self.btn_cancelar_general.config(state=estado)
-                
-            # Botón cancelar individual de auditoría
             if hasattr(self, 'btn_cancelar_auditoria') and self.btn_cancelar_auditoria.winfo_exists():
                 self.btn_cancelar_auditoria.config(state=estado)
-                
-            # Botón cancelar rootkits
-            if hasattr(self, 'btn_cancelar_rootkits') and self.btn_cancelar_rootkits.winfo_exists():
-                self.btn_cancelar_rootkits.config(state=estado)
-                
         except (tk.TclError, AttributeError):
             pass  # Widget ya no existe o ha sido destruido
     
@@ -861,8 +728,7 @@ Versión Python: {platform.python_version()}
                             self.after(0, self._actualizar_texto_auditoria, "ALERTA: Diferencia significativa detectada - posible rootkit\n")
                         else:
                             self.after(0, self._actualizar_texto_auditoria, "OK: Recuento de procesos normal\n")
-                except (ValueError, TypeError, OSError) as e:
-                    logging.debug(f'Error en excepción: {e}')
+                except:
                     self.after(0, self._actualizar_texto_auditoria, "ERROR: No se pudo verificar procesos\n")
                 
                 self.after(0, self._actualizar_texto_auditoria, "\n")
@@ -883,8 +749,7 @@ Versión Python: {platform.python_version()}
                             self.after(0, self._actualizar_texto_auditoria, f"OK: {comando} - Tamaño: {tamaño} bytes\n")
                         else:
                             self.after(0, self._actualizar_texto_auditoria, f"ALERTA: {comando} no encontrado o inaccesible\n")
-                    except (subprocess.SubprocessError, OSError, TimeoutError) as e:
-                        logging.debug(f'Error en excepción: {e}')
+                    except:
                         self.after(0, self._actualizar_texto_auditoria, f"ERROR: No se pudo verificar {comando}\n")
                 
                 self.after(0, self._actualizar_texto_auditoria, "\n")
@@ -914,8 +779,7 @@ Versión Python: {platform.python_version()}
                             self.after(0, self._actualizar_texto_auditoria, "OK: Listados de red coinciden\n")
                     else:
                         self.after(0, self._actualizar_texto_auditoria, "ERROR: No se pudieron ejecutar comandos de red\n")
-                except (ValueError, TypeError, OSError) as e:
-                    logging.debug(f'Error en excepción: {e}')
+                except:
                     self.after(0, self._actualizar_texto_auditoria, "ERROR: Error comparando herramientas de red\n")
                 
                 self.after(0, self._actualizar_texto_auditoria, "\n")
@@ -950,8 +814,7 @@ Versión Python: {platform.python_version()}
                                     self.after(0, self._actualizar_texto_auditoria, f"  SOSPECHOSO: {modulo}\n")
                             else:
                                 self.after(0, self._actualizar_texto_auditoria, "OK: No se encontraron módulos con nombres sospechosos\n")
-                except (ValueError, TypeError, AttributeError) as e:
-                    logging.debug(f'Error en excepción: {e}')
+                except:
                     self.after(0, self._actualizar_texto_auditoria, "ERROR: No se pudo verificar módulos del kernel\n")
                 
                 # Usar controlador si está disponible
@@ -1227,8 +1090,7 @@ Versión Python: {platform.python_version()}
                 for archivo in archivos_temp:
                     try:
                         subprocess.run(['rm', '-f', archivo], capture_output=True)
-                    except (subprocess.SubprocessError, OSError, TimeoutError) as e:
-                        logging.debug(f'Error en excepción: {e}')
+                    except:
                         pass
                         
                 self._actualizar_texto_auditoria("OK Limpieza de archivos temporales completada\n")
@@ -1239,41 +1101,6 @@ Versión Python: {platform.python_version()}
         
         threading.Thread(target=ejecutar, daemon=True).start()
     
-    def cancelar_todas_auditorias(self):
-        """Cancelar TODAS las auditorías activas usando sistema unificado."""
-        try:
-            self._actualizar_texto_auditoria("\n🛑 CANCELANDO TODAS LAS AUDITORÍAS ACTIVAS...\n")
-            
-            # Detener todas las variables de control
-            self.proceso_auditoria_activo = False
-            
-            # Importar sistema unificado
-            from ..utils.detener_procesos import detener_procesos
-            
-            # Callbacks para la vista
-            def callback_actualizacion(mensaje):
-                self._actualizar_texto_auditoria(mensaje)
-            
-            def callback_habilitar():
-                # Habilitar todos los botones nuevamente
-                try:
-                    self.btn_cancelar_general.config(state="disabled")
-                    if hasattr(self, 'btn_cancelar_auditoria'):
-                        self.btn_cancelar_auditoria.config(state="disabled")
-                    if hasattr(self, 'btn_cancelar_rootkits'):
-                        self.btn_cancelar_rootkits.config(state="disabled")
-                except:
-                    pass
-                self._finalizar_auditoria()
-                self._log_terminal("TODAS las auditorías canceladas completamente", "AUDITORIA", "INFO")
-            
-            # Usar sistema unificado para cancelar auditorías
-            detener_procesos.cancelar_auditoria(callback_actualizacion, callback_habilitar)
-                
-        except Exception as e:
-            self._actualizar_texto_auditoria(f"ERROR cancelando todas las auditorías: {e}\n")
-            self._finalizar_auditoria()
-
     def ejecutar_nuclei(self):
         """Ejecutar auditoría completa con nuclei - escáner de vulnerabilidades profesional mejorado."""
         if self.proceso_auditoria_activo:
@@ -1365,8 +1192,7 @@ Versión Python: {platform.python_version()}
                                             if web_target not in targets:
                                                 targets.append(web_target)
                                                 self._actualizar_texto_auditoria(f"  OK Servicio web detectado: {web_target}\n")
-                                    except (ConnectionError, TimeoutError, OSError) as e:
-                                        logging.debug(f'Error en excepción: {e}')
+                                    except:
                                         pass
                                         
                         except Exception as e:
@@ -1518,7 +1344,7 @@ Versión Python: {platform.python_version()}
                         self._actualizar_texto_auditoria("ERROR nuclei no encontrado en sistema\n")
                         self._actualizar_texto_auditoria("INSTALACIÓN REQUERIDA:\n")
                         self._actualizar_texto_auditoria("• apt update && apt install nuclei\n")
-                        self._actualizar_texto_auditoria("• ARESITOS usa SOLO repos oficiales Kali - No Go\n")
+                        self._actualizar_texto_auditoria("• O desde Go: go install github.com/projectdiscovery/nuclei/v3/cmd/nuclei@latest\n")
                         self._actualizar_texto_auditoria("• Verificar: nuclei -version\n")
                         self._actualizar_texto_auditoria("• Actualizar templates: nuclei -update-templates\n")
                         
@@ -1535,18 +1361,6 @@ Versión Python: {platform.python_version()}
                 
                 self._actualizar_texto_auditoria("=== AUDITORÍA NUCLEI PROFESIONAL COMPLETADA ===\n\n")
                 
-                # ARESITOS: Guardar automáticamente los resultados cuando la auditoría nuclei se completa
-                try:
-                    import os
-                    # Obtener todo el texto de resultados actual
-                    contenido_completo = self.terminal_output.get(1.0, 'end-1c')
-                    archivo_guardado = self.guardar_resultado_auditoria(contenido_completo)
-                    if archivo_guardado:
-                        self._actualizar_texto_auditoria(f"\n[INFO] Resultados automáticamente guardados en: {os.path.basename(archivo_guardado)}\n")
-                        self._actualizar_texto_auditoria("[INFO] Use 'Abrir Carpeta Logs' para acceder al archivo\n")
-                except Exception as e:
-                    self.log_to_terminal(f"Error guardando resultados automáticamente: {str(e)}")
-                
             except Exception as e:
                 self._actualizar_texto_auditoria(f"ERROR CRÍTICO en auditoría nuclei: {str(e)}\n")
             finally:
@@ -1556,19 +1370,19 @@ Versión Python: {platform.python_version()}
         self.thread_auditoria = threading.Thread(target=ejecutar_nuclei_worker, daemon=True)
         self.thread_auditoria.start()
     
-    def ejecutar_curl_probe(self):
-        """Ejecutar escaneo web completo con curl - probe HTTP nativo."""
+    def ejecutar_httpx(self):
+        """Ejecutar escaneo web completo con httpx - probe HTTP avanzado."""
         def ejecutar():
             try:
-                self._actualizar_texto_auditoria("=== INICIANDO ESCANEO CURL PROBE ===\n")
+                self._actualizar_texto_auditoria("=== INICIANDO ESCANEO HTTPX ===\n")
                 import subprocess
                 import os
                 
                 try:
-                    # Verificar si curl está instalado (debería estar en cualquier sistema)
-                    resultado = subprocess.run(['which', 'curl'], capture_output=True, text=True)
+                    # Verificar si httpx está instalado
+                    resultado = subprocess.run(['which', 'httpx'], capture_output=True, text=True)
                     if resultado.returncode == 0:
-                        self._actualizar_texto_auditoria("✓ curl encontrado en sistema\n")
+                        self._actualizar_texto_auditoria("OK httpx encontrado en sistema\n")
                         
                         # Targets comunes para escanear
                         targets = ['127.0.0.1', 'localhost', '192.168.1.1', '192.168.1.254']
@@ -1579,30 +1393,31 @@ Versión Python: {platform.python_version()}
                         for target in targets:
                             self._actualizar_texto_auditoria(f"• Escaneando servicios web en {target}...\n")
                             
-                            # Crear lista de URLs para curl probe
+                            # Crear lista de URLs para httpx
+                            urls_target = []
                             for puerto in puertos:
-                                for protocolo in ['http', 'https']:
-                                    url = f"{protocolo}://{target}:{puerto}"
-                                    try:
-                                        # Usar curl para probe HTTP nativo
-                                        cmd = ['curl', '-I', '-s', '--connect-timeout', '5', 
-                                              '--max-time', '10', url]
-                                        
-                                        proceso = subprocess.run(cmd, capture_output=True, 
-                                                               text=True, timeout=15)
-                                        
-                                        if proceso.returncode == 0 and proceso.stdout:
-                                            # Extraer código de estado
-                                            lines = proceso.stdout.strip().split('\n')
-                                            if lines and 'HTTP' in lines[0]:
-                                                status_line = lines[0].strip()
-                                                servicios_encontrados.append(f"{url} [{status_line}]")
-                                                self._actualizar_texto_auditoria(f"  ✓ SERVICIO: {url} [{status_line}]\n")
+                                urls_target.extend([f"http://{target}:{puerto}", f"https://{target}:{puerto}"])
+                            
+                            # Ejecutar httpx con probe
+                            for url in urls_target:
+                                try:
+                                    cmd = ['httpx', '-u', url, '-probe', '-status-code', 
+                                          '-title', '-tech-detect', '-timeout', '5', '-silent']
+                                    
+                                    proceso = subprocess.run(cmd, capture_output=True, 
+                                                           text=True, timeout=10)
+                                    
+                                    if proceso.stdout and proceso.stdout.strip():
+                                        lineas = proceso.stdout.strip().split('\n')
+                                        for linea in lineas:
+                                            if linea.strip() and '[' in linea:
+                                                servicios_encontrados.append(linea.strip())
+                                                self._actualizar_texto_auditoria(f"  OK SERVICIO: {linea.strip()}\n")
                                                 
-                                    except subprocess.TimeoutExpired:
-                                        continue
-                                    except Exception:
-                                        continue
+                                except subprocess.TimeoutExpired:
+                                    continue
+                                except Exception:
+                                    continue
                         
                         if servicios_encontrados:
                             self._actualizar_texto_auditoria(f"\n=== RESUMEN: {len(servicios_encontrados)} servicios web encontrados ===\n")
@@ -1611,39 +1426,38 @@ Versión Python: {platform.python_version()}
                         else:
                             self._actualizar_texto_auditoria("• INFO: No se encontraron servicios web activos\n")
                         
-                        # Ejecutar detección de tecnologías en localhost usando curl
-                        self._actualizar_texto_auditoria("\n• Detectando servicios en localhost...\n")
+                        # Ejecutar detección de tecnologías en localhost
+                        self._actualizar_texto_auditoria("\n• Detectando tecnologías en localhost...\n")
                         try:
-                            cmd_tech = ['curl', '-I', '-s', '--connect-timeout', '5', 
-                                       'http://localhost']
+                            cmd_tech = ['httpx', '-u', 'http://localhost', '-tech-detect', 
+                                       '-follow-redirects', '-timeout', '10', '-silent']
                             tech_result = subprocess.run(cmd_tech, capture_output=True, 
                                                        text=True, timeout=15)
-                            if tech_result.returncode == 0 and tech_result.stdout:
-                                headers = tech_result.stdout.strip()
-                                self._actualizar_texto_auditoria(f"✓ LOCALHOST ACTIVO:\n{headers[:200]}...\n")
+                            if tech_result.stdout and tech_result.stdout.strip():
+                                self._actualizar_texto_auditoria(f"TECNOLOGÍAS: {tech_result.stdout.strip()}\n")
                             else:
-                                self._actualizar_texto_auditoria("• No hay servicios activos en localhost\n")
-                        except (subprocess.SubprocessError, OSError, TimeoutError) as e:
-                            logging.debug(f'Error en excepción: {e}')
+                                self._actualizar_texto_auditoria("• No se detectaron tecnologías específicas\n")
+                        except:
                             pass
                         
-                        # Mostrar comandos útiles con curl
-                        self._actualizar_texto_auditoria("\n=== COMANDOS CURL ÚTILES ===\n")
-                        self._actualizar_texto_auditoria("• curl -I target.com: Headers HTTP\n")
-                        self._actualizar_texto_auditoria("• curl -L target.com: Seguir redirects\n")
-                        self._actualizar_texto_auditoria("• curl -A 'User-Agent' target.com: Custom user agent\n")
-                        self._actualizar_texto_auditoria("• curl -k https://target.com: Ignorar SSL\n")
+                        # Mostrar comandos útiles
+                        self._actualizar_texto_auditoria("\n=== COMANDOS HTTPX ÚTILES ===\n")
+                        self._actualizar_texto_auditoria("• httpx -l targets.txt -probe: Verificar múltiples URLs\n")
+                        self._actualizar_texto_auditoria("• httpx -u target.com -ports 80,443,8080: Puertos específicos\n")
+                        self._actualizar_texto_auditoria("• httpx -u target.com -screenshot: Capturar pantalla\n")
+                        self._actualizar_texto_auditoria("• httpx -u target.com -favicon: Hash de favicon\n")
                         
                     else:
-                        self._actualizar_texto_auditoria("✓ curl está disponible en el sistema\n")
-                        self._actualizar_texto_auditoria("curl es herramienta nativa - No requiere instalación\n")
+                        self._actualizar_texto_auditoria("WARNING httpx no encontrado\n")
+                        self._actualizar_texto_auditoria("INSTALACIÓN: apt install httpx\n")
+                        self._actualizar_texto_auditoria("O desde Go: go install github.com/projectdiscovery/httpx/cmd/httpx@latest\n")
                         
                 except Exception as e:
-                    self._actualizar_texto_auditoria(f"ERROR verificando curl: {str(e)}\n")
+                    self._actualizar_texto_auditoria(f"ERROR verificando httpx: {str(e)}\n")
                 
-                self._actualizar_texto_auditoria("=== ESCANEO CURL PROBE COMPLETADO ===\n\n")
+                self._actualizar_texto_auditoria("=== ESCANEO HTTPX COMPLETADO ===\n\n")
             except Exception as e:
-                self._actualizar_texto_auditoria(f"ERROR en curl probe: {str(e)}\n")
+                self._actualizar_texto_auditoria(f"ERROR en httpx: {str(e)}\n")
         
         threading.Thread(target=ejecutar, daemon=True).start()
     

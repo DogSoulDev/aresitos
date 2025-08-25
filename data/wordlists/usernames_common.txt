@@ -589,7 +589,7 @@ recoverjpeg
 bulk_extractor
 sleuthkit
 autopsy
-memstat
+volatility
 rekall
 lime
 linpmem

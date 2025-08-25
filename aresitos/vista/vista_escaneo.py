@@ -68,14 +68,6 @@ class VistaEscaneo(tk.Frame):
     def set_controlador(self, controlador):
         self.controlador = controlador
     
-    def set_sudo_manager(self, sudo_manager):
-        """Establecer SudoManager heredado de la vista principal"""
-        self.sudo_manager = sudo_manager
-        if sudo_manager and sudo_manager.is_sudo_active():
-            print("[ESCANEO] SudoManager activo recibido")
-        else:
-            print("[ESCANEO] Advertencia: SudoManager no activo")
-    
     def crear_widgets(self):
         # PanedWindow principal para dividir contenido y terminal
         self.paned_window = tk.PanedWindow(self, orient="vertical", bg=self.colors['bg_primary'])
@@ -118,7 +110,7 @@ class VistaEscaneo(tk.Frame):
                                             activeforeground='white')
         self.btn_cancelar_escaneo.pack(side="left", padx=(0, 15))
         
-        self.btn_logs = tk.Button(btn_frame, text="Ver Log Terminal", 
+        self.btn_logs = tk.Button(btn_frame, text="Ver Logs", 
                                 command=self.ver_logs,
                                 bg=self.colors['button_bg'], fg='white',
                                 font=('Arial', 10),
@@ -126,16 +118,6 @@ class VistaEscaneo(tk.Frame):
                                 activebackground=self.colors['fg_accent'],
                                 activeforeground='white')
         self.btn_logs.pack(side="left", padx=(0, 10))
-        
-        # Nuevo botón para abrir carpeta de logs
-        self.btn_abrir_logs = tk.Button(btn_frame, text="Abrir Carpeta Logs", 
-                                      command=self.abrir_carpeta_logs,
-                                      bg=self.colors['button_bg'], fg='white',
-                                      font=('Arial', 10),
-                                      relief='flat', padx=15, pady=8,
-                                      activebackground=self.colors['fg_accent'],
-                                      activeforeground='white')
-        self.btn_abrir_logs.pack(side="left", padx=(0, 10))
         
         # Barra de progreso
         self.progress_frame = tk.Frame(main_frame, bg=self.colors['bg_primary'])
@@ -407,30 +389,8 @@ class VistaEscaneo(tk.Frame):
             return
             
         if not self.controlador:
-            # Intentar obtener controlador desde vista principal
-            try:
-                if hasattr(self, 'vista_principal') and hasattr(self.vista_principal, 'controlador'):
-                    if hasattr(self.vista_principal.controlador, 'controlador_escaneador'):
-                        self.controlador = self.vista_principal.controlador.controlador_escaneador
-                        self._log_terminal("RECOVERY Controlador de escaneo recuperado desde vista principal", "ESCANEADOR", "INFO")
-                    else:
-                        # Crear controlador básico
-                        from aresitos.controlador.controlador_escaneo import ControladorEscaneo
-                        from aresitos.modelo.modelo_principal import ModeloPrincipal
-                        modelo = ModeloPrincipal()
-                        self.controlador = ControladorEscaneo(modelo)
-                        self._log_terminal("FALLBACK Controlador de escaneo creado como fallback", "ESCANEADOR", "WARNING")
-                else:
-                    # Última opción: crear controlador independiente
-                    from aresitos.controlador.controlador_escaneo import ControladorEscaneo
-                    from aresitos.modelo.modelo_principal import ModeloPrincipal
-                    modelo = ModeloPrincipal()
-                    self.controlador = ControladorEscaneo(modelo)
-                    self._log_terminal("EMERGENCY Controlador de escaneo creado de emergencia", "ESCANEADOR", "WARNING")
-            except Exception as e:
-                messagebox.showerror("Error", f"No se puede crear controlador de escaneo: {str(e)}")
-                self._log_terminal(f"ERROR No se puede crear controlador: {e}", "ESCANEADOR", "ERROR")
-                return
+            messagebox.showerror("Error", "No hay controlador de escaneo configurado")
+            return
         
         # Limpiar resultados anteriores
         self._actualizar_resultados_seguro("", "clear")
@@ -702,26 +662,14 @@ class VistaEscaneo(tk.Frame):
                 self._actualizar_texto_seguro("CRITICO: Se encontraron vulnerabilidades - Revisar inmediatamente\n")
             if total_puertos > 20:
                 self._actualizar_texto_seguro("ATENCION: Muchos puertos abiertos - Revisar superficie de ataque\n")
-            self._actualizar_texto_seguro("REVISAR: logs detallados en el módulo SIEM\n")
-            self._actualizar_texto_seguro("REVISAR: Considerar monitoreo FIM de archivos críticos\n\n")
+            self._actualizar_texto_seguro("🔵 Revisar logs detallados en el módulo SIEM\n")
+            self._actualizar_texto_seguro("🔵 Considerar monitoreo FIM de archivos críticos\n\n")
             
             self._actualizar_texto_seguro("=" * 70 + "\n")
             self._actualizar_texto_seguro("        ESCANEO KALI 2025 COMPLETADO EXITOSAMENTE\n")
             self._actualizar_texto_seguro("=" * 70 + "\n")
             
             self._log_terminal("CONTROLADOR Escaneo Kali 2025 completado con éxito", "ESCANEADOR", "SUCCESS")
-            
-            # ARESITOS: Guardar automáticamente los resultados en log
-            try:
-                import os
-                # Obtener todo el texto de resultados actual
-                contenido_completo = self.text_resultados.get(1.0, 'end-1c')
-                archivo_guardado = self.guardar_resultado_escaneo(contenido_completo)
-                if archivo_guardado:
-                    self._actualizar_texto_seguro(f"\n[INFO] Resultados automáticamente guardados en: {os.path.basename(archivo_guardado)}\n")
-                    self._actualizar_texto_seguro("[INFO] Use 'Abrir Carpeta Logs' para acceder al archivo\n")
-            except Exception as e:
-                self._log_terminal(f"Error guardando resultados automáticamente: {str(e)}", "ESCANEADOR", "WARNING")
             
         except Exception as e:
             self._actualizar_texto_seguro(f"Error mostrando resultados consolidados: {str(e)}\n")
@@ -742,16 +690,14 @@ class VistaEscaneo(tk.Frame):
                 resultado = subprocess.run(['uname', '-a'], capture_output=True, text=True, timeout=10)
                 if resultado.returncode == 0:
                     self._actualizar_texto_seguro(f"Sistema: {resultado.stdout.strip()}\n")
-            except (subprocess.SubprocessError, OSError, TimeoutError) as e:
-                logging.debug(f'Error en excepción: {e}')
+            except:
                 pass
             
             try:
                 resultado = subprocess.run(['whoami'], capture_output=True, text=True, timeout=5)
                 if resultado.returncode == 0:
                     self._actualizar_texto_seguro(f"Usuario: {resultado.stdout.strip()}\n")
-            except (subprocess.SubprocessError, OSError, TimeoutError) as e:
-                logging.debug(f'Error en excepción: {e}')
+            except:
                 pass
             
             # 2. Red y conectividad
@@ -763,8 +709,7 @@ class VistaEscaneo(tk.Frame):
                     interfaces = [l.strip() for l in lineas if 'inet ' in l and '127.0.0.1' not in l][:3]
                     for interfaz in interfaces:
                         self._actualizar_texto_seguro(f"Interfaz: {interfaz}\n")
-            except (subprocess.SubprocessError, OSError, TimeoutError) as e:
-                logging.debug(f'Error en excepción: {e}')
+            except:
                 pass
             
             # 3. Puertos locales
@@ -776,8 +721,7 @@ class VistaEscaneo(tk.Frame):
                         self._actualizar_texto_seguro(f"\nPuertos en escucha: {len(lineas)}\n")
                         for linea in lineas:
                             self._actualizar_texto_seguro(f"  {linea.strip()}\n")
-            except (subprocess.SubprocessError, OSError, TimeoutError) as e:
-                logging.debug(f'Error en excepción: {e}')
+            except:
                 pass
             
             # 4. Procesos críticos
@@ -794,8 +738,7 @@ class VistaEscaneo(tk.Frame):
                                 cpu = campos[2]
                                 comando = ' '.join(campos[10:])[:50]
                                 self._actualizar_texto_seguro(f"  {usuario} ({cpu}% CPU): {comando}\n")
-            except (ValueError, TypeError, AttributeError) as e:
-                logging.debug(f'Error en excepción: {e}')
+            except:
                 pass
             
             self._actualizar_texto_seguro("\n--- ESCANEO DE EMERGENCIA COMPLETADO ---\n")
@@ -920,18 +863,6 @@ class VistaEscaneo(tk.Frame):
             self._actualizar_texto_seguro("=" * 60 + "\n")
             
             self._log_terminal("CONTROLADOR Escaneo Kali 2025 completado exitosamente", "ESCANEADOR", "SUCCESS")
-            
-            # ARESITOS: Guardar automáticamente los resultados en log
-            try:
-                import os
-                # Obtener todo el texto de resultados actual
-                contenido_completo = self.text_resultados.get(1.0, 'end-1c')
-                archivo_guardado = self.guardar_resultado_escaneo(contenido_completo)
-                if archivo_guardado:
-                    self._actualizar_texto_seguro(f"\n[INFO] Resultados automáticamente guardados en: {os.path.basename(archivo_guardado)}\n")
-                    self._actualizar_texto_seguro("[INFO] Use 'Abrir Carpeta Logs' para acceder al archivo\n")
-            except Exception as e:
-                self._log_terminal(f"Error guardando resultados automáticamente: {str(e)}", "ESCANEADOR", "WARNING")
             
         except Exception as e:
             self._actualizar_texto_seguro(f"Error mostrando resultados: {str(e)}\n")
@@ -1082,8 +1013,7 @@ class VistaEscaneo(tk.Frame):
                             self._actualizar_texto_seguro(f"  CONTROLADOR {herramienta}: {resultado.stdout.strip()}\n")
                         else:
                             self._actualizar_texto_seguro(f"  ERROR {herramienta}: No disponible\n")
-                    except (subprocess.SubprocessError, OSError, TimeoutError) as e:
-                        logging.debug(f'Error en excepción: {e}')
+                    except:
                         self._actualizar_texto_seguro(f"  ? {herramienta}: Error verificando\n")
                 
                 self._actualizar_texto_seguro(f"\nHerramientas disponibles: {len(disponibles)}/{len(herramientas)}\n")
@@ -1107,8 +1037,7 @@ class VistaEscaneo(tk.Frame):
                         self._actualizar_texto_seguro("CONTROLADOR Sistema: Kali Linux detectado\n")
                     else:
                         self._actualizar_texto_seguro("WARNING Sistema: No es Kali Linux\n")
-                except (subprocess.SubprocessError, OSError, TimeoutError) as e:
-                    logging.debug(f'Error en excepción: {e}')
+                except:
                     pass
                 
                 # Estado general
@@ -1405,8 +1334,7 @@ class VistaEscaneo(tk.Frame):
                 else:
                     herramientas_faltantes.append(herramienta)
                     self._actualizar_texto_seguro(f"FALTA {herramienta}: {descripcion}\n")
-            except (subprocess.SubprocessError, OSError, TimeoutError) as e:
-                logging.debug(f'Error en excepción: {e}')
+            except:
                 herramientas_faltantes.append(herramienta)
                 self._actualizar_texto_seguro(f"ERROR {herramienta}: No se pudo verificar\n")
         
@@ -1659,8 +1587,7 @@ class VistaEscaneo(tk.Frame):
                             if self._validar_ip(ip):
                                 hosts_activos.append(ip)
                                 self._actualizar_texto_seguro(f"Host activo: {ip}\n")
-            except (subprocess.SubprocessError, OSError, TimeoutError) as e:
-                logging.debug(f'Error en excepción: {e}')
+            except:
                 # Fallback: ping individual
                 self._actualizar_texto_seguro("Fallback: usando ping individual...\n")
                 for host in list(red.hosts())[:20]:  # Limitar a 20 hosts
@@ -1670,8 +1597,7 @@ class VistaEscaneo(tk.Frame):
                         if result.returncode == 0:
                             hosts_activos.append(str(host))
                             self._actualizar_texto_seguro(f"Host activo: {host}\n")
-                    except (subprocess.SubprocessError, OSError, TimeoutError) as e:
-                        logging.debug(f'Error en excepción: {e}')
+                    except:
                         continue
             
             resultados_red["hosts_activos"] = hosts_activos
@@ -1738,8 +1664,7 @@ class VistaEscaneo(tk.Frame):
         try:
             ipaddress.ip_address(ip_str)
             return True
-        except (ValueError, TypeError, AttributeError) as e:
-            logging.debug(f'Error en excepción: {e}')
+        except:
             return False
 
     def configurar_tipo_escaneo(self, tipo_escaneo="integral"):
@@ -1889,8 +1814,7 @@ class VistaEscaneo(tk.Frame):
                             else:
                                 resultado["vulnerabilidades_altas"].append(linea.strip())
                             self._actualizar_texto_seguro(f"Nuclei: {linea.strip()}\n")
-            except (ValueError, TypeError, AttributeError) as e:
-                logging.debug(f'Error en excepción: {e}')
+            except:
                 self._actualizar_texto_seguro("Nuclei no disponible, continuando...\n")
             
             # Resumen
@@ -1994,7 +1918,7 @@ class VistaEscaneo(tk.Frame):
             'nmap', 'masscan', 'nikto', 'dirb', 'gobuster', 'sqlmap',
             'metasploit', 'msfconsole', 'john', 'hashcat', 'hydra',
             'aircrack-ng', 'wireshark', 'tcpdump', 'netcat', 'socat',
-            'binwalk', 'foremost', 'autopsy', 'yara', 'chkrootkit',
+            'binwalk', 'foremost', 'volatility', 'yara', 'chkrootkit',
             'rkhunter', 'clamscan', 'lynis'
         ]
         
@@ -2011,8 +1935,7 @@ class VistaEscaneo(tk.Frame):
                     herramientas_encontradas += 1
                 else:
                     self._log_terminal(f"WARNING: {herramienta} no encontrada", "VERIFICADOR", "WARNING")
-            except (subprocess.SubprocessError, OSError, TimeoutError) as e:
-                logging.debug(f'Error en excepción: {e}')
+            except:
                 self._log_terminal(f"ERROR: No se pudo verificar {herramienta}", "VERIFICADOR", "WARNING")
                 
         porcentaje = (herramientas_encontradas / total_herramientas) * 100
@@ -2070,8 +1993,7 @@ class VistaEscaneo(tk.Frame):
                         self._log_terminal(f"OK: Paquete {paquete} instalado correctamente", "VERIFICADOR", "INFO")
                     else:
                         self._log_terminal(f"WARNING: Paquete {paquete} no encontrado o problemas", "VERIFICADOR", "WARNING")
-                except (subprocess.SubprocessError, OSError, TimeoutError) as e:
-                    logging.debug(f'Error en excepción: {e}')
+                except:
                     self._log_terminal(f"ERROR: No se pudo verificar paquete {paquete}", "VERIFICADOR", "WARNING")
                     
         except Exception as e:
@@ -2104,8 +2026,7 @@ class VistaEscaneo(tk.Frame):
                     self._log_terminal("OK: Resolucion DNS funcionando", "VERIFICADOR", "INFO")
                 else:
                     self._log_terminal("WARNING: Problemas con resolucion DNS", "VERIFICADOR", "WARNING")
-            except (subprocess.SubprocessError, OSError, TimeoutError) as e:
-                logging.debug(f'Error en excepción: {e}')
+            except:
                 self._log_terminal("WARNING: No se pudo verificar DNS", "VERIFICADOR", "WARNING")
                 
         except Exception as e:
@@ -2137,8 +2058,7 @@ class VistaEscaneo(tk.Frame):
                 # Los logs del terminal se manejan directamente por VistaDashboard
                 # Por ahora usamos solo los logs del controlador
                 pass
-            except (FileNotFoundError, PermissionError, OSError) as e:
-                logging.debug(f'Error en excepción: {e}')
+            except:
                 pass
                 
             # Mostrar logs en pantalla
@@ -2179,8 +2099,7 @@ class VistaEscaneo(tk.Frame):
             if hasattr(self, '_logs_temporales'):
                 self._logs_temporales.clear()
                 print("[ARESITOS] Logs temporales eliminados al cerrar programa")
-        except (ValueError, TypeError, OSError) as e:
-            logging.debug(f'Error en excepción: {e}')
+        except:
             pass
     
     def ver_eventos(self):
@@ -2237,9 +2156,8 @@ class VistaEscaneo(tk.Frame):
         try:
             # Buscar archivos SUID sospechosos
             self._log_terminal("Escaneando archivos SUID sospechosos...", "ESCANEADOR", "INFO")
-            # SEGURIDAD: Evitar shell=True, usar redirección de stderr en Python
-            resultado = subprocess.run(['find', '/', '-type', 'f', '-perm', '-4000'], 
-                                     capture_output=True, text=True, timeout=30, stderr=subprocess.DEVNULL)
+            resultado = subprocess.run(['find', '/', '-type', 'f', '-perm', '-4000', '2>/dev/null'], 
+                                     capture_output=True, text=True, timeout=30, shell=True)
             
             archivos_suid = resultado.stdout.strip().split('\n') if resultado.stdout.strip() else []
             
@@ -2255,9 +2173,8 @@ class VistaEscaneo(tk.Frame):
                     
             # Buscar archivos world-writable
             self._log_terminal("Escaneando archivos world-writable...", "ESCANEADOR", "INFO")
-            # SEGURIDAD: Evitar shell=True, usar stderr=DEVNULL en Python
-            resultado = subprocess.run(['find', '/', '-type', 'f', '-perm', '-002'], 
-                                     capture_output=True, text=True, timeout=30, stderr=subprocess.DEVNULL)
+            resultado = subprocess.run(['find', '/', '-type', 'f', '-perm', '-002', '2>/dev/null'], 
+                                     capture_output=True, text=True, timeout=30, shell=True)
             
             archivos_writable = resultado.stdout.strip().split('\n') if resultado.stdout.strip() else []
             for archivo in archivos_writable[:10]:  # Limitar salida
@@ -2279,8 +2196,7 @@ class VistaEscaneo(tk.Frame):
                 resultado = subprocess.run(['ps', 'aux'], capture_output=True, text=True, timeout=10)
                 procesos = len(resultado.stdout.strip().split('\n')) - 1
                 self._log_terminal(f"Procesos activos encontrados: {procesos}", "ESCANEADOR", "INFO")
-            except (subprocess.SubprocessError, OSError, TimeoutError) as e:
-                logging.debug(f'Error en excepción: {e}')
+            except:
                 pass
                 
             # Verificar archivos en /tmp sospechosos
@@ -2297,8 +2213,7 @@ class VistaEscaneo(tk.Frame):
                         for ejecutable in ejecutables:
                             if ejecutable.strip():
                                 self._log_terminal(f"ARCHIVO SOSPECHOSO: Ejecutable en {ejecutable}", "ESCANEADOR", "ERROR")
-                    except (FileNotFoundError, PermissionError, OSError) as e:
-                        logging.debug(f'Error en excepción: {e}')
+                    except:
                         pass
                         
             # Verificar conexiones de red sospechosas
@@ -2441,8 +2356,7 @@ class VistaEscaneo(tk.Frame):
                 for linea in lineas:
                     if linea.strip() and 'reboot' not in linea.lower():
                         self._log_terminal(f"  {linea}", "ESCANEADOR", "INFO")
-            except (subprocess.SubprocessError, OSError, TimeoutError) as e:
-                logging.debug(f'Error en excepción: {e}')
+            except:
                 pass
                 
         except Exception as e:
@@ -2488,8 +2402,7 @@ class VistaEscaneo(tk.Frame):
                                     self._log_terminal(f"Actualización disponible: {paquete} -> {version_nueva}", "ESCANEADOR", "INFO")
                 else:
                     self._log_terminal("Sistema actualizado", "ESCANEADOR", "INFO")
-            except (ValueError, TypeError, AttributeError) as e:
-                logging.debug(f'Error en excepción: {e}')
+            except:
                 self._log_terminal("No se pudo verificar actualizaciones", "ESCANEADOR", "WARNING")
             
             # Verificar archivos sospechosos con información detallada
@@ -2522,8 +2435,7 @@ class VistaEscaneo(tk.Frame):
                                                 propietario = partes_ls[2] if len(partes_ls) > 2 else f"UID:{stat_info.st_uid}"
                                             else:
                                                 propietario = f"UID:{stat_info.st_uid}"
-                                        except (subprocess.SubprocessError, OSError, TimeoutError) as e:
-                                            logging.debug(f'Error en excepción: {e}')
+                                        except:
                                             propietario = f"UID:{stat_info.st_uid}"
                                         
                                         # Obtener permisos
@@ -2556,8 +2468,7 @@ class VistaEscaneo(tk.Frame):
                                             stat_info = os.stat(archivo)
                                             mod_time = datetime.fromtimestamp(stat_info.st_mtime).strftime("%Y-%m-%d %H:%M")
                                             self._log_terminal(f"SCRIPT RECIENTE: {archivo} (mod: {mod_time})", "ARCHIVOS", "WARNING")
-                                        except (subprocess.SubprocessError, OSError, TimeoutError) as e:
-                                            logging.debug(f'Error en excepción: {e}')
+                                        except:
                                             self._log_terminal(f"SCRIPT RECIENTE: {archivo}", "ARCHIVOS", "WARNING")
                         
             except Exception as e:
@@ -2650,8 +2561,7 @@ class VistaEscaneo(tk.Frame):
                     self._actualizar_texto_seguro(f"GATEWAY: {gateway}\n\n")
                 else:
                     self._actualizar_texto_seguro("ERROR: No se pudo determinar la ruta por defecto\n\n")
-            except (subprocess.SubprocessError, OSError, TimeoutError) as e:
-                logging.debug(f'Error en excepción: {e}')
+            except:
                 self._actualizar_texto_seguro("ERROR: Comando ip route falló\n\n")
             
             # 2. Escaneo de red local con nmap si está disponible
@@ -2723,11 +2633,9 @@ class VistaEscaneo(tk.Frame):
                             self._actualizar_texto_seguro(f"CONECTIVIDAD: Gateway {gateway} responde\n")
                         else:
                             self._actualizar_texto_seguro(f"PROBLEMA: Gateway {gateway} no responde\n")
-                    except (subprocess.SubprocessError, OSError, TimeoutError) as e:
-                        logging.debug(f'Error en excepción: {e}')
+                    except:
                         self._actualizar_texto_seguro("ERROR: No se pudo hacer ping al gateway\n")
-            except (subprocess.SubprocessError, OSError, TimeoutError) as e:
-                logging.debug(f'Error en excepción: {e}')
+            except:
                 self._actualizar_texto_seguro("ERROR: No se pudo verificar disponibilidad de nmap\n")
             
             self._actualizar_texto_seguro("\n")
@@ -2774,8 +2682,7 @@ class VistaEscaneo(tk.Frame):
                         self._actualizar_texto_seguro(f"  UDP: {puerto}\n")
                 else:
                     self._actualizar_texto_seguro("ERROR: No se pudo ejecutar comando ss\n")
-            except (ValueError, TypeError, OSError) as e:
-                logging.debug(f'Error en excepción: {e}')
+            except:
                 self._actualizar_texto_seguro("ERROR: Comando ss no disponible\n")
             
             self._actualizar_texto_seguro("\n")
@@ -2798,8 +2705,7 @@ class VistaEscaneo(tk.Frame):
                                 self._actualizar_texto_seguro(f"  {proceso} (PID: {pid}): {conexion}\n")
                 else:
                     self._actualizar_texto_seguro("INFO: lsof no mostró conexiones o no está disponible\n")
-            except (ValueError, TypeError, AttributeError) as e:
-                logging.debug(f'Error en excepción: {e}')
+            except:
                 self._actualizar_texto_seguro("ADVERTENCIA: lsof no disponible\n")
             
             self._actualizar_texto_seguro("\n")
@@ -2821,8 +2727,7 @@ class VistaEscaneo(tk.Frame):
                     self._actualizar_texto_seguro(f"TOTAL SERVICIOS ACTIVOS: {servicios_activos}\n")
                 else:
                     self._actualizar_texto_seguro("ERROR: No se pudo listar servicios systemd\n")
-            except (subprocess.SubprocessError, OSError, TimeoutError) as e:
-                logging.debug(f'Error en excepción: {e}')
+            except:
                 self._actualizar_texto_seguro("ERROR: systemctl no disponible\n")
                 
             self._actualizar_texto_seguro("\n")
@@ -2859,7 +2764,7 @@ class VistaEscaneo(tk.Frame):
                 'gobuster': 'Escaneador de directorios/DNS rápido',
                 'ffuf': 'Fuzzer web rápido',
                 'whatweb': 'Identificador de tecnologías web',
-                'curl': 'Cliente HTTP nativo',
+                'httpx': 'Kit de herramientas HTTP',
                 
                 # Seguridad y análisis
                 'chkrootkit': 'Detector de rootkits',
@@ -2869,7 +2774,7 @@ class VistaEscaneo(tk.Frame):
                 'yara': 'Motor de detección de malware',
                 
                 # Análisis forense
-                'autopsy': 'Plataforma de análisis forense digital',
+                'volatility': 'Análisis de memoria forense',
                 'binwalk': 'Análisis de firmware y archivos binarios',
                 'foremost': 'Recuperación de archivos',
                 'strings': 'Extractor de cadenas de texto',
@@ -2893,18 +2798,17 @@ class VistaEscaneo(tk.Frame):
                         # Categorizar herramientas
                         if herramienta in ['nmap', 'masscan', 'zmap', 'rustscan', 'ss', 'netstat', 'lsof', 'iftop', 'nethogs']:
                             categorias_disponibles['red'].append(herramienta)
-                        elif herramienta in ['nikto', 'dirb', 'gobuster', 'ffuf', 'whatweb', 'curl']:
+                        elif herramienta in ['nikto', 'dirb', 'gobuster', 'ffuf', 'whatweb', 'httpx']:
                             categorias_disponibles['web'].append(herramienta)
                         elif herramienta in ['chkrootkit', 'lynis', 'rkhunter', 'clamav', 'yara']:
                             categorias_disponibles['seguridad'].append(herramienta)
-                        elif herramienta in ['autopsy', 'binwalk', 'foremost', 'strings']:
+                        elif herramienta in ['volatility', 'binwalk', 'foremost', 'strings']:
                             categorias_disponibles['forense'].append(herramienta)
                         elif herramienta in ['pspy', 'htop', 'iotop']:
                             categorias_disponibles['procesos'].append(herramienta)
                             
                         self._log_terminal(f"CONTROLADOR DISPONIBLE: {herramienta} - {descripcion}", "KALI", "SUCCESS")
-                except (ValueError, TypeError, OSError) as e:
-                    logging.debug(f'Error en excepción: {e}')
+                except:
                     pass
             
             total_herramientas = len(herramientas_disponibles)
@@ -3651,8 +3555,7 @@ class VistaEscaneo(tk.Frame):
                     if resultado.returncode == 0:
                         herramientas_disponibles.append(herramienta)
                         self._log_terminal(f"DETECTOR DISPONIBLE: {herramienta}", "ROOTKIT", "INFO")
-                except (subprocess.SubprocessError, OSError, TimeoutError) as e:
-                    logging.debug(f'Error en excepción: {e}')
+                except:
                     pass
             
             # 2. Verificar archivos de sistema modificados recientemente
@@ -3673,8 +3576,7 @@ class VistaEscaneo(tk.Frame):
                                         from datetime import datetime
                                         mod_time = datetime.fromtimestamp(stat_info.st_mtime).strftime("%Y-%m-%d %H:%M")
                                         self._log_terminal(f"SISTEMA MODIFICADO: {archivo} (mod: {mod_time})", "ROOTKIT", "WARNING")
-                                    except (ValueError, TypeError, AttributeError) as e:
-                                        logging.debug(f'Error en excepción: {e}')
+                                    except:
                                         pass
                         
             except Exception as e:
@@ -3737,8 +3639,7 @@ class VistaEscaneo(tk.Frame):
                                     puerto_num = int(puerto)
                                     if puerto_num > 49152 and 'LISTEN' in linea:
                                         self._log_terminal(f"PUERTO ALTO EN ESCUCHA: {puerto}", "ROOTKIT", "WARNING")
-                                except (ValueError, TypeError, AttributeError) as e:
-                                    logging.debug(f'Error en excepción: {e}')
+                                except:
                                     pass
                 
             except Exception as e:
@@ -3822,7 +3723,7 @@ class VistaEscaneo(tk.Frame):
         import subprocess
         herramientas_kali = [
             'nmap', 'masscan', 'rustscan', 'nikto', 'dirb', 'gobuster', 
-            'whatweb', 'curl', 'chkrootkit', 'rkhunter', 'clamav',
+            'whatweb', 'httpx', 'chkrootkit', 'rkhunter', 'clamav',
             'binwalk', 'strings', 'lsof', 'pspy'
         ]
         
@@ -3833,8 +3734,7 @@ class VistaEscaneo(tk.Frame):
                                          capture_output=True, text=True, timeout=3)
                 if resultado.returncode == 0:
                     disponibles.append(herramienta)
-            except (subprocess.SubprocessError, OSError, TimeoutError) as e:
-                logging.debug(f'Error en excepción: {e}')
+            except:
                 pass
         
         return {
@@ -3963,81 +3863,6 @@ class VistaEscaneo(tk.Frame):
             self.after_idle(_update)
         except (tk.TclError, AttributeError):
             pass  # Ventana ya destruida
-
-    def guardar_resultado_escaneo(self, resultados_texto):
-        """Guardar resultados del escaneo en archivo log siguiendo principios ARESITOS."""
-        try:
-            import os
-            import datetime
-            
-            # ARESITOS: Crear directorio logs si no existe
-            logs_dir = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(__file__))), "logs")
-            os.makedirs(logs_dir, exist_ok=True)
-            
-            # ARESITOS: Nombre de archivo con timestamp para evitar sobrescribir
-            timestamp = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
-            nombre_archivo = f"escaneo_resultado_{timestamp}.log"
-            ruta_archivo = os.path.join(logs_dir, nombre_archivo)
-            
-            # ARESITOS: Guardar con información contextual
-            with open(ruta_archivo, 'w', encoding='utf-8') as f:
-                f.write("=" * 80 + "\n")
-                f.write(f"ARESITOS AEGIS - LOG DE ESCANEO\n")
-                f.write(f"Fecha: {datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')}\n")
-                f.write(f"Versión: ARESITOS v3.0 'Compliance Total'\n")
-                f.write("=" * 80 + "\n\n")
-                f.write(resultados_texto)
-                f.write("\n\n" + "=" * 80 + "\n")
-                f.write("FIN DEL LOG DE ESCANEO ARESITOS\n")
-                f.write("=" * 80 + "\n")
-            
-            self._log_terminal(f"Resultados guardados en: {nombre_archivo}", "ESCANEADOR", "SUCCESS")
-            return ruta_archivo
-            
-        except Exception as e:
-            self._log_terminal(f"Error guardando log: {str(e)}", "ESCANEADOR", "ERROR")
-            return None
-
-    def abrir_carpeta_logs(self):
-        """Abrir carpeta de logs siguiendo principios ARESITOS."""
-        try:
-            import os
-            import platform
-            import subprocess
-            
-            # ARESITOS: Determinar ruta de logs
-            logs_dir = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(__file__))), "logs")
-            
-            # ARESITOS: Crear directorio si no existe
-            if not os.path.exists(logs_dir):
-                os.makedirs(logs_dir, exist_ok=True)
-                self._log_terminal("Carpeta logs creada", "ESCANEADOR", "INFO")
-            
-            # ARESITOS: Abrir carpeta según el sistema operativo
-            sistema = platform.system().lower()
-            
-            if sistema == "windows":
-                # Windows - usar explorer
-                subprocess.run(['explorer', logs_dir], check=False)
-            elif sistema == "linux":
-                # Linux - usar xdg-open o nautilus
-                try:
-                    subprocess.run(['xdg-open', logs_dir], check=False)
-                except FileNotFoundError:
-                    # Fallback para sistemas sin xdg-open
-                    subprocess.run(['nautilus', logs_dir], check=False)
-            elif sistema == "darwin":
-                # macOS - usar open
-                subprocess.run(['open', logs_dir], check=False)
-            else:
-                # Sistema desconocido - mostrar ruta
-                self._log_terminal(f"Carpeta logs: {logs_dir}", "ESCANEADOR", "INFO")
-                return
-            
-            self._log_terminal(f"Carpeta logs abierta: {logs_dir}", "ESCANEADOR", "SUCCESS")
-            
-        except Exception as e:
-            self._log_terminal(f"Error abriendo carpeta logs: {str(e)}", "ESCANEADOR", "ERROR")
 
 
 # RESUMEN: Interfaz de escaneo de vulnerabilidades con opciones básicas y avanzadas.

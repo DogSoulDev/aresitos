@@ -90,7 +90,7 @@ Esta carpeta contiene cheatsheets de ciberseguridad para profesionales. Los arch
 - **Categorías**: Ataques de diccionario, máscaras, reglas, optimización, múltiples formatos hash
 - **Uso**: Auditoría de contraseñas, análisis forense y testing de políticas de seguridad
 
-### 18. **memstat_memory_analysis.txt**
+### 18. **volatility_memory_forensics.txt**
 - **Descripción**: Framework de análisis forense de memoria RAM más completo
 - **Categorías**: Análisis de procesos, red, registro, archivos, detección de malware, timeline
 - **Uso**: Incident response, análisis forense digital y detección de amenazas avanzadas

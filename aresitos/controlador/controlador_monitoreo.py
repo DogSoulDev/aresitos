@@ -363,42 +363,6 @@ class ControladorMonitoreo(ControladorBase):
                 return hashlib.sha256(f.read()).hexdigest()
         except (IOError, OSError, PermissionError, FileNotFoundError):
             return "hash_no_disponible"
-    
-    def poner_en_cuarentena(self, archivo_path: str, razon: str = "Detección automática") -> Dict[str, Any]:
-        """
-        Poner archivo en cuarentena usando el controlador de cuarentena.
-        
-        Args:
-            archivo_path: Ruta del archivo a poner en cuarentena
-            razon: Razón para la cuarentena
-            
-        Returns:
-            Dict con resultado de la operación
-        """
-        try:
-            # Verificar que el archivo existe
-            if not os.path.exists(archivo_path):
-                return {
-                    'exito': False,
-                    'error': f'Archivo no encontrado: {archivo_path}'
-                }
-            
-            # Usar el controlador de cuarentena del modelo principal
-            if hasattr(self.modelo_principal, 'controlador_cuarentena'):
-                controlador_cuarentena = self.modelo_principal.controlador_cuarentena
-                return controlador_cuarentena.poner_en_cuarentena(archivo_path, razon)
-            else:
-                # Crear controlador de cuarentena directamente si no existe
-                from aresitos.controlador.controlador_cuarentena import ControladorCuarentena
-                controlador_cuarentena = ControladorCuarentena(self.modelo_principal)
-                return controlador_cuarentena.poner_en_cuarentena(archivo_path, razon)
-                
-        except Exception as e:
-            self.logger.error(f"Error poniendo archivo en cuarentena: {e}")
-            return {
-                'exito': False,
-                'error': f'Error en cuarentena: {str(e)}'
-            }
 
 # RESUMEN TÉCNICO: Controlador de monitoreo avanzado que integra detección de anomalías,
 # análisis de procesos sospechosos y correlación de eventos de seguridad. Mantiene

@@ -706,7 +706,7 @@ rkhunter
 lynis
 tiger
 unhide
-memstat
+volatility
 rekall
 lime
 linpmem

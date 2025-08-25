@@ -1,79 +1,37 @@
-# ARESITOS v3.0 - Guía de Instalación Técnica
+# Guía de Instalación - Aresitos
 
-## Requisitos del Sistema
+## ¿Qué necesitas?
 
-### Sistemas Soportados
-- **Kali Linux 2025** (recomendado) - Funcionalidad completa optimizada
-- **Kali Linux 2024** - Compatibilidad total verificada  
-- **Parrot Security OS** - Soporte nativo para todas las funciones
-- **BlackArch Linux** - Funciones básicas, configuración manual requerida
-- **Ubuntu/Debian** - Modo limitado, ideal para desarrollo
+### Sistema Operativo
+- **Kali Linux** (recomendado)
+- **Parrot Security OS** 
+- **Ubuntu/Debian** (funcionalidad limitada)
 
-### Especificaciones Técnicas
-- **Python**: 3.9+ con optimizaciones async para escaneador profesional
-- **RAM**: 4GB mínimo, 8GB recomendado para escaneos masivos
-- **Almacenamiento**: 1GB para instalación + templates nuclei
-- **Red**: Capacidad offline, internet para updates de bases de datos
-- **Permisos**: CAP_NET_RAW para escaneos SYN, sudo para configuración inicial
-- **Concurrencia**: Soporte para escaneos paralelos masivos
+### Requisitos Técnicos
+- **Python 3.8** o superior
+- **100MB** de espacio en disco
+- **512MB** de RAM mínimo
+- **Permisos sudo** para herramientas del sistema
 
-## Instalación Automática (Recomendada)
+## Instalación Rápida
 
-### ⚡ Método Express (30 segundos)
+### 3 Pasos Simples
+
+1. **Descargar Aresitos**
 ```bash
-# Clonar repositorio
-git clone https://github.com/DogSoulDev/aresitos.git
-cd aresitos
-
-# Configurar automáticamente con permisos sudo desde el inicio
-sudo chmod +x configurar_kali.sh && sudo ./configurar_kali.sh
-
-# Ejecutar ARESITOS
-python3 main.py
+git clone https://github.com/DogSoulDev/Aresitos.git
+cd Aresitos
 ```
 
-### 🔒 **IMPORTANTE: Permisos Sudo Requeridos**
-ARESITOS v3.0 requiere permisos de administrador desde el inicio para:
-- ✅ Instalación de herramientas de ciberseguridad (nmap, masscan, nuclei)
-- ✅ Configuración de servicios del sistema (auditd, rsyslog, fail2ban)
-- ✅ Configuración de permisos CAP_NET_RAW para escaneos SYN/ACK
-- ✅ Instalación automática de dependencias Python
-- ✅ Configuración de directorios del sistema y logs
-
-**Uso correcto:**
+2. **Configurar automáticamente**
 ```bash
-sudo chmod +x configurar_kali.sh
+chmod +x configurar_kali.sh
 sudo ./configurar_kali.sh
 ```
 
-**❌ Evitar interrupciones:**
+3. **Ejecutar Aresitos**
 ```bash
-# INCORRECTO - puede causar interrupciones
-chmod +x configurar_kali.sh && sudo ./configurar_kali.sh
-
-# CORRECTO - permisos sudo desde el inicio  
-sudo chmod +x configurar_kali.sh && sudo ./configurar_kali.sh
-```
-
-### 🚨 **Resolución de Problemas de Permisos**
-Si encuentras errores de permisos durante la instalación:
-
-1. **Verificar usuario sudo:**
-```bash
-groups $USER | grep sudo
-```
-
-2. **Reejecutar con permisos completos:**
-```bash
-sudo -i
-cd /ruta/a/aresitos
-./configurar_kali.sh
-```
-
-3. **Verificar script ejecutable:**
-```bash
-ls -la configurar_kali.sh
-# Debe mostrar: -rwxr-xr-x
+python3 main.py
 ```
 
 ## Instalación Detallada
@@ -93,18 +51,17 @@ Resolving deltas: 100% (910/910), done.
 
 ### Paso 2: Configuración Automática
 ```bash
-└─$ cd aresitos
-└─$ sudo chmod +x configurar_kali.sh
+└─$ cd Aresitos
+└─$ chmod +x configurar_kali.sh
 └─$ sudo ./configurar_kali.sh
 [sudo] password for kali: 
 
-🛡️ CONFIGURADOR ARESITOS v3.0 - ESCANEADOR PROFESIONAL PARA KALI LINUX
-=========================================================================
-[✓] Permisos de administrador verificados
+🛡️ CONFIGURADOR DE PERMISOS ARES AEGIS PARA KALI LINUX
+==========================================================
 [INFO] Usuario detectado: kali
 [INFO] Directorio home: /home/kali
 
-[INFO] Este script configurará ARESITOS v3.0 para funcionar correctamente en Kali Linux
+[INFO] Este script configurará Ares Aegis para funcionar correctamente en Kali Linux
 [INFO] Se realizarán las siguientes acciones:
   • Actualizar repositorios
   • Instalar herramientas de seguridad necesarias
@@ -327,7 +284,7 @@ El script verifica automáticamente:
 - Creación de scripts de prueba
 
 #### Herramientas de Análisis Forense
-- **memstat**: Análisis de memoria y procesos nativo (procps)
+- **volatility3**: Framework de análisis forense de memoria
 - **binwalk**: Análisis y extracción de firmware
 - **strings**: Extracción de cadenas de texto de archivos binarios
 - **file**: Identificación de tipos de archivo por contenido
@@ -403,7 +360,7 @@ Al ejecutar Aresitos, debe tener acceso a los siguientes módulos:
 5. **Gestión de Datos**: Wordlists y diccionarios con terminal de generación
 6. **Reportes**: Exportación de resultados con terminal de análisis
 7. **FIM**: Monitoreo de integridad con terminal inotifywait
-8. **SIEM**: Correlación de eventos con análisis de memoria y binarios
+8. **SIEM**: Correlación de eventos con terminales Volatility/Binwalk
 
 #### Verificación de Interfaz
 Cada vista debe mostrar:
@@ -621,7 +578,7 @@ def verificar_herramienta(comando):
 def main():
     herramientas = [
         'nmap', 'masscan', 'gobuster', 'nuclei', 'ffuf',
-        'memstat', 'binwalk', 'sleuthkit', 'foremost', 'exiftool',
+        'volatility3', 'binwalk', 'sleuthkit', 'foremost', 'exiftool',
         'clamscan', 'yara', 'inotifywait', 'chkrootkit', 'rkhunter'
     ]
     

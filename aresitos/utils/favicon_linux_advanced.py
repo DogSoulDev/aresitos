@@ -2,23 +2,21 @@
 # -*- coding: utf-8 -*-
 """
 =============================================================================
-ARESITOS v3.0 - Sistema de Favicon Linux Avanzado
+ARESITOS v3.0 - Sistema de Favicon Kali Linux 2025 Específico
 =============================================================================
 
-Módulo especializado para resolver problemas de favicon en distribuciones Linux
-modernas, especialmente optimizado para Kali Linux 2025.
-Implementa técnicas avanzadas para entornos GNOME/Wayland/X11.
+Módulo especializado para resolver problemas de favicon en Kali Linux 2025.
+Implementa técnicas específicas para el entorno GNOME/Wayland moderno.
 
 Principios ARESITOS aplicados:
-- Adaptabilidad: Múltiples métodos para diferentes entornos Linux
-- Robustez: Manejo exhaustivo de errores y fallbacks
-- Eficiencia: Optimizado para sistemas Linux modernos
-- Seguridad: Validación estricta de archivos antes de uso
-- Interoperabilidad: Compatible con X11, Wayland y gestores de ventanas
-- Transparencia: Logging detallado del proceso de aplicación
-- Optimización: Técnicas específicas para distribuciones Linux actuales
-- Sostenibilidad: Código mantenible y bien documentado
-- Simplicidad: Solo bibliotecas estándar de Python, sin dependencias externas
+- Adaptabilidad: Múltiples métodos para diferentes entornos
+- Robustez: Manejo exhaustivo de errores
+- Eficiencia: Optimizado para sistemas modernos
+- Seguridad: Validación de archivos antes de uso
+- Interoperabilidad: Compatible con X11 y Wayland
+- Transparencia: Logging detallado del proceso
+- Optimización: Técnicas específicas para Kali 2025
+- Sostenibilidad: Código mantenible y documentado
 
 Desarrollador: ARESITOS Team
 Versión: 3.0
@@ -35,275 +33,399 @@ import subprocess
 import platform
 from pathlib import Path
 
-# PRINCIPIO ARESITOS: Solo bibliotecas estándar de Python
-# No usar dependencias externas para mantener simplicidad y robustez
+# Importación condicional de PIL
+PIL_AVAILABLE = False
+try:
+    from PIL import Image, ImageTk
+    PIL_AVAILABLE = True
+except ImportError:
+    pass
 
-class FaviconLinuxAvanzado:
+class FaviconKali2025:
     """
-    Gestor de favicon especializado para distribuciones Linux modernas.
+    Gestor de favicon especializado para Kali Linux 2025.
     
-    Maneja las peculiaridades específicas del entorno GNOME/Wayland/X11
+    Maneja las peculiaridades específicas del entorno GNOME/Wayland
     en Kali Linux 2025 y sistemas modernos similares.
-    
-    Principios ARESITOS implementados:
-    - Solo bibliotecas estándar
-    - Múltiples métodos de fallback
-    - Detección automática del entorno
     """
     
     def __init__(self):
-        """Inicializar el gestor de favicon avanzado para Linux"""
+        """Inicializa el gestor de favicon con configuración específica."""
         self.logger = logging.getLogger(__name__)
-        self.base_path = Path(__file__).parent.parent
-        self.recursos_path = self.base_path / "recursos"
+        self.metodos_aplicados = []
+        self.session_type = self._detectar_session_type()
+        self.gnome_version = self._detectar_gnome_version()
+        self.kali_version = self._detectar_kali_version()
         
-        # Detectar información del entorno Linux
-        self.entorno_info = self._detectar_entorno_linux()
-        
-        # Buscar archivos de favicon disponibles
-        self.favicon_paths = self._buscar_favicons()
-        
-        self.logger.info("FaviconLinuxAvanzado inicializado")
-        self.logger.info(f"Entorno detectado: {self.entorno_info}")
-        self.logger.info(f"Favicons disponibles: {len(self.favicon_paths)}")
-    
-    def _detectar_entorno_linux(self) -> dict:
-        """Detectar información detallada del entorno Linux"""
-        entorno = {
-            'desktop_env': os.environ.get('XDG_CURRENT_DESKTOP', '').lower(),
-            'session_type': os.environ.get('XDG_SESSION_TYPE', '').lower(),
-            'display': os.environ.get('DISPLAY', ''),
-            'wayland_display': os.environ.get('WAYLAND_DISPLAY', ''),
-            'window_manager': '',
-            'is_gnome': False,
-            'is_kde': False,
-            'is_xfce': False,
-            'is_wayland': False,
-            'is_x11': False
-        }
-        
-        # Detectar tipo de sesión
-        entorno['is_wayland'] = entorno['session_type'] == 'wayland' or bool(entorno['wayland_display'])
-        entorno['is_x11'] = entorno['session_type'] == 'x11' or bool(entorno['display'])
-        
-        # Detectar entorno de escritorio
-        desktop = entorno['desktop_env']
-        entorno['is_gnome'] = 'gnome' in desktop
-        entorno['is_kde'] = 'kde' in desktop or 'plasma' in desktop
-        entorno['is_xfce'] = 'xfce' in desktop
-        
-        # Detectar gestor de ventanas específico
-        try:
-            result = subprocess.run(['ps', 'aux'], capture_output=True, text=True, timeout=5)
-            if result.returncode == 0:
-                procesos = result.stdout.lower()
-                if 'mutter' in procesos:
-                    entorno['window_manager'] = 'mutter'
-                elif 'kwin' in procesos:
-                    entorno['window_manager'] = 'kwin'
-                elif 'xfwm4' in procesos:
-                    entorno['window_manager'] = 'xfwm4'
-                elif 'i3' in procesos:
-                    entorno['window_manager'] = 'i3'
-        except Exception:
-            pass
-        
-        return entorno
-    
-    def _buscar_favicons(self) -> list:
-        """Buscar archivos de favicon disponibles"""
-        archivos_posibles = [
-            "aresitos.png",
-            "Aresitos.ico", 
-            "aresitos.gif",
-            "aresitos.bmp"
+        # Rutas de favicon prioritarias para Kali 2025
+        self.rutas_favicon = [
+            "aresitos/recursos/iconos/aresitos_icono.ico",
+            "aresitos/recursos/iconos/aresitos_icono.png", 
+            "recursos/iconos/aresitos_icono.ico",
+            "recursos/iconos/aresitos_icono.png",
+            "iconos/aresitos_icono.ico",
+            "iconos/aresitos_icono.png"
         ]
         
-        archivos_encontrados = []
-        for archivo in archivos_posibles:
-            ruta = self.recursos_path / archivo
-            if ruta.exists() and self._validar_archivo_imagen(ruta):
-                archivos_encontrados.append(str(ruta))
-        
-        return archivos_encontrados
-    
-    def _validar_archivo_imagen(self, ruta: Path) -> bool:
-        """Validar que el archivo es una imagen válida usando solo stdlib"""
-        try:
-            # Verificaciones básicas
-            if not ruta.exists() or not ruta.is_file():
-                return False
-            
-            # Verificar tamaño del archivo (no muy grande)
-            if ruta.stat().st_size > 2 * 1024 * 1024:  # 2MB máximo
-                return False
-            
-            # Verificar extensión
-            extensiones_validas = {'.png', '.ico', '.gif', '.bmp'}
-            if ruta.suffix.lower() not in extensiones_validas:
-                return False
-            
-            # Para PNG, verificar header básico
-            if ruta.suffix.lower() == '.png':
-                with open(ruta, 'rb') as f:
-                    header = f.read(8)
-                    # PNG signature
-                    if header != b'\x89PNG\r\n\x1a\n':
-                        return False
-            
-            return True
-            
-        except Exception as e:
-            self.logger.warning(f"Error validando archivo {ruta}: {e}")
-            return False
-    
-    def aplicar_favicon_kali_2025(self, ventana) -> bool:
-        """
-        Aplicar favicon optimizado para Kali Linux 2025 y sistemas modernos
-        Usa solo bibliotecas estándar de Python
-        """
-        try:
-            if not self.favicon_paths:
-                self.logger.warning("No hay archivos de favicon disponibles")
-                return False
-            
-            # Priorizar PNG para mejor compatibilidad en Linux
-            favicon_prioritario = None
-            for ruta in self.favicon_paths:
-                if ruta.endswith('.png'):
-                    favicon_prioritario = ruta
-                    break
-            
-            if not favicon_prioritario:
-                favicon_prioritario = self.favicon_paths[0]
-            
-            # Método 1: wm iconphoto (mejor para Linux moderno)
-            if self._aplicar_wm_iconphoto(ventana, favicon_prioritario):
-                return True
-            
-            # Método 2: iconphoto estándar
-            if self._aplicar_iconphoto_estandar(ventana, favicon_prioritario):
-                return True
-            
-            # Método 3: iconbitmap (fallback)
-            if self._aplicar_iconbitmap_fallback(ventana, favicon_prioritario):
-                return True
-            
-            self.logger.error("Todos los métodos de favicon fallaron")
-            return False
-            
-        except Exception as e:
-            self.logger.error(f"Error aplicando favicon Kali 2025: {e}")
-            return False
-    
-    def _aplicar_wm_iconphoto(self, ventana, ruta_favicon: str) -> bool:
-        """Método wm iconphoto - el más compatible con Linux moderno"""
-        try:
-            # Solo funciona con PNG usando PhotoImage nativo de tkinter
-            if not ruta_favicon.endswith('.png'):
-                return False
-            
-            # Cargar imagen con PhotoImage nativo
-            photo = PhotoImage(file=ruta_favicon)
-            
-            # Aplicar usando wm iconphoto
-            ventana.tk.call('wm', 'iconphoto', ventana._w, photo)
-            
-            # Mantener referencia para evitar garbage collection
-            ventana._favicon_ref = photo
-            
-            self.logger.info(f"✓ wm iconphoto aplicado exitosamente: {Path(ruta_favicon).name}")
-            return True
-            
-        except Exception as e:
-            self.logger.warning(f"wm iconphoto falló: {e}")
-            return False
-    
-    def _aplicar_iconphoto_estandar(self, ventana, ruta_favicon: str) -> bool:
-        """Método iconphoto estándar"""
-        try:
-            # Solo funciona con PNG usando PhotoImage nativo
-            if not ruta_favicon.endswith('.png'):
-                return False
-            
-            photo = PhotoImage(file=ruta_favicon)
-            ventana.iconphoto(True, photo)
-            
-            # Mantener referencia
-            ventana._favicon_ref = photo
-            
-            self.logger.info(f"✓ iconphoto estándar aplicado: {Path(ruta_favicon).name}")
-            return True
-            
-        except Exception as e:
-            self.logger.warning(f"iconphoto estándar falló: {e}")
-            return False
-    
-    def _aplicar_iconbitmap_fallback(self, ventana, ruta_favicon: str) -> bool:
-        """Método iconbitmap como último recurso"""
-        try:
-            ventana.iconbitmap(ruta_favicon)
-            self.logger.info(f"✓ iconbitmap fallback aplicado: {Path(ruta_favicon).name}")
-            return True
-            
-        except Exception as e:
-            self.logger.warning(f"iconbitmap fallback falló: {e}")
-            return False
-    
-    def obtener_informacion_debug(self) -> dict:
-        """Obtener información completa para debugging"""
-        return {
-            "entorno_linux": self.entorno_info,
-            "favicon_paths": self.favicon_paths,
-            "recursos_path": str(self.recursos_path),
-            "base_path": str(self.base_path)
-        }
+        self.logger.info(f"FaviconKali2025 iniciado - Session: {self.session_type}, GNOME: {self.gnome_version}")
+        self.logger.info(f"PIL disponible: {PIL_AVAILABLE}")
 
-# Función de conveniencia que sigue los principios ARESITOS
-def aplicar_favicon_kali_2025(ventana) -> bool:
+    def _detectar_session_type(self):
+        """Detecta si está ejecutándose en X11 o Wayland."""
+        try:
+            session_type = os.environ.get('XDG_SESSION_TYPE', 'unknown')
+            wayland_display = os.environ.get('WAYLAND_DISPLAY', '')
+            x11_display = os.environ.get('DISPLAY', '')
+            
+            if session_type == 'wayland' or wayland_display:
+                return 'wayland'
+            elif session_type == 'x11' or x11_display:
+                return 'x11'
+            else:
+                return 'unknown'
+        except Exception as e:
+            self.logger.warning(f"Error detectando session type: {e}")
+            return 'unknown'
+
+    def _detectar_gnome_version(self):
+        """Detecta la versión de GNOME."""
+        try:
+            result = subprocess.run(['gnome-shell', '--version'], 
+                                  capture_output=True, text=True, timeout=5)
+            if result.returncode == 0:
+                version_line = result.stdout.strip()
+                # Extrae número de versión (ej: "GNOME Shell 45.0")
+                version = version_line.split()[-1] if version_line else "unknown"
+                return version
+        except Exception as e:
+            self.logger.warning(f"Error detectando GNOME version: {e}")
+        return "unknown"
+
+    def _detectar_kali_version(self):
+        """Detecta la versión de Kali Linux."""
+        try:
+            if os.path.exists('/etc/os-release'):
+                with open('/etc/os-release', 'r') as f:
+                    for line in f:
+                        if line.startswith('VERSION='):
+                            version = line.split('=')[1].strip('"\'')
+                            return version
+        except Exception as e:
+            self.logger.warning(f"Error detectando Kali version: {e}")
+        return "unknown"
+
+    def _encontrar_favicon(self):
+        """Encuentra el archivo de favicon con la mejor calidad disponible."""
+        for ruta in self.rutas_favicon:
+            ruta_completa = Path(ruta)
+            if ruta_completa.exists():
+                # Verifica que sea un archivo válido
+                try:
+                    # Verificación básica de archivo
+                    size = ruta_completa.stat().st_size
+                    if size == 0:
+                        self.logger.warning(f"Archivo favicon vacío: {ruta_completa}")
+                        continue
+                    
+                    if PIL_AVAILABLE:
+                        # Verificación avanzada con PIL
+                        from PIL import Image as PILImage
+                        if ruta.endswith('.ico') or ruta.endswith('.png'):
+                            img = PILImage.open(ruta_completa)
+                            img.verify()
+                    
+                    self.logger.info(f"Favicon encontrado: {ruta_completa}")
+                    return str(ruta_completa)
+                except Exception as e:
+                    self.logger.warning(f"Archivo favicon inválido {ruta_completa}: {e}")
+                    continue
+        
+        self.logger.error("No se encontró ningún favicon válido")
+        return None
+
+    def _metodo_wm_iconphoto_mejorado(self, ventana, ruta_favicon):
+        """
+        Método mejorado wm iconphoto específico para Kali 2025.
+        Incluye optimizaciones para GNOME Shell moderno.
+        """
+        try:
+            metodo = "wm_iconphoto_mejorado_kali2025"
+            
+            if not PIL_AVAILABLE:
+                # Fallback a método básico sin PIL
+                try:
+                    if ruta_favicon.endswith('.png'):
+                        photo = PhotoImage(file=ruta_favicon)
+                        ventana.wm_iconphoto(True, photo)
+                        self.logger.info(f"✓ {metodo} aplicado (modo básico sin PIL)")
+                        self.metodos_aplicados.append(metodo)
+                        return True
+                    else:
+                        self.logger.warning(f"PIL no disponible y archivo no es PNG: {ruta_favicon}")
+                        return False
+                except Exception as e:
+                    self.logger.warning(f"Error en modo básico: {e}")
+                    return False
+            
+            # Usa PIL para mejor compatibilidad
+            from PIL import Image as PILImage, ImageTk as PILImageTk
+            
+            # Carga la imagen con PIL para mejor compatibilidad
+            img = PILImage.open(ruta_favicon)
+            
+            # Redimensiona a múltiples tamaños para mejor compatibilidad
+            tamaños = [16, 24, 32, 48, 64, 128, 256]
+            iconos = []
+            
+            for tamaño in tamaños:
+                try:
+                    img_redim = img.resize((tamaño, tamaño), PILImage.Resampling.LANCZOS)
+                    
+                    # Convierte a PhotoImage
+                    photo = PILImageTk.PhotoImage(img_redim)
+                    iconos.append(photo)
+                    
+                except Exception as e:
+                    self.logger.warning(f"Error creando icono tamaño {tamaño}: {e}")
+                    continue
+            
+            if iconos:
+                # Aplica todos los iconos con wm iconphoto
+                ventana.wm_iconphoto(True, *iconos)
+                
+                # Fuerza actualización en GNOME Shell
+                ventana.update_idletasks()
+                
+                self.logger.info(f"✓ {metodo} aplicado con {len(iconos)} tamaños")
+                self.metodos_aplicados.append(metodo)
+                return True
+            
+        except Exception as e:
+            self.logger.error(f"Error en {metodo}: {e}")
+        
+        return False
+
+    def _metodo_iconbitmap_x11(self, ventana, ruta_favicon):
+        """Método iconbitmap para X11 con manejo de errores mejorado."""
+        try:
+            metodo = "iconbitmap_x11"
+            
+            if self.session_type == 'x11' and ruta_favicon.endswith('.ico'):
+                ventana.iconbitmap(ruta_favicon)
+                self.logger.info(f"✓ {metodo} aplicado exitosamente")
+                self.metodos_aplicados.append(metodo)
+                return True
+            else:
+                self.logger.info(f"✗ {metodo} no aplicado (session: {self.session_type}, archivo: {ruta_favicon})")
+        
+        except Exception as e:
+            self.logger.warning(f"Error en {metodo}: {e}")
+        
+        return False
+
+    def _metodo_wm_attributes_gnome(self, ventana):
+        """Método específico para atributos de ventana en GNOME."""
+        try:
+            metodo = "wm_attributes_gnome"
+            
+            # Establece atributos específicos para GNOME Shell
+            ventana.wm_attributes('-type', 'normal')
+            
+            # Para Wayland, intenta establecer class hints
+            if self.session_type == 'wayland':
+                ventana.wm_class("ARESITOS", "ARESITOS")
+            
+            self.logger.info(f"✓ {metodo} aplicado")
+            self.metodos_aplicados.append(metodo)
+            return True
+            
+        except Exception as e:
+            self.logger.warning(f"Error en {metodo}: {e}")
+        
+        return False
+
+    def _metodo_geometry_focus(self, ventana):
+        """Método para optimizar geometría y foco en Kali 2025."""
+        try:
+            metodo = "geometry_focus_kali2025"
+            
+            # Centra la ventana
+            ventana.update_idletasks()
+            width = ventana.winfo_reqwidth()
+            height = ventana.winfo_reqheight()
+            x = (ventana.winfo_screenwidth() // 2) - (width // 2)
+            y = (ventana.winfo_screenheight() // 2) - (height // 2)
+            ventana.geometry(f"{width}x{height}+{x}+{y}")
+            
+            # Fuerza el foco y actualización
+            ventana.focus_force()
+            ventana.lift()
+            ventana.update()
+            
+            self.logger.info(f"✓ {metodo} aplicado")
+            self.metodos_aplicados.append(metodo)
+            return True
+            
+        except Exception as e:
+            self.logger.warning(f"Error en {metodo}: {e}")
+        
+        return False
+
+    def _metodo_desktop_file_integration(self, ventana):
+        """Integración con archivos .desktop para mejor reconocimiento del WM."""
+        try:
+            metodo = "desktop_file_integration"
+            
+            # Establece WM_CLASS para mejor integración con .desktop
+            ventana.wm_class("aresitos", "ARESITOS")
+            
+            # Establece título consistente
+            ventana.title("ARESITOS v3.0 - Sistema de Seguridad Avanzado")
+            
+            self.logger.info(f"✓ {metodo} aplicado")
+            self.metodos_aplicados.append(metodo)
+            return True
+            
+        except Exception as e:
+            self.logger.warning(f"Error en {metodo}: {e}")
+        
+        return False
+
+    def _metodo_force_icon_refresh(self, ventana):
+        """Método para forzar actualización de iconos en sistemas modernos."""
+        try:
+            metodo = "force_icon_refresh"
+            
+            # Secuencia de comandos para forzar actualización
+            ventana.withdraw()
+            ventana.update_idletasks()
+            ventana.deiconify()
+            ventana.update()
+            
+            # Intenta enviar eventos al window manager
+            try:
+                ventana.tk.call('wm', 'iconify', ventana._w)
+                ventana.tk.call('wm', 'deiconify', ventana._w)
+            except:
+                pass
+            
+            self.logger.info(f"✓ {metodo} aplicado")
+            self.metodos_aplicados.append(metodo)
+            return True
+            
+        except Exception as e:
+            self.logger.warning(f"Error en {metodo}: {e}")
+        
+        return False
+
+    def aplicar_favicon_kali_2025(self, ventana):
+        """
+        Aplica favicon con métodos específicos para Kali Linux 2025.
+        
+        Args:
+            ventana: Ventana Tkinter donde aplicar el favicon
+            
+        Returns:
+            bool: True si se aplicó al menos un método exitosamente
+        """
+        self.logger.info("=== Iniciando aplicación de favicon para Kali Linux 2025 ===")
+        self.logger.info(f"Entorno detectado: {self.session_type}, GNOME: {self.gnome_version}, Kali: {self.kali_version}")
+        
+        # Busca el favicon
+        ruta_favicon = self._encontrar_favicon()
+        if not ruta_favicon:
+            self.logger.error("No se puede continuar sin archivo de favicon")
+            return False
+        
+        # Resetea contador de métodos
+        self.metodos_aplicados = []
+        exito_total = False
+        
+        # Método 1: WM IconPhoto mejorado (principal para Wayland/GNOME)
+        if self._metodo_wm_iconphoto_mejorado(ventana, ruta_favicon):
+            exito_total = True
+        
+        # Método 2: IconBitmap para X11
+        if self._metodo_iconbitmap_x11(ventana, ruta_favicon):
+            exito_total = True
+        
+        # Método 3: Atributos GNOME específicos
+        if self._metodo_wm_attributes_gnome(ventana):
+            exito_total = True
+        
+        # Método 4: Integración con archivos .desktop
+        if self._metodo_desktop_file_integration(ventana):
+            exito_total = True
+        
+        # Método 5: Optimización de geometría y foco
+        if self._metodo_geometry_focus(ventana):
+            exito_total = True
+        
+        # Método 6: Forzar actualización de iconos
+        if self._metodo_force_icon_refresh(ventana):
+            exito_total = True
+        
+        # Reporte final
+        self.logger.info(f"=== Aplicación de favicon completada ===")
+        self.logger.info(f"Métodos exitosos: {len(self.metodos_aplicados)}/{6}")
+        self.logger.info(f"Métodos aplicados: {', '.join(self.metodos_aplicados)}")
+        
+        if exito_total:
+            self.logger.info("✓ Favicon aplicado exitosamente para Kali Linux 2025")
+        else:
+            self.logger.warning("✗ No se pudo aplicar ningún método de favicon")
+        
+        return exito_total
+
+# Función de conveniencia para uso directo
+def aplicar_favicon_kali_2025(ventana):
     """
-    Función de conveniencia para aplicar favicon en Kali Linux 2025
+    Función de conveniencia para aplicar favicon en Kali Linux 2025.
     
     Args:
         ventana: Ventana Tkinter donde aplicar el favicon
         
     Returns:
-        bool: True si se aplicó exitosamente, False en caso contrario
+        bool: True si se aplicó exitosamente
     """
-    try:
-        gestor = FaviconLinuxAvanzado()
-        return gestor.aplicar_favicon_kali_2025(ventana)
-    except Exception as e:
-        logging.getLogger(__name__).error(f"Error en aplicar_favicon_kali_2025: {e}")
-        return False
+    gestor = FaviconKali2025()
+    return gestor.aplicar_favicon_kali_2025(ventana)
 
-def obtener_info_sistema_linux() -> dict:
-    """
-    Obtener información del sistema Linux para debugging
-    
-    Returns:
-        dict: Información detallada del entorno
-    """
-    try:
-        gestor = FaviconLinuxAvanzado()
-        return gestor.obtener_informacion_debug()
-    except Exception as e:
-        logging.getLogger(__name__).error(f"Error obteniendo info sistema: {e}")
-        return {}
-
-# Verificación del módulo
 if __name__ == "__main__":
-    logging.basicConfig(level=logging.INFO)
+    # Test del módulo
+    print("=== Test del módulo FaviconKali2025 ===")
     
-    print("ARESITOS - Test Favicon Linux Avanzado")
-    print("=" * 50)
+    # Configura logging para test
+    logging.basicConfig(
+        level=logging.INFO,
+        format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+    )
     
-    # Obtener información del sistema
-    info = obtener_info_sistema_linux()
-    print("Información del entorno:")
-    for clave, valor in info.get('entorno_linux', {}).items():
-        print(f"  {clave}: {valor}")
+    # Crea ventana de prueba
+    root = tk.Tk()
+    root.title("Test Favicon Kali 2025")
+    root.geometry("400x300")
     
-    print(f"Favicons disponibles: {len(info.get('favicon_paths', []))}")
-    for favicon in info.get('favicon_paths', []):
-        print(f"  - {Path(favicon).name}")
+    # Aplica favicon
+    gestor = FaviconKali2025()
+    exito = gestor.aplicar_favicon_kali_2025(root)
+    
+    # Muestra resultado
+    resultado_label = tk.Label(
+        root, 
+        text=f"Favicon aplicado: {'✓ SÍ' if exito else '✗ NO'}\n"
+             f"Métodos exitosos: {len(gestor.metodos_aplicados)}\n"
+             f"Session: {gestor.session_type}\n"
+             f"GNOME: {gestor.gnome_version}\n"
+             f"PIL disponible: {PIL_AVAILABLE}",
+        justify=tk.CENTER,
+        pady=20
+    )
+    resultado_label.pack(expand=True)
+    
+    print(f"Test completado. Favicon aplicado: {exito}")
+    print(f"Métodos aplicados: {gestor.metodos_aplicados}")
+    
+    # Ejecuta interfaz de test por 5 segundos
+    root.after(5000, root.destroy)
+    root.mainloop()

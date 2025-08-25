@@ -122,8 +122,7 @@ class VistaFIM(tk.Frame):
         paned_window.update_idletasks()
         try:
             paned_window.sash_place(0, 400, 0)  # Posición inicial del divisor
-        except (ValueError, TypeError, OSError) as e:
-            logging.debug(f'Error en excepción: {e}')
+        except:
             pass  # Si falla, usar posición por defecto
     
     def crear_terminal_integrado(self, parent_frame):
@@ -163,7 +162,7 @@ class VistaFIM(tk.Frame):
             # Botón ver logs (estilo dashboard, compacto)
             btn_logs = tk.Button(
                 controles_frame,
-                text="VER LOG TERMINAL",
+                text="VER LOGS",
                 command=self.abrir_logs_fim,
                 bg=self.colors.get('info', '#007acc'),
                 fg='white',
@@ -171,18 +170,6 @@ class VistaFIM(tk.Frame):
                 height=1
             )
             btn_logs.pack(side="left", padx=2, fill="x", expand=True)
-            
-            # Nuevo botón para abrir carpeta de logs
-            btn_abrir_logs = tk.Button(
-                controles_frame,
-                text="ABRIR CARPETA LOGS",
-                command=self.abrir_carpeta_logs,
-                bg=self.colors.get('info', '#007acc'),
-                fg='white',
-                font=("Arial", 8, "bold"),
-                height=1
-            )
-            btn_abrir_logs.pack(side="left", padx=2, fill="x", expand=True)
             
             # Área de terminal (misma estética que dashboard, más pequeña)
             self.terminal_output = scrolledtext.ScrolledText(
@@ -386,8 +373,7 @@ class VistaFIM(tk.Frame):
             if hasattr(self, 'terminal_output'):
                 self.terminal_output.insert(tk.END, mensaje_completo)
                 self.terminal_output.see(tk.END)
-        except (ValueError, TypeError, AttributeError) as e:
-            logging.debug(f'Error en excepción: {e}')
+        except:
             pass  # Si no hay terminal, ignorar silenciosamente
     
     def crear_contenido_fim(self, parent_frame):
@@ -514,8 +500,7 @@ class VistaFIM(tk.Frame):
                             self.after(0, self._actualizar_texto_fim, f"  - {archivo}\n")
                     else:
                         self.after(0, self._actualizar_texto_fim, "RESULTADO: No hay archivos modificados recientemente\n")
-                except (subprocess.SubprocessError, OSError, TimeoutError) as e:
-                    logging.debug(f'Error en excepción: {e}')
+                except:
                     self.after(0, self._actualizar_texto_fim, "ERROR: No se pudo ejecutar find en /etc\n")
                 
                 self.after(0, self._actualizar_texto_fim, "\n")
@@ -533,8 +518,7 @@ class VistaFIM(tk.Frame):
                             self.after(0, self._actualizar_texto_fim, f"  SUID: {binario}\n")
                     else:
                         self.after(0, self._actualizar_texto_fim, "RESULTADO: No se encontraron binarios SUID en /usr/bin\n")
-                except (subprocess.SubprocessError, OSError, TimeoutError) as e:
-                    logging.debug(f'Error en excepción: {e}')
+                except:
                     self.after(0, self._actualizar_texto_fim, "ERROR: No se pudo verificar permisos SUID\n")
                 
                 self.after(0, self._actualizar_texto_fim, "\n")
@@ -563,8 +547,7 @@ class VistaFIM(tk.Frame):
                             self.after(0, self._actualizar_texto_fim, f"  PROCESO: {partes[0]} PID: {partes[1]}\n")
                 else:
                     self.after(0, self._actualizar_texto_fim, "RESULTADO: No hay conexiones activas en puertos monitoreados\n")
-            except (FileNotFoundError, PermissionError, OSError) as e:
-                logging.debug(f'Error en excepción: {e}')
+            except:
                 self.after(0, self._actualizar_texto_fim, "ADVERTENCIA: lsof no disponible o error en ejecución\n")
             
             self.after(0, self._actualizar_texto_fim, "\n")
@@ -699,8 +682,7 @@ class VistaFIM(tk.Frame):
                                     self.after(0, self._actualizar_texto_fim, f"OK: {len(procesos)} procesos verificados, ninguno sospechoso\n")
                             else:
                                 self.after(0, self._actualizar_texto_fim, "ERROR: No se pudo ejecutar análisis de procesos\n")
-                        except (ValueError, TypeError, OSError) as e:
-                            logging.debug(f'Error en excepción: {e}')
+                        except:
                             self.after(0, self._actualizar_texto_fim, "ERROR: Comando ps no disponible\n")
                         
                         self.after(0, self._actualizar_texto_fim, "\n")
@@ -730,8 +712,7 @@ class VistaFIM(tk.Frame):
                                     self.after(0, self._actualizar_texto_fim, f"OK: {len(modulos)} módulos kernel verificados\n")
                             else:
                                 self.after(0, self._actualizar_texto_fim, "ERROR: No se pudo verificar módulos del kernel\n")
-                        except (ValueError, TypeError, OSError) as e:
-                            logging.debug(f'Error en excepción: {e}')
+                        except:
                             self.after(0, self._actualizar_texto_fim, "ERROR: lsmod no disponible\n")
                         
                         self.after(0, self._actualizar_texto_fim, "\n")
@@ -760,8 +741,7 @@ class VistaFIM(tk.Frame):
                                     self.after(0, self._actualizar_texto_fim, "OK: No se detectaron puertos de backdoor conocidos\n")
                             else:
                                 self.after(0, self._actualizar_texto_fim, "ERROR: No se pudo verificar conexiones de red\n")
-                        except (ValueError, TypeError, OSError) as e:
-                            logging.debug(f'Error en excepción: {e}')
+                        except:
                             self.after(0, self._actualizar_texto_fim, "ERROR: ss no disponible\n")
                         
                         fases_completadas += 1
@@ -806,8 +786,7 @@ class VistaFIM(tk.Frame):
                                             propietario = f"UID:{stat_info.st_uid}"
                                         tamaño = stat_info.st_size
                                         self.after(0, self._actualizar_texto_fim, f"  EJECUTABLE: {ejecutable} (owner: {propietario}, size: {tamaño})\n")
-                                    except (subprocess.SubprocessError, OSError, TimeoutError) as e:
-                                        logging.debug(f'Error en excepción: {e}')
+                                    except:
                                         self.after(0, self._actualizar_texto_fim, f"  EJECUTABLE: {ejecutable}\n")
                             self._log_terminal(f"ALERTA: {len(ejecutables_sospechosos)} ejecutables sospechosos en directorios temporales", "FIM", "WARNING")
                         else:
@@ -845,8 +824,7 @@ class VistaFIM(tk.Frame):
                         
                         if intentos_sospechosos == 0:
                             self.after(0, self._actualizar_texto_fim, "OK: No se encontraron fallos de autenticación\n")
-                    except (ValueError, TypeError, AttributeError) as e:
-                        logging.debug(f'Error en excepción: {e}')
+                    except:
                         self.after(0, self._actualizar_texto_fim, "ERROR: No se pudieron verificar logs de autenticación\n")
                     
                     self.after(0, self._actualizar_texto_fim, "\n")
@@ -888,18 +866,6 @@ class VistaFIM(tk.Frame):
                         if fases_con_error == 0:
                             self.after(0, self._actualizar_texto_fim, f"ESTADO GENERAL: OK TODAS LAS FASES COMPLETADAS EXITOSAMENTE\n")
                             self._log_terminal("OK FIM: Todas las fases completadas exitosamente", "FIM", "SUCCESS")
-                            
-                            # ARESITOS: Guardar automáticamente los resultados cuando se completan todas las fases
-                            try:
-                                import os
-                                # Obtener todo el texto de resultados actual
-                                contenido_completo = self.fim_text.get(1.0, 'end-1c')
-                                archivo_guardado = self.guardar_resultado_fim(contenido_completo)
-                                if archivo_guardado:
-                                    self.after(0, self._actualizar_texto_fim, f"\n[INFO] Resultados automáticamente guardados en: {os.path.basename(archivo_guardado)}\n")
-                                    self.after(0, self._actualizar_texto_fim, "[INFO] Use 'Abrir Carpeta Logs' para acceder al archivo\n")
-                            except Exception as e:
-                                self._log_terminal(f"Error guardando resultados automáticamente: {str(e)}", "FIM", "WARNING")
                         else:
                             self.after(0, self._actualizar_texto_fim, f"ESTADO GENERAL: ADVERTENCIA {fases_completadas} fases exitosas, {fases_con_error} con errores\n")
                             self._log_terminal(f"ADVERTENCIA FIM: {fases_completadas} fases exitosas, {fases_con_error} con errores", "FIM", "WARNING")
@@ -1535,14 +1501,6 @@ class VistaFIM(tk.Frame):
         self.controlador = controlador
         self._log_terminal("Controlador FIM establecido", "FIM", "INFO")
     
-    def set_sudo_manager(self, sudo_manager):
-        """Establecer SudoManager heredado de la vista principal"""
-        self.sudo_manager = sudo_manager
-        if sudo_manager and sudo_manager.is_sudo_active():
-            self._log_terminal("SudoManager activo recibido", "FIM", "INFO")
-        else:
-            self._log_terminal("Advertencia: SudoManager no activo", "FIM", "WARNING")
-    
     # ====================== EXPANSION FASE 3.3: FIM AVANZADO ======================
     
     def monitoreo_avanzado_kali(self):
@@ -1582,18 +1540,6 @@ class VistaFIM(tk.Frame):
             
             self._actualizar_texto_fim("\nOK MONITOREO AVANZADO FIM COMPLETADO\n")
             self._log_terminal("Monitoreo avanzado FIM completado", "FIM", "SUCCESS")
-            
-            # ARESITOS: Guardar automáticamente los resultados en log
-            try:
-                import os
-                # Obtener todo el texto de resultados actual
-                contenido_completo = self.fim_text.get(1.0, 'end-1c')
-                archivo_guardado = self.guardar_resultado_fim(contenido_completo)
-                if archivo_guardado:
-                    self._actualizar_texto_fim(f"\n[INFO] Resultados automáticamente guardados en: {os.path.basename(archivo_guardado)}\n")
-                    self._actualizar_texto_fim("[INFO] Use 'Abrir Carpeta Logs' para acceder al archivo\n")
-            except Exception as e:
-                self._log_terminal(f"Error guardando resultados automáticamente: {str(e)}", "FIM", "WARNING")
             
         except Exception as e:
             error_msg = f"Error en monitoreo avanzado FIM: {str(e)}"
@@ -1703,8 +1649,7 @@ class VistaFIM(tk.Frame):
                         self._actualizar_texto_fim(f"  OK {herramienta}: Disponible\n")
                     else:
                         self._actualizar_texto_fim(f"  ERROR {herramienta}: No instalado\n")
-                except (subprocess.SubprocessError, OSError, TimeoutError) as e:
-                    logging.debug(f'Error en excepción: {e}')
+                except:
                     self._actualizar_texto_fim(f"  ❓ {herramienta}: Error verificando\n")
                     
         except Exception as e:
@@ -1778,8 +1723,7 @@ class VistaFIM(tk.Frame):
                         
             except subprocess.TimeoutExpired:
                 self._actualizar_texto_fim("  ⏱️ Timeout buscando archivos con permisos excesivos\n")
-            except (subprocess.SubprocessError, OSError, TimeoutError) as e:
-                logging.debug(f'Error en excepción: {e}')
+            except:
                 pass
             
             self._actualizar_texto_fim(f"\n[DATOS] Resumen de permisos:\n")
@@ -1830,8 +1774,7 @@ class VistaFIM(tk.Frame):
                                 
                     except subprocess.TimeoutExpired:
                         self._actualizar_texto_fim(f"  ⏱️ {directorio}: Timeout en búsqueda\n")
-                    except (subprocess.SubprocessError, OSError, TimeoutError) as e:
-                        logging.debug(f'Error en excepción: {e}')
+                    except:
                         pass
             
             # 2. Buscar archivos con nombres sospechosos
@@ -1856,8 +1799,7 @@ class VistaFIM(tk.Frame):
                                 
                 except subprocess.TimeoutExpired:
                     self._actualizar_texto_fim(f"  ⏱️ Timeout buscando patrón: {patron}\n")
-                except (subprocess.SubprocessError, OSError, TimeoutError) as e:
-                    logging.debug(f'Error en excepción: {e}')
+                except:
                     pass
             
             if archivos_sospechosos_total == 0:
@@ -1886,8 +1828,7 @@ class VistaFIM(tk.Frame):
                         
             except subprocess.TimeoutExpired:
                 self._actualizar_texto_fim("  ⏱️ Timeout verificando archivos recientes\n")
-            except (subprocess.SubprocessError, OSError, TimeoutError) as e:
-                logging.debug(f'Error en excepción: {e}')
+            except:
                 pass
             
             self._actualizar_texto_fim(f"\n[DATOS] Resumen de detección:\n")
@@ -1946,8 +1887,7 @@ class VistaFIM(tk.Frame):
                                         
                             except subprocess.TimeoutExpired:
                                 self._actualizar_texto_fim(f"    ⏱️ Timeout analizando log\n")
-                            except (subprocess.SubprocessError, OSError, TimeoutError) as e:
-                                logging.debug(f'Error en excepción: {e}')
+                            except:
                                 pass
                         else:
                             self._actualizar_texto_fim(f"    ℹ️ Log muy grande - análisis manual recomendado\n")
@@ -1977,8 +1917,7 @@ class VistaFIM(tk.Frame):
                         
                 except subprocess.TimeoutExpired:
                     self._actualizar_texto_fim(f"  ⏱️ {servicio}: Timeout\n")
-                except (subprocess.SubprocessError, OSError, TimeoutError) as e:
-                    logging.debug(f'Error en excepción: {e}')
+                except:
                     self._actualizar_texto_fim(f"  ❓ {servicio}: Error verificando\n")
             
             self._actualizar_texto_fim(f"\n[DATOS] Resumen de logs:\n")
@@ -2014,18 +1953,6 @@ class VistaFIM(tk.Frame):
             
             self._actualizar_texto_fim("\nOK ANÁLISIS FORENSE COMPLETADO\n")
             self._log_terminal("Análisis forense de archivos completado", "FIM", "SUCCESS")
-            
-            # ARESITOS: Guardar automáticamente los resultados del análisis forense
-            try:
-                import os
-                # Obtener todo el texto de resultados actual
-                contenido_completo = self.fim_text.get(1.0, 'end-1c')
-                archivo_guardado = self.guardar_resultado_fim(contenido_completo)
-                if archivo_guardado:
-                    self._actualizar_texto_fim(f"\n[INFO] Resultados automáticamente guardados en: {os.path.basename(archivo_guardado)}\n")
-                    self._actualizar_texto_fim("[INFO] Use 'Abrir Carpeta Logs' para acceder al archivo\n")
-            except Exception as e:
-                self._log_terminal(f"Error guardando resultados automáticamente: {str(e)}", "FIM", "WARNING")
             
         except Exception as e:
             error_msg = f"Error en análisis forense: {str(e)}"
@@ -2106,8 +2033,7 @@ class VistaFIM(tk.Frame):
                     
             except subprocess.TimeoutExpired:
                 self._actualizar_texto_fim("⏱️ Timeout buscando en audit.log\n")
-            except (subprocess.SubprocessError, OSError, TimeoutError) as e:
-                logging.debug(f'Error en excepción: {e}')
+            except:
                 pass
             
             # Buscar en journalctl eventos relacionados con archivos
@@ -2131,8 +2057,7 @@ class VistaFIM(tk.Frame):
                         
             except subprocess.TimeoutExpired:
                 self._actualizar_texto_fim("⏱️ Timeout buscando en journalctl\n")
-            except (subprocess.SubprocessError, OSError, TimeoutError) as e:
-                logging.debug(f'Error en excepción: {e}')
+            except:
                 pass
                 
         except Exception as e:
@@ -2177,8 +2102,7 @@ class VistaFIM(tk.Frame):
                         
             except subprocess.TimeoutExpired:
                 self._actualizar_texto_fim("⏱️ Timeout buscando archivos recientes\n")
-            except (subprocess.SubprocessError, OSError, TimeoutError) as e:
-                logging.debug(f'Error en excepción: {e}')
+            except:
                 pass
             
             # Verificar archivos con timestamps futuros (anómalo)
@@ -2201,8 +2125,7 @@ class VistaFIM(tk.Frame):
                     else:
                         self._actualizar_texto_fim("OK Sin archivos con timestamps anómalos\n")
                         
-            except (ValueError, TypeError, AttributeError) as e:
-                logging.debug(f'Error en excepción: {e}')
+            except:
                 pass
                 
         except Exception as e:
@@ -2229,8 +2152,7 @@ class VistaFIM(tk.Frame):
                         self._actualizar_texto_fim(f"  OK {herramienta}: Disponible\n")
                     else:
                         self._actualizar_texto_fim(f"  ERROR {herramienta}: No encontrado\n")
-                except (subprocess.SubprocessError, OSError, TimeoutError) as e:
-                    logging.debug(f'Error en excepción: {e}')
+                except:
                     self._actualizar_texto_fim(f"  ❓ {herramienta}: Error verificando\n")
             
             # Analizar tipo de archivos críticos con 'file'
@@ -2287,15 +2209,13 @@ class VistaFIM(tk.Frame):
                                 
                         except subprocess.TimeoutExpired:
                             self._actualizar_texto_fim(f"    ⏱️ {paquete}: Timeout\n")
-                        except (subprocess.SubprocessError, OSError, TimeoutError) as e:
-                            logging.debug(f'Error en excepción: {e}')
+                        except:
                             pass
                 else:
                     self._actualizar_texto_fim("  ❓ debsums no disponible\n")
                     self._actualizar_texto_fim("  [SUGERENCIA] Para instalar: apt-get install debsums\n")
                     
-            except (subprocess.SubprocessError, OSError, TimeoutError) as e:
-                logging.debug(f'Error en excepción: {e}')
+            except:
                 pass
                 
         except Exception as e:
@@ -2406,79 +2326,4 @@ class VistaFIM(tk.Frame):
             self.terminal_output.insert(tk.END, f"Error mostrando info seguridad: {e}\n")
         
         self.terminal_output.see(tk.END)
-
-    def guardar_resultado_fim(self, resultados_texto):
-        """Guardar resultados del FIM en archivo log siguiendo principios ARESITOS."""
-        try:
-            import os
-            import datetime
-            
-            # ARESITOS: Crear directorio logs si no existe
-            logs_dir = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(__file__))), "logs")
-            os.makedirs(logs_dir, exist_ok=True)
-            
-            # ARESITOS: Nombre de archivo con timestamp para evitar sobrescribir
-            timestamp = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
-            nombre_archivo = f"fim_monitoreo_{timestamp}.log"
-            ruta_archivo = os.path.join(logs_dir, nombre_archivo)
-            
-            # ARESITOS: Guardar con información contextual
-            with open(ruta_archivo, 'w', encoding='utf-8') as f:
-                f.write("=" * 80 + "\n")
-                f.write(f"ARESITOS AEGIS - LOG DE FIM (FILE INTEGRITY MONITORING)\n")
-                f.write(f"Fecha: {datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')}\n")
-                f.write(f"Versión: ARESITOS v3.0 'Compliance Total'\n")
-                f.write("=" * 80 + "\n\n")
-                f.write(resultados_texto)
-                f.write("\n\n" + "=" * 80 + "\n")
-                f.write("FIN DEL LOG DE FIM ARESITOS\n")
-                f.write("=" * 80 + "\n")
-            
-            self._log_terminal(f"Resultados FIM guardados en: {nombre_archivo}", "FIM", "SUCCESS")
-            return ruta_archivo
-            
-        except Exception as e:
-            self._log_terminal(f"Error guardando log FIM: {str(e)}", "FIM", "ERROR")
-            return None
-
-    def abrir_carpeta_logs(self):
-        """Abrir carpeta de logs siguiendo principios ARESITOS."""
-        try:
-            import os
-            import platform
-            import subprocess
-            
-            # ARESITOS: Determinar ruta de logs
-            logs_dir = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(__file__))), "logs")
-            
-            # ARESITOS: Crear directorio si no existe
-            if not os.path.exists(logs_dir):
-                os.makedirs(logs_dir, exist_ok=True)
-                self._log_terminal("Carpeta logs creada", "FIM", "INFO")
-            
-            # ARESITOS: Abrir carpeta según el sistema operativo
-            sistema = platform.system().lower()
-            
-            if sistema == "windows":
-                # Windows - usar explorer
-                subprocess.run(['explorer', logs_dir], check=False)
-            elif sistema == "linux":
-                # Linux - usar xdg-open o nautilus
-                try:
-                    subprocess.run(['xdg-open', logs_dir], check=False)
-                except FileNotFoundError:
-                    # Fallback para sistemas sin xdg-open
-                    subprocess.run(['nautilus', logs_dir], check=False)
-            elif sistema == "darwin":
-                # macOS - usar open
-                subprocess.run(['open', logs_dir], check=False)
-            else:
-                # Sistema desconocido - mostrar ruta
-                self._log_terminal(f"Carpeta logs: {logs_dir}", "FIM", "INFO")
-                return
-            
-            self._log_terminal(f"Carpeta logs abierta: {logs_dir}", "FIM", "SUCCESS")
-            
-        except Exception as e:
-            self._log_terminal(f"Error abriendo carpeta logs: {str(e)}", "FIM", "ERROR")
 

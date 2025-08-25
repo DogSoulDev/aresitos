@@ -31,23 +31,16 @@ class VistaHerramientasKali(tk.Frame):
     def __init__(self, parent, callback_completado=None):
         super().__init__(parent)
         
-        # VERIFICACIÓN CRÍTICA: Solo para Kali Linux (con soporte modo desarrollo)
-        import sys
-        modo_desarrollo = '--dev' in sys.argv or '--desarrollo' in sys.argv
-        
-        if not self._verificar_kali_linux() and not modo_desarrollo:
+        # VERIFICACIÓN CRÍTICA: Solo para Kali Linux
+        if not self._verificar_kali_linux():
             messagebox.showerror(
                 "Error - Solo Kali Linux", 
                 "ARESITOS está diseñado exclusivamente para Kali Linux.\n\n"
                 "Sistema detectado no es compatible.\n"
-                "Instale Kali Linux para usar ARESITOS.\n\n"
-                "Para desarrollo: usar --dev o --desarrollo"
+                "Instale Kali Linux para usar ARESITOS."
             )
             self.destroy()
             return
-        
-        if modo_desarrollo:
-            print("[MODO DESARROLLO] VistaHerramientasKali: Ejecutando en entorno no-Kali")
             
         self.controlador = None  # Patrón MVC
         self.callback_completado = callback_completado

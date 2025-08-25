@@ -21,7 +21,6 @@ import sys
 
 try:
     from aresitos.vista.burp_theme import burp_theme
-    from aresitos.utils.favicon_manager import aplicar_favicon_aresitos
     BURP_THEME_AVAILABLE = True
 except ImportError:
     BURP_THEME_AVAILABLE = False
@@ -402,20 +401,23 @@ class VistaDashboard(tk.Frame):
         botones_grid_frame = tk.Frame(comandos_frame, bg=self.colors['bg_secondary'])
         botones_grid_frame.pack(fill="both", expand=True, padx=5, pady=5)
         
-        # Botones de comandos rápidos profesionales para Kali Linux
+        # Botones de comandos rápidos optimizados para Kali Linux
         comandos_rapidos = [
-            ("echo '=== ANÁLISIS COMPLETO DE RED ===' && echo && echo '[INTERFACES DE RED]' && ip -4 addr show | awk '/inet/ && !/127.0.0.1/ {split($2,ip,\"/\"); print \"Interface: \"$NF\" | IP: \"ip[1]}' && echo && echo '[CONEXIONES ACTIVAS]' && ss -tuln 2>/dev/null | awk 'BEGIN{tcp=0;udp=0;listen=0} /tcp.*LISTEN/{listen++} /tcp/{tcp++} /udp/{udp++} END{print \"TCP Conexiones: \"tcp\"; TCP Escuchando: \"listen\"; UDP Activo: \"udp}' && echo && echo '[GATEWAY Y DNS]' && ip route | awk '/default/ {print \"Gateway: \"$3}' && awk '/nameserver/ {print \"DNS: \"$2}' /etc/resolv.conf 2>/dev/null | head -2", "Análisis de Red Completo"),
-            ("echo '=== PROCESOS Y RECURSOS DEL SISTEMA ===' && echo && echo '[TOP 10 PROCESOS POR CPU]' && ps aux --sort=-%cpu | awk 'NR<=11 {printf \"%-12s %6s %6s %s\\n\", $1, $3\"%\", $4\"%\", $11}' && echo && echo '[MEMORIA DETALLADA]' && free -h | awk '/^Mem:/ {print \"RAM Total: \"$2\" | Usada: \"$3\" | Libre: \"$4\" | Disponible: \"$7}' && echo && echo '[DISCO CRÍTICO]' && df -h | awk '$5+0 > 80 {print \"ALERTA: \"$1\" está al \"$5\" (\"$3\"/\"$2\")\"}'", "Recursos del Sistema"),
-            ("echo '=== INTERFACES Y CONFIGURACIÓN DE RED ===' && echo && ip addr show | awk '/^[0-9]+:/ {iface=substr($2,1,length($2)-1)} /inet / && !/127.0.0.1/ {split($2,ip,\"/\"); print \"📡 \"iface\": \"ip[1]\" (\"$2\")\"} /link\\/ether/ {print \"   MAC: \"$2}' && echo && echo '[PUERTOS DE GESTIÓN DETECTADOS]' && ss -tlnp | awk '/:(22|80|443|21|25|53|3389|993|995):/ {split($4,addr,\":\"); port=addr[length(addr)]; services[port]++} END {for(p in services) print \"Puerto \"p\": \"services[p]\" servicios\"}'", "Configuración de Red"),
-            ("echo '=== VERIFICACIÓN DE HERRAMIENTAS DE SEGURIDAD ===' && echo && tools=('nmap' 'masscan' 'nikto' 'sqlmap' 'hydra' 'john' 'hashcat' 'metasploit') && for tool in ${tools[@]}; do if command -v $tool >/dev/null 2>&1; then echo \"✅ $tool: Instalado (use --version para ver detalles)\"; else echo \"❌ $tool: No instalado\"; fi; done && echo && echo '[VERIFICACIÓN ADICIONAL]' && echo \"Python: $(python3 --version 2>/dev/null || echo 'No disponible')\" && echo \"OpenSSL: $(openssl version 2>/dev/null || echo 'No disponible')\"", "Herramientas de Seguridad"),
-            ("echo '=== ESTADO DEL SISTEMA Y SEGURIDAD ===' && echo && echo '[INFORMACIÓN DEL SISTEMA]' && echo \"Hostname: $(hostname)\" && echo \"Kernel: $(uname -r)\" && echo \"Uptime: $(uptime | awk '{print $3\" \"$4}' | sed 's/,//')\" && echo && echo '[USUARIOS Y SESIONES]' && echo \"Usuario actual: $(whoami) (UID: $(id -u))\" && echo \"Grupos: $(groups | cut -d' ' -f1-3)...\" && echo \"Sesiones activas: $(who | wc -l)\" && echo && echo '[LOGS RECIENTES]' && echo \"Logins fallidos últimas 24h: $(grep 'Failed password' /var/log/auth.log 2>/dev/null | grep \"$(date '+%b %d')\" | wc -l)\"", "Estado del Sistema"),
-            ("echo '=== ANÁLISIS DE MEMORIA Y PROCESOS ===' && echo && echo '[MEMORIA VIRTUAL]' && free -h && echo && echo '[PROCESOS CON MÁS MEMORIA]' && ps aux --sort=-%mem | awk 'NR<=6 {printf \"%-15s %6s %6s %s\\n\", $1, $3\"%\", $4\"%\", $11}' && echo && echo '[INFORMACIÓN DE SWAP]' && swapon --show 2>/dev/null | awk 'NR>1 {print \"Swap: \"$1\" (\"$3\"/\"$2\")\"}'", "Memoria y Procesos"),
-            ("echo '=== SERVICIOS CRÍTICOS EN ESCUCHA ===' && echo && ss -tlnp | awk 'BEGIN{print \"PUERTO    PROTOCOLO  PROCESO          DESCRIPCIÓN\"} /LISTEN/ {split($4,addr,\":\"); port=addr[length(addr)]; split($7,proc,\",\"); if(length(proc)>1) {split(proc[2],name,\"=\"); pname=name[2]} else pname=\"N/A\"; desc=\"N/A\"; if(port==22) desc=\"SSH\"; if(port==80) desc=\"HTTP\"; if(port==443) desc=\"HTTPS\"; if(port==21) desc=\"FTP\"; if(port==25) desc=\"SMTP\"; if(port==53) desc=\"DNS\"; printf \"%-9s %-10s %-16s %s\\n\", port, $1, substr(pname,1,15), desc}' | head -15", "Servicios Críticos"),
-            ("echo '=== INFORMACIÓN DE CPU Y HARDWARE ===' && echo && lscpu | awk '/^CPU\\(s\\):/ {cpus=$2} /^Model name:/ {gsub(/^[[:space:]]*Model name:[[:space:]]*/, \"\"); model=$0} /^CPU MHz:/ {mhz=$3} END {print \"CPUs: \"cpus\" | Modelo: \"model; print \"Frecuencia: \"mhz\" MHz\"}' && echo && echo '[CARGA DEL SISTEMA]' && uptime | awk '{print \"Load Average: \"$(NF-2)\" \"$(NF-1)\" \"$NF}' && echo && echo '[TEMPERATURA CPU]' && sensors 2>/dev/null | grep -E 'Core|temp' | head -3 || echo 'Sensores no disponibles'", "Hardware y CPU"),
-            ("echo '=== TABLA ARP Y RUTAS DE RED ===' && echo && echo '[DISPOSITIVOS EN LA RED (ARP)]' && arp -a 2>/dev/null | awk '{gsub(/[()]/,\"\"); if($2 ~ /^[0-9]+\\.[0-9]+\\.[0-9]+\\.[0-9]+$/) print \"Device: \"$2\" | MAC: \"$4\" | Interface: \"$6}' | head -10 && echo && echo '[RUTAS DE RED]' && ip route | awk '{if($1==\"default\") print \"🌐 Default: \"$3\" via \"$5; else if($1 ~ /^[0-9]/) print \"📍 Red local: \"$1\" via \"$5}' | head -8", "Red y Enrutamiento"),
-            ("echo '=== LOGS DE SEGURIDAD RECIENTES ===' && echo && echo '[INTENTOS DE SSH]' && tail -20 /var/log/auth.log 2>/dev/null | grep -E '(Failed|Accepted)' | awk '{if(/Failed/) count[\"failed\"]++; if(/Accepted/) count[\"success\"]++; print substr($0,1,80)}' | tail -5 && echo && echo '[RESUMEN DE AUTENTICACIÓN]' && grep 'sshd' /var/log/auth.log 2>/dev/null | tail -100 | awk '/Failed/ {failed++} /Accepted/ {success++} END {print \"SSH - Exitosos: \"success+0\" | Fallidos: \"failed+0}' && echo && echo '[ÚLTIMOS COMANDOS SUDO]' && grep 'sudo:' /var/log/auth.log 2>/dev/null | tail -3 | awk '{print \"Sudo: \"$5\" ejecutó comando\"}'", "Logs de Seguridad"),
-            ("echo '=== VERIFICACIÓN DE PUERTOS ABIERTOS ===' && echo && echo '[ESCANEO SEGURO CON SS - REEMPLAZA NMAP]' && ss -tuln | awk '/LISTEN/ {split($5,addr,\":\"); port=addr[length(addr)]; ports[port]++} END {for(p in ports) print \"Puerto \"p\": Escuchando\"}' | sort -n && echo && echo '[CONECTIVIDAD EXTERNA]' && ping -c 2 8.8.8.8 >/dev/null 2>&1 && echo '✅ Conectividad a Internet: OK' || echo '❌ Conectividad a Internet: FALLO'", "Puertos y Conectividad"),
-            ("echo '=== INFORMACIÓN DE ARCHIVOS Y SISTEMA ===' && echo && echo '[ESPACIO EN DISCO DETALLADO]' && df -h | awk 'NR>1 && $5+0>0 {usage=substr($5,1,length($5)-1); if(usage>90) alert=\"🔴\"; else if(usage>75) alert=\"🟡\"; else alert=\"🟢\"; print alert\" \"$1\": \"$3\"/\"$2\" (\"$5\")\"}' && echo && echo '[ARCHIVOS GRANDES RECIENTES]' && find /tmp /var/tmp -type f -size +100M 2>/dev/null | head -3 | awk '{print \"📁 Archivo grande: \"$0}' && echo && echo '[PERMISOS ESPECIALES]' && find /usr/bin /bin -perm -4000 -type f 2>/dev/null | wc -l | awk '{print \"SUID binaries: \"$0}' && find /usr/bin /bin -perm -2000 -type f 2>/dev/null | wc -l | awk '{print \"SGID binaries: \"$0}'", "Sistema de Archivos")
+            ("echo '=== CONEXIONES DE RED ACTIVAS ===' && echo && echo 'CONEXIONES TCP ESTABLECIDAS:' && ss -tuln 2>/dev/null | awk 'NR==1 {print; next} /ESTAB|LISTEN/ {printf \"%-8s %-12s %-25s %-25s\\n\", $1, $2, $5, $6}' | head -15 && echo && echo 'PUERTOS EN ESCUCHA:' && ss -tln 2>/dev/null | awk '/LISTEN/ {split($4,a,\":\"); printf \"Puerto %-6s en %s\\n\", a[length(a)], $4}' | head -10 && echo && echo '=== RESUMEN DETALLADO ===' && echo \"TCP Establecidas: $(ss -t 2>/dev/null | grep -c ESTAB)\" && echo \"TCP en Escucha: $(ss -tln 2>/dev/null | grep -c LISTEN)\" && echo \"UDP Activas: $(ss -u 2>/dev/null | grep -v State | wc -l)\" && echo \"Total Conexiones: $(ss -tuln 2>/dev/null | grep -v State | wc -l)\"", "Ver Conexiones de Red"),
+            ("ps aux --sort=-%cpu | head -15", "Procesos que Más CPU Usan"),
+            ("ip addr show", "Ver Interfaces de Red"),
+            ("which nmap >/dev/null 2>&1 && echo 'Nmap disponible en Kali' && nmap --version | head -2 || echo 'Nmap no encontrado - verificar instalacion'", "Verificar Nmap Disponible"),
+            ("df -h", "Ver Espacio en Disco"),
+            ("free -h", "Ver Uso de Memoria"),
+            ("whoami && id", "Ver Usuario y Permisos"),
+            ("uname -a", "Información del Sistema"),
+            ("echo '=== SERVICIOS EN ESCUCHA ===' && echo && ss -tlnp 2>/dev/null | awk 'BEGIN {print \"PUERTO  PROTOCOLO  DIRECCION             PROCESO\"; print \"================================================\"} /LISTEN/ {split($4,a,\":\"); puerto=a[length(a)]; split($7,b,\",\"); if(length(b)>1) {split(b[2],c,\"=\"); proceso=c[2]; if(length(proceso)>20) proceso=substr(proceso,1,20)\"...\"} else proceso=\"N/A\"; printf \"%-8s %-9s %-20s %s\\n\", puerto, $1, $4, proceso}' | head -20 && echo && echo '=== PUERTOS CRITICOS DETECTADOS ===' && ss -tlnp 2>/dev/null | grep -E ':(22|80|443|21|25|53|993|995|587|143|110|3389|5432|3306)' | awk '{split($4,a,\":\"); puerto=a[length(a)]; printf \"  Puerto %s (%s) en %s\\n\", puerto, $1, $4}' && echo && total_listen=$(ss -tlnp 2>/dev/null | grep -c LISTEN) && total_criticos=$(ss -tlnp 2>/dev/null | grep -cE ':(22|80|443|21|25|53|993|995|587|143|110|3389|5432|3306)') && echo \"Total servicios en escucha: $total_listen\" && echo \"Puertos criticos activos: $total_criticos\"", "Ver Servicios en Escucha"),
+            ("echo '=== ARCHIVOS DE RED ABIERTOS ===' && echo && echo 'CONEXIONES POR PROCESO:' && if command -v lsof >/dev/null 2>&1; then echo 'Usando LSOF (información detallada):' && sudo lsof -i 2>/dev/null | awk 'NR==1 {print \"PROCESO    PID    USUARIO  PROTOCOLO  DIRECCION\"; print \"=============================================\"; next} NF>=8 {printf \"%-10s %-6s %-8s %-9s %s\\n\", $1, $2, $3, $5, $9}' | head -15; else echo 'LSOF no disponible - usando SS alternativo:'; fi && echo && echo 'ALTERNATIVO CON SS:' && ss -tulpn 2>/dev/null | awk 'NR==1 {print \"PROTOCOLO  ESTADO     DIRECCION_LOCAL      PROCESO\"; print \"===============================================\"; next} NF>=6 {split($7,a,\",\"); if(length(a)>1) {split(a[2],b,\"=\"); proceso=b[2]} else proceso=\"N/A\"; printf \"%-10s %-10s %-20s %s\\n\", $1, $2, $5, proceso}' | head -15 && echo && echo '=== RESUMEN ARCHIVOS DE RED ===' && echo \"Procesos con red: $(ss -tulpn 2>/dev/null | grep -v State | awk '{print $7}' | cut -d, -f2 | sort -u | wc -l)\" && echo \"Conexiones TCP: $(ss -t 2>/dev/null | grep -v State | wc -l)\" && echo \"Conexiones UDP: $(ss -u 2>/dev/null | grep -v State | wc -l)\"", "Ver Archivos de Red Abiertos"),
+            ("arp -a 2>/dev/null || ip neigh show", "Ver Tabla ARP"),
+            ("route -n 2>/dev/null || ip route show", "Ver Rutas de Red"),
+            ("cat /proc/cpuinfo | grep 'model name' | head -1", "Información del Procesador"),
+            ("lscpu | grep 'CPU(s)' || nproc", "Número de Núcleos CPU"),
+            ("systemctl list-units --type=service --state=running | head -15", "Ver Servicios Activos")
         ]
         
         # Crear grid de botones
@@ -594,8 +596,7 @@ class VistaDashboard(tk.Frame):
                                  check=True, 
                                  stdout=subprocess.DEVNULL, 
                                  stderr=subprocess.DEVNULL)
-                except (FileNotFoundError, PermissionError, OSError) as e:
-                    logging.debug(f'Error en excepción: {e}')
+                except:
                     self.escribir_terminal(f"INFO Acceda manualmente: {os.path.abspath(logs_dir)}", "[LOGS]")
                     
         except Exception as e:
@@ -709,8 +710,7 @@ class VistaDashboard(tk.Frame):
                         import subprocess
                         subprocess.run(["explorer", carpeta_encontrada], check=True)
                         self.escribir_terminal(f"OK Cheatsheets abiertos (Windows): {carpeta_encontrada}", "[CHEATSHEETS]")
-                    except (subprocess.SubprocessError, OSError, TimeoutError) as e:
-                        logging.debug(f'Error en excepción: {e}')
+                    except:
                         self.escribir_terminal(f"INFO Cheatsheets en: {carpeta_encontrada}", "[CHEATSHEETS]")
                 
             else:
@@ -728,14 +728,12 @@ class VistaDashboard(tk.Frame):
                         subprocess.Popen(["thunar", cheatsheets_dir], 
                                        stdout=subprocess.DEVNULL, 
                                        stderr=subprocess.DEVNULL)
-                    except (FileNotFoundError, PermissionError, OSError) as e:
-                        logging.debug(f'Error en excepción: {e}')
+                    except:
                         self.escribir_terminal(f"CMD  cd {cheatsheets_dir}", "[COMANDO]")
                 else:
                     try:
                         subprocess.run(["explorer", cheatsheets_dir], check=True)
-                    except (FileNotFoundError, PermissionError, OSError) as e:
-                        logging.debug(f'Error en excepción: {e}')
+                    except:
                         pass
                     
         except Exception as e:
@@ -846,8 +844,7 @@ class VistaDashboard(tk.Frame):
                         with open(archivo_path, 'r', encoding=encoding) as f:
                             contenido = f.read()
                         break
-                    except (FileNotFoundError, PermissionError, OSError) as e:
-                        logging.debug(f'Error en excepción: {e}')
+                    except:
                         continue
                 
                 if contenido:
@@ -952,8 +949,7 @@ class VistaDashboard(tk.Frame):
                             contenido = f.read().lower()
                             if busqueda_lower in contenido:
                                 archivos_con_contenido.append(cs)
-                    except (FileNotFoundError, PermissionError, OSError) as e:
-                        logging.debug(f'Error en excepción: {e}')
+                    except:
                         continue
                 
                 if archivos_con_contenido:
@@ -1251,8 +1247,7 @@ class VistaDashboard(tk.Frame):
                 rx_bytes = int(stats_result.stdout.strip())
                 rx_mb = rx_bytes / (1024 * 1024)
                 self.interfaces_text.insert(tk.END, f"   RX: {rx_mb:.1f} MB\n")
-        except (subprocess.SubprocessError, OSError, TimeoutError) as e:
-            logging.debug(f'Error en excepción: {e}')
+        except:
             pass
         
         try:
@@ -1262,8 +1257,7 @@ class VistaDashboard(tk.Frame):
                 tx_bytes = int(stats_result.stdout.strip())
                 tx_mb = tx_bytes / (1024 * 1024)
                 self.interfaces_text.insert(tk.END, f"   TX: {tx_mb:.1f} MB\n")
-        except (subprocess.SubprocessError, OSError, TimeoutError) as e:
-            logging.debug(f'Error en excepción: {e}')
+        except:
             pass
         
         self.interfaces_text.insert(tk.END, "\n")
@@ -1279,8 +1273,7 @@ class VistaDashboard(tk.Frame):
             if result.stdout:
                 gateway = result.stdout.split('via ')[1].split()[0] if 'via ' in result.stdout else "No configurado"
                 self.interfaces_text.insert(tk.END, f"🚪 Gateway: {gateway}\n")
-        except (subprocess.SubprocessError, OSError, TimeoutError) as e:
-            logging.debug(f'Error en excepción: {e}')
+        except:
             pass
         
         # Servidores DNS
@@ -1292,8 +1285,7 @@ class VistaDashboard(tk.Frame):
                         dns_servers.append(line.split()[1])
                 if dns_servers:
                     self.interfaces_text.insert(tk.END, f"[BUSCAR] DNS: {', '.join(dns_servers)}\n")
-        except (FileNotFoundError, PermissionError, OSError) as e:
-            logging.debug(f'Error en excepción: {e}')
+        except:
             pass
         
         # Hostname
@@ -1302,8 +1294,7 @@ class VistaDashboard(tk.Frame):
             if result.stdout:
                 hostname = result.stdout.strip()
                 self.interfaces_text.insert(tk.END, f"🏠 Hostname: {hostname}\n")
-        except (subprocess.SubprocessError, OSError, TimeoutError) as e:
-            logging.debug(f'Error en excepción: {e}')
+        except:
             pass
     
     def _obtener_interfaces_ifconfig(self):
@@ -1312,8 +1303,7 @@ class VistaDashboard(tk.Frame):
             result = subprocess.run(['ifconfig'], capture_output=True, text=True, timeout=5)
             self.interfaces_text.insert(tk.END, "📡 INTERFACES (ifconfig):\n")
             self.interfaces_text.insert(tk.END, result.stdout[:1000] + "...\n")
-        except (subprocess.SubprocessError, OSError, TimeoutError) as e:
-            logging.debug(f'Error en excepción: {e}')
+        except:
             self.interfaces_text.insert(tk.END, "ERROR: No se pudo obtener información de interfaces\n")
     
     def _actualizar_estado_servicios(self):
@@ -2114,8 +2104,7 @@ journalctl -u ssh                # Logs de servicio específico
                         print(f"OK {nombre} abierto exitosamente")
                         self.mostrar_notificacion(f"{nombre} iniciado", "success")
                         return True
-                    except (FileNotFoundError, PermissionError, OSError) as e:
-                        logging.debug(f'Error en excepción: {e}')
+                    except:
                         continue
                 
                 print("ERROR No se pudo abrir ningún terminal en Windows")
@@ -2129,8 +2118,7 @@ journalctl -u ssh                # Logs de servicio específico
                     print("OK Terminal de macOS abierto")
                     self.mostrar_notificacion("Terminal iniciado", "success")
                     return True
-                except (FileNotFoundError, PermissionError, OSError) as e:
-                    logging.debug(f'Error en excepción: {e}')
+                except:
                     print(f"ERROR Sistema {platform.system()} no soportado")
                     self.mostrar_notificacion("SO no soportado", "error")
                     return False
@@ -2148,12 +2136,6 @@ journalctl -u ssh                # Logs de servicio específico
             ventana_notif.title("ARESITOS")
             ventana_notif.geometry("400x100")
             ventana_notif.resizable(False, False)
-            
-            # NUEVO: Aplicar favicon a ventana de notificación
-            try:
-                aplicar_favicon_aresitos(ventana_notif)
-            except Exception:
-                pass  # No mostrar errores en notificaciones
             
             # Ventana de notificación configurada
             

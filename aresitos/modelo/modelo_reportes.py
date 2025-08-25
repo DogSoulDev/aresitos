@@ -73,8 +73,8 @@ class ModeloReportes:
             logging.warning(f"Usando directorio temporal: {directorio_temporal}")
             return directorio_temporal
 
-    def generar_reporte_completo(self, datos_escaneo: Dict, datos_monitoreo: Dict, datos_utilidades: Dict, datos_fim: Optional[Dict] = None, datos_siem: Optional[Dict] = None, datos_cuarentena: Optional[Dict] = None, datos_auditoria: Optional[Dict] = None, datos_wordlists: Optional[Dict] = None, datos_herramientas_kali: Optional[Dict] = None, datos_logs_centralizados: Optional[Dict] = None, datos_configuracion_sistema: Optional[Dict] = None, datos_terminal_principal: Optional[Dict] = None) -> Dict[str, Any]:
-        """Genera un reporte completo con TODOS los módulos de ARESITOS v3.0"""
+    def generar_reporte_completo(self, datos_escaneo: Dict, datos_monitoreo: Dict, datos_utilidades: Dict, datos_fim: Optional[Dict] = None, datos_siem: Optional[Dict] = None, datos_cuarentena: Optional[Dict] = None, datos_terminal_principal: Optional[Dict] = None) -> Dict[str, Any]:
+        """Genera un reporte completo con todos los datos recopilados"""
         
         # Validar datos de entrada
         if not self.validar_datos_reporte({'escaneo': datos_escaneo, 'monitoreo': datos_monitoreo, 'utilidades': datos_utilidades}):
@@ -97,12 +97,7 @@ class ModeloReportes:
                 'cambios_fim': len(datos_fim.get('cambios', [])) if datos_fim else 0,
                 'alertas_siem': len(datos_siem.get('alertas', [])) if datos_siem else 0,
                 'archivos_cuarentena': len(datos_cuarentena.get('archivos', [])) if datos_cuarentena else 0,
-                'auditorias_ejecutadas': len(datos_auditoria.get('auditorias_ejecutadas', [])) if datos_auditoria else 0,
-                'wordlists_disponibles': len(datos_wordlists.get('archivos_cargados', [])) if datos_wordlists else 0,
-                'herramientas_kali_verificadas': len(datos_herramientas_kali.get('herramientas_verificadas', [])) if datos_herramientas_kali else 0,
-                'archivos_log_encontrados': len(datos_logs_centralizados.get('archivos_log_encontrados', [])) if datos_logs_centralizados else 0,
-                'terminales_capturados': datos_terminal_principal.get('total_terminales', 0) if datos_terminal_principal else 0,
-                'memoria_sistema_gb': datos_configuracion_sistema.get('rendimiento_sistema', {}).get('memoria_total_gb', 0) if datos_configuracion_sistema else 0
+                'terminal_principal_lineas': datos_terminal_principal.get('lineas_ejecutadas', 0) if datos_terminal_principal else 0
             },
             'detalles': {
                 'escaneo': datos_escaneo,
@@ -111,11 +106,6 @@ class ModeloReportes:
                 'fim': datos_fim,
                 'siem': datos_siem,
                 'cuarentena': datos_cuarentena,
-                'auditoria': datos_auditoria,
-                'wordlists': datos_wordlists,
-                'herramientas_kali': datos_herramientas_kali,
-                'logs_centralizados': datos_logs_centralizados,
-                'configuracion_sistema': datos_configuracion_sistema,
                 'terminal_principal': datos_terminal_principal
             }
         }
@@ -332,8 +322,7 @@ Terminal principal - lineas: {reporte['resumen'].get('terminal_principal_lineas'
                             with open(ruta_archivo, 'r', encoding='utf-8') as f:
                                 contenido = json.load(f)
                                 tipo = contenido.get('tipo', 'json')
-                        except (FileNotFoundError, PermissionError, OSError) as e:
-                            logging.debug(f'Error en excepción: {e}')
+                        except:
                             pass
                     elif archivo.endswith('.txt'):
                         tipo = 'texto'

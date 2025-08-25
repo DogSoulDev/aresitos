@@ -106,9 +106,9 @@
                 "descripcion": "Herramienta avanzada de cracking de passwords"
             },
             {
-                "id": "memstat",
-                "nombre": "Memstat - Memory Analysis",
-                "archivo": "memstat_memory_analysis.txt",
+                "id": "volatility",
+                "nombre": "Volatility - Memory Forensics",
+                "archivo": "volatility_memory_forensics.txt",
                 "descripcion": "Framework de análisis forense de memoria"
             }
         ],
