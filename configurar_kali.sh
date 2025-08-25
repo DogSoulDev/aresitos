@@ -215,14 +215,12 @@ install_tools() {
         print_info "Actualizando templates de nuclei..."
         sudo -u "$REAL_USER" nuclei -update-templates >/dev/null 2>&1 &
         NUCLEI_PID=$!
-        
         # Esperar máximo 60 segundos para actualización de templates
         timeout=60
         while kill -0 "$NUCLEI_PID" 2>/dev/null && [[ $timeout -gt 0 ]]; do
             sleep 2
             ((timeout-=2))
         done
-        
         if kill -0 "$NUCLEI_PID" 2>/dev/null; then
             kill "$NUCLEI_PID" 2>/dev/null
             print_warning "Timeout actualizando templates nuclei"
@@ -230,13 +228,6 @@ install_tools() {
             print_success "Templates de nuclei actualizados"
         fi
     fi
-            else
-                print_warning "nuclei no pudo instalarse via APT"
-            fi
-        else
-            print_info "nuclei no encontrado en repositorios, instalación manual requerida"
-            print_info "Para instalar nuclei: go install -v github.com/projectdiscovery/nuclei/v2/cmd/nuclei@latest"
-        fi
     
     # Verificar herramientas especiales de Go (subfinder, httpx)
     if command -v go >/dev/null 2>&1; then
