@@ -29,22 +29,32 @@ class CuarentenaKali2025:
             directorio_base: Directorio base para almacenar archivos en cuarentena
         """
         self.logger = logging.getLogger(f"aresitos.{self.__class__.__name__}")
-        
-        # Configurar directorio de cuarentena
+
+        # Determinar ruta base del proyecto (siempre relativa al workspace)
+        ruta_workspace = Path(__file__).resolve().parent.parent
+        ruta_data = ruta_workspace / "data"
+        ruta_cuarentena_default = ruta_data / "cuarentena"
+
+        # Validar y corregir directorio_base si es necesario
         if directorio_base:
-            self.directorio_cuarentena = directorio_base
+            directorio_base_path = Path(directorio_base).resolve()
+            # Si el path NO está dentro del workspace, forzar ruta relativa
+            try:
+                directorio_base_path.relative_to(ruta_workspace)
+                self.directorio_cuarentena = str(directorio_base_path)
+            except ValueError:
+                self.logger.warning(f"[ARESITOS] Ruta de cuarentena fuera del proyecto: {directorio_base_path}. Se usará la ruta estándar: {ruta_cuarentena_default}")
+                self.directorio_cuarentena = str(ruta_cuarentena_default)
         else:
-            # Usar directorio en data por defecto
-            base_dir = Path(__file__).parent.parent / "data"
-            self.directorio_cuarentena = str(base_dir / "cuarentena")
-        
+            self.directorio_cuarentena = str(ruta_cuarentena_default)
+
         # Crear estructura de directorios
         self._crear_estructura_directorios()
-        
+
         # Base de datos de cuarentena
         self.db_path = os.path.join(self.directorio_cuarentena, "cuarentena_kali2025.db")
         self._inicializar_base_datos()
-        
+
         self.logger.info(f"Cuarentena inicializada en: {self.directorio_cuarentena}")
     
     def _crear_estructura_directorios(self):
