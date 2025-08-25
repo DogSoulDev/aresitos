@@ -4,62 +4,38 @@ Esta carpeta contiene la documentación técnica completa de **Aresitos - Herram
 
 ## Archivos Principales
 
-### SYMBOL Manual Técnico
-- **DOCUMENTACION_TECNICA_CONSOLIDADA.md**: Manual técnico completo con todas las funcionalidades
+# Documentación de ARESITOS
 
-### ARCH Desarrollo  
-- **ARQUITECTURA_DESARROLLO.md**: Guía de arquitectura y desarrollo del sistema
-- **REVISION_MVC_ARESITOS.md**: Análisis de la arquitectura MVC implementada
+Esta carpeta contiene la documentación técnica y de arquitectura de la suite ARESITOS.
 
-### SECURE Seguridad
-- **AUDITORIA_SEGURIDAD_ARESITOS.md**: Auditoría de seguridad y análisis de vulnerabilidades
+## Índice de archivos
 
-### SYMBOL Instalación
-- **GUIA_INSTALACION.md**: Instrucciones detalladas de instalación y configuración
+- `DOCUMENTACION_TECNICA_CONSOLIDADA.md`: Manual técnico completo
+- `ARQUITECTURA_DESARROLLO.md`: Guía de arquitectura y desarrollo
+- `REVISION_MVC_ARESITOS.md`: Revisión de la arquitectura MVC
+- `AUDITORIA_SEGURIDAD_ARESITOS.md`: Auditoría de seguridad y vulnerabilidades
+- `GUIA_INSTALACION.md`: Guía de instalación y configuración
+- `TERMINAL_INTEGRADO.md`: Documentación del terminal integrado
+- `SANITIZACION_ARCHIVOS.md`: Proceso de validación y sanitización de archivos
 
-### SYSTEM Terminal
-- **TERMINAL_INTEGRADO.md**: Documentación del terminal integrado y comandos
+## Resumen
 
-### SYMBOL Configuración
-- **SANITIZACION_ARCHIVOS.md**: Proceso de sanitización y limpieza de archivos
+ARESITOS es una suite profesional de ciberseguridad para Kali Linux, con escaneador, SIEM, FIM, cuarentena y dashboard integrados. Arquitectura 100% Python nativo + herramientas Kali.
 
-## Información General
-
-**Aresitos** es una herramienta profesional de ciberseguridad diseñada para Kali Linux que integra múltiples funcionalidades de seguridad en una interfaz unificada.
-
-### Características Principales
+### Características principales
 - Escáner de vulnerabilidades integrado
-- Sistema SIEM para monitoreo de seguridad  
+- SIEM y monitoreo de seguridad
 - File Integrity Monitoring (FIM)
 - Sistema de cuarentena automático
-- Auditoría de sistema automatizada
-- Generación de reportes profesionales
+- Auditoría y reportes profesionales
+- Arquitectura MVC y Python nativo
 
-### Arquitectura
-- **MVC**: Modelo-Vista-Controlador
-- **Python nativo**: Sin dependencias externas
-- **Herramientas Kali**: Integración con arsenal nativo
-
-## Uso de la Documentación
-
-### Para Usuarios Nuevos
-1. **GUIA_INSTALACION.md** - Instalar y configurar Aresitos
-2. **DOCUMENTACION_TECNICA_CONSOLIDADA.md** - Aprender las funcionalidades
-
-### Para Desarrolladores
-1. **ARQUITECTURA_DESARROLLO.md** - Entender la estructura del código
-2. **REVISION_MVC_ARESITOS.md** - Análisis de la arquitectura
-3. **TERMINAL_INTEGRADO.md** - Sistema de terminal embebido
-
-### Para Seguridad
-1. **AUDITORIA_SEGURIDAD_ARESITOS.md** - Estado de seguridad del sistema
-2. **SANITIZACION_ARCHIVOS.md** - Proceso de validación de archivos
-
-## Soporte
-
-- **Repositorio**: https://github.com/DogSoulDev/aresitos
-- **Email**: dogsouldev@protonmail.com
+## Uso de la documentación
+- Para instalar: ver `GUIA_INSTALACION.md`
+- Para arquitectura: ver `ARQUITECTURA_DESARROLLO.md` y `REVISION_MVC_ARESITOS.md`
+- Para seguridad: ver `AUDITORIA_SEGURIDAD_ARESITOS.md` y `SANITIZACION_ARCHIVOS.md`
 
 ---
 
-**Creado por DogSoulDev**
+**Proyecto desarrollado por DogSoulDev**
+- **Herramientas Kali**: Integración con arsenal nativo

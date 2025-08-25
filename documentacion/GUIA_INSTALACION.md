@@ -1,105 +1,45 @@
-# Guía de Instalación - Aresitos
+# Guía de Instalación - ARESITOS
 
-## ¿Qué necesitas?
+## Requisitos
 
-### Sistema Operativo
-- **Kali Linux** (recomendado)
-- **Parrot Security OS** 
-- **Ubuntu/Debian** (funcionalidad limitada)
+- **Kali Linux 2025** (recomendado)
+- Python 3.8 o superior
+- Permisos sudo
+- 100MB de espacio en disco
 
-### Requisitos Técnicos
-- **Python 3.8** o superior
-- **100MB** de espacio en disco
-- **512MB** de RAM mínimo
-- **Permisos sudo** para herramientas del sistema
+## Instalación rápida
 
-## Instalación Rápida
-
-### 3 Pasos Simples
-
-1. **Descargar Aresitos**
+1. Clona el repositorio:
 ```bash
-git clone https://github.com/DogSoulDev/Aresitos.git
-cd Aresitos
+git clone https://github.com/DogSoulDev/aresitos.git
+cd aresitos
 ```
-
-2. **Configurar automáticamente**
+2. Ejecuta el script de configuración:
 ```bash
 chmod +x configurar_kali.sh
 sudo ./configurar_kali.sh
 ```
-
-3. **Ejecutar Aresitos**
+3. Inicia la aplicación:
 ```bash
 python3 main.py
 ```
 
-## Instalación Detallada
+## Instalación manual (opcional)
 
-### Paso 1: Clonación del Repositorio
+1. Instala dependencias principales:
 ```bash
-┌──(kali㉿kali)-[~]
-└─$ git clone https://github.com/DogSoulDev/Aresitos.git
-Cloning into 'Aresitos'...
-remote: Enumerating objects: 1445, done.
-remote: Counting objects: 100% (376/376), done.
-remote: Compressing objects: 100% (236/236), done.
-remote: Total 1445 (delta 269), reused 228 (delta 139), pack-reused 1069 (from 1)
-Receiving objects: 100% (1445/1445), 2.52 MiB | 207.00 KiB/s, done.
-Resolving deltas: 100% (910/910), done.
+sudo apt update
+sudo apt install python3 python3-tk python3-venv nmap masscan nuclei gobuster ffuf feroxbuster wireshark autopsy sleuthkit git curl wget sqlite3
+```
+2. Ejecuta la aplicación:
+```bash
+python3 main.py
 ```
 
-### Paso 2: Configuración Automática
-```bash
-└─$ cd Aresitos
-└─$ chmod +x configurar_kali.sh
-└─$ sudo ./configurar_kali.sh
-[sudo] password for kali: 
-
-🛡️ CONFIGURADOR DE PERMISOS ARES AEGIS PARA KALI LINUX
-==========================================================
-[INFO] Usuario detectado: kali
-[INFO] Directorio home: /home/kali
-
-[INFO] Este script configurará Ares Aegis para funcionar correctamente en Kali Linux
-[INFO] Se realizarán las siguientes acciones:
-  • Actualizar repositorios
-  • Instalar herramientas de seguridad necesarias
-  • Configurar permisos de red especiales
-  • Configurar sudo sin contraseña para herramientas específicas
-  • Instalar dependencias Python
-  • Verificar configuración
-
-¿Continuar? (y/N): y
-```
-
-### Paso 3: Actualización de Repositorios
-```bash
-🔄 Actualizando repositorios...
-Hit:1 http://http.kali.org/kali kali-rolling InRelease
-31 packages can be upgraded. Run 'apt list --upgradable' to see them.
-[✓] Repositorios actualizados
-```
-
-### Paso 4: Instalación de Herramientas Esenciales
-```bash
-📦 Instalando herramientas ESENCIALES...
-[INFO] Instalando herramienta CRÍTICA: python3-dev...
-[✓] python3-dev ya está instalado
-[INFO] Instalando herramienta CRÍTICA: python3-venv...
-[✓] python3-venv ya está instalado
-[INFO] Instalando herramienta CRÍTICA: python3-tk...
-[✓] python3-tk instalado correctamente
-[INFO] Instalando herramienta CRÍTICA: curl...
-[✓] curl ya está instalado
-[INFO] Instalando herramienta CRÍTICA: wget...
-[✓] wget ya está instalado
-[INFO] Instalando herramienta CRÍTICA: git...
-[✓] git ya está instalado
-[INFO] Instalando herramienta CRÍTICA: nmap...
-[✓] nmap ya está instalado
-[INFO] Instalando herramienta CRÍTICA: net-tools...
-[✓] net-tools ya está instalado
+## Notas
+- Para modo desarrollo en otros sistemas: `python3 main.py --dev`
+- Si tienes problemas de dependencias, ejecuta de nuevo `sudo ./configurar_kali.sh`.
+- Consulta la documentación técnica en la carpeta `documentacion/`.
 [INFO] Instalando herramienta CRÍTICA: tcpdump...
 [✓] tcpdump ya está instalado
 [INFO] Instalando herramienta CRÍTICA: iftop...

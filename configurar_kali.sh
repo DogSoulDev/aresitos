@@ -96,7 +96,7 @@ update_repositories() {
 
 # Instalar herramientas necesarias
 install_tools() {
-    print_header "🔧 Instalando herramientas de escaneador profesional ARESITOS v3.0..."
+    print_header "Instalando herramientas de escaneador profesional ARESITOS v3.0..."
     
     # Lista de herramientas ESENCIALES para escaneador profesional
     ESSENTIAL_TOOLS=(
@@ -166,7 +166,7 @@ install_tools() {
     apt update -qq
     
     # Instalar herramientas ESENCIALES (críticas para funcionamiento)
-    print_header "📦 Instalando herramientas ESENCIALES..."
+    print_header "Instalando herramientas ESENCIALES..."
     FAILED_ESSENTIAL=()
     
     for tool in "${ESSENTIAL_TOOLS[@]}"; do
@@ -187,7 +187,7 @@ install_tools() {
     done
     
     # Instalar herramientas AVANZADAS para escaneador profesional
-    print_header "🚀 Instalando herramientas AVANZADAS de escaneador..."
+    print_header "Instalando herramientas AVANZADAS de escaneador..."
     FAILED_ADVANCED=()
     
     for tool in "${ADVANCED_TOOLS[@]}"; do
@@ -208,7 +208,7 @@ install_tools() {
     done
     
     # Instalar herramientas especiales para escaneador profesional
-    print_header "⭐ Instalando herramientas especiales del escaneador..."
+    print_header "Instalando herramientas especiales del escaneador..."
     
     # Nuclei - verificar templates actualizados
     if command -v nuclei >/dev/null 2>&1; then
@@ -274,64 +274,57 @@ install_tools() {
     
     # Reporte final del escaneador profesional
     echo
-    print_header "📊 REPORTE DE INSTALACIÓN - ESCANEADOR PROFESIONAL v3.0"
+    print_header "REPORTE DE INSTALACIÓN - ESCANEADOR PROFESIONAL v3.0"
     
     if [[ ${#FAILED_ESSENTIAL[@]} -eq 0 ]]; then
-        print_success "✅ Todas las herramientas ESENCIALES del escaneador instaladas"
+        print_success "Todas las herramientas ESENCIALES del escaneador instaladas"
     else
-        print_error "❌ HERRAMIENTAS CRÍTICAS FALLIDAS: ${FAILED_ESSENTIAL[*]}"
-        print_warning "⚠️ ARESITOS Escaneador puede no funcionar correctamente"
+        print_error "HERRAMIENTAS CRÍTICAS FALLIDAS: ${FAILED_ESSENTIAL[*]}"
+        print_warning "ARESITOS Escaneador puede no funcionar correctamente"
     fi
     
     if [[ ${#FAILED_ADVANCED[@]} -gt 0 ]]; then
-        print_warning "⚠️ Herramientas avanzadas no instaladas: ${FAILED_ADVANCED[*]}"
-        print_info "ℹ️ El escaneador funcionará con funcionalidad básica"
+        print_warning "Herramientas avanzadas no instaladas: ${FAILED_ADVANCED[*]}"
+        print_info "El escaneador funcionará con funcionalidad básica"
     else
-        print_success "✅ Todas las herramientas avanzadas del escaneador disponibles"
+        print_success "Todas las herramientas avanzadas del escaneador disponibles"
     fi
     
     # Verificar capacidades del escaneador
-    print_info "🔍 Verificando capacidades del escaneador ARESITOS..."
+    print_info "Verificando capacidades del escaneador ARESITOS..."
     
     SCANNER_CAPABILITIES=()
     
     if command -v nmap >/dev/null 2>&1; then
-        SCANNER_CAPABILITIES+=("✓ Escaneo integral con nmap + scripts NSE")
+        SCANNER_CAPABILITIES+=("Escaneo integral con nmap + scripts NSE")
     fi
-    
     if command -v masscan >/dev/null 2>&1; then
-        SCANNER_CAPABILITIES+=("✓ Escaneo masivo ultrarrápido con masscan")
+        SCANNER_CAPABILITIES+=("Escaneo masivo ultrarrápido con masscan")
     fi
-    
     if command -v rustscan >/dev/null 2>&1; then
-        SCANNER_CAPABILITIES+=("✓ Escaneo rápido de puertos con rustscan")
+        SCANNER_CAPABILITIES+=("Escaneo rápido de puertos con rustscan")
     fi
-    
     if command -v nuclei >/dev/null 2>&1; then
-        SCANNER_CAPABILITIES+=("✓ Detección de vulnerabilidades CVE con nuclei")
+        SCANNER_CAPABILITIES+=("Detección de vulnerabilidades CVE con nuclei")
     fi
-    
     if command -v gobuster >/dev/null 2>&1; then
-        SCANNER_CAPABILITIES+=("✓ Enumeración de directorios con gobuster")
+        SCANNER_CAPABILITIES+=("Enumeración de directorios con gobuster")
     fi
-    
     if command -v ffuf >/dev/null 2>&1; then
-        SCANNER_CAPABILITIES+=("✓ Fuzzing web avanzado con ffuf")
+        SCANNER_CAPABILITIES+=("Fuzzing web avanzado con ffuf")
     fi
-    
     if command -v feroxbuster >/dev/null 2>&1; then
-        SCANNER_CAPABILITIES+=("✓ Enumeración recursiva con feroxbuster")
+        SCANNER_CAPABILITIES+=("Enumeración recursiva con feroxbuster")
     fi
     
     # Mostrar capacidades
     if [[ ${#SCANNER_CAPABILITIES[@]} -gt 0 ]]; then
-        print_success "🎯 CAPACIDADES DEL ESCANEADOR ARESITOS:"
+        print_success "CAPACIDADES DEL ESCANEADOR ARESITOS:"
         for capability in "${SCANNER_CAPABILITIES[@]}"; do
             echo "    $capability"
         done
     fi
-    
-    print_info "📈 Total de herramientas del escaneador profesional: ${#SCANNER_CAPABILITIES[@]}/7"
+    print_info "Total de herramientas del escaneador profesional: ${#SCANNER_CAPABILITIES[@]}/7"
     
     # Actualizar base de datos de locate
     print_info "Actualizando base de datos del sistema..."
