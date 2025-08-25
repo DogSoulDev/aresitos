@@ -3,6 +3,7 @@
 import tkinter as tk
 from tkinter import ttk, scrolledtext, messagebox, filedialog
 import threading
+from aresitos.utils.thread_safe_gui import ThreadSafeFlag
 import logging
 import datetime
 
@@ -31,12 +32,12 @@ class VistaAuditoria(tk.Frame):
         self.controlador = None
         self.logger = logging.getLogger(__name__)
         self.vista_principal = parent  # Referencia al padre para acceder al terminal
-        
-        # Estados únicos de auditoría
-        self.proceso_auditoria_activo = False
-        self.proceso_rootkits_activo = False
+
+        # Estados únicos de auditoría (thread-safe)
+        self.flag_auditoria = ThreadSafeFlag()
+        self.flag_rootkits = ThreadSafeFlag()
         self.thread_auditoria = None
-        
+
         # Configuración del tema Burp Suite
         if BURP_THEME_AVAILABLE and burp_theme:
             self.theme = burp_theme
@@ -68,7 +69,7 @@ class VistaAuditoria(tk.Frame):
                 'danger': '#cc0000',
                 'info': '#0066cc'
             }
-        
+
         self.crear_interfaz()
     
     def set_controlador(self, controlador):
@@ -468,13 +469,13 @@ class VistaAuditoria(tk.Frame):
     
     def ejecutar_lynis(self):
         """Ejecutar auditoría completa del sistema con Lynis - auditor de seguridad profesional."""
-        if self.proceso_auditoria_activo:
+        if self.flag_auditoria.is_set():
             self._actualizar_texto_auditoria("ERROR Auditoría Lynis ya en ejecución\n")
             return
             
         def ejecutar_lynis_worker():
             try:
-                self.proceso_auditoria_activo = True
+                self.flag_auditoria.set()
                 self._actualizar_texto_auditoria("=== INICIANDO AUDITORÍA LYNIS PROFESIONAL ===\n")
                 import subprocess
                 import os
@@ -637,7 +638,7 @@ class VistaAuditoria(tk.Frame):
             except Exception as e:
                 self._actualizar_texto_auditoria(f"ERROR CRÍTICO en auditoría Lynis: {str(e)}\n")
             finally:
-                self.proceso_auditoria_activo = False
+                self.flag_auditoria.clear()
         
         # Ejecutar en thread separado
         self.thread_auditoria = threading.Thread(target=ejecutar_lynis_worker, daemon=True)
