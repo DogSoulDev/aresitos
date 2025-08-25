@@ -58,16 +58,13 @@ class CuarentenaKali2025:
         self.logger.info(f"Cuarentena inicializada en: {self.directorio_cuarentena}")
     
     def _crear_estructura_directorios(self):
-        """Crear estructura de directorios de cuarentena."""
+        """Solo crear el directorio principal de cuarentena si es estrictamente necesario. No crear subdirectorios automáticamente."""
         try:
-            os.makedirs(self.directorio_cuarentena, mode=0o750, exist_ok=True)
-            os.makedirs(os.path.join(self.directorio_cuarentena, "archivos"), mode=0o750, exist_ok=True)
-            os.makedirs(os.path.join(self.directorio_cuarentena, "metadatos"), mode=0o750, exist_ok=True)
-            os.makedirs(os.path.join(self.directorio_cuarentena, "respaldos"), mode=0o750, exist_ok=True)
-            
-            # Verificar permisos restrictivos
-            os.chmod(self.directorio_cuarentena, 0o750)
-            
+            if not os.path.isdir(self.directorio_cuarentena):
+                os.makedirs(self.directorio_cuarentena, mode=0o750, exist_ok=True)
+        except PermissionError as e:
+            self.logger.error(f"Permiso denegado al crear la carpeta de cuarentena: {e}")
+            raise
         except Exception as e:
             self.logger.error(f"Error creando estructura de cuarentena: {e}")
             raise

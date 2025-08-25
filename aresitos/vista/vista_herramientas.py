@@ -14,7 +14,6 @@ import tkinter as tk
 from tkinter import ttk, messagebox, scrolledtext
 import subprocess
 import threading
-from aresitos.utils.thread_safe_gui import ThreadSafeFlag
 import logging
 from typing import Optional, Any
 
@@ -31,30 +30,30 @@ class VistaHerramientasKali(tk.Frame):
     
     def __init__(self, parent, callback_completado=None):
         super().__init__(parent)
-
+        
         # VERIFICACIÓN CRÍTICA: Solo para Kali Linux
         if not self._verificar_kali_linux():
             messagebox.showerror(
-                "Error - Solo Kali Linux",
+                "Error - Solo Kali Linux", 
                 "ARESITOS está diseñado exclusivamente para Kali Linux.\n\n"
                 "Sistema detectado no es compatible.\n"
                 "Instale Kali Linux para usar ARESITOS."
             )
             self.destroy()
             return
-
+            
         self.controlador = None  # Patrón MVC
         self.callback_completado = callback_completado
-        self.flag_proceso = ThreadSafeFlag()
+        self.proceso_activo = False
         self.logger = logging.getLogger(__name__)
-
+        
         # Configurar tema
         if BURP_THEME_AVAILABLE and burp_theme:
             self.theme = burp_theme
             self.configure(bg=burp_theme.get_color('bg_primary'))
             self.colors = {
                 'bg_primary': burp_theme.get_color('bg_primary'),
-                'bg_secondary': burp_theme.get_color('bg_secondary'),
+                'bg_secondary': burp_theme.get_color('bg_secondary'), 
                 'fg_primary': burp_theme.get_color('fg_primary'),
                 'fg_accent': burp_theme.get_color('fg_accent'),
                 'button_bg': burp_theme.get_color('button_bg'),
@@ -72,7 +71,7 @@ class VistaHerramientasKali(tk.Frame):
                 'warning': '#ffaa00'
             }
             self.configure(bg=self.colors['bg_primary'])
-
+        
         self.crear_interfaz()
     
     def set_controlador(self, controlador: Optional[Any]):
@@ -365,9 +364,10 @@ LISTO PARA: Escaneos de vulnerabilidades en entornos Kali Linux 2025
     
     def verificar_herramientas(self):
         """Verificar herramientas de Kali Linux disponibles"""
-        if self.flag_proceso.is_set():
+        if self.proceso_activo:
             return
-        self.flag_proceso.set()
+        
+        self.proceso_activo = True
         try:
             if hasattr(self, 'btn_verificar') and self.btn_verificar.winfo_exists():
                 self.btn_verificar.config(state='disabled')
@@ -375,6 +375,7 @@ LISTO PARA: Escaneos de vulnerabilidades en entornos Kali Linux 2025
                 self.text_resultados.delete(1.0, tk.END)
         except (tk.TclError, AttributeError):
             pass
+        
         # Ejecutar verificación en thread separado
         thread = threading.Thread(target=self._verificar_herramientas_async)
         thread.daemon = True
@@ -500,27 +501,30 @@ LISTO PARA: Escaneos de vulnerabilidades en entornos Kali Linux 2025
     def _finalizar_verificacion(self):
         """Finalizar proceso de verificación con verificación de seguridad"""
         try:
-            self.flag_proceso.clear()
+            self.proceso_activo = False
             # Verificar si el widget aún existe y la ventana no ha sido destruida
             if hasattr(self, 'btn_verificar') and self.btn_verificar.winfo_exists():
                 self.btn_verificar.config(state='normal')
         except (tk.TclError, AttributeError):
             # Widget ya destruido, ignorar silenciosamente
-            self.flag_proceso.clear()
+            self.proceso_activo = False
     
     def instalar_herramientas(self):
         """Instalar herramientas faltantes"""
-        if self.flag_proceso.is_set():
+        if self.proceso_activo:
             return
+        
         respuesta = messagebox.askyesno(
             "Instalar Herramientas",
             "¿Desea instalar las herramientas faltantes?\n\n" +
             "Esto ejecutará: sudo apt update && sudo apt install -y [herramientas]\n\n" +
             "Nota: Se requieren permisos de administrador."
         )
+        
         if not respuesta:
             return
-        self.flag_proceso.set()
+        
+        self.proceso_activo = True
         try:
             if hasattr(self, 'btn_instalar') and self.btn_instalar.winfo_exists():
                 self.btn_instalar.config(state='disabled')
@@ -528,6 +532,7 @@ LISTO PARA: Escaneos de vulnerabilidades en entornos Kali Linux 2025
                 self.text_resultados.delete(1.0, tk.END)
         except (tk.TclError, AttributeError):
             pass
+        
         # Ejecutar instalación en thread separado
         thread = threading.Thread(target=self._instalar_herramientas_async)
         thread.daemon = True
@@ -785,13 +790,13 @@ LISTO PARA: Escaneos de vulnerabilidades en entornos Kali Linux 2025
     def _finalizar_instalacion(self):
         """Finalizar proceso de instalación con verificación de seguridad"""
         try:
-            self.flag_proceso.clear()
+            self.proceso_activo = False
             # Verificar si el widget aún existe y la ventana no ha sido destruida
             if hasattr(self, 'btn_instalar') and self.btn_instalar.winfo_exists():
                 self.btn_instalar.config(state='normal')
         except (tk.TclError, AttributeError):
             # Widget ya destruido, ignorar silenciosamente
-            self.flag_proceso.clear()
+            self.proceso_activo = False
     
     def continuar_aplicacion(self):
         """Continuar a la aplicación principal con verificación de seguridad"""

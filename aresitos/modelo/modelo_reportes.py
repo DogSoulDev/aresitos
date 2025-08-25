@@ -39,37 +39,27 @@ class ModeloReportes:
         return normalized
     
     def _crear_directorio_reportes(self) -> str:
-        """Crea directorio de reportes dentro del proyecto de forma segura"""
+        """Crea solo el directorio principal de reportes si es estrictamente necesario. No crea subdirectorios ni logs."""
         try:
-            # Usar directorio de reportes dentro del proyecto Aresitos
-            # Obtener directorio base del proyecto
             proyecto_dir = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
             directorio = os.path.join(proyecto_dir, "reportes")
-            
-            # Normalizar el path
             directorio = self._normalizar_path(directorio)
-            
-            # Crear directorio si no existe
-            if not os.path.exists(directorio):
-                os.makedirs(directorio, mode=0o755)
-                logging.info(f"Directorio de reportes creado: {directorio}")
-            
-            # Verificar permisos de escritura
+            if not os.path.isdir(directorio):
+                os.makedirs(directorio, mode=0o755, exist_ok=True)
             if not os.access(directorio, os.W_OK):
                 logging.error(f"Sin permisos de escritura en directorio de reportes: {directorio}")
                 raise PermissionError(f"Sin permisos de escritura: {directorio}")
-            
-            # Verificar que es realmente un directorio
-            if not os.path.isdir(directorio):
-                raise OSError(f"La ruta no es un directorio válido: {directorio}")
-                
             return directorio
-            
         except Exception as e:
             logging.error(f"Error creando directorio de reportes: {e}")
             # Fallback a directorio temporal del sistema
             directorio_temporal = os.path.join(os.path.expanduser("~"), ".aresitos", "reportes")
-            os.makedirs(directorio_temporal, exist_ok=True)
+            try:
+                if not os.path.isdir(directorio_temporal):
+                    os.makedirs(directorio_temporal, exist_ok=True)
+            except Exception as e2:
+                logging.error(f"Error creando directorio temporal de reportes: {e2}")
+                raise
             logging.warning(f"Usando directorio temporal: {directorio_temporal}")
             return directorio_temporal
 

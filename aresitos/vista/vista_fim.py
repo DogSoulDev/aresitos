@@ -3,7 +3,6 @@
 import tkinter as tk
 from tkinter import ttk, scrolledtext, messagebox, filedialog
 import threading
-from aresitos.utils.thread_safe_gui import ThreadSafeFlag
 import os
 import subprocess
 import logging
@@ -24,15 +23,12 @@ class VistaFIM(tk.Frame):
     def __init__(self, parent):
         super().__init__(parent)
         self.controlador = None
-        # Bandera thread-safe para monitoreo principal
-        self.flag_monitoreo = ThreadSafeFlag()
+        self.proceso_monitoreo_activo = False
         self.thread_monitoreo = None
-        # Bandera thread-safe para monitoreo en tiempo real
-        self.flag_tiempo_real = ThreadSafeFlag()
-
+        
         # Configurar logging
         self.logger = logging.getLogger(__name__)
-
+        
         # Configurar tema y colores de manera consistente
         if BURP_THEME_AVAILABLE and burp_theme:
             self.theme = burp_theme
@@ -68,7 +64,7 @@ class VistaFIM(tk.Frame):
                 'danger': '#dc3545',
                 'info': '#17a2b8'
             }
-
+        
         self.crear_interfaz()
     
     def _log_terminal(self, mensaje, modulo="FIM", nivel="INFO"):
@@ -457,15 +453,18 @@ class VistaFIM(tk.Frame):
         self.fim_text.pack(fill="both", expand=True)
     
     def iniciar_monitoreo(self):
-        """Iniciar monitoreo continuo con información detallada (thread-safe)."""
-        if self.flag_monitoreo.is_set():
+        """Iniciar monitoreo continuo con información detallada."""
+        if self.proceso_monitoreo_activo:
             return
-        self.flag_monitoreo.set()
+        
+        self.proceso_monitoreo_activo = True
         self._habilitar_botones_monitoreo(False)
+        
         # Log al terminal integrado
         self._log_terminal("Iniciando sistema FIM - File Integrity Monitoring", "FIM", "INFO")
         self.log_to_terminal("FIM Iniciando monitoreo FIM del sistema...")
         self._actualizar_texto_fim("=== INICIANDO MONITOREO FIM - FILE INTEGRITY MONITORING ===\n\n")
+        
         # Ejecutar en thread separado
         self.thread_monitoreo = threading.Thread(target=self._ejecutar_monitoreo_async)
         self.thread_monitoreo.daemon = True
@@ -484,8 +483,10 @@ class VistaFIM(tk.Frame):
                 self.after(0, self._actualizar_texto_fim, "FASE 1: ANÁLISIS INICIAL DEL SISTEMA CON COMANDOS LINUX\n")
                 self.after(0, self._actualizar_texto_fim, "POR QUÉ: Establecer baseline de seguridad usando herramientas nativas de Kali\n")
                 self.after(0, self._actualizar_texto_fim, "CÓMO: Verificación con find, stat, lsof, and auditd para análisis forense\n\n")
+                
                 # Comandos Linux para monitoreo avanzado
                 import subprocess
+                
                 # 1. Verificar archivos modificados recientemente
                 self.after(0, self._actualizar_texto_fim, "COMANDO: find /etc -type f -mtime -1\n")
                 self.after(0, self._actualizar_texto_fim, "PROPÓSITO: Archivos de configuración modificados en las últimas 24 horas\n")
@@ -501,7 +502,9 @@ class VistaFIM(tk.Frame):
                         self.after(0, self._actualizar_texto_fim, "RESULTADO: No hay archivos modificados recientemente\n")
                 except:
                     self.after(0, self._actualizar_texto_fim, "ERROR: No se pudo ejecutar find en /etc\n")
+                
                 self.after(0, self._actualizar_texto_fim, "\n")
+                
                 # 2. Verificar permisos sospechosos con find
                 self.after(0, self._actualizar_texto_fim, "COMANDO: find /usr/bin -perm -4000 -type f\n")
                 self.after(0, self._actualizar_texto_fim, "PROPÓSITO: Detectar binarios con permisos SUID sospechosos\n")
@@ -590,7 +593,7 @@ class VistaFIM(tk.Frame):
                         archivos_problema = 0
                         
                         for archivo, descripcion in archivos_criticos.items():
-                            if not self.flag_monitoreo.is_set():
+                            if not self.proceso_monitoreo_activo:
                                 break
                             
                             try:
@@ -888,21 +891,25 @@ class VistaFIM(tk.Frame):
             self._log_terminal(error_msg, "FIM", "ERROR")
             self.after(0, self._actualizar_texto_fim, f"ERROR: {error_msg}\n")
         finally:
-            self.flag_monitoreo.clear()
             # Reactivar botones
             self.after(0, self._habilitar_botones_monitoreo, True)
 
     def detener_monitoreo(self):
-        """Detener monitoreo FIM usando sistema unificado (thread-safe)."""
-        self.flag_monitoreo.clear()
+        """Detener monitoreo FIM usando sistema unificado."""
+        # Detener variable de control
+        self.proceso_monitoreo_activo = False
+        
         # Importar sistema unificado
         from ..utils.detener_procesos import detener_procesos
+        
         # Callbacks para la vista
         def callback_actualizacion(mensaje):
             self._actualizar_texto_fim(mensaje)
+        
         def callback_habilitar():
             self.after(0, self._habilitar_botones_monitoreo, True)
             self._log_terminal("Monitoreo FIM detenido completamente", "FIM", "INFO")
+        
         # Usar sistema unificado
         detener_procesos.detener_fim(callback_actualizacion, callback_habilitar)
     
@@ -1002,7 +1009,7 @@ class VistaFIM(tk.Frame):
                 problemas_categoria = 0
                 
                 for ruta, descripcion in rutas.items():
-                    if not self.flag_monitoreo.is_set():
+                    if not self.proceso_monitoreo_activo:
                         break
                     
                     # Análisis específico por tipo de ruta
@@ -1201,13 +1208,15 @@ class VistaFIM(tk.Frame):
             return {'archivos_verificados': 0, 'problemas_detectados': 1}
     
     def iniciar_monitoreo_tiempo_real(self):
-        """Iniciar monitoreo en tiempo real usando inotify de Linux (thread-safe)."""
-        if self.flag_tiempo_real.is_set():
+        """Iniciar monitoreo en tiempo real usando inotify de Linux."""
+        if hasattr(self, 'monitoreo_tiempo_real_activo') and self.monitoreo_tiempo_real_activo:
             return
-        self.flag_tiempo_real.set()
+        
+        self.monitoreo_tiempo_real_activo = True
         self._log_terminal("Iniciando monitoreo FIM en tiempo real con inotify", "FIM", "INFO")
         self._actualizar_texto_fim("=== MONITOREO FIM EN TIEMPO REAL ACTIVADO ===\n")
         self._actualizar_texto_fim("Usando inotify de Linux para detección inmediata de cambios\n\n")
+        
         # Ejecutar en thread separado
         thread_tiempo_real = threading.Thread(target=self._monitoreo_tiempo_real_async)
         thread_tiempo_real.daemon = True
@@ -1223,22 +1232,20 @@ class VistaFIM(tk.Frame):
                 '/root/.bashrc', '/root/.bash_history', '/bin/', '/sbin/',
                 '/usr/bin/', '/usr/sbin/', '/tmp/', '/var/tmp/', '/dev/shm/'
             ]
-
+            
             self.after(0, self._actualizar_texto_fim, "INICIANDO MONITOREO EN TIEMPO REAL:\n")
             for directorio in directorios_criticos:
-                if not self.flag_tiempo_real.is_set():
-                    break
                 if os.path.exists(directorio):
                     self.after(0, self._actualizar_texto_fim, f"  OK Monitoreando: {directorio}\n")
-
+            
             self.after(0, self._actualizar_texto_fim, "\nUSANDO inotifywatch para detección inmediata...\n")
-
+            
             # Usar inotifywatch para monitoreo en tiempo real
             comando_inotify = [
-                'inotifywatch', '-r', '-t', '300', '-e',
+                'inotifywatch', '-r', '-t', '300', '-e', 
                 'modify,create,delete,move,attrib'
             ] + [d for d in directorios_criticos if os.path.exists(d)]
-
+            
             try:
                 resultado = subprocess.run(
                     comando_inotify,
@@ -1246,16 +1253,17 @@ class VistaFIM(tk.Frame):
                     text=True,
                     timeout=300  # 5 minutos de monitoreo
                 )
+                
                 if resultado.returncode == 0 and resultado.stdout:
                     self.after(0, self._actualizar_texto_fim, "\nCOMPETADO: Resumen de actividad detectada:\n")
                     lineas = resultado.stdout.strip().split('\n')
                     eventos_detectados = 0
+                    
                     for linea in lineas[3:]:  # Saltar headers
-                        if not self.flag_tiempo_real.is_set():
-                            break
                         if linea.strip() and not linea.startswith('total'):
                             eventos_detectados += 1
                             self.after(0, self._actualizar_texto_fim, f"  {linea}\n")
+                    
                     if eventos_detectados > 0:
                         self.after(0, self._actualizar_texto_fim, f"\nALERTA: {eventos_detectados} eventos de cambio detectados\n")
                         self._log_terminal(f"FIM: {eventos_detectados} eventos de cambio detectados", "FIM", "WARNING")
@@ -1263,16 +1271,19 @@ class VistaFIM(tk.Frame):
                         self.after(0, self._actualizar_texto_fim, "\nOK: No se detectaron cambios durante el monitoreo\n")
                 else:
                     self.after(0, self._actualizar_texto_fim, "\nINFO: Monitoreo completado sin eventos\n")
+                    
             except subprocess.TimeoutExpired:
                 self.after(0, self._actualizar_texto_fim, "\nINFO: Tiempo de monitoreo completado (5 minutos)\n")
             except FileNotFoundError:
                 self.after(0, self._actualizar_texto_fim, "\nWARNING: inotifywatch no disponible\n")
                 self.after(0, self._actualizar_texto_fim, "Instalando inotify-tools...\n")
+                
                 # Intentar instalar inotify-tools
                 try:
                     from aresitos.utils.sudo_manager import get_sudo_manager
                     sudo_manager = get_sudo_manager()
                     install_result = sudo_manager.execute_sudo_command('apt install -y inotify-tools', timeout=60)
+                    
                     if install_result.returncode == 0:
                         self.after(0, self._actualizar_texto_fim, "OK: inotify-tools instalado correctamente\n")
                         self.after(0, self._actualizar_texto_fim, "Reinicie el monitoreo para usar inotify\n")
@@ -1280,11 +1291,11 @@ class VistaFIM(tk.Frame):
                         self.after(0, self._actualizar_texto_fim, "ERROR: No se pudo instalar inotify-tools\n")
                 except ImportError:
                     self.after(0, self._actualizar_texto_fim, "ERROR: SudoManager no disponible\n")
-            
+                
         except Exception as e:
             self.after(0, self._actualizar_texto_fim, f"ERROR en monitoreo tiempo real: {str(e)}\n")
         finally:
-            self.flag_tiempo_real.clear()
+            self.monitoreo_tiempo_real_activo = False
     
     def _realizar_analisis_basico(self):
         """Realizar análisis básico de archivos críticos sin controlador."""
@@ -2222,7 +2233,7 @@ class VistaFIM(tk.Frame):
             datos_fim = {
                 'timestamp': datetime.datetime.now().isoformat(),
                 'modulo': 'FIM Avanzado',
-                'estado': 'activo' if self.flag_monitoreo.is_set() else 'inactivo',
+                'estado': 'activo' if self.proceso_monitoreo_activo else 'inactivo',
                 'version_expandida': True,
                 'capacidades_avanzadas': [
                     'Monitoreo inotify en tiempo real',

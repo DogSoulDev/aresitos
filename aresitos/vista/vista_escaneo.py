@@ -4,7 +4,6 @@ import tkinter as tk
 from tkinter import ttk, scrolledtext, messagebox
 import logging
 import threading
-from aresitos.utils.thread_safe_gui import ThreadSafeFlag
 import datetime
 
 try:
@@ -21,7 +20,7 @@ class VistaEscaneo(tk.Frame):
     def __init__(self, parent):
         super().__init__(parent)
         self.controlador = None
-        self.flag_proceso = ThreadSafeFlag()
+        self.proceso_activo = False
         self.thread_escaneo = None
         self.vista_principal = parent  # Referencia al padre para acceder al terminal
         
@@ -386,24 +385,30 @@ class VistaEscaneo(tk.Frame):
     
     def ejecutar_escaneo(self):
         """Ejecutar escaneo del sistema."""
-        if self.flag_proceso.is_set():
+        if self.proceso_activo:
             return
+            
         if not self.controlador:
             messagebox.showerror("Error", "No hay controlador de escaneo configurado")
             return
+        
         # Limpiar resultados anteriores
         self._actualizar_resultados_seguro("", "clear")
         self._actualizar_resultados_seguro("Iniciando escaneo...\n\n")
+        
         # Inicializar barra de progreso
         self.progress_bar['value'] = 0
         self.progress_label.config(text="Estado: Iniciando escaneo...")
+        
         # Log al terminal integrado
         self._log_terminal("INICIANDO escaneo del sistema", "ESCANEADOR", "INFO")
         self.log_to_terminal("Iniciando escaneo del sistema...")
+        
         # Configurar UI para escaneo
-        self.flag_proceso.set()
+        self.proceso_activo = True
         self.btn_escanear.config(state="disabled")
         self.btn_cancelar_escaneo.config(state="normal")
+        
         # Ejecutar escaneo en thread separado
         self.thread_escaneo = threading.Thread(target=self._ejecutar_escaneo_async)
         self.thread_escaneo.daemon = True
@@ -457,7 +462,7 @@ class VistaEscaneo(tk.Frame):
     def _ejecutar_escaneo_async(self):
         """Ejecutar escaneo completo del sistema usando el escaneador avanzado Kali 2025."""
         try:
-            if not self.flag_proceso.is_set():
+            if not self.proceso_activo:
                 return
             
             # Progreso inicial
@@ -592,7 +597,7 @@ class VistaEscaneo(tk.Frame):
         finally:
             # Finalizar proceso
             self._actualizar_progreso_seguro(100, "Estado: Escaneo completado")
-            self.flag_proceso.clear()
+            self.proceso_activo = False
             self.after_idle(self._finalizar_escaneo)
     
     def _mostrar_resultados_consolidados(self, resultados_totales):
@@ -1181,12 +1186,14 @@ class VistaEscaneo(tk.Frame):
     
     def _finalizar_escaneo(self):
         """Finalizar el proceso de escaneo."""
-        self.flag_proceso.clear()
+        self.proceso_activo = False
         self.btn_escanear.config(state="normal")
         self.btn_cancelar_escaneo.config(state="disabled")
+        
         # Resetear barra de progreso
         self.progress_bar['value'] = 0
         self.progress_label.config(text="Estado: Listo")
+        
         self.thread_escaneo = None
 
     def _escaneo_integral_kali(self, objetivo):
@@ -3679,7 +3686,7 @@ class VistaEscaneo(tk.Frame):
             datos_escaneo = {
                 'timestamp': datetime.datetime.now().isoformat(),
                 'modulo': 'Escaneador Avanzado',
-                'estado': 'activo' if self.flag_proceso.is_set() else 'inactivo',
+                'estado': 'activo' if self.proceso_activo else 'inactivo',
                 'version_expandida': True,
                 'herramientas_disponibles': self._verificar_herramientas_disponibles(),
                 'resultados_texto': contenido_escaneo[-2000:] if len(contenido_escaneo) > 2000 else contenido_escaneo,  # Últimos 2000 caracteres

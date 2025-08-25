@@ -33,6 +33,8 @@ import subprocess
 import platform
 from pathlib import Path
 
+
+
 class FaviconKali2025:
     """
     Gestor de favicon especializado para Kali Linux 2025.
@@ -48,20 +50,12 @@ class FaviconKali2025:
         self.session_type = self._detectar_session_type()
         self.gnome_version = self._detectar_gnome_version()
         self.kali_version = self._detectar_kali_version()
-        # Rutas de favicon prioritarias para Kali 2025 (incluye rutas reales existentes)
+        
+        # Ruta única y robusta para favicon principal
         self.rutas_favicon = [
-            "aresitos/recursos/iconos/aresitos_icono.ico",
-            "aresitos/recursos/iconos/aresitos_icono.png",
-            "aresitos/recursos/Aresitos.ico",
-            "aresitos/recursos/aresitos.png",
-            "recursos/iconos/aresitos_icono.ico",
-            "recursos/iconos/aresitos_icono.png",
-            "recursos/Aresitos.ico",
-            "recursos/aresitos.png",
-            "iconos/aresitos_icono.ico",
-            "iconos/aresitos_icono.png"
+            os.path.join(os.path.dirname(os.path.dirname(__file__)), "recursos", "aresitos.png")
         ]
-        self.logger.info(f"FaviconKali2025 iniciado - Session: {self.session_type}, GNOME: {self.gnome_version}")
+        
 
     def _detectar_session_type(self):
         """Detecta si está ejecutándose en X11 o Wayland."""
@@ -108,40 +102,45 @@ class FaviconKali2025:
         return "unknown"
 
     def _encontrar_favicon(self):
-        """Encuentra el archivo de favicon con la mejor calidad disponible (solo PNG o ICO nativos)."""
+        """Encuentra el archivo de favicon con la mejor calidad disponible."""
         for ruta in self.rutas_favicon:
             ruta_completa = Path(ruta)
             if ruta_completa.exists():
-                # Solo acepta archivos PNG o ICO válidos
-                if ruta_completa.suffix.lower() not in ['.png', '.ico']:
+                try:
+                    size = ruta_completa.stat().st_size
+                    if size == 0:
+                        self.logger.warning(f"Archivo favicon vacío: {ruta_completa}")
+                        continue
+                    # Solo PNG nativo, sin PIL
+                    if str(ruta_completa).endswith('.png'):
+                        self.logger.info(f"Favicon encontrado: {ruta_completa}")
+                        return str(ruta_completa)
+                except Exception as e:
+                    self.logger.warning(f"Archivo favicon inválido {ruta_completa}: {e}")
                     continue
-                size = ruta_completa.stat().st_size
-                if size == 0:
-                    self.logger.warning(f"Archivo favicon vacío: {ruta_completa}")
-                    continue
-                self.logger.info(f"Favicon encontrado: {ruta_completa}")
-                return str(ruta_completa)
         self.logger.error("No se encontró ningún favicon válido")
         return None
 
     def _metodo_wm_iconphoto_mejorado(self, ventana, ruta_favicon):
         """
-        Método wm_iconphoto específico para Kali 2025 (solo nativo, sin PIL).
+        Método mejorado wm iconphoto específico para Kali 2025.
+        Solo usa PhotoImage de Tkinter y PNG nativo.
         """
         try:
-            metodo = "wm_iconphoto_kali2025_nativo"
+            metodo = "wm_iconphoto_mejorado_kali2025"
             if ruta_favicon.endswith('.png'):
                 photo = PhotoImage(file=ruta_favicon)
                 ventana.wm_iconphoto(True, photo)
-                self.logger.info(f"✓ {metodo} aplicado (modo nativo)")
+                ventana.update_idletasks()
+                self.logger.info(f"✓ {metodo} aplicado (python nativo, solo PNG)")
                 self.metodos_aplicados.append(metodo)
                 return True
             else:
-                self.logger.warning(f"Archivo no es PNG: {ruta_favicon}")
+                self.logger.warning(f"Archivo favicon no es PNG: {ruta_favicon}")
                 return False
         except Exception as e:
-            self.logger.warning(f"Error en {metodo}: {e}")
-            return False
+            self.logger.error(f"Error en {metodo}: {e}")
+        return False
 
     def _metodo_iconbitmap_x11(self, ventana, ruta_favicon):
         """Método iconbitmap para X11 con manejo de errores mejorado."""
