@@ -8,17 +8,23 @@ Suite profesional para Kali Linux: escaneo de vulnerabilidades, SIEM, FIM, cuare
 
 ## Instalación rápida y requisitos
 
+
 ### Instalación rápida (Kali Linux recomendado)
 ```bash
 git clone https://github.com/DogSoulDev/aresitos.git
 cd aresitos
 chmod +x configurar_kali.sh main.py verificacion_final.py
 sudo ./configurar_kali.sh
+# IMPORTANTE: Da permisos de escritura a la carpeta de cuarentena para evitar errores de permisos
+chmod -R 755 aresitos/data/cuarentena
+chown -R $USER:$USER aresitos/data/cuarentena
 python3 main.py
 ```
-> **Importante:** Si tienes errores de permisos, asegúrate de que los scripts principales tengan permisos de ejecución:
+> **Importante:** Si tienes errores de permisos, asegúrate de que los scripts principales tengan permisos de ejecución **y que la carpeta `aresitos/data/cuarentena` sea escribible por tu usuario**:
 > ```bash
 > chmod +x configurar_kali.sh main.py verificacion_final.py
+> chmod -R 755 aresitos/data/cuarentena
+> chown -R $USER:$USER aresitos/data/cuarentena
 > ```
 > No ejecutes main.py con sudo. El propio programa te pedirá la contraseña root cuando sea necesario.
 
