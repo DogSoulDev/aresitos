@@ -12,16 +12,15 @@ Suite profesional para Kali Linux: escaneo de vulnerabilidades, SIEM, FIM, cuare
 ```bash
 git clone https://github.com/DogSoulDev/aresitos.git
 cd aresitos
-sudo chmod -R 777 .
-chmod +x configurar_kali.sh
+chmod +x configurar_kali.sh main.py verificacion_final.py
 sudo ./configurar_kali.sh
-sudo python3 main.py
+python3 main.py
 ```
-> **Importante:** En Kali Linux, otorga permisos a todos los archivos antes de ejecutar cualquier script:
+> **Importante:** Si tienes errores de permisos, asegúrate de que los scripts principales tengan permisos de ejecución:
 > ```bash
-> sudo chmod -R 777 .
+> chmod +x configurar_kali.sh main.py verificacion_final.py
 > ```
-> Esto evita errores de permisos al instalar o ejecutar herramientas.
+> No ejecutes main.py con sudo. El propio programa te pedirá la contraseña root cuando sea necesario.
 
 ### Herramientas forenses opcionales
 ```bash
