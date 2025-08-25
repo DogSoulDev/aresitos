@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 
+
 import tkinter as tk
 from tkinter import ttk
 import logging
@@ -7,6 +8,9 @@ import os
 import gc  # Issue 21/24 - Optimización de memoria
 import threading  # Issue 21/24 - Gestión de hilos
 from tkinter import PhotoImage
+
+# Favicon robusto y multiplataforma (ARESITOS)
+from aresitos.utils.favicon_linux_advanced import aplicar_favicon_kali_2025
 
 # Importar todas las vistas disponibles
 from aresitos.vista.vista_dashboard import VistaDashboard
@@ -29,17 +33,24 @@ class VistaPrincipal(tk.Frame):
     def __init__(self, parent):
         super().__init__(parent)
         self.controlador = None
-        
         # Configurar logging
         self.logger = logging.getLogger(__name__)
-        
+
+        # Aplicar favicon robusto a la ventana raíz
+        ventana_raiz = self.winfo_toplevel()
+        try:
+            aplicar_favicon_kali_2025(ventana_raiz)
+            self.logger.info("Favicon ARESITOS aplicado correctamente en ventana principal.")
+        except Exception as e:
+            self.logger.warning(f"No se pudo aplicar favicon: {e}")
+
         # Solo aplicar tema si está disponible
         if BURP_THEME_AVAILABLE:
             self.theme = burp_theme
             self.setup_burp_theme(parent)
         else:
             self.theme = None
-            
+
         self.crear_widgets()
 
     def setup_burp_theme(self, parent):

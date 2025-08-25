@@ -33,14 +33,6 @@ import subprocess
 import platform
 from pathlib import Path
 
-# Importación condicional de PIL
-PIL_AVAILABLE = False
-try:
-    from PIL import Image, ImageTk
-    PIL_AVAILABLE = True
-except ImportError:
-    pass
-
 class FaviconKali2025:
     """
     Gestor de favicon especializado para Kali Linux 2025.
@@ -56,19 +48,20 @@ class FaviconKali2025:
         self.session_type = self._detectar_session_type()
         self.gnome_version = self._detectar_gnome_version()
         self.kali_version = self._detectar_kali_version()
-        
-        # Rutas de favicon prioritarias para Kali 2025
+        # Rutas de favicon prioritarias para Kali 2025 (incluye rutas reales existentes)
         self.rutas_favicon = [
             "aresitos/recursos/iconos/aresitos_icono.ico",
-            "aresitos/recursos/iconos/aresitos_icono.png", 
+            "aresitos/recursos/iconos/aresitos_icono.png",
+            "aresitos/recursos/Aresitos.ico",
+            "aresitos/recursos/aresitos.png",
             "recursos/iconos/aresitos_icono.ico",
             "recursos/iconos/aresitos_icono.png",
+            "recursos/Aresitos.ico",
+            "recursos/aresitos.png",
             "iconos/aresitos_icono.ico",
             "iconos/aresitos_icono.png"
         ]
-        
         self.logger.info(f"FaviconKali2025 iniciado - Session: {self.session_type}, GNOME: {self.gnome_version}")
-        self.logger.info(f"PIL disponible: {PIL_AVAILABLE}")
 
     def _detectar_session_type(self):
         """Detecta si está ejecutándose en X11 o Wayland."""
@@ -115,95 +108,40 @@ class FaviconKali2025:
         return "unknown"
 
     def _encontrar_favicon(self):
-        """Encuentra el archivo de favicon con la mejor calidad disponible."""
+        """Encuentra el archivo de favicon con la mejor calidad disponible (solo PNG o ICO nativos)."""
         for ruta in self.rutas_favicon:
             ruta_completa = Path(ruta)
             if ruta_completa.exists():
-                # Verifica que sea un archivo válido
-                try:
-                    # Verificación básica de archivo
-                    size = ruta_completa.stat().st_size
-                    if size == 0:
-                        self.logger.warning(f"Archivo favicon vacío: {ruta_completa}")
-                        continue
-                    
-                    if PIL_AVAILABLE:
-                        # Verificación avanzada con PIL
-                        from PIL import Image as PILImage
-                        if ruta.endswith('.ico') or ruta.endswith('.png'):
-                            img = PILImage.open(ruta_completa)
-                            img.verify()
-                    
-                    self.logger.info(f"Favicon encontrado: {ruta_completa}")
-                    return str(ruta_completa)
-                except Exception as e:
-                    self.logger.warning(f"Archivo favicon inválido {ruta_completa}: {e}")
+                # Solo acepta archivos PNG o ICO válidos
+                if ruta_completa.suffix.lower() not in ['.png', '.ico']:
                     continue
-        
+                size = ruta_completa.stat().st_size
+                if size == 0:
+                    self.logger.warning(f"Archivo favicon vacío: {ruta_completa}")
+                    continue
+                self.logger.info(f"Favicon encontrado: {ruta_completa}")
+                return str(ruta_completa)
         self.logger.error("No se encontró ningún favicon válido")
         return None
 
     def _metodo_wm_iconphoto_mejorado(self, ventana, ruta_favicon):
         """
-        Método mejorado wm iconphoto específico para Kali 2025.
-        Incluye optimizaciones para GNOME Shell moderno.
+        Método wm_iconphoto específico para Kali 2025 (solo nativo, sin PIL).
         """
         try:
-            metodo = "wm_iconphoto_mejorado_kali2025"
-            
-            if not PIL_AVAILABLE:
-                # Fallback a método básico sin PIL
-                try:
-                    if ruta_favicon.endswith('.png'):
-                        photo = PhotoImage(file=ruta_favicon)
-                        ventana.wm_iconphoto(True, photo)
-                        self.logger.info(f"✓ {metodo} aplicado (modo básico sin PIL)")
-                        self.metodos_aplicados.append(metodo)
-                        return True
-                    else:
-                        self.logger.warning(f"PIL no disponible y archivo no es PNG: {ruta_favicon}")
-                        return False
-                except Exception as e:
-                    self.logger.warning(f"Error en modo básico: {e}")
-                    return False
-            
-            # Usa PIL para mejor compatibilidad
-            from PIL import Image as PILImage, ImageTk as PILImageTk
-            
-            # Carga la imagen con PIL para mejor compatibilidad
-            img = PILImage.open(ruta_favicon)
-            
-            # Redimensiona a múltiples tamaños para mejor compatibilidad
-            tamaños = [16, 24, 32, 48, 64, 128, 256]
-            iconos = []
-            
-            for tamaño in tamaños:
-                try:
-                    img_redim = img.resize((tamaño, tamaño), PILImage.Resampling.LANCZOS)
-                    
-                    # Convierte a PhotoImage
-                    photo = PILImageTk.PhotoImage(img_redim)
-                    iconos.append(photo)
-                    
-                except Exception as e:
-                    self.logger.warning(f"Error creando icono tamaño {tamaño}: {e}")
-                    continue
-            
-            if iconos:
-                # Aplica todos los iconos con wm iconphoto
-                ventana.wm_iconphoto(True, *iconos)
-                
-                # Fuerza actualización en GNOME Shell
-                ventana.update_idletasks()
-                
-                self.logger.info(f"✓ {metodo} aplicado con {len(iconos)} tamaños")
+            metodo = "wm_iconphoto_kali2025_nativo"
+            if ruta_favicon.endswith('.png'):
+                photo = PhotoImage(file=ruta_favicon)
+                ventana.wm_iconphoto(True, photo)
+                self.logger.info(f"✓ {metodo} aplicado (modo nativo)")
                 self.metodos_aplicados.append(metodo)
                 return True
-            
+            else:
+                self.logger.warning(f"Archivo no es PNG: {ruta_favicon}")
+                return False
         except Exception as e:
-            self.logger.error(f"Error en {metodo}: {e}")
-        
-        return False
+            self.logger.warning(f"Error en {metodo}: {e}")
+            return False
 
     def _metodo_iconbitmap_x11(self, ventana, ruta_favicon):
         """Método iconbitmap para X11 con manejo de errores mejorado."""
@@ -416,8 +354,7 @@ if __name__ == "__main__":
         text=f"Favicon aplicado: {'✓ SÍ' if exito else '✗ NO'}\n"
              f"Métodos exitosos: {len(gestor.metodos_aplicados)}\n"
              f"Session: {gestor.session_type}\n"
-             f"GNOME: {gestor.gnome_version}\n"
-             f"PIL disponible: {PIL_AVAILABLE}",
+             f"GNOME: {gestor.gnome_version}",
         justify=tk.CENTER,
         pady=20
     )
