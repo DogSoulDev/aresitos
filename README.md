@@ -13,18 +13,18 @@ Suite profesional para Kali Linux: escaneo de vulnerabilidades, SIEM, FIM, cuare
 ```bash
 git clone https://github.com/DogSoulDev/aresitos.git
 cd aresitos
-chmod +x configurar_kali.sh main.py verificacion_final.py
+chmod +x configurar_kali.sh main.py
 sudo ./configurar_kali.sh
-# IMPORTANTE: Da permisos de escritura a la carpeta de cuarentena para evitar errores de permisos
+# MUY IMPORTANTE: SIEMPRE ejecuta estos comandos de permisos DESPUÉS de usar sudo ./configurar_kali.sh
+# Esto asegura que tu usuario tenga acceso a las carpetas creadas por root durante la configuración
+sudo chown -R $USER:$USER aresitos/data/cuarentena
 chmod -R 755 aresitos/data/cuarentena
-chown -R $USER:$USER aresitos/data/cuarentena
 python3 main.py
 ```
-> **Importante:** Si tienes errores de permisos, asegúrate de que los scripts principales tengan permisos de ejecución **y que la carpeta `aresitos/data/cuarentena` sea escribible por tu usuario**:
+> **Importante:** Si tienes errores de permisos, asegúrate de que los scripts principales tengan permisos de ejecución **y que la carpeta `aresitos/data/cuarentena` sea escribible por tu usuario**. Si ejecutas `sudo ./configurar_kali.sh`, es obligatorio ejecutar los comandos de `chown` y `chmod` después:
 > ```bash
-> chmod +x configurar_kali.sh main.py verificacion_final.py
+> sudo chown -R $USER:$USER aresitos/data/cuarentena
 > chmod -R 755 aresitos/data/cuarentena
-> chown -R $USER:$USER aresitos/data/cuarentena
 > ```
 > No ejecutes main.py con sudo. El propio programa te pedirá la contraseña root cuando sea necesario.
 
