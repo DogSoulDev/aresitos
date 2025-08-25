@@ -876,10 +876,50 @@ LISTO PARA: Escaneos de vulnerabilidades en entornos Kali Linux 2025
             
             for i, paquete in enumerate(paquetes, 1):
                 try:
-                    self.after(0, self._actualizar_texto, f"[{i}/{len(paquetes)}] Instalando {paquete}...\n")
+                    # Principio ARESITOS: Eficiencia - verificar antes de instalar
+                    self.after(0, self._actualizar_texto, f"[{i}/{len(paquetes)}] Verificando {paquete}...\n")
                     
-                    # Usar SudoManager con timeout extendido para paquetes grandes
-                    result = sudo_manager.execute_sudo_command(f'apt install -y {paquete}', timeout=180)
+                    # Verificación rápida si ya está instalado
+                    check_result = sudo_manager.execute_sudo_command(
+                        f'dpkg -l {paquete} 2>/dev/null | grep "^ii"', timeout=10
+                    )
+                    
+                    if check_result.returncode == 0:
+                        paquetes_ya_instalados.append(paquete)
+                        self.after(0, self._actualizar_texto, f"  ℹ {paquete} ya está instalado - omitiendo\n")
+                        continue
+                    
+                    self.after(0, self._actualizar_texto, f"  📦 Instalando {paquete}...\n")
+                    
+                    # Usar SudoManager con timeout optimizado según tipo de paquete
+                    # Principio ARESITOS: Eficiencia - timeout inteligente
+                    paquetes_lentos = ['tripwire', 'samhain', 'fail2ban', 'auditd', 'rsyslog', 'logwatch', 
+                                     'logrotate', 'inotify-tools', 'incron', 'aide', 'clamav']
+                    
+                    if any(p in paquete for p in paquetes_lentos):
+                        timeout_paquete = 300  # 5 minutos para paquetes conocidos como lentos
+                        self.after(0, self._actualizar_texto, f"  ⏳ Paquete lento detectado - usando timeout extendido...\n")
+                    else:
+                        timeout_paquete = 120  # 2 minutos para paquetes normales
+                    
+                    # Principio ARESITOS: Robustez - reintentos automáticos
+                    max_reintentos = 2
+                    for intento in range(max_reintentos + 1):
+                        try:
+                            if intento > 0:
+                                self.after(0, self._actualizar_texto, f"  🔄 Reintento {intento}/{max_reintentos} para {paquete}...\n")
+                            
+                            result = sudo_manager.execute_sudo_command(f'apt install -y {paquete}', timeout=timeout_paquete)
+                            break  # Si no hay excepción, salir del bucle de reintentos
+                            
+                        except subprocess.TimeoutExpired:
+                            if intento < max_reintentos:
+                                self.after(0, self._actualizar_texto, f"  ⏱ Timeout en intento {intento + 1}, reintentando...\n")
+                                # Limpiar cache APT antes del siguiente intento
+                                sudo_manager.execute_sudo_command('apt clean && apt update', timeout=30)
+                                continue
+                            else:
+                                raise  # Re-lanzar la excepción en el último intento
                     
                     if result.returncode == 0:
                         paquetes_exitosos.append(paquete)
@@ -897,19 +937,39 @@ LISTO PARA: Escaneos de vulnerabilidades en entornos Kali Linux 2025
                             # Identificar errores comunes y dar instrucciones específicas
                             if "Unable to locate package" in error_msg or "E: Package" in error_msg or "has no installation candidate" in error_msg:
                                 self.after(0, self._actualizar_texto, f"  ✗ {paquete}: Paquete no encontrado en repositorios\n")
-                                self.after(0, self._actualizar_texto, f"    💡 Solución: sudo apt update && sudo apt install {paquete}\n")
-                                self.after(0, self._actualizar_texto, f"    📖 Buscar en: https://www.kali.org/tools/{paquete}/\n")
+                                
+                                # Sugerencias específicas para paquetes conocidos
+                                if paquete == 'rustscan':
+                                    self.after(0, self._actualizar_texto, f"    💡 Alternativa: cargo install rustscan\n")
+                                elif paquete == 'photorec':
+                                    self.after(0, self._actualizar_texto, f"    💡 Incluido en testdisk: sudo apt install testdisk\n")
+                                else:
+                                    self.after(0, self._actualizar_texto, f"    💡 Solución: sudo apt update && sudo apt install {paquete}\n")
+                                    self.after(0, self._actualizar_texto, f"    📖 Buscar en: https://www.kali.org/tools/{paquete}/\n")
+                                    
+                            elif "Configuration failed" in error_msg or "E: Sub-process" in error_msg:
+                                self.after(0, self._actualizar_texto, f"  ⚙️ {paquete}: Error de configuración\n")
+                                self.after(0, self._actualizar_texto, f"    💡 Solución: sudo dpkg --configure -a && sudo apt install -f\n")
+                                
                             elif "already installed" in error_msg:
                                 paquetes_ya_instalados.append(paquete)
                                 self.after(0, self._actualizar_texto, f"  ℹ {paquete} ya estaba instalado (detectado en stderr)\n")
+                                
                             elif "externally-managed-environment" in error_msg:
                                 self.after(0, self._actualizar_texto, f"  ⚠ {paquete}: Entorno Python gestionado externamente\n")
                                 self.after(0, self._actualizar_texto, f"    💡 Usar: pipx install {paquete} o pip3 install --user {paquete}\n")
+                                
                             elif "DPKG_LOCK" in error_msg or "dpkg frontend is locked" in error_msg:
                                 self.after(0, self._actualizar_texto, f"  ⏳ {paquete}: Sistema de paquetes ocupado\n")
                                 self.after(0, self._actualizar_texto, f"    💡 Esperar o ejecutar: sudo killall apt apt-get\n")
+                                
+                            elif "Operation was interrupted" in error_msg or "interrupted" in error_msg.lower():
+                                self.after(0, self._actualizar_texto, f"  🚫 {paquete}: Instalación interrumpida\n")
+                                self.after(0, self._actualizar_texto, f"    💡 Reintentar: sudo apt install {paquete}\n")
+                                
                             else:
-                                self.after(0, self._actualizar_texto, f"  ✗ {paquete}: {error_msg[:150]}...\n")
+                                error_truncado = error_msg[:150] + "..." if len(error_msg) > 150 else error_msg
+                                self.after(0, self._actualizar_texto, f"  ✗ {paquete}: {error_truncado}\n")
                                 self.after(0, self._actualizar_texto, f"    💡 Instalación manual: sudo apt install {paquete}\n")
                         
                 except subprocess.TimeoutExpired:

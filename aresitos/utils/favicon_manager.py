@@ -10,7 +10,7 @@ Principios ARESITOS aplicados:
 - Adaptabilidad: Detección automática del mejor método por sistema
 - Responsabilidad: Gestión centralizada de iconos
 - Eficiencia: Carga única y reutilización optimizada
-- Simplicidad: API clara para diferentes casos de uso
+- Simplicidad: API clara - SOLO bibliotecas estándar
 - Integridad: Validación exhaustiva de archivos
 - Transparencia: Logging detallado del proceso
 - Optimización: Métodos específicos por OS/WM
@@ -25,10 +25,12 @@ import os
 import sys
 import platform
 import logging
+import tkinter as tk
+from tkinter import PhotoImage
 from pathlib import Path
 from typing import Optional
 
-# Importar módulo avanzado para Linux
+# Importar módulo avanzado para Linux (sin dependencias externas)
 try:
     from .favicon_linux_advanced import aplicar_favicon_kali_2025
     LINUX_ADVANCED_DISPONIBLE = True
@@ -37,10 +39,10 @@ except ImportError:
     aplicar_favicon_kali_2025 = None
 
 class FaviconManager:
-    """Gestor avanzado de favicon para ARESITOS v3.0 con soporte específico para Kali 2025"""
+    """Gestor avanzado de favicon para ARESITOS v3.0"""
     
     def __init__(self):
-        """Inicializar el gestor de favicon con detección automática del sistema"""
+        """Inicializar el gestor de favicon"""
         self.favicon_path = None
         self.favicon_loaded = False
         self.base_path = Path(__file__).parent.parent
@@ -55,7 +57,7 @@ class FaviconManager:
         self._cargar_favicon()
     
     def _detectar_sistema_completo(self) -> dict:
-        """Detectar información completa del sistema para optimización"""
+        """Detectar información completa del sistema"""
         info = {
             'os': platform.system().lower(),
             'release': platform.release(),
@@ -68,6 +70,10 @@ class FaviconManager:
             'wayland_display': os.environ.get('WAYLAND_DISPLAY', '')
         }
         
+        # Detectar específicamente entornos problemáticos
+        info['is_gnome'] = 'gnome' in info['desktop_env']
+        info['is_wayland'] = info['session_type'] == 'wayland' or bool(info['wayland_display'])
+        
         # Detectar Kali Linux específicamente
         try:
             if os.path.exists('/etc/os-release'):
@@ -75,7 +81,6 @@ class FaviconManager:
                     content = f.read().lower()
                     if 'kali' in content:
                         info['is_kali'] = True
-                        # Detectar Kali 2025
                         if '2025' in content or 'rolling' in content:
                             info['is_kali_2025'] = True
         except Exception:
@@ -85,35 +90,24 @@ class FaviconManager:
         return info
     
     def _cargar_favicon(self) -> None:
-        """Cargar favicon siguiendo principios ARESITOS con priorización inteligente"""
+        """Cargar favicon siguiendo principios ARESITOS con optimización XFCE"""
         try:
-            # Ruta base de recursos
             recursos_path = self.base_path / "recursos"
-            iconos_path = recursos_path / "iconos"
             
-            # Estrategia de priorización según el sistema
-            if self.sistema_info['is_kali_2025']:
-                # Para Kali 2025, priorizar PNG para mejor compatibilidad con GNOME/Wayland
+            # Estrategia específica para XFCE - SOLO PNG
+            if self.sistema_info.get('desktop_env') == 'xfce':
                 favicon_candidates = [
-                    iconos_path / "aresitos_icono.png",
-                    recursos_path / "aresitos.png",
-                    iconos_path / "aresitos_icono.ico",
-                    recursos_path / "Aresitos.ico",
+                    recursos_path / "aresitos.png",  # Solo PNG para XFCE
                 ]
+                self.logger.info("Modo XFCE detectado - usando solo PNG")
             elif self.sistema_info['is_linux']:
-                # Para otros Linux, PNG sigue siendo preferido
                 favicon_candidates = [
-                    iconos_path / "aresitos_icono.png",
-                    recursos_path / "aresitos.png",
-                    iconos_path / "aresitos_icono.ico",
-                    recursos_path / "Aresitos.ico",
+                    recursos_path / "aresitos.png",   # PNG primero para Linux
+                    recursos_path / "Aresitos.ico",  # ICO como fallback
                 ]
             else:
-                # Para Windows, ICO es preferido
                 favicon_candidates = [
-                    iconos_path / "aresitos_icono.ico",
-                    recursos_path / "Aresitos.ico",
-                    iconos_path / "aresitos_icono.png",
+                    recursos_path / "Aresitos.ico",  # ICO primero para Windows
                     recursos_path / "aresitos.png",
                 ]
             
@@ -132,22 +126,15 @@ class FaviconManager:
             self.logger.error(f"Error cargando favicon: {e}")
     
     def _validar_favicon(self, path: Path) -> bool:
-        """Validar archivo de favicon con verificaciones exhaustivas"""
+        """Validar archivo de favicon"""
         try:
-            # Verificar existencia
-            if not path.exists():
+            if not path.exists() or not path.is_file():
                 return False
             
-            # Verificar que es archivo
-            if not path.is_file():
-                return False
-            
-            # Verificar tamaño razonable (< 2MB)
             size = path.stat().st_size
             if size == 0 or size > 2 * 1024 * 1024:
                 return False
             
-            # Verificar extensión
             valid_extensions = {'.ico', '.png', '.gif', '.bmp'}
             if path.suffix.lower() not in valid_extensions:
                 return False
@@ -158,31 +145,23 @@ class FaviconManager:
             return False
     
     def aplicar_favicon(self, root_window) -> bool:
-        """
-        Aplicar favicon usando la mejor estrategia para el sistema detectado
-        
-        Args:
-            root_window: Ventana Tkinter principal
-            
-        Returns:
-            bool: True si se aplicó exitosamente
-        """
+        """Aplicar favicon usando la mejor estrategia"""
         if not self.favicon_loaded or not self.favicon_path:
-            self.logger.warning("Favicon no cargado, no se puede aplicar")
+            self.logger.warning("Favicon no cargado")
             return False
         
         # Seleccionar estrategia según el sistema
         if self.sistema_info['is_kali_2025']:
-            return self._aplicar_favicon_kali_2025(root_window)
+            return self._aplicar_favicon_kali_2025_avanzado(root_window)
         elif self.sistema_info['is_linux']:
             return self._aplicar_favicon_linux_general(root_window)
         else:
             return self._aplicar_favicon_windows(root_window)
     
-    def _aplicar_favicon_kali_2025(self, root_window) -> bool:
-        """Método específico optimizado para Kali Linux 2025"""
+    def _aplicar_favicon_kali_2025_avanzado(self, root_window) -> bool:
+        """Método específico para Kali Linux 2025 con problemas GNOME/Wayland"""
         try:
-            # Intentar usar el módulo especializado
+            # Prioridad 1: Módulo Linux avanzado específico
             if LINUX_ADVANCED_DISPONIBLE and aplicar_favicon_kali_2025:
                 try:
                     if aplicar_favicon_kali_2025(root_window):
@@ -190,69 +169,125 @@ class FaviconManager:
                         return True
                 except Exception as e:
                     self.logger.warning(f"Módulo Linux avanzado falló: {e}")
-            else:
-                self.logger.info("Módulo Linux avanzado no disponible, usando método alternativo")
             
-            # Fallback a método Linux general optimizado
+            # Prioridad 2: Método especializado para GNOME/Wayland
+            if self.sistema_info.get('is_gnome') and self.sistema_info.get('is_wayland'):
+                return self._aplicar_favicon_gnome_wayland(root_window)
+            
+            # Fallback a método Linux general
             return self._aplicar_favicon_linux_general(root_window)
             
         except Exception as e:
             self.logger.error(f"Error aplicando favicon Kali 2025: {e}")
             return False
     
-    def _aplicar_favicon_linux_general(self, root_window) -> bool:
-        """Método optimizado para sistemas Linux en general"""
+    def _aplicar_favicon_gnome_wayland(self, root_window) -> bool:
+        """Método específico para resolver problemas en GNOME/Wayland"""
         if not self.favicon_path:
-            self.logger.warning("Favicon path no disponible")
             return False
-            
+        
         try:
-            import tkinter as tk
-            
-            # Estrategia múltiple para Linux
             metodos_exitosos = 0
             
-            # Método 1: wm_iconphoto (recomendado para GNOME/modern WM)
+            # Método 1: wm_iconphoto con PNG (principal para GNOME/Wayland)
             if self.favicon_path.endswith('.png'):
                 try:
-                    icon_image = tk.PhotoImage(file=self.favicon_path)
+                    icon_image = PhotoImage(file=self.favicon_path)
                     root_window.wm_iconphoto(True, icon_image)
+                    # Mantener referencia para evitar garbage collection
+                    root_window._aresitos_icon_ref = icon_image
                     metodos_exitosos += 1
-                    self.logger.info("✓ wm_iconphoto aplicado exitosamente")
+                    self.logger.info("✓ wm_iconphoto GNOME/Wayland aplicado")
                 except Exception as e:
-                    self.logger.warning(f"wm_iconphoto falló: {e}")
+                    self.logger.warning(f"wm_iconphoto GNOME/Wayland falló: {e}")
             
-            # Método 2: iconbitmap (para X11/ICO)
-            if self.favicon_path.endswith('.ico') and self.sistema_info['session_type'] == 'x11':
-                try:
-                    root_window.iconbitmap(self.favicon_path)
-                    metodos_exitosos += 1
-                    self.logger.info("✓ iconbitmap aplicado exitosamente")
-                except Exception as e:
-                    self.logger.warning(f"iconbitmap falló: {e}")
-            
-            # Método 3: tk.call wm iconphoto (método alternativo)
+            # Método 2: tk.call directo (método alternativo para Wayland)
             if self.favicon_path.endswith('.png'):
                 try:
-                    icon_image = tk.PhotoImage(file=self.favicon_path)
+                    icon_image = PhotoImage(file=self.favicon_path)
                     root_window.tk.call('wm', 'iconphoto', root_window._w, icon_image)
+                    root_window._aresitos_icon_ref2 = icon_image
                     metodos_exitosos += 1
-                    self.logger.info("✓ tk.call wm iconphoto aplicado exitosamente")
+                    self.logger.info("✓ tk.call iconphoto GNOME/Wayland aplicado")
                 except Exception as e:
-                    self.logger.warning(f"tk.call wm iconphoto falló: {e}")
+                    self.logger.warning(f"tk.call iconphoto GNOME/Wayland falló: {e}")
             
-            # Optimizaciones adicionales para Linux
+            # Método 3: Configuraciones adicionales para GNOME
             try:
                 root_window.wm_class("ARESITOS", "ARESITOS")
                 root_window.update_idletasks()
+                metodos_exitosos += 1
+                self.logger.info("✓ Configuraciones GNOME adicionales aplicadas")
+            except Exception as e:
+                self.logger.warning(f"Configuraciones GNOME adicionales fallaron: {e}")
+            
+            return metodos_exitosos > 0
+                
+        except Exception as e:
+            self.logger.error(f"Error crítico en favicon GNOME/Wayland: {e}")
+            return False
+    
+    def _aplicar_favicon_linux_general(self, root_window) -> bool:
+        """Método optimizado para sistemas Linux - especial para XFCE"""
+        if not self.favicon_path:
+            return False
+            
+        try:
+            metodos_exitosos = 0
+            es_xfce = self.sistema_info.get('desktop_env') == 'xfce'
+            
+            # Para XFCE: SOLO usar PNG con wm_iconphoto
+            if es_xfce and self.favicon_path.endswith('.png'):
+                try:
+                    icon_image = PhotoImage(file=self.favicon_path)
+                    root_window.wm_iconphoto(True, icon_image)
+                    root_window._aresitos_icon_ref = icon_image
+                    metodos_exitosos += 1
+                    self.logger.info("✓ wm_iconphoto XFCE aplicado exitosamente")
+                    
+                    # Configuración específica para XFCE
+                    root_window.wm_class("ARESITOS", "ARESITOS")
+                    root_window.update_idletasks()
+                    
+                    return True  # Para XFCE, si PNG funciona, terminamos aquí
+                except Exception as e:
+                    self.logger.error(f"wm_iconphoto XFCE falló: {e}")
+                    return False
+            
+            # Para otros Linux: Método tradicional
+            # Método 1: wm_iconphoto (principal para Linux moderno)
+            if self.favicon_path.endswith('.png'):
+                try:
+                    icon_image = PhotoImage(file=self.favicon_path)
+                    root_window.wm_iconphoto(True, icon_image)
+                    root_window._aresitos_icon_ref = icon_image
+                    metodos_exitosos += 1
+                    self.logger.info("✓ wm_iconphoto Linux aplicado")
+                except Exception as e:
+                    self.logger.warning(f"wm_iconphoto Linux falló: {e}")
+            
+            # Método 2: iconbitmap (SOLO para no-XFCE)
+            if not es_xfce:
+                try:
+                    root_window.iconbitmap(self.favicon_path)
+                    metodos_exitosos += 1
+                    self.logger.info("✓ iconbitmap Linux aplicado")
+                except Exception as e:
+                    self.logger.warning(f"iconbitmap Linux falló: {e}")
+            
+            # Configuraciones adicionales para Linux
+            try:
+                root_window.wm_class("ARESITOS", "ARESITOS")
+                root_window.update_idletasks()
+                metodos_exitosos += 1
             except Exception:
                 pass
             
             if metodos_exitosos > 0:
-                self.logger.info(f"✓ Favicon Linux aplicado ({metodos_exitosos} métodos exitosos)")
+                self.logger.info(f"✓ Favicon Linux aplicado ({metodos_exitosos} métodos)")
                 return True
             else:
-                self.logger.warning("✗ Ningún método de favicon Linux funcionó")
+                self.logger.warning("✗ Ningún método Linux funcionó")
                 return False
                 
         except Exception as e:
@@ -262,39 +297,28 @@ class FaviconManager:
     def _aplicar_favicon_windows(self, root_window) -> bool:
         """Método optimizado para Windows"""
         if not self.favicon_path:
-            self.logger.warning("Favicon path no disponible")
             return False
             
         try:
-            # Para Windows, iconbitmap es el método estándar y más confiable
             root_window.iconbitmap(self.favicon_path)
             self.logger.info("✓ Favicon Windows aplicado usando iconbitmap")
             return True
                 
         except Exception as e:
             self.logger.error(f"Error aplicando favicon Windows: {e}")
-            # Fallback con PhotoImage para PNG
             if self.favicon_path.endswith('.png'):
                 try:
-                    import tkinter as tk
-                    icon_image = tk.PhotoImage(file=self.favicon_path)
+                    icon_image = PhotoImage(file=self.favicon_path)
                     root_window.wm_iconphoto(False, icon_image)
+                    root_window._aresitos_icon_ref = icon_image
                     self.logger.info("✓ Favicon Windows aplicado usando PhotoImage fallback")
                     return True
                 except Exception as e2:
                     self.logger.error(f"Fallback Windows también falló: {e2}")
             return False
     
-    def get_favicon_path(self) -> Optional[str]:
-        """Obtener ruta del favicon cargado"""
-        return self.favicon_path if self.favicon_loaded else None
-    
-    def is_loaded(self) -> bool:
-        """Verificar si el favicon está cargado"""
-        return self.favicon_loaded
-    
     def get_info(self) -> dict:
-        """Obtener información completa del favicon y sistema para debugging"""
+        """Obtener información completa del favicon y sistema"""
         return {
             "loaded": self.favicon_loaded,
             "path": self.favicon_path,
@@ -302,54 +326,27 @@ class FaviconManager:
             "sistema_info": self.sistema_info
         }
 
-# Instancia global del gestor de favicon
-favicon_manager = FaviconManager()
+# Instancia global del gestor
+_favicon_manager = FaviconManager()
 
 def aplicar_favicon_aresitos(root_window) -> bool:
-    """
-    Función principal para aplicar favicon de ARESITOS
-    Método estándar compatible con la mayoría de sistemas
-    
-    Args:
-        root_window: Ventana Tkinter
-        
-    Returns:
-        bool: True si se aplicó exitosamente
-    """
-    return favicon_manager.aplicar_favicon(root_window)
+    """Función principal para aplicar favicon de ARESITOS"""
+    return _favicon_manager.aplicar_favicon(root_window)
 
 def aplicar_favicon_kali_optimizado(root_window) -> bool:
-    """
-    Método específico optimizado para Kali Linux con técnicas avanzadas
-    Compatible con Kali 2025 y sistemas GNOME/Wayland
-    
-    Args:
-        root_window: Ventana Tkinter
-        
-    Returns:
-        bool: True si se aplicó exitosamente
-    """
-    # Si es Kali 2025, usar método específico
-    if favicon_manager.sistema_info.get('is_kali_2025', False):
-        return favicon_manager._aplicar_favicon_kali_2025(root_window)
+    """Método específico optimizado para Kali Linux"""
+    if _favicon_manager.sistema_info.get('is_kali', False):
+        return _favicon_manager._aplicar_favicon_kali_2025_avanzado(root_window)
     else:
-        return favicon_manager._aplicar_favicon_linux_general(root_window)
+        return _favicon_manager.aplicar_favicon(root_window)
 
 def aplicar_favicon_principal(root_window) -> bool:
-    """
-    Función principal inteligente que detecta automáticamente el mejor método
-    
-    Args:
-        root_window: Ventana Tkinter
-        
-    Returns:
-        bool: True si se aplicó exitosamente
-    """
-    return favicon_manager.aplicar_favicon(root_window)
+    """Función principal inteligente"""
+    return _favicon_manager.aplicar_favicon(root_window)
 
 def get_favicon_info() -> dict:
-    """Obtener información completa del favicon y sistema para debugging"""
-    return favicon_manager.get_info()
+    """Obtener información del favicon y sistema"""
+    return _favicon_manager.get_info()
 
-# Alias para compatibilidad hacia atrás
+# Alias para compatibilidad
 aplicar_favicon = aplicar_favicon_principal
