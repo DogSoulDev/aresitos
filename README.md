@@ -1,9 +1,18 @@
 
 ![ARESITOS](aresitos/recursos/aresitos.png)
 
-# ARESITOS - Herramienta de Ciberseguridad
+# ARESITOS - Herramienta de Ciberseguridad Profesional para Kali Linux
 
-Herramienta de Ciberseguridad para Kali Linux: escaneo de vulnerabilidades, SIEM, FIM, cuarentena y dashboard integrados.
+ARESITOS es una suite profesional 100% Python nativo (sin librerías externas) para ciberseguridad ofensiva y defensiva en Kali Linux. Integra escaneo de vulnerabilidades, SIEM, FIM, cuarentena, dashboard, reportes y utilidades forenses, todo bajo arquitectura MVC y principios SOLID/DRY. El sistema aprovecha herramientas nativas de Kali Linux y automatiza su verificación e instalación, garantizando robustez, seguridad y compatibilidad total con entornos forenses y de auditoría.
+
+**Principales módulos:**
+- Escaneo de vulnerabilidades (nmap, masscan, nuclei, gobuster, ffuf, feroxbuster)
+- SIEM: monitoreo de puertos, correlación de eventos, alertas
+- FIM: vigilancia de integridad de archivos y directorios
+- Cuarentena: aislamiento y gestión de archivos sospechosos
+- Dashboard: métricas, estado de servicios, historial de terminal
+- Reportes: exportación en JSON, TXT, CSV
+- Integración forense: autopsy, sleuthkit, wireshark, hashdeep, etc.
 
 
 ### Instalación rápida (Kali Linux recomendado)
@@ -12,22 +21,20 @@ git clone https://github.com/DogSoulDev/aresitos.git
 cd aresitos
 chmod +x configurar_kali.sh main.py
 sudo ./configurar_kali.sh
-# MUY IMPORTANTE: SIEMPRE ejecuta estos comandos de permisos DESPUÉS de usar sudo ./configurar_kali.sh
-# Esto asegura que tu usuario tenga acceso a las carpetas creadas por root durante la configuración
 sudo chown -R $USER:$USER aresitos/data/cuarentena
 chmod -R 755 aresitos/data/cuarentena
 python3 main.py
 ```
-> **Importante:** Si tienes errores de permisos, asegúrate de que los scripts principales tengan permisos de ejecución **y que la carpeta `aresitos/data/cuarentena` sea escribible por tu usuario**. Si ejecutas `sudo ./configurar_kali.sh`, es obligatorio ejecutar los comandos de `chown` y `chmod` después:
-> ```bash
-> sudo chown -R $USER:$USER aresitos/data/cuarentena
-> chmod -R 755 aresitos/data/cuarentena
-> ```
-> No ejecutes main.py con sudo. El propio programa te pedirá la contraseña root cuando sea necesario.
+
+> **Importante:**
+> - No ejecutes main.py con sudo. El propio programa solicitará privilegios solo cuando sea necesario.
+> - Si tienes errores de permisos, asegúrate de que los scripts principales tengan permisos de ejecución y que la carpeta `aresitos/data/cuarentena` sea escribible por tu usuario.
+> - Tras ejecutar `sudo ./configurar_kali.sh`, ejecuta siempre los comandos de `chown` y `chmod` anteriores para evitar problemas de acceso.
+> - El sistema detecta y verifica automáticamente todas las herramientas requeridas, mostrando advertencias y permitiendo instalación guiada desde la interfaz.
 
 ### Herramientas forenses opcionales
 ```bash
-sudo apt install kali-tools-forensics wireshark autopsy sleuthkit
+sudo apt install kali-tools-forensics wireshark autopsy sleuthkit hashdeep testdisk photorec plaso bulk-extractor dc3dd guymager
 ```
 
 ### Modo desarrollo (otros sistemas)
@@ -35,23 +42,23 @@ sudo apt install kali-tools-forensics wireshark autopsy sleuthkit
 python3 main.py --dev
 ```
 
+> **Nota:** El modo desarrollo solo habilita la interfaz gráfica y utilidades básicas. Las funciones avanzadas requieren Kali Linux y privilegios adecuados.
+
 ### Requisitos principales
 
+- **Python:** 3.8 o superior
+- **Sistema operativo:** Kali Linux 2025 (recomendado, soporte parcial en otros Linux)
+- **Dependencias nativas:** nmap, masscan, nuclei, gobuster, ffuf, feroxbuster, wireshark, autopsy, sleuthkit, hashdeep, testdisk, photorec, plaso, bulk-extractor, dc3dd, guymager, git, curl, wget, sqlite3, python3-tk, python3-venv
 - **Espacio en disco ocupado (instalación base):** ~19 MB
-- **Número de archivos del proyecto:** 1340
 - **RAM recomendada:** mínimo 1 GB libre (uso típico bajo, depende de los módulos activos)
 - **Espacio recomendado para datos:** 20 MB libres adicionales para bases de datos, cuarentena y reportes
-
-- Python 3.8+
-- Kali Linux 2025 (recomendado)
-- nmap, masscan, nuclei, gobuster, ffuf, feroxbuster, wireshark, autopsy, sleuthkit, git, curl, wget, sqlite3, python3-tk, python3-venv
 
 ---
 
 ## Flujo de uso
-1. **Login**: Verifica entorno, dependencias y permisos.
-2. **Herramientas**: Configura y valida herramientas de Kali Linux.
-3. **Principal**: Acceso a dashboard, escaneo, SIEM, FIM, cuarentena y reportes.
+1. **Login**: Verificación automática de entorno, dependencias, permisos y privilegios.
+2. **Herramientas**: Detección, verificación visual (check verde/cruz roja) e instalación guiada de todas las herramientas requeridas.
+3. **Principal**: Acceso a dashboard, escaneo, SIEM, FIM, cuarentena, monitoreo y reportes.
 
 ---
 
@@ -86,13 +93,16 @@ aresitos/
 │   ├── vista_escaneo.py             # Panel de escaneo de vulnerabilidades
 │   ├── vista_reportes.py            # Panel de reportes
 │   └── ...                          # Otras vistas especializadas
-├── utils/           # Utilidades y módulos auxiliares: configuración, detección de red, sanitización, permisos, iconos, etc.
+├── utils/           # Utilidades y módulos auxiliares: configuración, detección de red, sanitización, permisos, comandos, detección de sistema, iconos, etc.
 │   ├── configurar.py                 # Configuración y utilidades generales
 │   ├── detector_red.py               # Detección de red y objetivos
 │   ├── sanitizador_archivos.py       # Sanitización y validación de archivos
+│   ├── comandos_sistema.py           # Verificación centralizada de comandos/herramientas
+│   ├── detector_sistema.py           # Detección robusta de sistema operativo/distribución
+│   ├── permisos_sistema.py           # Verificación de root/admin multiplataforma
 │   └── ...                          # Otros scripts de soporte
-├── recursos/        # Imágenes, iconos, favicon, capturas de pantalla y recursos gráficos
-│   ├── aresitos.png                  # Favicon principal
+├── recursos/        # Imágenes, iconos, capturas de pantalla y recursos gráficos
+│   ├── aresitos.png                  # Icono principal
 │   ├── iconos/                      # Iconos adicionales
 │   └── ...
 ├── data/            # Datos persistentes: bases de datos SQLite, cuarentena, wordlists, diccionarios, cheatsheets
