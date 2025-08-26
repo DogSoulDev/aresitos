@@ -93,6 +93,73 @@ class StreamRedirector:
         pass
 
 class VistaDashboard(tk.Frame):
+    def obtener_datos_para_reporte(self):
+        """Devuelve un resumen profesional y completo del estado del Dashboard para reportes ARESITOS."""
+        try:
+            # Estado del sistema desde el controlador si está disponible
+            estado_sistema = None
+            if self.controlador and hasattr(self.controlador, 'obtener_estado_sistema'):
+                try:
+                    resultado = self.controlador.obtener_estado_sistema()
+                    if isinstance(resultado, dict) and resultado.get('exito'):
+                        estado_sistema = resultado.get('estado', {})
+                    else:
+                        estado_sistema = resultado
+                except Exception as e:
+                    estado_sistema = {'error': f'Error obteniendo estado: {str(e)}'}
+            else:
+                estado_sistema = {'info': 'Controlador no disponible'}
+
+            # Captura de logs recientes del terminal integrado
+            logs_terminal = ""
+            if hasattr(self, 'terminal_output'):
+                try:
+                    logs_terminal = self.terminal_output.get(1.0, 'end-1c')[-3000:]
+                except Exception:
+                    logs_terminal = "No se pudo capturar logs del terminal integrado."
+
+            # Métricas y recursos
+            # Métricas (si existen)
+            metricas = getattr(self, 'metricas_activas', {})
+            if not isinstance(metricas, dict):
+                metricas = {}
+
+            # Recursos del sistema (solo nativo, sin librerías externas)
+            recursos = {}
+            try:
+                recursos['cpu'] = os.cpu_count()
+                recursos['platform'] = platform.platform()
+                recursos['memoria_total_mb'] = 'No disponible'
+                recursos['usuario'] = os.getenv('USERNAME') or os.getenv('USER')
+                recursos['directorio_actual'] = os.getcwd()
+            except Exception:
+                recursos['error'] = 'No se pudo obtener información de recursos.'
+
+            # Servicios activos (si existen)
+            servicios = getattr(self, 'servicios_activos', [])
+            if not isinstance(servicios, list):
+                servicios = []
+
+            # Resumen final
+            datos_dashboard = {
+                'timestamp': datetime.now().isoformat(),
+                'modulo': 'Dashboard',
+                'estado': 'activo',
+                'estado_sistema': estado_sistema,
+                'metricas': metricas,
+                'recursos': recursos,
+                'logs_terminal': logs_terminal,
+                'servicios': servicios,
+                'info': 'Dashboard profesional ARESITOS: métricas, estado, logs y recursos.'
+            }
+            return datos_dashboard
+        except Exception as e:
+            return {
+                'timestamp': datetime.now().isoformat(),
+                'modulo': 'Dashboard',
+                'estado': 'error',
+                'error': f'Error en obtener_datos_para_reporte: {str(e)}'
+            }
     """Dashboard optimizado para expertos en ciberseguridad con terminal integrado."""
     
     # Variable de clase para compartir el terminal entre todas las instancias
