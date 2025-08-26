@@ -403,20 +403,35 @@ class VistaDashboard(tk.Frame):
         
         # Botones de comandos rápidos optimizados para Kali Linux
         comandos_rapidos = [
-            ("echo '=== CONEXIONES DE RED ACTIVAS ===' && echo && echo 'CONEXIONES TCP ESTABLECIDAS:' && ss -tuln 2>/dev/null | awk 'NR==1 {print; next} /ESTAB|LISTEN/ {printf \"%-8s %-12s %-25s %-25s\\n\", $1, $2, $5, $6}' | head -15 && echo && echo 'PUERTOS EN ESCUCHA:' && ss -tln 2>/dev/null | awk '/LISTEN/ {split($4,a,\":\"); printf \"Puerto %-6s en %s\\n\", a[length(a)], $4}' | head -10 && echo && echo '=== RESUMEN DETALLADO ===' && echo \"TCP Establecidas: $(ss -t 2>/dev/null | grep -c ESTAB)\" && echo \"TCP en Escucha: $(ss -tln 2>/dev/null | grep -c LISTEN)\" && echo \"UDP Activas: $(ss -u 2>/dev/null | grep -v State | wc -l)\" && echo \"Total Conexiones: $(ss -tuln 2>/dev/null | grep -v State | wc -l)\"", "Ver Conexiones de Red"),
-            ("ps aux --sort=-%cpu | head -15", "Procesos que Más CPU Usan"),
-            ("ip addr show", "Ver Interfaces de Red"),
-            ("which nmap >/dev/null 2>&1 && echo 'Nmap disponible en Kali' && nmap --version | head -2 || echo 'Nmap no encontrado - verificar instalacion'", "Verificar Nmap Disponible"),
-            ("df -h", "Ver Espacio en Disco"),
-            ("free -h", "Ver Uso de Memoria"),
-            ("whoami && id", "Ver Usuario y Permisos"),
-            ("uname -a", "Información del Sistema"),
-            ("echo '=== SERVICIOS EN ESCUCHA ===' && echo && ss -tlnp 2>/dev/null | awk 'BEGIN {print \"PUERTO  PROTOCOLO  DIRECCION             PROCESO\"; print \"================================================\"} /LISTEN/ {split($4,a,\":\"); puerto=a[length(a)]; split($7,b,\",\"); if(length(b)>1) {split(b[2],c,\"=\"); proceso=c[2]; if(length(proceso)>20) proceso=substr(proceso,1,20)\"...\"} else proceso=\"N/A\"; printf \"%-8s %-9s %-20s %s\\n\", puerto, $1, $4, proceso}' | head -20 && echo && echo '=== PUERTOS CRITICOS DETECTADOS ===' && ss -tlnp 2>/dev/null | grep -E ':(22|80|443|21|25|53|993|995|587|143|110|3389|5432|3306)' | awk '{split($4,a,\":\"); puerto=a[length(a)]; printf \"  Puerto %s (%s) en %s\\n\", puerto, $1, $4}' && echo && total_listen=$(ss -tlnp 2>/dev/null | grep -c LISTEN) && total_criticos=$(ss -tlnp 2>/dev/null | grep -cE ':(22|80|443|21|25|53|993|995|587|143|110|3389|5432|3306)') && echo \"Total servicios en escucha: $total_listen\" && echo \"Puertos criticos activos: $total_criticos\"", "Ver Servicios en Escucha"),
-            ("echo '=== ARCHIVOS DE RED ABIERTOS ===' && echo && echo 'CONEXIONES POR PROCESO:' && if command -v lsof >/dev/null 2>&1; then echo 'Usando LSOF (información detallada):' && sudo lsof -i 2>/dev/null | awk 'NR==1 {print \"PROCESO    PID    USUARIO  PROTOCOLO  DIRECCION\"; print \"=============================================\"; next} NF>=8 {printf \"%-10s %-6s %-8s %-9s %s\\n\", $1, $2, $3, $5, $9}' | head -15; else echo 'LSOF no disponible - usando SS alternativo:'; fi && echo && echo 'ALTERNATIVO CON SS:' && ss -tulpn 2>/dev/null | awk 'NR==1 {print \"PROTOCOLO  ESTADO     DIRECCION_LOCAL      PROCESO\"; print \"===============================================\"; next} NF>=6 {split($7,a,\",\"); if(length(a)>1) {split(a[2],b,\"=\"); proceso=b[2]} else proceso=\"N/A\"; printf \"%-10s %-10s %-20s %s\\n\", $1, $2, $5, proceso}' | head -15 && echo && echo '=== RESUMEN ARCHIVOS DE RED ===' && echo \"Procesos con red: $(ss -tulpn 2>/dev/null | grep -v State | awk '{print $7}' | cut -d, -f2 | sort -u | wc -l)\" && echo \"Conexiones TCP: $(ss -t 2>/dev/null | grep -v State | wc -l)\" && echo \"Conexiones UDP: $(ss -u 2>/dev/null | grep -v State | wc -l)\"", "Ver Archivos de Red Abiertos"),
-            ("arp -a 2>/dev/null || ip neigh show", "Ver Tabla ARP"),
-            ("route -n 2>/dev/null || ip route show", "Ver Rutas de Red"),
-            ("cat /proc/cpuinfo | grep 'model name' | head -1", "Información del Procesador"),
-            ("lscpu | grep 'CPU(s)' || nproc", "Número de Núcleos CPU"),
+            # Conexiones de red activas y resumen
+            ("echo '=== CONEXIONES DE RED ACTIVAS ===' && echo && ss -tulnp 2>/dev/null | awk 'NR==1 {print; next} /ESTAB|LISTEN/ {printf \"%-8s %-12s %-25s %-25s %-20s\\n\", $1, $2, $5, $6, $7}' | head -20 && echo && echo '=== RESUMEN ===' && echo \"TCP Establecidas: $(ss -t 2>/dev/null | grep -c ESTAB)\" && echo \"TCP en Escucha: $(ss -tln 2>/dev/null | grep -c LISTEN)\" && echo \"UDP Activas: $(ss -u 2>/dev/null | grep -v State | wc -l)\" && echo \"Total Conexiones: $(ss -tuln 2>/dev/null | grep -v State | wc -l)\"", "Ver Conexiones de Red"),
+            # Procesos top por CPU y memoria
+            ("ps aux --sort=-%cpu | head -15 && echo && echo '--- TOP MEMORIA ---' && ps aux --sort=-%mem | head -15", "Procesos que Más CPU/Memoria Usan"),
+            # Interfaces de red
+            ("ip -brief addr show || ip addr show", "Ver Interfaces de Red"),
+            # Nmap disponible y versión
+            ("which nmap >/dev/null 2>&1 && echo 'Nmap disponible' && nmap --version | head -2 || echo 'Nmap no encontrado - verificar instalación'", "Verificar Nmap Disponible"),
+            # Espacio en disco
+            ("df -hT --total", "Ver Espacio en Disco"),
+            # Memoria RAM y swap
+            ("free -h && vmstat 1 3", "Ver Uso de Memoria y Swap"),
+            # Usuario y permisos
+            ("whoami && id && groups", "Ver Usuario y Permisos"),
+            # Información del sistema
+            ("uname -a && lsb_release -a 2>/dev/null || cat /etc/os-release", "Información del Sistema"),
+            # Servicios en escucha y puertos críticos
+            ("echo '=== SERVICIOS EN ESCUCHA ===' && ss -tulnp 2>/dev/null | awk 'NR==1 {print; next} /LISTEN/ {split($4,a,\":\"); puerto=a[length(a)]; split($7,b,\",\"); if(length(b)>1) {split(b[2],c,\"=\"); proceso=c[2]; if(length(proceso)>20) proceso=substr(proceso,1,20)\"...\"} else proceso=\"N/A\"; printf \"%-8s %-9s %-20s %s\\n\", puerto, $1, $4, proceso}' | head -20 && echo && echo '=== PUERTOS CRITICOS ===' && ss -tulnp 2>/dev/null | grep -E ':(22|80|443|21|25|53|993|995|587|143|110|3389|5432|3306)' | awk '{split($4,a,\":\"); puerto=a[length(a)]; printf \"  Puerto %s (%s) en %s\\n\", puerto, $1, $4}'", "Ver Servicios en Escucha"),
+            # Archivos de red abiertos por proceso
+            ("if command -v lsof >/dev/null 2>&1; then sudo lsof -i 2>/dev/null | awk 'NR==1 {print \"PROCESO    PID    USUARIO  PROTOCOLO  DIRECCION\"; print \"=============================================\"; next} NF>=8 {printf \"%-10s %-6s %-8s %-9s %s\\n\", $1, $2, $3, $5, $9}' | head -15; else ss -tulpn 2>/dev/null | awk 'NR==1 {print \"PROTOCOLO  ESTADO     DIRECCION_LOCAL      PROCESO\"; print \"===============================================\"; next} NF>=6 {split($7,a,\",\"); if(length(a)>1) {split(a[2],b,\"=\"); proceso=b[2]} else proceso=\"N/A\"; printf \"%-10s %-10s %-20s %s\\n\", $1, $2, $5, proceso}' | head -15; fi", "Ver Archivos de Red Abiertos"),
+            # Tabla ARP
+            ("ip neigh show || arp -a 2>/dev/null", "Ver Tabla ARP"),
+            # Rutas de red
+            ("ip route show || route -n 2>/dev/null", "Ver Rutas de Red"),
+            # Información del procesador
+            ("lscpu | grep 'Model name' || cat /proc/cpuinfo | grep 'model name' | head -1", "Información del Procesador"),
+            # Núcleos CPU
+            ("lscpu | grep '^CPU(s):' || nproc", "Número de Núcleos CPU"),
+            # Servicios activos
             ("systemctl list-units --type=service --state=running | head -15", "Ver Servicios Activos")
         ]
         
