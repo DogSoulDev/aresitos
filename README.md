@@ -3,10 +3,7 @@
 
 # ARESITOS - Herramienta de Ciberseguridad
 
-Suite profesional para Kali Linux: escaneo de vulnerabilidades, SIEM, FIM, cuarentena y dashboard integrados. Flujo real: **Login → Herramientas → Principal**.
-
-
-## Instalación rápida y requisitos
+Herramienta de Ciberseguridad para Kali Linux: escaneo de vulnerabilidades, SIEM, FIM, cuarentena y dashboard integrados.
 
 
 ### Instalación rápida (Kali Linux recomendado)
@@ -39,6 +36,12 @@ python3 main.py --dev
 ```
 
 ### Requisitos principales
+
+- **Espacio en disco ocupado (instalación base):** ~19 MB
+- **Número de archivos del proyecto:** 1340
+- **RAM recomendada:** mínimo 1 GB libre (uso típico bajo, depende de los módulos activos)
+- **Espacio recomendado para datos:** 20 MB libres adicionales para bases de datos, cuarentena y reportes
+
 - Python 3.8+
 - Kali Linux 2025 (recomendado)
 - nmap, masscan, nuclei, gobuster, ffuf, feroxbuster, wireshark, autopsy, sleuthkit, git, curl, wget, sqlite3, python3-tk, python3-venv
@@ -67,14 +70,57 @@ python3 main.py --dev
 
 ```
 aresitos/
-├── controlador/     # Lógica de negocio y orquestación de módulos
-├── modelo/          # Acceso y gestión de datos, SQLite, wordlists, diccionarios
-├── vista/           # Interfaz gráfica Tkinter, terminal integrado, paneles
-├── utils/           # Utilidades, configuración, detección de red, sanitización
-├── recursos/        # Imágenes y recursos gráficos
-├── data/            # Bases de datos SQLite, cuarentena, wordlists, cheatsheets
-└── configuración/   # Configuración JSON, textos, mapas de navegación
+├── controlador/     # Controladores principales y secundarios. Orquestan la lógica de negocio, gestionan la interacción entre vistas y modelos, y coordinan módulos como escaneo, SIEM, FIM, cuarentena, reportes, monitoreo, herramientas, auditoría, etc.
+│   ├── controlador_principal.py      # Punto de entrada de la lógica de control
+│   ├── controlador_escaneo.py       # Lógica de escaneo de vulnerabilidades
+│   ├── controlador_reportes.py      # Generación y gestión de reportes
+│   └── ...                          # Otros controladores especializados
+├── modelo/          # Modelos de datos, acceso a bases SQLite, gestión de wordlists, diccionarios, cuarentena, FIM, SIEM, reportes, etc.
+│   ├── modelo_principal.py          # Modelo principal de la aplicación
+│   ├── modelo_cuarentena.py         # Gestión de archivos en cuarentena
+│   ├── modelo_fim.py                # Integridad de archivos (FIM)
+│   └── ...                          # Otros modelos de datos
+├── vista/           # Interfaz gráfica Tkinter: paneles, terminal integrado, dashboard, escaneo, reportes, monitoreo, herramientas, etc.
+│   ├── vista_principal.py           # Vista principal y orquestación de paneles
+│   ├── vista_dashboard.py           # Dashboard de métricas y terminal
+│   ├── vista_escaneo.py             # Panel de escaneo de vulnerabilidades
+│   ├── vista_reportes.py            # Panel de reportes
+│   └── ...                          # Otras vistas especializadas
+├── utils/           # Utilidades y módulos auxiliares: configuración, detección de red, sanitización, permisos, iconos, etc.
+│   ├── configurar.py                 # Configuración y utilidades generales
+│   ├── detector_red.py               # Detección de red y objetivos
+│   ├── sanitizador_archivos.py       # Sanitización y validación de archivos
+│   └── ...                          # Otros scripts de soporte
+├── recursos/        # Imágenes, iconos, favicon, capturas de pantalla y recursos gráficos
+│   ├── aresitos.png                  # Favicon principal
+│   ├── iconos/                      # Iconos adicionales
+│   └── ...
+├── data/            # Datos persistentes: bases de datos SQLite, cuarentena, wordlists, diccionarios, cheatsheets
+│   ├── fim_kali2025.db               # Base de datos de integridad de archivos
+│   ├── cuarentena_kali2025.db        # Base de datos de cuarentena
+│   ├── wordlists/                    # Wordlists para escaneo y fuerza bruta
+│   └── ...
+├── configuración/   # Archivos de configuración JSON, textos, mapas de navegación, traducciones
+│   ├── aresitos_config_completo.json # Configuración global
+│   ├── textos_castellano_corregido.json # Traducciones y textos
+│   └── ...
+├── logs/            # Resultados de escaneo, actividad y logs de la aplicación
+├── reportes/        # Reportes generados (JSON, TXT, CSV)
+├── documentacion/   # Manuales técnicos, arquitectura, guías de instalación y uso
+├── main.py          # Script principal de arranque de la aplicación
+├── configurar_kali.sh # Script de configuración y dependencias para Kali Linux
+├── requirements.txt # Requisitos Python (solo para desarrollo, no se usan librerías externas en producción)
+└── README.md        # Documentación principal del proyecto
 ```
+
+**Explicación concreta:**
+- El proyecto sigue una arquitectura estricta MVC, donde cada carpeta tiene una responsabilidad clara y separada.
+- Los controladores gestionan la lógica de negocio y la interacción entre la interfaz gráfica (vistas) y los datos (modelos).
+- Los modelos encapsulan el acceso y la gestión de datos, bases de datos, cuarentena, FIM, SIEM, wordlists y reportes.
+- Las vistas implementan la interfaz gráfica en Tkinter, con paneles independientes para cada módulo (dashboard, escaneo, reportes, monitoreo, etc.), integrando un terminal interactivo y soporte para temas visuales.
+- Los módulos utils proporcionan utilidades nativas para detección de red, configuración, sanitización de archivos, gestión de permisos y recursos gráficos.
+- Toda la lógica es Python nativo, sin librerías externas, y aprovecha herramientas y comandos de Kali Linux para las funciones avanzadas de ciberseguridad.
+- El sistema es robusto, modular, seguro y fácilmente extensible, cumpliendo los principios SOLID y DRY.
 
 **Componentes técnicos principales:**
 - Escaneador profesional: nmap, masscan, nuclei, gobuster, ffuf, feroxbuster
@@ -104,20 +150,24 @@ aresitos/
 ---
 
 ## Comandos útiles
+
 ```bash
-# Verificar estado completo del sistema
+# Verificar estado y dependencias del sistema
 python3 verificacion_final.py
 
-# Modo desarrollo
+# Ejecutar Aresitos (modo normal)
+python3 main.py
+
+# Ejecutar en modo desarrollo (otros sistemas)
 python3 main.py --dev
 
-# Actualizar configuración y herramientas
+# Actualizar configuración y herramientas de Kali
 sudo ./configurar_kali.sh --update
 
-# Debug escaneador
+# Debug avanzado del escaneador
 python3 main.py --verbose --scanner-debug
 
-# Actualizar templates nuclei
+# Actualizar templates de nuclei
 sudo nuclei -update-templates
 ```
 
@@ -125,10 +175,15 @@ sudo nuclei -update-templates
 
 ## Documentación y soporte
 
-- Manual técnico: `documentacion/DOCUMENTACION_TECNICA_CONSOLIDADA.md`
-- Guía de desarrollo: `documentacion/ARQUITECTURA_DESARROLLO.md`
-- Auditoría de seguridad: `documentacion/AUDITORIA_SEGURIDAD_ARESITOS.md`
-- Terminal integrado: `documentacion/TERMINAL_INTEGRADO.md`
+**Manuales y guías disponibles:**
+- [`DOCUMENTACION_TECNICA_CONSOLIDADA.md`](documentacion/DOCUMENTACION_TECNICA_CONSOLIDADA.md): Manual técnico completo y actualizado del sistema.
+- [`ARQUITECTURA_DESARROLLO.md`](documentacion/ARQUITECTURA_DESARROLLO.md): Guía de arquitectura, patrones y estructura del proyecto.
+- [`AUDITORIA_SEGURIDAD_ARESITOS.md`](documentacion/AUDITORIA_SEGURIDAD_ARESITOS.md): Auditoría de seguridad, controles y recomendaciones.
+- [`GUIA_INSTALACION.md`](documentacion/GUIA_INSTALACION.md): Guía de instalación, solución de problemas y mejores prácticas.
+- [`HERRAMIENTAS_FASE_3_ACTUALIZACION.md`](documentacion/HERRAMIENTAS_FASE_3_ACTUALIZACION.md): Herramientas avanzadas y configuraciones de Fase 3.
+- [`REVISION_MVC_ARESITOS.md`](documentacion/REVISION_MVC_ARESITOS.md): Revisión exhaustiva de conexiones y flujos MVC.
+- [`SANITIZACION_ARCHIVOS.md`](documentacion/SANITIZACION_ARCHIVOS.md): Resumen de la implementación de seguridad en carga de archivos.
+- [`TERMINAL_INTEGRADO.md`](documentacion/TERMINAL_INTEGRADO.md): Manual del terminal integrado y sus ventajas.
 
 Repositorio oficial: https://github.com/DogSoulDev/aresitos
 Email: dogsouldev@protonmail.com
