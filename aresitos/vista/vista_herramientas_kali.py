@@ -91,12 +91,12 @@ class VistaHerramientasKali(tk.Frame):
         main_frame = tk.Frame(self, bg=self.colors['bg_primary'])
         main_frame.pack(fill="both", expand=True, padx=20, pady=20)
         
-        # Logo de Aresitos
+        # Icono estándar de Kali Linux (terminal)
         try:
             import os
-            logo_path = os.path.join(os.path.dirname(__file__), '..', 'recursos', 'aresitos.png')
-            if os.path.exists(logo_path):
-                self.logo_img = tk.PhotoImage(file=logo_path)
+            icon_path = '/usr/share/icons/Adwaita/48x48/apps/utilities-terminal.png'
+            if os.path.exists(icon_path):
+                self.logo_img = tk.PhotoImage(file=icon_path)
                 logo_label = tk.Label(
                     main_frame,
                     image=self.logo_img,
@@ -104,7 +104,7 @@ class VistaHerramientasKali(tk.Frame):
                 )
                 logo_label.pack(pady=(0, 10))
         except Exception:
-            pass  # Continuar sin logo si hay problemas
+            pass  # Continuar sin icono si hay problemas
         
         # Título
         titulo_label = tk.Label(
