@@ -13,6 +13,8 @@ Fecha: 19 de Agosto de 2025
 import tkinter as tk
 from tkinter import ttk, messagebox, scrolledtext
 import subprocess
+from aresitos.utils.detector_sistema import es_kali_linux
+from aresitos.utils.comandos_sistema import existe_comando
 import threading
 import logging
 from typing import Optional, Any
@@ -30,9 +32,9 @@ class VistaHerramientasKali(tk.Frame):
     
     def __init__(self, parent, callback_completado=None):
         super().__init__(parent)
-        
+
         # VERIFICACIÓN CRÍTICA: Solo para Kali Linux
-        if not self._verificar_kali_linux():
+        if not es_kali_linux():
             messagebox.showerror(
                 "Error - Solo Kali Linux", 
                 "ARESITOS está diseñado exclusivamente para Kali Linux.\n\n"
@@ -41,7 +43,7 @@ class VistaHerramientasKali(tk.Frame):
             )
             self.destroy()
             return
-            
+
         self.controlador = None  # Patrón MVC
         self.callback_completado = callback_completado
         self.proceso_activo = False
@@ -382,85 +384,89 @@ LISTO PARA: Escaneos de vulnerabilidades en entornos Kali Linux 2025
         thread.start()
     
     def _verificar_herramientas_async(self):
-        """Verificación asíncrona de herramientas"""
+        """Verificación asíncrona de herramientas con check visual"""
         try:
             self.after(0, self._actualizar_texto, "Verificando herramientas de Kali Linux...\n\n")
-            
+
             # Lista de herramientas esenciales modernizadas para Kali 2025
             herramientas = [
-                # Comandos básicos del sistema (nativos)
+                # ... (misma lista que antes, sin cambios) ...
                 'ps', 'ss', 'lsof', 'netstat', 'top', 'free', 'df', 'uname', 'who', 'last',
                 'find', 'stat', 'grep', 'awk', 'sort', 'uniq', 'wc', 'tail', 'head',
                 'systemctl', 'ip', 'route', 'wget', 'curl', 'diff', 'ls', 'chmod', 'chown',
-                # Comandos para nuevas funcionalidades implementadas
                 'lsmod', 'kill', 'pgrep', 'pkill', 'sha256sum', 'md5sum', 'sha1sum', 'sha512sum',
                 'iptables', 'cat', 'less', 'more', 'pwd', 'mkdir', 'rm', 'cp', 'mv',
-                # Herramientas de monitoreo y análisis del sistema (para FIM y SIEM)
                 'inotifywait', 'inotify-tools', 'auditd', 'ausearch', 'aide',
                 'debsums', 'dpkg', 'rpm', 'synaptic',
-                # Anti-rootkit y detección (usadas en escaneador avanzado FASE 3.1)
                 'chkrootkit', 'rkhunter', 'lynis', 'unhide', 'tiger', 'maldet',
-                # Escaneadores de red y puertos (usados en SIEM y Escaneador FASE 3.1)
                 'nmap', 'masscan', 'rustscan', 'gobuster', 'feroxbuster', 'nikto', 'nuclei', 'httpx',
                 'zmap', 'unicornscan', 'hping3', 'dirb', 'dirbuster',
-                # Análisis de servicios y red (expandido FASE 3.1)
                 'netcat', 'netcat-traditional', 'whatweb', 'wfuzz', 'ffuf', 'dirb',
                 'enum4linux', 'smbclient', 'rpcclient', 'ldapsearch',
-                # Cracking y fuerza bruta
                 'hashcat', 'john', 'hydra', 'medusa', 'patator', 'crunch', 'cewl',
-                # Bases de datos y SQL
                 'sqlmap', 'sqlninja', 'sqlite3', 'mysql', 'psql',
-                # Análisis de malware (expandido para FIM y cuarentena FASE 3.3)
                 'clamav', 'clamscan', 'freshclam', 'clamav-daemon', 'yara', 'binwalk', 'strings', 'file', 'exiftool',
                 'hexdump', 'foremost', 'sleuthkit', 'autopsy',
                 'testdisk', 'photorec', 'plaso', 'bulk-extractor', 'hashdeep', 'dc3dd', 'guymager',
                 'tsk_recover', 'tsk_loaddb', 'tsk_gettimes', 'tsk_comparedir', 'tsk_imageinfo',
-                # FIM y monitoreo avanzado (FASE 3.2 y 3.3)
                 'pspy', 'pspy64', 'pspy32', 'linpeas', 'logger', 'fail2ban-client', 'logwatch',
                 'incron', 'fswatch', 'entr', 'watchman',
-                # Análisis forense y auditoría (usadas en SIEM FASE 3.2)
                 'logrotate', 'rsyslog', 'journalctl', 'aureport', 'auditctl',
-                # Herramientas adicionales para análisis avanzado (FASE 3)
                 'osquery', 'osqueryi', 'tcpdump', 'wireshark', 'tshark',
                 'strace', 'ltrace', 'gdb', 'objdump', 'readelf',
-                # Gestores de archivos para cheatsheets
                 'thunar', 'nautilus', 'dolphin', 'pcmanfm', 'caja', 'nemo', 'xdg-open',
-                # Editores de texto para visualización
                 'nano', 'vim', 'vi', 'gedit', 'mousepad',
-                # Herramientas base de verificación
                 'which', 'whereis', 'type', 'command'
             ]
-            
+
             herramientas_faltantes = []
             herramientas_ok = []
-            
+
+            # Unicode: check verde = \u2705, cruz roja = \u274C (pero mejor usar \u2714 y \u2716 para compatibilidad)
+            check = '\u2714'  # ✓
+            cruz = '\u2716'   # ✖
+
             for herramienta in herramientas:
                 try:
-                    # Verificar si la herramienta existe
-                    result = subprocess.run(['which', herramienta], 
-                                          capture_output=True, text=True, timeout=5)
-                    
-                    if result.returncode == 0:
+                    if existe_comando(herramienta):
                         herramientas_ok.append(herramienta)
-                        self.after(0, self._actualizar_texto, f"OK {herramienta} - OK\n")
+                        # Check verde
+                        self.after(0, self._actualizar_texto_coloreado, f" {check} {herramienta}\n", 'ok')
                     else:
                         herramientas_faltantes.append(herramienta)
-                        self.after(0, self._actualizar_texto, f"ERROR {herramienta} - FALTANTE\n")
-                        
-                except subprocess.TimeoutExpired:
-                    herramientas_faltantes.append(herramienta)
-                    self.after(0, self._actualizar_texto, f"ERROR {herramienta} - TIMEOUT\n")
+                        # Cruz roja
+                        self.after(0, self._actualizar_texto_coloreado, f" {cruz} {herramienta}\n", 'error')
                 except Exception as e:
                     herramientas_faltantes.append(herramienta)
-                    self.after(0, self._actualizar_texto, f"ERROR {herramienta} - ERROR: {e}\n")
-            
+                    self.after(0, self._actualizar_texto_coloreado, f" {cruz} {herramienta} (ERROR: {e})\n", 'error')
+
             # Mostrar resumen
             self.after(0, self._mostrar_resumen_verificacion, herramientas_ok, herramientas_faltantes)
-            
+
         except Exception as e:
             self.after(0, self._actualizar_texto, f"\nError durante la verificación: {e}\n")
         finally:
             self.after(0, self._finalizar_verificacion)
+
+    def _actualizar_texto_coloreado(self, texto, tipo):
+        """Insertar texto coloreado (verde/rojo) en el área de resultados."""
+        try:
+            if hasattr(self, 'text_resultados') and self.text_resultados.winfo_exists():
+                if tipo == 'ok':
+                    self.text_resultados.insert(tk.END, texto, 'ok')
+                elif tipo == 'error':
+                    self.text_resultados.insert(tk.END, texto, 'error')
+                else:
+                    self.text_resultados.insert(tk.END, texto)
+                self.text_resultados.see(tk.END)
+                self.text_resultados.update()
+                # Configurar tags solo una vez
+                if not hasattr(self, '_tags_configurados'):
+                    self.text_resultados.tag_configure('ok', foreground='#00cc44', font=('Consolas', 10, 'bold'))
+                    self.text_resultados.tag_configure('error', foreground='#ff3333', font=('Consolas', 10, 'bold'))
+                    self._tags_configurados = True
+        except (tk.TclError, AttributeError):
+            pass
     
     def _mostrar_resumen_verificacion(self, herramientas_ok, herramientas_faltantes):
         """Mostrar resumen de la verificación"""
@@ -891,33 +897,5 @@ LISTO PARA: Escaneos de vulnerabilidades en entornos Kali Linux 2025
                 self.logger.info(f"[{modulo}] {mensaje}")
             print(f"Terminal log error: {e}")
     
-    def _verificar_kali_linux(self) -> bool:
-        """Verificar que estamos ejecutando en Kali Linux."""
-        try:
-            import platform
-            import os
-            
-            # Verificar ID del sistema operativo
-            if os.path.exists('/etc/os-release'):
-                with open('/etc/os-release', 'r') as f:
-                    contenido = f.read()
-                    if 'ID=kali' in contenido or 'kali' in contenido.lower():
-                        return True
-            
-            # Verificar nombre del sistema
-            if 'kali' in platform.system().lower():
-                return True
-                
-            # Verificar distribución
-            try:
-                resultado = subprocess.run(['lsb_release', '-i'], 
-                                         capture_output=True, text=True, timeout=5)
-                if 'kali' in resultado.stdout.lower():
-                    return True
-            except:
-                pass
-            
-            return False
-        except Exception:
-            return False
+
 

@@ -130,17 +130,35 @@ class GestorPermisosSeguro:
             self.logger.warning("WARNING Ejecutándose como ROOT - permisos elevados activos")
     
     def _crear_logger(self) -> logging.Logger:
-        """Crea un logger específico para el gestor de permisos."""
+        """Crea un logger específico para el gestor de permisos y errores críticos."""
         logger = logging.getLogger('AresAegis.GestorPermisosSeguro')
         if not logger.handlers:
-            handler = logging.StreamHandler()
-            formatter = logging.Formatter(
-                '%(asctime)s - %(name)s - %(levelname)s - %(message)s'
-            )
-            handler.setFormatter(formatter)
-            logger.addHandler(handler)
+            # Log a consola
+            handler_console = logging.StreamHandler()
+            formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+            handler_console.setFormatter(formatter)
+            logger.addHandler(handler_console)
+            # Log a archivo centralizado
+            try:
+                import os
+                log_dir = os.path.join(os.path.dirname(os.path.dirname(__file__)), '..', 'logs')
+                os.makedirs(log_dir, exist_ok=True)
+                handler_file = logging.FileHandler(os.path.join(log_dir, 'aresitos_errores.log'), encoding='utf-8')
+                handler_file.setFormatter(formatter)
+                logger.addHandler(handler_file)
+            except Exception as e:
+                handler_console.emit(logging.makeLogRecord({'msg': f'No se pudo crear log de errores centralizado: {e}', 'levelno': logging.WARNING, 'levelname': 'WARNING'}))
             logger.setLevel(logging.INFO)
         return logger
+    def advertencia_permisos(self, mensaje: str):
+        """Muestra advertencia visible y loguea fallo de permisos o privilegios insuficientes."""
+        self.logger.error(f"PERMISOS INSUFICIENTES: {mensaje}")
+        print("\n" + "="*60)
+        print("[ADVERTENCIA] Permisos insuficientes para la operación solicitada.")
+        print(f"Detalle: {mensaje}")
+        print("Solución: Ejecuta el instalador de ARESITOS o revisa la configuración de sudo/grupos.")
+        print("Consulta el archivo logs/aresitos_errores.log para más detalles.")
+        print("="*60 + "\n")
     
     def verificar_sudo_disponible(self) -> bool:
         """

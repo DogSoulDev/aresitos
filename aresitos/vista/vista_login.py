@@ -247,47 +247,11 @@ def verificar_kali_linux_estricto():
     """Verificar estrictamente que estamos en Kali Linux usando método criptográfico"""
     return verificar_kali_linux_criptografico()
 
+from aresitos.utils.permisos_sistema import es_root
+
 def verificar_permisos_admin_seguro():
-    """Verificar permisos de administrador de forma segura"""
-    try:
-        # Verificar que estamos en Kali Linux primero
-        if not verificar_kali_linux_criptografico():
-            return False
-        
-        # Verificar sistema operativo primero
-        if platform.system().lower() != 'linux':
-            return False
-        
-        # Método 1: Verificar UID directamente (solo en Linux)
-        try:
-            if platform.system() == "Linux" and hasattr(os, 'getuid'):
-                uid = getattr(os, 'getuid')()
-                if uid == 0:
-                    return True
-        except (AttributeError, ImportError, OSError):
-            # os.getuid() no existe en Windows o no hay soporte
-            pass
-        
-        # Método 2: Verificar usando subprocess de forma segura
-        try:
-            result = subprocess.run(
-                ['id', '-u'], 
-                capture_output=True, 
-                text=True, 
-                timeout=3,
-                check=False
-            )
-            if result.returncode == 0:
-                uid = int(result.stdout.strip())
-                return uid == 0
-        except (subprocess.TimeoutExpired, ValueError, OSError):
-            pass
-        
-        # Método 3: Verificar variable de entorno como último recurso
-        return os.environ.get('USER') == 'root'
-        
-    except (subprocess.TimeoutExpired, subprocess.CalledProcessError, FileNotFoundError):
-        return False
+    """Verificar permisos de administrador de forma centralizada y robusta."""
+    return es_root()
 
 class LoginAresitos:
     """
