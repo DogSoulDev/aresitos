@@ -249,40 +249,68 @@ class DetenerProcesos:
     def _terminar_procesos_por_nombre(self, procesos: List[str], 
                                     callback_actualizacion: Callable, 
                                     tipo: str) -> int:
-        """Terminar procesos por nombre de manera robusta."""
+        """Terminar procesos por nombre de manera robusta y segura (ARESITOS)."""
         procesos_terminados = 0
-        
+        procesos_protegidos = [
+            'systemd', 'init', 'login', 'sshd', 'Xorg', 'gdm', 'lightdm', 'NetworkManager',
+            'dbus-daemon', 'udisksd', 'polkitd', 'upowerd', 'wpa_supplicant', 'gnome-shell',
+            'plasmashell', 'xfce4-session', 'lxsession', 'openbox', 'kdeinit', 'kded', 'kdm',
+            'sddm', 'agetty', 'bash', 'zsh', 'fish', 'pwsh', 'tmux', 'screen', 'python', 'python3'
+        ]
+        usuario_actual = os.getenv('USER') or os.getenv('USERNAME')
         for proceso in procesos:
             try:
-                # Buscar procesos activos
-                resultado = subprocess.run(['pgrep', '-f', proceso], 
-                                        capture_output=True, text=True)
+                resultado = subprocess.run(['pgrep', '-af', proceso], capture_output=True, text=True)
                 if resultado.returncode == 0 and resultado.stdout.strip():
-                    pids = resultado.stdout.strip().split('\n')
-                    for pid in pids:
-                        if pid.strip():
-                            try:
-                                # Terminar proceso específico
-                                subprocess.run(['kill', '-TERM', pid.strip()], 
-                                            capture_output=True)
-                                callback_actualizacion(f"OK Terminado {tipo} {proceso} (PID: {pid.strip()})\n")
-                                procesos_terminados += 1
-                                
-                                # Esperar un poco y verificar si sigue vivo
-                                time.sleep(0.5)
-                                resultado_check = subprocess.run(['kill', '-0', pid.strip()], 
-                                                            capture_output=True)
-                                if resultado_check.returncode == 0:
-                                    # Aún vivo, usar SIGKILL
-                                    subprocess.run(['kill', '-KILL', pid.strip()], 
-                                                capture_output=True)
-                                    callback_actualizacion(f"OK Forzado término de {proceso} (PID: {pid.strip()})\n")
-                                    
-                            except Exception:
-                                continue
-            except Exception:
-                continue
-        
+                    lineas = resultado.stdout.strip().split('\n')
+                    for linea in lineas:
+                        partes = linea.strip().split()
+                        if not partes:
+                            continue
+                        pid = partes[0]
+                        comando = ' '.join(partes[1:])
+                        # Protección: no terminar procesos críticos ni de sesión
+                        if any(p in comando for p in procesos_protegidos):
+                            callback_actualizacion(f"PROTEGIDO: {comando} (PID: {pid}) no será terminado por seguridad\n")
+                            continue
+                        # Protección: no terminar procesos de root ni del usuario de sesión
+                        user = None
+                        try:
+                            import sys
+                            if sys.platform.startswith('linux'):
+                                def _get_user_by_uid(uid):
+                                    """Obtiene el nombre de usuario por UID de forma robusta y compatible con linters."""
+                                    try:
+                                        import pwd
+                                        # Algunos linters pueden marcar getpwuid como desconocido, pero existe en Unix.
+                                        if hasattr(pwd, 'getpwuid'):
+                                            return pwd.getpwuid(uid).pw_name  # type: ignore[attr-defined]
+                                    except Exception:
+                                        pass
+                                    return None
+                                try:
+                                    uid = int(subprocess.check_output(['ps', '-o', 'uid=', '-p', pid]).decode().strip())
+                                    user = _get_user_by_uid(uid)
+                                except Exception:
+                                    user = None
+                        except Exception:
+                            user = None
+                        if user and user in ['root', usuario_actual]:
+                            callback_actualizacion(f"PROTEGIDO: Proceso de usuario crítico ({user}) {comando} (PID: {pid}) no será terminado\n")
+                            continue
+                        try:
+                            subprocess.run(['kill', '-TERM', pid], capture_output=True)
+                            callback_actualizacion(f"OK Terminado {tipo} {proceso} (PID: {pid})\n")
+                            procesos_terminados += 1
+                            time.sleep(0.5)
+                            resultado_check = subprocess.run(['kill', '-0', pid], capture_output=True)
+                            if resultado_check.returncode == 0:
+                                subprocess.run(['kill', '-KILL', pid], capture_output=True)
+                                callback_actualizacion(f"OK Forzado término de {proceso} (PID: {pid})\n")
+                        except Exception as e:
+                            callback_actualizacion(f"ERROR al terminar {comando} (PID: {pid}): {str(e)}\n")
+            except Exception as e:
+                callback_actualizacion(f"ERROR general al buscar/terminar procesos: {str(e)}\n")
         return procesos_terminados
     
     def _terminar_procesos_python(self, patrones: List[str], 

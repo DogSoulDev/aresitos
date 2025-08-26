@@ -983,29 +983,23 @@ class VistaMonitoreo(tk.Frame):
             self.after(5000, self._actualizar_monitoreo_basico)
     
     def detener_monitoreo(self):
-        """Detener monitoreo usando sistema unificado."""
-        # Importar sistema unificado
+        """Detener monitoreo usando sistema unificado con advertencia profesional."""
         from ..utils.detener_procesos import detener_procesos
-        
-        # Detener controlador si existe
+        import tkinter.messagebox as messagebox
+        if not messagebox.askyesno("Confirmar acción crítica", "¿Está seguro que desea detener el monitoreo? Esta acción puede afectar procesos en ejecución. Solo continúe si comprende el impacto."):
+            self.log_to_terminal("Operación de detención de monitoreo cancelada por el usuario.")
+            return
         if self.controlador:
             self.controlador.detener_monitoreo()
-        
         self.flag_monitoreo.set()
-        
-        # Callbacks para la vista
         def callback_actualizacion(mensaje):
-            self.log_to_terminal(mensaje.replace("OK", "").replace("=== ", "").replace(" ===", "").strip())  # Issue 22/24: Sin emojis
-        
+            self.log_to_terminal(mensaje.replace("OK", "").replace("=== ", "").replace(" ===", "").strip())
         def callback_habilitar():
-            # Actualizar interfaz
             self.btn_iniciar_monitor.config(state="normal")
             self.btn_detener_monitor.config(state="disabled")
             self.label_estado.config(text="Estado: Detenido")
             self.text_monitor.insert(tk.END, "Monitoreo detenido completamente.\n")
             self.log_to_terminal("MONITOREO Monitoreo detenido correctamente")
-        
-        # Usar sistema unificado
         detener_procesos.detener_monitoreo(callback_actualizacion, callback_habilitar)
     
     def actualizar_monitoreo(self):
@@ -1674,7 +1668,11 @@ class VistaMonitoreo(tk.Frame):
         self.text_monitor.insert(tk.END, "\n=== MONITOREO DE RED FINALIZADO ===\n")
     
     def cancelar_monitoreo_red(self):
-        """Cancelar el monitoreo de red."""
+        """Cancelar el monitoreo de red con advertencia profesional."""
+        import tkinter.messagebox as messagebox
+        if not messagebox.askyesno("Confirmar acción crítica", "¿Está seguro que desea cancelar el monitoreo de red? Esta acción puede afectar la supervisión de red en curso."):
+            self.log_to_terminal("Operación de cancelación de monitoreo de red cancelada por el usuario.")
+            return
         if not self.flag_red.is_set():
             self.flag_red.set()
             self.text_monitor.insert(tk.END, "\n Monitoreo de red cancelado por el usuario.\n")

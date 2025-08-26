@@ -495,13 +495,69 @@ class VistaSIEM(tk.Frame):
         logs_kali = [
             ("/var/log/syslog", "Sistema General"),
             ("/var/log/auth.log", "Autenticación"),
+            ("/var/log/boot.log", "Arranque del Sistema"),
+            ("/var/log/dmesg", "Mensajes del Kernel (dmesg)"),
+            ("/var/log/kern.log", "Kernel"),
+            ("/var/log/faillog", "Intentos Fallidos"),
+            ("/var/log/wtmp", "Inicios/Cierres de Sesión (wtmp)"),
+            ("/var/log/lastlog", "Últimos Inicios de Sesión (lastlog)"),
+            ("/var/log/apt/history.log", "APT Historial"),
+            ("/var/log/dpkg.log", "Paquetes (dpkg)"),
+            ("/var/log/mail.log", "Correo (mail.log)"),
+            ("/var/log/secure", "Seguridad (secure)"),
+            ("/var/log/audit/audit.log", "Auditoría Kernel (audit)"),
             ("/var/log/apache2/access.log", "Apache Access"),
             ("/var/log/apache2/error.log", "Apache Error"),
+            ("/var/log/mysql/error.log", "MySQL Error"),
             ("/var/log/nginx/access.log", "Nginx Access"),
-            ("/var/log/fail2ban.log", "Fail2ban"),
-            ("/var/log/kern.log", "Kernel"),
-            ("/var/log/dpkg.log", "Paquetes")
+            ("/var/log/nginx/error.log", "Nginx Error"),
+            ("/var/log/lighttpd/access.log", "Lighttpd Access"),
+            ("/var/log/lighttpd/error.log", "Lighttpd Error"),
+            ("/var/log/mongodb/mongod.log", "MongoDB"),
+            ("/var/log/postgresql/postgresql.log", "PostgreSQL"),
+            ("/var/log/samba/log.smbd", "Samba smbd"),
+            ("/var/log/samba/log.nmbd", "Samba nmbd"),
+            ("/var/log/squid/access.log", "Squid Access"),
+            ("/var/log/squid/cache.log", "Squid Cache"),
         ]
+
+        # Botón para descubrir todos los logs en /var/log/
+        def descubrir_logs():
+            import os
+            encontrados = []
+            for root, dirs, files in os.walk("/var/log/"):
+                for f in files:
+                    ruta = os.path.join(root, f)
+                    # Solo archivos legibles y no duplicados
+                    if ruta not in self.logs_vars and os.path.isfile(ruta):
+                        try:
+                            with open(ruta, 'r'):
+                                pass
+                            encontrados.append((ruta, os.path.relpath(ruta, "/var/log/")))
+                        except Exception:
+                            continue
+            if encontrados:
+                for ruta, nombre in encontrados:
+                    var = tk.BooleanVar()
+                    self.logs_vars[ruta] = var
+                    if self.theme:
+                        cb = tk.Checkbutton(logs_frame, text=f"{nombre} ({ruta})", variable=var,
+                                          bg='#2b2b2b', fg='#cccccc', selectcolor='#4a4a4a',
+                                          activebackground='#3c3c3c', font=('Arial', 9))
+                    else:
+                        cb = ttk.Checkbutton(logs_frame, text=f"{nombre} ({ruta})", variable=var)
+                    cb.grid(row=len(self.logs_vars)//2, column=len(self.logs_vars)%2, sticky='w', padx=5, pady=2)
+                self.log_to_terminal(f"{len(encontrados)} logs adicionales detectados en /var/log/")
+            else:
+                self.log_to_terminal("No se detectaron nuevos logs adicionales en /var/log/")
+
+        # Botón para descubrir logs dinámicamente
+        if self.theme:
+            btn_descubrir = tk.Button(top_frame, text="Descubrir todos los logs en /var/log/", command=descubrir_logs,
+                                     bg='#404040', fg='white', font=('Arial', 9, 'bold'))
+            btn_descubrir.pack(side=tk.RIGHT, padx=5)
+        else:
+            ttk.Button(top_frame, text="Descubrir todos los logs en /var/log/", command=descubrir_logs).pack(side=tk.RIGHT, padx=5)
         
         for i, (log_path, log_name) in enumerate(logs_kali):
             var = tk.BooleanVar()
@@ -1846,37 +1902,32 @@ class VistaSIEM(tk.Frame):
                 resumen_alertas = {}
                 
                 for idx, log_path in enumerate(logs_seleccionados, 1):
-                    # SEPARADOR POR ARCHIVO
                     self.after(0, self._actualizar_texto_analisis, f"\n[{idx}/{len(logs_seleccionados)}] " + "-"*60 + "\n")
                     self.after(0, self._actualizar_texto_analisis, f"ARCHIVO: {log_path}\n")
                     self.after(0, self._actualizar_texto_analisis, "-"*60 + "\n")
-                    
                     if os.path.exists(log_path):
                         try:
                             import subprocess
                             alertas_archivo = 0
-                            
                             # 1. INFORMACIÓN BÁSICA DEL ARCHIVO
                             self.after(0, self._actualizar_texto_analisis, "\n1. INFORMACIÓN BÁSICA:\n")
-                            resultado_wc = subprocess.run(['wc', '-l', log_path], 
-                                                        capture_output=True, text=True, timeout=5)
-                            if resultado_wc.returncode == 0:
-                                lineas_total = resultado_wc.stdout.strip().split()[0]
-                                self.after(0, self._actualizar_texto_analisis, f"   • Total de líneas: {lineas_total}\n")
-                                
-                                # Tamaño del archivo
+                            try:
+                                resultado_wc = subprocess.run(['wc', '-l', log_path], capture_output=True, text=True, timeout=5)
+                                if resultado_wc.returncode == 0:
+                                    lineas_total = resultado_wc.stdout.strip().split()[0]
+                                    self.after(0, self._actualizar_texto_analisis, f"   • Total de líneas: {lineas_total}\n")
                                 tamano = os.path.getsize(log_path)
                                 tamano_mb = tamano / (1024 * 1024)
                                 self.after(0, self._actualizar_texto_analisis, f"   • Tamaño: {tamano_mb:.2f} MB\n")
-                                
-                                # Fecha de modificación
                                 import time
                                 mtime = os.path.getmtime(log_path)
                                 fecha_mod = time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(mtime))
                                 self.after(0, self._actualizar_texto_analisis, f"   • Última modificación: {fecha_mod}\n")
-                            
-                            # 2. ANÁLISIS DE PATRONES DE SEGURIDAD
-                            self.after(0, self._actualizar_texto_analisis, "\n2. ANÁLISIS DE SEGURIDAD:\n")
+                            except Exception as e:
+                                self.after(0, self._actualizar_texto_analisis, f"   [ERROR] No se pudo obtener información básica: {e}\n")
+
+                            # 2. ANÁLISIS DE PATRONES DE SEGURIDAD Y APLICACIÓN
+                            self.after(0, self._actualizar_texto_analisis, "\n2. ANÁLISIS DE SEGURIDAD Y APLICACIÓN:\n")
                             patrones_seguridad = [
                                 ('Failed password', 'Intentos de login fallidos', 'HIGH'),
                                 ('Invalid user', 'Usuarios inválidos', 'MEDIUM'),
@@ -1886,57 +1937,58 @@ class VistaSIEM(tk.Frame):
                                 ('kernel.*killed process', 'Procesos terminados', 'MEDIUM'),
                                 ('denied', 'Accesos denegados', 'MEDIUM'),
                                 ('attack', 'Ataques detectados', 'CRITICAL'),
-                                ('breach', 'Violaciones detectadas', 'CRITICAL')
+                                ('breach', 'Violaciones detectadas', 'CRITICAL'),
+                                ('error', 'Errores generales', 'MEDIUM'),
+                                ('critical', 'Eventos críticos', 'CRITICAL'),
+                                ('panic', 'Kernel Panic', 'CRITICAL'),
+                                ('segfault', 'Fallo de Segmentación', 'CRITICAL'),
+                                ('DROP', 'Paquetes DROP (firewall)', 'MEDIUM'),
+                                ('REJECT', 'Paquetes REJECT (firewall)', 'MEDIUM'),
+                                ('mail', 'Eventos de correo', 'LOW'),
+                                ('postfix', 'Eventos de Postfix', 'LOW'),
+                                ('mysql', 'Eventos MySQL', 'LOW'),
+                                ('mariadb', 'Eventos MariaDB', 'LOW'),
+                                ('nginx', 'Eventos Nginx', 'LOW'),
+                                ('apache', 'Eventos Apache', 'LOW'),
+                                ('lighttpd', 'Eventos Lighttpd', 'LOW'),
+                                ('mongodb', 'Eventos MongoDB', 'LOW'),
+                                ('postgresql', 'Eventos PostgreSQL', 'LOW'),
+                                ('samba', 'Eventos Samba', 'LOW'),
+                                ('squid', 'Eventos Squid', 'LOW'),
+                                ('audit', 'Eventos de Auditoría', 'HIGH'),
                             ]
-                            
                             for patron, descripcion, nivel in patrones_seguridad:
                                 try:
-                                    resultado_grep = subprocess.run(['grep', '-i', patron, log_path], 
-                                                                  capture_output=True, text=True, timeout=10)
+                                    resultado_grep = subprocess.run(['grep', '-i', patron, log_path], capture_output=True, text=True, timeout=10)
                                     if resultado_grep.returncode == 0 and resultado_grep.stdout.strip():
                                         coincidencias = resultado_grep.stdout.strip().split('\n')
                                         count = len(coincidencias)
                                         alertas_archivo += count
-                                        
-                                        # Indicador de nivel
                                         indicador = {
                                             'CRITICAL': '[!!!]',
                                             'HIGH': '[!!]',
                                             'MEDIUM': '[!]',
                                             'LOW': '[·]'
                                         }.get(nivel, '[·]')
-                                        
-                                        self.after(0, self._actualizar_texto_analisis, 
-                                                 f"   {indicador} {descripcion}: {count} eventos\n")
-                                        
+                                        self.after(0, self._actualizar_texto_analisis, f"   {indicador} {descripcion}: {count} eventos\n")
                                         if count > 0:
                                             resumen_alertas[descripcion] = resumen_alertas.get(descripcion, 0) + count
-                                            
-                                            # Mostrar muestras de eventos críticos
                                             if nivel in ['CRITICAL', 'HIGH'] and count > 0:
                                                 self.after(0, self._actualizar_texto_analisis, f"       Muestras de eventos:\n")
                                                 for i, linea in enumerate(coincidencias[-3:], 1):
-                                                    timestamp = ' '.join(linea.split()[:3])
-                                                    evento = ' '.join(linea.split()[3:10])
-                                                    self.after(0, self._actualizar_texto_analisis, 
-                                                             f"       [{i}] {timestamp}: {evento}...\n")
+                                                    self.after(0, self._actualizar_texto_analisis, f"       [{i}] {linea[:120]}...\n")
                                     else:
-                                        self.after(0, self._actualizar_texto_analisis, 
-                                                 f"   [OK] {descripcion}: Sin eventos\n")
+                                        self.after(0, self._actualizar_texto_analisis, f"   [OK] {descripcion}: Sin eventos\n")
                                 except subprocess.TimeoutExpired:
-                                    self.after(0, self._actualizar_texto_analisis, 
-                                             f"   [TIMEOUT] {descripcion}: Análisis excedió tiempo límite\n")
-                                except:
-                                    self.after(0, self._actualizar_texto_analisis, 
-                                             f"   [ERROR] {descripcion}: No se pudo analizar\n")
-                            
+                                    self.after(0, self._actualizar_texto_analisis, f"   [TIMEOUT] {descripcion}: Análisis excedió tiempo límite\n")
+                                except Exception as e:
+                                    self.after(0, self._actualizar_texto_analisis, f"   [ERROR] {descripcion}: {e}\n")
+
                             # 3. ANÁLISIS DE IPs SOSPECHOSAS (solo para logs de auth)
-                            if 'auth.log' in log_path or 'secure' in log_path:
+                            if any(x in log_path for x in ['auth.log', 'secure', 'sshd']):
                                 self.after(0, self._actualizar_texto_analisis, "\n3. ANÁLISIS DE IPs SOSPECHOSAS:\n")
                                 try:
-                                    resultado_ips = subprocess.run(['bash', '-c', 
-                                                                   f"grep 'Failed password' {log_path} | awk '{{print $(NF-3)}}' | sort | uniq -c | sort -nr | head -5"], 
-                                                                 capture_output=True, text=True, timeout=15)
+                                    resultado_ips = subprocess.run(['bash', '-c', f"grep 'Failed password' {log_path} | awk '{{print $(NF-3)}}' | sort | uniq -c | sort -nr | head -5"], capture_output=True, text=True, timeout=15)
                                     if resultado_ips.returncode == 0 and resultado_ips.stdout.strip():
                                         self.after(0, self._actualizar_texto_analisis, "   TOP 5 IPs con intentos fallidos:\n")
                                         for linea in resultado_ips.stdout.strip().split('\n'):
@@ -1945,37 +1997,35 @@ class VistaSIEM(tk.Frame):
                                                 if len(partes) >= 2:
                                                     intentos = partes[0]
                                                     ip = ' '.join(partes[1:])
-                                                    self.after(0, self._actualizar_texto_analisis, 
-                                                             f"       • {ip}: {intentos} intentos\n")
+                                                    self.after(0, self._actualizar_texto_analisis, f"       • {ip}: {intentos} intentos\n")
                                     else:
                                         self.after(0, self._actualizar_texto_analisis, "   [OK] No hay intentos de login fallidos\n")
-                                except:
-                                    self.after(0, self._actualizar_texto_analisis, "   [ERROR] No se pudo analizar IPs\n")
-                            
-                            # 4. EVENTOS RECIENTES
+                                except Exception as e:
+                                    self.after(0, self._actualizar_texto_analisis, f"   [ERROR] No se pudo analizar IPs: {e}\n")
+
+                            # 4. EVENTOS RECIENTES (manejo especial para logs binarios)
                             self.after(0, self._actualizar_texto_analisis, "\n4. EVENTOS RECIENTES (Últimas 5 entradas):\n")
-                            resultado = subprocess.run(['tail', '-n', '5', log_path], 
-                                                     capture_output=True, text=True, timeout=10)
-                            if resultado.returncode == 0 and resultado.stdout.strip():
-                                lineas = resultado.stdout.strip().split('\n')
-                                for i, linea in enumerate(lineas, 1):
-                                    if linea.strip():
-                                        timestamp = ' '.join(linea.split()[:3])
-                                        mensaje = ' '.join(linea.split()[3:15])
-                                        self.after(0, self._actualizar_texto_analisis, 
-                                                 f"   [{i}] {timestamp}: {mensaje}...\n")
-                            
+                            try:
+                                if any(x in log_path for x in ['wtmp', 'lastlog', 'faillog']):
+                                    resultado = subprocess.run(['last', '-n', '5', '-f', log_path], capture_output=True, text=True, timeout=10)
+                                else:
+                                    resultado = subprocess.run(['tail', '-n', '5', log_path], capture_output=True, text=True, timeout=10)
+                                if resultado.returncode == 0 and resultado.stdout.strip():
+                                    lineas = resultado.stdout.strip().split('\n')
+                                    for i, linea in enumerate(lineas, 1):
+                                        if linea.strip():
+                                            self.after(0, self._actualizar_texto_analisis, f"   [{i}] {linea[:120]}...\n")
+                            except Exception as e:
+                                self.after(0, self._actualizar_texto_analisis, f"   [ERROR] No se pudieron obtener eventos recientes: {e}\n")
+
                             # RESUMEN DEL ARCHIVO
                             total_eventos_criticos += alertas_archivo
                             nivel_riesgo = "BAJO" if alertas_archivo < 10 else "MEDIO" if alertas_archivo < 50 else "ALTO"
                             self.after(0, self._actualizar_texto_analisis, f"\n   RESUMEN: {alertas_archivo} eventos detectados - Riesgo: {nivel_riesgo}\n")
-                                    
                         except Exception as e:
-                            self.after(0, self._actualizar_texto_analisis, 
-                                     f"   [ERROR] Error procesando archivo: {str(e)}\n")
+                            self.after(0, self._actualizar_texto_analisis, f"   [ERROR] Error procesando archivo: {str(e)}\n")
                     else:
-                        self.after(0, self._actualizar_texto_analisis, 
-                                 f"   [WARNING] Archivo no encontrado\n")
+                        self.after(0, self._actualizar_texto_analisis, f"   [WARNING] Archivo no encontrado\n")
                 
                 # RESUMEN GLOBAL
                 self.after(0, self._actualizar_texto_analisis, "\n" + "="*80 + "\n")
@@ -3643,21 +3693,17 @@ ls -la "$OUTPUT_DIR/"
         threading.Thread(target=ejecutar_monitoreo, daemon=True).start()
 
     def parar_monitoreo(self):
-        """Detener el monitoreo en tiempo real usando sistema unificado."""
-        # Detener variable de control
+        """Detener el monitoreo en tiempo real usando sistema unificado con advertencia profesional."""
+        import tkinter.messagebox as messagebox
+        if not messagebox.askyesno("Confirmar acción crítica", "¿Está seguro que desea detener el monitoreo SIEM? Esta acción puede afectar la supervisión de seguridad en curso."):
+            self._log_terminal("Operación de detención de monitoreo SIEM cancelada por el usuario.", "SIEM", "INFO")
+            return
         self.monitoreo_activo = False
-        
-        # Importar sistema unificado
         from ..utils.detener_procesos import detener_procesos
-        
-        # Callbacks para la vista
         def callback_actualizacion(mensaje):
             self._actualizar_texto_forense(mensaje)
-        
         def callback_habilitar():
             self._log_terminal("Monitoreo SIEM detenido completamente", "SIEM", "INFO")
-        
-        # Usar sistema unificado
         detener_procesos.detener_monitoreo(callback_actualizacion, callback_habilitar)
 
     def integrar_osquery_kali(self):
