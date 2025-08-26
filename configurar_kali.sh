@@ -107,7 +107,7 @@ install_tools() {
         "curl"
         "wget"
         "git"
-        
+
         # Herramientas de escaneador PROFESIONAL (CORE)
         "nmap"                  # Escaneador principal - CRÍTICO
         "masscan"              # Escaneo masivo rápido
@@ -116,28 +116,22 @@ install_tools() {
         "tcpdump"              # Captura de paquetes
         "iftop"                # Monitor de red
         "netcat-openbsd"       # Netcat
-        
-    # Herramientas forense y SIEM VERIFICADAS
-    "wireshark"            # Análisis de tráfico
-    "autopsy"              # Forense digital
-    "sleuthkit"            # Toolkit forense
-    "foremost"             # Recuperación de archivos
-    "binwalk"              # Análisis de firmware
-    "strings"              # Extracción de strings
-    "exiftool"             # Metadatos
-    "testdisk"             # Recuperación de particiones y archivos
-    "photorec"             # Recuperación de archivos multimedia
-    "plaso"                # Análisis de líneas de tiempo forense
-    "bulk-extractor"       # Extracción forense de datos
-    "hashdeep"             # Hashing forense
-    "dc3dd"                # Clonado forense de discos
-    "guymager"             # Adquisición forense de discos
-    "tsk_recover"          # Sleuthkit: recuperación de archivos
-    "tsk_loaddb"           # Sleuthkit: carga de base de datos
-    "tsk_gettimes"         # Sleuthkit: extracción de tiempos
-    "tsk_comparedir"       # Sleuthkit: comparación de directorios
-    "tsk_imageinfo"        # Sleuthkit: info de imagen forense
-        
+
+        # Herramientas forense y SIEM VERIFICADAS (paquetes correctos)
+        "wireshark"            # Análisis de tráfico
+        "autopsy"              # Forense digital
+        "sleuthkit"            # Toolkit forense (incluye tsk_*)
+        "foremost"             # Recuperación de archivos
+        "binwalk"              # Análisis de firmware
+        "binutils"             # Incluye strings
+        "exiftool"             # Metadatos
+        "testdisk"             # Incluye photorec
+        "plaso"                # Análisis de líneas de tiempo forense
+        "bulk-extractor"       # Extracción forense de datos
+        "hashdeep"             # Hashing forense
+        "dc3dd"                # Clonado forense de discos
+        "guymager"             # Adquisición forense de discos
+
         # Utilidades del sistema ESTABLES
         "htop"
         "lsof"
