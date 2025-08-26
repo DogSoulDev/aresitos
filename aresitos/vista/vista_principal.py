@@ -29,17 +29,27 @@ class VistaPrincipal(tk.Frame):
     def __init__(self, parent):
         super().__init__(parent)
         self.controlador = None
-        
         # Configurar logging
         self.logger = logging.getLogger(__name__)
-        
+
+        # Favicon robusto multiplataforma para la ventana principal
+        try:
+            import os
+            from tkinter import PhotoImage
+            root = parent.winfo_toplevel() if hasattr(parent, 'winfo_toplevel') else parent
+            icon_path = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "recursos", "aresitos.png")
+            if os.path.exists(icon_path):
+                self._icon_img = PhotoImage(file=icon_path)
+                root.iconphoto(True, self._icon_img)
+        except Exception as e:
+            self.logger.warning(f"[WARN] No se pudo cargar el icono de ventana principal: {e}")
+
         # Solo aplicar tema si está disponible
         if BURP_THEME_AVAILABLE:
             self.theme = burp_theme
             self.setup_burp_theme(parent)
         else:
             self.theme = None
-            
         self.crear_widgets()
 
     def setup_burp_theme(self, parent):

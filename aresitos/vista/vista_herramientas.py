@@ -73,7 +73,19 @@ class VistaHerramientasKali(tk.Frame):
                 'warning': '#ffaa00'
             }
             self.configure(bg=self.colors['bg_primary'])
-        
+
+        # Favicon robusto multiplataforma para la ventana principal de herramientas
+        try:
+            import os
+            from tkinter import PhotoImage
+            root = self.winfo_toplevel()
+            icon_path = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "recursos", "aresitos.png")
+            if os.path.exists(icon_path):
+                self._icon_img = PhotoImage(file=icon_path)
+                root.iconphoto(True, self._icon_img)
+        except Exception as e:
+            self.logger.warning(f"[WARN] No se pudo cargar el icono de ventana: {e}")
+
         self.crear_interfaz()
     
     def set_controlador(self, controlador: Optional[Any]):

@@ -14,6 +14,10 @@ except ImportError:
     burp_theme = None
 
 class VistaAuditoria(tk.Frame):
+    def set_controlador(self, controlador):
+        """Establece el controlador principal para la vista de auditoría (stub seguro)."""
+        self.controlador = controlador
+        # Se puede ampliar para conectar callbacks o lógica específica
     def _mostrar_ayuda_comandos(self):
         self._actualizar_texto_auditoria("[INFO] Ayuda de comandos no implementada aún.\n")
 

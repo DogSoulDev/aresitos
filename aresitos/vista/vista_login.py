@@ -281,6 +281,16 @@ class LoginAresitos:
         self.root = tk.Tk()
         self.root.title("ARESITOS - Autenticacion Segura")
         self.root.geometry("900x700")
+        # Favicon robusto multiplataforma
+        try:
+            import os
+            from tkinter import PhotoImage
+            icon_path = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "recursos", "aresitos.png")
+            if os.path.exists(icon_path):
+                self._icon_img = PhotoImage(file=icon_path)
+                self.root.iconphoto(True, self._icon_img)
+        except Exception as e:
+            print(f"[WARN] No se pudo cargar el icono de ventana: {e}")
         
         # Ventana principal configurada
         
@@ -1022,6 +1032,16 @@ class LoginAresitos:
             root_app = tk.Tk()
             root_app.title("Aresitos")
             root_app.geometry("1400x900")
+            # Favicon robusto multiplataforma
+            try:
+                import os
+                from tkinter import PhotoImage
+                icon_path = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "recursos", "aresitos.png")
+                if os.path.exists(icon_path):
+                    self._icon_img2 = PhotoImage(file=icon_path)
+                    root_app.iconphoto(True, self._icon_img2)
+            except Exception as e:
+                print(f"[WARN] No se pudo cargar el icono de ventana principal: {e}")
             
             # Ventana configurada
             
