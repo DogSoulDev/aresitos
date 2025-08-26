@@ -1,0 +1,2 @@
+# Archivo oculto para forzar el seguimiento de carpetas vacías en git.
+# No eliminar. Permite que la carpeta exista en el repositorio aunque esté vacía.
