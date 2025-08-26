@@ -606,71 +606,99 @@ class VistaEscaneo(tk.Frame):
             self._actualizar_texto_seguro("\n" + "=" * 70 + "\n")
             self._actualizar_texto_seguro("    RESULTADOS CONSOLIDADOS - ESCANEO KALI 2025\n")
             self._actualizar_texto_seguro("=" * 70 + "\n\n")
-            
+
             total_vulnerabilidades = 0
             total_puertos = 0
             total_servicios = 0
-            
+            errores_detectados = False
+
             for i, resultado in enumerate(resultados_totales["resultados"], 1):
                 datos = resultado.get("resultado", {})
                 objetivo = datos.get("objetivo", f"Objetivo {i}")
-                
                 self._actualizar_texto_seguro(f"--- OBJETIVO {i}: {objetivo} ---\n")
-                
-                # Resumen ejecutivo por objetivo
-                resumen = datos.get("resumen", {})
+
+                # Mostrar errores si existen
+                if 'error' in datos and datos['error']:
+                    self._actualizar_texto_seguro(f"  ERROR: {datos['error']}\n")
+                    self._log_terminal(f"ERROR en escaneo de {objetivo}: {datos['error']}", "ESCANEADOR", "ERROR")
+                    errores_detectados = True
+                    continue
+
+                resumen = datos.get('resumen', {})
                 if resumen:
                     puertos = resumen.get('puertos_abiertos', 0)
                     servicios = resumen.get('servicios_detectados', 0)
                     vulnerabilidades = resumen.get('vulnerabilidades_encontradas', 0)
-                    
+
                     self._actualizar_texto_seguro(f"  Puertos abiertos: {puertos}\n")
                     self._actualizar_texto_seguro(f"  Servicios: {servicios}\n")
                     self._actualizar_texto_seguro(f"  Vulnerabilidades: {vulnerabilidades}\n")
-                    
+
                     total_puertos += puertos
                     total_servicios += servicios
                     total_vulnerabilidades += vulnerabilidades
-                
-                # Mostrar algunos detalles importantes
+
                 fases = datos.get("fases", {})
-                if "nmap" in fases and fases["nmap"].get("exito"):
-                    servicios_importantes = fases["nmap"].get("servicios", [])[:3]
-                    for servicio in servicios_importantes:
-                        puerto = servicio.get("puerto", "N/A")
-                        nombre = servicio.get("servicio", "desconocido")
-                        self._actualizar_texto_seguro(f"    ├─ Puerto {puerto}: {nombre}\n")
-                
-                if "nuclei" in fases and fases["nuclei"].get("exito"):
-                    vulnerabilidades = fases["nuclei"].get("vulnerabilidades", [])[:2]
-                    for vuln in vulnerabilidades:
-                        template = vuln.get("template", "N/A")
-                        self._actualizar_texto_seguro(f"    [!] VULNERABILIDAD: {template}\n")
-                
+                if "nmap" in fases:
+                    if fases["nmap"].get("error"):
+                        self._actualizar_texto_seguro(f"    [ERROR NMAP]: {fases['nmap']['error']}\n")
+                        errores_detectados = True
+                    elif fases["nmap"].get("exito"):
+                        servicios_importantes = fases["nmap"].get("servicios", [])[:3]
+                        for servicio in servicios_importantes:
+                            puerto = servicio.get("puerto", "N/A")
+                            nombre = servicio.get("servicio", "desconocido")
+                            self._actualizar_texto_seguro(f"    ├─ Puerto {puerto}: {nombre}\n")
+
+                if "nuclei" in fases:
+                    if fases["nuclei"].get("error"):
+                        self._actualizar_texto_seguro(f"    [ERROR NUCLEI]: {fases['nuclei']['error']}\n")
+                        errores_detectados = True
+                    elif fases["nuclei"].get("exito"):
+                        vulnerabilidades = fases["nuclei"].get("vulnerabilidades", [])[:2]
+                        for vuln in vulnerabilidades:
+                            template = vuln.get("template", "N/A")
+                            self._actualizar_texto_seguro(f"    [!] VULNERABILIDAD: {template}\n")
+
+                if "masscan" in fases and fases["masscan"].get("error"):
+                    self._actualizar_texto_seguro(f"    [ERROR MASSCAN]: {fases['masscan']['error']}\n")
+                    errores_detectados = True
+                if "gobuster" in fases and fases["gobuster"].get("error"):
+                    self._actualizar_texto_seguro(f"    [ERROR GOBUSTER]: {fases['gobuster']['error']}\n")
+                    errores_detectados = True
+                if "ffuf" in fases and fases["ffuf"].get("error"):
+                    self._actualizar_texto_seguro(f"    [ERROR FFUF]: {fases['ffuf']['error']}\n")
+                    errores_detectados = True
+
                 self._actualizar_texto_seguro("\n")
-            
+
             # Resumen global
             self._actualizar_texto_seguro("--- RESUMEN GLOBAL ---\n")
             self._actualizar_texto_seguro(f"Total objetivos escaneados: {len(resultados_totales['resultados'])}\n")
             self._actualizar_texto_seguro(f"Total puertos abiertos: {total_puertos}\n")
             self._actualizar_texto_seguro(f"Total servicios detectados: {total_servicios}\n")
             self._actualizar_texto_seguro(f"Total vulnerabilidades: {total_vulnerabilidades}\n\n")
-            
-            # Recomendaciones
+
+            # Recomendaciones y advertencias
             self._actualizar_texto_seguro("--- RECOMENDACIONES ---\n")
+            if errores_detectados:
+                self._actualizar_texto_seguro("ATENCIÓN: Se detectaron errores en el escaneo. Revisa los mensajes anteriores y asegúrate de que todas las herramientas estén instaladas y configuradas correctamente.\n")
             if total_vulnerabilidades > 0:
                 self._actualizar_texto_seguro("CRITICO: Se encontraron vulnerabilidades - Revisar inmediatamente\n")
             if total_puertos > 20:
                 self._actualizar_texto_seguro("ATENCION: Muchos puertos abiertos - Revisar superficie de ataque\n")
             self._actualizar_texto_seguro("🔵 Revisar logs detallados en el módulo SIEM\n")
             self._actualizar_texto_seguro("🔵 Considerar monitoreo FIM de archivos críticos\n\n")
-            
+
             self._actualizar_texto_seguro("=" * 70 + "\n")
-            self._actualizar_texto_seguro("        ESCANEO KALI 2025 COMPLETADO EXITOSAMENTE\n")
+            if errores_detectados:
+                self._actualizar_texto_seguro("        ESCANEO KALI 2025 FINALIZADO CON ERRORES\n")
+            else:
+                self._actualizar_texto_seguro("        ESCANEO KALI 2025 COMPLETADO EXITOSAMENTE\n")
             self._actualizar_texto_seguro("=" * 70 + "\n")
-            
-            self._log_terminal("CONTROLADOR Escaneo Kali 2025 completado con éxito", "ESCANEADOR", "SUCCESS")
-            
+
+            self._log_terminal("CONTROLADOR Escaneo Kali 2025 finalizado", "ESCANEADOR", "SUCCESS" if not errores_detectados else "WARNING")
+
         except Exception as e:
             self._actualizar_texto_seguro(f"Error mostrando resultados consolidados: {str(e)}\n")
             self._log_terminal(f"Error mostrando resultados: {str(e)}", "ESCANEADOR", "ERROR")
