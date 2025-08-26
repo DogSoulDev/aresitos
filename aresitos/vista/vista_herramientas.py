@@ -413,6 +413,8 @@ LISTO PARA: Escaneos de vulnerabilidades en entornos Kali Linux 2025
                 # Análisis de malware (expandido para FIM y cuarentena FASE 3.3)
                 'clamav', 'clamscan', 'freshclam', 'clamav-daemon', 'yara', 'binwalk', 'strings', 'file', 'exiftool',
                 'hexdump', 'foremost', 'sleuthkit', 'autopsy',
+                'testdisk', 'photorec', 'plaso', 'bulk-extractor', 'hashdeep', 'dc3dd', 'guymager',
+                'tsk_recover', 'tsk_loaddb', 'tsk_gettimes', 'tsk_comparedir', 'tsk_imageinfo',
                 # FIM y monitoreo avanzado (FASE 3.2 y 3.3)
                 'pspy', 'pspy64', 'pspy32', 'linpeas', 'logger', 'fail2ban-client', 'logwatch',
                 'incron', 'fswatch', 'entr', 'watchman',
@@ -569,6 +571,8 @@ LISTO PARA: Escaneos de vulnerabilidades en entornos Kali Linux 2025
                 # Cuarentena y malware (FASE 3.3 - FIM expandido)
                 'clamav', 'clamav-daemon', 'clamav-freshclam', 'yara', 'binwalk', 'exiftool',
                 'foremost', 'sleuthkit', 'autopsy',
+                'testdisk', 'photorec', 'plaso', 'bulk-extractor', 'hashdeep', 'dc3dd', 'guymager',
+                'tsk_recover', 'tsk_loaddb', 'tsk_gettimes', 'tsk_comparedir', 'tsk_imageinfo',
                 # SIEM y auditoría (FASE 3.2)
                 'fail2ban', 'aide', 'tripwire', 'samhain',
                 # Herramientas de análisis avanzado (FASE 3)
@@ -622,6 +626,18 @@ LISTO PARA: Escaneos de vulnerabilidades en entornos Kali Linux 2025
             
             # Herramientas que requieren instalación manual (se informará al usuario):
             herramientas_manuales = [
+                'testdisk: apt install testdisk',
+                'photorec: apt install testdisk',
+                'plaso: apt install plaso',
+                'bulk-extractor: apt install bulk-extractor',
+                'hashdeep: apt install hashdeep',
+                'dc3dd: apt install dc3dd',
+                'guymager: apt install guymager',
+                'tsk_recover: apt install sleuthkit',
+                'tsk_loaddb: apt install sleuthkit',
+                'tsk_gettimes: apt install sleuthkit',
+                'tsk_comparedir: apt install sleuthkit',
+                'tsk_imageinfo: apt install sleuthkit',
                 'rustscan: cargo install rustscan (requiere Rust)',
                 'httpx: go install github.com/projectdiscovery/httpx/cmd/httpx@latest (requiere Go)',
                 'nuclei: go install github.com/projectdiscovery/nuclei/v2/cmd/nuclei@latest (requiere Go)',

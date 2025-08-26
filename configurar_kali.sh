@@ -117,14 +117,26 @@ install_tools() {
         "iftop"                # Monitor de red
         "netcat-openbsd"       # Netcat
         
-        # Herramientas forense y SIEM VERIFICADAS
-        "wireshark"            # Análisis de tráfico
-        "autopsy"              # Forense digital
-        "sleuthkit"            # Toolkit forense
-        "foremost"             # Recuperación de archivos
-        "binwalk"              # Análisis de firmware
-        "strings"              # Extracción de strings
-        "exiftool"             # Metadatos
+    # Herramientas forense y SIEM VERIFICADAS
+    "wireshark"            # Análisis de tráfico
+    "autopsy"              # Forense digital
+    "sleuthkit"            # Toolkit forense
+    "foremost"             # Recuperación de archivos
+    "binwalk"              # Análisis de firmware
+    "strings"              # Extracción de strings
+    "exiftool"             # Metadatos
+    "testdisk"             # Recuperación de particiones y archivos
+    "photorec"             # Recuperación de archivos multimedia
+    "plaso"                # Análisis de líneas de tiempo forense
+    "bulk-extractor"       # Extracción forense de datos
+    "hashdeep"             # Hashing forense
+    "dc3dd"                # Clonado forense de discos
+    "guymager"             # Adquisición forense de discos
+    "tsk_recover"          # Sleuthkit: recuperación de archivos
+    "tsk_loaddb"           # Sleuthkit: carga de base de datos
+    "tsk_gettimes"         # Sleuthkit: extracción de tiempos
+    "tsk_comparedir"       # Sleuthkit: comparación de directorios
+    "tsk_imageinfo"        # Sleuthkit: info de imagen forense
         
         # Utilidades del sistema ESTABLES
         "htop"
@@ -151,9 +163,21 @@ install_tools() {
         "rkhunter"             # Hunter de rootkits
         "clamav"               # Antivirus
         
-        # Herramientas forense adicionales
-        "volatility3"          # Análisis de memoria
-        "yara"                 # Pattern matching
+    # Herramientas forense adicionales
+    "volatility3"          # Análisis de memoria
+    "yara"                 # Pattern matching
+    "testdisk"             # Recuperación de particiones y archivos
+    "photorec"             # Recuperación de archivos multimedia
+    "plaso"                # Análisis de líneas de tiempo forense
+    "bulk-extractor"       # Extracción forense de datos
+    "hashdeep"             # Hashing forense
+    "dc3dd"                # Clonado forense de discos
+    "guymager"             # Adquisición forense de discos
+    "tsk_recover"          # Sleuthkit: recuperación de archivos
+    "tsk_loaddb"           # Sleuthkit: carga de base de datos
+    "tsk_gettimes"         # Sleuthkit: extracción de tiempos
+    "tsk_comparedir"       # Sleuthkit: comparación de directorios
+    "tsk_imageinfo"        # Sleuthkit: info de imagen forense
     )
     
     # Herramientas especiales que requieren instalación manual
@@ -163,6 +187,7 @@ install_tools() {
     )
     
     print_info "Actualizando lista de paquetes..."
+    print_info "Incluyendo herramientas forenses avanzadas: testdisk, photorec, plaso, bulk-extractor, hashdeep, dc3dd, guymager, tsk_recover, tsk_loaddb, tsk_gettimes, tsk_comparedir, tsk_imageinfo"
     apt update -qq
     
     # Instalar herramientas ESENCIALES (críticas para funcionamiento)
