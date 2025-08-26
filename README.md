@@ -1,9 +1,9 @@
 
 ![ARESITOS](aresitos/recursos/aresitos.png)
 
-# ARESITOS - Herramienta de Ciberseguridad Profesional para Kali Linux
+# ARESITOS - Herramienta de Ciberseguridad
 
-ARESITOS es una suite profesional 100% Python nativo (sin librerías externas) para ciberseguridad ofensiva y defensiva en Kali Linux. Integra escaneo de vulnerabilidades, SIEM, FIM, cuarentena, dashboard, reportes y utilidades forenses, todo bajo arquitectura MVC y principios SOLID/DRY. El sistema aprovecha herramientas nativas de Kali Linux y automatiza su verificación e instalación, garantizando robustez, seguridad y compatibilidad total con entornos forenses y de auditoría.
+ARESITOS es una herramienta de ciberseguridad 100% Python nativo (sin librerías externas) para sistemas operativos Kali Linux. Integra escaneo de vulnerabilidades, SIEM, FIM, cuarentena, dashboard, reportes y utilidades forenses, todo bajo arquitectura MVC y principios SOLID/DRY. El sistema aprovecha herramientas nativas de Kali Linux y automatiza su verificación e instalación, garantizando robustez, seguridad y compatibilidad total con entornos forenses y de auditoría.
 
 **Principales módulos:**
 - Escaneo de vulnerabilidades (nmap, masscan, nuclei, gobuster, ffuf, feroxbuster)
