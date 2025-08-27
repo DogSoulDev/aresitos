@@ -166,41 +166,55 @@ class FIMKali2025(_FIMBase):  # type: ignore
     
     def iniciar_monitoreo_tiempo_real(self, rutas_monitorear: List[str]) -> Dict[str, Any]:
         """
-        Inicia monitoreo en tiempo real con inotify-tools
+        Inicia monitoreo en tiempo real con inotify-tools, mostrando detalle de rutas monitoreadas y fallidas.
         """
         self.log(f"ANALIZANDO Iniciando monitoreo tiempo real: {len(rutas_monitorear)} rutas")
-        
+
         if 'inotifywait' not in self.herramientas_disponibles:
+            self.log("ERROR: inotifywait (inotify-tools) no está disponible. Instala con: sudo apt install inotify-tools")
             return {"error": "inotifywait no disponible"}
-        
-        try:
-            for ruta in rutas_monitorear:
-                if os.path.exists(ruta):
-                    # Crear thread de monitoreo para cada ruta
-                    thread = threading.Thread(
-                        target=self._monitorear_ruta_inotify,
-                        args=(ruta,),
-                        daemon=True
-                    )
-                    thread.start()
-                    self.monitores_activos[ruta] = {
-                        'thread': thread,
-                        'activo': True,
-                        'timestamp_inicio': datetime.now().isoformat()
-                    }
-                else:
-                    self.log(f"OK Ruta no existe: {ruta}")
-            
-            self.log(f"OK Monitoreo iniciado en {len(self.monitores_activos)} rutas")
-            return {
-                "exito": True,
-                "rutas_monitoreadas": len(self.monitores_activos),
-                "herramienta": "inotify-tools"
-            }
-            
-        except Exception as e:
-            self.log(f"OK Error iniciando monitoreo: {e}")
-            return {"error": str(e)}
+
+        rutas_ok = []
+        rutas_fallidas = []
+        for ruta in rutas_monitorear:
+            if not os.path.exists(ruta):
+                self.log(f"[FIM] Ruta no existe: {ruta}")
+                rutas_fallidas.append((ruta, "No existe"))
+                continue
+            if not os.access(ruta, os.R_OK):
+                self.log(f"[FIM] Sin permisos de lectura: {ruta}")
+                rutas_fallidas.append((ruta, "Sin permisos de lectura"))
+                continue
+            try:
+                thread = threading.Thread(
+                    target=self._monitorear_ruta_inotify,
+                    args=(ruta,),
+                    daemon=True
+                )
+                thread.start()
+                self.monitores_activos[ruta] = {
+                    'thread': thread,
+                    'activo': True,
+                    'timestamp_inicio': datetime.now().isoformat()
+                }
+                rutas_ok.append(ruta)
+            except Exception as e:
+                self.log(f"[FIM] Error iniciando monitoreo en {ruta}: {e}")
+                rutas_fallidas.append((ruta, f"Error: {e}"))
+
+        self.log(f"[FIM] Monitoreo iniciado en {len(rutas_ok)} rutas. Fallidas: {len(rutas_fallidas)}")
+        if rutas_ok:
+            self.log(f"[FIM] Rutas monitoreadas: {', '.join(rutas_ok)}")
+        if rutas_fallidas:
+            for ruta, motivo in rutas_fallidas:
+                self.log(f"[FIM] Ruta no monitoreada: {ruta} - Motivo: {motivo}")
+
+        return {
+            "exito": True if rutas_ok else False,
+            "rutas_monitoreadas": len(rutas_ok),
+            "rutas_fallidas": rutas_fallidas,
+            "herramienta": "inotify-tools"
+        }
     
     def _monitorear_ruta_inotify(self, ruta: str):
         """Thread de monitoreo con inotifywait"""

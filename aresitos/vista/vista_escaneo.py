@@ -639,6 +639,19 @@ class VistaEscaneo(tk.Frame):
                     total_vulnerabilidades += vulnerabilidades
 
                 fases = datos.get("fases", {})
+                # Refuerzo: buscar y mostrar información del sistema operativo si está disponible en cualquier fase
+                sistema_operativo = None
+                if "nmap" in fases and fases["nmap"].get("sistema_operativo"):
+                    sistema_operativo = fases["nmap"]["sistema_operativo"]
+                # Buscar en otras fases si no está en nmap
+                if not sistema_operativo:
+                    for fase in fases.values():
+                        if isinstance(fase, dict) and fase.get("sistema_operativo"):
+                            sistema_operativo = fase["sistema_operativo"]
+                            break
+                if sistema_operativo:
+                    self._actualizar_texto_seguro(f"  Sistema Operativo Detectado: {sistema_operativo}\n")
+
                 if "nmap" in fases:
                     if fases["nmap"].get("error"):
                         self._actualizar_texto_seguro(f"    [ERROR NMAP]: {fases['nmap']['error']}\n")
