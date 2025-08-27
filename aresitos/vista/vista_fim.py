@@ -25,20 +25,33 @@ class VistaFIM(tk.Frame):
         self.controlador = None
         self.proceso_monitoreo_activo = False
         self.thread_monitoreo = None
-        
-        # Configurar logging
         self.logger = logging.getLogger(__name__)
-        
-        # Configurar tema y colores de manera consistente
+        # Centralizar rutas críticas/sensibles de Kali Linux
+        self.rutas_sensibles_kali = [
+            '/etc/passwd', '/etc/shadow', '/etc/group', '/etc/sudoers', '/etc/security/', '/etc/login.defs',
+            '/etc/ssh/sshd_config', '/etc/ssh/ssh_config', '/root/.ssh/', '/home/*/.ssh/', '/etc/hosts.allow', '/etc/hosts.deny',
+            '/boot/', '/lib/modules/', '/proc/modules', '/sys/module/', '/etc/modules', '/etc/modprobe.d/',
+            '/etc/hosts', '/etc/resolv.conf', '/etc/network/interfaces', '/etc/iptables/', '/etc/ufw/',
+            '/etc/systemd/system/', '/etc/init.d/', '/etc/cron.d/', '/etc/crontab', '/var/spool/cron/', '/etc/anacrontab',
+            '/var/log/auth.log', '/var/log/syslog', '/var/log/kern.log', '/var/log/secure', '/var/log/wtmp', '/var/log/btmp',
+            '/bin/', '/sbin/', '/usr/bin/', '/usr/sbin/', '/usr/local/bin/', '/usr/local/sbin/',
+            '/etc/apt/sources.list', '/etc/apt/sources.list.d/', '/etc/default/', '/opt/', '/usr/share/kali-*',
+            '/var/log/audit/', '/var/log/faillog', '/var/log/lastlog', '/var/log/apt/', '/var/log/dpkg.log',
+            '/var/log/clamav/', '/var/log/rkhunter.log', '/var/log/chkrootkit.log', '/var/log/plaso/', '/var/log/forensics/',
+            '/var/log/guymager/', '/var/log/testdisk.log', '/var/log/autopsy/', '/var/log/volatility/', '/var/log/yara/',
+            '/var/log/lynis.log', '/var/log/lynis-report.dat', '/var/log/lynis-control.dat',
+            '/var/lib/aide/', '/var/lib/tripwire/', '/var/lib/samhain/', '/etc/fail2ban/', '/etc/aide/', '/etc/tripwire/', '/etc/samhain/',
+            '/etc/logrotate.d/', '/etc/rsyslog.d/', '/etc/audit/', '/etc/mysql/', '/etc/postgresql/', '/etc/bind/', '/etc/dhcp/', '/etc/samba/', '/etc/vsftpd/'
+        ]
+        # Configurar tema y colores
         if BURP_THEME_AVAILABLE and burp_theme:
             self.theme = burp_theme
             self.configure(bg=burp_theme.get_color('bg_primary'))
-            # Configurar estilos TTK
             style = ttk.Style()
             burp_theme.configure_ttk_style(style)
             self.colors = {
                 'bg_primary': burp_theme.get_color('bg_primary'),
-                'bg_secondary': burp_theme.get_color('bg_secondary'), 
+                'bg_secondary': burp_theme.get_color('bg_secondary'),
                 'fg_primary': burp_theme.get_color('fg_primary'),
                 'fg_secondary': burp_theme.get_color('fg_secondary'),
                 'fg_accent': burp_theme.get_color('fg_accent'),
@@ -53,7 +66,7 @@ class VistaFIM(tk.Frame):
             self.theme = None
             self.colors = {
                 'bg_primary': 'white',
-                'bg_secondary': '#f0f0f0', 
+                'bg_secondary': '#f0f0f0',
                 'fg_primary': 'black',
                 'fg_secondary': '#666666',
                 'fg_accent': '#007acc',
@@ -64,8 +77,50 @@ class VistaFIM(tk.Frame):
                 'danger': '#dc3545',
                 'info': '#17a2b8'
             }
-        
         self.crear_interfaz()
+        # Verificar permisos root al iniciar
+        if not self._es_root():
+            self._deshabilitar_todo_fim_por_root()
+            messagebox.showwarning("Permisos insuficientes", "Debes ejecutar ARESITOS como root para usar el FIM.")
+            self._actualizar_texto_fim("[ERROR] Debes ejecutar ARESITOS como root para usar el FIM.\n")
+
+
+    def _es_root(self):
+        try:
+            import sys
+            import os
+            if sys.platform.startswith('linux'):
+                geteuid = getattr(os, 'geteuid', None)
+                if callable(geteuid):
+                    return geteuid() == 0
+                getuid = getattr(os, 'getuid', None)
+                if callable(getuid):
+                    return getuid() == 0
+                import getpass
+                return getpass.getuser() == 'root'
+            else:
+                import getpass
+                return getpass.getuser() == 'root'
+        except Exception:
+            return False
+
+    def _deshabilitar_todo_fim_por_root(self):
+        # Deshabilita todos los botones de monitoreo y muestra advertencia
+        try:
+            if hasattr(self, 'btn_iniciar'):
+                self.btn_iniciar.config(state="disabled")
+            if hasattr(self, 'btn_detener'):
+                self.btn_detener.config(state="disabled")
+            if hasattr(self, 'btn_verificar'):
+                self.btn_verificar.config(state="disabled")
+            if hasattr(self, 'btn_monitoreo_avanzado'):
+                self.btn_monitoreo_avanzado.config(state="disabled")
+            if hasattr(self, 'btn_analisis_forense'):
+                self.btn_analisis_forense.config(state="disabled")
+            if hasattr(self, 'btn_tiempo_real'):
+                self.btn_tiempo_real.config(state="disabled")
+        except Exception:
+            pass
     
     def _log_terminal(self, mensaje, modulo="FIM", nivel="INFO"):
         """Registrar actividad en el terminal integrado global."""

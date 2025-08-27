@@ -14,6 +14,70 @@ except ImportError:
     burp_theme = None
 
 class VistaAuditoria(tk.Frame):
+    herramientas_apt = [
+        'lynis', 'rkhunter', 'chkrootkit', 'clamav', 'nuclei', 'httpx', 'linpeas', 'pspy'
+    ]
+    rutas_criticas = [
+        '/etc/passwd', '/etc/shadow', '/etc/group', '/etc/sudoers', '/etc/ssh/sshd_config', '/etc/hosts',
+        '/var/log/auth.log', '/var/log/syslog', '/var/log/kern.log', '/var/log/secure', '/var/log/wtmp', '/var/log/btmp',
+        '/usr/bin/', '/usr/sbin/', '/bin/', '/sbin/', '/usr/local/bin/', '/usr/local/sbin/', '/var/log/lynis.log', '/var/log/rkhunter.log', '/var/log/chkrootkit.log'
+    ]
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.colors = {
+            'bg_primary': '#232629',
+            'bg_secondary': '#31363b',
+            'fg_primary': '#f8f8f2',
+            'fg_accent': '#ffb86c',
+            'warning': '#ff5555',
+            'danger': '#ff5555',
+            'success': '#50fa7b',
+            'info': '#8be9fd',
+        }
+        if BURP_THEME_AVAILABLE and burp_theme:
+            if hasattr(burp_theme, 'colors'):
+                self.colors.update(burp_theme.colors)
+            elif isinstance(burp_theme, dict):
+                self.colors.update(burp_theme)
+        self.proceso_auditoria_activo = False
+        self.crear_interfaz()
+        # Verificar permisos root al iniciar
+        if not self._es_root():
+            self._deshabilitar_todo_auditoria_por_root()
+            messagebox.showwarning("Permisos insuficientes", "Debes ejecutar ARESITOS como root para usar la Auditoría.")
+            self._actualizar_texto_auditoria("[ERROR] Debes ejecutar ARESITOS como root para usar la Auditoría.\n")
+
+    def _es_root(self):
+        try:
+            import sys
+            import os
+            if sys.platform.startswith('linux'):
+                geteuid = getattr(os, 'geteuid', None)
+                if callable(geteuid):
+                    return geteuid() == 0
+                getuid = getattr(os, 'getuid', None)
+                if callable(getuid):
+                    return getuid() == 0
+                import getpass
+                return getpass.getuser() == 'root'
+            else:
+                import getpass
+                return getpass.getuser() == 'root'
+        except Exception:
+            return False
+
+    def _deshabilitar_todo_auditoria_por_root(self):
+        # Deshabilita todos los botones de auditoría y muestra advertencia
+        try:
+            for attr in [
+                'btn_cancelar_rootkits', 'btn_iniciar', 'btn_detener', 'btn_verificar',
+                'btn_monitoreo_avanzado', 'btn_analisis_forense', 'btn_tiempo_real'
+            ]:
+                if hasattr(self, attr):
+                    getattr(self, attr).config(state="disabled")
+        except Exception:
+            pass
     def set_controlador(self, controlador):
         """Establece el controlador principal para la vista de auditoría (stub seguro)."""
         self.controlador = controlador
@@ -98,26 +162,7 @@ class VistaAuditoria(tk.Frame):
         self._crear_seccion_deteccion_malware(left_frame)
         self._crear_seccion_configuraciones(left_frame)
         self._crear_seccion_utilidades(left_frame)
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        # Definir esquema de colores por defecto
-        self.colors = {
-            'bg_primary': '#232629',
-            'bg_secondary': '#31363b',
-            'fg_primary': '#f8f8f2',
-            'fg_accent': '#ffb86c',
-            'warning': '#ff5555',
-            'danger': '#ff5555',
-            'success': '#50fa7b',
-            'info': '#8be9fd',
-        }
-        # Si hay tema Burp Suite, sobreescribir colores
-        if BURP_THEME_AVAILABLE and burp_theme:
-            # Si burp_theme es una instancia, usar su atributo colors
-            if hasattr(burp_theme, 'colors'):
-                self.colors.update(burp_theme.colors)
-            elif isinstance(burp_theme, dict):
-                self.colors.update(burp_theme)
+    # ...existing code...
 
     def _mostrar_info_seguridad(self):
         """Mostrar información de seguridad y buenas prácticas."""

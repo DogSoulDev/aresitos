@@ -34,7 +34,7 @@ python3 main.py
 
 ### Herramientas forenses opcionales
 ```bash
-sudo apt install kali-tools-forensics wireshark autopsy sleuthkit hashdeep testdisk photorec plaso bulk-extractor dc3dd guymager
+sudo apt install kali-tools-forensics wireshark autopsy sleuthkit hashdeep testdisk plaso bulk-extractor dc3dd guymager
 ```
 
 ### Modo desarrollo (otros sistemas)
@@ -48,7 +48,7 @@ python3 main.py --dev
 
 - **Python:** 3.8 o superior
 - **Sistema operativo:** Kali Linux 2025 (recomendado, soporte parcial en otros Linux)
-- **Dependencias nativas:** nmap, masscan, nuclei, gobuster, ffuf, feroxbuster, wireshark, autopsy, sleuthkit, hashdeep, testdisk, photorec, plaso, bulk-extractor, dc3dd, guymager, git, curl, wget, sqlite3, python3-tk, python3-venv
+- **Dependencias nativas:** nmap, masscan, nuclei, gobuster, ffuf, feroxbuster, wireshark, autopsy, sleuthkit, hashdeep, testdisk, foremost, plaso, bulk-extractor, dc3dd, guymager, git, curl, wget, sqlite3, python3-tk, python3-venv
 - **Espacio en disco ocupado (instalación base):** ~19 MB
 - **RAM recomendada:** mínimo 1 GB libre (uso típico bajo, depende de los módulos activos)
 - **Espacio recomendado para datos:** 20 MB libres adicionales para bases de datos, cuarentena y reportes
