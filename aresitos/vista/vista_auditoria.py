@@ -32,10 +32,11 @@ class VistaAuditoria(tk.Frame):
             try:
                 self.auditoria_text.insert('end', texto)
                 self.auditoria_text.see('end')
-            except Exception:
-                pass
+            except Exception as e:
+                # Si falla la inserción, mostrar error en consola como último recurso
+                print(f"[ERROR] No se pudo actualizar el área de texto de auditoría: {e}\nIntentado mostrar: {texto}")
         else:
-            # Fallback seguro: print
+            # Fallback seguro: mostrar en consola
             print(texto)
 
     def analizar_servicios(self):
@@ -190,7 +191,7 @@ class VistaAuditoria(tk.Frame):
                 self.auditoria_text.insert(tk.END, "="*60 + "\n")
                 self.auditoria_text.insert(tk.END, "LOG Terminal Auditoría reiniciado\n\n")
         except Exception as e:
-            print(f"Error limpiando terminal Auditoría: {e}")
+            self._actualizar_texto_auditoria(f"[ERROR] Error limpiando terminal Auditoría: {e}\n")
     
     def ejecutar_comando_entry(self, event=None):
         """Ejecutar comando desde la entrada con validación de seguridad."""
@@ -260,7 +261,8 @@ class VistaAuditoria(tk.Frame):
     
     def abrir_logs_auditoria(self):
         """Abrir carpeta de logs Auditoría."""
-        pass
+    # Acción no implementada aún.
+    pass
     
     def _crear_seccion_deteccion_malware(self, parent):
         """Crear sección de detección de malware y rootkits."""
@@ -484,7 +486,7 @@ class VistaAuditoria(tk.Frame):
                                     self._actualizar_texto_auditoria(f"OK Terminado proceso {proceso} (PID: {pid.strip()})\n")
                                     procesos_terminados += 1
                     except Exception as e:
-                        continue
+                        self._actualizar_texto_auditoria(f"[ERROR] Fallo terminando proceso {proceso}: {e}\n")
                 
                 if procesos_terminados > 0:
                     self._actualizar_texto_auditoria(f"OK COMPLETADO: {procesos_terminados} procesos de rootkits terminados\n")
@@ -496,8 +498,8 @@ class VistaAuditoria(tk.Frame):
                 for archivo in archivos_temp:
                     try:
                         subprocess.run(['rm', '-f', archivo], capture_output=True)
-                    except:
-                        pass
+                    except Exception as e:
+                        self._actualizar_texto_auditoria(f"[ERROR] Fallo eliminando archivo temporal {archivo}: {e}\n")
                         
                 self._actualizar_texto_auditoria("OK Limpieza de archivos temporales completada\n")
                 self._actualizar_texto_auditoria("=== CANCELACIÓN ROOTKITS COMPLETADA ===\n\n")
@@ -709,28 +711,44 @@ class VistaAuditoria(tk.Frame):
         VistaDashboard.log_actividad_global(mensaje, modulo, nivel)
 
     def _analizar_resultados_chkrootkit(self, output):
-        """Analizar resultados de chkrootkit de forma inteligente."""
-        lineas = output.split('\n')
-        sospechas_criticas = []
-        sospechas_moderadas = []
-        total_checks = 0
-        # Patrones mejorados de detección para chkrootkit
-        patrones_criticos = ['INFECTED', 'SUSPECT', 'MALWARE', 'ROOTKIT', 'TROJAN']
-        patrones_moderados = ['WARNING', 'POSSIBLE', 'SUSPICIOUS', 'UNKNOWN']
-        for linea in lineas:
-            linea_clean = linea.strip()
-            if not linea_clean:
-                continue
-            linea_upper = linea_clean.upper()
-            # Contar checks realizados (líneas que contienen "CHECKING")
-            if 'CHECKING' in linea_upper:
-                total_checks += 1
-            # Clasificar hallazgos por criticidad
-            if any(patron in linea_upper for patron in patrones_criticos):
-                sospechas_criticas.append(linea_clean)
-            elif any(patron in linea_upper for patron in patrones_moderados):
-                sospechas_moderadas.append(linea_clean)
-            
-
-            self.auditoria_text.see(tk.END)
+        """Analizar resultados de chkrootkit de forma robusta y mostrar todo en pantalla."""
+        try:
+            lineas = output.split('\n')
+            sospechas_criticas = []
+            sospechas_moderadas = []
+            total_checks = 0
+            # Patrones mejorados de detección para chkrootkit
+            patrones_criticos = ['INFECTED', 'SUSPECT', 'MALWARE', 'ROOTKIT', 'TROJAN']
+            patrones_moderados = ['WARNING', 'POSSIBLE', 'SUSPICIOUS', 'UNKNOWN']
+            for linea in lineas:
+                linea_clean = linea.strip()
+                if not linea_clean:
+                    continue
+                linea_upper = linea_clean.upper()
+                # Contar checks realizados (líneas que contienen "CHECKING")
+                if 'CHECKING' in linea_upper:
+                    total_checks += 1
+                # Clasificar hallazgos por criticidad
+                if any(patron in linea_upper for patron in patrones_criticos):
+                    sospechas_criticas.append(linea_clean)
+                elif any(patron in linea_upper for patron in patrones_moderados):
+                    sospechas_moderadas.append(linea_clean)
+            self._actualizar_texto_auditoria(f"\n[CHKROOTKIT] Chequeos realizados: {total_checks}\n")
+            if sospechas_criticas:
+                self._actualizar_texto_auditoria(f"[CRÍTICO] Hallazgos críticos: {len(sospechas_criticas)}\n")
+                for s in sospechas_criticas[:20]:
+                    self._actualizar_texto_auditoria(f"  {s}\n")
+                if len(sospechas_criticas) > 20:
+                    self._actualizar_texto_auditoria(f"  ...y {len(sospechas_criticas)-20} más\n")
+            else:
+                self._actualizar_texto_auditoria("[OK] No se detectaron amenazas críticas.\n")
+            if sospechas_moderadas:
+                self._actualizar_texto_auditoria(f"[MODERADO] Hallazgos moderados: {len(sospechas_moderadas)}\n")
+                for s in sospechas_moderadas[:20]:
+                    self._actualizar_texto_auditoria(f"  {s}\n")
+                if len(sospechas_moderadas) > 20:
+                    self._actualizar_texto_auditoria(f"  ...y {len(sospechas_moderadas)-20} más\n")
+            self._actualizar_texto_auditoria("[INFO] Análisis chkrootkit finalizado.\n\n")
+        except Exception as e:
+            self._actualizar_texto_auditoria(f"[ERROR] Fallo analizando resultados chkrootkit: {e}\n")
 

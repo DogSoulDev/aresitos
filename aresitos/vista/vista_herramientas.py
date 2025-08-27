@@ -402,7 +402,7 @@ LISTO PARA: Escaneos de vulnerabilidades en entornos Kali Linux 2025
 
             # Lista de herramientas esenciales modernizadas para Kali 2025
             herramientas = [
-                # ... (misma lista que antes, sin cambios) ...
+                # Herramientas 100% APT/integradas, robustas y recomendadas para ARESITOS
                 'ps', 'ss', 'lsof', 'netstat', 'top', 'free', 'df', 'uname', 'who', 'last',
                 'find', 'stat', 'grep', 'awk', 'sort', 'uniq', 'wc', 'tail', 'head',
                 'systemctl', 'ip', 'route', 'wget', 'curl', 'diff', 'ls', 'chmod', 'chown',
@@ -411,18 +411,17 @@ LISTO PARA: Escaneos de vulnerabilidades en entornos Kali Linux 2025
                 'inotifywait', 'inotify-tools', 'auditd', 'ausearch', 'aide',
                 'debsums', 'dpkg', 'rpm', 'synaptic',
                 'chkrootkit', 'rkhunter', 'lynis', 'unhide', 'tiger', 'maldet',
-                'nmap', 'masscan', 'rustscan', 'gobuster', 'feroxbuster', 'nikto', 'nuclei', 'httpx',
+                'nmap', 'masscan', 'rustscan', 'gobuster', 'feroxbuster', 'nikto', 'nuclei',
                 'zmap', 'unicornscan', 'hping3', 'dirb', 'dirbuster',
-                'netcat', 'netcat-traditional', 'whatweb', 'wfuzz', 'ffuf', 'dirb',
+                'netcat', 'netcat-traditional', 'whatweb', 'wfuzz', 'ffuf',
                 'enum4linux', 'smbclient', 'rpcclient', 'ldapsearch',
                 'hashcat', 'john', 'hydra', 'medusa', 'patator', 'crunch', 'cewl',
-                'sqlmap', 'sqlninja', 'sqlite3', 'mysql', 'psql',
+                'sqlmap', 'sqlite3', 'mysql', 'psql',
                 'clamav', 'clamscan', 'freshclam', 'clamav-daemon', 'yara', 'binwalk', 'strings', 'file', 'exiftool',
                 'hexdump', 'foremost', 'sleuthkit', 'autopsy',
                 'testdisk', 'photorec', 'plaso', 'bulk-extractor', 'hashdeep', 'dc3dd', 'guymager',
                 'tsk_recover', 'tsk_loaddb', 'tsk_gettimes', 'tsk_comparedir', 'tsk_imageinfo',
-                'pspy', 'pspy64', 'pspy32', 'linpeas', 'logger', 'fail2ban-client', 'logwatch',
-                'incron', 'fswatch', 'entr', 'watchman',
+                'logger', 'fail2ban-client', 'logwatch',
                 'logrotate', 'rsyslog', 'journalctl', 'aureport', 'auditctl',
                 'osquery', 'osqueryi', 'tcpdump', 'wireshark', 'tshark',
                 'strace', 'ltrace', 'gdb', 'objdump', 'readelf',

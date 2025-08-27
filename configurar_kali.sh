@@ -157,27 +157,25 @@ install_tools() {
         "rkhunter"             # Hunter de rootkits
         "clamav"               # Antivirus
         
-    # Herramientas forense adicionales
-    "volatility3"          # Análisis de memoria
-    "yara"                 # Pattern matching
-    "testdisk"             # Recuperación de particiones y archivos
-    "photorec"             # Recuperación de archivos multimedia
-    "plaso"                # Análisis de líneas de tiempo forense
-    "bulk-extractor"       # Extracción forense de datos
-    "hashdeep"             # Hashing forense
-    "dc3dd"                # Clonado forense de discos
-    "guymager"             # Adquisición forense de discos
-    "tsk_recover"          # Sleuthkit: recuperación de archivos
-    "tsk_loaddb"           # Sleuthkit: carga de base de datos
-    "tsk_gettimes"         # Sleuthkit: extracción de tiempos
-    "tsk_comparedir"       # Sleuthkit: comparación de directorios
-    "tsk_imageinfo"        # Sleuthkit: info de imagen forense
+        # Herramientas forense adicionales (todas disponibles por APT)
+        "yara"                 # Pattern matching
+        "testdisk"             # Recuperación de particiones y archivos
+        "photorec"             # Recuperación de archivos multimedia
+        "plaso"                # Análisis de líneas de tiempo forense
+        "bulk-extractor"       # Extracción forense de datos
+        "hashdeep"             # Hashing forense
+        "dc3dd"                # Clonado forense de discos
+        "guymager"             # Adquisición forense de discos
+        "tsk_recover"          # Sleuthkit: recuperación de archivos
+        "tsk_loaddb"           # Sleuthkit: carga de base de datos
+        "tsk_gettimes"         # Sleuthkit: extracción de tiempos
+        "tsk_comparedir"       # Sleuthkit: comparación de directorios
+        "tsk_imageinfo"        # Sleuthkit: info de imagen forense
     )
     
     # Herramientas especiales que requieren instalación manual
     SPECIAL_TOOLS=(
-        "subfinder"            # Subdomain finder (Go)
-        "httpx"                # HTTP probe (Go)
+        "subfinder"            # Subdomain finder (Go, opcional, no recomendado para ARESITOS)
     )
     
     print_info "Actualizando lista de paquetes..."
@@ -248,34 +246,14 @@ install_tools() {
         fi
     fi
     
-    # Verificar herramientas especiales de Go (subfinder, httpx)
+    # Verificar herramientas especiales de Go (subfinder, opcional)
     if command -v go >/dev/null 2>&1; then
-        print_info "Go detectado, instalando herramientas adicionales..."
-        
-        # Subfinder para enumeración de subdominios
+        print_info "Go detectado, puede instalar subfinder si lo desea (opcional, no recomendado para ARESITOS)"
+        # Subfinder para enumeración de subdominios (opcional)
         if ! command -v subfinder >/dev/null 2>&1; then
-            print_info "Instalando subfinder..."
-            sudo -u "$REAL_USER" go install -v github.com/projectdiscovery/subfinder/v2/cmd/subfinder@latest >/dev/null 2>&1
-            if command -v subfinder >/dev/null 2>&1; then
-                print_success "subfinder instalado"
-            else
-                print_info "subfinder puede requerir ajuste de PATH: export PATH=\$PATH:~/go/bin"
-            fi
+            print_info "Puede instalar subfinder manualmente si lo requiere: go install github.com/projectdiscovery/subfinder/v2/cmd/subfinder@latest"
         else
             print_success "subfinder ya está disponible"
-        fi
-        
-        # httpx para verificación HTTP
-        if ! command -v httpx >/dev/null 2>&1; then
-            print_info "Instalando httpx..."
-            sudo -u "$REAL_USER" go install -v github.com/projectdiscovery/httpx/cmd/httpx@latest >/dev/null 2>&1
-            if command -v httpx >/dev/null 2>&1; then
-                print_success "httpx instalado"
-            else
-                print_info "httpx puede requerir ajuste de PATH: export PATH=\$PATH:~/go/bin"
-            fi
-        else
-            print_success "httpx ya está disponible"
         fi
     else
         print_info "Go no detectado - herramientas adicionales no instaladas"
