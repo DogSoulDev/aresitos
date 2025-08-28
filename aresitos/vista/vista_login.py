@@ -1,12 +1,14 @@
+
 # -*- coding: utf-8 -*-
 """
-ARESITOS - Vista de Login
-========================
-
-Vista para autenticación y verificación de herramientas del sistema ARESITOS.
-
-Autor: DogSoulDev
-Fecha: 16 de Agosto de 2025
+PRINCIPIOS DE SEGURIDAD ARESITOS (NO MODIFICAR SIN AUDITORÍA)
+- Nunca solicitar ni almacenar la contraseña de root.
+- Nunca mostrar, registrar ni filtrar la contraseña de root.
+- Ningún input de usuario debe usarse como comando sin validar.
+- Todos los comandos pasan por el validador y gestor de permisos.
+- Prohibido el uso de eval, exec, os.system, subprocess.Popen directo.
+- Prohibido shell=True salvo justificación y validación exhaustiva.
+- Si algún desarrollador necesita privilegios, usar solo gestor_permisos.
 """
 
 import os
@@ -254,6 +256,27 @@ def verificar_permisos_admin_seguro():
     return es_root()
 
 class LoginAresitos:
+
+    def revocar_sudo(self):
+        """Revoca el estado sudo y actualiza el terminal principal."""
+        try:
+            from aresitos.utils.sudo_manager import SudoManager
+            sudo_manager = SudoManager()
+            sudo_manager.clear_sudo()
+            # Actualizar inmediatamente el estado sudo en el terminal principal si está disponible
+            try:
+                from aresitos.vista.vista_principal import VistaPrincipal
+                dashboard = None
+                for widget in self.root.winfo_children():
+                    if isinstance(widget, VistaPrincipal):
+                        dashboard = getattr(widget, 'vista_dashboard', None)
+                        break
+                if dashboard and hasattr(dashboard, '_actualizar_sudo_estado_terminal'):
+                    dashboard._actualizar_sudo_estado_terminal()
+            except Exception:
+                pass
+        except Exception:
+            pass
     """
     Interfaz grafica de login para Aresitos con verificación completa del sistema.
     Exclusivamente para Kali Linux con tema Burp Suite.
@@ -269,7 +292,7 @@ class LoginAresitos:
             else:
                 print("ERROR: ARESITOS requiere Kali Linux")
                 print("Sistema no compatible detectado")
-                sys.exit(1)
+                self.salir_sistema(1)
         
         # Inicializar rate limiter
         self.rate_limiter = RateLimiter(max_intentos=3, ventana_tiempo=300)
@@ -297,7 +320,6 @@ class LoginAresitos:
         # Configurar tema Burp Suite
         if BURP_THEME_AVAILABLE and burp_theme:
             self.theme = burp_theme
-            # Definir colores usando el tema
             self.bg_primary = burp_theme.get_color('bg_primary')
             self.bg_secondary = burp_theme.get_color('bg_secondary')
             self.bg_tertiary = burp_theme.get_color('bg_tertiary')
@@ -340,9 +362,30 @@ class LoginAresitos:
         
         # Crear interfaz
         self.crear_interfaz()
-        
-        # Auto-verificar entorno al inicio
-        threading.Thread(target=self.verificar_entorno_inicial, daemon=True).start()
+
+    def cerrar_ventana(self):
+        """Cierra la ventana principal revocando sudo."""
+        try:
+            self.revocar_sudo()
+        except Exception:
+            pass
+        self.root.destroy()
+
+    def ocultar_ventana(self):
+        """Oculta la ventana principal revocando sudo."""
+        try:
+            self.revocar_sudo()
+        except Exception:
+            pass
+        self.root.withdraw()
+
+    def salir_sistema(self, code=1):
+        """Sale del sistema revocando sudo."""
+        try:
+            self.revocar_sudo()
+        except Exception:
+            pass
+        sys.exit(code)
         
     def centrar_ventana(self):
         """Centrar la ventana en la pantalla"""
@@ -434,7 +477,7 @@ class LoginAresitos:
             bg=self.accent_red,
             fg="#ffffff",
             relief=tk.FLAT,
-            command=self.continuar_sin_root,
+            command=self.cerrar_ventana,
             cursor='hand2'
         )
         self.skip_btn.pack(side=tk.LEFT)
@@ -493,14 +536,26 @@ class LoginAresitos:
             bg=self.accent_red,
             fg="#ffffff",
             relief=tk.FLAT,
-            command=self.root.quit,
+            command=self._salir_con_revocacion_sudo,
             cursor='hand2',
             padx=20
         )
         exit_btn.pack(side=tk.LEFT)
-        
-        # Focus en campo de contraseña
-        self.password_entry.focus()
+
+    def _salir_con_revocacion_sudo(self):
+        """Revoca sudo y cierra la aplicación de forma segura."""
+        try:
+            self.revocar_sudo()
+        except Exception:
+            pass
+        self.root.destroy()
+
+    def enfocar_password(self):
+        """Coloca el foco en el campo de contraseña si existe."""
+        try:
+            self.password_entry.focus()
+        except Exception:
+            pass
     
     def escribir_log(self, mensaje):
         """Escribir mensaje en el area de logs de forma segura"""
@@ -790,10 +845,24 @@ class LoginAresitos:
                 # CRÍTICO: Configurar SudoManager para mantener sudo en todas las ventanas
                 sudo_manager = SudoManager()
                 sudo_manager.set_sudo_authenticated(password)
-                
+
+                # Actualizar inmediatamente el estado sudo en el terminal principal si está disponible
+                try:
+                    from aresitos.vista.vista_principal import VistaPrincipal
+                    dashboard = None
+                    # Buscar ventana principal y dashboard
+                    for widget in self.root.winfo_children():
+                        if isinstance(widget, VistaPrincipal):
+                            dashboard = getattr(widget, 'vista_dashboard', None)
+                            break
+                    if dashboard and hasattr(dashboard, '_actualizar_sudo_estado_terminal'):
+                        dashboard._actualizar_sudo_estado_terminal()
+                except Exception:
+                    pass
+
                 # Configurar permisos completos para ARESITOS
                 self.configurar_permisos_aresitos(password)
-                
+
                 # Limpiar contraseña de memoria (excepto en SudoManager que la necesita)
                 self.password_entry.delete(0, tk.END)
                 
@@ -999,7 +1068,7 @@ class LoginAresitos:
             vista_herramientas.pack(fill="both", expand=True)
             
             # Ocultar ventana de login
-            self.root.withdraw()
+            self.ocultar_ventana()
             
             self.escribir_log("Ventana de herramientas Kali abierta")
             
@@ -1024,7 +1093,7 @@ class LoginAresitos:
             self.escribir_log("Módulos principales importados correctamente")
             
             # Cerrar ventana de login
-            self.root.destroy()
+            self.cerrar_ventana()
             
             self.escribir_log("Creando aplicación principal...")
             
@@ -1125,7 +1194,7 @@ def main():
     except ImportError as e:
         print(f"ERROR: tkinter no disponible: {e}")
         print("Instale con: sudo apt install python3-tk")
-        sys.exit(1)
+    sys.exit(1)
     
     # Crear y ejecutar aplicación de login
     try:

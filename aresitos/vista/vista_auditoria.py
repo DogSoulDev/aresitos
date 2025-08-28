@@ -1,4 +1,15 @@
+
 # -*- coding: utf-8 -*-
+"""
+PRINCIPIOS DE SEGURIDAD ARESITOS (NO MODIFICAR SIN AUDITORÍA)
+- Nunca solicitar ni almacenar la contraseña de root.
+- Nunca mostrar, registrar ni filtrar la contraseña de root.
+- Ningún input de usuario debe usarse como comando sin validar.
+- Todos los comandos pasan por el validador y gestor de permisos.
+- Prohibido el uso de eval, exec, os.system, subprocess.Popen directo.
+- Prohibido shell=True salvo justificación y validación exhaustiva.
+- Si algún desarrollador necesita privilegios, usar solo gestor_permisos.
+"""
 
 import tkinter as tk
 from tkinter import ttk, scrolledtext, messagebox, filedialog
@@ -14,6 +25,16 @@ except ImportError:
     burp_theme = None
 
 class VistaAuditoria(tk.Frame):
+    # =============================================================
+    # PRINCIPIOS DE SEGURIDAD ARESITOS (NO TOCAR SIN AUDITORÍA)
+    # - Nunca solicitar ni almacenar la contraseña de root.
+    # - Nunca mostrar, registrar ni filtrar la contraseña de root.
+    # - Ningún input de usuario debe usarse como comando sin validar.
+    # - Todos los comandos pasan por el validador y gestor de permisos.
+    # - Prohibido el uso de eval, exec, os.system, subprocess.Popen directo.
+    # - Prohibido shell=True salvo justificación y validación exhaustiva.
+    # - Si algún desarrollador necesita privilegios, usar solo gestor_permisos.
+    # =============================================================
     herramientas_apt = [
         'lynis', 'rkhunter', 'chkrootkit', 'clamav', 'nuclei', 'httpx', 'linpeas', 'pspy'
     ]
@@ -24,6 +45,8 @@ class VistaAuditoria(tk.Frame):
     ]
 
     def __init__(self, *args, **kwargs):
+    # NUNCA solicitar ni almacenar la contraseña de root en la interfaz.
+    # Si el usuario no es root, solo mostrar advertencia y bloquear acciones.
         super().__init__(*args, **kwargs)
         self.colors = {
             'bg_primary': '#232629',
@@ -150,6 +173,8 @@ class VistaAuditoria(tk.Frame):
         )
         self._actualizar_texto_auditoria(info)
     def _ejecutar_comando_seguro(self, comando, descripcion="", timeout=60, usar_sudo=False, mostrar_en_terminal=True):
+    # NUNCA solicitar ni manejar la contraseña de root aquí ni en ningún método.
+    # Todos los comandos pasan por el validador y gestor de permisos.
         """
         Ejecuta un comando externo de forma segura, validando y registrando la acción.
         - Valida el comando con el validador global de seguridad.
@@ -158,8 +183,8 @@ class VistaAuditoria(tk.Frame):
         - Maneja errores y timeouts de forma robusta.
         """
         from aresitos.utils.seguridad_comandos import validador_comandos
-        import subprocess
         try:
+            # Validar SIEMPRE el comando antes de ejecutar
             valido, comando_sanitizado, msg = validador_comandos.validar_comando_completo(comando)
             if not valido:
                 self._actualizar_texto_auditoria(f"[SECURITY] {msg}\n")
@@ -175,6 +200,7 @@ class VistaAuditoria(tk.Frame):
                 comando_list = comando_sanitizado
             herramienta = comando_list[0]
             argumentos = comando_list[1:]
+            # Solo ejecutar comandos a través del gestor de permisos
             exito, out, err = ejecutar_comando_seguro(herramienta, argumentos, timeout=timeout)
             if mostrar_en_terminal:
                 if out:

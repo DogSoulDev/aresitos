@@ -1,8 +1,16 @@
 # -*- coding: utf-8 -*-
 """
+PRINCIPIOS DE SEGURIDAD ARESITOS (NO MODIFICAR SIN AUDITORÍA)
+- Nunca solicitar ni almacenar la contraseña de root.
+- Nunca mostrar, registrar ni filtrar la contraseña de root.
+- Ningún input de usuario debe usarse como comando sin validar.
+- Todos los comandos pasan por el validador y gestor de permisos.
+- Prohibido el uso de eval, exec, os.system, subprocess.Popen directo.
+- Prohibido shell=True salvo justificación y validación exhaustiva.
+- Si algún desarrollador necesita privilegios, usar solo gestor_permisos.
+
 ARESITOS - Módulo de Seguridad para Comandos de Terminal
 ========================================================
-
 Módulo de seguridad que valida y sanitiza comandos ejecutados desde 
 los terminales integrados de ARESITOS para prevenir ejecución de
 comandos maliciosos o no autorizados.

@@ -1,8 +1,14 @@
+
 # -*- coding: utf-8 -*-
 """
-Ares Aegis - Vista Dashboard Optimizada
-Dashboard para expertos en ciberseguridad con métricas específicas
-Actualización cada 60 segundos para optimizar recursos
+PRINCIPIOS DE SEGURIDAD ARESITOS (NO MODIFICAR SIN AUDITORÍA)
+- Nunca solicitar ni almacenar la contraseña de root.
+- Nunca mostrar, registrar ni filtrar la contraseña de root.
+- Ningún input de usuario debe usarse como comando sin validar.
+- Todos los comandos pasan por el validador y gestor de permisos.
+- Prohibido el uso de eval, exec, os.system, subprocess.Popen directo.
+- Prohibido shell=True salvo justificación y validación exhaustiva.
+- Si algún desarrollador necesita privilegios, usar solo gestor_permisos.
 """
 
 import tkinter as tk
