@@ -409,8 +409,7 @@ LISTO PARA: Escaneos de vulnerabilidades en entornos Kali Linux 2025
                 # Escaneo profesional
                 'nmap', 'masscan', 'rustscan', 'nuclei', 'ffuf', 'feroxbuster', 'nikto', 'whatweb', 'dirb', 'gobuster',
                 # Forense y análisis
-                'sleuthkit', 'tsk_recover', 'tsk_loaddb', 'tsk_gettimes', 'tsk_comparedir', 'tsk_imageinfo',
-                'testdisk', 'plaso', 'bulk-extractor', 'hashdeep', 'dc3dd', 'guymager', 'foremost', 'binwalk', 'exiftool', 'yara',
+                'sleuthkit', 'testdisk', 'plaso', 'bulk-extractor', 'hashdeep', 'dc3dd', 'guymager', 'foremost', 'binwalk', 'exiftool', 'yara',
                 # Seguridad y auditoría
                 'clamav', 'clamav-daemon', 'chkrootkit', 'rkhunter', 'lynis', 'auditd', 'aide', 'debsums', 'rsyslog', 'logrotate', 'logwatch',
                 # Análisis avanzado y red
@@ -585,9 +584,8 @@ LISTO PARA: Escaneos de vulnerabilidades en entornos Kali Linux 2025
                 'sqlmap', 'sqlninja',
                 # Cuarentena y malware (FASE 3.3 - FIM expandido)
                 'clamav', 'clamav-daemon', 'clamav-freshclam', 'yara', 'binwalk', 'exiftool',
-                'foremost', 'sleuthkit', 'autopsy',
-                'testdisk', 'photorec', 'plaso', 'bulk-extractor', 'hashdeep', 'dc3dd', 'guymager',
-                'tsk_recover', 'tsk_loaddb', 'tsk_gettimes', 'tsk_comparedir', 'tsk_imageinfo',
+                'foremost', 'sleuthkit',
+                'testdisk', 'plaso', 'bulk-extractor', 'hashdeep', 'dc3dd', 'guymager',
                 # SIEM y auditoría (FASE 3.2)
                 'fail2ban', 'aide', 'tripwire', 'samhain',
                 # Herramientas de análisis avanzado (FASE 3)
@@ -642,18 +640,12 @@ LISTO PARA: Escaneos de vulnerabilidades en entornos Kali Linux 2025
             # Herramientas que requieren instalación manual (se informará al usuario):
             herramientas_manuales = [
                 'testdisk: apt install testdisk',
-                'photorec: apt install testdisk',
                 'plaso: apt install plaso',
                 'bulk-extractor: apt install bulk-extractor',
                 'hashdeep: apt install hashdeep',
                 'dc3dd: apt install dc3dd',
                 'guymager: apt install guymager',
-                'tsk_recover: apt install sleuthkit',
-                'tsk_loaddb: apt install sleuthkit',
-                'tsk_gettimes: apt install sleuthkit',
-                'tsk_comparedir: apt install sleuthkit',
-                'tsk_imageinfo: apt install sleuthkit',
-                'rustscan: cargo install rustscan (requiere Rust)',
+                'rustscan: apt install rustscan || descargar binario oficial',
                 'httpx: go install github.com/projectdiscovery/httpx/cmd/httpx@latest (requiere Go)',
                 'nuclei: go install github.com/projectdiscovery/nuclei/v2/cmd/nuclei@latest (requiere Go)',
                 'linpeas: wget https://github.com/carlospolop/PEASS-ng/releases/latest/download/linpeas.sh',

@@ -143,18 +143,15 @@ install_tools() {
     # Herramientas de escaneador avanzado (todas disponibles via APT)
     "ffuf"                 # Fuzzer web rápido (VERIFICADO en repos Kali)
     "feroxbuster"          # Scanner de directorios Rust (VERIFICADO en repos Kali)
-    "rustscan"             # Scanner ultrarrápido Rust (VERIFICADO en repos Kali)
     "nuclei"               # Motor de vulnerabilidades (VERIFICADO en repos Kali)
     "nikto"                # Scanner web
     "whatweb"              # Identificación web
     "dirb"                 # Brute force directorios
-        
     # Herramientas de seguridad adicionales
     "lynis"                # Auditoría de seguridad
     "chkrootkit"           # Detección de rootkits
     "rkhunter"             # Hunter de rootkits
     "clamav"               # Antivirus
-        
     # Herramientas forense adicionales (todas disponibles por APT)
     "yara"                 # Pattern matching
     "testdisk"             # Recuperación de particiones y archivos
@@ -163,11 +160,6 @@ install_tools() {
     "hashdeep"             # Hashing forense
     "dc3dd"                # Clonado forense de discos
     "guymager"             # Adquisición forense de discos
-    "tsk_recover"          # Sleuthkit: recuperación de archivos
-    "tsk_loaddb"           # Sleuthkit: carga de base de datos
-    "tsk_gettimes"         # Sleuthkit: extracción de tiempos
-    "tsk_comparedir"       # Sleuthkit: comparación de directorios
-    "tsk_imageinfo"        # Sleuthkit: info de imagen forense
     )
     
     # Herramientas especiales que requieren instalación manual
@@ -206,12 +198,10 @@ install_tools() {
     
     for tool in "${ADVANCED_TOOLS[@]}"; do
         print_info "Instalando herramienta avanzada: $tool..."
-        
         if dpkg -l | grep -q "^ii  $tool "; then
             print_success "$tool ya está instalado"
         else
             DEBIAN_FRONTEND=noninteractive apt install -y "$tool" >/dev/null 2>&1
-            
             if [[ $? -eq 0 ]]; then
                 print_success "$tool instalado correctamente"
             else
@@ -220,6 +210,30 @@ install_tools() {
             fi
         fi
     done
+
+    # Instalar rustscan si no está disponible en apt (descarga binario oficial)
+    if ! command -v rustscan >/dev/null 2>&1; then
+        print_info "rustscan no está en los repositorios o no se pudo instalar. Intentando instalar binario oficial..."
+        LATEST_RS_URL=$(curl -s https://api.github.com/repos/RustScan/RustScan/releases/latest | grep browser_download_url | grep linux_amd64 | cut -d '"' -f 4 | head -n1)
+        if [[ -n "$LATEST_RS_URL" ]]; then
+            cd /tmp
+            curl -LO "$LATEST_RS_URL"
+            TAR_FILE=$(basename "$LATEST_RS_URL")
+            tar -xzf "$TAR_FILE" 2>/dev/null || tar -xf "$TAR_FILE" 2>/dev/null
+            if [[ -f rustscan || -f ./rustscan ]]; then
+                chmod +x rustscan
+                mv rustscan /usr/local/bin/
+                print_success "rustscan instalado desde binario oficial"
+            else
+                print_warning "No se pudo instalar rustscan desde binario (continuando...)"
+                FAILED_ADVANCED+=("rustscan-bin")
+            fi
+            cd "$SCRIPT_DIR"
+        else
+            print_warning "No se pudo obtener binario oficial de rustscan (continuando...)"
+            FAILED_ADVANCED+=("rustscan-bin")
+        fi
+    fi
     
     # Instalar herramientas especiales para escaneador profesional
     print_header "Instalando herramientas especiales del escaneador..."
