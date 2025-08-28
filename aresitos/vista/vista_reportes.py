@@ -1307,20 +1307,24 @@ class VistaReportes(tk.Frame):
             }
     
     def abrir_logs_reportes(self):
-        """Abrir carpeta de logs Reportes."""
+        """Abrir carpeta de logs Reportes con ruta robusta y multiplataforma."""
         try:
             import os
             import platform
             import subprocess
-            logs_path = "logs/"
+            # Usar ruta absoluta robusta basada en la ubicación de este archivo
+            base_dir = os.path.abspath(os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..'))
+            logs_path = os.path.join(base_dir, 'logs')
             if os.path.exists(logs_path):
                 if platform.system() == "Linux":
                     subprocess.run(["xdg-open", logs_path], check=False)
-                else:
+                elif platform.system() == "Windows":
                     subprocess.run(["explorer", logs_path], check=False)
-                self.log_to_terminal("Carpeta de logs Reportes abierta")
+                else:
+                    self.log_to_terminal(f"No se soporta la apertura automática de carpetas en {platform.system()}")
+                self.log_to_terminal(f"Carpeta de logs Reportes abierta: {logs_path}")
             else:
-                self.log_to_terminal("WARNING: Carpeta de logs no encontrada")
+                self.log_to_terminal(f"WARNING: Carpeta de logs no encontrada en {logs_path}")
         except Exception as e:
             self.log_to_terminal(f"ERROR abriendo logs Reportes: {e}")
     
