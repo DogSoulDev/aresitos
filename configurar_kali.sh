@@ -817,38 +817,38 @@ configure_aresitos_permissions() {
     
     # Permisos para directorios de datos
     print_info "Configurando permisos para directorios de datos..."
-    print_info "Directorio actual: $(pwd)"
-    
+    print_info "Directorio actual: $SCRIPT_DIR"
+
     # Crear directorios si no existen (en el directorio del proyecto)
     mkdir -p "$SCRIPT_DIR/data/" "$SCRIPT_DIR/logs/" "$SCRIPT_DIR/configuración/"
-    
+
     # Configurar permisos
     chmod -R 755 "$SCRIPT_DIR/data/" 2>/dev/null
     chmod -R 755 "$SCRIPT_DIR/logs/" 2>/dev/null
     chmod -R 755 "$SCRIPT_DIR/configuración/" 2>/dev/null
-    
+
     if [ -d "$SCRIPT_DIR/aresitos/" ]; then
         chmod -R 755 "$SCRIPT_DIR/aresitos/" 2>/dev/null
         print_success "Permisos configurados para directorio aresitos/"
     fi
-    
+
     # Permisos específicos para bases de datos
-    if [ -f "data/cuarentena_kali2025.db" ]; then
-        chmod 664 data/cuarentena_kali2025.db
+    if [ -f "$SCRIPT_DIR/data/cuarentena_kali2025.db" ]; then
+        chmod 664 "$SCRIPT_DIR/data/cuarentena_kali2025.db"
         print_success "Permisos configurados para base de datos cuarentena"
     fi
-    
-    if [ -f "data/fim_kali2025.db" ]; then
-        chmod 664 data/fim_kali2025.db
+
+    if [ -f "$SCRIPT_DIR/data/fim_kali2025.db" ]; then
+        chmod 664 "$SCRIPT_DIR/data/fim_kali2025.db"
         print_success "Permisos configurados para base de datos FIM"
     fi
-    
+
     # Configurar propietario para el usuario no-root
     if [ "$DETECTED_USER" != "root" ]; then
-        chown -R "$DETECTED_USER":"$DETECTED_USER" . 2>/dev/null
+        chown -R "$DETECTED_USER":"$DETECTED_USER" "$SCRIPT_DIR" 2>/dev/null
         print_success "Propietario configurado para usuario $DETECTED_USER"
     fi
-    
+
     print_success "Permisos ARESITOS configurados correctamente"
 }
 
@@ -970,8 +970,8 @@ main() {
     print_info "Pasos siguientes:"
     echo "  1. Cierre y reabra la terminal para aplicar cambios de grupo"
     echo "  2. Execute el script de prueba: python3 $USER_HOME/test_ares_permissions.py"
-    echo "  3. Execute la verificación de permisos: python3 verificacion_permisos.py"
-    echo "  4. Inicie Ares Aegis: python3 main.py"
+    echo "  3. Execute la verificación de permisos: python3 $SCRIPT_DIR/verificacion_permisos.py"
+    echo "  4. Inicie Ares Aegis: python3 $SCRIPT_DIR/main.py"
     echo
     print_warning "IMPORTANTE: Reinicie la sesión para aplicar cambios de grupos"
 }
