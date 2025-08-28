@@ -701,12 +701,13 @@ class LoginAresitos:
         script_dir = os.path.dirname(os.path.abspath(__file__))
         aresitos_root = os.path.dirname(os.path.dirname(script_dir))
         
+        home = os.environ.get('HOME', os.path.expanduser('~'))
         rutas_posibles = [
             aresitos_root,  # Ruta calculada desde el script
-            "/home/kali/aresitos",
-            "/home/kali/Desktop/aresitos", 
-            "/home/kali/Ares-Aegis",
-            "/home/kali/Desktop/Ares-Aegis",
+            os.path.join(home, "aresitos"),
+            os.path.join(home, "Desktop", "aresitos"),
+            os.path.join(home, "Ares-Aegis"),
+            os.path.join(home, "Desktop", "Ares-Aegis"),
             os.path.expanduser("~/aresitos"),
             os.path.expanduser("~/Desktop/aresitos"),
             os.path.expanduser("~/Ares-Aegis"),

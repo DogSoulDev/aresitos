@@ -130,7 +130,10 @@ def main():
             
             print("Iniciando interfaz gráfica...")
             # Ejecutar GUI - esto manejará todo el flujo automáticamente
-            app_login.root.mainloop()
+            try:
+                app_login.root.mainloop()
+            except KeyboardInterrupt:
+                print("\nGracias por usar Aresitos, ¡nos vemos!")
             
             print("Sesión de login finalizada")
             return
@@ -193,7 +196,10 @@ def iniciar_aplicacion_clasica():
         print("Herramientas Kali Linux configuradas")
         
         # Ejecutar aplicación
-        root.mainloop()
+        try:
+            root.mainloop()
+        except KeyboardInterrupt:
+            print("\nGracias por usar Aresitos, ¡nos vemos!")
         
     except ImportError as e:
         print(f"Error importando módulos: {e}")
