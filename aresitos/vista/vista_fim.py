@@ -397,11 +397,13 @@ class VistaFIM(tk.Frame):
         self.terminal_output.see(tk.END)
     
     def abrir_logs_fim(self):
-        """Abrir carpeta de logs FIM."""
+        """Abrir carpeta de logs FIM con ruta robusta y multiplataforma."""
         try:
             import os
             import platform
-            logs_path = "logs/"
+            # Ruta robusta y multiplataforma al directorio de logs, relativa al proyecto
+            base_dir = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+            logs_path = os.path.join(base_dir, "logs")
             if os.path.exists(logs_path):
                 if platform.system() == "Linux":
                     subprocess.run(["xdg-open", logs_path], check=False)
