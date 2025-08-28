@@ -41,25 +41,21 @@ def verificar_modo_desarrollo():
 def configurar_permisos_basicos():
     """Configurar permisos básicos para archivos de configuración"""
     try:
-        directorio_actual = Path(__file__).parent
+        directorio_actual = Path(__file__).parent.resolve()
         config_dir = directorio_actual / 'configuración'
-        
         # Asegurar que el directorio de configuración sea legible
         if config_dir.exists():
             os.chmod(config_dir, 0o755)
-            
             # Asegurar que los archivos de configuración sean legibles
             for config_file in config_dir.glob('*.json'):
                 try:
                     os.chmod(config_file, 0o644)
                 except (OSError, PermissionError):
                     pass
-        
         # Asegurar permisos en data
         data_dir = directorio_actual / 'data'
         if data_dir.exists():
             os.chmod(data_dir, 0o755)
-            
     except Exception as e:
         print(f"Advertencia: No se pudieron configurar permisos básicos: {e}")
 
@@ -108,9 +104,8 @@ def main():
     configurar_permisos_basicos()
     
     # Verificar si existe vista login
-    directorio_actual = Path(__file__).parent
+    directorio_actual = Path(__file__).parent.resolve()
     vista_login_path = directorio_actual / 'aresitos' / 'vista' / 'vista_login.py'
-    
     if vista_login_path.exists():
         print("Iniciando con interfaz de login...")
         try:
@@ -241,35 +236,33 @@ def verificacion_estabilidad_sistema():
     verificaciones = []
     
     # Verificar estructura de archivos críticos
+    base_dir = Path(__file__).parent.resolve()
     archivos_criticos = [
-        "aresitos/vista/vista_principal.py",
-        "aresitos/controlador/controlador_principal.py", 
-        "aresitos/modelo/modelo_principal.py",
-        "aresitos/utils/sudo_manager.py",
-        "aresitos/vista/terminal_mixin.py"
+        base_dir / "aresitos" / "vista" / "vista_principal.py",
+        base_dir / "aresitos" / "controlador" / "controlador_principal.py",
+        base_dir / "aresitos" / "modelo" / "modelo_principal.py",
+        base_dir / "aresitos" / "utils" / "sudo_manager.py",
+        base_dir / "aresitos" / "vista" / "terminal_mixin.py"
     ]
-    
     for archivo in archivos_criticos:
-        if os.path.exists(archivo):
+        if archivo.exists():
             verificaciones.append(f"Archivo crítico: {archivo}")
         else:
             verificaciones.append(f"Archivo faltante: {archivo}")
-    
     # Verificar configuraciones (usar archivos que realmente existen)
     configs = [
-        "configuración/aresitos_config_completo.json", 
-        "configuración/textos_castellano_corregido.json"
+        base_dir / "configuración" / "aresitos_config_completo.json",
+        base_dir / "configuración" / "textos_castellano_corregido.json"
     ]
     for config in configs:
-        if os.path.exists(config):
+        if config.exists():
             verificaciones.append(f"Configuración: {config}")
         else:
             verificaciones.append(f"Configuración faltante: {config}")
-    
     # Verificar directorios de datos
-    directorios = ["data", "logs", "data/cheatsheets", "data/wordlists"]
+    directorios = [base_dir / "data", base_dir / "logs", base_dir / "data" / "cheatsheets", base_dir / "data" / "wordlists"]
     for directorio in directorios:
-        if os.path.exists(directorio):
+        if directorio.exists():
             verificaciones.append(f"Directorio: {directorio}")
         else:
             verificaciones.append(f"Directorio faltante: {directorio}")
