@@ -186,7 +186,7 @@ class VistaDashboard(tk.Frame):
             if 'kali' in platform.platform().lower():
                 from tkinter import PhotoImage
                 root = parent.winfo_toplevel() if hasattr(parent, 'winfo_toplevel') else parent
-                icon_path = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "recursos", "aresitos_icono.png")
+                icon_path = os.path.join(os.environ['HOME'], "aresitos", "aresitos", "recursos", "aresitos_icono.png")
                 if os.path.exists(icon_path):
                     self._icon_img = PhotoImage(file=icon_path)
                     root.iconphoto(True, self._icon_img)

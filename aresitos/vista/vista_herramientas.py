@@ -80,7 +80,7 @@ class VistaHerramientasKali(tk.Frame):
             import os
             from tkinter import PhotoImage
             root = self.winfo_toplevel()
-            icon_path = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "recursos", "aresitos_icono.png")
+            icon_path = os.path.join(os.environ['HOME'], "aresitos", "aresitos", "recursos", "aresitos_icono.png")
             if os.path.exists(icon_path):
                 self._icon_img = PhotoImage(file=icon_path)
                 root.iconphoto(True, self._icon_img)
