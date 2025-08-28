@@ -347,17 +347,20 @@ class VistaEscaneo(tk.Frame):
         self.terminal_output.see(tk.END)
     
     def abrir_logs_escaneo(self):
-        """Abrir carpeta de logs Escaneador."""
+        """Abrir carpeta de logs Escaneador con ruta robusta y multiplataforma."""
         try:
             import os
             import platform
             import subprocess
-            logs_path = "logs/"
+            base_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..', '..'))
+            logs_path = os.path.join(base_dir, 'logs')
             if os.path.exists(logs_path):
                 if platform.system() == "Linux":
                     subprocess.run(["xdg-open", logs_path], check=False)
-                else:
+                elif platform.system() == "Windows":
                     subprocess.run(["explorer", logs_path], check=False)
+                else:
+                    subprocess.run(["open", logs_path], check=False)
                 self.log_to_terminal("Carpeta de logs Escaneador abierta")
             else:
                 self.log_to_terminal("WARNING: Carpeta de logs no encontrada")
@@ -1517,32 +1520,28 @@ class VistaEscaneo(tk.Frame):
         return {"exito": True, "resultado": resultados}
 
     def _exportar_resultados_escaneo(self, resultados, formato="json"):
-        """Exportar resultados de escaneo a archivo."""
+        """Exportar resultados de escaneo a archivo con ruta robusta y multiplataforma."""
         import json
         import os
         from datetime import datetime
-        
         try:
-            # Crear directorio de reportes si no existe
-            directorio_reportes = "/tmp/aresitos_reportes"
+            # Crear directorio de reportes en la raíz del proyecto
+            base_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..', '..'))
+            directorio_reportes = os.path.join(base_dir, 'reportes')
             if not os.path.exists(directorio_reportes):
                 os.makedirs(directorio_reportes)
-            
             # Generar nombre de archivo único
             timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
             nombre_archivo = f"escaneo_aresitos_{timestamp}.{formato}"
             ruta_completa = os.path.join(directorio_reportes, nombre_archivo)
-            
             if formato == "json":
                 with open(ruta_completa, 'w', encoding='utf-8') as f:
                     json.dump(resultados, f, indent=2, ensure_ascii=False, default=str)
-            
             elif formato == "txt":
                 with open(ruta_completa, 'w', encoding='utf-8') as f:
                     f.write("=== REPORTE DE ESCANEO ARESITOS ===\n")
                     f.write(f"Fecha: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}\n")
                     f.write("=" * 50 + "\n\n")
-                    
                     if isinstance(resultados, dict) and "resultado" in resultados:
                         datos = resultados["resultado"]
                         f.write(f"Objetivo: {datos.get('objetivo', 'N/A')}\n")
@@ -1550,28 +1549,23 @@ class VistaEscaneo(tk.Frame):
                         f.write(f"Puertos encontrados: {len(datos.get('puertos_encontrados', []))}\n")
                         f.write(f"Servicios detectados: {len(datos.get('servicios_detectados', []))}\n")
                         f.write(f"Vulnerabilidades: {len(datos.get('vulnerabilidades', []))}\n\n")
-                        
                         if datos.get('puertos_encontrados'):
                             f.write("PUERTOS ABIERTOS:\n")
                             for puerto in datos['puertos_encontrados']:
                                 f.write(f"  - {puerto}\n")
                             f.write("\n")
-                        
                         if datos.get('servicios_detectados'):
                             f.write("SERVICIOS DETECTADOS:\n")
                             for servicio in datos['servicios_detectados']:
                                 f.write(f"  - {servicio}\n")
                             f.write("\n")
-                        
                         if datos.get('vulnerabilidades'):
                             f.write("VULNERABILIDADES ENCONTRADAS:\n")
                             for vuln in datos['vulnerabilidades']:
                                 f.write(f"  - {vuln}\n")
                             f.write("\n")
-            
             self._actualizar_texto_seguro(f"Reporte exportado: {ruta_completa}\n")
             return {"exito": True, "archivo": ruta_completa}
-            
         except Exception as e:
             self._actualizar_texto_seguro(f"Error al exportar reporte: {str(e)}\n")
             return {"exito": False, "error": str(e)}
