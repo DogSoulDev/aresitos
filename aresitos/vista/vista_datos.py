@@ -36,10 +36,8 @@ class VistaGestionDatos(tk.Frame):
         super().__init__(parent)
         self.controlador = None
         self.vista_principal = parent  # Referencia al padre para acceder al terminal
-        
         # Configurar logging
         self.logger = logging.getLogger(__name__)
-        
         # Configuración del tema Burp Suite
         if BURP_THEME_AVAILABLE and burp_theme:
             self.theme = burp_theme
@@ -71,19 +69,13 @@ class VistaGestionDatos(tk.Frame):
                 'danger': '#cc0000',
                 'info': '#0066cc'
             }
-        
-        # Rutas de datos
-        self.ruta_wordlists = Path("data/wordlists")
-        self.ruta_diccionarios = Path("data/diccionarios")
-        
-        # Variables de estado
-        self.tipo_actual = "wordlists"  # "wordlists" o "diccionarios"
-        self.archivo_seleccionado = None
-        self.datos_actuales = {}
-        
-        self.crear_interfaz()
-        self.cargar_archivos()
-    
+
+    # Rutas de datos robustas y relativas al root del proyecto (compatibles con Kali Linux y multiplataforma)
+        # Rutas de datos robustas y relativas al root del proyecto (compatibles con Kali Linux y multiplataforma)
+        base_dir = Path(os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..")))
+        self.ruta_wordlists = base_dir / "data" / "wordlists"
+        self.ruta_diccionarios = base_dir / "data" / "diccionarios"
+
     def set_controlador(self, controlador):
         self.controlador = controlador
         self.logger.info("Controlador establecido en VistaGestionDatos")
