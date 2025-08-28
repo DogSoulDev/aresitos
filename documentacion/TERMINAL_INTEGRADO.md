@@ -35,6 +35,27 @@ Botones predefinidos para comandos frecuentes de ciberseguridad:
 
 ## NOTE Uso del Terminal Integrado
 
+## Seguridad y validación de comandos en el terminal integrado
+
+ARESITOS valida todos los comandos ejecutados desde el terminal integrado para evitar la ejecución de comandos peligrosos que puedan cerrar sesión, matar procesos críticos o comprometer la estabilidad del sistema.
+
+**Ejemplo real de validación:**
+
+```python
+def ejecutar_comando_entry(self, event=None):
+   comando = self.comando_entry.get().strip()
+   from aresitos.utils.seguridad_comandos import validador_comandos
+   es_valido, comando_sanitizado, mensaje = validador_comandos.validar_comando_completo(comando)
+   if not es_valido:
+      self.terminal_output.insert(tk.END, f"{mensaje}\n")
+      return
+   # ...ejecutar comando seguro...
+```
+
+**Resultado:**
+- No es posible ejecutar comandos como `kill`, `pgrep`, `shutdown`, `reboot`, `poweroff`, `init`, `telinit`, `bash`, `sh`, `zsh`, `fish`, `exec`, `eval`, `source`, `su`, `sudo`, `passwd`, etc. desde el terminal integrado.
+- El sistema es seguro frente a intentos de crash o logout por comandos peligrosos.
+
 ### 1. Acceso al Terminal
 1. Abre ARESITOS
 2. Ve al **Dashboard**

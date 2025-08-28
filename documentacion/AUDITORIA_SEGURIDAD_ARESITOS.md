@@ -47,6 +47,70 @@
 
 ## Medidas de Seguridad Implementadas
 
+### 5. Protección avanzada contra crash/logout por kill/pgrep
+
+ARESITOS implementa una protección robusta para evitar que cualquier acción de detención de procesos (por ejemplo, al cancelar monitoreo, escaneo, FIM, SIEM, etc.) termine accidentalmente procesos críticos de sesión, terminal o shell, lo que podría provocar un cierre de sesión (logout) o crash del entorno gráfico en Kali Linux.
+
+**¿Cómo se implementa?**
+
+En el módulo `utils/detener_procesos.py`, la función `_terminar_procesos_por_nombre` filtra y protege explícitamente procesos de sesión, terminales, shells y servicios críticos:
+
+```python
+procesos_protegidos = [
+    'systemd', 'init', 'login', 'sshd', 'Xorg', 'gdm', 'lightdm', 'NetworkManager',
+    'dbus-daemon', 'udisksd', 'polkitd', 'upowerd', 'wpa_supplicant', 'gnome-shell',
+    'plasmashell', 'xfce4-session', 'lxsession', 'openbox', 'kdeinit', 'kded', 'kdm',
+    'sddm', 'agetty', 'bash', 'zsh', 'fish', 'pwsh', 'tmux', 'screen', 'python', 'python3',
+    'konsole', 'gnome-terminal', 'xterm', 'tilix', 'alacritty', 'urxvt', 'mate-terminal',
+    'terminator', 'lxterminal', 'xfce4-terminal', 'qterminal', 'eterm', 'rxvt', 'mlterm',
+    # ...otros procesos de sesión y shells...
+]
+
+if any(p in comando for p in procesos_protegidos):
+    callback_actualizacion(f"PROTEGIDO: {comando} (PID: {pid}) no será terminado por seguridad\n")
+    continue
+# Protección extra: no matar procesos con DISPLAY/XDG_SESSION/TTY de usuario
+try:
+    environ = subprocess.check_output(['cat', f'/proc/{pid}/environ']).decode(errors='ignore')
+    if 'DISPLAY=' in environ or 'XDG_SESSION' in environ or 'WAYLAND_DISPLAY' in environ or 'TTY=' in environ:
+        callback_actualizacion(f"PROTEGIDO: {comando} (PID: {pid}) tiene entorno gráfico/terminal, no será terminado\n")
+        continue
+except Exception:
+    pass
+```
+
+**Resultado:**
+- Ningún botón de "detener/cancelar" puede provocar logout ni crash de sesión.
+- Todos los intentos de terminar procesos críticos quedan registrados y bloqueados.
+
+### 6. Validación de comandos peligrosos en terminales integrados
+
+ARESITOS valida todos los comandos ejecutados desde el terminal integrado y desde cualquier vista que permita ejecución de comandos personalizados. El validador (`utils/seguridad_comandos.py`) bloquea comandos peligrosos como:
+
+```python
+self.comandos_prohibidos = [
+    'kill', 'pgrep', 'pkill', 'shutdown', 'reboot', 'poweroff', 'init', 'telinit',
+    'bash', 'sh', 'zsh', 'fish', 'exec', 'eval', 'source', 'su', 'sudo', 'passwd',
+    # ...otros comandos peligrosos...
+]
+```
+
+**Ejemplo real de uso en la vista de reportes:**
+
+```python
+def ejecutar_comando_entry(self, event=None):
+    comando = self.comando_entry.get().strip()
+    from aresitos.utils.seguridad_comandos import validador_comandos
+    es_valido, comando_sanitizado, mensaje = validador_comandos.validar_comando_completo(comando)
+    if not es_valido:
+        self.terminal_output.insert(tk.END, f"{mensaje}\n")
+        return
+    # ...ejecutar comando seguro...
+```
+
+**Resultado:**
+- No es posible ejecutar comandos que puedan cerrar sesión, matar procesos críticos o comprometer la estabilidad del sistema desde ningún terminal integrado ni vista de ARESITOS.
+
 ### **0. Sistema de Terminales Integrados - SEGURO**
 ```python
 # terminal_mixin.py - Funcionalidad segura para 48 terminales
