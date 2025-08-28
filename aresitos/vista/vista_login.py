@@ -1043,6 +1043,15 @@ class LoginAresitos:
             return
         
         self.escribir_log(" Abriendo ventana de herramientas de Kali Linux...")
+        # Refuerzo: renovar estado sudo al abrir herramientas
+        from aresitos.utils.sudo_manager import SudoManager
+        sudo_manager = SudoManager()
+        if sudo_manager.is_sudo_active():
+            sudo_manager._renovar_sudo_timestamp()
+        else:
+            self.escribir_log("[ERROR] Permisos sudo no activos. Reinicie sesión.")
+            messagebox.showerror("Permisos requeridos", "No hay permisos sudo activos. Reinicie sesión e ingrese la contraseña correcta.")
+            return
         
         try:
             # Crear ventana separada para herramientas de Kali
@@ -1090,14 +1099,15 @@ class LoginAresitos:
             from aresitos.vista.vista_principal import VistaPrincipal
             from aresitos.controlador.controlador_principal import ControladorPrincipal
             from aresitos.modelo.modelo_principal import ModeloPrincipal
-            
+            from aresitos.utils.sudo_manager import SudoManager
+
             self.escribir_log("Módulos principales importados correctamente")
-            
+
             # Cerrar ventana de login
             self.cerrar_ventana()
-            
+
             self.escribir_log("Creando aplicación principal...")
-            
+
             # Crear aplicación principal con tema Burp Suite
             root_app = tk.Tk()
             root_app.title("Aresitos")
@@ -1112,50 +1122,59 @@ class LoginAresitos:
                     root_app.iconphoto(True, self._icon_img2)
             except Exception as e:
                 print(f"[WARN] No se pudo cargar el icono de ventana principal: {e}")
-            
+
             # Ventana configurada
-            
+
             # CRÍTICO: Configurar el tema ANTES de crear las vistas
             root_app.configure(bg='#2b2b2b')  # Fondo Burp Suite principal
-            
+
             self.escribir_log("Ventana principal configurada con tema Burp Suite")
-            
+
             # Ventana configurada
-            
+
             self.escribir_log("Inicializando modelo de datos...")
             # Inicializar MVC correctamente
             modelo = ModeloPrincipal()
-            
+
             self.escribir_log("Creando vista principal...")
             vista = VistaPrincipal(root_app)
             vista.pack(fill="both", expand=True)  # CRÍTICO: Hacer que la vista ocupe toda la ventana
-            
+
             self.escribir_log("Inicializando controlador principal...")
             controlador = ControladorPrincipal(modelo)
-            
+
             self.escribir_log("Configurando conexión vista-controlador...")
             # CRÍTICO: Conectar el controlador a la vista
             vista.set_controlador(controlador)
-            
+
             # Centrar ventana principal
             root_app.update_idletasks()
             x = (root_app.winfo_screenwidth() // 2) - (1200 // 2)
             y = (root_app.winfo_screenheight() // 2) - (800 // 2)
             root_app.geometry(f"1200x800+{x}+{y}")
-            
+
+            # Refuerzo: renovar estado sudo al abrir la principal
+            sudo_manager = SudoManager()
+            if sudo_manager.is_sudo_active():
+                sudo_manager._renovar_sudo_timestamp()
+            else:
+                self.escribir_log("[ERROR] Permisos sudo no activos en principal. Reinicie sesión.")
+                messagebox.showerror("Permisos requeridos", "No hay permisos sudo activos. Reinicie sesión e ingrese la contraseña correcta.")
+                return
+
             # Ventana principal configurada
             self.escribir_log("OK Ventana de aplicación configurada correctamente")
-            
+
             # Forzar actualización de la ventana
             root_app.update()
-            
+
             self.escribir_log(" Aplicación principal configurada. Iniciando interfaz...")
-            
+
             # Mostrar ventana y comenzar loop principal
             root_app.deiconify()  # Asegurar que la ventana esté visible
             root_app.lift()       # Traer al frente
             root_app.focus_force() # Forzar foco
-            
+
             root_app.mainloop()
             
         except ImportError as e:
