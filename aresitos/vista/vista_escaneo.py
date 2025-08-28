@@ -485,7 +485,7 @@ class VistaEscaneo(tk.Frame):
                 
                 self._log_terminal("CONTROLADOR Controlador disponible - Iniciando escaneo Kali 2025", "ESCANEADOR", "SUCCESS")  # Issue 22/24: Sin emojis
                 self._actualizar_texto_seguro("MODO: Escaneador Avanzado Kali 2025\n")
-                self._actualizar_texto_seguro("HERRAMIENTAS: masscan, nmap, nuclei, gobuster, ffuf, rustscan\n\n")
+                self._actualizar_texto_seguro("HERRAMIENTAS: masscan, nmap, nuclei, gobuster, ffuf\n\n")
                 
                 # Determinar objetivo usando DetectorRed
                 if DetectorRed:
@@ -1046,7 +1046,7 @@ class VistaEscaneo(tk.Frame):
                 self._log_terminal("FASE 6: Verificando herramientas de seguridad disponibles", "ESCANEADOR", "INFO")
                 self._actualizar_texto_seguro("\n--- FASE 6: HERRAMIENTAS DE SEGURIDAD ---\n")
                 
-                herramientas = ['nmap', 'masscan', 'gobuster', 'nuclei', 'nikto', 'rustscan']
+                herramientas = ['nmap', 'masscan', 'gobuster', 'nuclei', 'nikto']
                 disponibles = []
                 
                 for herramienta in herramientas:
@@ -1357,7 +1357,7 @@ class VistaEscaneo(tk.Frame):
         herramientas = {
             'nmap': 'Escaneador de red principal',
             'masscan': 'Escaneador rápido de puertos',
-            'rustscan': 'Escaneador ultrarrápido',
+
             'nuclei': 'Motor de detección de vulnerabilidades',
             'gobuster': 'Enumeración de directorios',
             'ffuf': 'Fuzzer web avanzado'
@@ -1400,18 +1400,20 @@ class VistaEscaneo(tk.Frame):
         """Escaneo avanzado usando múltiples herramientas profesionales."""
         import subprocess
         import json
+        import subprocess
+        import json
         from datetime import datetime
-        
+
         self._actualizar_texto_seguro(f"\n=== ESCANEO AVANZADO MULTIHERRAMIENTA: {objetivo} ===\n")
-        
+
         # Validar herramientas primero
         herramientas_status = self._validar_herramientas_escaneo()
         herramientas_disponibles = herramientas_status["disponibles"]
-        
+
         if not herramientas_disponibles:
             self._actualizar_texto_seguro("ERROR: No hay herramientas de escaneo disponibles.\n")
             return {"exito": False, "error": "Sin herramientas"}
-        
+
         resultados = {
             "objetivo": objetivo,
             "timestamp": datetime.now().isoformat(),
@@ -1421,27 +1423,9 @@ class VistaEscaneo(tk.Frame):
             "vulnerabilidades": [],
             "directorios_web": []
         }
-        
-        # FASE 1: Detección rápida con rustscan
-        if 'rustscan' in herramientas_disponibles:
-            self._actualizar_texto_seguro("\nFASE 1: Detección rápida de puertos (rustscan)\n")
-            try:
-                cmd = ['rustscan', '-a', objetivo, '--range', '1-65535', '--ulimit', '5000']
-                result = subprocess.run(cmd, capture_output=True, text=True, timeout=60)
-                if result.stdout:
-                    resultados["herramientas_usadas"].append("rustscan")
-                    # Parsear puertos encontrados
-                    for line in result.stdout.split('\n'):
-                        if 'Open' in line and objetivo in line:
-                            puerto = line.split()[-1] if line.split() else ""
-                            if puerto.isdigit():
-                                resultados["puertos_encontrados"].append(int(puerto))
-                    self._actualizar_texto_seguro(f"Puertos encontrados: {len(resultados['puertos_encontrados'])}\n")
-            except Exception as e:
-                self._actualizar_texto_seguro(f"Error en rustscan: {str(e)}\n")
-        
-        # FASE 2: Escaneo masivo con masscan (si no hay rustscan)
-        elif 'masscan' in herramientas_disponibles:
+
+        # FASE 1: Escaneo masivo con masscan (si está disponible)
+        if 'masscan' in herramientas_disponibles:
             self._actualizar_texto_seguro("\nFASE 1: Escaneo masivo de puertos (masscan)\n")
             try:
                 cmd = ['masscan', objetivo, '-p1-65535', '--rate=1000']
@@ -1458,8 +1442,8 @@ class VistaEscaneo(tk.Frame):
                     self._actualizar_texto_seguro(f"Puertos encontrados: {len(resultados['puertos_encontrados'])}\n")
             except Exception as e:
                 self._actualizar_texto_seguro(f"Error en masscan: {str(e)}\n")
-        
-        # FASE 3: Detección de servicios con nmap
+
+        # FASE 2: Detección de servicios con nmap
         if 'nmap' in herramientas_disponibles and resultados["puertos_encontrados"]:
             self._actualizar_texto_seguro("\nFASE 2: Detección de servicios (nmap)\n")
             try:
@@ -1477,8 +1461,8 @@ class VistaEscaneo(tk.Frame):
                     self._actualizar_texto_seguro(f"Servicios detectados: {len(resultados['servicios_detectados'])}\n")
             except Exception as e:
                 self._actualizar_texto_seguro(f"Error en nmap: {str(e)}\n")
-        
-        # FASE 4: Detección de vulnerabilidades con nuclei
+
+        # FASE 3: Detección de vulnerabilidades con nuclei
         if 'nuclei' in herramientas_disponibles:
             self._actualizar_texto_seguro("\nFASE 3: Detección de vulnerabilidades (nuclei)\n")
             try:
@@ -1491,8 +1475,8 @@ class VistaEscaneo(tk.Frame):
                     self._actualizar_texto_seguro(f"Vulnerabilidades encontradas: {len(resultados['vulnerabilidades'])}\n")
             except Exception as e:
                 self._actualizar_texto_seguro(f"Error en nuclei: {str(e)}\n")
-        
-        # FASE 5: Enumeración de directorios web con gobuster
+
+        # FASE 4: Enumeración de directorios web con gobuster
         if 'gobuster' in herramientas_disponibles and any('80' in str(p) or '443' in str(p) or '8080' in str(p) for p in resultados["puertos_encontrados"]):
             self._actualizar_texto_seguro("\nFASE 4: Enumeración de directorios web (gobuster)\n")
             try:
@@ -1507,7 +1491,7 @@ class VistaEscaneo(tk.Frame):
                     self._actualizar_texto_seguro(f"Directorios encontrados: {len(resultados['directorios_web'])}\n")
             except Exception as e:
                 self._actualizar_texto_seguro(f"Error en gobuster: {str(e)}\n")
-        
+
         # Mostrar resumen final
         self._actualizar_texto_seguro("\n=== RESUMEN DEL ESCANEO AVANZADO ===\n")
         self._actualizar_texto_seguro(f"Herramientas utilizadas: {', '.join(resultados['herramientas_usadas'])}\n")
@@ -1516,9 +1500,7 @@ class VistaEscaneo(tk.Frame):
         self._actualizar_texto_seguro(f"Vulnerabilidades: {len(resultados['vulnerabilidades'])}\n")
         self._actualizar_texto_seguro(f"Directorios web: {len(resultados['directorios_web'])}\n")
         self._actualizar_texto_seguro("=" * 50 + "\n\n")
-        
         return {"exito": True, "resultado": resultados}
-
     def _exportar_resultados_escaneo(self, resultados, formato="json"):
         """Exportar resultados de escaneo a archivo con ruta robusta y multiplataforma."""
         import json
@@ -1878,7 +1860,7 @@ class VistaEscaneo(tk.Frame):
             "herramientas_soportadas": {
                 "nmap": "Escaneador de red principal",
                 "masscan": "Escaneador rápido de puertos",
-                "rustscan": "Escaneador ultrarrápido",
+
                 "nuclei": "Motor de detección de vulnerabilidades", 
                 "gobuster": "Enumeración de directorios",
                 "ffuf": "Fuzzer web avanzado"
@@ -2784,7 +2766,7 @@ class VistaEscaneo(tk.Frame):
                 'nmap': 'Escaneador de puertos y servicios avanzado',
                 'masscan': 'Escaneador masivo de puertos ultra-rápido',
                 'zmap': 'Escaneador de Internet de alta velocidad',
-                'rustscan': 'Escaneador de puertos moderno en Rust',
+
                 
                 # Análisis de red
                 'ss': 'Análisis de sockets y conexiones',
@@ -2831,7 +2813,7 @@ class VistaEscaneo(tk.Frame):
                         herramientas_disponibles.append(herramienta)
                         
                         # Categorizar herramientas
-                        if herramienta in ['nmap', 'masscan', 'zmap', 'rustscan', 'ss', 'netstat', 'lsof', 'iftop', 'nethogs']:
+                        if herramienta in ['nmap', 'masscan', 'zmap', 'ss', 'netstat', 'lsof', 'iftop', 'nethogs']:
                             categorias_disponibles['red'].append(herramienta)
                         elif herramienta in ['nikto', 'dirb', 'gobuster', 'ffuf', 'whatweb', 'httpx']:
                             categorias_disponibles['web'].append(herramienta)
@@ -2861,9 +2843,7 @@ class VistaEscaneo(tk.Frame):
                 if 'masscan' in herramientas_disponibles:
                     self._ejecutar_masscan()
                 
-                # Rustscan si está disponible
-                if 'rustscan' in herramientas_disponibles:
-                    self._ejecutar_rustscan()
+
             
             # 3. ESCANEO WEB AVANZADO
             if categorias_disponibles['web']:
@@ -3004,36 +2984,7 @@ class VistaEscaneo(tk.Frame):
         except Exception as e:
             self._log_terminal(f"Error en Masscan: {str(e)}", "MASSCAN", "ERROR")
     
-    def _ejecutar_rustscan(self):
-        """Ejecutar RustScan para escaneo moderno."""
-        import subprocess
-        try:
-            self._log_terminal("Ejecutando RustScan (escaneador moderno)...", "RUSTSCAN", "INFO")
-            
-            resultado = subprocess.run(['rustscan', '-a', '127.0.0.1', '--', '-sV'], 
-                                     capture_output=True, text=True, timeout=90)
-            
-            if resultado.returncode == 0 and resultado.stdout.strip():
-                lineas = resultado.stdout.strip().split('\n')
-                puertos_rust = []
-                
-                for linea in lineas:
-                    if 'open' in linea.lower() or 'tcp' in linea.lower():
-                        puertos_rust.append(linea.strip())
-                
-                if puertos_rust:
-                    self._log_terminal(f"RUSTSCAN: {len(puertos_rust)} servicios detectados", "RUSTSCAN", "WARNING")
-                    for puerto in puertos_rust[:8]:
-                        self._log_terminal(f"  {puerto}", "RUSTSCAN", "INFO")
-                else:
-                    self._log_terminal("RUSTSCAN: No se detectaron servicios", "RUSTSCAN", "INFO")
-            else:
-                self._log_terminal("RUSTSCAN: Sin resultados disponibles", "RUSTSCAN", "WARNING")
-                
-        except subprocess.TimeoutExpired:
-            self._log_terminal("RUSTSCAN: Timeout - escaneo interrumpido", "RUSTSCAN", "WARNING")
-        except Exception as e:
-            self._log_terminal(f"Error en RustScan: {str(e)}", "RUSTSCAN", "ERROR")
+
     
     def _detectar_servicios_web(self):
         """Detectar servicios web en el sistema."""
@@ -3757,7 +3708,7 @@ class VistaEscaneo(tk.Frame):
         """Verificar qué herramientas de Kali están disponibles."""
         import subprocess
         herramientas_kali = [
-            'nmap', 'masscan', 'rustscan', 'nikto', 'dirb', 'gobuster', 
+            'nmap', 'masscan', 'nikto', 'dirb', 'gobuster', 
             'whatweb', 'httpx', 'chkrootkit', 'rkhunter', 'clamav',
             'binwalk', 'strings', 'lsof', 'pspy'
         ]

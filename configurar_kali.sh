@@ -8,7 +8,7 @@
 # para ejecutar ARESITOS con todas las funcionalidades del escaneador profesional.
 #
 # Funciones principales:
-# - Instalar herramientas de ciberseguridad avanzadas (nmap, masscan, rustscan, nuclei)
+# - Instalar herramientas de ciberseguridad avanzadas (nmap, masscan, nuclei)
 # - Configurar permisos sudo para herramientas específicas de escaneo
 # - Configurar permisos de red para escaneo multiherramienta
 # - Instalar herramientas forenses y SIEM
@@ -211,29 +211,7 @@ install_tools() {
         fi
     done
 
-    # Instalar rustscan si no está disponible en apt (descarga binario oficial)
-    if ! command -v rustscan >/dev/null 2>&1; then
-        print_info "rustscan no está en los repositorios o no se pudo instalar. Intentando instalar binario oficial..."
-        LATEST_RS_URL=$(curl -s https://api.github.com/repos/RustScan/RustScan/releases/latest | grep browser_download_url | grep linux_amd64 | cut -d '"' -f 4 | head -n1)
-        if [[ -n "$LATEST_RS_URL" ]]; then
-            cd /tmp
-            curl -LO "$LATEST_RS_URL"
-            TAR_FILE=$(basename "$LATEST_RS_URL")
-            tar -xzf "$TAR_FILE" 2>/dev/null || tar -xf "$TAR_FILE" 2>/dev/null
-            if [[ -f rustscan || -f ./rustscan ]]; then
-                chmod +x rustscan
-                mv rustscan /usr/local/bin/
-                print_success "rustscan instalado desde binario oficial"
-            else
-                print_warning "No se pudo instalar rustscan desde binario (continuando...)"
-                FAILED_ADVANCED+=("rustscan-bin")
-            fi
-            cd "$SCRIPT_DIR"
-        else
-            print_warning "No se pudo obtener binario oficial de rustscan (continuando...)"
-            FAILED_ADVANCED+=("rustscan-bin")
-        fi
-    fi
+
     
     # Instalar herramientas especiales para escaneador profesional
     print_header "Instalando herramientas especiales del escaneador..."
@@ -300,9 +278,7 @@ install_tools() {
     if command -v masscan >/dev/null 2>&1; then
         SCANNER_CAPABILITIES+=("Escaneo masivo ultrarrápido con masscan")
     fi
-    if command -v rustscan >/dev/null 2>&1; then
-        SCANNER_CAPABILITIES+=("Escaneo rápido de puertos con rustscan")
-    fi
+
     if command -v nuclei >/dev/null 2>&1; then
         SCANNER_CAPABILITIES+=("Detección de vulnerabilidades CVE con nuclei")
     fi
@@ -394,9 +370,7 @@ configure_sudo() {
 # === HERRAMIENTAS DE ESCANEADOR PRINCIPAL ===
 $REAL_USER ALL=(ALL) NOPASSWD: /usr/bin/nmap
 $REAL_USER ALL=(ALL) NOPASSWD: /usr/bin/masscan
-$REAL_USER ALL=(ALL) NOPASSWD: /usr/bin/rustscan
-$REAL_USER ALL=(ALL) NOPASSWD: /usr/local/bin/rustscan
-$REAL_USER ALL=(ALL) NOPASSWD: /home/$REAL_USER/.cargo/bin/rustscan
+
 
 # === HERRAMIENTAS DE DETECCIÓN DE VULNERABILIDADES ===
 $REAL_USER ALL=(ALL) NOPASSWD: /usr/bin/nuclei
@@ -717,7 +691,7 @@ verify_setup() {
     print_header "🧪 Verificando configuración..."
     
     # Verificar herramientas críticas del escaneador profesional
-    TOOLS_TO_CHECK=("nmap" "masscan" "ss" "tcpdump" "rustscan" "nuclei" "gobuster")
+    TOOLS_TO_CHECK=("nmap" "masscan" "ss" "tcpdump" "nuclei" "gobuster")
     
     print_header "🧪 Verificando herramientas del ESCANEADOR PROFESIONAL..."
     

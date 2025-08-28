@@ -367,7 +367,7 @@ INTEGRACIÓN NATIVA:
 
 HERRAMIENTAS PRINCIPALES DEL ESCANEADOR PROFESIONAL v3.0:
    • CORE: nmap (scripts NSE), masscan (escaneo masivo), gobuster (directorios)
-   • AVANZADAS: rustscan (velocidad), nuclei (CVE), ffuf (fuzzing), feroxbuster (recursivo)
+    • AVANZADAS: nmap (versátil), nuclei (CVE), ffuf (fuzzing), feroxbuster (recursivo)
    • ANÁLISIS: strings, hexdump, binwalk, sleuthkit, yara
    • SEGURIDAD: chkrootkit, rkhunter, auditd, fail2ban, lynis
     • RED: ip, route, netstat, netcat, tcpdump
@@ -418,7 +418,7 @@ LISTO PARA: Escaneos de vulnerabilidades en entornos Kali Linux 2025
             herramientas = [
                 # Herramientas robustas, apt-installables y recomendadas para ARESITOS v3.0
                 # Escaneo profesional
-                'nmap', 'masscan', 'rustscan', 'nuclei', 'ffuf', 'feroxbuster', 'nikto', 'whatweb', 'dirb', 'gobuster',
+                'nmap', 'masscan', 'nuclei', 'ffuf', 'feroxbuster', 'nikto', 'whatweb', 'dirb', 'gobuster',
                 # Forense y análisis
                 'sleuthkit', 'tsk_recover', 'tsk_loaddb', 'tsk_gettimes', 'tsk_comparedir', 'tsk_imageinfo',
                 'testdisk', 'plaso', 'bulk-extractor', 'hashdeep', 'dc3dd', 'guymager', 'foremost', 'binwalk', 'exiftool', 'yara',
@@ -564,7 +564,7 @@ LISTO PARA: Escaneos de vulnerabilidades en entornos Kali Linux 2025
             paquetes = [
                 # Herramientas robustas, apt-installables y recomendadas para ARESITOS v3.0
                 # Escaneo profesional
-                'nmap', 'masscan', 'rustscan', 'nuclei', 'ffuf', 'feroxbuster', 'nikto', 'whatweb', 'dirb', 'gobuster',
+                'nmap', 'masscan', 'nuclei', 'ffuf', 'feroxbuster', 'nikto', 'whatweb', 'dirb', 'gobuster',
                 # Forense y análisis
                 'sleuthkit', 'testdisk', 'plaso', 'bulk-extractor', 'hashdeep', 'dc3dd', 'guymager', 'foremost', 'binwalk', 'exiftool', 'yara',
                 # Seguridad y auditoría
@@ -584,7 +584,7 @@ LISTO PARA: Escaneos de vulnerabilidades en entornos Kali Linux 2025
             # Herramientas que requieren instalación manual (se informará al usuario):
             herramientas_manuales = [
                 # Solo herramientas realmente manuales o externas, sin photorec ni problemáticas
-                'rustscan: cargo install rustscan (requiere Rust)',
+                # rustscan eliminado, usar nmap y masscan
                 'httpx: go install github.com/projectdiscovery/httpx/cmd/httpx@latest (requiere Go)',
                 'nuclei: go install github.com/projectdiscovery/nuclei/v2/cmd/nuclei@latest (requiere Go)',
                 'linpeas: wget https://github.com/carlospolop/PEASS-ng/releases/latest/download/linpeas.sh',
@@ -698,7 +698,7 @@ LISTO PARA: Escaneos de vulnerabilidades en entornos Kali Linux 2025
                 self.after(0, self._actualizar_texto, "HERRAMIENTAS FASE 3 - EXPANSIONES AVANZADAS\n")
                 self.after(0, self._actualizar_texto, "="*60 + "\n")
                 self.after(0, self._actualizar_texto, "ESCANEADOR EXPANDIDO (Fase 3.1):\n")
-                self.after(0, self._actualizar_texto, "   • nmap, masscan, rustscan (escaneo de red)\n")
+                self.after(0, self._actualizar_texto, "   • nmap, masscan (escaneo de red)\n")
                 self.after(0, self._actualizar_texto, "   • nikto, whatweb (análisis web)\n")
                 self.after(0, self._actualizar_texto, "   • chkrootkit, rkhunter (detección rootkits)\n")
                 self.after(0, self._actualizar_texto, "   • binwalk, strings (análisis forense)\n")
