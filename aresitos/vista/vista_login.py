@@ -626,47 +626,23 @@ class LoginAresitos:
         try:
             self.herramientas_disponibles = []
             self.herramientas_faltantes = []
-            
             total = len(HERRAMIENTAS_REQUERIDAS)
-            
             for i, herramienta in enumerate(HERRAMIENTAS_REQUERIDAS):
                 if shutil.which(herramienta):
                     self.herramientas_disponibles.append(herramienta)
                 else:
                     self.herramientas_faltantes.append(herramienta)
-                
-                # Actualizar progreso cada 10 herramientas
                 if i % 10 == 0:
                     progreso = (i + 1) / total * 100
                     self.escribir_log(f"Verificando herramientas... {i+1}/{total} ({progreso:.1f}%)")
-            
             disponibles = len(self.herramientas_disponibles)
-            
             self.escribir_log(f"Verificacion completada: {disponibles}/{total} herramientas disponibles")
-            
-            if disponibles >= total * 0.8:
-                self.escribir_log("Excelente: Mas del 80% de herramientas disponibles")
-                self.continue_btn.config(state=tk.NORMAL, bg=self.accent_green)
-            elif disponibles >= total * 0.5:
-                self.escribir_log("Aceptable: Mas del 50% de herramientas disponibles")
-                self.continue_btn.config(state=tk.NORMAL, bg=self.accent_orange)
-            else:
-                self.escribir_log("Insuficiente: Menos del 50% de herramientas disponibles")
-                self.continue_btn.config(state=tk.NORMAL, bg=self.accent_red)
-            
             if self.herramientas_faltantes:
                 faltan = len(self.herramientas_faltantes)
-                self.escribir_log(f"{faltan} herramientas necesitan instalacion")
-                
-                # Mostrar algunas herramientas faltantes importantes
-                importantes = ['nmap', 'sqlmap', 'hydra', 'metasploit']
-                faltantes_importantes = [h for h in importantes if h in self.herramientas_faltantes]
-                
-                if faltantes_importantes:
-                    self.escribir_log(f"Herramientas criticas faltantes: {', '.join(faltantes_importantes[:5])}")
-            
+                self.escribir_log(f"ADVERTENCIA: {faltan} herramientas no están disponibles. Puede instalarlas en la siguiente pantalla.")
             self.verificacion_completada = True
-            
+            # Permitir avanzar siempre tras la verificación
+            self.continue_btn.config(state=tk.NORMAL, bg=self.accent_green)
         except Exception as e:
             self.escribir_log(f"Error verificando herramientas: {e}")
     
