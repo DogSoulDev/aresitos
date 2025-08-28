@@ -15,7 +15,7 @@ from aresitos.utils.sudo_manager import SudoManager
 from aresitos.vista.vista_herramientas_kali import VistaHerramientasKali
 
 
-# Seguridad y sanitización robusta
+ # Seguridad y sanitización robusta
 class SeguridadUtils:
     """Utilidades de seguridad mejoradas"""
     @staticmethod
@@ -45,7 +45,7 @@ class SeguridadUtils:
             mensaje = mensaje[:497] + "..."
         return mensaje
 
-# ...existing code for SeguridadUtils, RateLimiter, HERRAMIENTAS_REQUERIDAS, PUERTOS_CRITICOS, etc...
+# ...existing code for SeguridadUtils, RateLimiter, HERRAMIENTAS_REQUERIDAS, PUERTOS_CRITICOS, etc...       
 # ...restaurar toda la lógica y estructura del commit 51debcd, incluyendo la clase LoginAresitos...
 # ...incluyendo la configuración de tema oscuro, iconos, métodos de verificación, y main()...
 import getpass
@@ -60,7 +60,7 @@ HERRAMIENTAS_REQUERIDAS = [
     'wapiti', 'skipfish', 'whatweb', 'wafw00f', 'davtest',
     'metasploit', 'searchsploit', 'msfconsole', 'msfvenom', 'exploitdb',
     'beef-xss', 'set', 'social-engineer-toolkit',
-    'tcpdump', 'netcat', 'nc', 'socat', 'netstat', 'ss', 'lsof', 'arp-scan', 'ping', 'traceroute', 'mtr',
+    'tcpdump', 'netcat', 'nc', 'socat', 'netstat', 'ss', 'lsof', 'arp-scan', 'ping', 'traceroute', 'mtr',   
     'hydra', 'medusa', 'ncrack', 'john', 'hashcat', 'aircrack-ng',
     'crunch', 'cewl', 'cupp', 'patator',
     'sleuthkit', 'binwalk', 'foremost', 'strings', 'hexdump', 'xxd', 'file', 'exiftool',
@@ -99,23 +99,72 @@ class RateLimiter:
     def registrar_intento(self):
         self.intentos.append(time.time())
 
+# --- INICIO INSERCIÓN: LoginAresitos y main() del último commit robusto ---
+
 class LoginAresitos:
     def __init__(self, root=None):
-        self.bg_primary = "#23272e"
-        self.bg_secondary = "#2c313c"
-        self.bg_tertiary = "#1a1d23"
-        self.fg_primary = "#f5f5f5"
-        self.fg_secondary = "#bdbdbd"
-        self.accent_orange = "#ff6633"
-        self.accent_green = "#4caf50"
-        self.accent_red = "#f44336"
-        self.accent_blue = "#2196f3"
+        # Intentar importar y aplicar el tema Burp Suite
+        try:
+            from aresitos.vista.burp_theme import burp_theme
+            self.theme = burp_theme
+            self.burp_theme_available = True
+        except ImportError:
+            self.theme = None
+            self.burp_theme_available = False
+
+        # Colores y estilos
+        if self.burp_theme_available and self.theme:
+            self.colors = {
+                'bg_primary': self.theme.get_color('bg_primary'),
+                'bg_secondary': self.theme.get_color('bg_secondary'),
+                'bg_tertiary': self.theme.get_color('bg_tertiary'),
+                'fg_primary': self.theme.get_color('fg_primary'),
+                'fg_secondary': self.theme.get_color('fg_secondary'),
+                'fg_accent': self.theme.get_color('fg_accent'),
+                'success': self.theme.get_color('success'),
+                'danger': self.theme.get_color('danger'),
+                'info': self.theme.get_color('info'),
+                'warning': self.theme.get_color('warning'),
+                'button_bg': self.theme.get_color('button_bg'),
+                'button_fg': self.theme.get_color('button_fg'),
+                'button_active': self.theme.get_color('button_active'),
+            }
+        else:
+            self.colors = {
+                'bg_primary': '#23272e',
+                'bg_secondary': '#2c313c',
+                'bg_tertiary': '#1a1d23',
+                'fg_primary': '#f5f5f5',
+                'fg_secondary': '#bdbdbd',
+                'fg_accent': '#ff6633',
+                'success': '#4caf50',
+                'danger': '#f44336',
+                'info': '#2196f3',
+                'warning': '#f0ad4e',
+                'button_bg': '#2c313c',
+                'button_fg': '#f5f5f5',
+                'button_active': '#ff6633',
+            }
+
         self.rate_limiter = RateLimiter()
         self.utils_seguridad = SeguridadUtils()
         if root is None:
             self.root = tk.Tk()
         else:
             self.root = root
+
+        # Favicon multiplataforma
+        try:
+            import os
+            from tkinter import PhotoImage
+            base_dir = os.path.abspath(os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..'))
+            icon_path = os.path.join(base_dir, "recursos", "icono", "aresitos_icono.png")
+            if os.path.exists(icon_path):
+                self._icon_img = PhotoImage(file=icon_path)
+                self.root.iconphoto(True, self._icon_img)
+        except Exception:
+            pass
+
         self.verificacion_completada = True  # Siempre permitir avanzar tras login
         self.password_correcta = False
         self.crear_interfaz()
@@ -124,8 +173,8 @@ class LoginAresitos:
 
     def revocar_sudo(self):
         try:
-            from aresitos.utils.sudo_manager import SudoManager
-            sudo_manager = SudoManager()
+            from aresitos.utils.sudo_manager import get_sudo_manager
+            sudo_manager = get_sudo_manager()
             sudo_manager.clear_sudo()
         except Exception:
             pass
@@ -161,7 +210,8 @@ class LoginAresitos:
             if resultado.returncode == 0:
                 self.password_correcta = True
                 self.escribir_log("Autenticacion exitosa - Permisos de root confirmados")
-                sudo_manager = SudoManager()
+                from aresitos.utils.sudo_manager import get_sudo_manager
+                sudo_manager = get_sudo_manager()
                 sudo_manager.set_sudo_authenticated(password)
                 self.password_entry.delete(0, tk.END)
                 self.login_btn.config(state=tk.DISABLED)
@@ -209,7 +259,7 @@ class LoginAresitos:
         except Exception:
             pass
         sys.exit(code)
-    
+
     def centrar_ventana(self):
         self.root.update_idletasks()
         x = (self.root.winfo_screenwidth() // 2) - (900 // 2)
@@ -217,30 +267,30 @@ class LoginAresitos:
         self.root.geometry(f"900x700+{x}+{y}")
 
     def crear_interfaz(self):
-        main_frame = tk.Frame(self.root, bg=self.bg_primary)
+        main_frame = tk.Frame(self.root, bg=self.colors['bg_primary'])
         main_frame.pack(fill=tk.BOTH, expand=True, padx=20, pady=20)
         title_label = tk.Label(
             main_frame,
             text="ARESITOS",
             font=("Arial", 24, "bold"),
-            fg=self.accent_orange,
-            bg=self.bg_primary
+            fg=self.colors['fg_accent'],
+            bg=self.colors['bg_primary']
         )
         title_label.pack(pady=(20, 10))
         subtitle_label = tk.Label(
             main_frame,
             text="Herramienta de Ciberseguridad",
             font=("Arial", 12),
-            fg=self.fg_secondary,
-            bg=self.bg_primary
+            fg=self.colors['fg_secondary'],
+            bg=self.colors['bg_primary']
         )
         subtitle_label.pack(pady=(0, 30))
         login_frame = tk.LabelFrame(
             main_frame,
             text="Autenticacion de Root",
             font=("Arial", 12, "bold"),
-            fg=self.accent_orange,
-            bg=self.bg_secondary,
+            fg=self.colors['fg_accent'],
+            bg=self.colors['bg_secondary'],
             relief=tk.RAISED,
             bd=2
         )
@@ -249,51 +299,57 @@ class LoginAresitos:
             login_frame,
             text="Contraseña de Root:",
             font=("Arial", 10),
-            fg=self.fg_primary,
-            bg=self.bg_secondary
+            fg=self.colors['fg_primary'],
+            bg=self.colors['bg_secondary']
         ).pack(anchor=tk.W, padx=10, pady=(10, 5))
         self.password_entry = tk.Entry(
             login_frame,
             show="*",
             font=("Arial", 12),
-            bg=self.bg_tertiary,
-            fg=self.fg_primary,
-            insertbackground=self.accent_blue,
+            bg=self.colors['bg_tertiary'],
+            fg=self.colors['fg_primary'],
+            insertbackground=self.colors['fg_accent'],
             relief=tk.FLAT,
             bd=5
         )
         self.password_entry.pack(fill=tk.X, padx=10, pady=(0, 10))
         self.password_entry.bind('<Return>', lambda e: self.verificar_password())
-        btn_frame = tk.Frame(login_frame, bg=self.bg_secondary)
+        btn_frame = tk.Frame(login_frame, bg=self.colors['bg_secondary'])
         btn_frame.pack(fill=tk.X, padx=10, pady=(0, 10))
-        self.login_btn = tk.Button(
-            btn_frame,
-            text="Verificar Root",
-            font=("Arial", 11, "bold"),
-            bg=self.accent_green,
-            fg="#ffffff",
-            relief=tk.FLAT,
-            command=self.verificar_password,
-            cursor='hand2'
-        )
+        import tkinter.ttk as ttk
+        btn_style = 'Burp.TButton' if self.burp_theme_available and self.theme else None
+        if btn_style:
+            self.login_btn = ttk.Button(
+                btn_frame,
+                text="Verificar Root",
+                style=btn_style,
+                command=self.verificar_password
+            )
+            self.skip_btn = ttk.Button(
+                btn_frame,
+                text="Continuar sin Root",
+                style=btn_style,
+                command=self.continuar_sin_root
+            )
+        else:
+            self.login_btn = ttk.Button(
+                btn_frame,
+                text="Verificar Root",
+                command=self.verificar_password
+            )
+            self.skip_btn = ttk.Button(
+                btn_frame,
+                text="Continuar sin Root",
+                command=self.continuar_sin_root
+            )
         self.login_btn.pack(side=tk.LEFT, padx=(0, 10))
-        self.skip_btn = tk.Button(
-            btn_frame,
-            text="Continuar sin Root",
-            font=("Arial", 10),
-            bg=self.accent_red,
-            fg="#ffffff",
-            relief=tk.FLAT,
-            command=self.continuar_sin_root,
-            cursor='hand2'
-        )
         self.skip_btn.pack(side=tk.LEFT)
         self.verify_frame = tk.LabelFrame(
             main_frame,
             text="Verificacion del Sistema",
             font=("Arial", 12, "bold"),
-            fg=self.accent_orange,
-            bg=self.bg_secondary,
+            fg=self.colors['fg_accent'],
+            bg=self.colors['bg_secondary'],
             relief=tk.RAISED,
             bd=2
         )
@@ -302,41 +358,43 @@ class LoginAresitos:
             self.verify_frame,
             height=12,
             font=("Consolas", 9),
-            bg=self.bg_primary,
-            fg=self.fg_primary,
-            insertbackground=self.accent_blue,
+            bg=self.colors['bg_primary'],
+            fg=self.colors['fg_primary'],
+            insertbackground=self.colors['fg_accent'],
             relief=tk.FLAT,
             bd=5,
             state=tk.DISABLED
         )
         self.log_text.pack(fill=tk.BOTH, expand=True, padx=10, pady=10)
-        main_button_frame = tk.Frame(main_frame, bg=self.bg_primary)
+        main_button_frame = tk.Frame(main_frame, bg=self.colors['bg_primary'])
         main_button_frame.pack(fill=tk.X, pady=10)
-        self.continue_btn = tk.Button(
-            main_button_frame,
-            text="Iniciar Aresitos",
-            font=("Arial", 12, "bold"),
-            bg=self.accent_green,
-            fg="#ffffff",
-            relief=tk.FLAT,
-            command=self.iniciar_aplicacion,
-            cursor='hand2',
-            state=tk.DISABLED,
-            padx=30,
-            pady=10
-        )
+        if btn_style:
+            self.continue_btn = ttk.Button(
+                main_button_frame,
+                text="Iniciar Aresitos",
+                style=btn_style,
+                command=self.iniciar_aplicacion,
+                state=tk.DISABLED
+            )
+            exit_btn = ttk.Button(
+                main_button_frame,
+                text="Salir",
+                style=btn_style,
+                command=self._salir_con_revocacion_sudo
+            )
+        else:
+            self.continue_btn = ttk.Button(
+                main_button_frame,
+                text="Iniciar Aresitos",
+                command=self.iniciar_aplicacion,
+                state=tk.DISABLED
+            )
+            exit_btn = ttk.Button(
+                main_button_frame,
+                text="Salir",
+                command=self._salir_con_revocacion_sudo
+            )
         self.continue_btn.pack(side=tk.RIGHT, padx=(10, 0))
-        exit_btn = tk.Button(
-            main_button_frame,
-            text="Salir",
-            font=("Arial", 10),
-            bg=self.accent_red,
-            fg="#ffffff",
-            relief=tk.FLAT,
-            command=self._salir_con_revocacion_sudo,
-            cursor='hand2',
-            padx=20
-        )
         exit_btn.pack(side=tk.LEFT)
 
     def _salir_con_revocacion_sudo(self):
@@ -354,7 +412,7 @@ class LoginAresitos:
 
     def escribir_log(self, mensaje):
         try:
-            if not hasattr(self, 'log_text') or not self.log_text or not self.log_text.winfo_exists():
+            if not hasattr(self, 'log_text') or not self.log_text or not self.log_text.winfo_exists():      
                 print(f"[LOGIN] {mensaje}")
                 return
             if not hasattr(self, 'root') or not self.root:
@@ -375,8 +433,6 @@ class LoginAresitos:
                 print(f"[LOGIN] {mensaje_seguro}")
         except Exception as e:
             print(f"[LOGIN] {mensaje}")
-
-
 
     def configurar_permisos_aresitos(self, password):
         try:
@@ -401,7 +457,7 @@ class LoginAresitos:
     def _ejecutar_comandos_permisos(self, ruta_proyecto, password):
         try:
             main_file = os.path.join(ruta_proyecto, "main.py")
-            config_file = os.path.join(ruta_proyecto, "configuración", "aresitos_config_completo.json")
+            config_file = os.path.join(ruta_proyecto, "configuración", "aresitos_config_completo.json")     
             if os.path.exists(main_file):
                 os.chmod(main_file, 0o755)
                 self.escribir_log("main.py ejecutable")
@@ -413,26 +469,27 @@ class LoginAresitos:
             pass
         self.escribir_log("Configuración de permisos completada")
 
-
-
     def continuar_sin_root(self):
         self.escribir_log("Continuando sin permisos de root")
         self.escribir_log("ADVERTENCIA: Funcionalidad limitada sin permisos de administrador")
         self.login_btn.config(state=tk.DISABLED)
         self.password_entry.config(state=tk.DISABLED)
         self.skip_btn.config(state=tk.DISABLED)
-        self.continue_btn.config(state=tk.NORMAL, bg=self.accent_orange)
+        if self.burp_theme_available and self.theme:
+            self.continue_btn.config(state=tk.NORMAL)
+        else:
+            self.continue_btn.config(state=tk.NORMAL)
 
     def iniciar_aplicacion(self):
     # Siempre permitir avanzar tras login
         self.escribir_log(" Abriendo ventana de herramientas de Kali Linux...")
-        from aresitos.utils.sudo_manager import SudoManager
-        sudo_manager = SudoManager()
+        from aresitos.utils.sudo_manager import get_sudo_manager
+        sudo_manager = get_sudo_manager()
         if sudo_manager.is_sudo_active():
             sudo_manager._renovar_sudo_timestamp()
         else:
             self.escribir_log("[ERROR] Permisos sudo no activos. Reinicie sesión.")
-            messagebox.showerror("Permisos requeridos", "No hay permisos sudo activos. Reinicie sesión e ingrese la contraseña correcta.")
+            messagebox.showerror("Permisos requeridos", "No hay permisos sudo activos. Reinicie sesión e ing\nrese la contraseña correcta.")
             return
         try:
             def callback_herramientas_completadas():
@@ -462,7 +519,7 @@ class LoginAresitos:
             from aresitos.vista.vista_principal import VistaPrincipal
             from aresitos.controlador.controlador_principal import ControladorPrincipal
             from aresitos.modelo.modelo_principal import ModeloPrincipal
-            from aresitos.utils.sudo_manager import SudoManager
+            from aresitos.utils.sudo_manager import get_sudo_manager
             self.escribir_log("Módulos principales importados correctamente")
             self.root.destroy()
             self.escribir_log("Creando aplicación principal...")
@@ -493,12 +550,12 @@ class LoginAresitos:
             x = (root_app.winfo_screenwidth() // 2) - (1200 // 2)
             y = (root_app.winfo_screenheight() // 2) - (800 // 2)
             root_app.geometry(f"1200x800+{x}+{y}")
-            sudo_manager = SudoManager()
+            sudo_manager = get_sudo_manager()
             if sudo_manager.is_sudo_active():
                 sudo_manager._renovar_sudo_timestamp()
             else:
-                self.escribir_log("[ERROR] Permisos sudo no activos en principal. Reinicie sesión.")
-                messagebox.showerror("Permisos requeridos", "No hay permisos sudo activos. Reinicie sesión e ingrese la contraseña correcta.")
+                self.escribir_log("[ERROR] Permisos sudo no activos en principal. Reinicie sesión.")        
+                messagebox.showerror("Permisos requeridos", "No hay permisos sudo activos. Reinicie sesión e\n ingrese la contraseña correcta.")
                 return
             self.escribir_log("OK Ventana de aplicación configurada correctamente")
             root_app.update()
@@ -510,7 +567,7 @@ class LoginAresitos:
         except ImportError as e:
             self.escribir_log(f"Error de importación: {e}")
             self.escribir_log("Módulos principales no encontrados, usando modo básico")
-            messagebox.showinfo("Info", 
+            messagebox.showinfo("Info",
                                "Aplicación principal no encontrada.\n"
                                "Ejecute: python main.py\n\n"
                                "O instale la aplicación completa.")
@@ -519,7 +576,6 @@ class LoginAresitos:
             import traceback
             traceback.print_exc()
             messagebox.showerror("Error", f"Error iniciando aplicación:\n{e}")
-
 
 
 def main():
@@ -547,6 +603,6 @@ def main():
 
 if __name__ == "__main__":
     main()
+# --- FIN INSERCIÓN ---
 
-
-
+# ...rest of the code from commit eb55a48...
