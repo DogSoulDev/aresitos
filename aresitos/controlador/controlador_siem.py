@@ -89,14 +89,15 @@ class ControladorSIEM(ControladorBase):
         self.logger.info("Controlador SIEM simplificado inicializado")
     
     def _crear_directorio_logs(self) -> str:
-        """Crear directorio para logs SIEM."""
+        """Crear directorio para logs SIEM de forma robusta y relativa al proyecto."""
         try:
-            directorio = os.path.expanduser("~/aresitos/logs")
+            base_dir = os.path.abspath(os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..'))
+            directorio = os.path.join(base_dir, 'logs')
             os.makedirs(directorio, exist_ok=True)
             return directorio
         except Exception as e:
             self.logger.warning(f"Error creando directorio de logs: {e}")
-            return "/tmp"
+            return os.path.join(os.path.abspath(os.path.dirname(os.path.abspath(__file__))), 'logs')
     
     async def _inicializar_impl(self) -> Dict[str, Any]:
         """Implementación de inicialización del controlador SIEM."""
