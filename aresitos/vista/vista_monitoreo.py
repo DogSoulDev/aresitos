@@ -458,29 +458,28 @@ class VistaMonitoreo(tk.Frame):
         self.terminal_output.see(tk.END)
     
     def abrir_logs_monitoreo(self):
-        """Abrir carpeta de logs Monitoreo con manejo seguro de errores."""
+        """Abrir carpeta de logs Monitoreo con ruta robusta y multiplataforma."""
         try:
             import os
             import platform
-            logs_path = "logs/"
-            
+            base_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..', '..'))
+            logs_path = os.path.join(base_dir, 'logs')
             if not os.path.exists(logs_path):
                 self.log_to_terminal("WARNING: Carpeta de logs no encontrada")
                 messagebox.showwarning("Advertencia", "Carpeta de logs no encontrada")
                 return
-            
             # Usar método seguro para abrir directorio
             if platform.system() == "Linux":
                 resultado = self._ejecutar_comando_seguro(["xdg-open", logs_path], timeout=10)
-            else:
+            elif platform.system() == "Windows":
                 resultado = self._ejecutar_comando_seguro(["explorer", logs_path], timeout=10)
-            
+            else:
+                resultado = self._ejecutar_comando_seguro(["open", logs_path], timeout=10)
             if resultado['success']:
-                self.log_to_terminal("OK Carpeta de logs Monitoreo abierta")  # Issue 22/24: Sin emojis
+                self.log_to_terminal("OK Carpeta de logs Monitoreo abierta")
             else:
                 self.log_to_terminal(f"ERROR: No se pudo abrir logs - {resultado['error']}")
                 messagebox.showerror("Error", f"No se pudo abrir la carpeta de logs: {resultado['error']}")
-                
         except Exception as e:
             error_msg = f"Error abriendo logs: {str(e)}"
             self.log_to_terminal(f"ERROR: {error_msg}")
