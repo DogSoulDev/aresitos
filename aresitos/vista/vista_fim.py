@@ -546,16 +546,16 @@ class VistaFIM(tk.Frame):
                 self.after(0, self._actualizar_texto_fim, "COMANDO: find /etc -type f -mtime -1\n")
                 self.after(0, self._actualizar_texto_fim, "PROPÓSITO: Archivos de configuración modificados en las últimas 24 horas\n")
                 try:
-                    result = subprocess.run(['find', '/etc', '-type', 'f', '-mtime', '-1'], 
-                                          capture_output=True, text=True, timeout=10)
-                    if result.returncode == 0 and result.stdout:
-                        archivos_modificados = result.stdout.strip().split('\n')
+                    from aresitos.utils.gestor_permisos import ejecutar_comando_seguro
+                    exito, out, err = ejecutar_comando_seguro('find', ['/etc', '-type', 'f', '-mtime', '-1'])
+                    if exito and out:
+                        archivos_modificados = out.strip().split('\n')
                         self.after(0, self._actualizar_texto_fim, f"RESULTADO: {len(archivos_modificados)} archivos modificados\n")
-                        for archivo in archivos_modificados[:5]:  # Mostrar primeros 5
+                        for archivo in archivos_modificados[:5]:
                             self.after(0, self._actualizar_texto_fim, f"  - {archivo}\n")
                     else:
                         self.after(0, self._actualizar_texto_fim, "RESULTADO: No hay archivos modificados recientemente\n")
-                except:
+                except Exception:
                     self.after(0, self._actualizar_texto_fim, "ERROR: No se pudo ejecutar find en /etc\n")
                 
                 self.after(0, self._actualizar_texto_fim, "\n")
@@ -564,16 +564,16 @@ class VistaFIM(tk.Frame):
                 self.after(0, self._actualizar_texto_fim, "COMANDO: find /usr/bin -perm -4000 -type f\n")
                 self.after(0, self._actualizar_texto_fim, "PROPÓSITO: Detectar binarios con permisos SUID sospechosos\n")
                 try:
-                    result = subprocess.run(['find', '/usr/bin', '-perm', '-4000', '-type', 'f'], 
-                                          capture_output=True, text=True, timeout=15)
-                    if result.returncode == 0 and result.stdout:
-                        binarios_suid = result.stdout.strip().split('\n')
+                    from aresitos.utils.gestor_permisos import ejecutar_comando_seguro
+                    exito, out, err = ejecutar_comando_seguro('find', ['/usr/bin', '-perm', '-4000', '-type', 'f'])
+                    if exito and out:
+                        binarios_suid = out.strip().split('\n')
                         self.after(0, self._actualizar_texto_fim, f"RESULTADO: {len(binarios_suid)} binarios con SUID encontrados\n")
-                        for binario in binarios_suid[:8]:  # Mostrar primeros 8
+                        for binario in binarios_suid[:8]:
                             self.after(0, self._actualizar_texto_fim, f"  SUID: {binario}\n")
                     else:
                         self.after(0, self._actualizar_texto_fim, "RESULTADO: No se encontraron binarios SUID en /usr/bin\n")
-                except:
+                except Exception:
                     self.after(0, self._actualizar_texto_fim, "ERROR: No se pudo verificar permisos SUID\n")
                 
                 self.after(0, self._actualizar_texto_fim, "\n")
@@ -591,10 +591,10 @@ class VistaFIM(tk.Frame):
             self.after(0, self._actualizar_texto_fim, "COMANDO: lsof -i :22,80,443,8080,4444\n")
             self.after(0, self._actualizar_texto_fim, "PROPÓSITO: Detectar procesos usando puertos comunes y backdoors\n")
             try:
-                result = subprocess.run(['lsof', '-i', ':22,80,443,8080,4444'], 
-                                      capture_output=True, text=True, timeout=10)
-                if result.returncode == 0 and result.stdout:
-                    conexiones = result.stdout.strip().split('\n')[1:]  # Skip header
+                from aresitos.utils.gestor_permisos import ejecutar_comando_seguro
+                exito, out, err = ejecutar_comando_seguro('lsof', ['-i', ':22,80,443,8080,4444'])
+                if exito and out:
+                    conexiones = out.strip().split('\n')[1:]
                     self.after(0, self._actualizar_texto_fim, f"RESULTADO: {len(conexiones)} conexiones activas en puertos críticos\n")
                     for conexion in conexiones[:5]:
                         partes = conexion.split()
@@ -602,7 +602,7 @@ class VistaFIM(tk.Frame):
                             self.after(0, self._actualizar_texto_fim, f"  PROCESO: {partes[0]} PID: {partes[1]}\n")
                 else:
                     self.after(0, self._actualizar_texto_fim, "RESULTADO: No hay conexiones activas en puertos monitoreados\n")
-            except:
+            except Exception:
                 self.after(0, self._actualizar_texto_fim, "ADVERTENCIA: lsof no disponible o error en ejecución\n")
             
             self.after(0, self._actualizar_texto_fim, "\n")

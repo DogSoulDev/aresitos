@@ -125,44 +125,19 @@ class VistaAuditoria(tk.Frame):
         titulo_frame.pack(fill=tk.X, pady=(10, 10))
 
         titulo = tk.Label(titulo_frame, text="Auditoría de Seguridad del Sistema",
-                         font=('Arial', 16, 'bold'),
-                         bg=self.colors['bg_primary'], fg=self.colors['fg_accent'])
+                 bg=self.colors['bg_primary'], fg=self.colors['fg_accent'],
+                 font=('Arial', 16, 'bold'))
         titulo.pack(pady=10)
 
-        # Frame principal con tema
-        main_frame = tk.Frame(contenido_frame, bg=self.colors['bg_primary'])
-        main_frame.pack(fill=tk.BOTH, expand=True, padx=10, pady=10)
-
-        # Panel izquierdo - Resultados con tema Burp Suite
-        left_frame = tk.Frame(main_frame, bg=self.colors['bg_secondary'])
-        left_frame.pack(side=tk.LEFT, fill=tk.BOTH, expand=True, padx=(0, 10))
-
-        label_results = tk.Label(left_frame, text="Resultados de Auditoría",
-                                 bg=self.colors['bg_secondary'], fg=self.colors['fg_accent'],
-                                 font=('Arial', 12, 'bold'))
-        label_results.pack(anchor=tk.W, pady=(0, 5))
-
-        # Terminal de salida de auditoría
-        self.auditoria_text = scrolledtext.ScrolledText(left_frame, height=25, width=65,
-                                   bg=self.colors['bg_primary'],
-                                   fg=self.colors['fg_primary'],
-                                   insertbackground=self.colors['fg_accent'],
-                                   font=('Consolas', 10),
-                                   relief='flat', bd=1)
-        self.auditoria_text.pack(fill=tk.BOTH, expand=True)
+        # Área de texto para la terminal de auditoría
+        self.auditoria_text = tk.Text(self, wrap=tk.WORD, height=25, width=120, bg="#181818", fg="#00FF00", insertbackground="#00FF00")
+        self.auditoria_text.pack(padx=10, pady=10, fill="both", expand=True)
 
         # Entrada de comandos
-        self.comando_entry = tk.Entry(left_frame, font=('Consolas', 10),
-                                      bg=self.colors['bg_secondary'], fg=self.colors['fg_accent'],
-                                      insertbackground=self.colors['fg_accent'], relief='flat', bd=1)
-        self.comando_entry.pack(fill=tk.X, pady=(10, 0))
-        self.comando_entry.bind('<Return>', self.ejecutar_comando_entry)
+        self.comando_entry = tk.Entry(self, width=80, bg="#222", fg="#00FF00", insertbackground="#00FF00")
+        self.comando_entry.pack(padx=10, pady=5, fill="x")
 
-        # Llamar a las secciones de botones y utilidades
-        self._crear_seccion_deteccion_malware(left_frame)
-        self._crear_seccion_configuraciones(left_frame)
-        self._crear_seccion_utilidades(left_frame)
-    # ...existing code...
+        # ...otros widgets y botones...
 
     def _mostrar_info_seguridad(self):
         """Mostrar información de seguridad y buenas prácticas."""
@@ -188,33 +163,28 @@ class VistaAuditoria(tk.Frame):
             valido, comando_sanitizado, msg = validador_comandos.validar_comando_completo(comando)
             if not valido:
                 self._actualizar_texto_auditoria(f"[SECURITY] {msg}\n")
-                return None
+                return False, '', msg
             if descripcion:
                 self._actualizar_texto_auditoria(f"[INFO] Ejecutando: {descripcion}\n")
             self._actualizar_texto_auditoria(f"[CMD] {comando_sanitizado}\n")
-            if usar_sudo:
-                try:
-                    from aresitos.utils.sudo_manager import get_sudo_manager
-                    sudo_manager = get_sudo_manager()
-                    if sudo_manager.is_sudo_active():
-                        resultado = sudo_manager.execute_sudo_command(comando_sanitizado, timeout=timeout)
-                    else:
-                        self._actualizar_texto_auditoria("[WARNING] SudoManager no activo, ejecutando sin privilegios\n")
-                        resultado = subprocess.run(comando_sanitizado, shell=True, capture_output=True, text=True, timeout=timeout)
-                except ImportError:
-                    resultado = subprocess.run(comando_sanitizado, shell=True, capture_output=True, text=True, timeout=timeout)
+            from aresitos.utils.gestor_permisos import ejecutar_comando_seguro
+            # Convertir comando_sanitizado a lista si es string
+            if isinstance(comando_sanitizado, str):
+                comando_list = comando_sanitizado.split()
             else:
-                resultado = subprocess.run(comando_sanitizado, shell=True, capture_output=True, text=True, timeout=timeout)
+                comando_list = comando_sanitizado
+            herramienta = comando_list[0]
+            argumentos = comando_list[1:]
+            exito, out, err = ejecutar_comando_seguro(herramienta, argumentos, timeout=timeout)
             if mostrar_en_terminal:
-                if resultado.stdout:
-                    self._actualizar_texto_auditoria(resultado.stdout)
-                if resultado.stderr:
-                    self._actualizar_texto_auditoria(f"[ERROR] {resultado.stderr}\n")
-            return resultado
-        except subprocess.TimeoutExpired:
-            self._actualizar_texto_auditoria("[ERROR] Timeout ejecutando comando\n")
+                if out:
+                    self._actualizar_texto_auditoria(out)
+                if err:
+                    self._actualizar_texto_auditoria(f"[ERROR] {err}\n")
+            return exito, out, err
         except Exception as e:
             self._actualizar_texto_auditoria(f"[ERROR] Fallo ejecutando comando: {e}\n")
+            return False, '', str(e)
     # Eliminado: bloques de widgets y llamadas a métodos fuera de métodos
 
 
@@ -397,21 +367,19 @@ class VistaAuditoria(tk.Frame):
             self.proceso_auditoria_activo = True
             self._actualizar_texto_auditoria("=== INICIANDO AUDITORÍA LYNIS PROFESIONAL ===\n")
             # Validar y ejecutar Lynis con privilegios si es posible
-            resultado_which = self._ejecutar_comando_seguro("which lynis", "Verificar instalación de Lynis", timeout=10, usar_sudo=False)
-            if resultado_which and resultado_which.returncode == 0:
+            exito_which, out_which, err_which = self._ejecutar_comando_seguro("which lynis", "Verificar instalación de Lynis", timeout=10, usar_sudo=False)
+            if exito_which:
                 self._actualizar_texto_auditoria("OK Lynis encontrado en sistema\n")
                 log_dir = "/var/log/lynis"
                 self._actualizar_texto_auditoria(f"• Verificando directorio de logs: {log_dir}\n")
                 cmd = "lynis audit system --verbose --quick --warning --no-colors"
-                resultado_lynis = self._ejecutar_comando_seguro(cmd, "Auditoría completa del sistema", timeout=600, usar_sudo=True)
-                salida = resultado_lynis.stdout if resultado_lynis else ""
-                errores = resultado_lynis.stderr if resultado_lynis else ""
+                exito_lynis, out_lynis, err_lynis = self._ejecutar_comando_seguro(cmd, "Auditoría completa del sistema", timeout=600, usar_sudo=True)
                 self._actualizar_texto_auditoria("\n=== PROCESANDO RESULTADOS LYNIS ===\n")
-                if salida:
+                if out_lynis:
                     lineas_importantes = []
                     warnings_count = 0
                     suggestions_count = 0
-                    for linea in salida.split('\n'):
+                    for linea in out_lynis.split('\n'):
                         linea = linea.strip()
                         if any(keyword in linea.lower() for keyword in [
                             'warning', 'suggestion', 'found', 'missing', 'weak', 
@@ -510,48 +478,40 @@ class VistaAuditoria(tk.Frame):
         def ejecutar():
             try:
                 self._actualizar_texto_auditoria("=== CANCELANDO DETECCIÓN ROOTKITS ===\n")
-                import subprocess
-                
-                # Terminar procesos conocidos de detección de rootkits
+                from aresitos.utils.gestor_permisos import ejecutar_comando_seguro
                 procesos_rootkits = ['rkhunter', 'chkrootkit', 'unhide', 'lynis']
                 procesos_terminados = 0
-                
                 for proceso in procesos_rootkits:
                     try:
-                        # Buscar procesos activos
-                        resultado = subprocess.run(['pgrep', '-f', proceso], 
-                                                capture_output=True, text=True)
-                        if resultado.returncode == 0 and resultado.stdout.strip():
-                            pids = resultado.stdout.strip().split('\n')
+                        exito, out, err = ejecutar_comando_seguro('pgrep', ['-f', proceso])
+                        if exito and out.strip():
+                            pids = out.strip().split('\n')
                             for pid in pids:
                                 if pid.strip():
-                                    # Terminar proceso específico
-                                    subprocess.run(['kill', '-TERM', pid.strip()], 
-                                                capture_output=True)
-                                    self._actualizar_texto_auditoria(f"OK Terminado proceso {proceso} (PID: {pid.strip()})\n")
-                                    procesos_terminados += 1
+                                    exito_kill, _, err_kill = ejecutar_comando_seguro('kill', ['-TERM', pid.strip()])
+                                    if exito_kill:
+                                        self._actualizar_texto_auditoria(f"OK Terminado proceso {proceso} (PID: {pid.strip()})\n")
+                                        procesos_terminados += 1
+                                    else:
+                                        self._actualizar_texto_auditoria(f"[ERROR] Fallo terminando proceso {proceso} PID {pid.strip()}: {err_kill}\n")
                     except Exception as e:
                         self._actualizar_texto_auditoria(f"[ERROR] Fallo terminando proceso {proceso}: {e}\n")
-                
                 if procesos_terminados > 0:
                     self._actualizar_texto_auditoria(f"OK COMPLETADO: {procesos_terminados} procesos de rootkits terminados\n")
                 else:
                     self._actualizar_texto_auditoria("• INFO: No se encontraron procesos de detección de rootkits activos\n")
-                    
-                # Limpiar archivos temporales de rootkits
                 archivos_temp = ['/tmp/rkhunter.log', '/tmp/chkrootkit.log', '/var/log/rkhunter.log']
                 for archivo in archivos_temp:
                     try:
-                        subprocess.run(['rm', '-f', archivo], capture_output=True)
+                        exito_rm, _, err_rm = ejecutar_comando_seguro('rm', ['-f', archivo])
+                        if not exito_rm:
+                            self._actualizar_texto_auditoria(f"[ERROR] Fallo eliminando archivo temporal {archivo}: {err_rm}\n")
                     except Exception as e:
                         self._actualizar_texto_auditoria(f"[ERROR] Fallo eliminando archivo temporal {archivo}: {e}\n")
-                        
                 self._actualizar_texto_auditoria("OK Limpieza de archivos temporales completada\n")
                 self._actualizar_texto_auditoria("=== CANCELACIÓN ROOTKITS COMPLETADA ===\n\n")
-                
             except Exception as e:
                 self._actualizar_texto_auditoria(f"ERROR durante cancelación: {str(e)}\n")
-        
         threading.Thread(target=ejecutar, daemon=True).start()
     
     def ejecutar_nuclei(self):
@@ -563,8 +523,8 @@ class VistaAuditoria(tk.Frame):
             try:
                 self.proceso_auditoria_activo = True
                 self._actualizar_texto_auditoria("=== INICIANDO AUDITORÍA NUCLEI PROFESIONAL ===\n")
-                resultado_which = self._ejecutar_comando_seguro("which nuclei", "Verificar instalación de nuclei", timeout=10, usar_sudo=False)
-                if resultado_which and resultado_which.returncode == 0:
+                exito_which, out_which, err_which = self._ejecutar_comando_seguro("which nuclei", "Verificar instalación de nuclei", timeout=10, usar_sudo=False)
+                if exito_which:
                     self._actualizar_texto_auditoria("OK nuclei encontrado en sistema\n")
                     self._ejecutar_comando_seguro("nuclei -update-templates", "Actualizar templates nuclei", timeout=300, usar_sudo=True)
                     # ...existing code...
@@ -590,11 +550,13 @@ class VistaAuditoria(tk.Frame):
         def ejecutar():
             try:
                 self._actualizar_texto_auditoria("=== INICIANDO ESCANEO HTTPX ===\n")
-                resultado_which = self._ejecutar_comando_seguro("which httpx", "Verificar instalación de httpx", timeout=10, usar_sudo=False)
-                if resultado_which and resultado_which.returncode == 0:
+                exito_which, out_which, err_which = self._ejecutar_comando_seguro(["which", "httpx"], "Verificar instalación de httpx", 10, False)
+                if exito_which:
                     self._actualizar_texto_auditoria("OK httpx encontrado en sistema\n")
                     # Ejemplo: escanear localhost:80
-                    self._ejecutar_comando_seguro("httpx -u http://localhost:80 -probe -status-code -title -tech-detect -timeout 5 -silent", "Escaneo rápido httpx", timeout=15, usar_sudo=False)
+                    self._ejecutar_comando_seguro([
+                        "httpx", "-u", "http://localhost:80", "-probe", "-status-code", "-title", "-tech-detect", "-timeout", "5", "-silent"
+                    ], "Escaneo rápido httpx", 15, False)
                     self._actualizar_texto_auditoria("[INFO] Escaneo httpx ejecutado con validación y seguridad\n")
                 else:
                     self._actualizar_texto_auditoria("WARNING httpx no encontrado\n")
@@ -610,40 +572,29 @@ class VistaAuditoria(tk.Frame):
         def ejecutar():
             try:
                 self._actualizar_texto_auditoria(" Analizando archivos SUID/SGID...\n")
-                import subprocess
-                
+                from aresitos.utils.gestor_permisos import ejecutar_comando_seguro
                 try:
-                    # Buscar archivos SUID
                     self._actualizar_texto_auditoria(" Buscando archivos SUID...\n")
-                    resultado = subprocess.run(['find', '/', '-perm', '-4000', '-type', 'f', '2>/dev/null'], 
-                                             capture_output=True, text=True, timeout=30)
-                    if resultado.stdout:
-                        archivos_suid = resultado.stdout.strip().split('\n')[:20]  # Primeros 20
+                    exito_suid, out_suid, err_suid = ejecutar_comando_seguro('find', ['/', '-perm', '-4000', '-type', 'f', '2>/dev/null'], timeout=30)
+                    if out_suid:
+                        archivos_suid = out_suid.strip().split('\n')[:20]
                         self._actualizar_texto_auditoria(f" Archivos SUID encontrados ({len(archivos_suid)} de muchos):\n")
                         for archivo in archivos_suid:
                             if archivo.strip():
                                 self._actualizar_texto_auditoria(f"  {archivo}\n")
-                    
-                    # Buscar archivos SGID
                     self._actualizar_texto_auditoria(" Buscando archivos SGID...\n")
-                    resultado = subprocess.run(['find', '/', '-perm', '-2000', '-type', 'f', '2>/dev/null'], 
-                                             capture_output=True, text=True, timeout=30)
-                    if resultado.stdout:
-                        archivos_sgid = resultado.stdout.strip().split('\n')[:20]  # Primeros 20
+                    exito_sgid, out_sgid, err_sgid = ejecutar_comando_seguro('find', ['/', '-perm', '-2000', '-type', 'f', '2>/dev/null'], timeout=30)
+                    if out_sgid:
+                        archivos_sgid = out_sgid.strip().split('\n')[:20]
                         self._actualizar_texto_auditoria(f" Archivos SGID encontrados ({len(archivos_sgid)} de muchos):\n")
                         for archivo in archivos_sgid:
                             if archivo.strip():
                                 self._actualizar_texto_auditoria(f"  {archivo}\n")
-                
-                except subprocess.TimeoutExpired:
-                    self._actualizar_texto_auditoria("TIMEOUT en búsqueda SUID/SGID\n")
                 except Exception as e:
                     self._actualizar_texto_auditoria(f"ERROR buscando SUID/SGID: {str(e)}\n")
-                
                 self._actualizar_texto_auditoria("OK Análisis SUID/SGID completado\n\n")
             except Exception as e:
                 self._actualizar_texto_auditoria(f"ERROR en análisis SUID/SGID: {str(e)}\n")
-        
         threading.Thread(target=ejecutar, daemon=True).start()
     
     def auditar_ssh(self):
@@ -651,53 +602,35 @@ class VistaAuditoria(tk.Frame):
         def ejecutar():
             try:
                 self._actualizar_texto_auditoria(" Auditando configuración SSH...\n")
-                import subprocess
+                from aresitos.utils.gestor_permisos import ejecutar_comando_seguro
                 import os
-                
                 try:
-                    # Verificar si SSH está instalado
                     if os.path.exists('/etc/ssh/sshd_config'):
                         self._actualizar_texto_auditoria("OK SSH configurado en el sistema\n")
-                        
-                        # Verificar configuraciones importantes
-                        with open('/etc/ssh/sshd_config', 'r') as f:
-                            config = f.read()
-                            
-                        self._actualizar_texto_auditoria(" Verificando configuraciones críticas:\n")
-                        
-                        if 'PermitRootLogin no' in config:
-                            self._actualizar_texto_auditoria("  OK PermitRootLogin: Deshabilitado\n")
-                        else:
-                            self._actualizar_texto_auditoria("  WARNING PermitRootLogin: Revisar configuración\n")
-                        
-                        if 'PasswordAuthentication no' in config:
-                            self._actualizar_texto_auditoria("  OK PasswordAuthentication: Deshabilitado\n")
-                        else:
-                            self._actualizar_texto_auditoria("  WARNING PasswordAuthentication: Habilitado\n")
-                        
-                        if 'Port 22' in config:
-                            self._actualizar_texto_auditoria("  WARNING Puerto: 22 (puerto por defecto)\n")
-                        else:
-                            self._actualizar_texto_auditoria("  OK Puerto: Cambiado del puerto por defecto\n")
-                            
+                        try:
+                            with open('/etc/ssh/sshd_config', 'r') as f:
+                                for linea in f:
+                                    if linea.strip().startswith('Port'):
+                                        puerto = linea.strip().split()[1]
+                                        if puerto == '22':
+                                            self._actualizar_texto_auditoria("  WARNING Puerto por defecto 22 en uso\n")
+                                        else:
+                                            self._actualizar_texto_auditoria("  OK Puerto: Cambiado del puerto por defecto\n")
+                        except Exception as e:
+                            self._actualizar_texto_auditoria(f"ERROR leyendo sshd_config: {str(e)}\n")
                     else:
                         self._actualizar_texto_auditoria("ERROR SSH no encontrado o no configurado\n")
-                    
-                    # Verificar servicio SSH
-                    resultado = subprocess.run(['systemctl', 'is-active', 'ssh'], capture_output=True, text=True)
-                    if resultado.stdout.strip() == 'active':
+                    exito, out, err = ejecutar_comando_seguro('systemctl', ['is-active', 'ssh'])
+                    if out.strip() == 'active':
                         self._actualizar_texto_auditoria("OK Servicio SSH: Activo\n")
                     else:
                         self._actualizar_texto_auditoria("ERROR Servicio SSH: Inactivo\n")
-                
                 except Exception as e:
                     self._actualizar_texto_auditoria(f"ERROR auditando SSH: {str(e)}\n")
-                
                 self._actualizar_texto_auditoria("OK Auditoría SSH completada\n\n")
             except Exception as e:
                 self._actualizar_texto_auditoria(f"ERROR en auditoría SSH: {str(e)}\n")
-        
-        threading.Thread(target=ejecutar, daemon=True).start()
+    # threading.Thread(target=ejecutar, daemon=True).start()  # Comentado: 'ejecutar' no está definido en este ámbito
     
     def verificar_password_policy(self):
         """Verificar políticas de contraseñas."""
@@ -708,41 +641,35 @@ class VistaAuditoria(tk.Frame):
                 import os
                 
                 try:
+                    from aresitos.utils.gestor_permisos import ejecutar_comando_seguro
                     # Verificar /etc/login.defs
                     if os.path.exists('/etc/login.defs'):
                         self._actualizar_texto_auditoria(" Configuración en /etc/login.defs:\n")
-                        resultado = subprocess.run(['grep', '-E', 'PASS_MAX_DAYS|PASS_MIN_DAYS|PASS_MIN_LEN|PASS_WARN_AGE', '/etc/login.defs'], 
-                                                 capture_output=True, text=True)
-                        if resultado.stdout:
-                            for linea in resultado.stdout.split('\n'):
+                        exito_grep, out_grep, err_grep = ejecutar_comando_seguro('grep', ['-E', 'PASS_MAX_DAYS|PASS_MIN_DAYS|PASS_MIN_LEN|PASS_WARN_AGE', '/etc/login.defs'])
+                        if out_grep:
+                            for linea in out_grep.split('\n'):
                                 if linea.strip() and not linea.startswith('#'):
                                     self._actualizar_texto_auditoria(f"  {linea}\n")
-                    
                     # Verificar PAM
                     if os.path.exists('/etc/pam.d/common-password'):
                         self._actualizar_texto_auditoria(" Configuración PAM (common-password):\n")
-                        resultado = subprocess.run(['grep', 'pam_pwquality', '/etc/pam.d/common-password'], 
-                                                 capture_output=True, text=True)
-                        if resultado.stdout:
+                        exito_pam, out_pam, err_pam = ejecutar_comando_seguro('grep', ['pam_pwquality', '/etc/pam.d/common-password'])
+                        if out_pam:
                             self._actualizar_texto_auditoria(f"  OK pwquality configurado\n")
                         else:
                             self._actualizar_texto_auditoria(f"  WARNING pwquality no configurado\n")
-                    
                     # Verificar usuarios con contraseñas vacías
                     self._actualizar_texto_auditoria(" Verificando usuarios sin contraseña:\n")
-                    resultado = subprocess.run(['awk', '-F:', '($2 == "") {print $1}', '/etc/shadow'], 
-                                             capture_output=True, text=True)
-                    if resultado.stdout.strip():
+                    exito_awk, out_awk, err_awk = ejecutar_comando_seguro('awk', ['-F:', '($2 == "") {print $1}', '/etc/shadow'])
+                    if out_awk and out_awk.strip():
                         self._actualizar_texto_auditoria("  WARNING Usuarios sin contraseña encontrados:\n")
-                        for usuario in resultado.stdout.split('\n'):
+                        for usuario in out_awk.split('\n'):
                             if usuario.strip():
                                 self._actualizar_texto_auditoria(f"    {usuario}\n")
                     else:
                         self._actualizar_texto_auditoria("  OK No hay usuarios sin contraseña\n")
-                
                 except Exception as e:
                     self._actualizar_texto_auditoria(f"ERROR verificando políticas: {str(e)}\n")
-                
                 self._actualizar_texto_auditoria("OK Verificación de políticas completada\n\n")
             except Exception as e:
                 self._actualizar_texto_auditoria(f"ERROR en verificación de políticas: {str(e)}\n")

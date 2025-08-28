@@ -441,76 +441,60 @@ class VistaReportes(tk.Frame):
             print(f"Error logging a terminal: {e}")
     
     def analizar_logs_kali(self):
-        """Análisis avanzado de logs usando herramientas nativas de Kali."""
+        """Análisis avanzado de logs usando herramientas nativas de Kali con permisos seguros."""
+        from aresitos.utils.gestor_permisos import ejecutar_comando_seguro
+        import datetime
+        import json
         def realizar_analisis():
             try:
-                import subprocess
-                import datetime
-                
                 self.reporte_text.delete(1.0, tk.END)
                 self.reporte_text.insert(tk.END, "=== ANÁLISIS DE LOGS CON HERRAMIENTAS KALI ===\n\n")
                 self.reporte_text.update()
-                
-                # Análisis de logs del sistema
                 analisis = {
                     "timestamp": datetime.datetime.now().isoformat(),
                     "logs_sistema": {},
                     "estadisticas": {},
                     "alertas": []
                 }
-                
                 # Últimos errores críticos
-                try:
-                    result = subprocess.run(['grep', '-i', 'error', '/var/log/syslog'], 
-                                          capture_output=True, text=True, timeout=10)
-                    analisis["logs_sistema"]["errores_syslog"] = result.stdout.split('\n')[-10:]
-                except (subprocess.SubprocessError, OSError, TimeoutError) as e:
-                    logging.debug(f'Error en excepción: {e}')
+                exito, out, err = ejecutar_comando_seguro('cat', ['/var/log/syslog'])
+                if exito:
+                    lines = [l for l in out.split('\n') if 'error' in l.lower()]
+                    analisis["logs_sistema"]["errores_syslog"] = lines[-10:]
+                else:
                     analisis["logs_sistema"]["errores_syslog"] = ["Error accediendo a syslog"]
-                
                 # Análisis de autenticación
-                try:
-                    result = subprocess.run(['grep', 'Failed', '/var/log/auth.log'], 
-                                          capture_output=True, text=True, timeout=10)
-                    analisis["logs_sistema"]["fallos_auth"] = len(result.stdout.split('\n'))
-                except (subprocess.SubprocessError, OSError, TimeoutError) as e:
-                    logging.debug(f'Error en excepción: {e}')
+                exito, out, err = ejecutar_comando_seguro('cat', ['/var/log/auth.log'])
+                if exito:
+                    lines = [l for l in out.split('\n') if 'Failed' in l]
+                    analisis["logs_sistema"]["fallos_auth"] = len(lines)
+                else:
                     analisis["logs_sistema"]["fallos_auth"] = 0
-                
-                # Estadísticas de memoria y CPU
-                try:
-                    result = subprocess.run(['top', '-bn1'], capture_output=True, text=True, timeout=5)
-                    lines = result.stdout.split('\n')[:5]
-                    analisis["estadisticas"]["top_info"] = lines
-                except (subprocess.SubprocessError, OSError, TimeoutError) as e:
-                    logging.debug(f'Error en excepción: {e}')
+                # Estadísticas de memoria y CPU (solo si permitido)
+                exito, out, err = ejecutar_comando_seguro('top', ['-bn1']) if 'top' in ejecutar_comando_seguro.__code__.co_varnames else (False, '', '')
+                if exito:
+                    analisis["estadisticas"]["top_info"] = out.split('\n')[:5]
+                else:
                     analisis["estadisticas"]["top_info"] = ["Error ejecutando top"]
-                
-                # Mostrar resultados
-                import json
                 texto_analisis = json.dumps(analisis, indent=2, ensure_ascii=False)
                 self.reporte_text.insert(tk.END, texto_analisis)
-                
                 self._log_terminal("Análisis de logs completado", "REPORTES", "INFO")
-                
             except Exception as e:
                 self.reporte_text.insert(tk.END, f"Error en análisis: {str(e)}")
-        
         thread = threading.Thread(target=realizar_analisis)
         thread.daemon = True
         thread.start()
     
     def generar_estadisticas_kali(self):
-        """Generar estadísticas del sistema usando comandos nativos de Kali."""
+        """Generar estadísticas del sistema usando comandos nativos de Kali con permisos seguros."""
+        from aresitos.utils.gestor_permisos import ejecutar_comando_seguro
+        import datetime
+        import json
         def generar():
             try:
-                import subprocess
-                import datetime
-                
                 self.reporte_text.delete(1.0, tk.END)
                 self.reporte_text.insert(tk.END, "=== ESTADÍSTICAS DEL SISTEMA KALI ===\n\n")
                 self.reporte_text.update()
-                
                 estadisticas = {
                     "timestamp": datetime.datetime.now().isoformat(),
                     "sistema": {},
@@ -518,72 +502,55 @@ class VistaReportes(tk.Frame):
                     "procesos": {},
                     "disco": {}
                 }
-                
                 # Información del sistema
-                try:
-                    result = subprocess.run(['uname', '-a'], capture_output=True, text=True, timeout=5)
-                    estadisticas["sistema"]["kernel"] = result.stdout.strip()
-                except (subprocess.SubprocessError, OSError, TimeoutError) as e:
-                    logging.debug(f'Error en excepción: {e}')
+                exito, out, err = ejecutar_comando_seguro('uname', ['-a']) if 'uname' in ejecutar_comando_seguro.__code__.co_varnames else (False, '', '')
+                if exito:
+                    estadisticas["sistema"]["kernel"] = out.strip()
+                else:
                     estadisticas["sistema"]["kernel"] = "Error obteniendo info del kernel"
-                
                 # Uso de memoria
-                try:
-                    result = subprocess.run(['free', '-h'], capture_output=True, text=True, timeout=5)
-                    estadisticas["sistema"]["memoria"] = result.stdout.split('\n')[:3]
-                except (subprocess.SubprocessError, OSError, TimeoutError) as e:
-                    logging.debug(f'Error en excepción: {e}')
+                exito, out, err = ejecutar_comando_seguro('free', ['-h']) if 'free' in ejecutar_comando_seguro.__code__.co_varnames else (False, '', '')
+                if exito:
+                    estadisticas["sistema"]["memoria"] = out.split('\n')[:3]
+                else:
                     estadisticas["sistema"]["memoria"] = ["Error obteniendo memoria"]
-                
                 # Procesos activos
-                try:
-                    result = subprocess.run(['ps', 'aux', '--sort=-%cpu'], capture_output=True, text=True, timeout=8)  # Issue 21/24: Optimizado de 5 a 8 segundos
-                    estadisticas["procesos"]["top_cpu"] = result.stdout.split('\n')[:10]
-                except (subprocess.SubprocessError, OSError, TimeoutError) as e:
-                    logging.debug(f'Error en excepción: {e}')
+                exito, out, err = ejecutar_comando_seguro('ps', ['aux', '--sort=-%cpu']) if 'ps' in ejecutar_comando_seguro.__code__.co_varnames else (False, '', '')
+                if exito:
+                    estadisticas["procesos"]["top_cpu"] = out.split('\n')[:10]
+                else:
                     estadisticas["procesos"]["top_cpu"] = ["Error obteniendo procesos"]
-                
                 # Conexiones de red
-                try:
-                    result = subprocess.run(['ss', '-tuln'], capture_output=True, text=True, timeout=5)
-                    estadisticas["red"]["conexiones"] = len(result.stdout.split('\n'))
-                except (subprocess.SubprocessError, OSError, TimeoutError) as e:
-                    logging.debug(f'Error en excepción: {e}')
+                exito, out, err = ejecutar_comando_seguro('ss', ['-tuln'])
+                if exito:
+                    estadisticas["red"]["conexiones"] = len(out.split('\n'))
+                else:
                     estadisticas["red"]["conexiones"] = 0
-                
                 # Uso del disco
-                try:
-                    result = subprocess.run(['df', '-h'], capture_output=True, text=True, timeout=5)
-                    estadisticas["disco"]["particiones"] = result.stdout.split('\n')[1:6]
-                except (subprocess.SubprocessError, OSError, TimeoutError) as e:
-                    logging.debug(f'Error en excepción: {e}')
+                exito, out, err = ejecutar_comando_seguro('df', ['-h']) if 'df' in ejecutar_comando_seguro.__code__.co_varnames else (False, '', '')
+                if exito:
+                    estadisticas["disco"]["particiones"] = out.split('\n')[1:6]
+                else:
                     estadisticas["disco"]["particiones"] = ["Error obteniendo info del disco"]
-                
-                # Mostrar estadísticas
-                import json
                 texto_stats = json.dumps(estadisticas, indent=2, ensure_ascii=False)
                 self.reporte_text.insert(tk.END, texto_stats)
-                
                 self._log_terminal("Estadísticas generadas", "REPORTES", "INFO")
-                
             except Exception as e:
                 self.reporte_text.insert(tk.END, f"Error generando estadísticas: {str(e)}")
-        
         thread = threading.Thread(target=generar)
         thread.daemon = True
         thread.start()
     
     def generar_informe_seguridad(self):
-        """Generar informe de seguridad usando herramientas de Kali."""
+        """Generar informe de seguridad usando herramientas de Kali con permisos seguros."""
+        from aresitos.utils.gestor_permisos import ejecutar_comando_seguro
+        import datetime
+        import json
         def generar_informe():
             try:
-                import subprocess
-                import datetime
-                
                 self.reporte_text.delete(1.0, tk.END)
                 self.reporte_text.insert(tk.END, "=== INFORME DE SEGURIDAD KALI ===\n\n")
                 self.reporte_text.update()
-                
                 informe = {
                     "timestamp": datetime.datetime.now().isoformat(),
                     "servicios": {},
@@ -591,62 +558,42 @@ class VistaReportes(tk.Frame):
                     "archivos": {},
                     "red": {}
                 }
-                
                 # Servicios activos
-                try:
-                    result = subprocess.run(['systemctl', 'list-units', '--type=service', '--state=running'], 
-                                          capture_output=True, text=True, timeout=10)
-                    servicios_activos = len([line for line in result.stdout.split('\n') if '.service' in line])
+                exito, out, err = ejecutar_comando_seguro('systemctl', ['list-units', '--type=service', '--state=running']) if 'systemctl' in ejecutar_comando_seguro.__code__.co_varnames else (False, '', '')
+                if exito:
+                    servicios_activos = len([line for line in out.split('\n') if '.service' in line])
                     informe["servicios"]["activos"] = servicios_activos
-                except (subprocess.SubprocessError, OSError, TimeoutError) as e:
-                    logging.debug(f'Error en excepción: {e}')
+                else:
                     informe["servicios"]["activos"] = 0
-                
                 # Usuarios conectados
-                try:
-                    result = subprocess.run(['who'], capture_output=True, text=True, timeout=5)
-                    informe["usuarios"]["conectados"] = len(result.stdout.split('\n')) - 1
-                except (subprocess.SubprocessError, OSError, TimeoutError) as e:
-                    logging.debug(f'Error en excepción: {e}')
+                exito, out, err = ejecutar_comando_seguro('who', []) if 'who' in ejecutar_comando_seguro.__code__.co_varnames else (False, '', '')
+                if exito:
+                    informe["usuarios"]["conectados"] = len(out.split('\n')) - 1
+                else:
                     informe["usuarios"]["conectados"] = 0
-                
                 # Archivos SUID
-                try:
-                    result = subprocess.run(['find', '/usr', '-perm', '-4000', '-type', 'f', '2>/dev/null'], 
-                                          capture_output=True, text=True, timeout=15)
-                    informe["archivos"]["suid_binaries"] = len(result.stdout.split('\n')) - 1
-                except (subprocess.SubprocessError, OSError, TimeoutError) as e:
-                    logging.debug(f'Error en excepción: {e}')
+                exito, out, err = ejecutar_comando_seguro('find', ['/usr', '-perm', '-4000', '-type', 'f']) if 'find' in ejecutar_comando_seguro.__code__.co_varnames else (False, '', '')
+                if exito:
+                    informe["archivos"]["suid_binaries"] = len(out.split('\n')) - 1
+                else:
                     informe["archivos"]["suid_binaries"] = 0
-                
                 # Conexiones sospechosas
-                try:
-                    result = subprocess.run(['ss', '-tuln', '|', 'grep', 'LISTEN'], 
-                                          capture_output=True, text=True, timeout=5, shell=True)
-                    informe["red"]["puertos_escucha"] = len(result.stdout.split('\n')) - 1
-                except (subprocess.SubprocessError, OSError, TimeoutError) as e:
-                    logging.debug(f'Error en excepción: {e}')
+                exito, out, err = ejecutar_comando_seguro('ss', ['-tuln'])
+                if exito:
+                    informe["red"]["puertos_escucha"] = len([line for line in out.split('\n') if 'LISTEN' in line])
+                else:
                     informe["red"]["puertos_escucha"] = 0
-                
                 # Verificar logs de seguridad
-                try:
-                    result = subprocess.run(['grep', '-c', 'authentication failure', '/var/log/auth.log'], 
-                                          capture_output=True, text=True, timeout=5)
-                    informe["usuarios"]["fallos_auth"] = int(result.stdout.strip()) if result.stdout.strip().isdigit() else 0
-                except (subprocess.SubprocessError, OSError, TimeoutError) as e:
-                    logging.debug(f'Error en excepción: {e}')
+                exito, out, err = ejecutar_comando_seguro('cat', ['/var/log/auth.log'])
+                if exito:
+                    informe["usuarios"]["fallos_auth"] = len([l for l in out.split('\n') if 'authentication failure' in l])
+                else:
                     informe["usuarios"]["fallos_auth"] = 0
-                
-                # Mostrar informe
-                import json
                 texto_informe = json.dumps(informe, indent=2, ensure_ascii=False)
                 self.reporte_text.insert(tk.END, texto_informe)
-                
                 self._log_terminal("Informe de seguridad generado", "REPORTES", "INFO")
-                
             except Exception as e:
                 self.reporte_text.insert(tk.END, f"Error generando informe: {str(e)}")
-        
         thread = threading.Thread(target=generar_informe)
         thread.daemon = True
         thread.start()

@@ -955,35 +955,28 @@ class VistaSIEM(tk.Frame):
         import os
         
         try:
+            from aresitos.utils.gestor_permisos import ejecutar_comando_seguro
             # Obtener configuración actual de red
-            resultado = subprocess.run(['ip', 'addr', 'show'], 
-                                     capture_output=True, text=True, timeout=10)
-            
+            exito, out, err = ejecutar_comando_seguro('ip', ['addr', 'show'])
             interfaces_detectadas = []
-            for linea in resultado.stdout.split('\n'):
-                if 'inet ' in linea and '127.0.0.1' not in linea:
-                    ip = linea.strip().split()[1].split('/')[0]
-                    interfaces_detectadas.append(ip)
-                    self._log_terminal(f"IP detectada y protegida: {ip}", "SIEM", "INFO")
-                    
+            if exito:
+                for linea in out.split('\n'):
+                    if 'inet ' in linea and '127.0.0.1' not in linea:
+                        ip = linea.strip().split()[1].split('/')[0]
+                        interfaces_detectadas.append(ip)
+                        self._log_terminal(f"IP detectada y protegida: {ip}", "SIEM", "INFO")
             # Verificar tabla de rutas
-            resultado = subprocess.run(['ip', 'route', 'show'], 
-                                     capture_output=True, text=True, timeout=5)
-            rutas = len(resultado.stdout.strip().split('\n'))
-            self._log_terminal(f"Tabla de rutas verificada - {rutas} rutas activas", "SIEM", "INFO")
-            
+            exito, out, err = ejecutar_comando_seguro('ip', ['route', 'show'])
+            if exito:
+                rutas = len(out.strip().split('\n'))
+                self._log_terminal(f"Tabla de rutas verificada - {rutas} rutas activas", "SIEM", "INFO")
             # Verificar configuración iptables si está disponible
-            try:
-                resultado = subprocess.run(['iptables', '-L', '-n'], 
-                                         capture_output=True, text=True, timeout=5)
-                if resultado.returncode == 0:
-                    reglas = len([l for l in resultado.stdout.split('\n') if l.strip() and not l.startswith('Chain')])
-                    self._log_terminal(f"Firewall iptables - {reglas} reglas activas", "SIEM", "INFO")
-                else:
-                    self._log_terminal("Firewall iptables no disponible", "SIEM", "WARNING")
-            except:
-                self._log_terminal("No se pudo verificar iptables", "SIEM", "WARNING")
-                
+            exito, out, err = ejecutar_comando_seguro('iptables', ['-L', '-n'])
+            if exito:
+                reglas = len([l for l in out.split('\n') if l.strip() and not l.startswith('Chain')])
+                self._log_terminal(f"Firewall iptables - {reglas} reglas activas", "SIEM", "INFO")
+            else:
+                self._log_terminal("Firewall iptables no disponible", "SIEM", "WARNING")
         except Exception as e:
             self._log_terminal(f"Error protegiendo IP: {str(e)}", "SIEM", "WARNING")
 
@@ -1044,51 +1037,42 @@ class VistaSIEM(tk.Frame):
         import subprocess
         
         try:
+            from aresitos.utils.gestor_permisos import ejecutar_comando_seguro
             # Monitorear conexiones activas
-            resultado = subprocess.run(['ss', '-tuln'], 
-                                     capture_output=True, text=True, timeout=10)
-            
-            conexiones_activas = len(resultado.stdout.strip().split('\n')) - 1
-            self._log_terminal(f"Conexiones de red activas: {conexiones_activas}", "SIEM", "INFO")
-            
+            exito, out, err = ejecutar_comando_seguro('ss', ['-tuln'])
+            if exito:
+                conexiones_activas = len(out.strip().split('\n')) - 1
+                self._log_terminal(f"Conexiones de red activas: {conexiones_activas}", "SIEM", "INFO")
             # Verificar estadísticas de interfaz
-            resultado = subprocess.run(['cat', '/proc/net/dev'], 
-                                     capture_output=True, text=True, timeout=5)
-            
+            exito, out, err = ejecutar_comando_seguro('cat', ['/proc/net/dev'])
             interfaces_con_trafico = []
-            for linea in resultado.stdout.split('\n')[2:]:  # Saltar headers
-                if ':' in linea:
-                    interfaz = linea.split(':')[0].strip()
-                    if interfaz != 'lo':  # Ignorar loopback
-                        interfaces_con_trafico.append(interfaz)
-                        
+            if exito:
+                for linea in out.split('\n')[2:]:
+                    if ':' in linea:
+                        interfaz = linea.split(':')[0].strip()
+                        if interfaz != 'lo':
+                            interfaces_con_trafico.append(interfaz)
             for interfaz in interfaces_con_trafico:
                 self._log_terminal(f"Interfaz de red monitoreada: {interfaz}", "SIEM", "INFO")
-                
             # Verificar procesos con conexiones de red
-            resultado = subprocess.run(['ss', '-tulpn'], 
-                                     capture_output=True, text=True, timeout=10)
-            
+            exito, out, err = ejecutar_comando_seguro('ss', ['-tulpn'])
             procesos_red = []
-            for linea in resultado.stdout.split('\n'):
-                if 'LISTEN' in linea or 'ESTAB' in linea:
-                    if 'users:' in linea:
-                        try:
-                            # Extraer nombre del proceso de la línea ss
-                            parte_users = linea.split('users:')[1]
-                            if '(' in parte_users and ')' in parte_users:
-                                proceso = parte_users.split('(')[1].split(')')[0]
-                            else:
+            if exito:
+                for linea in out.split('\n'):
+                    if 'LISTEN' in linea or 'ESTAB' in linea:
+                        if 'users:' in linea:
+                            try:
+                                parte_users = linea.split('users:')[1]
+                                if '(' in parte_users and ')' in parte_users:
+                                    proceso = parte_users.split('(')[1].split(')')[0]
+                                else:
+                                    proceso = 'desconocido'
+                            except:
                                 proceso = 'desconocido'
-                        except:
-                            proceso = 'desconocido'
-                            
-                        if proceso not in procesos_red:
-                            procesos_red.append(proceso)
-                            
-            for proceso in procesos_red[:10]:  # Limitar salida
+                            if proceso not in procesos_red:
+                                procesos_red.append(proceso)
+            for proceso in procesos_red[:10]:
                 self._log_terminal(f"Proceso con conexion de red: {proceso}", "SIEM", "INFO")
-                
         except Exception as e:
             self._log_terminal(f"Error monitoreando trafico: {str(e)}", "SIEM", "WARNING")
 

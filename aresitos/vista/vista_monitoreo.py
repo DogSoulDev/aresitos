@@ -126,22 +126,28 @@ class VistaMonitoreo(tk.Frame):
                 # Usar SudoManager para comandos que requieren privilegios
                 comando_str = ' '.join(comando)
                 resultado = self.sudo_manager.execute_sudo_command(comando_str, timeout=timeout)
+                # Si el resultado ya es un dict esperado, lo devolvemos directamente
+                if isinstance(resultado, dict):
+                    return resultado
+                # Si no, lo envolvemos en un dict estándar
+                return {
+                    'success': False,
+                    'output': '',
+                    'error': 'Error inesperado en SudoManager',
+                    'returncode': -4
+                }
             else:
                 # Ejecutar comando normal
-                resultado = subprocess.run(
-                    comando,
-                    capture_output=True,
-                    text=True,
-                    timeout=timeout,
-                    check=False
-                )
-            
-            return {
-                'success': resultado.returncode == 0,
-                'output': resultado.stdout,
-                'error': resultado.stderr,
-                'returncode': resultado.returncode
-            }
+                from aresitos.utils.gestor_permisos import ejecutar_comando_seguro
+                herramienta = comando[0]
+                argumentos = comando[1:]
+                exito, out, err = ejecutar_comando_seguro(herramienta, argumentos, timeout=timeout)
+                return {
+                    'success': exito,
+                    'output': out,
+                    'error': err,
+                    'returncode': 0 if exito else 1
+                }
             
         except subprocess.TimeoutExpired:
             return {
