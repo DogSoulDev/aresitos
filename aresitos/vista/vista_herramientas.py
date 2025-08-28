@@ -82,7 +82,7 @@ class VistaHerramientasKali(tk.Frame):
             root = self.winfo_toplevel()
             # Ruta robusta y multiplataforma al icono, relativa al proyecto
             base_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-            icon_path = os.path.join(base_dir, "recursos", "aresitos_icono.png")
+            icon_path = os.path.join(base_dir, "recursos", "icono", "aresitos_icono.png")
             if os.path.exists(icon_path):
                 self._icon_img = PhotoImage(file=icon_path)
                 root.iconphoto(True, self._icon_img)
