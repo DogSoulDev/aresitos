@@ -120,9 +120,9 @@ python3 main.py --dev
 
 ## Capturas de pantalla
 
-![Vista Login](aresitos/recursos/vista_login.png)
-![Vista Herramientas](aresitos/recursos/vista_herramientas.png)
-![Vista Principal](aresitos/recursos/vista_principal.png)
+![Vista Login](aresitos/recursos/capturas/vista_login.png)
+![Vista Herramientas](aresitos/recursos/capturas/vista_herramientas.png)
+![Vista Principal](aresitos/recursos/capturas/vista_principal.png)
 
 ---
 
