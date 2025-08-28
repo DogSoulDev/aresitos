@@ -1,5 +1,8 @@
 # Manual Técnico - Aresitos
 
+## 🔄 Política de Rutas Dinámicas y Portabilidad
+Todas las rutas de recursos, datos y configuraciones en ARESITOS son ahora relativas al root del proyecto y se construyen dinámicamente usando `os.path` o `pathlib`. No se usan rutas absolutas, ni dependientes de `/home`, ni del `cwd`. Esto garantiza portabilidad, seguridad y compatibilidad con Kali Linux y otros entornos. Cualquier acceso a archivos, logs, wordlists, diccionarios o recursos debe seguir este principio.
+
 ## ¿Qué es Aresitos?
 
 **Aresitos** es una herramienta completa de ciberseguridad diseñada específicamente para Kali Linux. Integra múltiples funciones de seguridad en una sola aplicación fácil de usar.

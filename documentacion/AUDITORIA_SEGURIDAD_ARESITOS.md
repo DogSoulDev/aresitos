@@ -1,5 +1,8 @@
 # Auditoría de Seguridad - Aresitos
 
+## 🔄 Política de Rutas Dinámicas y Portabilidad
+Todas las rutas de recursos, datos y configuraciones en ARESITOS son ahora relativas al root del proyecto y se construyen dinámicamente usando `os.path` o `pathlib`. No se usan rutas absolutas, ni dependientes de `/home`, ni del `cwd`. Esto garantiza portabilidad, seguridad y compatibilidad con Kali Linux y otros entornos. Cualquier acceso a archivos, logs, wordlists, diccionarios o recursos debe seguir este principio.
+
 ## Estado Actual de Seguridad
 
 **OK CÓDIGO SEGURO** - Todas las vulnerabilidades críticas han sido corregidas.
