@@ -1,3 +1,11 @@
+> **Recomendación importante:**
+>
+> Antes de instalar o ejecutar ARESITOS, asegúrate de tener tu sistema Kali Linux completamente actualizado para evitar problemas de dependencias o incompatibilidades:
+>
+> ```sh
+> sudo apt update && sudo apt upgrade -y
+> ```
+>
 
 ![ARESITOS](aresitos/recursos/aresitos.png)
 
