@@ -100,7 +100,7 @@ class RateLimiter:
         self.intentos.append(time.time())
 
 class LoginAresitos:
-    def __init__(self, root=None, *args, **kwargs):
+    def __init__(self, root=None):
         self.bg_primary = "#23272e"
         self.bg_secondary = "#2c313c"
         self.bg_tertiary = "#1a1d23"
@@ -116,11 +116,11 @@ class LoginAresitos:
             self.root = tk.Tk()
         else:
             self.root = root
-    self.verificacion_completada = True  # Siempre permitir avanzar tras login
-    self.password_correcta = False
-    self.crear_interfaz()
-    self.escribir_log("Bienvenido a ARESITOS - Sistema de Seguridad Cibernetica")
-    self.escribir_log("Por favor, autentíquese como root para continuar.")
+        self.verificacion_completada = True  # Siempre permitir avanzar tras login
+        self.password_correcta = False
+        self.crear_interfaz()
+        self.escribir_log("Bienvenido a ARESITOS - Sistema de Seguridad Cibernetica")
+        self.escribir_log("Por favor, autentíquese como root para continuar.")
 
     def revocar_sudo(self):
         try:
@@ -421,7 +421,7 @@ class LoginAresitos:
         self.login_btn.config(state=tk.DISABLED)
         self.password_entry.config(state=tk.DISABLED)
         self.skip_btn.config(state=tk.DISABLED)
-    self.continue_btn.config(state=tk.NORMAL, bg=self.accent_orange)
+        self.continue_btn.config(state=tk.NORMAL, bg=self.accent_orange)
 
     def iniciar_aplicacion(self):
     # Siempre permitir avanzar tras login
