@@ -172,20 +172,35 @@ class VistaDashboard(tk.Frame):
     _terminal_global = None
     _terminal_widget = None
     
+
     def __init__(self, parent):
         super().__init__(parent)
         self.controlador = None
         self.logger = logging.getLogger(__name__)
         self.actualizacion_activa = False
         self.shell_detectado = self._detectar_shell()
-        
+
+        # Favicon solo en Kali Linux
+        try:
+            import platform, os
+            if 'kali' in platform.platform().lower():
+                from tkinter import PhotoImage
+                root = parent.winfo_toplevel() if hasattr(parent, 'winfo_toplevel') else parent
+                icon_path = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "recursos", "aresitos_icono.png")
+                if os.path.exists(icon_path):
+                    self._icon_img = PhotoImage(file=icon_path)
+                    root.iconphoto(True, self._icon_img)
+        except Exception as e:
+            if hasattr(self, 'logger'):
+                self.logger.warning(f"[WARN] No se pudo cargar el icono de ventana principal: {e}")
+
         # Variables para el terminal integrado
         self.terminal_handler = None
         self.stdout_redirector = None
         self.stderr_redirector = None
         self.original_stdout = sys.stdout
         self.original_stderr = sys.stderr
-        
+
         # Configurar tema y colores
         if BURP_THEME_AVAILABLE and burp_theme:
             self.theme = burp_theme
@@ -214,7 +229,7 @@ class VistaDashboard(tk.Frame):
                 'button_fg': '#ffffff'
             }
             self.configure(bg=self.colors['bg_primary'])
-        
+
         self.crear_interfaz()
         self.iniciar_actualizacion_metricas()
         
