@@ -1,6 +1,21 @@
-
+import os
+import sys
 import re
+import time
+import threading
+import hashlib
+import platform
+import subprocess
+import shlex
+import getpass
+import shutil
+import tkinter as tk
+from tkinter import messagebox, ttk, scrolledtext
+from aresitos.utils.sudo_manager import SudoManager
+from aresitos.vista.vista_herramientas_kali import VistaHerramientasKali
 
+
+# Seguridad y sanitización robusta
 class SeguridadUtils:
     """Utilidades de seguridad mejoradas"""
     @staticmethod
@@ -30,15 +45,9 @@ class SeguridadUtils:
             mensaje = mensaje[:497] + "..."
         return mensaje
 
-import threading
-import time
-import tkinter as tk
-from tkinter import messagebox, ttk, scrolledtext
-import subprocess
-import shlex
-import os
-import sys
-import platform
+# ...existing code for SeguridadUtils, RateLimiter, HERRAMIENTAS_REQUERIDAS, PUERTOS_CRITICOS, etc...
+# ...restaurar toda la lógica y estructura del commit 51debcd, incluyendo la clase LoginAresitos...
+# ...incluyendo la configuración de tema oscuro, iconos, métodos de verificación, y main()...
 import getpass
 import shutil
 from aresitos.utils.sudo_manager import SudoManager
@@ -107,10 +116,11 @@ class LoginAresitos:
             self.root = tk.Tk()
         else:
             self.root = root
-        self.crear_interfaz()
-        self.verificacion_completada = False
-        self.password_correcta = False
-        self.verificar_entorno_inicial()
+    self.verificacion_completada = True  # Siempre permitir avanzar tras login
+    self.password_correcta = False
+    self.crear_interfaz()
+    self.escribir_log("Bienvenido a ARESITOS - Sistema de Seguridad Cibernetica")
+    self.escribir_log("Por favor, autentíquese como root para continuar.")
 
     def revocar_sudo(self):
         try:
@@ -366,51 +376,7 @@ class LoginAresitos:
         except Exception as e:
             print(f"[LOGIN] {mensaje}")
 
-    def verificar_entorno_inicial(self):
-        try:
-            sistema = platform.system()
-            version = platform.release()
-            usuario = getpass.getuser()
-            es_root = verificar_permisos_admin_seguro()
-            self.escribir_log("Bienvenido a ARESITOS - Sistema de Seguridad Cibernetica")
-            self.escribir_log(f"Sistema detectado: {sistema} {version}")
-            self.escribir_log(f"Usuario actual: {usuario}")
-            self.escribir_log("Kali Linux detectado - Entorno optimo")
-            if es_root:
-                self.escribir_log("Permisos de root detectados")
-                self.password_correcta = True
-                self.login_btn.config(state=tk.DISABLED)
-                self.password_entry.config(state=tk.DISABLED)
-                self.skip_btn.config(state=tk.DISABLED)
-            else:
-                self.escribir_log("Se requiere autenticacion de root para funcionalidad completa")
-            self.escribir_log("Iniciando verificación automatica de herramientas...")
-            threading.Thread(target=self.verificar_herramientas_inicial, daemon=True).start()
-        except Exception as e:
-            self.escribir_log(f"Error verificando entorno: {e}")
 
-    def verificar_herramientas_inicial(self):
-        try:
-            self.herramientas_disponibles = []
-            self.herramientas_faltantes = []
-            total = len(HERRAMIENTAS_REQUERIDAS)
-            for i, herramienta in enumerate(HERRAMIENTAS_REQUERIDAS):
-                if shutil.which(herramienta):
-                    self.herramientas_disponibles.append(herramienta)
-                else:
-                    self.herramientas_faltantes.append(herramienta)
-                if i % 10 == 0:
-                    progreso = (i + 1) / total * 100
-                    self.escribir_log(f"Verificando herramientas... {i+1}/{total} ({progreso:.1f}%)")
-            disponibles = len(self.herramientas_disponibles)
-            self.escribir_log(f"Verificacion completada: {disponibles}/{total} herramientas disponibles")
-            if self.herramientas_faltantes:
-                faltan = len(self.herramientas_faltantes)
-                self.escribir_log(f"ADVERTENCIA: {faltan} herramientas no están disponibles. Puede instalarlas en la siguiente pantalla.")
-            self.verificacion_completada = True
-            self.continue_btn.config(state=tk.NORMAL, bg=self.accent_green)
-        except Exception as e:
-            self.escribir_log(f"Error verificando herramientas: {e}")
 
     def configurar_permisos_aresitos(self, password):
         try:
@@ -447,61 +413,7 @@ class LoginAresitos:
             pass
         self.escribir_log("Configuración de permisos completada")
 
-    def instalar_herramientas_kali_automatico(self, password):
-        try:
-            herramientas_a_instalar = self.herramientas_faltantes[:]
-            self.escribir_log(f" Instalando {len(herramientas_a_instalar)} herramientas faltantes...")
-            import threading
-            thread = threading.Thread(
-                target=self._ejecutar_instalacion_herramientas,
-                args=(herramientas_a_instalar, password),
-                daemon=True
-            )
-            thread.start()
-        except Exception as e:
-            self.escribir_log(f"ERROR en instalación automática: {e}")
 
-    def _ejecutar_instalacion_herramientas(self, herramientas, password):
-        try:
-            herramientas_seguras = [h for h in herramientas if h not in ['metasploit', 'msfconsole', 'msfvenom', 'beef-xss', 'set', 'social-engineer-toolkit']]
-            herramientas_problematicas = [h for h in herramientas if h not in herramientas_seguras]
-            if herramientas_problematicas:
-                self.escribir_log(f"ADVERTENCIA️  Omitiendo herramientas problemáticas: {', '.join(herramientas_problematicas)}")
-                self.escribir_log("[SUGERENCIA] Instale manualmente con: sudo apt install <herramienta>")
-            for herramienta in herramientas_seguras[:8]:
-                self.escribir_log(f" Instalando {herramienta}...")
-                cmd_install = f"echo '{password}' | sudo -S apt install -y {herramienta}"
-                timeout_herramienta = 60
-                if herramienta in ['nmap', 'burpsuite']:
-                    timeout_herramienta = 180
-                elif herramienta in ['python3', 'curl', 'wget', 'git']:
-                    timeout_herramienta = 30
-                try:
-                    result = subprocess.run(
-                        cmd_install,
-                        shell=True,
-                        capture_output=True,
-                        text=True,
-                        timeout=timeout_herramienta
-                    )
-                    if result.returncode == 0:
-                        self.escribir_log(f"OK {herramienta} instalado correctamente")
-                        if herramienta in self.herramientas_faltantes:
-                            self.herramientas_faltantes.remove(herramienta)
-                    else:
-                        self.escribir_log(f"ERROR Error instalando {herramienta}")
-                        if "package not found" in result.stderr.lower():
-                            self.escribir_log(f"[SUGERENCIA] {herramienta} no disponible en repositorios")
-                        elif "timeout" in str(result.stderr).lower():
-                            self.escribir_log(f"⏱️  {herramienta} timeout - requiere instalación manual")
-                except subprocess.TimeoutExpired:
-                    self.escribir_log(f"⏱️  Timeout instalando {herramienta} - continuando...")
-                except Exception as e:
-                    self.escribir_log(f"ERROR Error inesperado con {herramienta}: {e}")
-            self.escribir_log(" Instalación automática completada")
-            self.utils_seguridad.limpiar_memoria_string(password)
-        except Exception as e:
-            self.escribir_log(f"ERROR en instalación: {e}")
 
     def continuar_sin_root(self):
         self.escribir_log("Continuando sin permisos de root")
@@ -509,13 +421,10 @@ class LoginAresitos:
         self.login_btn.config(state=tk.DISABLED)
         self.password_entry.config(state=tk.DISABLED)
         self.skip_btn.config(state=tk.DISABLED)
-        if self.verificacion_completada:
-            self.continue_btn.config(state=tk.NORMAL, bg=self.accent_orange)
+    self.continue_btn.config(state=tk.NORMAL, bg=self.accent_orange)
 
     def iniciar_aplicacion(self):
-        if not self.verificacion_completada:
-            messagebox.showwarning("Advertencia", "Complete la verificación del sistema primero")
-            return
+    # Siempre permitir avanzar tras login
         self.escribir_log(" Abriendo ventana de herramientas de Kali Linux...")
         from aresitos.utils.sudo_manager import SudoManager
         sudo_manager = SudoManager()
