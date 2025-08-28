@@ -156,7 +156,7 @@ class ConfiguradorAresAegis:
         
         # Lista de herramientas esenciales para instalar (disponibles en APT)
         herramientas_esenciales = [
-            'nmap', 'sqlmap', 'hydra', 'nikto', 'wireshark-common',
+            'nmap', 'sqlmap', 'hydra', 'nikto',
             'metasploit-framework', 'john', 'hashcat', 'aircrack-ng',
             'gobuster', 'feroxbuster', 'wfuzz', 'whatweb', 'nuclei'
         ]

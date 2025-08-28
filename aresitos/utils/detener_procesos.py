@@ -115,7 +115,7 @@ class DetenerProcesos:
                 
                 # Procesos FIM específicos
                 procesos_fim = [
-                    'inotifywait', 'auditd', 'aide', 'samhain', 'tripwire'
+                    'inotifywait', 'auditd', 'aide'
                 ]
                 
                 procesos_terminados = self._terminar_procesos_por_nombre(

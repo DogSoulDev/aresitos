@@ -738,7 +738,6 @@ class VistaSIEM(tk.Frame):
             tools_frame.pack(fill=tk.X)
             
             tools_forenses = [
-                (" Autopsy", self.usar_autopsy),
                 (" Sleuth Kit", self.usar_sleuthkit),
                 (" Binwalk", self.usar_binwalk),
                 (" Foremost", self.usar_foremost),
@@ -760,7 +759,6 @@ class VistaSIEM(tk.Frame):
             tools_frame.pack(fill=tk.X)
             
             tools_forenses = [
-                (" Autopsy", self.usar_autopsy),
                 (" Sleuth Kit", self.usar_sleuthkit),
                 (" Binwalk", self.usar_binwalk),
                 (" Foremost", self.usar_foremost),
@@ -2478,54 +2476,6 @@ class VistaSIEM(tk.Frame):
         self._actualizar_texto_alertas("OK Honeypots operativos\n\n")
     
     # Métodos de la pestaña Forense
-    def usar_autopsy(self):
-        """Usar Autopsy para análisis forense - Modo seguro con información detallada."""
-        def ejecutar_autopsy_seguro():
-            try:
-                self.after(0, self._actualizar_texto_forense, "AUTOPSY - Plataforma Forense Digital\n")
-                self.after(0, self._actualizar_texto_forense, "="*50 + "\n")
-                
-                import subprocess
-                import os
-                
-                # Verificar si autopsy está instalado SIN ejecutarlo
-                try:
-                    resultado = subprocess.run(['which', 'autopsy'], capture_output=True, text=True, timeout=5)
-                    if resultado.returncode == 0:
-                        self.after(0, self._actualizar_texto_forense, "OK Autopsy detectado en: " + resultado.stdout.strip() + "\n")
-                        
-                        # Verificar versión de forma segura
-                        version_result = subprocess.run(['autopsy', '--help'], capture_output=True, text=True, timeout=5)
-                        self.after(0, self._actualizar_texto_forense, "INFO Autopsy disponible - modo GUI\n\n")
-                        
-                        self.after(0, self._actualizar_texto_forense, "USO RECOMENDADO (modo manual):\n")
-                        self.after(0, self._actualizar_texto_forense, "1. Abrir terminal independiente\n")
-                        self.after(0, self._actualizar_texto_forense, "2. Ejecutar: sudo autopsy\n")
-                        self.after(0, self._actualizar_texto_forense, "3. Acceder via web: localhost:9999/autopsy\n\n")
-                        
-                        self.after(0, self._actualizar_texto_forense, "CAPACIDADES:\n")
-                        self.after(0, self._actualizar_texto_forense, "• Timeline de eventos\n")
-                        self.after(0, self._actualizar_texto_forense, "• Análisis de sistemas de archivos\n")
-                        self.after(0, self._actualizar_texto_forense, "• Recuperación de archivos eliminados\n")
-                        self.after(0, self._actualizar_texto_forense, "• Indexación y búsqueda\n")
-                        self.after(0, self._actualizar_texto_forense, "• Análisis de metadatos\n\n")
-                        
-                        self.after(0, self._actualizar_texto_forense, "NOTA: Autopsy requiere ejecución manual por seguridad\n")
-                        
-                    else:
-                        self.after(0, self._actualizar_texto_forense, "WARNING Autopsy no encontrado\n")
-                        self.after(0, self._actualizar_texto_forense, "INSTALACION: sudo apt install sleuthkit autopsy -y\n\n")
-                        
-                except Exception as e:
-                    self.after(0, self._actualizar_texto_forense, f"INFO Verificación manual requerida: {str(e)}\n")
-                    self.after(0, self._actualizar_texto_forense, "Para usar Autopsy manualmente:\n")
-                    self.after(0, self._actualizar_texto_forense, "1. sudo autopsy en terminal separada\n")
-                    self.after(0, self._actualizar_texto_forense, "2. Navegador: localhost:9999/autopsy\n\n")
-                
-            except Exception as e:
-                self.after(0, self._actualizar_texto_forense, f"ERROR: {str(e)}\n")
-                
-        threading.Thread(target=ejecutar_autopsy_seguro, daemon=True).start()
     
     def usar_sleuthkit(self):
         """Usar Sleuth Kit para análisis forense."""
@@ -2551,7 +2501,7 @@ class VistaSIEM(tk.Frame):
                 except FileNotFoundError:
                     self.after(0, self._actualizar_texto_forense, "ERROR Sleuth Kit no encontrado\n")
                     self.after(0, self._actualizar_texto_forense, "📦 INSTALACIÓN KALI:\n")
-                    self.after(0, self._actualizar_texto_forense, "  sudo apt install sleuthkit autopsy -y\n\n")
+                    self.after(0, self._actualizar_texto_forense, "  sudo apt install sleuthkit -y\n\n")
                     
                 self.after(0, self._actualizar_texto_forense, " CASOS DE USO:\n")
                 self.after(0, self._actualizar_texto_forense, "  • Análisis de sistemas de archivos\n")

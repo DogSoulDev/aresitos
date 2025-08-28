@@ -173,50 +173,41 @@ def verificar_kali_linux_criptografico() -> bool:
     except (IOError, OSError, PermissionError, FileNotFoundError):
         return False
 
-# Herramientas requeridas para Aresitos (Kali Linux especializado)
+# Herramientas requeridas para Aresitos (Kali Linux especializado y robusto)
 HERRAMIENTAS_REQUERIDAS = [
-    # Scanners de red criticos modernizados
+    # Scanners de red críticos y funcionales
     'nmap', 'masscan', 'zmap', 'rustscan', 'dnsenum', 'dnsrecon', 'fierce',
     'sublist3r', 'amass', 'gobuster', 'feroxbuster', 'httpx', 'wfuzz',
-    
-    # Analisis de vulnerabilidades
+
+    # Análisis de vulnerabilidades
     'nikto', 'sqlmap', 'wpscan', 'joomscan', 'droopescan', 'nuclei',
     'wapiti', 'skipfish', 'whatweb', 'wafw00f', 'davtest',
-    
-    # Herramientas de explotacion
+
+    # Herramientas de explotación
     'metasploit', 'searchsploit', 'msfconsole', 'msfvenom', 'exploitdb',
     'beef-xss', 'set', 'social-engineer-toolkit',
-    
-    # Analisis de red
-    'wireshark', 'tshark', 'tcpdump', 'netcat', 'nc', 'socat', 'netstat',
-    'ss', 'lsof', 'arp-scan', 'ping', 'traceroute', 'mtr',
-    
+
+    # Análisis de red (solo herramientas funcionales por apt)
+    'tcpdump', 'netcat', 'nc', 'socat', 'netstat', 'ss', 'lsof', 'arp-scan', 'ping', 'traceroute', 'mtr',
+
     # Cracking y bruteforce
     'hydra', 'medusa', 'ncrack', 'john', 'hashcat', 'aircrack-ng',
     'crunch', 'cewl', 'cupp', 'patator',
-    
-    # Forense y análisis (herramientas que funcionan en Kali 2025)
-    'sleuthkit', 'binwalk', 'foremost',
-    'strings', 'hexdump', 'xxd', 'file', 'exiftool',
-    
+
+    # Forense y análisis (solo robustas y disponibles)
+    'sleuthkit', 'binwalk', 'foremost', 'strings', 'hexdump', 'xxd', 'file', 'exiftool',
+
     # Utilidades del sistema
     'curl', 'wget', 'git', 'python3', 'pip3', 'perl', 'ruby',
     'java', 'gcc', 'make', 'cmake', 'openssl',
-    
-    # Herramientas adicionales modernizadas
+
+    # Herramientas adicionales
     'burpsuite', 'owasp-zap', 'nuclei', 'xsser', 'weevely',
     'backdoor-factory', 'shellter', 'veil', 'empire'
 ]
 
 # Herramientas que requieren instalación manual o tienen problemas de timeout
-HERRAMIENTAS_PROBLEMATICAS = [
-    'volatility',      # No disponible en repositorios estándar
-    'autopsy',         # Requiere descarga grande
-    'tripwire',        # Timeout frecuente
-    'samhain',         # Timeout frecuente  
-    'wireshark',       # Instalación interactiva
-    'tshark'           # Parte de wireshark
-]
+HERRAMIENTAS_PROBLEMATICAS = []
 
 # Puertos criticos de seguridad para monitoreo (Kali Linux especializado)
 PUERTOS_CRITICOS = [
@@ -668,7 +659,7 @@ class LoginAresitos:
                 self.escribir_log(f"{faltan} herramientas necesitan instalacion")
                 
                 # Mostrar algunas herramientas faltantes importantes
-                importantes = ['nmap', 'sqlmap', 'hydra', 'wireshark', 'metasploit']
+                importantes = ['nmap', 'sqlmap', 'hydra', 'metasploit']
                 faltantes_importantes = [h for h in importantes if h in self.herramientas_faltantes]
                 
                 if faltantes_importantes:
@@ -984,7 +975,7 @@ class LoginAresitos:
                 
                 # Timeout diferencial basado en el tipo de herramienta
                 timeout_herramienta = 60  # Por defecto 60 segundos
-                if herramienta in ['nmap', 'wireshark', 'burpsuite']:
+                if herramienta in ['nmap', 'burpsuite']:
                     timeout_herramienta = 180  # Herramientas grandes: 3 minutos
                 elif herramienta in ['python3', 'curl', 'wget', 'git']:
                     timeout_herramienta = 30   # Herramientas básicas: 30 segundos

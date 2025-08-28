@@ -247,7 +247,7 @@ class VistaHerramientasKali(tk.Frame):
             "• Monitoreo: inotifywait, auditd, systemctl, pspy, aide\n" +
             "• Firewall: iptables, fail2ban-client\n\n" +
             "ANÁLISIS FORENSE:\n" +
-            "• Forense: sleuthkit, autopsy, foremost\n" +
+            "• Forense: sleuthkit, foremost\n" +
             "• Memoria: hexdump, strings, file, binwalk\n" +
             "• Logs: journalctl, aureport, logwatch, rsyslog\n\n" +
             "🌐 PENETRACIÓN Y AUDITORÍA:\n" +
@@ -370,7 +370,7 @@ HERRAMIENTAS PRINCIPALES DEL ESCANEADOR PROFESIONAL v3.0:
    • AVANZADAS: rustscan (velocidad), nuclei (CVE), ffuf (fuzzing), feroxbuster (recursivo)
    • ANÁLISIS: strings, hexdump, binwalk, sleuthkit, yara
    • SEGURIDAD: chkrootkit, rkhunter, auditd, fail2ban, lynis
-   • RED: ip, route, netstat, netcat, tcpdump, wireshark
+    • RED: ip, route, netstat, netcat, tcpdump
 
 BENEFICIOS DEL ESCANEADOR PROFESIONAL v3.0:
    • Rendimiento optimizado para Kali Linux 2025
@@ -416,43 +416,25 @@ LISTO PARA: Escaneos de vulnerabilidades en entornos Kali Linux 2025
             
             # Lista de herramientas esenciales modernizadas para Kali 2025
             herramientas = [
-                # Comandos básicos del sistema (nativos)
+                # Herramientas robustas, apt-installables y recomendadas para ARESITOS v3.0
+                # Escaneo profesional
+                'nmap', 'masscan', 'rustscan', 'nuclei', 'ffuf', 'feroxbuster', 'nikto', 'whatweb', 'dirb', 'gobuster',
+                # Forense y análisis
+                'sleuthkit', 'tsk_recover', 'tsk_loaddb', 'tsk_gettimes', 'tsk_comparedir', 'tsk_imageinfo',
+                'testdisk', 'plaso', 'bulk-extractor', 'hashdeep', 'dc3dd', 'guymager', 'foremost', 'binwalk', 'exiftool', 'yara',
+                # Seguridad y auditoría
+                'clamav', 'clamav-daemon', 'chkrootkit', 'rkhunter', 'lynis', 'auditd', 'aide', 'debsums', 'rsyslog', 'logrotate', 'logwatch',
+                # Análisis avanzado y red
+                'tcpdump', 'wireshark', 'tshark', 'strace', 'ltrace', 'gdb', 'osquery', 'file', 'hexdump',
+                # Utilidades del sistema
                 'ps', 'ss', 'lsof', 'netstat', 'top', 'free', 'df', 'uname', 'who', 'last',
                 'find', 'stat', 'grep', 'awk', 'sort', 'uniq', 'wc', 'tail', 'head',
                 'systemctl', 'ip', 'route', 'wget', 'curl', 'diff', 'ls', 'chmod', 'chown',
-                # Comandos para nuevas funcionalidades implementadas
                 'lsmod', 'kill', 'pgrep', 'pkill', 'sha256sum', 'md5sum', 'sha1sum', 'sha512sum',
                 'iptables', 'cat', 'less', 'more', 'pwd', 'mkdir', 'rm', 'cp', 'mv',
-                # Herramientas de monitoreo y análisis del sistema (para FIM y SIEM)
-                'inotifywait', 'inotify-tools', 'auditd', 'ausearch', 'aide',
-                'debsums', 'dpkg', 'rpm', 'synaptic',
-                # Anti-rootkit y detección (usadas en escaneador avanzado FASE 3.1)
-                'chkrootkit', 'rkhunter', 'lynis', 'unhide', 'tiger', 'maldet',
-                # Escaneadores de red y puertos (usados en SIEM y Escaneador FASE 3.1)
-                'nmap', 'masscan', 'rustscan', 'gobuster', 'feroxbuster', 'nikto', 'nuclei', 'httpx',
-                'zmap', 'unicornscan', 'hping3', 'dirb', 'dirbuster',
-                # Análisis de servicios y red (expandido FASE 3.1)
-                'netcat', 'netcat-traditional', 'whatweb', 'wfuzz', 'ffuf', 'dirb',
-                'enum4linux', 'smbclient', 'rpcclient', 'ldapsearch',
-                # Cracking y fuerza bruta
-                'hashcat', 'john', 'hydra', 'medusa', 'patator', 'crunch', 'cewl',
-                # Bases de datos y SQL
-                'sqlmap', 'sqlninja', 'sqlite3', 'mysql', 'psql',
-                # Análisis de malware (expandido para FIM y cuarentena FASE 3.3)
-                'clamav', 'clamscan', 'freshclam', 'clamav-daemon', 'yara', 'binwalk', 'strings', 'file', 'exiftool',
-                'hexdump', 'foremost', 'sleuthkit', 'autopsy',
-                # FIM y monitoreo avanzado (FASE 3.2 y 3.3)
-                'pspy', 'pspy64', 'pspy32', 'linpeas', 'logger', 'fail2ban-client', 'logwatch',
-                'incron', 'fswatch', 'entr', 'watchman',
-                # Análisis forense y auditoría (usadas en SIEM FASE 3.2)
-                'logrotate', 'rsyslog', 'journalctl', 'aureport', 'auditctl',
-                # Herramientas adicionales para análisis avanzado (FASE 3)
-                'osquery', 'osqueryi', 'tcpdump', 'wireshark', 'tshark',
-                'strace', 'ltrace', 'gdb', 'objdump', 'readelf',
-                # Gestores de archivos para cheatsheets
-                'thunar', 'nautilus', 'dolphin', 'pcmanfm', 'caja', 'nemo', 'xdg-open',
-                # Editores de texto para visualización
+                # Editores y gestores
                 'nano', 'vim', 'vi', 'gedit', 'mousepad',
+                'thunar', 'nautilus', 'dolphin', 'xdg-open',
                 # Herramientas base de verificación
                 'which', 'whereis', 'type', 'command'
             ]
@@ -580,76 +562,28 @@ LISTO PARA: Escaneos de vulnerabilidades en entornos Kali Linux 2025
             
             # Lista de paquetes disponibles en repositorios APT de Kali
             paquetes = [
-                # Comandos básicos del sistema (ya incluidos en Kali por defecto)
+                # Herramientas robustas, apt-installables y recomendadas para ARESITOS v3.0
+                # Escaneo profesional
+                'nmap', 'masscan', 'rustscan', 'nuclei', 'ffuf', 'feroxbuster', 'nikto', 'whatweb', 'dirb', 'gobuster',
+                # Forense y análisis
+                'sleuthkit', 'testdisk', 'plaso', 'bulk-extractor', 'hashdeep', 'dc3dd', 'guymager', 'foremost', 'binwalk', 'exiftool', 'yara',
+                # Seguridad y auditoría
+                'clamav', 'clamav-daemon', 'chkrootkit', 'rkhunter', 'lynis', 'auditd', 'aide', 'debsums', 'rsyslog', 'logrotate', 'logwatch',
+                # Análisis avanzado y red
+                'tcpdump', 'wireshark', 'tshark', 'strace', 'ltrace', 'gdb', 'osquery', 'file', 'hexdump',
+                # Utilidades del sistema
                 'procps', 'iproute2', 'net-tools', 'util-linux', 'findutils', 'grep', 'gawk',
                 'coreutils', 'systemd', 'wget', 'curl', 'diffutils',
-                # Herramientas de monitoreo y análisis sistema (FASE 3.2 y 3.3)
-                'inotify-tools', 'chkrootkit', 'rkhunter', 'lynis', 'auditd', 'debsums',
-                'rsyslog', 'logrotate', 'logwatch',
-                # Escaneadores básicos (FASE 3.1 - Escaneador Expandido)
-                'nmap', 'masscan', 'nikto', 'gobuster', 'feroxbuster', 'dirb',
-                # Servicios de red (FASE 3.1)
-                'netcat-traditional', 'whatweb', 'wfuzz', 'ffuf',
-                # Cracking y passwords
-                'hashcat', 'john', 'hydra', 'medusa', 'patator',
-                # Análisis SQL
-                'sqlmap', 'sqlninja',
-                # Cuarentena y malware (FASE 3.3 - FIM expandido)
-                'clamav', 'clamav-daemon', 'clamav-freshclam', 'yara', 'binwalk', 'exiftool',
-                'foremost', 'sleuthkit', 'autopsy',
-                # SIEM y auditoría (FASE 3.2)
-                'fail2ban', 'aide', 'tripwire', 'samhain',
-                # Herramientas de análisis avanzado (FASE 3)
-                'tcpdump', 'wireshark', 'tshark', 'strace', 'ltrace', 'gdb',
-                'osquery', 'file', 'hexdump'
-            ]
-            
-                        # Lista de herramientas esenciales para Kali Linux (ELIMINADOS: sqlninja, volatility3)
-            paquetes = [
-                # Escaneo de red (actualizado FASE 3.1)
-                'nmap', 'masscan', 'nikto', 'gobuster', 'feroxbuster', 'dirb',
-                # Servicios de red (FASE 3.1)
-                'netcat-traditional', 'whatweb', 'wfuzz', 'ffuf',
-                # Cracking y passwords
-                'hashcat', 'john', 'hydra', 'medusa', 'patator',
-                # Análisis SQL
-                'sqlmap',
-                # Cuarentena y malware (FASE 3.3 - FIM expandido)
-                'clamav', 'clamav-daemon', 'clamav-freshclam', 'yara', 'binwalk', 'exiftool',
-                'foremost', 'sleuthkit', 'autopsy',
-                # SIEM y auditoría (FASE 3.2) - REMOVIDOS PROBLEMÁTICOS
-                'fail2ban', 'aide',
-                # Herramientas de análisis avanzado (FASE 3)
-                'tcpdump', 'wireshark', 'tshark', 'strace', 'ltrace', 'gdb',
-                'osquery', 'file', 'hexdump'
+                # Editores y gestores
+                'nano', 'vim', 'gedit', 'mousepad', 'thunar', 'nautilus', 'dolphin', 'xdg-open'
             ]
             
             # Herramientas problemáticas que requieren instalación manual especial
-            herramientas_problematicas = {
-                'tripwire': {
-                    'razon': 'Requiere configuración interactiva y puede tardar +10 minutos',
-                    'comando': 'sudo apt install tripwire',
-                    'notas': 'Configurará automáticamente durante instalación. Responder prompts.'
-                },
-                'samhain': {
-                    'razon': 'Configuración compleja y dependencias especiales',
-                    'comando': 'sudo apt install samhain',
-                    'notas': 'Herramienta de integridad avanzada. Configuración manual requerida.'
-                },
-                'sqlninja': {
-                    'razon': 'Paquete obsoleto en Kali Linux 2025',
-                    'comando': 'Usar sqlmap como alternativa',
-                    'notas': 'sqlninja no está disponible en repositorios actuales'
-                },
-                'volatility3': {
-                    'razon': 'Instalación vía pip, no APT',
-                    'comando': 'pip3 install volatility3',
-                    'notas': 'Herramienta de análisis de memoria forense'
-                }
-            }
+            herramientas_problematicas = {}
             
             # Herramientas que requieren instalación manual (se informará al usuario):
             herramientas_manuales = [
+                # Solo herramientas realmente manuales o externas, sin photorec ni problemáticas
                 'rustscan: cargo install rustscan (requiere Rust)',
                 'httpx: go install github.com/projectdiscovery/httpx/cmd/httpx@latest (requiere Go)',
                 'nuclei: go install github.com/projectdiscovery/nuclei/v2/cmd/nuclei@latest (requiere Go)',
@@ -780,7 +714,7 @@ LISTO PARA: Escaneos de vulnerabilidades en entornos Kali Linux 2025
                 self.after(0, self._actualizar_texto, "   • inotify-tools (monitoreo tiempo real)\n")
                 self.after(0, self._actualizar_texto, "   • aide (integridad archivos)\n")
                 self.after(0, self._actualizar_texto, "   • debsums (verificación checksums)\n")
-                self.after(0, self._actualizar_texto, "   • sleuthkit, autopsy (análisis forense)\n\n")
+                self.after(0, self._actualizar_texto, "   • sleuthkit (análisis forense)\n\n")
                 
                 # Mostrar información sobre herramientas de instalación manual
                 self.after(0, self._actualizar_texto, "=" * 60 + "\n")

@@ -117,20 +117,18 @@ install_tools() {
         "iftop"                # Monitor de red
         "netcat-openbsd"       # Netcat
 
-        # Herramientas forense y SIEM VERIFICADAS (paquetes correctos)
-        "wireshark"            # Análisis de tráfico
-        "autopsy"              # Forense digital
-        "sleuthkit"            # Toolkit forense (incluye tsk_*)
-        "foremost"             # Recuperación de archivos
-        "binwalk"              # Análisis de firmware
-        "binutils"             # Incluye strings
-        "exiftool"             # Metadatos
-        "testdisk"             # Incluye photorec
-        "plaso"                # Análisis de líneas de tiempo forense
-        "bulk-extractor"       # Extracción forense de datos
-        "hashdeep"             # Hashing forense
-        "dc3dd"                # Clonado forense de discos
-        "guymager"             # Adquisición forense de discos
+    # Herramientas forense y SIEM VERIFICADAS (paquetes correctos)
+    "sleuthkit"            # Toolkit forense (incluye tsk_*)
+    "foremost"             # Recuperación de archivos
+    "binwalk"              # Análisis de firmware
+    "binutils"             # Incluye strings
+    "exiftool"             # Metadatos
+    "testdisk"             # Incluye photorec
+    "plaso"                # Análisis de líneas de tiempo forense
+    "bulk-extractor"       # Extracción forense de datos
+    "hashdeep"             # Hashing forense
+    "dc3dd"                # Clonado forense de discos
+    "guymager"             # Adquisición forense de discos
 
         # Utilidades del sistema ESTABLES
         "htop"
@@ -142,35 +140,34 @@ install_tools() {
     
     # Lista de herramientas AVANZADAS para escaneador profesional
     ADVANCED_TOOLS=(
-        # Herramientas de escaneador avanzado (todas disponibles via APT)
-        "ffuf"                 # Fuzzer web rápido (VERIFICADO en repos Kali)
-        "feroxbuster"          # Scanner de directorios Rust (VERIFICADO en repos Kali)
-        "rustscan"             # Scanner ultrarrápido Rust (VERIFICADO en repos Kali)
-        "nuclei"               # Motor de vulnerabilidades (VERIFICADO en repos Kali)
-        "nikto"                # Scanner web
-        "whatweb"              # Identificación web
-        "dirb"                 # Brute force directorios
+    # Herramientas de escaneador avanzado (todas disponibles via APT)
+    "ffuf"                 # Fuzzer web rápido (VERIFICADO en repos Kali)
+    "feroxbuster"          # Scanner de directorios Rust (VERIFICADO en repos Kali)
+    "rustscan"             # Scanner ultrarrápido Rust (VERIFICADO en repos Kali)
+    "nuclei"               # Motor de vulnerabilidades (VERIFICADO en repos Kali)
+    "nikto"                # Scanner web
+    "whatweb"              # Identificación web
+    "dirb"                 # Brute force directorios
         
-        # Herramientas de seguridad adicionales
-        "lynis"                # Auditoría de seguridad
-        "chkrootkit"           # Detección de rootkits
-        "rkhunter"             # Hunter de rootkits
-        "clamav"               # Antivirus
+    # Herramientas de seguridad adicionales
+    "lynis"                # Auditoría de seguridad
+    "chkrootkit"           # Detección de rootkits
+    "rkhunter"             # Hunter de rootkits
+    "clamav"               # Antivirus
         
-        # Herramientas forense adicionales (todas disponibles por APT)
-        "yara"                 # Pattern matching
-        "testdisk"             # Recuperación de particiones y archivos
-        "photorec"             # Recuperación de archivos multimedia
-        "plaso"                # Análisis de líneas de tiempo forense
-        "bulk-extractor"       # Extracción forense de datos
-        "hashdeep"             # Hashing forense
-        "dc3dd"                # Clonado forense de discos
-        "guymager"             # Adquisición forense de discos
-        "tsk_recover"          # Sleuthkit: recuperación de archivos
-        "tsk_loaddb"           # Sleuthkit: carga de base de datos
-        "tsk_gettimes"         # Sleuthkit: extracción de tiempos
-        "tsk_comparedir"       # Sleuthkit: comparación de directorios
-        "tsk_imageinfo"        # Sleuthkit: info de imagen forense
+    # Herramientas forense adicionales (todas disponibles por APT)
+    "yara"                 # Pattern matching
+    "testdisk"             # Recuperación de particiones y archivos
+    "plaso"                # Análisis de líneas de tiempo forense
+    "bulk-extractor"       # Extracción forense de datos
+    "hashdeep"             # Hashing forense
+    "dc3dd"                # Clonado forense de discos
+    "guymager"             # Adquisición forense de discos
+    "tsk_recover"          # Sleuthkit: recuperación de archivos
+    "tsk_loaddb"           # Sleuthkit: carga de base de datos
+    "tsk_gettimes"         # Sleuthkit: extracción de tiempos
+    "tsk_comparedir"       # Sleuthkit: comparación de directorios
+    "tsk_imageinfo"        # Sleuthkit: info de imagen forense
     )
     
     # Herramientas especiales que requieren instalación manual
@@ -419,22 +416,19 @@ $REAL_USER ALL=(ALL) NOPASSWD: /usr/bin/rkhunter
 $REAL_USER ALL=(ALL) NOPASSWD: /usr/bin/clamscan
 $REAL_USER ALL=(ALL) NOPASSWD: /usr/bin/clamdscan
 
-# === HERRAMIENTAS FORENSES AVANZADAS ===
-$REAL_USER ALL=(ALL) NOPASSWD: /usr/bin/wireshark
-$REAL_USER ALL=(ALL) NOPASSWD: /usr/bin/tshark
-$REAL_USER ALL=(ALL) NOPASSWD: /usr/bin/autopsy
-$REAL_USER ALL=(ALL) NOPASSWD: /usr/bin/fls
-$REAL_USER ALL=(ALL) NOPASSWD: /usr/bin/ils
-$REAL_USER ALL=(ALL) NOPASSWD: /usr/bin/istat
-$REAL_USER ALL=(ALL) NOPASSWD: /usr/bin/mmls
-$REAL_USER ALL=(ALL) NOPASSWD: /usr/bin/fsstat
-$REAL_USER ALL=(ALL) NOPASSWD: /usr/bin/sleuthkit
-$REAL_USER ALL=(ALL) NOPASSWD: /usr/bin/binwalk
-$REAL_USER ALL=(ALL) NOPASSWD: /usr/bin/foremost
-$REAL_USER ALL=(ALL) NOPASSWD: /usr/bin/strings
-$REAL_USER ALL=(ALL) NOPASSWD: /usr/bin/hexdump
-$REAL_USER ALL=(ALL) NOPASSWD: /usr/bin/xxd
-$REAL_USER ALL=(ALL) NOPASSWD: /usr/bin/exiftool
+    # === HERRAMIENTAS FORENSES AVANZADAS ===
+    $REAL_USER ALL=(ALL) NOPASSWD: /usr/bin/fls
+    $REAL_USER ALL=(ALL) NOPASSWD: /usr/bin/ils
+    $REAL_USER ALL=(ALL) NOPASSWD: /usr/bin/istat
+    $REAL_USER ALL=(ALL) NOPASSWD: /usr/bin/mmls
+    $REAL_USER ALL=(ALL) NOPASSWD: /usr/bin/fsstat
+    $REAL_USER ALL=(ALL) NOPASSWD: /usr/bin/sleuthkit
+    $REAL_USER ALL=(ALL) NOPASSWD: /usr/bin/binwalk
+    $REAL_USER ALL=(ALL) NOPASSWD: /usr/bin/foremost
+    $REAL_USER ALL=(ALL) NOPASSWD: /usr/bin/strings
+    $REAL_USER ALL=(ALL) NOPASSWD: /usr/bin/hexdump
+    $REAL_USER ALL=(ALL) NOPASSWD: /usr/bin/xxd
+    $REAL_USER ALL=(ALL) NOPASSWD: /usr/bin/exiftool
 
 # === ACCESO A LOGS DEL SISTEMA PARA SIEM ===
 $REAL_USER ALL=(ALL) NOPASSWD: /bin/cat /var/log/auth.log*

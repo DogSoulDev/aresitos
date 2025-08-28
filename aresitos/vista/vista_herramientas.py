@@ -236,7 +236,7 @@ class VistaHerramientasKali(tk.Frame):
             "• Monitoreo: inotifywait, auditd, systemctl, pspy, aide\n" +
             "• Firewall: iptables, fail2ban-client\n\n" +
             "ANÁLISIS FORENSE:\n" +
-            "• Forense: sleuthkit, autopsy, foremost\n" +
+            "• Forense: sleuthkit, foremost\n" +
             "• Memoria: hexdump, strings, file, binwalk\n" +
             "• Logs: journalctl, aureport, logwatch, rsyslog\n\n" +
             "🌐 PENETRACIÓN Y AUDITORÍA:\n" +
@@ -405,31 +405,26 @@ LISTO PARA: Escaneos de vulnerabilidades en entornos Kali Linux 2025
 
             # Lista de herramientas esenciales modernizadas para Kali 2025
             herramientas = [
-                # Herramientas 100% APT/integradas, robustas y recomendadas para ARESITOS
+                # Herramientas robustas, apt-installables y recomendadas para ARESITOS v3.0
+                # Escaneo profesional
+                'nmap', 'masscan', 'rustscan', 'nuclei', 'ffuf', 'feroxbuster', 'nikto', 'whatweb', 'dirb', 'gobuster',
+                # Forense y análisis
+                'sleuthkit', 'tsk_recover', 'tsk_loaddb', 'tsk_gettimes', 'tsk_comparedir', 'tsk_imageinfo',
+                'testdisk', 'plaso', 'bulk-extractor', 'hashdeep', 'dc3dd', 'guymager', 'foremost', 'binwalk', 'exiftool', 'yara',
+                # Seguridad y auditoría
+                'clamav', 'clamav-daemon', 'chkrootkit', 'rkhunter', 'lynis', 'auditd', 'aide', 'debsums', 'rsyslog', 'logrotate', 'logwatch',
+                # Análisis avanzado y red
+                'tcpdump', 'wireshark', 'tshark', 'strace', 'ltrace', 'gdb', 'osquery', 'file', 'hexdump',
+                # Utilidades del sistema
                 'ps', 'ss', 'lsof', 'netstat', 'top', 'free', 'df', 'uname', 'who', 'last',
                 'find', 'stat', 'grep', 'awk', 'sort', 'uniq', 'wc', 'tail', 'head',
                 'systemctl', 'ip', 'route', 'wget', 'curl', 'diff', 'ls', 'chmod', 'chown',
                 'lsmod', 'kill', 'pgrep', 'pkill', 'sha256sum', 'md5sum', 'sha1sum', 'sha512sum',
                 'iptables', 'cat', 'less', 'more', 'pwd', 'mkdir', 'rm', 'cp', 'mv',
-                'inotifywait', 'inotify-tools', 'auditd', 'ausearch', 'aide',
-                'debsums', 'dpkg', 'rpm', 'synaptic',
-                'chkrootkit', 'rkhunter', 'lynis', 'unhide', 'tiger', 'maldet',
-                'nmap', 'masscan', 'rustscan', 'gobuster', 'feroxbuster', 'nikto', 'nuclei',
-                'zmap', 'unicornscan', 'hping3', 'dirb', 'dirbuster',
-                'netcat', 'netcat-traditional', 'whatweb', 'wfuzz', 'ffuf',
-                'enum4linux', 'smbclient', 'rpcclient', 'ldapsearch',
-                'hashcat', 'john', 'hydra', 'medusa', 'patator', 'crunch', 'cewl',
-                'sqlmap', 'sqlite3', 'mysql', 'psql',
-                'clamav', 'clamscan', 'freshclam', 'clamav-daemon', 'yara', 'binwalk', 'strings', 'file', 'exiftool',
-                'hexdump', 'foremost', 'sleuthkit', 'autopsy',
-                'testdisk', 'photorec', 'plaso', 'bulk-extractor', 'hashdeep', 'dc3dd', 'guymager',
-                'tsk_recover', 'tsk_loaddb', 'tsk_gettimes', 'tsk_comparedir', 'tsk_imageinfo',
-                'logger', 'fail2ban-client', 'logwatch',
-                'logrotate', 'rsyslog', 'journalctl', 'aureport', 'auditctl',
-                'osquery', 'osqueryi', 'tcpdump', 'wireshark', 'tshark',
-                'strace', 'ltrace', 'gdb', 'objdump', 'readelf',
-                'thunar', 'nautilus', 'dolphin', 'pcmanfm', 'caja', 'nemo', 'xdg-open',
+                # Editores y gestores
                 'nano', 'vim', 'vi', 'gedit', 'mousepad',
+                'thunar', 'nautilus', 'dolphin', 'xdg-open',
+                # Herramientas base de verificación
                 'which', 'whereis', 'type', 'command'
             ]
 

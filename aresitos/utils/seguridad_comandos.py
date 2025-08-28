@@ -55,7 +55,7 @@ class ValidadorComandos:
             'ciberseguridad': [
                 'nmap', 'netstat', 'ss', 'lsof', 'iptables', 'ping',
                 'traceroute', 'dig', 'nslookup', 'curl', 'wget',
-                'tcpdump', 'wireshark', 'tshark', 'masscan', 'rustscan',
+                'tcpdump', 'masscan', 'rustscan',
                 'nikto', 'gobuster', 'feroxbuster', 'dirb', 'wfuzz',
                 'sqlmap', 'hydra', 'john', 'hashcat', 'aircrack-ng'
             ],
@@ -63,8 +63,8 @@ class ValidadorComandos:
             # Comandos de análisis y forense
             'forense': [
                 'strings', 'hexdump', 'xxd', 'file', 'exiftool',
-                'binwalk', 'foremost', 'volatility', 'chkrootkit',
-                'rkhunter', 'lynis', 'aide', 'tripwire', 'samhain'
+                'binwalk', 'foremost', 'chkrootkit',
+                'rkhunter', 'lynis', 'aide'
             ],
             
             # Comandos de archivos (solo lectura segura)
