@@ -1,244 +1,96 @@
-
-# -*- coding: utf-8 -*-
-"""
-PRINCIPIOS DE SEGURIDAD ARESITOS (NO MODIFICAR SIN AUDITORÍA)
-- Nunca solicitar ni almacenar la contraseña de root.
-- Nunca mostrar, registrar ni filtrar la contraseña de root.
-- Ningún input de usuario debe usarse como comando sin validar.
-- Todos los comandos pasan por el validador y gestor de permisos.
-- Prohibido el uso de eval, exec, os.system, subprocess.Popen directo.
-- Prohibido shell=True salvo justificación y validación exhaustiva.
-- Si algún desarrollador necesita privilegios, usar solo gestor_permisos.
-"""
-
-import os
-import sys
-import platform
-import shutil
-import tkinter as tk
-from tkinter import ttk, messagebox, scrolledtext
-import threading
-import time
-import getpass
-import subprocess
-import shlex
-import hashlib
 import re
-import signal
-import ctypes
-from typing import Optional, Dict, List
 
-try:
-    from aresitos.vista.burp_theme import burp_theme
-    from aresitos.vista.vista_herramientas_kali import VistaHerramientasKali
-    from aresitos.utils.sudo_manager import SudoManager
-    BURP_THEME_AVAILABLE = True
-except ImportError:
-    BURP_THEME_AVAILABLE = False
-    burp_theme = None
-
-# Clase para manejar rate limiting de intentos de login
-class RateLimiter:
-    """Rate limiter para prevenir ataques de fuerza bruta"""
-    
-    def __init__(self, max_intentos: int = 3, ventana_tiempo: int = 300):
-        self.max_intentos = max_intentos
-        self.ventana_tiempo = ventana_tiempo  # 5 minutos
-        self.intentos: Dict[str, List[float]] = {}
-        self.lock = threading.Lock()
-    
-    def puede_intentar(self, identificador: str = "default") -> bool:
-        """Verificar si se puede realizar un intento"""
-        with self.lock:
-            ahora = time.time()
-            
-            # Limpiar intentos antiguos
-            if identificador not in self.intentos:
-                self.intentos[identificador] = []
-            
-            # Filtrar intentos dentro de la ventana de tiempo
-            self.intentos[identificador] = [
-                timestamp for timestamp in self.intentos[identificador]
-                if ahora - timestamp < self.ventana_tiempo
-            ]
-            
-            return len(self.intentos[identificador]) < self.max_intentos
-    
-    def registrar_intento(self, identificador: str = "default"):
-        """Registrar un intento fallido"""
-        with self.lock:
-            if identificador not in self.intentos:
-                self.intentos[identificador] = []
-            self.intentos[identificador].append(time.time())
-
-# Clase global para mantener estado de sudo está ahora en utils/sudo_manager.py
-
-# Utilidades de seguridad
 class SeguridadUtils:
     """Utilidades de seguridad mejoradas"""
-    
     @staticmethod
     def validar_entrada(entrada: str) -> bool:
-        """Validar entrada para prevenir inyección de comandos"""
         if not entrada:
             return False
-        
-        # Caracteres peligrosos para inyección de comandos
         caracteres_peligrosos = ['&', ';', '|', '`', '$', '<', '>', '\n', '\r', '\\', '"']
-        
-        # Verificar caracteres peligrosos
         if any(char in entrada for char in caracteres_peligrosos):
             return False
-        
-        # Verificar longitud máxima
         if len(entrada) > 128:
             return False
-        
         return True
-    
     @staticmethod
     def limpiar_memoria_string(variable: str) -> None:
-        """Intentar limpiar string de memoria (limitado en Python)"""
         try:
-            # Python maneja la memoria automáticamente, pero podemos
-            # sobrescribir la variable con datos aleatorios
             longitud = len(variable)
             variable = 'x' * longitud
             del variable
         except (ValueError, TypeError, AttributeError):
             pass
-    
     @staticmethod
     def sanitizar_para_log(mensaje: str) -> str:
-        """Sanitizar mensaje para logging seguro"""
-        # Remover posibles contraseñas
         mensaje = re.sub(r'password[=:\s]+\S+', 'password=***', mensaje, flags=re.IGNORECASE)
         mensaje = re.sub(r'contraseña[=:\s]+\S+', 'contraseña=***', mensaje, flags=re.IGNORECASE)
         mensaje = re.sub(r'pass[=:\s]+\S+', 'pass=***', mensaje, flags=re.IGNORECASE)
-        
-        # Limitar longitud
         if len(mensaje) > 500:
             mensaje = mensaje[:497] + "..."
-        
         return mensaje
-
-def verificar_kali_linux_criptografico() -> bool:
-    """Verificación criptográfica mejorada de Kali Linux"""
-    try:
-        # Verificación múltiple más robusta
-        verificaciones = []
-        
-        # 1. Verificar /etc/os-release con hash conocido
-        if os.path.exists('/etc/os-release'):
-            with open('/etc/os-release', 'r') as f:
-                content = f.read().lower()
-                if 'kali' in content and 'linux' in content:
-                    verificaciones.append(True)
-        
-        # 2. Verificar estructura de directorios específica de Kali
-        directorios_kali = [
-            '/usr/share/kali-defaults',
-            '/etc/kali-version',
-            '/usr/share/kali-themes',
-            '/usr/share/applications/kali-linux.desktop'
-        ]
-        
-        dirs_encontrados = sum(1 for d in directorios_kali if os.path.exists(d))
-        if dirs_encontrados >= 2:  # Al menos 2 de 4
-            verificaciones.append(True)
-        
-        # 3. Verificar herramientas específicas de Kali
-        herramientas_kali = [
-            '/usr/bin/nmap',
-            '/usr/bin/sqlmap', 
-            '/usr/bin/hydra',
-            '/usr/bin/nikto',
-            '/usr/share/wordlists'
-        ]
-        
-        tools_encontradas = sum(1 for t in herramientas_kali if os.path.exists(t))
-        if tools_encontradas >= 3:  # Al menos 3 de 5
-            verificaciones.append(True)
-        
-        # 4. Verificar distribución en /proc/version si existe
-        if os.path.exists('/proc/version'):
-            with open('/proc/version', 'r') as f:
-                version_info = f.read().lower()
-                if 'debian' in version_info:  # Kali se basa en Debian
-                    verificaciones.append(True)
-        
-        # Requerir al menos 2 verificaciones exitosas
-        return len(verificaciones) >= 2
-        
-    except (IOError, OSError, PermissionError, FileNotFoundError):
-        return False
-
-# Herramientas requeridas para Aresitos (Kali Linux especializado y robusto)
+import threading
+import time
+import tkinter as tk
+from tkinter import messagebox, ttk, scrolledtext
+import subprocess
+import shlex
+import os
+import sys
+import platform
+import getpass
+import shutil
+from aresitos.utils.sudo_manager import SudoManager
+from aresitos.vista.vista_herramientas_kali import VistaHerramientasKali
+# Definir HERRAMIENTAS_REQUERIDAS localmente si no existe en el import
 HERRAMIENTAS_REQUERIDAS = [
-    # Scanners de red críticos y funcionales
     'nmap', 'masscan', 'zmap', 'dnsenum', 'dnsrecon', 'fierce',
     'sublist3r', 'amass', 'gobuster', 'feroxbuster', 'httpx', 'wfuzz',
-
-    # Análisis de vulnerabilidades
     'nikto', 'sqlmap', 'wpscan', 'joomscan', 'droopescan', 'nuclei',
     'wapiti', 'skipfish', 'whatweb', 'wafw00f', 'davtest',
-
-    # Herramientas de explotación
     'metasploit', 'searchsploit', 'msfconsole', 'msfvenom', 'exploitdb',
     'beef-xss', 'set', 'social-engineer-toolkit',
-
-    # Análisis de red (solo herramientas funcionales por apt)
     'tcpdump', 'netcat', 'nc', 'socat', 'netstat', 'ss', 'lsof', 'arp-scan', 'ping', 'traceroute', 'mtr',
-
-    # Cracking y bruteforce
     'hydra', 'medusa', 'ncrack', 'john', 'hashcat', 'aircrack-ng',
     'crunch', 'cewl', 'cupp', 'patator',
-
-    # Forense y análisis (solo robustas y disponibles)
     'sleuthkit', 'binwalk', 'foremost', 'strings', 'hexdump', 'xxd', 'file', 'exiftool',
-
-    # Utilidades del sistema
     'curl', 'wget', 'git', 'python3', 'pip3', 'perl', 'ruby',
     'java', 'gcc', 'make', 'cmake', 'openssl',
-
-    # Herramientas adicionales
     'burpsuite', 'owasp-zap', 'nuclei', 'xsser', 'weevely',
     'backdoor-factory', 'shellter', 'veil', 'empire'
 ]
-
-# Herramientas que requieren instalación manual o tienen problemas de timeout
-HERRAMIENTAS_PROBLEMATICAS = []
-
-# Puertos criticos de seguridad para monitoreo (Kali Linux especializado)
-PUERTOS_CRITICOS = [
-    # Servicios basicos
-    21, 22, 23, 25, 53, 80, 110, 111, 135, 139, 143, 443, 993, 995,
-    
-    # Servicios de directorio y autenticacion
-    389, 636, 88, 464, 749, 750, 751, 752, 753, 754,
-    
-    # Bases de datos
-    1433, 1521, 3306, 5432, 6379, 27017, 5984, 9200, 9300,
-    
-    # Servicios de transferencia
-    20, 69, 115, 119, 194, 389, 427, 465, 587, 691, 993, 995,
-    
-    # Servicios remotos
-    3389, 5900, 5901, 5902, 1194, 1723, 4500,
-    
-    # Servicios web especializados
-    8080, 8081, 8443, 9000, 9001, 9090, 8888, 3000, 4000, 5000,
-    
-    # Puertos de gestion
-    161, 162, 623, 8080, 8081, 8443, 9000, 9001, 9090,
-    
-    # Servicios especializados
-    179, 502, 503, 1194, 1812, 1813, 4500, 8883
+# Herramientas que pueden causar problemas o requieren instalación manual
+HERRAMIENTAS_PROBLEMATICAS = [
+    'metasploit', 'msfconsole', 'msfvenom', 'beef-xss', 'set', 'social-engineer-toolkit',
+    'burpsuite', 'owasp-zap', 'nuclei', 'xsser', 'weevely',
+    'backdoor-factory', 'shellter', 'veil', 'empire',
+    'rkhunter', 'chkrootkit', 'lynis'
 ]
+class RateLimiter:
+    """Rate limiter para prevenir ataques de fuerza bruta"""
+    def __init__(self, max_intentos: int = 3, ventana_tiempo: int = 300):
+        self.max_intentos = max_intentos
+        self.ventana_tiempo = ventana_tiempo  # 5 minutos
+        self.intentos = {}
+        self.lock = threading.Lock()
 
-def verificar_kali_linux_estricto():
-    """Verificar estrictamente que estamos en Kali Linux usando método criptográfico"""
-    return verificar_kali_linux_criptografico()
+    def puede_intentar(self, identificador: str = "default") -> bool:
+        with self.lock:
+            ahora = time.time()
+            if identificador not in self.intentos:
+                self.intentos[identificador] = []
+            self.intentos[identificador] = [
+                timestamp for timestamp in self.intentos[identificador]
+                if ahora - timestamp < self.ventana_tiempo
+            ]
+            return len(self.intentos[identificador]) < self.max_intentos
+
+    def registrar_intento(self, identificador: str = "default"):
+        with self.lock:
+            if identificador not in self.intentos:
+                self.intentos[identificador] = []
+            self.intentos[identificador].append(time.time())
+
+        return False
 
 from aresitos.utils.permisos_sistema import es_root
 
@@ -247,6 +99,25 @@ def verificar_permisos_admin_seguro():
     return es_root()
 
 class LoginAresitos:
+    def __init__(self, root=None, *args, **kwargs):
+        # Inicialización de colores y fondos para la interfaz
+        self.bg_primary = "#23272e"
+        self.bg_secondary = "#2c313c"
+        self.bg_tertiary = "#1a1d23"
+        self.fg_primary = "#f5f5f5"
+        self.fg_secondary = "#bdbdbd"
+        self.accent_orange = "#ff6633"
+        self.accent_green = "#4caf50"
+        self.accent_red = "#f44336"
+        self.accent_blue = "#2196f3"
+        # Inicialización de utilidades y control de intentos
+        self.rate_limiter = RateLimiter()
+        self.utils_seguridad = SeguridadUtils()
+        if root is None:
+            self.root = tk.Tk()
+        else:
+            self.root = root
+        super().__init__(*args, **kwargs)
 
     def revocar_sudo(self):
         """Revoca el estado sudo y actualiza el terminal principal."""
@@ -254,114 +125,75 @@ class LoginAresitos:
             from aresitos.utils.sudo_manager import SudoManager
             sudo_manager = SudoManager()
             sudo_manager.clear_sudo()
-            # Actualizar inmediatamente el estado sudo en el terminal principal si está disponible
-            try:
-                from aresitos.vista.vista_principal import VistaPrincipal
-                dashboard = None
-                for widget in self.root.winfo_children():
-                    if isinstance(widget, VistaPrincipal):
-                        dashboard = getattr(widget, 'vista_dashboard', None)
-                        break
-                if dashboard and hasattr(dashboard, '_actualizar_sudo_estado_terminal'):
-                    dashboard._actualizar_sudo_estado_terminal()
-            except Exception:
-                pass
         except Exception:
             pass
-    """
-    Interfaz grafica de login para Aresitos con verificación completa del sistema.
-    Exclusivamente para Kali Linux con tema Burp Suite.
-    Implementa medidas de seguridad avanzadas.
-    """
-    
-    def __init__(self):
-        # Verificar Kali Linux ANTES de crear ventana
-        if not verificar_kali_linux_estricto():
-            # Verificar si estamos en modo desarrollo
-            if '--dev' in sys.argv or '--desarrollo' in sys.argv:
-                print("MODO DESARROLLO: LoginApp en entorno no-Kali")
-            else:
-                print("ERROR: ARESITOS requiere Kali Linux")
-                print("Sistema no compatible detectado")
-                self.salir_sistema(1)
-        
-        # Inicializar rate limiter
-        self.rate_limiter = RateLimiter(max_intentos=3, ventana_tiempo=300)
-        self.utils_seguridad = SeguridadUtils()
-        
-        # CRÍTICO: Inicializar SudoManager global
-        self.sudo_manager = SudoManager()
-        
-        self.root = tk.Tk()
-        self.root.title("ARESITOS - Autenticacion Segura")
-        self.root.geometry("900x700")
-        # Favicon robusto multiplataforma
-        try:
-            import os
-            from tkinter import PhotoImage
-            base_dir = os.path.abspath(os.path.join(os.path.dirname(os.path.abspath(__file__)), '..'))
-            icon_path = os.path.join(base_dir, "recursos", "icono", "aresitos_icono.png")
-            if os.path.exists(icon_path):
-                self._icon_img = PhotoImage(file=icon_path)
-                self.root.iconphoto(True, self._icon_img)
-        except Exception as e:
-            print(f"[WARN] No se pudo cargar el icono de ventana: {e}")
-        
-        # Ventana principal configurada
-        
-        # Configurar tema Burp Suite
-        if BURP_THEME_AVAILABLE and burp_theme:
-            self.theme = burp_theme
-            self.bg_primary = burp_theme.get_color('bg_primary')
-            self.bg_secondary = burp_theme.get_color('bg_secondary')
-            self.bg_tertiary = burp_theme.get_color('bg_tertiary')
-            self.fg_primary = burp_theme.get_color('fg_primary')
-            self.fg_secondary = burp_theme.get_color('fg_secondary')
-            self.accent_orange = burp_theme.get_color('fg_accent')
-            self.accent_green = burp_theme.get_color('success')
-            self.accent_red = burp_theme.get_color('danger')
-        else:
-            self.theme = None
-            # Colores fallback (tema Burp Suite manual)
-            self.bg_primary = "#1e1e1e"      # Fondo principal
-            self.bg_secondary = "#2d2d2d"    # Fondo secundario  
-            self.bg_tertiary = "#3c3c3c"     # Fondo terciario
-            self.fg_primary = "#f0f0f0"      # Texto principal
-            self.fg_secondary = "#b0b0b0"    # Texto secundario
-            self.accent_orange = "#ff6633"   # Naranja Burp
-            self.accent_green = "#4caf50"    # Verde exito
-            self.accent_red = "#f44336"      # Rojo error
-        self.accent_blue = "#2196f3"     # Azul info
-        
-        self.root.configure(bg=self.bg_primary)
-        self.root.resizable(False, False)
-        
-        # Configurar estilos TTK si el tema está disponible
-        if BURP_THEME_AVAILABLE and burp_theme:
-            style = ttk.Style()
-            burp_theme.configure_ttk_style(style)
-        
-        # Centrar ventana
-        self.centrar_ventana()
-        
-        # Variables de estado
-        self.password_correcta = False
-        self.verificacion_completada = False
-        self.es_kali = True  # Ya verificado
-        self.herramientas_disponibles = []
-        self.herramientas_faltantes = []
-        self.session_id = hashlib.sha256(str(time.time()).encode()).hexdigest()[:16]
-        
-        # Crear interfaz
-        self.crear_interfaz()
 
-    def cerrar_ventana(self):
-        """Cierra la ventana principal revocando sudo."""
+    def verificar_password(self):
+        """Verifica la contraseña de root y avanza si es correcta."""
+        password = self.password_entry.get()
+        if not self.rate_limiter.puede_intentar():
+            tiempo_restante = 5
+            messagebox.showerror(
+                "Bloqueado",
+                f"Demasiados intentos fallidos.\nIntente nuevamente en {tiempo_restante} minutos."
+            )
+            self.escribir_log("Intento bloqueado por rate limiting")
+            return
+        if not password:
+            messagebox.showerror("Error", "Por favor ingrese la contraseña")
+            return
+        if not self.utils_seguridad.validar_entrada(password):
+            messagebox.showerror("Error", "Contraseña contiene caracteres no válidos")
+            self.rate_limiter.registrar_intento()
+            self.escribir_log("Contraseña con caracteres inválidos detectada")
+            return
+        self.escribir_log("Verificando credenciales de root...")
         try:
-            self.revocar_sudo()
-        except Exception:
-            pass
-        self.root.destroy()
+            resultado = subprocess.run(
+                ['sudo', '-S', '-k', 'echo', 'test'],
+                input=password + '\n',
+                text=True,
+                capture_output=True,
+                timeout=10,
+                check=False
+            )
+            if resultado.returncode == 0:
+                self.password_correcta = True
+                self.escribir_log("Autenticacion exitosa - Permisos de root confirmados")
+                sudo_manager = SudoManager()
+                sudo_manager.set_sudo_authenticated(password)
+                self.password_entry.delete(0, tk.END)
+                self.login_btn.config(state=tk.DISABLED)
+                self.password_entry.config(state=tk.DISABLED)
+                self.skip_btn.config(state=tk.DISABLED)
+                self.iniciar_aplicacion()
+            else:
+                self.rate_limiter.registrar_intento()
+                self.escribir_log("Contraseña incorrecta")
+                self.utils_seguridad.limpiar_memoria_string(password)
+                self.password_entry.delete(0, tk.END)
+                messagebox.showerror("Error", "Contraseña incorrecta")
+        except subprocess.TimeoutExpired:
+            self.rate_limiter.registrar_intento()
+            self.escribir_log("Timeout verificando contraseña")
+            self.utils_seguridad.limpiar_memoria_string(password)
+            self.password_entry.delete(0, tk.END)
+            messagebox.showerror("Error", "Timeout en verificación")
+        except FileNotFoundError:
+            self.escribir_log("sudo no disponible - Continuando sin verificación")
+            self.root.destroy()
+        except subprocess.SubprocessError as e:
+            self.rate_limiter.registrar_intento()
+            self.escribir_log(f"Error subprocess: {type(e).__name__}")
+            self.utils_seguridad.limpiar_memoria_string(password)
+            self.password_entry.delete(0, tk.END)
+            messagebox.showerror("Error", "Error en verificación del sistema")
+        except Exception as e:
+            self.rate_limiter.registrar_intento()
+            self.escribir_log(f"Error en verificación: {type(e).__name__}")
+            self.utils_seguridad.limpiar_memoria_string(password)
+            self.password_entry.delete(0, tk.END)
+            messagebox.showerror("Error", "Error de verificación")
 
     def ocultar_ventana(self):
         """Oculta la ventana principal revocando sudo."""
@@ -372,7 +204,6 @@ class LoginAresitos:
         self.root.withdraw()
 
     def salir_sistema(self, code=1):
-        """Sale del sistema revocando sudo."""
         try:
             self.revocar_sudo()
         except Exception:
@@ -469,7 +300,7 @@ class LoginAresitos:
             bg=self.accent_red,
             fg="#ffffff",
             relief=tk.FLAT,
-            command=self.cerrar_ventana,
+            command=self.continuar_sin_root,
             cursor='hand2'
         )
         self.skip_btn.pack(side=tk.LEFT)
@@ -590,7 +421,6 @@ class LoginAresitos:
             print(f"[LOGIN] {mensaje}")  # No mostrar el error técnico
     
     def verificar_entorno_inicial(self):
-        """Verificar entorno del sistema al inicio"""
         try:
             # Informacion basica del sistema
             sistema = platform.system()
@@ -623,7 +453,6 @@ class LoginAresitos:
             self.escribir_log(f"Error verificando entorno: {e}")
     
     def verificar_herramientas_inicial(self):
-        """Verificacion inicial de herramientas"""
         try:
             self.herramientas_disponibles = []
             self.herramientas_faltantes = []
@@ -765,121 +594,6 @@ class LoginAresitos:
             
         self.escribir_log("Configuración de permisos completada")
     
-    def verificar_password(self):
-        """Verificar la contraseña ingresada con medidas de seguridad mejoradas"""
-        password = self.password_entry.get()
-        
-        # Verificar rate limiting
-        if not self.rate_limiter.puede_intentar(self.session_id):
-            tiempo_restante = 5  # Mostrar tiempo simplificado
-            messagebox.showerror(
-                "Bloqueado", 
-                f"Demasiados intentos fallidos.\n"
-                f"Intente nuevamente en {tiempo_restante} minutos."
-            )
-            self.escribir_log("Intento bloqueado por rate limiting")
-            return
-        
-        # Validar entrada
-        if not password:
-            messagebox.showerror("Error", "Por favor ingrese la contraseña")
-            return
-        
-        if not self.utils_seguridad.validar_entrada(password):
-            messagebox.showerror("Error", "Contraseña contiene caracteres no válidos")
-            self.rate_limiter.registrar_intento(self.session_id)
-            self.escribir_log("Contraseña con caracteres inválidos detectada")
-            return
-        
-        self.escribir_log("Verificando credenciales de root...")
-        
-        try:
-            # Escapar la contraseña de forma segura
-            password_escaped = shlex.quote(password)
-            
-            # Ejecutar verificación con timeout más estricto
-            resultado = subprocess.run(
-                ['sudo', '-S', '-k', 'echo', 'test'], 
-                input=password + '\n', 
-                text=True, 
-                capture_output=True, 
-                timeout=10,  # Timeout aumentado pero controlado
-                check=False
-            )
-            
-            if resultado.returncode == 0:
-                self.password_correcta = True
-                self.escribir_log("Autenticacion exitosa - Permisos de root confirmados")
-                
-                # CRÍTICO: Configurar SudoManager para mantener sudo en todas las ventanas
-                sudo_manager = SudoManager()
-                sudo_manager.set_sudo_authenticated(password)
-
-                # Actualizar inmediatamente el estado sudo en el terminal principal si está disponible
-                try:
-                    from aresitos.vista.vista_principal import VistaPrincipal
-                    dashboard = None
-                    # Buscar ventana principal y dashboard
-                    for widget in self.root.winfo_children():
-                        if isinstance(widget, VistaPrincipal):
-                            dashboard = getattr(widget, 'vista_dashboard', None)
-                            break
-                    if dashboard and hasattr(dashboard, '_actualizar_sudo_estado_terminal'):
-                        dashboard._actualizar_sudo_estado_terminal()
-                except Exception:
-                    pass
-
-                # Configurar permisos completos para ARESITOS
-                self.configurar_permisos_aresitos(password)
-
-                # Limpiar contraseña de memoria (excepto en SudoManager que la necesita)
-                self.password_entry.delete(0, tk.END)
-                
-                # Deshabilitar campos de login
-                self.login_btn.config(state=tk.DISABLED)
-                self.password_entry.config(state=tk.DISABLED)
-                self.skip_btn.config(state=tk.DISABLED)
-                
-                # INSTALACIÓN AUTOMÁTICA DE HERRAMIENTAS KALI
-                self.escribir_log(" Configurando herramientas de Kali Linux...")
-                self.instalar_herramientas_kali_automatico(password)
-                
-                # Si ya completo verificación, habilitar continuar
-                if self.verificacion_completada:
-                    self.continue_btn.config(state=tk.NORMAL)
-                    
-                self.escribir_log("SUDO configurado para mantener permisos en todas las ventanas")
-            else:
-                self.rate_limiter.registrar_intento(self.session_id)
-                self.escribir_log("Contraseña incorrecta")
-                
-                # Limpiar contraseña de memoria
-                self.utils_seguridad.limpiar_memoria_string(password)
-                self.password_entry.delete(0, tk.END)
-                
-                messagebox.showerror("Error", "Contraseña incorrecta")
-                
-        except subprocess.TimeoutExpired:
-            self.rate_limiter.registrar_intento(self.session_id)
-            self.escribir_log("Timeout verificando contraseña")
-            self.utils_seguridad.limpiar_memoria_string(password)
-            self.password_entry.delete(0, tk.END)
-            messagebox.showerror("Error", "Timeout en verificación")
-        except FileNotFoundError:
-            self.escribir_log("sudo no disponible - Continuando sin verificación")
-            self.continuar_sin_root()
-        except subprocess.SubprocessError as e:
-            self.rate_limiter.registrar_intento(self.session_id)
-            self.escribir_log(f"Error subprocess: {type(e).__name__}")
-            self.utils_seguridad.limpiar_memoria_string(password)
-            self.password_entry.delete(0, tk.END)
-            messagebox.showerror("Error", "Error en verificación del sistema")
-        except Exception as e:
-            self.rate_limiter.registrar_intento(self.session_id)
-            self.escribir_log(f"Error en verificación: {type(e).__name__}")
-            self.utils_seguridad.limpiar_memoria_string(password)
-            self.password_entry.delete(0, tk.END)
-            messagebox.showerror("Error", "Error de verificación")
     
     def instalar_herramientas_kali_automatico(self, password):
         """Instalar automáticamente herramientas faltantes de Kali Linux"""
@@ -1072,7 +786,7 @@ class LoginAresitos:
             self.escribir_log("Módulos principales importados correctamente")
 
             # Cerrar ventana de login
-            self.cerrar_ventana()
+            self.root.destroy()
 
             self.escribir_log("Creando aplicación principal...")
 
@@ -1163,15 +877,15 @@ class LoginAresitos:
 def main():
     """Función principal de la aplicación de login"""
     # Verificar que estamos en Kali Linux antes de continuar
-    if not verificar_kali_linux_estricto():
-        # Verificar si estamos en modo desarrollo
-        if '--dev' in sys.argv or '--desarrollo' in sys.argv:
-            print("MODO DESARROLLO: Vista de login en entorno no-Kali")
-            print("   Ejecutando con funcionalidades limitadas...")
-        else:
-            print("ERROR: ARESITOS requiere Kali Linux")
-            print("Sistema operativo no compatible")
-            sys.exit(1)
+    # if not verificar_kali_linux_estricto():
+    #     # Verificar si estamos en modo desarrollo
+    #     if '--dev' in sys.argv or '--desarrollo' in sys.argv:
+    #         print("MODO DESARROLLO: Vista de login en entorno no-Kali")
+    #         print("   Ejecutando con funcionalidades limitadas...")
+    #     else:
+    #         print("ERROR: ARESITOS requiere Kali Linux")
+    #         print("Sistema operativo no compatible")
+    #         sys.exit(1)
     
     print("ARESITOS - Iniciando login...")
     
@@ -1182,7 +896,7 @@ def main():
     except ImportError as e:
         print(f"ERROR: tkinter no disponible: {e}")
         print("Instale con: sudo apt install python3-tk")
-    sys.exit(1)
+        sys.exit(1)
     
     # Crear y ejecutar aplicación de login
     try:
