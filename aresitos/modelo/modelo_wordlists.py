@@ -24,7 +24,12 @@ class ConstructorWordlists:
     
     def __init__(self, directorio_base: Optional[str] = None):
         """Inicializar el constructor de wordlists."""
-        self.directorio_base = directorio_base or "data/wordlists"
+        if directorio_base is not None:
+            self.directorio_base = directorio_base
+        else:
+            # Ruta robusta y relativa al proyecto
+            base_dir = os.path.abspath(os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..'))
+            self.directorio_base = os.path.join(base_dir, 'data', 'wordlists')
         self.logger = logging.getLogger(__name__)
         
         # Patrones de validación seguros
