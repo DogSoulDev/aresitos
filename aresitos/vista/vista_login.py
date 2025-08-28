@@ -308,7 +308,7 @@ class LoginAresitos:
         try:
             import os
             from tkinter import PhotoImage
-            icon_path = os.path.join(os.environ['HOME'], "aresitos", "aresitos", "recursos", "aresitos_icono.png")
+            icon_path = os.path.abspath(os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "recursos", "aresitos_icono.png"))
             if os.path.exists(icon_path):
                 self._icon_img = PhotoImage(file=icon_path)
                 self.root.iconphoto(True, self._icon_img)
@@ -1116,7 +1116,7 @@ class LoginAresitos:
             try:
                 import os
                 from tkinter import PhotoImage
-                icon_path = os.path.join(os.environ['HOME'], "aresitos", "aresitos", "recursos", "aresitos_icono.png")
+                icon_path = os.path.abspath(os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "recursos", "aresitos_icono.png"))
                 if os.path.exists(icon_path):
                     self._icon_img2 = PhotoImage(file=icon_path)
                     root_app.iconphoto(True, self._icon_img2)
