@@ -903,6 +903,16 @@ main() {
     
     check_root
     detect_user
+
+    # Copiar carpeta de recursos (iconos, imágenes, etc.)
+    if [ -d "$SCRIPT_DIR/recursos" ]; then
+        mkdir -p "$USER_HOME/aresitos/aresitos/recursos"
+        cp -r "$SCRIPT_DIR/recursos/"* "$USER_HOME/aresitos/aresitos/recursos/"
+        chown -R "$REAL_USER":"$REAL_USER" "$USER_HOME/aresitos/aresitos/recursos"
+        print_success "Carpeta de recursos copiada correctamente a $USER_HOME/aresitos/aresitos/recursos"
+    else
+        print_warning "No se encontró la carpeta de recursos para copiar."
+    fi
     
     echo
     print_info "ARESITOS v3.0 incluye un ESCANEADOR PROFESIONAL con capacidades avanzadas:"
