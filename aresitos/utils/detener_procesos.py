@@ -251,11 +251,38 @@ class DetenerProcesos:
                                     tipo: str) -> int:
         """Terminar procesos por nombre de manera robusta y segura (ARESITOS)."""
         procesos_terminados = 0
+        # Lista extendida de procesos protegidos (no matar nunca)
         procesos_protegidos = [
             'systemd', 'init', 'login', 'sshd', 'Xorg', 'gdm', 'lightdm', 'NetworkManager',
             'dbus-daemon', 'udisksd', 'polkitd', 'upowerd', 'wpa_supplicant', 'gnome-shell',
             'plasmashell', 'xfce4-session', 'lxsession', 'openbox', 'kdeinit', 'kded', 'kdm',
-            'sddm', 'agetty', 'bash', 'zsh', 'fish', 'pwsh', 'tmux', 'screen', 'python', 'python3'
+            'sddm', 'agetty', 'bash', 'zsh', 'fish', 'pwsh', 'tmux', 'screen', 'python', 'python3',
+            'konsole', 'gnome-terminal', 'xterm', 'tilix', 'alacritty', 'urxvt', 'mate-terminal',
+            'terminator', 'lxterminal', 'xfce4-terminal', 'qterminal', 'eterm', 'rxvt', 'mlterm',
+            'ttyd', 'vte', 'wayland', 'weston', 'Xwayland', 'startplasma-x11', 'startplasma-wayland',
+            'startlxqt', 'startxfce4', 'startkde', 'startgnome', 'startmate', 'startdde',
+            'gnome-session', 'kde-session', 'mate-session', 'lxqt-session', 'xfce4-session',
+            'dbus-launch', 'dbus-run-session', 'X', 'Xwayland', 'wayland', 'weston',
+            'gvfsd', 'gvfsd-fuse', 'at-spi2-registryd', 'at-spi-bus-launcher', 'pipewire',
+            'pulseaudio', 'systemd-logind', 'systemd-userwork', 'colord', 'rtkit-daemon',
+            'udisksd', 'upowerd', 'modem-manager', 'bluetoothd', 'wpa_supplicant',
+            'gdm-session-worker', 'gdm-x-session', 'gdm-wayland-session', 'gdm3',
+            'Xorg.bin', 'Xwayland.bin', 'Xorg.wrap', 'Xvfb', 'Xdummy', 'Xnest',
+            'Xvnc', 'Xdmx', 'Xephyr', 'Xmir', 'Xvnc', 'Xvfb-run', 'Xsession',
+            'Xsession.d', 'Xsession.options', 'Xsession.wrapper', 'Xsession-xsession',
+            'Xsession-xinit', 'Xsession-xinitrc', 'Xsession-xinitrc.d', 'Xsession-xinitrc.options',
+            'Xsession-xinitrc.wrapper', 'Xsession-xinitrc-xsession', 'Xsession-xinitrc-xinit',
+            'Xsession-xinitrc-xinitrc', 'Xsession-xinitrc-xinitrc.d', 'Xsession-xinitrc-xinitrc.options',
+            'Xsession-xinitrc-xinitrc.wrapper', 'Xsession-xinitrc-xinitrc-xsession',
+            'Xsession-xinitrc-xinitrc-xinit', 'Xsession-xinitrc-xinitrc-xinitrc',
+            'Xsession-xinitrc-xinitrc-xinitrc.d', 'Xsession-xinitrc-xinitrc-xinitrc.options',
+            'Xsession-xinitrc-xinitrc-xinitrc.wrapper', 'Xsession-xinitrc-xinitrc-xinitrc-xsession',
+            'Xsession-xinitrc-xinitrc-xinitrc-xinit', 'Xsession-xinitrc-xinitrc-xinitrc-xinitrc',
+            'Xsession-xinitrc-xinitrc-xinitrc-xinitrc.d', 'Xsession-xinitrc-xinitrc-xinitrc-xinitrc.options',
+            'Xsession-xinitrc-xinitrc-xinitrc-xinitrc.wrapper', 'Xsession-xinitrc-xinitrc-xinitrc-xinitrc-xsession',
+            'Xsession-xinitrc-xinitrc-xinitrc-xinitrc-xinit', 'Xsession-xinitrc-xinitrc-xinitrc-xinitrc-xinitrc',
+            'Xsession-xinitrc-xinitrc-xinitrc-xinitrc-xinitrc.d', 'Xsession-xinitrc-xinitrc-xinitrc-xinitrc-xinitrc.options',
+            'Xsession-xinitrc-xinitrc-xinitrc-xinitrc-xinitrc.wrapper'
         ]
         usuario_actual = os.getenv('USER') or os.getenv('USERNAME')
         for proceso in procesos:
@@ -273,6 +300,16 @@ class DetenerProcesos:
                         if any(p in comando for p in procesos_protegidos):
                             callback_actualizacion(f"PROTEGIDO: {comando} (PID: {pid}) no será terminado por seguridad\n")
                             continue
+                        # Protección extra: no matar procesos con DISPLAY/XDG_SESSION/TTY de usuario
+                        try:
+                            environ = subprocess.check_output(['cat', f'/proc/{pid}/environ']).decode(errors='ignore')
+                            if 'DISPLAY=' in environ or 'XDG_SESSION' in environ or 'WAYLAND_DISPLAY' in environ or 'TTY=' in environ:
+                                callback_actualizacion(f"PROTEGIDO: {comando} (PID: {pid}) tiene entorno gráfico/terminal, no será terminado\n")
+                                continue
+                        except Exception:
+                            pass
+                        # Log explícito antes de matar
+                        callback_actualizacion(f"ADVERTENCIA: Terminando {comando} (PID: {pid}) por petición de usuario\n")
                         # Protección: no terminar procesos de root ni del usuario de sesión
                         user = None
                         try:
