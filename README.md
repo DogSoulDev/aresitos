@@ -25,13 +25,29 @@ ARESITOS es una herramienta de ciberseguridad 100% Python nativo (sin librerías
 ---
 
 ## Instalación rápida (Kali Linux recomendado)
+
 ```bash
+# 1. Clona el repositorio y entra en la carpeta
 git clone https://github.com/DogSoulDev/aresitos.git
+cd aresitos
+
+# 2. Da permisos de ejecución a los scripts principales
+chmod +x configurar_kali.sh main.py
+
+# 3. Ejecuta el script de configuración (como root o con sudo)
+sudo ./configurar_kali.sh
+
+# 4. (Opcional) Si tienes problemas de permisos, da ejecución a todos los .py
+find . -name "*.py" -exec chmod +x {} \;
+
+# 5. Inicia la aplicación
+python3 main.py
 ```
-> **Importante:**
-> - No ejecutes main.py con sudo. El propio programa solicitará privilegios solo cuando sea necesario.
-> - Tras ejecutar `sudo ./configurar_kali.sh`, ejecuta siempre los comandos de `chown` y `chmod` anteriores para evitar problemas de acceso.
-> - El sistema detecta y verifica automáticamente todas las herramientas requeridas, mostrando advertencias y permitiendo instalación guiada desde la interfaz.
+
+Si tienes errores de acceso a carpetas:
+```bash
+chmod -R 755 data/ logs/ configuración/
+```
 
 ### Herramientas forenses opcionales
 ```bash
