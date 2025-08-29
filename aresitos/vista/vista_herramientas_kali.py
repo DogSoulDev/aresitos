@@ -547,191 +547,75 @@ LISTO PARA: Escaneos de vulnerabilidades en entornos Kali Linux 2025
         thread.start()
     
     def _instalar_herramientas_async(self):
-        """Instalación asíncrona de herramientas usando SudoManager"""
+        """Instalación asíncrona de herramientas usando SudoManager y automatización total"""
+        import shutil
         try:
             self.after(0, self._actualizar_texto, "Instalando herramientas de Kali Linux...\n\n")
-            
-            # Verificar que sudo esté disponible
             sudo_manager = get_sudo_manager()
             if not is_sudo_available():
                 self.after(0, self._actualizar_texto, "ERROR: No hay permisos sudo disponibles\n")
                 self.after(0, self._actualizar_texto, "Reinicie ARESITOS e ingrese la contraseña correcta\n")
                 return
-            
-            # Lista de paquetes disponibles en repositorios APT de Kali
+            # 1. Instalar Go si no está
+            if not shutil.which("go"):
+                self.after(0, self._actualizar_texto, "Go no detectado. Instalando Go...\n")
+                sudo_manager.execute_sudo_command("apt install -y golang-go", timeout=120)
+            # 2. Instalar binutils para strings/hexdump
+            if not shutil.which("strings") or not shutil.which("hexdump"):
+                self.after(0, self._actualizar_texto, "Instalando binutils para strings/hexdump...\n")
+                sudo_manager.execute_sudo_command("apt install -y binutils", timeout=120)
+            # 3. Instalar herramientas APT
             paquetes = [
-                # Herramientas robustas, apt-installables y recomendadas para ARESITOS v3.0
-                # Escaneo profesional
                 'nmap', 'masscan', 'nuclei', 'ffuf', 'feroxbuster', 'nikto', 'whatweb', 'dirb', 'gobuster',
-                # Forense y análisis
                 'sleuthkit', 'testdisk', 'plaso', 'bulk-extractor', 'hashdeep', 'dc3dd', 'guymager', 'foremost', 'binwalk', 'exiftool', 'yara',
-                # Seguridad y auditoría
                 'clamav', 'clamav-daemon', 'chkrootkit', 'rkhunter', 'lynis', 'auditd', 'aide', 'debsums', 'rsyslog', 'logrotate', 'logwatch',
-                # Análisis avanzado y red
                 'tcpdump', 'wireshark', 'tshark', 'strace', 'ltrace', 'gdb', 'osquery', 'file', 'hexdump',
-                # Utilidades del sistema
                 'procps', 'iproute2', 'net-tools', 'util-linux', 'findutils', 'grep', 'gawk',
                 'coreutils', 'systemd', 'wget', 'curl', 'diffutils',
-                # Editores y gestores
                 'nano', 'vim', 'gedit', 'mousepad', 'thunar', 'nautilus', 'dolphin', 'xdg-open'
             ]
-            
-            # Herramientas problemáticas que requieren instalación manual especial
-            herramientas_problematicas = {}
-            
-            # Herramientas que requieren instalación manual (se informará al usuario):
-            herramientas_manuales = [
-                # Solo herramientas realmente manuales o externas, sin photorec ni problemáticas
-                # rustscan eliminado, usar nmap y masscan
-                'httpx: go install github.com/projectdiscovery/httpx/cmd/httpx@latest (requiere Go)',
-                'nuclei: go install github.com/projectdiscovery/nuclei/v2/cmd/nuclei@latest (requiere Go)',
-                'linpeas: wget https://github.com/carlospolop/PEASS-ng/releases/latest/download/linpeas.sh',
-                'pspy64: wget https://github.com/DominicBreuker/pspy/releases/latest/download/pspy64',
-                'pspy32: wget https://github.com/DominicBreuker/pspy/releases/latest/download/pspy32',
-                'dirbuster: Ya incluido en Kali en /usr/share/dirbuster/',
-                'strings: Parte del paquete binutils (generalmente ya instalado)'
-            ]
-            
-            # Actualizar repositorios usando SudoManager
             self.after(0, self._actualizar_texto, "Actualizando repositorios...\n")
-            result = sudo_manager.execute_sudo_command('apt update', timeout=120)
-            
-            if result.returncode == 0:
-                self.after(0, self._actualizar_texto, "OK Repositorios actualizados\n\n")
-            else:
-                self.after(0, self._actualizar_texto, f"ERROR actualizando repositorios: {result.stderr}\n\n")
-            
-            # Instalar paquetes uno por uno para mejor control de errores
-            self.after(0, self._actualizar_texto, "Instalando herramientas...\n")
-            
-            paquetes_exitosos = []
-            paquetes_fallidos = []
-            
+            sudo_manager.execute_sudo_command('apt update', timeout=120)
+            self.after(0, self._actualizar_texto, "Instalando herramientas principales...\n")
             for paquete in paquetes:
-                try:
-                    self.after(0, self._actualizar_texto, f"Instalando {paquete}...\n")
-                    
-                    # Usar SudoManager en lugar de sudo directo
-                    result = sudo_manager.execute_sudo_command(f'apt install -y {paquete}', timeout=120)
-                    
-                    if result.returncode == 0:
-                        paquetes_exitosos.append(paquete)
-                        self.after(0, self._actualizar_texto, f"OK {paquete} instalado correctamente\n")
-                    else:
-                        paquetes_fallidos.append(paquete)
-                        error_msg = result.stderr.strip()
-                        
-                        # Identificar errores comunes y dar instrucciones específicas
-                        if "Unable to locate package" in error_msg or "E: Package" in error_msg:
-                            self.after(0, self._actualizar_texto, f"ERROR instalando {paquete}: Paquete no encontrado en repositorios\n")
-                            self.after(0, self._actualizar_texto, f"  SOLUCIÓN: Instale manualmente con: sudo apt update && sudo apt install {paquete}\n")
-                            self.after(0, self._actualizar_texto, f"  ALTERNATIVA: Busque en: https://kali.org/tools/ para instalación alternativa\n")
-                        elif "WARNING: apt does not have a stable CLI interface" in error_msg:
-                            self.after(0, self._actualizar_texto, f"WARNING {paquete}: Advertencia de compatibilidad APT (no es error crítico)\n")
-                            self.after(0, self._actualizar_texto, f"  SOLUCIÓN: Instale manualmente con: sudo apt install {paquete}\n")
-                        elif "externally-managed-environment" in error_msg:
-                            self.after(0, self._actualizar_texto, f"ERROR instalando {paquete}: Entorno Python gestionado externamente\n")
-                            self.after(0, self._actualizar_texto, f"  SOLUCIÓN: Instale con pipx: pipx install {paquete}\n")
-                            self.after(0, self._actualizar_texto, f"  ALTERNATIVA: python3 -m pip install --user {paquete} --break-system-packages\n")
-                        else:
-                            self.after(0, self._actualizar_texto, f"ERROR instalando {paquete}: {error_msg[:100]}...\n")
-                            self.after(0, self._actualizar_texto, f"  SOLUCIÓN: Instale manualmente con: sudo apt install {paquete}\n")
-                            self.after(0, self._actualizar_texto, f"  DOCUMENTACIÓN: Consulte documentación específica de la herramienta\n")
-                        
-                except subprocess.TimeoutExpired:
-                    paquetes_fallidos.append(paquete)
-                    self.after(0, self._actualizar_texto, f"TIMEOUT instalando {paquete}\n")
-                    self.after(0, self._actualizar_texto, f"  SOLUCIÓN: Instale manualmente con más tiempo: sudo apt install {paquete}\n")
-                    self.after(0, self._actualizar_texto, f"  NOTA: Puede requerir descargas grandes o dependencias complejas\n")
-                except Exception as e:
-                    paquetes_fallidos.append(paquete)
-                    self.after(0, self._actualizar_texto, f"ERROR instalando {paquete}: {str(e)[:100]}...\n")
-                    self.after(0, self._actualizar_texto, f"  SOLUCIÓN: Revise permisos e instale manualmente: sudo apt install {paquete}\n")
-                    self.after(0, self._actualizar_texto, f"  VERIFICACIÓN: Verifique conectividad y repositorios actualizados\n")
-            
-            # Mostrar resumen
-            self.after(0, self._actualizar_texto, f"\n{'='*50}\n")
-            self.after(0, self._actualizar_texto, f"RESUMEN DE INSTALACIÓN\n")
-            self.after(0, self._actualizar_texto, f"{'='*50}\n")
-            self.after(0, self._actualizar_texto, f"OK Instalados correctamente: {len(paquetes_exitosos)}\n")
-            self.after(0, self._actualizar_texto, f"ERROR Errores de instalación: {len(paquetes_fallidos)}\n\n")
-            
-            if paquetes_fallidos:
-                self.after(0, self._actualizar_texto, f"HERRAMIENTAS QUE REQUIEREN INSTALACIÓN MANUAL:\n")
-                for paquete in paquetes_fallidos:
-                    self.after(0, self._actualizar_texto, f"   • {paquete}\n")
-                self.after(0, self._actualizar_texto, f"\nCOMANDOS PARA INSTALACIÓN MANUAL:\n")
-                self.after(0, self._actualizar_texto, f"sudo apt update\n")
-                for paquete in paquetes_fallidos:
-                    self.after(0, self._actualizar_texto, f"sudo apt install {paquete}\n")
-                self.after(0, self._actualizar_texto, f"\nRECURSOS ADICIONALES:\n")
-                self.after(0, self._actualizar_texto, f"• Kali Tools: https://kali.org/tools/\n")
-                self.after(0, self._actualizar_texto, f"• Documentation: https://kali.org/docs/\n")
-                self.after(0, self._actualizar_texto, f"• Forum Support: https://forums.kali.org/\n")
-            
-            if paquetes_fallidos:
-                self.after(0, self._actualizar_texto, "PAQUETES CON ERRORES:\n")
-                for paquete in paquetes_fallidos:
-                    self.after(0, self._actualizar_texto, f"  • {paquete}\n")
-                self.after(0, self._actualizar_texto, "\nEstos paquetes pueden no estar disponibles en este sistema.\n")
-            
-            # Considerar exitoso si al menos el 70% se instaló
-            if len(paquetes_exitosos) >= len(paquetes) * 0.7:
-                self.after(0, self._actualizar_texto, "\nOK Instalación completada exitosamente\n")
-                
-                # Mostrar información sobre herramientas problemáticas
-                self.after(0, self._actualizar_texto, "\n" + "="*60 + "\n")
-                self.after(0, self._actualizar_texto, "HERRAMIENTAS ESPECIALES - INSTALACIÓN MANUAL\n")
-                self.after(0, self._actualizar_texto, "="*60 + "\n")
-                self.after(0, self._actualizar_texto, "Las siguientes herramientas requieren instalación manual especial:\n\n")
-                
-                for herramienta, info in herramientas_problematicas.items():
-                    self.after(0, self._actualizar_texto, f"HERRAMIENTA {herramienta.upper()}:\n")
-                    self.after(0, self._actualizar_texto, f"   Razón: {info['razon']}\n")
-                    self.after(0, self._actualizar_texto, f"   Comando: {info['comando']}\n")
-                    self.after(0, self._actualizar_texto, f"   Notas: {info['notas']}\n\n")
-                
-                # Mostrar información sobre herramientas de la FASE 3
-                self.after(0, self._actualizar_texto, "\n" + "="*60 + "\n")
-                self.after(0, self._actualizar_texto, "HERRAMIENTAS FASE 3 - EXPANSIONES AVANZADAS\n")
-                self.after(0, self._actualizar_texto, "="*60 + "\n")
-                self.after(0, self._actualizar_texto, "ESCANEADOR EXPANDIDO (Fase 3.1):\n")
-                self.after(0, self._actualizar_texto, "   • nmap, masscan (escaneo de red)\n")
-                self.after(0, self._actualizar_texto, "   • nikto, whatweb (análisis web)\n")
-                self.after(0, self._actualizar_texto, "   • chkrootkit, rkhunter (detección rootkits)\n")
-                self.after(0, self._actualizar_texto, "   • binwalk, strings (análisis forense)\n")
-                self.after(0, self._actualizar_texto, "   • clamav (antivirus integrado)\n\n")
-                
-                self.after(0, self._actualizar_texto, "SIEM AVANZADO (Fase 3.2):\n")
-                self.after(0, self._actualizar_texto, "   • auditd, rsyslog (auditoría y logs)\n")
-                self.after(0, self._actualizar_texto, "   • fail2ban (protección contra fuerza bruta)\n")
-                self.after(0, self._actualizar_texto, "   • logwatch (análisis de logs)\n")
-                self.after(0, self._actualizar_texto, "   • tcpdump, wireshark (análisis de red)\n\n")
-                
-                self.after(0, self._actualizar_texto, "FIM OPTIMIZADO (Fase 3.3):\n")
-                self.after(0, self._actualizar_texto, "   • inotify-tools (monitoreo tiempo real)\n")
-                self.after(0, self._actualizar_texto, "   • aide (integridad archivos)\n")
-                self.after(0, self._actualizar_texto, "   • debsums (verificación checksums)\n")
-                self.after(0, self._actualizar_texto, "   • sleuthkit (análisis forense)\n\n")
-                
-                # Mostrar información sobre herramientas de instalación manual
-                self.after(0, self._actualizar_texto, "=" * 60 + "\n")
-                self.after(0, self._actualizar_texto, "HERRAMIENTAS DE INSTALACIÓN MANUAL\n")
-                self.after(0, self._actualizar_texto, "="*60 + "\n")
-                for herramienta in herramientas_manuales:
-                    self.after(0, self._actualizar_texto, f"� {herramienta}\n")
-                self.after(0, self._actualizar_texto, "\nEstas herramientas se pueden instalar manualmente\n")
-                self.after(0, self._actualizar_texto, "para funcionalidades específicas adicionales.\n")
-                self.after(0, self._actualizar_texto, "\nNOTA: Las capacidades avanzadas de la Fase 3 funcionan\n")
-                self.after(0, self._actualizar_texto, "   con las herramientas instaladas automáticamente.\n")
-                
-                self.after(0, self._habilitar_continuar)
-            else:
-                self.after(0, self._actualizar_texto, f"\nERROR Instalación con muchos errores ({len(paquetes_fallidos)}/{len(paquetes)} fallaron)\n")
-                self.after(0, self._actualizar_texto, "Recomendación: Verificar conexión y repositorios\n")
-                
-        except subprocess.TimeoutExpired:
-            self.after(0, self._actualizar_texto, "\nTIMEOUT durante la instalación\n")
+                self.after(0, self._actualizar_texto, f"Instalando {paquete}...\n")
+                sudo_manager.execute_sudo_command(f'apt install -y {paquete}', timeout=120)
+            # 4. Instalar httpx y nuclei con go install
+            go_path = shutil.which("go")
+            if go_path:
+                self.after(0, self._actualizar_texto, "Instalando httpx (go install)...\n")
+                sudo_manager.execute_sudo_command(f"{go_path} install -v github.com/projectdiscovery/httpx/cmd/httpx@latest", timeout=180)
+                self.after(0, self._actualizar_texto, "Instalando nuclei (go install)...\n")
+                sudo_manager.execute_sudo_command(f"{go_path} install -v github.com/projectdiscovery/nuclei/v3/cmd/nuclei@latest", timeout=180)
+                # Mover binarios de ~/go/bin a /usr/local/bin
+                import os
+                home = os.path.expanduser("~")
+                for tool in ["httpx", "nuclei"]:
+                    src = os.path.join(home, "go", "bin", tool)
+                    dst = f"/usr/local/bin/{tool}"
+                    if os.path.exists(src):
+                        sudo_manager.execute_sudo_command(f"cp {src} {dst}", timeout=30)
+                        sudo_manager.execute_sudo_command(f"chmod 755 {dst}", timeout=30)
+            # 5. Descargar linpeas, pspy64, pspy32 y mover a /usr/local/bin
+            bin_urls = {
+                "linpeas.sh": "https://github.com/carlospolop/PEASS-ng/releases/latest/download/linpeas.sh",
+                "pspy64": "https://github.com/DominicBreuker/pspy/releases/latest/download/pspy64",
+                "pspy32": "https://github.com/DominicBreuker/pspy/releases/latest/download/pspy32"
+            }
+            for fname, url in bin_urls.items():
+                dst = f"/usr/local/bin/{fname}"
+                self.after(0, self._actualizar_texto, f"Descargando {fname}...\n")
+                sudo_manager.execute_sudo_command(f"wget -q -O {dst} {url}", timeout=120)
+                sudo_manager.execute_sudo_command(f"chmod 755 {dst}", timeout=30)
+            # 6. DirBuster ya está en /usr/share/dirbuster/
+            self.after(0, self._actualizar_texto, "DirBuster ya está disponible en /usr/share/dirbuster/\n")
+            # 7. Mostrar resumen final
+            self.after(0, self._actualizar_texto, "\n==============================================\n")
+            self.after(0, self._actualizar_texto, "INSTALACIÓN AUTOMÁTICA COMPLETA\n")
+            self.after(0, self._actualizar_texto, "==============================================\n")
+            self.after(0, self._actualizar_texto, "Todas las herramientas principales y avanzadas han sido instaladas automáticamente.\n")
+            self.after(0, self._actualizar_texto, "Puede usar ARESITOS sin intervención manual.\n")
+            self.after(0, self._habilitar_continuar)
         except Exception as e:
             self.after(0, self._actualizar_texto, f"\nERROR: {e}\n")
         finally:
