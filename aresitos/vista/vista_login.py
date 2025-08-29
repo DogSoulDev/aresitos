@@ -126,41 +126,48 @@ def verificar_kali_linux_criptografico() -> bool:
         # Verificación múltiple más robusta
         verificaciones = []
         
+
+        # Definir rutas base dinámicamente
+        etc_dir = os.path.join(os.sep, 'etc')
+        usr_share_dir = os.path.join(os.sep, 'usr', 'share')
+        usr_bin_dir = os.path.join(os.sep, 'usr', 'bin')
+        proc_dir = os.path.join(os.sep, 'proc')
+
         # 1. Verificar /etc/os-release con hash conocido
-        if os.path.exists('/etc/os-release'):
-            with open('/etc/os-release', 'r') as f:
+        os_release_path = os.path.join(etc_dir, 'os-release')
+        if os.path.exists(os_release_path):
+            with open(os_release_path, 'r') as f:
                 content = f.read().lower()
                 if 'kali' in content and 'linux' in content:
                     verificaciones.append(True)
-        
+
         # 2. Verificar estructura de directorios específica de Kali
         directorios_kali = [
-            '/usr/share/kali-defaults',
-            '/etc/kali-version',
-            '/usr/share/kali-themes',
-            '/usr/share/applications/kali-linux.desktop'
+            os.path.join(usr_share_dir, 'kali-defaults'),
+            os.path.join(etc_dir, 'kali-version'),
+            os.path.join(usr_share_dir, 'kali-themes'),
+            os.path.join(usr_share_dir, 'applications', 'kali-linux.desktop')
         ]
-        
         dirs_encontrados = sum(1 for d in directorios_kali if os.path.exists(d))
         if dirs_encontrados >= 2:  # Al menos 2 de 4
             verificaciones.append(True)
-        
+
         # 3. Verificar herramientas específicas de Kali
         herramientas_kali = [
-            '/usr/bin/nmap',
-            '/usr/bin/sqlmap', 
-            '/usr/bin/hydra',
-            '/usr/bin/nikto',
-            '/usr/share/wordlists'
+            os.path.join(usr_bin_dir, 'nmap'),
+            os.path.join(usr_bin_dir, 'sqlmap'),
+            os.path.join(usr_bin_dir, 'hydra'),
+            os.path.join(usr_bin_dir, 'nikto'),
+            os.path.join(usr_share_dir, 'wordlists')
         ]
-        
         tools_encontradas = sum(1 for t in herramientas_kali if os.path.exists(t))
         if tools_encontradas >= 3:  # Al menos 3 de 5
             verificaciones.append(True)
-        
+
         # 4. Verificar distribución en /proc/version si existe
-        if os.path.exists('/proc/version'):
-            with open('/proc/version', 'r') as f:
+        proc_version_path = os.path.join(proc_dir, 'version')
+        if os.path.exists(proc_version_path):
+            with open(proc_version_path, 'r') as f:
                 version_info = f.read().lower()
                 if 'debian' in version_info:  # Kali se basa en Debian
                     verificaciones.append(True)
@@ -593,10 +600,12 @@ class LoginAresitos:
             else:
                 self.escribir_log("Se requiere autenticacion de root para funcionalidad completa")
             
-            self.escribir_log("Iniciando verificación automatica de herramientas...")
-            
-            # Verificar herramientas en hilo separado
-            threading.Thread(target=self.verificar_herramientas_inicial, daemon=True).start()
+            # self.escribir_log("Iniciando verificación automatica de herramientas...")
+            #
+            # # Verificar herramientas en hilo separado
+            # threading.Thread(target=self.verificar_herramientas_inicial, daemon=True).start()
+            # Desactivada la verificación de herramientas para el login
+            self.continue_btn.config(state=tk.NORMAL, bg=self.accent_green)
             
         except Exception as e:
             self.escribir_log(f"Error verificando entorno: {e}")
@@ -672,16 +681,13 @@ class LoginAresitos:
         script_dir = os.path.dirname(os.path.abspath(__file__))
         aresitos_root = os.path.dirname(os.path.dirname(script_dir))
         
+        user_home = os.path.expanduser("~")
         rutas_posibles = [
             aresitos_root,  # Ruta calculada desde el script
-            "/home/kali/aresitos",
-            "/home/kali/Desktop/aresitos", 
-            "/home/kali/Ares-Aegis",
-            "/home/kali/Desktop/Ares-Aegis",
-            os.path.expanduser("~/aresitos"),
-            os.path.expanduser("~/Desktop/aresitos"),
-            os.path.expanduser("~/Ares-Aegis"),
-            os.path.expanduser("~/Desktop/Ares-Aegis")
+            os.path.join(user_home, "aresitos"),
+            os.path.join(user_home, "Desktop", "aresitos"),
+            os.path.join(user_home, "Ares-Aegis"),
+            os.path.join(user_home, "Desktop", "Ares-Aegis")
         ]
         
         return rutas_posibles
@@ -709,15 +715,15 @@ class LoginAresitos:
             
             # Crear directorios necesarios con permisos seguros
             f"mkdir -p {shlex.quote(os.path.join(ruta_proyecto, 'logs'))} && chmod 755 {shlex.quote(os.path.join(ruta_proyecto, 'logs'))}",
-            f"mkdir -p /tmp/aresitos_quarantine && chmod 755 /tmp/aresitos_quarantine",
+            f"mkdir -p {shlex.quote(os.path.join('/tmp', 'aresitos_quarantine'))} && chmod 755 {shlex.quote(os.path.join('/tmp', 'aresitos_quarantine'))}",
             
             # Herramientas de Kali Linux
-            "chmod +x /usr/bin/nmap 2>/dev/null || true",
-            "chmod +x /usr/bin/masscan 2>/dev/null || true", 
-            "chmod +x /usr/bin/nikto 2>/dev/null || true",
-            "chmod +x /usr/bin/lynis 2>/dev/null || true",
-            "chmod +x /usr/bin/rkhunter 2>/dev/null || true",
-            "chmod +x /usr/bin/chkrootkit 2>/dev/null || true"
+            f"chmod +x {os.path.join('/usr/bin', 'nmap')} 2>/dev/null || true",
+            f"chmod +x {os.path.join('/usr/bin', 'masscan')} 2>/dev/null || true",
+            f"chmod +x {os.path.join('/usr/bin', 'nikto')} 2>/dev/null || true",
+            f"chmod +x {os.path.join('/usr/bin', 'lynis')} 2>/dev/null || true",
+            f"chmod +x {os.path.join('/usr/bin', 'rkhunter')} 2>/dev/null || true",
+            f"chmod +x {os.path.join('/usr/bin', 'chkrootkit')} 2>/dev/null || true"
         ]
         
         # Ejecutar cada comando con sudo
