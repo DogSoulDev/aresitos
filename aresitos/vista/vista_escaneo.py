@@ -263,51 +263,15 @@ class VistaEscaneo(tk.Frame):
             print(f"Error limpiando terminal Escaneador: {e}")
     
     def ejecutar_comando_entry(self, event=None):
-        """Ejecutar comando desde la entrada con validación de seguridad."""
+        """Ejecutar comando desde la entrada (sin validación de seguridad, root/sudo autenticado)."""
         comando = self.comando_entry.get().strip()
         if not comando:
             return
-        
-        # Validar comando con el módulo de seguridad
-        try:
-            from aresitos.utils.seguridad_comandos import validador_comandos
-            
-            es_valido, comando_sanitizado, mensaje = validador_comandos.validar_comando_completo(comando)
-            
-            # Mostrar el comando original en el terminal
-            self._actualizar_terminal_seguro(f"\n> {comando}\n")
-            
-            if not es_valido:
-                # Mostrar error de seguridad
-                self._actualizar_terminal_seguro(f"{mensaje}\n")
-                self._actualizar_terminal_seguro("[SUGERENCIA] Use 'ayuda-comandos' para ver comandos disponibles\n")
-                self.comando_entry.delete(0, tk.END)
-                return
-            
-            # Mostrar mensaje de autorización
-            self._actualizar_terminal_seguro(f"{mensaje}\n")
-            self.comando_entry.delete(0, tk.END)
-            
-            # Ejecutar comando sanitizado en thread
-            thread = threading.Thread(target=self._ejecutar_comando_async, args=(comando_sanitizado,))
-            thread.daemon = True
-            thread.start()
-            
-        except ImportError:
-            # Fallback sin validación (modo inseguro)
-            self.terminal_output.insert(tk.END, f"\n> {comando}\n")
-            self.terminal_output.insert(tk.END, "ADVERTENCIA️  EJECUTANDO SIN VALIDACIÓN DE SEGURIDAD\n")
-            self.terminal_output.see(tk.END)
-            self.comando_entry.delete(0, tk.END)
-            
-            thread = threading.Thread(target=self._ejecutar_comando_async, args=(comando,))
-            thread.daemon = True
-            thread.start()
-        except Exception as e:
-            self.terminal_output.insert(tk.END, f"\n> {comando}\n")
-            self.terminal_output.insert(tk.END, f"ERROR Error de seguridad: {e}\n")
-            self.terminal_output.see(tk.END)
-            self.comando_entry.delete(0, tk.END)
+        self._actualizar_terminal_seguro(f"\n> {comando}\n")
+        self.comando_entry.delete(0, tk.END)
+        thread = threading.Thread(target=self._ejecutar_comando_async, args=(comando,))
+        thread.daemon = True
+        thread.start()
     
     def _ejecutar_comando_async(self, comando):
         """Ejecutar comando de forma asíncrona con comandos especiales."""

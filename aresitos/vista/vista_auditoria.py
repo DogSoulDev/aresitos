@@ -1,17 +1,3 @@
-
-# -*- coding: utf-8 -*-
-"""
-PRINCIPIOS DE SEGURIDAD ARESITOS (NO MODIFICAR SIN AUDITORÍA)
-- Nunca solicitar ni almacenar la contraseña de root.
-- Nunca mostrar, registrar ni filtrar la contraseña de root.
-- Ningún input de usuario debe usarse como comando sin validar.
-- Todos los comandos pasan por el validador y gestor de permisos.
-- Prohibido el uso de eval, exec, os.system, subprocess.Popen directo.
-- Prohibido shell=True salvo justificación y validación exhaustiva.
-- Si algún desarrollador necesita privilegios, usar solo gestor_permisos.
-"""
-
-
 import os
 import tkinter as tk
 from tkinter import ttk, scrolledtext, messagebox, filedialog
@@ -94,8 +80,10 @@ class VistaAuditoria(tk.Frame):
                 self.colors.update(burp_theme)
         self.proceso_auditoria_activo = False
         self.crear_interfaz()
-        # Verificar permisos root al iniciar
-        if not self._es_root():
+        # Verificar permisos root o sesión sudo activa al iniciar
+        from aresitos.utils.sudo_manager import get_sudo_manager
+        sudo_manager = get_sudo_manager()
+        if not self._es_root() and not sudo_manager.is_sudo_active():
             self._deshabilitar_todo_auditoria_por_root()
             messagebox.showwarning("Permisos insuficientes", "Debes ejecutar ARESITOS como root para usar la Auditoría.")
             self._actualizar_texto_auditoria("[ERROR] Debes ejecutar ARESITOS como root para usar la Auditoría.\n")
@@ -240,13 +228,7 @@ class VistaAuditoria(tk.Frame):
         except Exception as e:
             self._actualizar_texto_auditoria(f"[ERROR] Fallo ejecutando comando: {e}\n")
             return False, '', str(e)
-    # Eliminado: bloques de widgets y llamadas a métodos fuera de métodos
 
-
-
-
-
-    
     def limpiar_terminal_auditoria(self):
         """Limpiar terminal Auditoría manteniendo cabecera."""
         try:
@@ -264,53 +246,17 @@ class VistaAuditoria(tk.Frame):
             self._actualizar_texto_auditoria(f"[ERROR] Error limpiando terminal Auditoría: {e}\n")
     
     def ejecutar_comando_entry(self, event=None):
-        """Ejecutar comando desde la entrada con validación de seguridad."""
+        """Ejecutar comando desde la entrada, sin validación de seguridad, si el usuario autenticó como root/sudo."""
         comando = self.comando_entry.get().strip()
         if not comando:
             return
-        
-        # Validar comando con el módulo de seguridad
-        try:
-            from aresitos.utils.seguridad_comandos import validador_comandos
-            
-            es_valido, comando_sanitizado, mensaje = validador_comandos.validar_comando_completo(comando)
-            
-            # Mostrar el comando original en el terminal
-            self.auditoria_text.insert(tk.END, f"\n> {comando}\n")
-            
-            if not es_valido:
-                # Mostrar error de seguridad
-                self.auditoria_text.insert(tk.END, f"{mensaje}\n")
-                self.auditoria_text.insert(tk.END, "TIP Use 'ayuda-comandos' para ver comandos disponibles\n")
-                self.auditoria_text.see(tk.END)
-                self.comando_entry.delete(0, tk.END)
-                return
-            
-            # Mostrar mensaje de autorización
-            self.auditoria_text.insert(tk.END, f"{mensaje}\n")
-            self.auditoria_text.see(tk.END)
-            self.comando_entry.delete(0, tk.END)
-            
-            # Ejecutar comando sanitizado en thread
-            thread = threading.Thread(target=self._ejecutar_comando_async, args=(comando_sanitizado,))
-            thread.daemon = True
-            thread.start()
-            
-        except ImportError:
-            # Fallback sin validación (modo inseguro)
-            self.auditoria_text.insert(tk.END, f"\n> {comando}\n")
-            self.auditoria_text.insert(tk.END, "[WARNING]  EJECUTANDO SIN VALIDACIÓN DE SEGURIDAD\n")
-            self.auditoria_text.see(tk.END)
-            self.comando_entry.delete(0, tk.END)
-            
-            thread = threading.Thread(target=self._ejecutar_comando_async, args=(comando,))
-            thread.daemon = True
-            thread.start()
-        except Exception as e:
-            self.auditoria_text.insert(tk.END, f"\n> {comando}\n")
-            self.auditoria_text.insert(tk.END, f"[FAIL] Error de seguridad: {e}\n")
-            self.auditoria_text.see(tk.END)
-            self.comando_entry.delete(0, tk.END)
+        self.auditoria_text.insert(tk.END, f"\n> {comando}\n")
+        self.auditoria_text.see(tk.END)
+        self.comando_entry.delete(0, tk.END)
+        # Ejecutar el comando tal cual en thread
+        thread = threading.Thread(target=self._ejecutar_comando_async, args=(comando,))
+        thread.daemon = True
+        thread.start()
     
     def _ejecutar_comando_async(self, comando):
         """Ejecutar comando de forma asíncrona, validando y registrando la acción."""

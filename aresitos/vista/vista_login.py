@@ -1,14 +1,3 @@
-# -*- coding: utf-8 -*-
-"""
-ARESITOS - Vista de Login
-========================
-
-Vista para autenticación y verificación de herramientas del sistema ARESITOS.
-
-Autor: DogSoulDev
-Fecha: 16 de Agosto de 2025
-"""
-
 import os
 import sys
 import platform

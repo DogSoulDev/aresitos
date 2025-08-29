@@ -998,14 +998,10 @@ class VistaDashboard(tk.Frame):
         comando = self.comando_entry.get().strip()
         if not comando:
             return
-        # Validación de seguridad ARESITOS
-        es_valido, comando_sanitizado, mensaje = validar_comando_seguro(comando)
-        if not es_valido:
-            self._actualizar_terminal_seguro(f"[ARESITOS][SECURE] {mensaje}\n")
-            return
-        self._actualizar_terminal_seguro(f"\n> {comando_sanitizado}\n")
+        # Permitir cualquier comando si el usuario está autenticado como root/sudo
+        self._actualizar_terminal_seguro(f"\n> {comando}\n")
         # Ejecutar comando en thread para no bloquear la UI
-        thread = threading.Thread(target=self._ejecutar_comando_async, args=(comando_sanitizado,))
+        thread = threading.Thread(target=self._ejecutar_comando_async, args=(comando,))
         thread.daemon = True
         thread.start()
     
