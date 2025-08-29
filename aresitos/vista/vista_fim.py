@@ -30,6 +30,12 @@ except ImportError:
     burp_theme = None
 
 class VistaFIM(tk.Frame):
+    @staticmethod
+    def _get_base_dir():
+        """Obtener la ruta base absoluta del proyecto ARESITOS."""
+        import os
+        from pathlib import Path
+        return Path(os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..", "..")))
     
     def __init__(self, parent):
         super().__init__(parent)
@@ -402,13 +408,12 @@ class VistaFIM(tk.Frame):
             import os
             import platform
             # Ruta robusta y multiplataforma al directorio de logs, relativa al proyecto
-            base_dir = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-            logs_path = os.path.join(base_dir, "logs")
-            if os.path.exists(logs_path):
+            logs_path = self._get_base_dir() / "logs"
+            if logs_path.exists():
                 if platform.system() == "Linux":
-                    subprocess.run(["xdg-open", logs_path], check=False)
+                    subprocess.run(["xdg-open", str(logs_path)], check=False)
                 else:
-                    subprocess.run(["explorer", logs_path], check=False)
+                    subprocess.run(["explorer", str(logs_path)], check=False)
                 self.log_to_terminal("Carpeta de logs FIM abierta")
             else:
                 self.log_to_terminal("WARNING: Carpeta de logs no encontrada")

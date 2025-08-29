@@ -52,6 +52,12 @@ class ThreadSafeFlag:
             self.flag = False
 
 class VistaMonitoreo(tk.Frame):
+    @staticmethod
+    def _get_base_dir():
+        """Obtener la ruta base absoluta del proyecto ARESITOS."""
+        import os
+        from pathlib import Path
+        return Path(os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..", "..")))
     
     def __init__(self, parent):
         super().__init__(parent)
@@ -462,19 +468,18 @@ class VistaMonitoreo(tk.Frame):
         try:
             import os
             import platform
-            base_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..', '..'))
-            logs_path = os.path.join(base_dir, 'logs')
-            if not os.path.exists(logs_path):
+            logs_path = self._get_base_dir() / 'logs'
+            if not logs_path.exists():
                 self.log_to_terminal("WARNING: Carpeta de logs no encontrada")
                 messagebox.showwarning("Advertencia", "Carpeta de logs no encontrada")
                 return
             # Usar método seguro para abrir directorio
             if platform.system() == "Linux":
-                resultado = self._ejecutar_comando_seguro(["xdg-open", logs_path], timeout=10)
+                resultado = self._ejecutar_comando_seguro(["xdg-open", str(logs_path)], timeout=10)
             elif platform.system() == "Windows":
-                resultado = self._ejecutar_comando_seguro(["explorer", logs_path], timeout=10)
+                resultado = self._ejecutar_comando_seguro(["explorer", str(logs_path)], timeout=10)
             else:
-                resultado = self._ejecutar_comando_seguro(["open", logs_path], timeout=10)
+                resultado = self._ejecutar_comando_seguro(["open", str(logs_path)], timeout=10)
             if resultado['success']:
                 self.log_to_terminal("OK Carpeta de logs Monitoreo abierta")
             else:

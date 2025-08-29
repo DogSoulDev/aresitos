@@ -27,6 +27,12 @@ except ImportError:
     burp_theme = None
 
 class VistaHerramientasKali(tk.Frame):
+    @staticmethod
+    def _get_base_dir():
+        """Obtener la ruta base absoluta del proyecto ARESITOS."""
+        import os
+        from pathlib import Path
+        return Path(os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..")))
     """Vista para herramientas nativas de Kali Linux"""
     
     def __init__(self, parent, callback_completado=None):
@@ -91,11 +97,9 @@ class VistaHerramientasKali(tk.Frame):
             import os
             from tkinter import PhotoImage
             root = self.winfo_toplevel()
-            # Ruta robusta y multiplataforma al icono, relativa al proyecto
-            base_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-            icon_path = os.path.join(base_dir, "recursos", "icono", "aresitos_icono.png")
-            if os.path.exists(icon_path):
-                self._icon_img = PhotoImage(file=icon_path)
+            icon_path = self._get_base_dir() / "recursos" / "icono" / "aresitos_icono.png"
+            if icon_path.exists():
+                self._icon_img = PhotoImage(file=str(icon_path))
                 root.iconphoto(True, self._icon_img)
         except Exception as e:
             self.logger.warning(f"[WARN] No se pudo cargar el icono de ventana: {e}")
