@@ -72,12 +72,20 @@ class SIEMKali2025(SIEMBase):  # type: ignore
             try:
                 result = subprocess.run(['which', herramienta], 
                                      capture_output=True, text=True, timeout=5)
+                found = False
                 if result.returncode == 0:
-                    # Agregar a herramientas disponibles de la clase base
+                    found = True
+                    path = result.stdout.strip()
+                else:
+                    # Comprobación manual para rsyslogd
+                    if herramienta == 'rsyslog' and os.path.exists('/usr/sbin/rsyslogd'):
+                        found = True
+                        path = '/usr/sbin/rsyslogd'
+                if found:
                     if not hasattr(self, 'herramientas_disponibles'):
                         self.herramientas_disponibles = {}
-                    self.herramientas_disponibles[herramienta] = result.stdout.strip()
-                    self.log(f"SIEM: {herramienta} disponible en {result.stdout.strip()}")
+                    self.herramientas_disponibles[herramienta] = path
+                    self.log(f"SIEM: {herramienta} disponible en {path}")
                 else:
                     self.log(f"SIEM: {herramienta} no encontrada")
             except Exception as e:

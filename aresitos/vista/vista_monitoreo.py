@@ -60,7 +60,11 @@ class VistaMonitoreo(tk.Frame):
                     self.text_monitor.see(tk.END)
             except (tk.TclError, AttributeError):
                 pass
-        self.after(0, _update)
+        try:
+            if hasattr(self, 'after'):
+                self.after(0, _update)
+        except RuntimeError:
+            pass
 
     def _actualizar_label_estado_seguro(self, texto):
         def _update():
@@ -69,7 +73,11 @@ class VistaMonitoreo(tk.Frame):
                     self.label_estado.config(text=texto)
             except (tk.TclError, AttributeError):
                 pass
-        self.after(0, _update)
+        try:
+            if hasattr(self, 'after'):
+                self.after(0, _update)
+        except RuntimeError:
+            pass
     @staticmethod
     def _get_base_dir():
         """Obtener la ruta base absoluta del proyecto ARESITOS."""
@@ -736,7 +744,11 @@ class VistaMonitoreo(tk.Frame):
         
         # Iniciar monitoreo básico en thread separado
         threading.Thread(target=self._monitoreo_completo_async, daemon=True).start()
-        self.after(3000, self._actualizar_monitoreo_basico)
+        try:
+            if hasattr(self, 'after'):
+                self.after(3000, self._actualizar_monitoreo_basico)
+        except RuntimeError:
+            pass
 
     def _monitoreo_completo_async(self):
         """Ejecutar monitoreo completo de procesos, permisos y usuarios."""
@@ -1045,7 +1057,11 @@ class VistaMonitoreo(tk.Frame):
         """Actualizar la interfaz durante el monitoreo básico."""
         if self.monitor_activo:
             self.text_monitor.insert(tk.END, "Monitoreo básico en progreso...\n")
-            self.after(5000, self._actualizar_monitoreo_basico)
+            try:
+                if hasattr(self, 'after'):
+                    self.after(5000, self._actualizar_monitoreo_basico)
+            except RuntimeError:
+                pass
     
     def detener_monitoreo(self):
         """Detener monitoreo usando sistema unificado con advertencia profesional."""
@@ -1096,7 +1112,11 @@ class VistaMonitoreo(tk.Frame):
             self.text_monitor.see(tk.END)
         
         if not self.flag_monitoreo.is_set():
-            self.after(2000, self.actualizar_monitoreo)
+            try:
+                if hasattr(self, 'after'):
+                    self.after(2000, self.actualizar_monitoreo)
+            except RuntimeError:
+                pass
     
     def monitorear_red(self):
         """Iniciar monitoreo de red con manejo robusto de errores - Issue 19/24."""
@@ -2046,7 +2066,11 @@ class VistaMonitoreo(tk.Frame):
         
         # Iniciar monitoreo en thread separado
         threading.Thread(target=self._monitoreo_avanzado_linux, daemon=True).start()
-        self.after(3000, self.actualizar_monitoreo)  # Actualizar cada 3 segundos
+        try:
+            if hasattr(self, 'after'):
+                self.after(3000, self.actualizar_monitoreo)
+        except RuntimeError:
+            pass
     
     def _monitoreo_avanzado_linux(self):
         """Monitoreo avanzado usando comandos nativos de Linux."""

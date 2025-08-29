@@ -1130,10 +1130,18 @@ class VistaDashboard(tk.Frame):
                 ip_publica = resultado.stdout.strip()
             else:
                 ip_publica = "No disponible"
-            # Actualizar SIEMPRE usando after (hilo principal)
-            self.after(0, lambda: self._set_ip_publica_label(ip_publica))
+            # Solo llamar a after si el widget sigue existiendo y mainloop está activo
+            if hasattr(self, 'ip_publica_label') and self.ip_publica_label.winfo_exists():
+                try:
+                    self.after(0, lambda: self._set_ip_publica_label(ip_publica))
+                except RuntimeError:
+                    pass
         except Exception:
-            self.after(0, lambda: self._set_ip_publica_label("No disponible"))
+            if hasattr(self, 'ip_publica_label') and self.ip_publica_label.winfo_exists():
+                try:
+                    self.after(0, lambda: self._set_ip_publica_label("No disponible"))
+                except RuntimeError:
+                    pass
 
     def _set_ip_publica_label(self, ip_publica):
         if hasattr(self, 'ip_publica_label') and self.ip_publica_label.winfo_exists():
