@@ -1,25 +1,33 @@
-> **Recomendación importante:**
->
-> Antes de instalar o ejecutar ARESITOS, asegúrate de tener tu sistema Kali Linux completamente actualizado para evitar problemas de dependencias o incompatibilidades:
->
-> ```sh
-> sudo apt update && sudo apt upgrade -y
-> ```
->
+# ARESITOS - Herramienta de Ciberseguridad
 
 ![ARESITOS](aresitos/recursos/aresitos.png)
 
-# ARESITOS - Herramienta de Ciberseguridad
+> **Recomendación importante:**
+> Antes de instalar o ejecutar ARESITOS, asegúrate de tener tu sistema Kali Linux completamente actualizado para evitar problemas de dependencias o incompatibilidades:
+> ```sh
+> sudo apt update && sudo apt upgrade -y
+> ```
+
+---
+
+## Proyecto TFM - UCAM - Campus Internacional de Ciberseguridad
+
+Este proyecto ha sido desarrollado como parte del Trabajo Fin de Máster (TFM) en Ciberseguridad de la Universidad Católica San Antonio de Murcia (UCAM), en colaboración con el Campus Internacional de Ciberseguridad.
+
+ARESITOS representa una solución profesional, académica y práctica para la gestión y automatización de auditorías de seguridad, integrando los estándares y mejores prácticas del sector.
+
+---
+
+# Descripción General
 
 ARESITOS es una herramienta de ciberseguridad 100% Python nativo (sin librerías externas) para sistemas operativos Kali Linux. Integra escaneo de vulnerabilidades, SIEM, FIM, cuarentena, dashboard, reportes y utilidades forenses, todo bajo arquitectura MVC y principios SOLID/DRY. El sistema aprovecha herramientas nativas de Kali Linux y automatiza su verificación e instalación, garantizando robustez, seguridad y compatibilidad total con entornos forenses y de auditoría.
 
-**Principales módulos:**
+---
 
-
-### Instalación rápida (Kali Linux recomendado)
+## Instalación rápida (Kali Linux recomendado)
 ```bash
 git clone https://github.com/DogSoulDev/aresitos.git
-
+```
 > **Importante:**
 > - No ejecutes main.py con sudo. El propio programa solicitará privilegios solo cuando sea necesario.
 > - Tras ejecutar `sudo ./configurar_kali.sh`, ejecuta siempre los comandos de `chown` y `chmod` anteriores para evitar problemas de acceso.
@@ -38,7 +46,6 @@ python3 main.py --dev
 > **Nota:** El modo desarrollo solo habilita la interfaz gráfica y utilidades básicas. Las funciones avanzadas requieren Kali Linux y privilegios adecuados.
 
 ### Requisitos principales
-
 - **Python:** 3.8 o superior
 - **Sistema operativo:** Kali Linux 2025 (recomendado, soporte parcial en otros Linux)
 - **Dependencias nativas:** nmap, masscan, nuclei, gobuster, ffuf, feroxbuster, wireshark, autopsy, sleuthkit, hashdeep, testdisk, foremost, plaso, bulk-extractor, dc3dd, guymager, git, curl, wget, sqlite3, python3-tk, python3-venv
@@ -62,7 +69,6 @@ python3 main.py --dev
 ![Vista Principal](aresitos/recursos/capturas/vista_principal.png)
 
 ---
-
 
 ## Arquitectura y estructura del proyecto
 
@@ -113,6 +119,7 @@ aresitos/
 ├── configurar_kali.sh # Script de configuración y dependencias para Kali Linux
 ├── requirements.txt # Requisitos Python (solo para desarrollo, no se usan librerías externas en producción)
 └── README.md        # Documentación principal del proyecto
+```
 
 **Explicación concreta:**
 - El proyecto sigue una arquitectura estricta MVC, donde cada carpeta tiene una responsabilidad clara y separada.
@@ -127,27 +134,6 @@ aresitos/
 **Sanitización y seguridad:**
 - Validación de extensiones, nombres, rutas y tipos MIME en subida de archivos
 - Módulo de sanitización en `utils/sanitizador_archivos.py`
-
-
-```bash
-# Verificar estado y dependencias del sistema
-python3 verificacion_final.py
-
-# Ejecutar Aresitos (modo normal)
-python3 main.py
-
-# Ejecutar en modo desarrollo (otros sistemas)
-python3 main.py --dev
-
-# Actualizar configuración y herramientas de Kali
-sudo ./configurar_kali.sh --update
-
-# Debug avanzado del escaneador
-python3 main.py --verbose --scanner-debug
-
-# Actualizar templates de nuclei
-sudo nuclei -update-templates
-```
 
 ---
 
@@ -189,6 +175,22 @@ Email: dogsouldev@protonmail.com
 - Propósitos constructivos
 - Divulgación responsable
 - Prohibido hacking malicioso o daño intencional
+
+---
+
+## Reconocimientos y agradecimientos
+
+Este proyecto no habría sido posible sin el apoyo y la formación recibida en el Campus Internacional de Ciberseguridad y la Universidad Católica San Antonio de Murcia (UCAM).
+
+---
+
+## Logos institucionales
+
+<p align="center">
+  <img src="aresitos/recursos/tfm/logo.png" alt="Logo TFM" width="120" style="margin: 0 20px;"/>
+  <img src="aresitos/recursos/tfm/logo_tele.png" alt="Logo Teleco" width="120" style="margin: 0 20px;"/>
+  <img src="aresitos/recursos/tfm/logo_uni.png" alt="Logo UCAM" width="120" style="margin: 0 20px;"/>
+</p>
 
 ---
 
