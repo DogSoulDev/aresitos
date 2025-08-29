@@ -1123,15 +1123,22 @@ class VistaDashboard(tk.Frame):
                 ip_publica = resultado.stdout.strip()
             else:
                 ip_publica = "No disponible"
-            
-            # Actualizar UI en el hilo principal
-            self.after(0, lambda: self.ip_publica_label.configure(
-                text=f" IP Pública (WAN): {ip_publica}"
-            ))
+            # Solo actualizar si el widget y mainloop existen
+            if hasattr(self, 'ip_publica_label') and self.ip_publica_label.winfo_exists():
+                try:
+                    self.after(0, lambda: self.ip_publica_label.configure(
+                        text=f" IP Pública (WAN): {ip_publica}"
+                    ))
+                except RuntimeError:
+                    pass
         except (ValueError, TypeError, AttributeError):
-            self.after(0, lambda: self.ip_publica_label.configure(
-                text=" IP Pública (WAN): No disponible"
-            ))
+            if hasattr(self, 'ip_publica_label') and self.ip_publica_label.winfo_exists():
+                try:
+                    self.after(0, lambda: self.ip_publica_label.configure(
+                        text=" IP Pública (WAN): No disponible"
+                    ))
+                except RuntimeError:
+                    pass
     
     def _actualizar_interfaces_red(self):
         """Actualizar información de interfaces de red con datos completos."""
