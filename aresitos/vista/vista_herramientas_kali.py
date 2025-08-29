@@ -419,7 +419,7 @@ LISTO PARA: Escaneos de vulnerabilidades en entornos Kali Linux 2025
                 'nmap', 'masscan', 'nuclei', 'ffuf', 'feroxbuster', 'nikto', 'whatweb', 'dirb', 'gobuster',
                 # Forense y análisis
                 'sleuthkit', 'tsk_recover', 'tsk_loaddb', 'tsk_gettimes', 'tsk_comparedir', 'tsk_imageinfo',
-                'testdisk', 'plaso', 'bulk-extractor', 'hashdeep', 'dc3dd', 'guymager', 'foremost', 'binwalk', 'exiftool', 'yara',
+                'testdisk', 'bulk-extractor', 'hashdeep', 'dc3dd', 'guymager', 'foremost', 'binwalk', 'exiftool', 'yara',
                 # Seguridad y auditoría
                 'clamav', 'clamav-daemon', 'chkrootkit', 'rkhunter', 'lynis', 'auditd', 'aide', 'debsums', 'rsyslog', 'logrotate', 'logwatch',
                 # Análisis avanzado y red
@@ -447,7 +447,6 @@ LISTO PARA: Escaneos de vulnerabilidades en entornos Kali Linux 2025
                 'sleuthkit': ['tsk_recover', 'tsk_loaddb', 'tsk_gettimes', 'tsk_comparedir', 'tsk_imageinfo'],
                 'clamav': ['clamscan'],
                 'clamav-daemon': ['clamd'],
-                'plaso': ['log2timeline.py', 'log2timeline'],
                 'bulk-extractor': ['bulk_extractor'],
                 'rsyslog': ['rsyslogd'],
                 'osquery': ['osqueryi'],
