@@ -29,6 +29,12 @@ except ImportError:
     burp_theme = None
 
 class VistaSIEM(tk.Frame):
+    @staticmethod
+    def _get_base_dir():
+        """Obtener la ruta base absoluta del proyecto ARESITOS."""
+        import os
+        from pathlib import Path
+        return Path(os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..")))
     
     def __init__(self, parent):
         super().__init__(parent)
@@ -380,12 +386,12 @@ class VistaSIEM(tk.Frame):
         """Abrir carpeta de logs SIEM."""
         try:
             import os
-            logs_path = "logs/"
-            if os.path.exists(logs_path):
+            logs_path = self._get_base_dir() / 'logs'
+            if logs_path.exists():
                 if platform.system() == "Linux":
-                    subprocess.run(["xdg-open", logs_path], check=False)
+                    subprocess.run(["xdg-open", str(logs_path)], check=False)
                 else:
-                    subprocess.run(["explorer", logs_path], check=False)
+                    subprocess.run(["explorer", str(logs_path)], check=False)
                 self.log_to_terminal("Carpeta de logs SIEM abierta")
             else:
                 self.log_to_terminal("WARNING: Carpeta de logs no encontrada")

@@ -37,6 +37,12 @@ except ImportError:
     burp_theme = None
 
 class VistaPrincipal(tk.Frame):
+    @staticmethod
+    def _get_base_dir():
+        """Obtener la ruta base absoluta del proyecto ARESITOS."""
+        import os
+        from pathlib import Path
+        return Path(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
     def __init__(self, parent):
         super().__init__(parent)
         self.controlador = None
@@ -47,11 +53,10 @@ class VistaPrincipal(tk.Frame):
         try:
             import os
             from tkinter import PhotoImage
-            base_dir = os.path.abspath(os.path.join(os.path.dirname(os.path.abspath(__file__)), '..'))
-            icon_path = os.path.join(base_dir, "recursos", "icono", "aresitos_icono.png")
+            icon_path = self._get_base_dir() / "recursos" / "icono" / "aresitos_icono.png"
             root = parent.winfo_toplevel() if hasattr(parent, 'winfo_toplevel') else parent
-            if os.path.exists(icon_path):
-                self._icon_img = PhotoImage(file=icon_path)
+            if icon_path.exists():
+                self._icon_img = PhotoImage(file=str(icon_path))
                 root.iconphoto(True, self._icon_img)
         except Exception as e:
             self.logger.warning(f"[WARN] No se pudo cargar el icono de ventana principal: {e}")

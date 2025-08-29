@@ -18,6 +18,12 @@ import shutil
 from typing import Dict, List, Any, Optional
 
 class ModeloGestorDiccionarios:
+    @staticmethod
+    def _get_base_dir():
+        """Obtener la ruta base absoluta del proyecto ARESITOS."""
+        import os
+        from pathlib import Path
+        return Path(os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..")))
     def __init__(self):
         self.directorio_diccionarios = self._crear_directorio_diccionarios()
         self.diccionarios_predefinidos = self._obtener_diccionarios_predefinidos()
@@ -26,51 +32,34 @@ class ModeloGestorDiccionarios:
     
     def _cargar_diccionarios_desde_data(self):
         """Carga automáticamente TODOS los diccionarios JSON desde el directorio data/diccionarios"""
-        directorio_data = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(__file__))), "data", "diccionarios")
-        
-        if not os.path.exists(directorio_data):
+        directorio_data = self._get_base_dir() / "data" / "diccionarios"
+        if not directorio_data.exists():
             print(f"WARNING Directorio data/diccionarios no encontrado: {directorio_data}")
             return
-        
         print(f"OK Escaneando diccionarios en: {directorio_data}")
-        
-        # Detectar automáticamente todos los archivos JSON
         try:
             archivos_en_directorio = os.listdir(directorio_data)
             archivos_json = [f for f in archivos_en_directorio if f.endswith('.json')]
-            
             if not archivos_json:
                 print("WARNING No se encontraron archivos JSON en data/diccionarios")
                 return
-            
             print(f"OK Encontrados {len(archivos_json)} archivos JSON")
-            
         except Exception as e:
             print(f"ERROR Error listando directorio: {e}")
             return
-        
         diccionarios_cargados = 0
-        
         for archivo in archivos_json:
-            ruta_archivo = os.path.join(directorio_data, archivo)
-            
+            ruta_archivo = directorio_data / archivo
             try:
                 with open(ruta_archivo, 'r', encoding='utf-8') as f:
                     datos = json.load(f)
-                
-                # Procesar el archivo JSON
                 nombre_diccionario = os.path.splitext(archivo)[0]
                 resultado = self._procesar_diccionario_json(nombre_diccionario, datos, archivo)
-                
                 if resultado:
                     diccionarios_cargados += 1
-                    
             except Exception as e:
                 print(f"ERROR Error cargando {archivo}: {e}")
-        
         print(f"OK {diccionarios_cargados} diccionarios cargados exitosamente")
-        
-        # Crear índice actualizado
         self._crear_indice_diccionarios()
     
     def _procesar_diccionario_json(self, nombre: str, datos: Any, archivo_origen: str) -> bool:
@@ -134,11 +123,13 @@ class ModeloGestorDiccionarios:
     
     def _crear_directorio_diccionarios(self) -> str:
         # Primero intentar usar el directorio data del proyecto
-        directorio_proyecto = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(__file__))), "data", "diccionarios")
-        if os.path.exists(os.path.dirname(directorio_proyecto)):
-            os.makedirs(directorio_proyecto, exist_ok=True)
-            return directorio_proyecto
-        
+        directorio_proyecto = self._get_base_dir() / "data" / "diccionarios"
+        try:
+            if directorio_proyecto.parent.exists():
+                os.makedirs(directorio_proyecto, exist_ok=True)
+                return str(directorio_proyecto)
+        except Exception:
+            pass
         # Si no existe, crear en home del usuario
         directorio = os.path.join(os.path.expanduser("~"), "aresitos_diccionarios")
         try:

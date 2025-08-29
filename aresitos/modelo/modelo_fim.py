@@ -1,4 +1,5 @@
 
+
 # =============================================================
 # PRINCIPIOS DE SEGURIDAD ARESITOS (NO TOCAR SIN AUDITORÍA)
 # - Nunca solicitar ni almacenar la contraseña de root.
@@ -62,6 +63,22 @@ class FIMKali2025(_FIMBase):  # type: ignore
     File Integrity Monitoring avanzado con herramientas Kali Linux 2025.
     Hereda de FIMBase para funcionalidad común.
     """
+    def _get_temp_file(self, name: str) -> str:
+        """Devuelve una ruta temporal segura y multiplataforma para archivos de salida."""
+        import tempfile
+        return os.path.join(tempfile.gettempdir(), name)
+
+    def _get_default_yara_rules(self) -> str:
+        """Devuelve la ruta de reglas YARA por defecto, buscando en ubicaciones estándar."""
+        posibles = [
+            os.path.join("/usr/share/yara", "rules"),
+            os.path.join("/usr/local/share/yara", "rules"),
+        ]
+        for ruta in posibles:
+            if os.path.exists(ruta):
+                return ruta
+        # Fallback: usar reglas básicas generadas
+        return self._crear_reglas_yara_basicas()
     
     def __init__(self, gestor_permisos=None):
         super().__init__(gestor_permisos)
@@ -433,10 +450,7 @@ class FIMKali2025(_FIMBase):  # type: ignore
         try:
             # Reglas por defecto
             if not reglas_yara:
-                reglas_yara = "/usr/share/yara/rules"
-                if not os.path.exists(reglas_yara):
-                    # Crear reglas básicas
-                    reglas_yara = self._crear_reglas_yara_basicas()
+                reglas_yara = self._get_default_yara_rules()
             
             cmd = [
                 'yara',
@@ -719,7 +733,7 @@ class FIMKali2025(_FIMBase):  # type: ignore
         return infectados
     
     def _crear_reglas_yara_basicas(self) -> str:
-        """Crea archivo de reglas YARA básicas"""
+        """Crea archivo de reglas YARA básicas en una ruta temporal dinámica"""
         reglas_contenido = '''
 rule SuspiciousStrings
 {
@@ -754,8 +768,7 @@ rule PossibleMalware
         $exe at 0 and any of ($sus*)
 }
         '''
-        
-        archivo_reglas = "/tmp/aresitos_yara_rules.yar"
+        archivo_reglas = self._get_temp_file("aresitos_yara_rules.yar")
         try:
             with open(archivo_reglas, 'w') as f:
                 f.write(reglas_contenido)

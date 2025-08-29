@@ -37,6 +37,7 @@ import threading
 import json
 import os
 import time
+import tempfile
 from typing import Dict, List, Any, Optional, TYPE_CHECKING
 from datetime import datetime
 
@@ -74,11 +75,34 @@ class EscaneadorKali2025(_EscaneadorBase):  # type: ignore
         """Verifica qué herramientas están disponibles - wrapper para compatibilidad"""
         return self._verificar_herramientas_base()
     
+    def _get_temp_file(self, name: str) -> str:
+        """Devuelve una ruta temporal segura y multiplataforma para archivos de salida."""
+        return os.path.join(tempfile.gettempdir(), name)
+
+    def _get_default_wordlist(self, tipo: str = "web") -> str:
+        """Devuelve la ruta de wordlist por defecto, buscando en ubicaciones estándar."""
+        posibles = []
+        if tipo == "web":
+            posibles = [
+                os.path.join("/usr/share/wordlists/seclists/Discovery/Web-Content", "directory-list-2.3-medium.txt"),
+                os.path.join("/usr/share/wordlists/seclists/Discovery/Web-Content", "common.txt"),
+            ]
+        elif tipo == "fuzz":
+            posibles = [
+                os.path.join("/usr/share/wordlists/seclists/Discovery/Web-Content", "common.txt"),
+            ]
+        for ruta in posibles:
+            if os.path.exists(ruta):
+                return ruta
+        # Fallback: usar una ruta temporal vacía
+        return self._get_temp_file("empty_wordlist.txt")
+
     def escaneo_rapido_masscan(self, objetivo: str, puertos: str = "1-65535") -> Dict[str, Any]:
         """
         Escaneo inicial rápido con masscan para identificar puertos abiertos
         """
         self.log(f"[START] Iniciando escaneo rápido masscan: {objetivo}")
+        output_file = self._get_temp_file("masscan_output.json")
         
         if 'masscan' not in self.herramientas_disponibles:
             return {"error": "masscan no disponible"}
@@ -91,16 +115,14 @@ class EscaneadorKali2025(_EscaneadorBase):  # type: ignore
                 '-p', puertos,
                 '--rate', '1000',
                 '--output-format', 'json',
-                '--output-filename', '/tmp/masscan_output.json'
+                '--output-filename', output_file
             ]
-            
             # Ejecutar masscan
             result = subprocess.run(cmd, capture_output=True, text=True, timeout=300)
-            
             if result.returncode == 0:
                 # Leer resultados JSON
                 try:
-                    with open('/tmp/masscan_output.json', 'r') as f:
+                    with open(output_file, 'r') as f:
                         datos = json.load(f)
                     
                     puertos_abiertos = []
@@ -137,10 +159,8 @@ class EscaneadorKali2025(_EscaneadorBase):  # type: ignore
         Escaneo detallado con nmap basado en puertos encontrados por masscan
         """
         self.log(f"ANALIZANDO Iniciando escaneo detallado nmap: {objetivo}")
-        
         if 'nmap' not in self.herramientas_disponibles:
             return {"error": "nmap no disponible"}
-        
         try:
             # Si hay puertos específicos, usarlos; sino, top ports
             if puertos_encontrados:
@@ -149,7 +169,9 @@ class EscaneadorKali2025(_EscaneadorBase):  # type: ignore
             else:
                 puertos_str = "--top-ports=1000"
                 self.log("Escaneando top 1000 puertos")
-            
+            # Archivos temporales
+            output_xml = self._get_temp_file("nmap_output.xml")
+            output_txt = self._get_temp_file("nmap_output.txt")
             # Comando nmap completo
             cmd = [
                 'nmap',
@@ -157,36 +179,30 @@ class EscaneadorKali2025(_EscaneadorBase):  # type: ignore
                 '-sC',  # Scripts por defecto
                 '-O',   # Detección de OS
                 '--version-intensity', '5',
-                '-oX', '/tmp/nmap_output.xml',
-                '-oN', '/tmp/nmap_output.txt'
+                '-oX', output_xml,
+                '-oN', output_txt
             ]
-            
             if puertos_encontrados:
                 cmd.extend(['-p', puertos_str])
             else:
                 cmd.append('--top-ports=1000')
-            
             cmd.append(objetivo)
-            
             # Ejecutar nmap
             result = subprocess.run(cmd, capture_output=True, text=True, timeout=600)
-            
             if result.returncode == 0:
                 # Procesar resultados
-                servicios = self._procesar_resultados_nmap('/tmp/nmap_output.txt')
-                
+                servicios = self._procesar_resultados_nmap(output_txt)
                 self.log(f"OK Nmap completado: {len(servicios)} servicios detectados")
                 return {
                     "exito": True,
                     "servicios": servicios,
-                    "archivo_xml": '/tmp/nmap_output.xml',
-                    "archivo_txt": '/tmp/nmap_output.txt',
+                    "archivo_xml": output_xml,
+                    "archivo_txt": output_txt,
                     "herramienta": "nmap"
                 }
             else:
                 self.log(f"OK Error nmap: {result.stderr}")
                 return {"error": result.stderr}
-                
         except Exception as e:
             self.log(f"OK Error ejecutando nmap: {e}")
             return {"error": str(e)}
@@ -196,17 +212,13 @@ class EscaneadorKali2025(_EscaneadorBase):  # type: ignore
         Enumeración de directorios web con gobuster
         """
         self.log(f"WEB Iniciando escaneo web gobuster: {url}")
-        
         if 'gobuster' not in self.herramientas_disponibles:
             return {"error": "gobuster no disponible"}
-        
         try:
             # Wordlist por defecto - modernizada
             if not wordlist:
-                wordlist = "/usr/share/wordlists/seclists/Discovery/Web-Content/directory-list-2.3-medium.txt"
-                if not os.path.exists(wordlist):
-                    wordlist = "/usr/share/wordlists/seclists/Discovery/Web-Content/common.txt"
-            
+                wordlist = self._get_default_wordlist("web")
+            output_file = self._get_temp_file("gobuster_output.txt")
             # Comando gobuster
             cmd = [
                 'gobuster',
@@ -215,16 +227,13 @@ class EscaneadorKali2025(_EscaneadorBase):  # type: ignore
                 '-w', wordlist,
                 '-t', '50',  # 50 threads
                 '-x', 'php,html,txt,js,asp,aspx',  # Extensiones
-                '-o', '/tmp/gobuster_output.txt',
+                '-o', output_file,
                 '--no-error'
             ]
-            
             # Ejecutar gobuster
             result = subprocess.run(cmd, capture_output=True, text=True, timeout=300)
-            
             # Procesar resultados (gobuster siempre retorna 0)
-            directorios = self._procesar_resultados_gobuster('/tmp/gobuster_output.txt')
-            
+            directorios = self._procesar_resultados_gobuster(output_file)
             self.log(f"OK Gobuster completado: {len(directorios)} directorios encontrados")
             return {
                 "exito": True,
@@ -232,7 +241,6 @@ class EscaneadorKali2025(_EscaneadorBase):  # type: ignore
                 "total_encontrados": len(directorios),
                 "herramienta": "gobuster"
             }
-            
         except Exception as e:
             self.log(f"OK Error ejecutando gobuster: {e}")
             return {"error": str(e)}
@@ -242,27 +250,23 @@ class EscaneadorKali2025(_EscaneadorBase):  # type: ignore
         Escaneo de vulnerabilidades con nuclei
         """
         self.log(f"[TARGET] Iniciando escaneo nuclei: {objetivo}")
-        
         if 'nuclei' not in self.herramientas_disponibles:
             return {"error": "nuclei no disponible"}
-        
         try:
+            output_file = self._get_temp_file("nuclei_output.json")
             # Comando nuclei
             cmd = [
                 'nuclei',
                 '-target', objetivo,
                 '-json',
-                '-o', '/tmp/nuclei_output.json',
+                '-o', output_file,
                 '-severity', 'medium,high,critical',
                 '-concurrency', '25'
             ]
-            
             # Ejecutar nuclei
             result = subprocess.run(cmd, capture_output=True, text=True, timeout=600)
-            
             # Procesar resultados JSON
-            vulnerabilidades = self._procesar_resultados_nuclei('/tmp/nuclei_output.json')
-            
+            vulnerabilidades = self._procesar_resultados_nuclei(output_file)
             self.log(f"OK Nuclei completado: {len(vulnerabilidades)} vulnerabilidades encontradas")
             return {
                 "exito": True,
@@ -270,7 +274,6 @@ class EscaneadorKali2025(_EscaneadorBase):  # type: ignore
                 "total_vulnerabilidades": len(vulnerabilidades),
                 "herramienta": "nuclei"
             }
-            
         except Exception as e:
             self.log(f"OK Error ejecutando nuclei: {e}")
             return {"error": str(e)}
@@ -280,32 +283,27 @@ class EscaneadorKali2025(_EscaneadorBase):  # type: ignore
         Fuzzing web moderno con ffuf
         """
         self.log(f"OK Iniciando fuzzing ffuf: {url}")
-        
         if 'ffuf' not in self.herramientas_disponibles:
             return {"error": "ffuf no disponible"}
-        
         try:
             # Wordlist por defecto - modernizada
             if not wordlist:
-                wordlist = "/usr/share/wordlists/seclists/Discovery/Web-Content/common.txt"
-            
+                wordlist = self._get_default_wordlist("fuzz")
+            output_file = self._get_temp_file("ffuf_output.json")
             # Comando ffuf
             cmd = [
                 'ffuf',
                 '-u', f"{url}/FUZZ",
                 '-w', wordlist,
-                '-o', '/tmp/ffuf_output.json',
+                '-o', output_file,
                 '-of', 'json',
                 '-mc', '200,204,301,302,307,401,403',  # Match codes
                 '-t', '40'  # Threads
             ]
-            
             # Ejecutar ffuf
             result = subprocess.run(cmd, capture_output=True, text=True, timeout=300)
-            
             # Procesar resultados
-            resultados = self._procesar_resultados_ffuf('/tmp/ffuf_output.json')
-            
+            resultados = self._procesar_resultados_ffuf(output_file)
             self.log(f"OK FFUF completado: {len(resultados)} endpoints encontrados")
             return {
                 "exito": True,
@@ -313,7 +311,6 @@ class EscaneadorKali2025(_EscaneadorBase):  # type: ignore
                 "total_endpoints": len(resultados),
                 "herramienta": "ffuf"
             }
-            
         except Exception as e:
             self.log(f"OK Error ejecutando ffuf: {e}")
             return {"error": str(e)}

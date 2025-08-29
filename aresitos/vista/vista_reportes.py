@@ -29,6 +29,12 @@ except ImportError:
     burp_theme = None
 
 class VistaReportes(tk.Frame):
+    @staticmethod
+    def _get_base_dir():
+        """Obtener la ruta base absoluta del proyecto ARESITOS."""
+        import os
+        from pathlib import Path
+        return Path(os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..")))
     
     def __init__(self, parent):
         super().__init__(parent)
@@ -1313,13 +1319,12 @@ class VistaReportes(tk.Frame):
             import platform
             import subprocess
             # Usar ruta absoluta robusta basada en la ubicación de este archivo
-            base_dir = os.path.abspath(os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..'))
-            logs_path = os.path.join(base_dir, 'logs')
-            if os.path.exists(logs_path):
+            logs_path = self._get_base_dir() / 'logs'
+            if logs_path.exists():
                 if platform.system() == "Linux":
-                    subprocess.run(["xdg-open", logs_path], check=False)
+                    subprocess.run(["xdg-open", str(logs_path)], check=False)
                 elif platform.system() == "Windows":
-                    subprocess.run(["explorer", logs_path], check=False)
+                    subprocess.run(["explorer", str(logs_path)], check=False)
                 else:
                     self.log_to_terminal(f"No se soporta la apertura automática de carpetas en {platform.system()}")
                 self.log_to_terminal(f"Carpeta de logs Reportes abierta: {logs_path}")
