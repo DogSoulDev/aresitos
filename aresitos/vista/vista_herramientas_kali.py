@@ -52,12 +52,6 @@ class VistaHerramientasKali(tk.Frame):
             )
             self.destroy()
             return
-            import platform
-            if 'kali' in platform.platform().lower():
-                try:
-                    self.master.iconphoto(False, tk.PhotoImage(file="recursos/aresitos.png"))
-                except Exception as e:
-                    print(f"[ARESITOS] Error asignando favicon: {e}")
         
         if modo_desarrollo:
             print("[MODO DESARROLLO] VistaHerramientasKali: Ejecutando en entorno no-Kali")
