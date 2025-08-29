@@ -28,8 +28,7 @@ procesos_protegidos = [
 	'dbus-daemon', 'udisksd', 'polkitd', 'upowerd', 'wpa_supplicant', 'gnome-shell',
 	'plasmashell', 'xfce4-session', 'lxsession', 'openbox', 'kdeinit', 'kded', 'kdm',
 	'sddm', 'agetty', 'bash', 'zsh', 'fish', 'pwsh', 'tmux', 'screen', 'python', 'python3',
-	'konsole', 'gnome-terminal', 'xterm', 'tilix', 'alacritty', 'urxvt', 'mate-terminal',
-	# ...otros procesos de sesión y shells...
+	<p align="center">
 ]
 if any(p in comando for p in procesos_protegidos):
 	callback_actualizacion(f"PROTEGIDO: {comando} (PID: {pid}) no será terminado por seguridad\n")
@@ -37,7 +36,6 @@ if any(p in comando for p in procesos_protegidos):
 # Protección extra: no matar procesos con DISPLAY/XDG_SESSION/TTY de usuario
 try:
 	environ = subprocess.check_output(['cat', f'/proc/{pid}/environ']).decode(errors='ignore')
-	if 'DISPLAY=' in environ or 'XDG_SESSION' in environ or 'WAYLAND_DISPLAY' in environ or 'TTY=' in environ:
 		callback_actualizacion(f"PROTEGIDO: {comando} (PID: {pid}) tiene entorno gráfico/terminal, no será terminado\n")
 		continue
 except Exception:
@@ -56,7 +54,6 @@ self.comandos_prohibidos = [
 ```
 
 **Ejemplo real de uso en la vista de reportes:**
-
 ```python
 def ejecutar_comando_entry(self, event=None):
 	comando = self.comando_entry.get().strip()
@@ -79,21 +76,12 @@ def ejecutar_comando_entry(self, event=None):
 - Reportes: exportación en JSON, TXT, CSV
 - Integración forense: autopsy, sleuthkit, wireshark, hashdeep, etc.
 
-
 ### Instalación rápida (Kali Linux recomendado)
 ```bash
 git clone https://github.com/DogSoulDev/aresitos.git
-cd aresitos
-chmod +x configurar_kali.sh main.py
-sudo ./configurar_kali.sh
-sudo chown -R $USER:$USER aresitos/data/cuarentena
-chmod -R 755 aresitos/data/cuarentena
-python3 main.py
-```
 
 > **Importante:**
 > - No ejecutes main.py con sudo. El propio programa solicitará privilegios solo cuando sea necesario.
-> - Si tienes errores de permisos, asegúrate de que los scripts principales tengan permisos de ejecución y que la carpeta `aresitos/data/cuarentena` sea escribible por tu usuario.
 > - Tras ejecutar `sudo ./configurar_kali.sh`, ejecuta siempre los comandos de `chown` y `chmod` anteriores para evitar problemas de acceso.
 > - El sistema detecta y verifica automáticamente todas las herramientas requeridas, mostrando advertencias y permitiendo instalación guiada desde la interfaz.
 
@@ -146,7 +134,6 @@ aresitos/
 │   ├── controlador_principal.py      # Punto de entrada de la lógica de control
 │   ├── controlador_escaneo.py       # Lógica de escaneo de vulnerabilidades
 │   ├── controlador_reportes.py      # Generación y gestión de reportes
-│   └── ...                          # Otros controladores especializados
 ├── modelo/          # Modelos de datos, acceso a bases SQLite, gestión de wordlists, diccionarios, cuarentena, FIM, SIEM, reportes, etc.
 │   ├── modelo_principal.py          # Modelo principal de la aplicación
 │   ├── modelo_cuarentena.py         # Gestión de archivos en cuarentena
@@ -186,45 +173,21 @@ aresitos/
 ├── configurar_kali.sh # Script de configuración y dependencias para Kali Linux
 ├── requirements.txt # Requisitos Python (solo para desarrollo, no se usan librerías externas en producción)
 └── README.md        # Documentación principal del proyecto
-```
 
 **Explicación concreta:**
 - El proyecto sigue una arquitectura estricta MVC, donde cada carpeta tiene una responsabilidad clara y separada.
 - Los controladores gestionan la lógica de negocio y la interacción entre la interfaz gráfica (vistas) y los datos (modelos).
-- Los modelos encapsulan el acceso y la gestión de datos, bases de datos, cuarentena, FIM, SIEM, wordlists y reportes.
-- Las vistas implementan la interfaz gráfica en Tkinter, con paneles independientes para cada módulo (dashboard, escaneo, reportes, monitoreo, etc.), integrando un terminal interactivo y soporte para temas visuales.
-- Los módulos utils proporcionan utilidades nativas para detección de red, configuración, sanitización de archivos, gestión de permisos y recursos gráficos.
-- Toda la lógica es Python nativo, sin librerías externas, y aprovecha herramientas y comandos de Kali Linux para las funciones avanzadas de ciberseguridad.
 - El sistema es robusto, modular, seguro y fácilmente extensible, cumpliendo los principios SOLID y DRY.
 
-**Componentes técnicos principales:**
-- Escaneador profesional: nmap, masscan, nuclei, gobuster, ffuf, feroxbuster
-- SIEM: monitoreo de puertos críticos, correlación de eventos, alertas
-- FIM: vigilancia de directorios, detección de cambios, hashes SHA256
 - Cuarentena: aislamiento de archivos sospechosos, preservación de evidencia
-- Dashboard: métricas, estado de servicios, historial de terminal
 - Reportes: exportación en JSON, TXT, CSV
 - Inteligencia: base de datos de vulnerabilidades, wordlists, diccionarios, cheatsheets
 - Auditoría: integración con lynis y chkrootkit
-
-**Persistencia y logs:**
-- Bases de datos SQLite: `fim_kali2025.db`, `cuarentena_kali2025.db`, `siem_aresitos.db`
-- Configuración: `aresitos_config_completo.json`, `textos_castellano_corregido.json`
 - Logs: carpeta `logs/` con resultados de escaneo y actividad
-
 **Sanitización y seguridad:**
 - Validación de extensiones, nombres, rutas y tipos MIME en subida de archivos
 - Módulo de sanitización en `utils/sanitizador_archivos.py`
-- Capas de seguridad para evitar ejecución de archivos peligrosos
 
-**Integración de herramientas externas:**
-- Detección automática de herramientas instaladas
-- Configuración de permisos CAP_NET_RAW para escaneos SYN
-- Actualización automática de templates nuclei y diccionarios
-
----
-
-## Comandos útiles
 
 ```bash
 # Verificar estado y dependencias del sistema
@@ -289,7 +252,7 @@ Email: dogsouldev@protonmail.com
 
 ---
 
-## DEDICATORIA ESPECIAL
+## DEDICATORIA
 
 En Memoria de Ares
 *25 de Abril 2013 - 5 de Agosto 2025*

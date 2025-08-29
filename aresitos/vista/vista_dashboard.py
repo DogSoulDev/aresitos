@@ -14,6 +14,7 @@ PRINCIPIOS DE SEGURIDAD ARESITOS (NO MODIFICAR SIN AUDITORÍA)
 import tkinter as tk
 from tkinter import ttk, scrolledtext
 import subprocess
+from aresitos.utils.seguridad_comandos import validar_comando_seguro
 import threading
 import time
 import platform
@@ -990,11 +991,14 @@ class VistaDashboard(tk.Frame):
         comando = self.comando_entry.get().strip()
         if not comando:
             return
-        
-        self._actualizar_terminal_seguro(f"\n> {comando}\n")
-        
+        # Validación de seguridad ARESITOS
+        es_valido, comando_sanitizado, mensaje = validar_comando_seguro(comando)
+        if not es_valido:
+            self._actualizar_terminal_seguro(f"[ARESITOS][SECURE] {mensaje}\n")
+            return
+        self._actualizar_terminal_seguro(f"\n> {comando_sanitizado}\n")
         # Ejecutar comando en thread para no bloquear la UI
-        thread = threading.Thread(target=self._ejecutar_comando_async, args=(comando,))
+        thread = threading.Thread(target=self._ejecutar_comando_async, args=(comando_sanitizado,))
         thread.daemon = True
         thread.start()
     

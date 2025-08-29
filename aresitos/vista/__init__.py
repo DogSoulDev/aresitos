@@ -21,7 +21,7 @@ from .vista_siem import VistaSIEM
 from .vista_fim import VistaFIM
 from .vista_reportes import VistaReportes
 from .vista_monitoreo import VistaMonitoreo
-from .vista_herramientas import VistaHerramientasKali
+from .vista_herramientas_kali import VistaHerramientasKali
 from .vista_datos import VistaGestionDatos
 
 __all__ = [
