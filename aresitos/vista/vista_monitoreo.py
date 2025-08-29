@@ -52,6 +52,24 @@ class ThreadSafeFlag:
             self.flag = False
 
 class VistaMonitoreo(tk.Frame):
+    def _actualizar_texto_monitor_seguro(self, texto):
+        def _update():
+            try:
+                if hasattr(self, 'text_monitor') and self.text_monitor.winfo_exists():
+                    self.text_monitor.insert(tk.END, texto)
+                    self.text_monitor.see(tk.END)
+            except (tk.TclError, AttributeError):
+                pass
+        self.after(0, _update)
+
+    def _actualizar_label_estado_seguro(self, texto):
+        def _update():
+            try:
+                if hasattr(self, 'label_estado') and self.label_estado.winfo_exists():
+                    self.label_estado.config(text=texto)
+            except (tk.TclError, AttributeError):
+                pass
+        self.after(0, _update)
     @staticmethod
     def _get_base_dir():
         """Obtener la ruta base absoluta del proyecto ARESITOS."""
@@ -118,8 +136,32 @@ class VistaMonitoreo(tk.Frame):
                 'info': 'blue'
             }
             
+        # Favicon cartoon seguro multiplataforma para la ventana principal (centralizado)
+        self._set_favicon(parent)
         self.crear_widgets()
         self.actualizar_estado()
+
+    def _set_favicon(self, parent):
+        """Carga el favicon cartoon border collie de forma robusta y multiplataforma, solo si no está ya puesto."""
+        try:
+            from tkinter import PhotoImage
+            import platform
+            import os
+            root = parent.winfo_toplevel() if hasattr(parent, 'winfo_toplevel') else parent
+            # Evitar recargar el icono si ya está puesto
+            if hasattr(root, '_aresitos_icono_set') and root._aresitos_icono_set:
+                return
+            base_dir = os.path.abspath(os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..', '..'))
+            icon_path = os.path.join(base_dir, 'recursos', 'icono', 'aresitos_icono.png')
+            if os.path.exists(icon_path):
+                try:
+                    self._icon_img = PhotoImage(file=icon_path)
+                    root.iconphoto(True, self._icon_img)
+                    root._aresitos_icono_set = True
+                except Exception:
+                    pass
+        except Exception:
+            pass
     
     def set_controlador(self, controlador):
         self.controlador = controlador
@@ -701,34 +743,36 @@ class VistaMonitoreo(tk.Frame):
         import time
         
         try:
-            ciclo = 0
-            while not self.flag_monitoreo.is_set():
-                ciclo += 1
-                self._log_terminal(f"Ciclo de monitoreo #{ciclo} iniciado", "MONITOREO", "INFO")
-                
-                # FASE 1: Monitorear procesos del sistema
-                self._log_terminal("FASE 1: Monitoreando procesos del sistema", "MONITOREO", "INFO")
-                self._monitorear_procesos_sistema()
-                
-                # FASE 2: Verificar permisos de archivos críticos
-                self._log_terminal("FASE 2: Verificando permisos de archivos criticos", "MONITOREO", "INFO")
-                self._monitorear_permisos_archivos()
-                
-                # FASE 3: Monitorear usuarios y sesiones
-                self._log_terminal("FASE 3: Monitoreando usuarios y sesiones activas", "MONITOREO", "INFO")
-                self._monitorear_usuarios_sesiones()
-                
-                # FASE 4: Verificar procesos con privilegios elevados
-                self._log_terminal("FASE 4: Verificando procesos con privilegios elevados", "MONITOREO", "WARNING")
-                self._monitorear_procesos_privilegiados()
-                
-                # FASE 5: Monitorear cambios en el sistema
-                self._log_terminal("FASE 5: Detectando cambios en el sistema", "MONITOREO", "INFO")
-                self._monitorear_cambios_sistema()
-                
-                self._log_terminal(f"Ciclo de monitoreo #{ciclo} completado", "MONITOREO", "SUCCESS")
-                
-                # Pausa entre ciclos (15 segundos)
+            try:
+                ciclo = 0
+                while not self.flag_monitoreo.is_set():
+                    ciclo += 1
+                    self._log_terminal(f"Ciclo de monitoreo #{ciclo} iniciado", "MONITOREO", "INFO")
+                    self._actualizar_texto_monitor_seguro(f"[CICLO {ciclo}] Monitoreo iniciado\n")
+                    # FASE 1: Monitorear procesos del sistema
+                    self._log_terminal("FASE 1: Monitoreando procesos del sistema", "MONITOREO", "INFO")
+                    self._monitorear_procesos_sistema()
+                    # FASE 2: Verificar permisos de archivos críticos
+                    self._log_terminal("FASE 2: Verificando permisos de archivos criticos", "MONITOREO", "INFO")
+                    self._monitorear_permisos_archivos()
+                    # FASE 3: Monitorear usuarios y sesiones
+                    self._log_terminal("FASE 3: Monitoreando usuarios y sesiones activas", "MONITOREO", "INFO")
+                    self._monitorear_usuarios_sesiones()
+                    # FASE 4: Verificar procesos con privilegios elevados
+                    self._log_terminal("FASE 4: Verificando procesos con privilegios elevados", "MONITOREO", "WARNING")
+                    self._monitorear_procesos_privilegiados()
+                    # FASE 5: Monitorear cambios en el sistema
+                    self._log_terminal("FASE 5: Detectando cambios en el sistema", "MONITOREO", "INFO")
+                    self._monitorear_cambios_sistema()
+                    self._log_terminal(f"Ciclo de monitoreo #{ciclo} completado", "MONITOREO", "SUCCESS")
+                    self._actualizar_texto_monitor_seguro(f"[CICLO {ciclo}] Monitoreo completado\n")
+                    # Pausa entre ciclos (15 segundos)
+                    for i in range(15):
+                        if self.flag_monitoreo.is_set():
+                            break
+                        time.sleep(1)
+            except Exception as e:
+                self._log_terminal(f"Error en monitoreo completo: {str(e)}", "MONITOREO", "ERROR")
                 for i in range(15):
                     if self.flag_monitoreo.is_set():
                         break

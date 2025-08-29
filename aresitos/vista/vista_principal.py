@@ -37,6 +37,7 @@ except ImportError:
     burp_theme = None
 
 class VistaPrincipal(tk.Frame):
+    # Métodos seguros eliminados porque no existen los widgets label_estado ni text_log en VistaPrincipal
     @staticmethod
     def _get_base_dir():
         """Obtener la ruta base absoluta del proyecto ARESITOS."""
@@ -49,17 +50,28 @@ class VistaPrincipal(tk.Frame):
         # Configurar logging
         self.logger = logging.getLogger(__name__)
 
-        # Favicon cartoon seguro multiplataforma para la ventana principal
+        # Favicon cartoon seguro multiplataforma para la ventana principal (centralizado)
+        self._set_favicon(parent)
+
+    def _set_favicon(self, parent):
+        """Carga el favicon cartoon border collie de forma robusta y multiplataforma, solo si no está ya puesto."""
         try:
             from tkinter import PhotoImage
-            icon_path = self._get_base_dir() / "recursos" / "icono" / "aresitos_icono.png"
+            import platform
+            import os
             root = parent.winfo_toplevel() if hasattr(parent, 'winfo_toplevel') else parent
-            if icon_path.exists():
+            # Evitar recargar el icono si ya está puesto
+            if hasattr(root, '_aresitos_icono_set') and root._aresitos_icono_set:
+                return
+            base_dir = os.path.abspath(os.path.join(os.path.dirname(os.path.abspath(__file__)), '..'))
+            icon_path = os.path.join(base_dir, 'recursos', 'icono', 'aresitos_icono.png')
+            if os.path.exists(icon_path):
                 try:
-                    self._icon_img = PhotoImage(file=str(icon_path))
+                    self._icon_img = PhotoImage(file=icon_path)
                     root.iconphoto(True, self._icon_img)
+                    root._aresitos_icono_set = True
                 except Exception:
-                    pass  # Si el icono es inválido, ignora y no lanza warning
+                    pass
         except Exception:
             pass
 

@@ -30,6 +30,21 @@ except ImportError:
     burp_theme = None
 
 class VistaFIM(tk.Frame):
+    def _actualizar_texto_fim_seguro(self, texto):
+        def _update():
+            try:
+                if hasattr(self, 'fim_text') and self.fim_text.winfo_exists():
+                    self.fim_text.config(state=tk.NORMAL)
+                    self.fim_text.insert(tk.END, texto)
+                    self.fim_text.see(tk.END)
+                    self.fim_text.config(state=tk.DISABLED)
+            except (tk.TclError, AttributeError):
+                pass
+        self.after(0, _update)
+
+    def _actualizar_estado_seguro(self, texto):
+        # No existe label_estado, así que loguea en el área principal de texto FIM
+        self._actualizar_texto_fim_seguro(f"[ESTADO] {texto}\n")
     @staticmethod
     def _get_base_dir():
         """Obtener la ruta base absoluta del proyecto ARESITOS."""
@@ -98,8 +113,8 @@ class VistaFIM(tk.Frame):
         # Verificar permisos root al iniciar
         if not self._es_root():
             self._deshabilitar_todo_fim_por_root()
-            messagebox.showwarning("Permisos insuficientes", "Debes ejecutar ARESITOS como root para usar el FIM.")
-            self._actualizar_texto_fim("[ERROR] Debes ejecutar ARESITOS como root para usar el FIM.\n")
+            # Eliminar advertencia global de root: solo loguear en terminal si es necesario
+            self._actualizar_texto_fim("[INFO] FIM requiere privilegios elevados para ciertas operaciones.\n")
 
 
     def _es_root(self):

@@ -185,21 +185,28 @@ class VistaDashboard(tk.Frame):
         self.actualizacion_activa = False
         self.shell_detectado = self._detectar_shell()
 
-        # Favicon cartoon seguro multiplataforma para Kali Linux
+        # Favicon cartoon seguro multiplataforma para la ventana principal (centralizado)
+        self._set_favicon(parent)
+
+    def _set_favicon(self, parent):
+        """Carga el favicon cartoon border collie de forma robusta y multiplataforma, solo si no está ya puesto."""
         try:
-            import platform
             from tkinter import PhotoImage
+            import platform
+            import os
             root = parent.winfo_toplevel() if hasattr(parent, 'winfo_toplevel') else parent
-            def get_base_dir():
-                return os.path.abspath(os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..'))
-            recursos_dir = os.path.join(get_base_dir(), 'aresitos', 'recursos')
-            icon_path = os.path.join(recursos_dir, 'icono', 'aresitos_icono.png')
+            # Evitar recargar el icono si ya está puesto
+            if hasattr(root, '_aresitos_icono_set') and root._aresitos_icono_set:
+                return
+            base_dir = os.path.abspath(os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..'))
+            icon_path = os.path.join(base_dir, 'recursos', 'icono', 'aresitos_icono.png')
             if os.path.exists(icon_path):
                 try:
                     self._icon_img = PhotoImage(file=icon_path)
                     root.iconphoto(True, self._icon_img)
+                    root._aresitos_icono_set = True
                 except Exception:
-                    pass  # Si el icono es inválido, ignora y no lanza warning
+                    pass
         except Exception:
             pass
 
@@ -1114,7 +1121,7 @@ class VistaDashboard(tk.Frame):
             return "No disponible"
     
     def _actualizar_ip_publica(self):
-        """Actualizar IP pública en thread separado."""
+        """Actualizar IP pública en thread separado, seguro para Tkinter."""
         try:
             import subprocess
             resultado = subprocess.run(['curl', '-s', '--max-time', '5', 'https://api.ipify.org'], 
@@ -1123,22 +1130,14 @@ class VistaDashboard(tk.Frame):
                 ip_publica = resultado.stdout.strip()
             else:
                 ip_publica = "No disponible"
-            # Solo actualizar si el widget y mainloop existen
-            if hasattr(self, 'ip_publica_label') and self.ip_publica_label.winfo_exists():
-                try:
-                    self.after(0, lambda: self.ip_publica_label.configure(
-                        text=f" IP Pública (WAN): {ip_publica}"
-                    ))
-                except RuntimeError:
-                    pass
-        except (ValueError, TypeError, AttributeError):
-            if hasattr(self, 'ip_publica_label') and self.ip_publica_label.winfo_exists():
-                try:
-                    self.after(0, lambda: self.ip_publica_label.configure(
-                        text=" IP Pública (WAN): No disponible"
-                    ))
-                except RuntimeError:
-                    pass
+            # Actualizar SIEMPRE usando after (hilo principal)
+            self.after(0, lambda: self._set_ip_publica_label(ip_publica))
+        except Exception:
+            self.after(0, lambda: self._set_ip_publica_label("No disponible"))
+
+    def _set_ip_publica_label(self, ip_publica):
+        if hasattr(self, 'ip_publica_label') and self.ip_publica_label.winfo_exists():
+            self.ip_publica_label.configure(text=f" IP Pública (WAN): {ip_publica}")
     
     def _actualizar_interfaces_red(self):
         """Actualizar información de interfaces de red con datos completos."""

@@ -117,6 +117,9 @@ install_tools() {
         "iftop"                # Monitor de red
         "netcat-openbsd"       # Netcat
 
+        # Herramientas SIEM
+        "rsyslog"              # Gestión centralizada de logs (SIEM)
+
     # Herramientas forense y SIEM VERIFICADAS (paquetes correctos)
     "sleuthkit"            # Toolkit forense (incluye tsk_*)
     "foremost"             # Recuperación de archivos
@@ -124,7 +127,6 @@ install_tools() {
     "binutils"             # Incluye strings
     "exiftool"             # Metadatos
     "testdisk"             # Incluye photorec
-    "plaso"                # Análisis de líneas de tiempo forense
     "bulk-extractor"       # Extracción forense de datos
     "hashdeep"             # Hashing forense
     "dc3dd"                # Clonado forense de discos
@@ -155,7 +157,6 @@ install_tools() {
     # Herramientas forense adicionales (todas disponibles por APT)
     "yara"                 # Pattern matching
     "testdisk"             # Recuperación de particiones y archivos
-    "plaso"                # Análisis de líneas de tiempo forense
     "bulk-extractor"       # Extracción forense de datos
     "hashdeep"             # Hashing forense
     "dc3dd"                # Clonado forense de discos
@@ -168,7 +169,7 @@ install_tools() {
     )
     
     print_info "Actualizando lista de paquetes..."
-    print_info "Incluyendo herramientas forenses avanzadas: testdisk, photorec, plaso, bulk-extractor, hashdeep, dc3dd, guymager, tsk_recover, tsk_loaddb, tsk_gettimes, tsk_comparedir, tsk_imageinfo"
+    print_info "Incluyendo herramientas forenses avanzadas: testdisk, photorec, bulk-extractor, hashdeep, dc3dd, guymager, tsk_recover, tsk_loaddb, tsk_gettimes, tsk_comparedir, tsk_imageinfo"
     apt update -qq
     
     # Instalar herramientas ESENCIALES (críticas para funcionamiento)
