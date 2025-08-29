@@ -440,19 +440,47 @@ LISTO PARA: Escaneos de vulnerabilidades en entornos Kali Linux 2025
             herramientas_faltantes = []
             herramientas_ok = []
             
+            # Builtins de shell que no se pueden verificar con which
+            builtins_shell = {'type', 'command'}
+            # Mapas de paquetes a binarios principales
+            binarios_especiales = {
+                'sleuthkit': ['tsk_recover', 'tsk_loaddb', 'tsk_gettimes', 'tsk_comparedir', 'tsk_imageinfo'],
+                'clamav': ['clamscan'],
+                'clamav-daemon': ['clamd'],
+                'plaso': ['log2timeline.py'],
+                'bulk-extractor': ['bulk_extractor'],
+                'rsyslog': ['rsyslogd'],
+                'osquery': ['osqueryi'],
+            }
             for herramienta in herramientas:
                 try:
-                    # Verificar si la herramienta existe
-                    result = subprocess.run(['which', herramienta], 
-                                          capture_output=True, text=True, timeout=5)
-                    
+                    if herramienta in builtins_shell:
+                        herramientas_ok.append(herramienta)
+                        self.after(0, self._actualizar_texto, f"OK {herramienta} - BUILTIN\n")
+                        continue
+                    elif herramienta in binarios_especiales:
+                        # Considera OK si al menos uno de los binarios existe
+                        ok = False
+                        for binario in binarios_especiales[herramienta]:
+                            result = subprocess.run(['which', binario], capture_output=True, text=True, timeout=5)
+                            if result.returncode == 0:
+                                ok = True
+                                break
+                        if ok:
+                            herramientas_ok.append(herramienta)
+                            self.after(0, self._actualizar_texto, f"OK {herramienta} - OK\n")
+                        else:
+                            herramientas_faltantes.append(herramienta)
+                            self.after(0, self._actualizar_texto, f"ERROR {herramienta} - FALTANTE\n")
+                        continue
+                    # Verificación estándar
+                    result = subprocess.run(['which', herramienta], capture_output=True, text=True, timeout=5)
                     if result.returncode == 0:
                         herramientas_ok.append(herramienta)
                         self.after(0, self._actualizar_texto, f"OK {herramienta} - OK\n")
                     else:
                         herramientas_faltantes.append(herramienta)
                         self.after(0, self._actualizar_texto, f"ERROR {herramienta} - FALTANTE\n")
-                        
                 except subprocess.TimeoutExpired:
                     herramientas_faltantes.append(herramienta)
                     self.after(0, self._actualizar_texto, f"ERROR {herramienta} - TIMEOUT\n")
