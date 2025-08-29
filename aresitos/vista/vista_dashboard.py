@@ -1122,26 +1122,20 @@ class VistaDashboard(tk.Frame):
     
     def _actualizar_ip_publica(self):
         """Actualizar IP pública en thread separado, seguro para Tkinter."""
+        def set_label(ip):
+            if hasattr(self, 'ip_publica_label') and self.ip_publica_label.winfo_exists():
+                self.ip_publica_label.configure(text=f" IP Pública (WAN): {ip}")
         try:
             import subprocess
-            resultado = subprocess.run(['curl', '-s', '--max-time', '5', 'https://api.ipify.org'], 
-                                     capture_output=True, text=True, timeout=10)
-            if resultado.returncode == 0 and resultado.stdout.strip():
-                ip_publica = resultado.stdout.strip()
-            else:
-                ip_publica = "No disponible"
-            # Solo llamar a after si el widget sigue existiendo y mainloop está activo
-            if hasattr(self, 'ip_publica_label') and self.ip_publica_label.winfo_exists():
-                try:
-                    self.after(0, lambda: self._set_ip_publica_label(ip_publica))
-                except RuntimeError:
-                    pass
+            resultado = subprocess.run(['curl', '-s', '--max-time', '5', 'https://api.ipify.org'],
+                                       capture_output=True, text=True, timeout=10)
+            ip_publica = resultado.stdout.strip() if resultado.returncode == 0 and resultado.stdout.strip() else "No disponible"
         except Exception:
-            if hasattr(self, 'ip_publica_label') and self.ip_publica_label.winfo_exists():
-                try:
-                    self.after(0, lambda: self._set_ip_publica_label("No disponible"))
-                except RuntimeError:
-                    pass
+            ip_publica = "No disponible"
+        try:
+            self.after(0, lambda: set_label(ip_publica))
+        except RuntimeError:
+            pass
 
     def _set_ip_publica_label(self, ip_publica):
         if hasattr(self, 'ip_publica_label') and self.ip_publica_label.winfo_exists():
