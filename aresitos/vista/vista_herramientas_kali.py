@@ -423,7 +423,7 @@ LISTO PARA: Escaneos de vulnerabilidades en entornos Kali Linux 2025
                 # Seguridad y auditoría
                 'clamav', 'clamav-daemon', 'chkrootkit', 'rkhunter', 'lynis', 'auditd', 'aide', 'debsums', 'rsyslog', 'logrotate', 'logwatch',
                 # Análisis avanzado y red
-                'tcpdump', 'wireshark', 'tshark', 'strace', 'ltrace', 'gdb', 'osquery', 'file', 'hexdump',
+                'tcpdump', 'wireshark', 'tshark', 'strace', 'ltrace', 'gdb', 'osqueryi', 'file', 'hexdump',
                 # Utilidades del sistema
                 'ps', 'ss', 'lsof', 'netstat', 'top', 'free', 'df', 'uname', 'who', 'last',
                 'find', 'stat', 'grep', 'awk', 'sort', 'uniq', 'wc', 'tail', 'head',
@@ -449,9 +449,12 @@ LISTO PARA: Escaneos de vulnerabilidades en entornos Kali Linux 2025
                 'clamav-daemon': ['clamd'],
                 'bulk-extractor': ['bulk_extractor'],
                 'rsyslog': ['rsyslogd'],
-                'osquery': ['osqueryi'],
+                'osqueryi': ['osqueryi'],
             }
             for herramienta in herramientas:
+                # Evitar buscar 'osquery' como binario, solo 'osqueryi'
+                if herramienta == 'osquery':
+                    continue
                 try:
                     if herramienta in builtins_shell:
                         herramientas_ok.append(herramienta)
