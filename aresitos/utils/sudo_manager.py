@@ -90,34 +90,29 @@ class SudoManager:
         return f"sudo {command}"
     
     def execute_sudo_command(self, command: str, timeout: int = 30) -> subprocess.CompletedProcess:
-        """Ejecutar comando con sudo usando las credenciales guardadas - Issue 21/24 optimizado"""
+        """Ejecutar comando con sudo usando las credenciales guardadas - sin límite de timeout"""
         if self.is_sudo_active() and self.sudo_password:
             # Renovar timestamp antes de ejecutar
             self._renovar_sudo_timestamp()
-            
             full_command = f"echo '{self.sudo_password}' | sudo -S {command}"
             result = subprocess.run(
                 full_command,
                 shell=True,
                 text=True,
                 capture_output=True,
-                timeout=min(timeout, 60),  # Limitar timeout máximo a 60 segundos
                 check=False
             )
-            
             # Optimización de memoria - limpiar variables grandes
             if hasattr(result, 'stdout') and len(result.stdout) > 10000:  # >10KB
                 gc.collect()
-            
             return result
         else:
-            # Fallback sin contraseña guardada con timeout optimizado
+            # Fallback sin contraseña guardada
             return subprocess.run(
                 f"sudo {command}",
                 shell=True,
                 text=True,
                 capture_output=True,
-                timeout=min(timeout, 60),  # Limitar timeout máximo
                 check=False
             )
     

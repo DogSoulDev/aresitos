@@ -24,7 +24,14 @@ ARESITOS es una herramienta de ciberseguridad 100% Python nativo (sin librerías
 
 ---
 
+
 ## Instalación rápida (Kali Linux recomendado)
+
+> ⚠️ **Advertencia importante sobre la instalación de herramientas**
+>
+> Cuando utilices el **Configurador de Herramientas Kali** para instalar las herramientas faltantes, el proceso puede tardar varios minutos. Algunas utilidades avanzadas (como nuclei o httpx) se instalan mediante Go y requieren descargas y compilación adicionales.
+> 
+> **Ten paciencia y no cierres la aplicación** hasta que el proceso finalice y se muestre el mensaje de instalación completa.
 
 ```bash
 # 1. Clona el repositorio y entra en la carpeta

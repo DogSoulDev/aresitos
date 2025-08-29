@@ -77,7 +77,19 @@ def ejecutar_comando_entry(self, event=None):
 - **Sanitización completa**: Validación de parámetros y entrada
 - **Manejo seguro de privilegios**: Elevación controlada cuando necesario
 
-### Correcciones TclError - Thread Safety Completo
+
+### Gestión de privilegios root (sudo) persistente
+
+ARESITOS mantiene los privilegios root (sudo) activos durante toda la sesión de la aplicación para permitir la instalación y uso de herramientas avanzadas sin interrupciones ni timeouts, incluso en instalaciones largas (por ejemplo, herramientas Go como nuclei o httpx). El estado de privilegios se libera automáticamente al cerrar la aplicación, garantizando seguridad y comodidad para el usuario.
+
+**Ventajas:**
+- Instalaciones y operaciones largas sin cortes por timeout.
+- No es necesario volver a introducir la contraseña durante la sesión.
+- El root se libera automáticamente al cerrar ARESITOS.
+
+**Consideraciones de seguridad:**
+- No cierres la aplicación si hay instalaciones en curso.
+- El privilegio root solo se mantiene mientras la sesión de ARESITOS esté activa.
 
 #### Problema Identificado
 Los threads secundarios realizaban operaciones directas con widgets Tkinter, causando:

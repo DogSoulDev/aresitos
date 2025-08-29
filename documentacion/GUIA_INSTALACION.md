@@ -40,6 +40,7 @@ python3 main.py
 ```
 
 ## Notas
+- **Privilegios root persistentes:** Mientras ARESITOS esté abierto, los privilegios root (sudo) se mantienen activos para permitir instalaciones y operaciones avanzadas sin cortes. El root se libera automáticamente al cerrar la aplicación.
 - Para modo desarrollo en otros sistemas: `python3 main.py --dev`
 - Si tienes problemas de dependencias, ejecuta de nuevo `sudo ./configurar_kali.sh`.
 - Consulta la documentación técnica en la carpeta `documentacion/`.
