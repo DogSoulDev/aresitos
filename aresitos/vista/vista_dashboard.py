@@ -185,23 +185,23 @@ class VistaDashboard(tk.Frame):
         self.actualizacion_activa = False
         self.shell_detectado = self._detectar_shell()
 
-        # Favicon solo en Kali Linux, ruta dinámica y robusta
+        # Favicon cartoon seguro multiplataforma para Kali Linux
         try:
             import platform
-            if 'kali' in platform.platform().lower():
-                from tkinter import PhotoImage
-                root = parent.winfo_toplevel() if hasattr(parent, 'winfo_toplevel') else parent
-                # Utilidad para obtener la ruta base del proyecto
-                def get_base_dir():
-                    return os.path.abspath(os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..'))
-                recursos_dir = os.path.join(get_base_dir(), 'aresitos', 'recursos')
-                icon_path = os.path.join(recursos_dir, 'aresitos_icono.png')
-                if os.path.exists(icon_path):
+            from tkinter import PhotoImage
+            root = parent.winfo_toplevel() if hasattr(parent, 'winfo_toplevel') else parent
+            def get_base_dir():
+                return os.path.abspath(os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..'))
+            recursos_dir = os.path.join(get_base_dir(), 'aresitos', 'recursos')
+            icon_path = os.path.join(recursos_dir, 'icono', 'aresitos_icono.png')
+            if os.path.exists(icon_path):
+                try:
                     self._icon_img = PhotoImage(file=icon_path)
                     root.iconphoto(True, self._icon_img)
-        except Exception as e:
-            if hasattr(self, 'logger'):
-                self.logger.warning(f"[WARN] No se pudo cargar el icono de ventana principal: {e}")
+                except Exception:
+                    pass  # Si el icono es inválido, ignora y no lanza warning
+        except Exception:
+            pass
 
         # Variables para el terminal integrado
         self.terminal_handler = None
