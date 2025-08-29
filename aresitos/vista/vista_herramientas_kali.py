@@ -447,7 +447,7 @@ LISTO PARA: Escaneos de vulnerabilidades en entornos Kali Linux 2025
                 'sleuthkit': ['tsk_recover', 'tsk_loaddb', 'tsk_gettimes', 'tsk_comparedir', 'tsk_imageinfo'],
                 'clamav': ['clamscan'],
                 'clamav-daemon': ['clamd'],
-                'plaso': ['log2timeline.py'],
+                'plaso': ['log2timeline.py', 'log2timeline'],
                 'bulk-extractor': ['bulk_extractor'],
                 'rsyslog': ['rsyslogd'],
                 'osquery': ['osqueryi'],
@@ -461,10 +461,19 @@ LISTO PARA: Escaneos de vulnerabilidades en entornos Kali Linux 2025
                     elif herramienta in binarios_especiales:
                         # Considera OK si al menos uno de los binarios existe
                         ok = False
+                        import os
                         for binario in binarios_especiales[herramienta]:
+                            # Buscar en PATH
                             result = subprocess.run(['which', binario], capture_output=True, text=True, timeout=5)
                             if result.returncode == 0:
                                 ok = True
+                                break
+                            # Buscar en /usr/bin y /usr/local/bin
+                            for ruta in ['/usr/bin', '/usr/local/bin']:
+                                if os.path.exists(os.path.join(ruta, binario)):
+                                    ok = True
+                                    break
+                            if ok:
                                 break
                         if ok:
                             herramientas_ok.append(herramienta)
