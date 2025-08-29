@@ -222,3 +222,5 @@ Este proyecto no habría sido posible sin el apoyo y la formación recibida en e
 En Memoria de Ares
 *25 de Abril 2013 - 5 de Agosto 2025*
 Hasta que volvamos a vernos.
+
+---
