@@ -99,6 +99,10 @@ class StreamRedirector:
         pass
 
 class VistaDashboard(tk.Frame):
+    @staticmethod
+    def _get_base_dir():
+        """Obtener la ruta base absoluta del proyecto ARESITOS."""
+        return os.path.abspath(os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..'))
     def obtener_datos_para_reporte(self):
         """Devuelve un resumen profesional y completo del estado del Dashboard para reportes ARESITOS."""
         try:
@@ -180,13 +184,17 @@ class VistaDashboard(tk.Frame):
         self.actualizacion_activa = False
         self.shell_detectado = self._detectar_shell()
 
-        # Favicon solo en Kali Linux
+        # Favicon solo en Kali Linux, ruta dinámica y robusta
         try:
-            import platform, os
+            import platform
             if 'kali' in platform.platform().lower():
                 from tkinter import PhotoImage
                 root = parent.winfo_toplevel() if hasattr(parent, 'winfo_toplevel') else parent
-                icon_path = os.path.abspath(os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "recursos", "aresitos_icono.png"))
+                # Utilidad para obtener la ruta base del proyecto
+                def get_base_dir():
+                    return os.path.abspath(os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..'))
+                recursos_dir = os.path.join(get_base_dir(), 'aresitos', 'recursos')
+                icon_path = os.path.join(recursos_dir, 'aresitos_icono.png')
                 if os.path.exists(icon_path):
                     self._icon_img = PhotoImage(file=icon_path)
                     root.iconphoto(True, self._icon_img)
@@ -645,9 +653,7 @@ class VistaDashboard(tk.Frame):
         import subprocess
         import platform
         try:
-            # Calcular ruta absoluta robusta basada en la ubicación de este archivo
-            base_dir = os.path.abspath(os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..'))
-            logs_dir = os.path.join(base_dir, 'logs')
+            logs_dir = os.path.join(VistaDashboard._get_base_dir(), 'logs')
             os.makedirs(logs_dir, exist_ok=True)
             if os.path.exists(logs_dir) and os.path.isdir(logs_dir):
                 if platform.system() == "Linux":
@@ -683,8 +689,7 @@ class VistaDashboard(tk.Frame):
         import subprocess
         import platform
         try:
-            base_dir = os.path.abspath(os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..'))
-            cheatsheets_dir = os.path.join(base_dir, "data", "cheatsheets")
+            cheatsheets_dir = os.path.join(VistaDashboard._get_base_dir(), "data", "cheatsheets")
             os.makedirs(cheatsheets_dir, exist_ok=True)
             if os.path.exists(cheatsheets_dir) and os.path.isdir(cheatsheets_dir):
                 if platform.system() == "Linux":
@@ -721,9 +726,7 @@ class VistaDashboard(tk.Frame):
         import os
         
         try:
-            # Obtener directorio de cheatsheets
-            directorio_proyecto = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-            cheatsheets_dir = os.path.join(directorio_proyecto, "data", "cheatsheets")
+            cheatsheets_dir = os.path.join(VistaDashboard._get_base_dir(), "data", "cheatsheets")
             
             if not os.path.exists(cheatsheets_dir):
                 self.escribir_terminal("ERROR Carpeta de cheatsheets no encontrada", "[CHEATSHEETS]")
@@ -840,9 +843,7 @@ class VistaDashboard(tk.Frame):
         import tkinter.simpledialog
         
         try:
-            # Obtener directorio de cheatsheets
-            directorio_proyecto = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-            cheatsheets_dir = os.path.join(directorio_proyecto, "data", "cheatsheets")
+            cheatsheets_dir = os.path.join(VistaDashboard._get_base_dir(), "data", "cheatsheets")
             
             if not os.path.exists(cheatsheets_dir):
                 self.escribir_terminal("ERROR Carpeta de cheatsheets no encontrada", "[CHEATSHEETS]")

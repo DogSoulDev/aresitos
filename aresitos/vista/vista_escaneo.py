@@ -16,6 +16,12 @@ except ImportError:
     DetectorRed = None
 
 class VistaEscaneo(tk.Frame):
+    @staticmethod
+    def _get_base_dir():
+        """Obtener la ruta base absoluta del proyecto ARESITOS."""
+        import os
+        from pathlib import Path
+        return Path(os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..", "..")))
     
     def __init__(self, parent):
         super().__init__(parent)
@@ -352,15 +358,14 @@ class VistaEscaneo(tk.Frame):
             import os
             import platform
             import subprocess
-            base_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..', '..'))
-            logs_path = os.path.join(base_dir, 'logs')
-            if os.path.exists(logs_path):
+            logs_path = self._get_base_dir() / 'logs'
+            if logs_path.exists():
                 if platform.system() == "Linux":
-                    subprocess.run(["xdg-open", logs_path], check=False)
+                    subprocess.run(["xdg-open", str(logs_path)], check=False)
                 elif platform.system() == "Windows":
-                    subprocess.run(["explorer", logs_path], check=False)
+                    subprocess.run(["explorer", str(logs_path)], check=False)
                 else:
-                    subprocess.run(["open", logs_path], check=False)
+                    subprocess.run(["open", str(logs_path)], check=False)
                 self.log_to_terminal("Carpeta de logs Escaneador abierta")
             else:
                 self.log_to_terminal("WARNING: Carpeta de logs no encontrada")
@@ -1508,14 +1513,13 @@ class VistaEscaneo(tk.Frame):
         from datetime import datetime
         try:
             # Crear directorio de reportes en la raíz del proyecto
-            base_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..', '..'))
-            directorio_reportes = os.path.join(base_dir, 'reportes')
-            if not os.path.exists(directorio_reportes):
-                os.makedirs(directorio_reportes)
+            directorio_reportes = self._get_base_dir() / 'reportes'
+            if not directorio_reportes.exists():
+                directorio_reportes.mkdir(parents=True, exist_ok=True)
             # Generar nombre de archivo único
             timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
             nombre_archivo = f"escaneo_aresitos_{timestamp}.{formato}"
-            ruta_completa = os.path.join(directorio_reportes, nombre_archivo)
+            ruta_completa = directorio_reportes / nombre_archivo
             if formato == "json":
                 with open(ruta_completa, 'w', encoding='utf-8') as f:
                     json.dump(resultados, f, indent=2, ensure_ascii=False, default=str)
@@ -1547,7 +1551,7 @@ class VistaEscaneo(tk.Frame):
                                 f.write(f"  - {vuln}\n")
                             f.write("\n")
             self._actualizar_texto_seguro(f"Reporte exportado: {ruta_completa}\n")
-            return {"exito": True, "archivo": ruta_completa}
+            return {"exito": True, "archivo": str(ruta_completa)}
         except Exception as e:
             self._actualizar_texto_seguro(f"Error al exportar reporte: {str(e)}\n")
             return {"exito": False, "error": str(e)}

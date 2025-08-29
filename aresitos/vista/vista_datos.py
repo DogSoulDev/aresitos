@@ -27,6 +27,10 @@ except ImportError:
     BURP_THEME_AVAILABLE = False
 
 class VistaGestionDatos(tk.Frame):
+    @staticmethod
+    def _get_base_dir():
+        """Obtener la ruta base absoluta del proyecto ARESITOS."""
+        return Path(os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..")))
     """
     Vista unificada para gestión de Wordlists y Diccionarios.
     Simplicidad y funcionalidad siguiendo el patrón visual de Burp Suite.
@@ -70,11 +74,11 @@ class VistaGestionDatos(tk.Frame):
                 'info': '#0066cc'
             }
 
-    # Rutas de datos robustas y relativas al root del proyecto (compatibles con Kali Linux y multiplataforma)
-        # Rutas de datos robustas y relativas al root del proyecto (compatibles con Kali Linux y multiplataforma)
-        base_dir = Path(os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..")))
-        self.ruta_wordlists = base_dir / "data" / "wordlists"
-        self.ruta_diccionarios = base_dir / "data" / "diccionarios"
+        # Inicializar rutas de datos robustas y relativas al root del proyecto
+        self.ruta_wordlists = self._get_base_dir() / "data" / "wordlists"
+        self.ruta_diccionarios = self._get_base_dir() / "data" / "diccionarios"
+
+
 
     def set_controlador(self, controlador):
         self.controlador = controlador

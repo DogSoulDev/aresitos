@@ -11,6 +11,8 @@ PRINCIPIOS DE SEGURIDAD ARESITOS (NO MODIFICAR SIN AUDITORÍA)
 - Si algún desarrollador necesita privilegios, usar solo gestor_permisos.
 """
 
+
+import os
 import tkinter as tk
 from tkinter import ttk, scrolledtext, messagebox, filedialog
 import threading
@@ -38,10 +40,37 @@ class VistaAuditoria(tk.Frame):
     herramientas_apt = [
         'lynis', 'rkhunter', 'chkrootkit', 'clamav', 'nuclei', 'httpx', 'linpeas', 'pspy'
     ]
+    import os
+    etc_dir = os.path.join(os.sep, 'etc')
+    var_log_dir = os.path.join(os.sep, 'var', 'log')
+    usr_bin_dir = os.path.join(os.sep, 'usr', 'bin')
+    usr_sbin_dir = os.path.join(os.sep, 'usr', 'sbin')
+    bin_dir = os.path.join(os.sep, 'bin')
+    sbin_dir = os.path.join(os.sep, 'sbin')
+    usr_local_bin_dir = os.path.join(os.sep, 'usr', 'local', 'bin')
+    usr_local_sbin_dir = os.path.join(os.sep, 'usr', 'local', 'sbin')
     rutas_criticas = [
-        '/etc/passwd', '/etc/shadow', '/etc/group', '/etc/sudoers', '/etc/ssh/sshd_config', '/etc/hosts',
-        '/var/log/auth.log', '/var/log/syslog', '/var/log/kern.log', '/var/log/secure', '/var/log/wtmp', '/var/log/btmp',
-        '/usr/bin/', '/usr/sbin/', '/bin/', '/sbin/', '/usr/local/bin/', '/usr/local/sbin/', '/var/log/lynis.log', '/var/log/rkhunter.log', '/var/log/chkrootkit.log'
+        os.path.join(etc_dir, 'passwd'),
+        os.path.join(etc_dir, 'shadow'),
+        os.path.join(etc_dir, 'group'),
+        os.path.join(etc_dir, 'sudoers'),
+        os.path.join(etc_dir, 'ssh', 'sshd_config'),
+        os.path.join(etc_dir, 'hosts'),
+        os.path.join(var_log_dir, 'auth.log'),
+        os.path.join(var_log_dir, 'syslog'),
+        os.path.join(var_log_dir, 'kern.log'),
+        os.path.join(var_log_dir, 'secure'),
+        os.path.join(var_log_dir, 'wtmp'),
+        os.path.join(var_log_dir, 'btmp'),
+        usr_bin_dir + '/',
+        usr_sbin_dir + '/',
+        bin_dir + '/',
+        sbin_dir + '/',
+        usr_local_bin_dir + '/',
+        usr_local_sbin_dir + '/',
+        os.path.join(var_log_dir, 'lynis.log'),
+        os.path.join(var_log_dir, 'rkhunter.log'),
+        os.path.join(var_log_dir, 'chkrootkit.log')
     ]
 
     def __init__(self, *args, **kwargs):
@@ -396,7 +425,7 @@ class VistaAuditoria(tk.Frame):
             exito_which, out_which, err_which = self._ejecutar_comando_seguro("which lynis", "Verificar instalación de Lynis", timeout=10, usar_sudo=False)
             if exito_which:
                 self._actualizar_texto_auditoria("OK Lynis encontrado en sistema\n")
-                log_dir = "/var/log/lynis"
+                log_dir = os.path.join(self.var_log_dir, "lynis")
                 self._actualizar_texto_auditoria(f"• Verificando directorio de logs: {log_dir}\n")
                 cmd = "lynis audit system --verbose --quick --warning --no-colors"
                 exito_lynis, out_lynis, err_lynis = self._ejecutar_comando_seguro(cmd, "Auditoría completa del sistema", timeout=600, usar_sudo=True)
@@ -430,7 +459,11 @@ class VistaAuditoria(tk.Frame):
                     if len(lineas_importantes) > 30:
                         self._actualizar_texto_auditoria(f"... y {len(lineas_importantes) - 30} hallazgos adicionales\n")
                     self._actualizar_texto_auditoria("\n=== ARCHIVOS DE REPORTE ===\n")
-                    posibles_reportes = ["/var/log/lynis.log", "/var/log/lynis-report.dat", "/tmp/lynis.log"]
+                    posibles_reportes = [
+                        os.path.join(self.var_log_dir, "lynis.log"),
+                        os.path.join(self.var_log_dir, "lynis-report.dat"),
+                        os.path.join(os.sep, "tmp", "lynis.log")
+                    ]
                         # ...existing code...
                 self._actualizar_texto_auditoria("• Verificar: lynis --version\n")
             self._actualizar_texto_auditoria("=== AUDITORÍA LYNIS PROFESIONAL COMPLETADA ===\n\n")
@@ -526,7 +559,11 @@ class VistaAuditoria(tk.Frame):
                     self._actualizar_texto_auditoria(f"OK COMPLETADO: {procesos_terminados} procesos de rootkits terminados\n")
                 else:
                     self._actualizar_texto_auditoria("• INFO: No se encontraron procesos de detección de rootkits activos\n")
-                archivos_temp = ['/tmp/rkhunter.log', '/tmp/chkrootkit.log', '/var/log/rkhunter.log']
+                archivos_temp = [
+                    os.path.join(os.sep, 'tmp', 'rkhunter.log'),
+                    os.path.join(os.sep, 'tmp', 'chkrootkit.log'),
+                    os.path.join(self.var_log_dir, 'rkhunter.log')
+                ]
                 for archivo in archivos_temp:
                     try:
                         exito_rm, _, err_rm = ejecutar_comando_seguro('rm', ['-f', archivo])
@@ -631,10 +668,11 @@ class VistaAuditoria(tk.Frame):
                 from aresitos.utils.gestor_permisos import ejecutar_comando_seguro
                 import os
                 try:
-                    if os.path.exists('/etc/ssh/sshd_config'):
+                    sshd_config_path = os.path.join(self.etc_dir, 'ssh', 'sshd_config')
+                    if os.path.exists(sshd_config_path):
                         self._actualizar_texto_auditoria("OK SSH configurado en el sistema\n")
                         try:
-                            with open('/etc/ssh/sshd_config', 'r') as f:
+                            with open(sshd_config_path, 'r') as f:
                                 for linea in f:
                                     if linea.strip().startswith('Port'):
                                         puerto = linea.strip().split()[1]
@@ -669,24 +707,27 @@ class VistaAuditoria(tk.Frame):
                 try:
                     from aresitos.utils.gestor_permisos import ejecutar_comando_seguro
                     # Verificar /etc/login.defs
-                    if os.path.exists('/etc/login.defs'):
-                        self._actualizar_texto_auditoria(" Configuración en /etc/login.defs:\n")
-                        exito_grep, out_grep, err_grep = ejecutar_comando_seguro('grep', ['-E', 'PASS_MAX_DAYS|PASS_MIN_DAYS|PASS_MIN_LEN|PASS_WARN_AGE', '/etc/login.defs'])
+                    login_defs_path = os.path.join(self.etc_dir, 'login.defs')
+                    if os.path.exists(login_defs_path):
+                        self._actualizar_texto_auditoria(f" Configuración en {login_defs_path}:\n")
+                        exito_grep, out_grep, err_grep = ejecutar_comando_seguro('grep', ['-E', 'PASS_MAX_DAYS|PASS_MIN_DAYS|PASS_MIN_LEN|PASS_WARN_AGE', login_defs_path])
                         if out_grep:
                             for linea in out_grep.split('\n'):
                                 if linea.strip() and not linea.startswith('#'):
                                     self._actualizar_texto_auditoria(f"  {linea}\n")
                     # Verificar PAM
-                    if os.path.exists('/etc/pam.d/common-password'):
-                        self._actualizar_texto_auditoria(" Configuración PAM (common-password):\n")
-                        exito_pam, out_pam, err_pam = ejecutar_comando_seguro('grep', ['pam_pwquality', '/etc/pam.d/common-password'])
+                    pam_common_path = os.path.join(self.etc_dir, 'pam.d', 'common-password')
+                    if os.path.exists(pam_common_path):
+                        self._actualizar_texto_auditoria(f" Configuración PAM (common-password):\n")
+                        exito_pam, out_pam, err_pam = ejecutar_comando_seguro('grep', ['pam_pwquality', pam_common_path])
                         if out_pam:
                             self._actualizar_texto_auditoria(f"  OK pwquality configurado\n")
                         else:
                             self._actualizar_texto_auditoria(f"  WARNING pwquality no configurado\n")
                     # Verificar usuarios con contraseñas vacías
                     self._actualizar_texto_auditoria(" Verificando usuarios sin contraseña:\n")
-                    exito_awk, out_awk, err_awk = ejecutar_comando_seguro('awk', ['-F:', '($2 == "") {print $1}', '/etc/shadow'])
+                    shadow_path = os.path.join(self.etc_dir, 'shadow')
+                    exito_awk, out_awk, err_awk = ejecutar_comando_seguro('awk', ['-F:', '($2 == "") {print $1}', shadow_path])
                     if out_awk and out_awk.strip():
                         self._actualizar_texto_auditoria("  WARNING Usuarios sin contraseña encontrados:\n")
                         for usuario in out_awk.split('\n'):
