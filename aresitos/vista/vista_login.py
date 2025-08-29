@@ -999,49 +999,29 @@ class LoginAresitos:
             self.continue_btn.config(state=tk.NORMAL, bg=self.accent_orange)
     
     def iniciar_aplicacion(self):
-        """Iniciar la aplicacion principal"""
-        if not self.verificacion_completada:
-            messagebox.showwarning("Advertencia", "Complete la verificación del sistema primero")
-            return
-        
+        """Iniciar la aplicacion principal (sin requerir verificación de herramientas)"""
         self.escribir_log(" Abriendo ventana de herramientas de Kali Linux...")
-        
         try:
-            # Crear ventana separada para herramientas de Kali
             def callback_herramientas_completadas():
-                """Callback para cuando se complete la configuración de herramientas"""
                 self._iniciar_aplicacion_principal()
-            
-            # Ocultar ventana de login antes de crear la de herramientas
             self.root.withdraw()
-            
-            # Crear nueva ventana para herramientas
-            ventana_herramientas = tk.Toplevel()  # Sin parent para evitar dependencias
+            ventana_herramientas = tk.Toplevel()
             ventana_herramientas.title("ARESITOS - Configuración de Herramientas Kali")
             ventana_herramientas.geometry("1000x700")
             ventana_herramientas.configure(bg='#2b2b2b')
-            
-            # Centrar ventana de herramientas
             ventana_herramientas.update_idletasks()
             x = (ventana_herramientas.winfo_screenwidth() // 2) - (1000 // 2)
             y = (ventana_herramientas.winfo_screenheight() // 2) - (700 // 2)
             ventana_herramientas.geometry(f"1000x700+{x}+{y}")
-            
-            # Crear vista de herramientas en la nueva ventana
             vista_herramientas = VistaHerramientasKali(ventana_herramientas, callback_herramientas_completadas)
             vista_herramientas.pack(fill="both", expand=True)
-            
-            # Ocultar ventana de login
             self.root.withdraw()
-            
             self.escribir_log("Ventana de herramientas Kali abierta")
-            
         except Exception as e:
             self.escribir_log(f"ERROR mostrando vista de herramientas: {str(e)}")
             import traceback
             self.escribir_log(f"Detalles del error: {traceback.format_exc()}")
             self.escribir_log("Intentando continuar a la aplicación principal...")
-            # Si falla, continuar directamente a la aplicación principal
             self._iniciar_aplicacion_principal()
     
     def _iniciar_aplicacion_principal(self):
