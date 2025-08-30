@@ -988,96 +988,55 @@ class LoginAresitos:
             self.continue_btn.config(state=tk.NORMAL, bg=self.accent_orange)
     
     def iniciar_aplicacion(self):
-        """Iniciar la aplicacion principal (sin requerir verificación de herramientas)"""
-        self.escribir_log(" Abriendo ventana de herramientas de Kali Linux...")
+        """Flujo correcto: mostrar primero VistaHerramientasKali, luego VistaPrincipal en el mismo root."""
+        self.escribir_log("Mostrando herramientas Kali antes de la aplicación principal...")
         try:
+            # Limpiar todos los widgets del root (login)
+            for widget in self.root.winfo_children():
+                widget.destroy()
+            self.root.update_idletasks()
+            # Importar VistaHerramientasKali
+            from aresitos.vista.vista_herramientas_kali import VistaHerramientasKali
             def callback_herramientas_completadas():
                 self._iniciar_aplicacion_principal()
-            self.root.withdraw()
-            ventana_herramientas = tk.Toplevel()
-            ventana_herramientas.title("ARESITOS - Configuración de Herramientas Kali")
-            ventana_herramientas.geometry("1000x700")
-            ventana_herramientas.configure(bg='#2b2b2b')
-            ventana_herramientas.update_idletasks()
-            x = (ventana_herramientas.winfo_screenwidth() // 2) - (1000 // 2)
-            y = (ventana_herramientas.winfo_screenheight() // 2) - (700 // 2)
-            ventana_herramientas.geometry(f"1000x700+{x}+{y}")
-            vista_herramientas = VistaHerramientasKali(ventana_herramientas, callback_herramientas_completadas)
+            vista_herramientas = VistaHerramientasKali(self.root, callback_completado=callback_herramientas_completadas)
             vista_herramientas.pack(fill="both", expand=True)
-            self.root.withdraw()
-            self.escribir_log("Ventana de herramientas Kali abierta")
+            self.root.title("Aresitos - Herramientas Kali")
+            self.root.configure(bg='#2b2b2b')
+            self.root.deiconify()
+            self.root.focus_force()
+            self.escribir_log("Vista de herramientas Kali mostrada")
         except Exception as e:
-            self.escribir_log(f"ERROR mostrando vista de herramientas: {str(e)}")
+            self.escribir_log(f"Error mostrando herramientas Kali: {e}")
             import traceback
-            self.escribir_log(f"Detalles del error: {traceback.format_exc()}")
-            self.escribir_log("Intentando continuar a la aplicación principal...")
-            self._iniciar_aplicacion_principal()
+            traceback.print_exc()
+            messagebox.showerror("Error", f"Error mostrando herramientas Kali:\n{e}")
     
     def _iniciar_aplicacion_principal(self):
-        """Iniciar la aplicación principal después de configurar herramientas"""
-        self.escribir_log(" Iniciando ARESITOS...")
-        
+        """Cargar la aplicación principal en el mismo root tras herramientas Kali."""
+        self.escribir_log("Cargando aplicación principal tras herramientas Kali...")
         try:
-            # Importar módulos principales
+            # Limpiar widgets de herramientas
+            for widget in self.root.winfo_children():
+                widget.destroy()
+            self.root.update_idletasks()
             from aresitos.vista.vista_principal import VistaPrincipal
             from aresitos.controlador.controlador_principal import ControladorPrincipal
             from aresitos.modelo.modelo_principal import ModeloPrincipal
-            
-            self.escribir_log("Módulos principales importados correctamente")
-            
-            # Cerrar ventana de login
-            self.root.destroy()
-            
-            self.escribir_log("Creando aplicación principal...")
-            
-            # Crear aplicación principal y configurarla completamente ANTES de mostrar
-            root_app = tk.Tk()
-            root_app.withdraw()  # Mantener oculta hasta estar completamente configurada
-            root_app.title("Aresitos")
-            root_app.configure(bg='#2b2b2b')
-            
-            self.escribir_log("Ventana principal configurada con tema Burp Suite")
-            
-            self.escribir_log("Inicializando modelo de datos...")
-            # Inicializar MVC completamente antes de mostrar
             modelo = ModeloPrincipal()
-            
-            self.escribir_log("Creando vista principal...")
-            vista = VistaPrincipal(root_app)
+            vista = VistaPrincipal(self.root)
             vista.pack(fill="both", expand=True)
-            
-            self.escribir_log("Inicializando controlador principal...")
             controlador = ControladorPrincipal(modelo)
-            
-            self.escribir_log("Configurando conexión vista-controlador...")
             vista.set_controlador(controlador)
-            
-            # Calcular posición centrada mientras está oculta
-            root_app.update_idletasks()
-            x = (root_app.winfo_screenwidth() // 2) - (1200 // 2)
-            y = (root_app.winfo_screenheight() // 2) - (800 // 2)
-            root_app.geometry(f"1200x800+{x}+{y}")
-            
-            self.escribir_log("OK Ventana de aplicación configurada correctamente")
-            self.escribir_log("Aplicación principal configurada. Iniciando interfaz...")
-            
-            # Mostrar ventana una sola vez, completamente configurada
-            root_app.deiconify()
-            
-            # Pequeña pausa para evitar parpadeo
-            root_app.after(100, lambda: root_app.focus_force())
-            
-            root_app.mainloop()
-            
-        except ImportError as e:
-            # Si no puede importar, usar el main original
-            self.escribir_log(f"Error de importación: {e}")
-            self.escribir_log("Módulos principales no encontrados, usando modo básico")
-            messagebox.showinfo("Info", 
-                               "Aplicación principal no encontrada.\n"
-                               "Ejecute: python main.py\n\n"
-                               "O instale la aplicación completa.")
-            
+            self.root.title("Aresitos")
+            self.root.configure(bg='#2b2b2b')
+            self.root.update_idletasks()
+            x = (self.root.winfo_screenwidth() // 2) - (1200 // 2)
+            y = (self.root.winfo_screenheight() // 2) - (800 // 2)
+            self.root.geometry(f"1200x800+{x}+{y}")
+            self.root.deiconify()
+            self.root.focus_force()
+            self.escribir_log("Aplicación principal cargada tras herramientas Kali")
         except Exception as e:
             self.escribir_log(f"Error crítico iniciando aplicación: {e}")
             import traceback

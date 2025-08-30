@@ -8,22 +8,6 @@ PRINCIPIOS DE SEGURIDAD ARESITOS (NO MODIFICAR SIN AUDITORÍA)
 - Prohibido el uso de eval, exec, os.system, subprocess.Popen directo.
 - Prohibido shell=True salvo justificación y validación exhaustiva.
 - Si algún desarrollador necesita privilegios, usar solo gestor_permisos.
-
-Gestor de Permisos Seguros para Ares Aegis
-==========================================
-Este módulo maneja de forma segura la elevación de permisos necesaria
-para herramientas de seguridad en sistemas Linux, especialmente Kali Linux.
-
-Características de Seguridad:
-- Validación estricta de comandos permitidos
-- Lista blanca de herramientas autorizadas
-- Sanitización de argumentos
-- Logging de todas las operaciones con permisos elevados
-- Timeout configurable para prevenir bloqueos
-
-Autor: DogSoulDev
-Fecha: 15 de Agosto de 2025
-Versión: 1.0
 """
 
 import os
@@ -38,16 +22,6 @@ import re
 import platform
 
 class GestorPermisosSeguro:
-    """
-    Gestor centralizado para manejar permisos elevados de forma segura.
-    
-    Este gestor implementa múltiples capas de seguridad:
-    1. Lista blanca de comandos permitidos
-    2. Validación de argumentos
-    3. Sanitización de entrada
-    4. Logging completo de operaciones
-    5. Timeouts para prevenir bloqueos
-    """
     
     # Lista blanca de herramientas permitidas con sudo
     HERRAMIENTAS_PERMITIDAS = {
@@ -108,12 +82,6 @@ class GestorPermisosSeguro:
     ]
     
     def __init__(self, logger: Optional[logging.Logger] = None):
-        """
-        Inicializa el gestor de permisos.
-        
-        Args:
-            logger: Logger personalizado. Si no se proporciona, se crea uno por defecto.
-        """
         self.logger = logger or self._crear_logger()
         self.usuario_actual = getpass.getuser()
         
@@ -138,7 +106,6 @@ class GestorPermisosSeguro:
             self.logger.warning("WARNING Ejecutándose como ROOT - permisos elevados activos")
     
     def _crear_logger(self) -> logging.Logger:
-        """Crea un logger específico para el gestor de permisos y errores críticos."""
         logger = logging.getLogger('AresAegis.GestorPermisosSeguro')
         if not logger.handlers:
             # Log a consola
@@ -159,7 +126,6 @@ class GestorPermisosSeguro:
             logger.setLevel(logging.INFO)
         return logger
     def advertencia_permisos(self, mensaje: str):
-        """Muestra advertencia visible y loguea fallo de permisos o privilegios insuficientes."""
         self.logger.error(f"PERMISOS INSUFICIENTES: {mensaje}")
         print("\n" + "="*60)
         print("[ADVERTENCIA] Permisos insuficientes para la operación solicitada.")
@@ -169,12 +135,6 @@ class GestorPermisosSeguro:
         print("="*60 + "\n")
     
     def verificar_sudo_disponible(self) -> bool:
-        """
-        Verifica si sudo está disponible y configurado.
-        
-        Returns:
-            bool: True si sudo está disponible, False en caso contrario.
-        """
         try:
             resultado = subprocess.run(
                 ['sudo', '-n', 'true'], 
@@ -196,16 +156,6 @@ class GestorPermisosSeguro:
             return False
     
     def _validar_comando(self, herramienta: str, argumentos: List[str]) -> Tuple[bool, str]:
-        """
-        Valida que un comando sea seguro para ejecutar con permisos elevados.
-        
-        Args:
-            herramienta: Nombre de la herramienta a ejecutar
-            argumentos: Lista de argumentos del comando
-            
-        Returns:
-            Tuple[bool, str]: (es_valido, mensaje_error)
-        """
         # Verificar que la herramienta esté en la lista blanca
         if herramienta not in self.HERRAMIENTAS_PERMITIDAS:
             return False, f"Herramienta '{herramienta}' no está en la lista de herramientas permitidas"
@@ -240,17 +190,6 @@ class GestorPermisosSeguro:
     
     def ejecutar_con_permisos(self, herramienta: str, argumentos: List[str], 
                              timeout: Optional[int] = None) -> Tuple[bool, str, str]:
-        """
-        Ejecuta un comando con permisos elevados de forma segura.
-        
-        Args:
-            herramienta: Nombre de la herramienta a ejecutar
-            argumentos: Lista de argumentos del comando
-            timeout: Timeout personalizado en segundos
-            
-        Returns:
-            Tuple[bool, str, str]: (exito, stdout, stderr)
-        """
         timeout_efectivo = timeout or self.timeout_comando
         
         # Validar el comando
@@ -302,15 +241,6 @@ class GestorPermisosSeguro:
             return False, "", error_msg
     
     def leer_archivo_sistema(self, ruta_archivo: str) -> Tuple[bool, str]:
-        """
-        Lee un archivo del sistema que requiere permisos elevados.
-        
-        Args:
-            ruta_archivo: Ruta del archivo a leer
-            
-        Returns:
-            Tuple[bool, str]: (exito, contenido_o_error)
-        """
         # Verificar que la ruta está en la lista de rutas permitidas
         if ruta_archivo not in self.RUTAS_SISTEMA_CRITICAS:
             self.logger.warning(f"WARNING Intento de leer archivo no autorizado: {ruta_archivo}")
@@ -336,15 +266,6 @@ class GestorPermisosSeguro:
             return False, error_msg
     
     def verificar_permisos_herramienta(self, herramienta: str) -> Dict[str, Any]:
-        """
-        Verifica el estado de permisos para una herramienta específica.
-        
-        Args:
-            herramienta: Nombre de la herramienta a verificar
-            
-        Returns:
-            Dict con información sobre permisos y disponibilidad
-        """
         resultado = {
             'herramienta': herramienta,
             'disponible': False,
@@ -388,12 +309,6 @@ class GestorPermisosSeguro:
         return resultado
     
     def generar_reporte_permisos(self) -> Dict[str, Any]:
-        """
-        Genera un reporte completo del estado de permisos del sistema.
-        
-        Returns:
-            Dict con reporte completo de permisos
-        """
         reporte = {
             'usuario': self.usuario_actual,
             'es_root': self.es_root,
@@ -424,45 +339,17 @@ class GestorPermisosSeguro:
         
         return reporte
 
-# Instancia global del gestor de permisos
-gestor_permisos = GestorPermisosSeguro()
 
-def obtener_gestor_permisos() -> GestorPermisosSeguro:
-    """Obtiene la instancia global del gestor de permisos."""
-    return gestor_permisos
-
-def ejecutar_comando_seguro(herramienta: str, argumentos: List[str], 
-                           timeout: Optional[int] = None) -> Tuple[bool, str, str]:
-    """
-    Función de conveniencia para ejecutar comandos con permisos elevados.
-    
-    Args:
-        herramienta: Nombre de la herramienta
-        argumentos: Lista de argumentos
-        timeout: Timeout opcional
-        
-    Returns:
-        Tuple[bool, str, str]: (exito, stdout, stderr)
-    """
-    return gestor_permisos.ejecutar_con_permisos(herramienta, argumentos, timeout)
 
 if __name__ == "__main__":
-    # Test del gestor de permisos
     gestor = GestorPermisosSeguro()
-    
-    print("=== Reporte de Permisos Ares Aegis ===")
     reporte = gestor.generar_reporte_permisos()
-    
     print(f"Usuario: {reporte['usuario']}")
     print(f"Es root: {reporte['es_root']}")
     print(f"Sudo disponible: {reporte['sudo_disponible']}")
-    
-    print("\nHerramientas:")
     for herramienta, info in reporte['herramientas'].items():
         status = "[OK]" if info['disponible'] and info['permisos_ok'] else "ERROR"
         print(f"{status} {herramienta}: {info['mensaje']}")
-    
     if reporte['recomendaciones']:
-        print("\nRecomendaciones:")
         for rec in reporte['recomendaciones']:
-            print(f"• {rec}")
+            print(f"- {rec}")

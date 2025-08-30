@@ -168,7 +168,7 @@ class VistaPrincipal(tk.Frame):
         self.crear_barra_estado()
     
     def crear_barra_titulo(self):
-        """Crea la barra de título sin iconos ni referencias a temas externos."""
+        """Crea la barra de título."""
         # Frame de título
         titulo_frame = tk.Frame(self, bg='#3c3c3c', height=50)
         titulo_frame.pack(fill="x", padx=2, pady=(2, 0))
@@ -261,6 +261,7 @@ class VistaPrincipal(tk.Frame):
         # 8. REPORTES - Generación y visualización de reportes
         try:
             self.vista_reportes = VistaReportes(self.notebook)
+            self.vista_reportes.crear_interfaz()
             self.notebook.add(self.vista_reportes, text="Reportes")
         except Exception as e:
             print(f"Error creando vista reportes: {e}")

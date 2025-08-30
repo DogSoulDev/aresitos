@@ -1,3 +1,13 @@
+# =============================================================
+# PRINCIPIOS DE SEGURIDAD ARESITOS (NO TOCAR SIN AUDITORÍA)
+# - Nunca solicitar ni almacenar la contraseña de root.
+# - Nunca mostrar, registrar ni filtrar la contraseña de root.
+# - Ningún input de usuario debe usarse como comando sin validar.
+# - Todos los comandos pasan por el validador y gestor de permisos.
+# - Prohibido el uso de eval, exec, os.system, subprocess.Popen directo.
+# - Prohibido shell=True salvo justificación y validación exhaustiva.
+# - Si algún desarrollador necesita privilegios, usar solo gestor_permisos.
+# =============================================================
 import os
 import tkinter as tk
 from tkinter import ttk, scrolledtext, messagebox, filedialog
@@ -13,24 +23,12 @@ except ImportError:
     burp_theme = None
 
 class VistaAuditoria(tk.Frame):
-    # =============================================================
-    # PRINCIPIOS DE SEGURIDAD ARESITOS (NO TOCAR SIN AUDITORÍA)
-    # - Nunca solicitar ni almacenar la contraseña de root.
-    # - Nunca mostrar, registrar ni filtrar la contraseña de root.
-    # - Ningún input de usuario debe usarse como comando sin validar.
-    # - Todos los comandos pasan por el validador y gestor de permisos.
-    # - Prohibido el uso de eval, exec, os.system, subprocess.Popen directo.
-    # - Prohibido shell=True salvo justificación y validación exhaustiva.
-    # - Si algún desarrollador necesita privilegios, usar solo gestor_permisos.
-    # =============================================================
-    # Variables de clase solo para constantes, el resto en __init__
     herramientas_apt = [
         'lynis', 'rkhunter', 'chkrootkit', 'clamav', 'nuclei', 'httpx', 'linpeas', 'pspy'
     ]
 
     def __init__(self, *args, **kwargs):
         import os
-        # Inicializar rutas críticas y directorios
         self.etc_dir = os.path.join(os.sep, 'etc')
         self.var_log_dir = os.path.join(os.sep, 'var', 'log')
         self.usr_bin_dir = os.path.join(os.sep, 'usr', 'bin')
@@ -62,8 +60,6 @@ class VistaAuditoria(tk.Frame):
             os.path.join(self.var_log_dir, 'rkhunter.log'),
             os.path.join(self.var_log_dir, 'chkrootkit.log')
         ]
-        # NUNCA solicitar ni almacenar la contraseña de root en la interfaz.
-        # Si el usuario no es root, solo mostrar advertencia y bloquear acciones.
         super().__init__(*args, **kwargs)
         self.colors = {
             'bg_primary': '#232629',
@@ -82,24 +78,28 @@ class VistaAuditoria(tk.Frame):
                 self.colors.update(burp_theme)
         self.proceso_auditoria_activo = False
         self.crear_interfaz()
-        # Inicializar referencias para evitar errores de acceso temprano
-        # (Se asignan en crear_interfaz, pero aseguramos que existan)
         if not hasattr(self, 'auditoria_text'):
             self.auditoria_text = None
         if not hasattr(self, 'comando_entry'):
             self.comando_entry = None
-        # Mostrar mensaje inicial siempre
         self._actualizar_texto_auditoria("[INFO] Auditoría de seguridad lista. Selecciona una acción o ejecuta un comando.\n")
-        # Verificar permisos root o sesión sudo activa al iniciar
         try:
             from aresitos.utils.sudo_manager import get_sudo_manager
             sudo_manager = get_sudo_manager()
             if not self._es_root() and not sudo_manager.is_sudo_active():
-                # Solo deshabilitar botones, pero NO ocultar terminal ni entrada de comandos
                 self._deshabilitar_todo_auditoria_por_root()
                 self._actualizar_texto_auditoria("[ADVERTENCIA] Permisos insuficientes: algunas acciones están deshabilitadas. Ejecuta como root/sudo para acceso completo.\n")
         except Exception:
             pass
+        # Instancia de GestorPermisosSeguro para ejecutar comandos
+        try:
+            from aresitos.utils.gestor_permisos import GestorPermisosSeguro
+            self._gestor_permisos = GestorPermisosSeguro()
+        except Exception:
+            class _GestorPermisosMock:
+                def ejecutar_con_permisos(self, *a, **kw):
+                    raise RuntimeError("GestorPermisosSeguro no disponible")
+            self._gestor_permisos = _GestorPermisosMock()
 
     def _es_root(self):
         try:
@@ -121,7 +121,6 @@ class VistaAuditoria(tk.Frame):
             return False
 
     def _deshabilitar_todo_auditoria_por_root(self):
-        # Deshabilita todos los botones de auditoría y muestra advertencia
         try:
             for attr in [
                 'btn_cancelar_rootkits', 'btn_iniciar', 'btn_detener', 'btn_verificar',
@@ -132,81 +131,110 @@ class VistaAuditoria(tk.Frame):
         except Exception:
             pass
     def set_controlador(self, controlador):
-        """Establece el controlador principal para la vista de auditoría (stub seguro)."""
         self.controlador = controlador
-        # Se puede ampliar para conectar callbacks o lógica específica
     def _mostrar_ayuda_comandos(self):
         self._actualizar_texto_auditoria("[INFO] Ayuda de comandos no implementada aún.\n")
 
     def obtener_info_hardware(self):
-        self._actualizar_texto_auditoria("[INFO] Información de hardware no implementada aún.\n")
+        self._actualizar_texto_auditoria("[INFO] Obteniendo información de hardware...\n")
+        try:
+            exito, out, err = self._ejecutar_comando_seguro('lscpu', "Información de CPU", timeout=10, usar_sudo=False)
+            if out:
+                self._actualizar_texto_auditoria(f"\n--- CPU ---\n{out}\n")
+            exito, out, err = self._ejecutar_comando_seguro('lsmem', "Información de RAM", timeout=10, usar_sudo=False)
+            if out:
+                self._actualizar_texto_auditoria(f"\n--- RAM ---\n{out}\n")
+            exito, out, err = self._ejecutar_comando_seguro('lsblk', "Almacenamiento", timeout=10, usar_sudo=False)
+            if out:
+                self._actualizar_texto_auditoria(f"\n--- Almacenamiento ---\n{out}\n")
+        except Exception as e:
+            self._actualizar_texto_auditoria(f"[ERROR] No se pudo obtener información de hardware: {e}\n")
+        self._actualizar_texto_auditoria("[INFO] Consulta de hardware finalizada.\n\n")
 
     def _finalizar_auditoria(self):
         self._actualizar_texto_auditoria("[INFO] Finalización de auditoría no implementada aún.\n")
     def _actualizar_texto_auditoria(self, texto):
-        # Stub seguro: actualiza el área de texto de auditoría si existe
         if hasattr(self, 'auditoria_text') and self.auditoria_text:
             try:
                 self.auditoria_text.insert('end', texto)
                 self.auditoria_text.see('end')
             except Exception as e:
-                # Si falla la inserción, mostrar error en consola como último recurso
                 print(f"[ERROR] No se pudo actualizar el área de texto de auditoría: {e}\nIntentado mostrar: {texto}")
         else:
-            # Fallback seguro: mostrar en consola
             print(texto)
 
     def analizar_servicios(self):
-        # Stub seguro para evitar errores
-        self._actualizar_texto_auditoria("[INFO] Análisis de servicios no implementado aún.\n")
+        self._actualizar_texto_auditoria("[INFO] Analizando servicios activos...\n")
+        try:
+            exito, out, err = self._ejecutar_comando_seguro('systemctl list-units --type=service --state=running', "Listar servicios activos", timeout=20, usar_sudo=False)
+            if out:
+                self._actualizar_texto_auditoria(f"\n--- Servicios activos ---\n{out}\n")
+            if err:
+                self._actualizar_texto_auditoria(f"[ERROR] {err}\n")
+        except Exception as e:
+            self._actualizar_texto_auditoria(f"[ERROR] No se pudo analizar servicios: {e}\n")
+        self._actualizar_texto_auditoria("[INFO] Análisis de servicios finalizado.\n\n")
 
     def verificar_permisos(self):
-        # Stub seguro para evitar errores
-        self._actualizar_texto_auditoria("[INFO] Verificación de permisos no implementada aún.\n")
+        self._actualizar_texto_auditoria("[INFO] Verificando permisos de archivos críticos...\n")
+        try:
+            archivos = [os.path.join(self.etc_dir, 'passwd'), os.path.join(self.etc_dir, 'shadow'), os.path.join(self.etc_dir, 'sudoers')]
+            for archivo in archivos:
+                if os.path.exists(archivo):
+                    exito, out, err = self._ejecutar_comando_seguro(f'ls -l {archivo}', f"Permisos de {archivo}", timeout=5, usar_sudo=True)
+                    if out:
+                        self._actualizar_texto_auditoria(f"{out}\n")
+                    if err:
+                        self._actualizar_texto_auditoria(f"[ERROR] {err}\n")
+                else:
+                    self._actualizar_texto_auditoria(f"[ADVERTENCIA] {archivo} no existe en el sistema.\n")
+        except Exception as e:
+            self._actualizar_texto_auditoria(f"[ERROR] No se pudo verificar permisos: {e}\n")
+        self._actualizar_texto_auditoria("[INFO] Verificación de permisos finalizada.\n\n")
     def crear_interfaz(self):
-        """Crear interfaz especializada para auditorías de seguridad."""
         self.configure(bg=self.colors['bg_primary'])
         self.pack_propagate(False)
-        # PanedWindow principal para dividir botones (izquierda) y terminal (derecha)
         self.paned_window = tk.PanedWindow(self, orient="horizontal", bg=self.colors['bg_primary'])
         self.paned_window.pack(fill="both", expand=True, padx=5, pady=5)
 
-        # Frame lateral izquierdo para botones
         botones_frame = tk.Frame(self.paned_window, bg=self.colors['bg_primary'])
         self.paned_window.add(botones_frame, minsize=220)
 
-        # Frame principal derecho para terminal y entrada
+
         terminal_frame = tk.Frame(self.paned_window, bg=self.colors['bg_primary'])
         self.paned_window.add(terminal_frame, minsize=400)
 
-        # Frame del título
         titulo_frame = tk.Frame(terminal_frame, bg=self.colors['bg_primary'])
         titulo_frame.pack(fill=tk.X, pady=(10, 10))
         titulo = tk.Label(titulo_frame, text="Auditoría de Seguridad del Sistema",
-             bg=self.colors['bg_primary'], fg=self.colors['fg_accent'],
-             font=('Arial', 16, 'bold'))
+            bg=self.colors['bg_primary'], fg=self.colors['fg_accent'],
+            font=('Arial', 16, 'bold'))
         titulo.pack(pady=10)
 
-        # Secciones de botones
+        self.info_panel = tk.LabelFrame(terminal_frame, text="Información de la Acción", bg=self.colors['bg_secondary'], fg=self.colors['fg_accent'], font=('Arial', 11, 'bold'))
+        self.info_panel.pack(fill=tk.X, padx=10, pady=(0, 5))
+        self.info_label = tk.Label(self.info_panel, text="Selecciona una acción para ver información relevante aquí.",
+                                 bg=self.colors['bg_secondary'], fg=self.colors['fg_primary'], anchor="w", justify="left", font=('Arial', 10))
+        self.info_label.pack(fill=tk.X, padx=8, pady=6)
+
         self._crear_seccion_deteccion_malware(botones_frame)
         self._crear_seccion_configuraciones(botones_frame)
         self._crear_seccion_utilidades(botones_frame)
 
-        # Área de texto para la terminal de auditoría
         self.auditoria_text = tk.Text(terminal_frame, wrap=tk.WORD, height=20, width=120, bg="#181818", fg="#00FF00", insertbackground="#00FF00")
         self.auditoria_text.pack(padx=10, pady=10, fill="both", expand=True)
 
-        # Etiqueta para la entrada de comandos
         comando_label = tk.Label(terminal_frame, text="COMANDO:", bg=self.colors['bg_primary'], fg=self.colors['fg_accent'], font=('Arial', 10, 'bold'))
         comando_label.pack(padx=10, anchor="w")
 
-        # Entrada de comandos
         self.comando_entry = tk.Entry(terminal_frame, width=80, bg="#222", fg="#00FF00", insertbackground="#00FF00")
         self.comando_entry.pack(padx=10, pady=5, fill="x")
         self.comando_entry.bind('<Return>', self.ejecutar_comando_entry)
+    def actualizar_info_panel(self, titulo_accion, descripcion):
+        self.info_panel.config(text=titulo_accion)
+        self.info_label.config(text=descripcion)
 
     def _mostrar_info_seguridad(self):
-        """Mostrar información de seguridad y buenas prácticas."""
         info = (
             "\n[INFO SEGURIDAD]\n"
             "- Utilice siempre comandos validados y auditados.\n"
@@ -216,8 +244,6 @@ class VistaAuditoria(tk.Frame):
         )
         self._actualizar_texto_auditoria(info)
     def _ejecutar_comando_seguro(self, comando, descripcion="", timeout=60, usar_sudo=False, mostrar_en_terminal=True):
-    # NUNCA solicitar ni manejar la contraseña de root aquí ni en ningún método.
-    # Todos los comandos pasan por el validador y gestor de permisos.
         """
         Ejecuta un comando externo de forma segura, validando y registrando la acción.
         - Valida el comando con el validador global de seguridad.
@@ -227,7 +253,6 @@ class VistaAuditoria(tk.Frame):
         """
         from aresitos.utils.seguridad_comandos import validador_comandos
         try:
-            # Validar SIEMPRE el comando antes de ejecutar
             valido, comando_sanitizado, msg = validador_comandos.validar_comando_completo(comando)
             if not valido:
                 self._actualizar_texto_auditoria(f"[SECURITY] {msg}\n")
@@ -235,7 +260,9 @@ class VistaAuditoria(tk.Frame):
             if descripcion:
                 self._actualizar_texto_auditoria(f"[INFO] Ejecutando: {descripcion}\n")
             self._actualizar_texto_auditoria(f"[CMD] {comando_sanitizado}\n")
-            from aresitos.utils.gestor_permisos import ejecutar_comando_seguro
+            if self._gestor_permisos is None:
+                self._actualizar_texto_auditoria("[ERROR] GestorPermisosSeguro no disponible\n")
+                return False, '', 'GestorPermisosSeguro no disponible'
             # Convertir comando_sanitizado a lista si es string
             if isinstance(comando_sanitizado, str):
                 comando_list = comando_sanitizado.split()
@@ -243,8 +270,7 @@ class VistaAuditoria(tk.Frame):
                 comando_list = comando_sanitizado
             herramienta = comando_list[0]
             argumentos = comando_list[1:]
-            # Solo ejecutar comandos a través del gestor de permisos
-            exito, out, err = ejecutar_comando_seguro(herramienta, argumentos, timeout=timeout)
+            exito, out, err = self._gestor_permisos.ejecutar_con_permisos(herramienta, argumentos, timeout=timeout)
             if mostrar_en_terminal:
                 if out:
                     self._actualizar_texto_auditoria(out)
@@ -256,7 +282,6 @@ class VistaAuditoria(tk.Frame):
             return False, '', str(e)
 
     def limpiar_terminal_auditoria(self):
-        """Limpiar terminal Auditoría manteniendo cabecera."""
         try:
             import datetime
             if hasattr(self, 'auditoria_text') and self.auditoria_text:
@@ -272,7 +297,6 @@ class VistaAuditoria(tk.Frame):
             self._actualizar_texto_auditoria(f"[ERROR] Error limpiando terminal Auditoría: {e}\n")
     
     def ejecutar_comando_entry(self, event=None):
-        """Ejecutar comando desde la entrada, sin validación de seguridad, si el usuario autenticó como root/sudo."""
         if hasattr(self, 'comando_entry') and self.comando_entry:
             comando = self.comando_entry.get().strip()
             if not comando:
@@ -287,7 +311,6 @@ class VistaAuditoria(tk.Frame):
             thread.start()
     
     def _ejecutar_comando_async(self, comando):
-        """Ejecutar comando de forma asíncrona, validando y registrando la acción."""
         def worker():
             # Comandos especiales de ARESITOS
             if comando == "ayuda-comandos":
@@ -305,12 +328,9 @@ class VistaAuditoria(tk.Frame):
         threading.Thread(target=worker, daemon=True).start()
     
     def abrir_logs_auditoria(self):
-        """Abrir carpeta de logs Auditoría (stub seguro)."""
         self._actualizar_texto_auditoria("[INFO] Función para abrir logs aún no implementada.\n")
     
     def _crear_seccion_deteccion_malware(self, parent):
-        """Crear sección de detección de malware y rootkits."""
-        # Sección de detección de malware con tema Burp Suite
         section_frame = tk.Frame(parent, bg=self.colors['bg_secondary'])
         section_frame.pack(fill=tk.X, pady=5)
         
@@ -319,28 +339,29 @@ class VistaAuditoria(tk.Frame):
                 font=('Arial', 10, 'bold')).pack(anchor=tk.W, pady=(5, 5))
         
         buttons = [
-            ("Detectar Rootkits", self.detectar_rootkits, self.colors['warning']),
-            ("Cancelar Rootkits", self.cancelar_rootkits, self.colors['danger']),
-            ("Auditoría nuclei", self.ejecutar_nuclei, self.colors['info']),
-            ("Scan httpx", self.ejecutar_httpx, self.colors['fg_accent']),
+            ("Detectar Rootkits", self.detectar_rootkits, self.colors['warning'],
+             "Analiza el sistema en busca de rootkits y malware usando herramientas nativas de Linux/Kali. Muestra hallazgos críticos y sugerencias de seguridad."),
+            ("Cancelar Rootkits", self.cancelar_rootkits, self.colors['danger'],
+             "Detiene cualquier proceso activo de detección de rootkits y limpia archivos temporales generados por las herramientas."),
+            ("Auditoría nuclei", self.ejecutar_nuclei, self.colors['info'],
+             "Ejecuta un escaneo de vulnerabilidades profesional con nuclei. Requiere tener nuclei instalado y actualizado."),
+            ("Scan httpx", self.ejecutar_httpx, self.colors['fg_accent'],
+             "Realiza un escaneo rápido de servicios web usando httpx para detectar tecnologías, títulos y estado HTTP."),
         ]
-        
-        for text, command, color in buttons:
-            btn = tk.Button(section_frame, text=text, command=command,
+        for text, command, color, ayuda in buttons:
+            def make_cmd(cmd, ayuda_text):
+                return lambda: (self.actualizar_info_panel(text, ayuda_text), cmd())
+            btn = tk.Button(section_frame, text=text, command=make_cmd(command, ayuda),
                            bg=color, fg=self.colors['bg_primary'],
                            font=('Arial', 9, 'bold'), relief='flat',
                            padx=10, pady=5)
             btn.pack(fill=tk.X, pady=2)
-            
-            # Configuración especial para botones cancelar
             if "Cancelar" in text:
                 btn.config(state="disabled")
                 if "Rootkits" in text:
                     self.btn_cancelar_rootkits = btn
     
     def _crear_seccion_configuraciones(self, parent):
-        """Crear sección de análisis de configuraciones."""
-        # Sección de configuraciones con tema Burp Suite
         section_frame = tk.Frame(parent, bg=self.colors['bg_secondary'])
         section_frame.pack(fill=tk.X, pady=5)
         
@@ -349,23 +370,27 @@ class VistaAuditoria(tk.Frame):
                 font=('Arial', 10, 'bold')).pack(anchor=tk.W, pady=(5, 5))
         
         buttons = [
-            ("Analizar Servicios", self.analizar_servicios, self.colors['info']),
-            ("Verificar Permisos", self.verificar_permisos, self.colors['success']),
-            ("Configuración SSH", self.auditar_ssh, self.colors['fg_accent']),
-            ("Políticas de Contraseña", self.verificar_password_policy, self.colors['danger']),
-            ("Análisis SUID/SGID", self.analizar_suid_sgid, self.colors['warning']),
+            ("Analizar Servicios", self.analizar_servicios, self.colors['info'],
+             "Analiza los servicios activos en el sistema para detectar configuraciones inseguras o servicios innecesarios."),
+            ("Verificar Permisos", self.verificar_permisos, self.colors['success'],
+             "Verifica los permisos de archivos y directorios críticos para detectar posibles riesgos de seguridad."),
+            ("Configuración SSH", self.auditar_ssh, self.colors['fg_accent'],
+             "Audita la configuración del servicio SSH para detectar debilidades y malas prácticas."),
+            ("Políticas de Contraseña", self.verificar_password_policy, self.colors['danger'],
+             "Verifica las políticas de contraseñas del sistema y detecta usuarios sin contraseña o configuraciones débiles."),
+            ("Análisis SUID/SGID", self.analizar_suid_sgid, self.colors['warning'],
+             "Busca archivos con permisos SUID/SGID que pueden ser explotados para escalar privilegios."),
         ]
-        
-        for text, command, color in buttons:
-            btn = tk.Button(section_frame, text=text, command=command,
+        for text, command, color, ayuda in buttons:
+            def make_cmd(cmd, ayuda_text):
+                return lambda: (self.actualizar_info_panel(text, ayuda_text), cmd())
+            btn = tk.Button(section_frame, text=text, command=make_cmd(command, ayuda),
                            bg=color, fg=self.colors['bg_primary'],
                            font=('Arial', 9, 'bold'), relief='flat',
                            padx=10, pady=5)
             btn.pack(fill=tk.X, pady=2)
     
     def _crear_seccion_utilidades(self, parent):
-        """Crear sección de utilidades generales."""
-        # Sección de utilidades con tema Burp Suite
         section_frame = tk.Frame(parent, bg=self.colors['bg_secondary'])
         section_frame.pack(fill=tk.X, pady=5)
         
@@ -374,20 +399,23 @@ class VistaAuditoria(tk.Frame):
                 font=('Arial', 10, 'bold')).pack(anchor=tk.W, pady=(5, 5))
         
         buttons = [
-            ("Info Hardware", self.obtener_info_hardware, self.colors['bg_primary']),
-            ("Guardar Resultados", self.guardar_auditoria, self.colors['info']),
-            ("Limpiar Pantalla", self.limpiar_auditoria, self.colors['warning']),
+            ("Info Hardware", self.obtener_info_hardware, self.colors['bg_primary'],
+             "Muestra información básica del hardware del sistema (CPU, RAM, almacenamiento, etc.)."),
+            ("Guardar Resultados", self.guardar_auditoria, self.colors['info'],
+             "Permite guardar en un archivo de texto todos los resultados y hallazgos de la auditoría."),
+            ("Limpiar Pantalla", self.limpiar_auditoria, self.colors['warning'],
+             "Limpia la terminal de auditoría y reinicia la cabecera de la pantalla."),
         ]
-        
-        for text, command, color in buttons:
-            btn = tk.Button(section_frame, text=text, command=command,
+        for text, command, color, ayuda in buttons:
+            def make_cmd(cmd, ayuda_text):
+                return lambda: (self.actualizar_info_panel(text, ayuda_text), cmd())
+            btn = tk.Button(section_frame, text=text, command=make_cmd(command, ayuda),
                            bg=color, fg=self.colors['fg_primary'],
                            font=('Arial', 9, 'bold'), relief='flat',
                            padx=10, pady=5)
             btn.pack(fill=tk.X, pady=2)
     
     def ejecutar_lynis(self):
-        """Ejecutar auditoría completa del sistema con Lynis - auditor de seguridad profesional."""
         if self.proceso_auditoria_activo:
             self._actualizar_texto_auditoria("ERROR Auditoría Lynis ya en ejecución\n")
             return
@@ -446,7 +474,6 @@ class VistaAuditoria(tk.Frame):
             self._actualizar_texto_auditoria("\n=== Auditoría finalizada ===\n\n")
     
     def cancelar_auditoria(self):
-        """Cancelar auditoría usando sistema unificado."""
         if self.proceso_auditoria_activo:
             self.proceso_auditoria_activo = False
             self._actualizar_texto_auditoria("\n🛑 Cancelando auditoría...\n")
@@ -471,14 +498,32 @@ class VistaAuditoria(tk.Frame):
                 self._finalizar_auditoria()
     
     def detectar_rootkits(self):
-        """Detectar rootkits usando herramientas nativas de Linux y Kali."""
         import threading
         self._log_terminal("Iniciando detección de rootkits y malware...")
         def ejecutar():
             try:
                 self.after(0, self._actualizar_texto_auditoria, "=== DETECCIÓN DE ROOTKITS CON HERRAMIENTAS LINUX ===\n\n")
-                # Aquí debe ir el cuerpo real de la función ejecutar, correctamente indentado
-                pass
+                herramientas = [
+                    ("rkhunter", "rkhunter --check --sk --nocolors"),
+                    ("chkrootkit", "chkrootkit"),
+                    ("lynis", "lynis audit system --tests-from-group malware --no-colors")
+                ]
+                alguna_encontrada = False
+                for nombre, comando in herramientas:
+                    exito, out, err = self._ejecutar_comando_seguro(f"which {nombre}", f"Verificando {nombre}", timeout=10, usar_sudo=False)
+                    if exito and out.strip():
+                        alguna_encontrada = True
+                        self.after(0, self._actualizar_texto_auditoria, f"\n[INFO] Ejecutando {nombre}...\n")
+                        exito2, out2, err2 = self._ejecutar_comando_seguro(comando, f"Detección de rootkits con {nombre}", timeout=180, usar_sudo=True)
+                        if out2:
+                            self.after(0, self._actualizar_texto_auditoria, f"\n--- Resultados de {nombre} ---\n{out2}\n")
+                        if err2:
+                            self.after(0, self._actualizar_texto_auditoria, f"[ERROR] {err2}\n")
+                    else:
+                        self.after(0, self._actualizar_texto_auditoria, f"[ADVERTENCIA] Herramienta {nombre} no encontrada en el sistema.\n")
+                if not alguna_encontrada:
+                    self.after(0, self._actualizar_texto_auditoria, "[ERROR] No se encontró ninguna herramienta de detección de rootkits instalada. Instala rkhunter, chkrootkit o lynis.\n")
+                self.after(0, self._actualizar_texto_auditoria, "\n=== DETECCIÓN FINALIZADA ===\n")
             except Exception as e:
                 self.after(0, self._actualizar_texto_auditoria, f"ERROR detectando rootkits: {str(e)}\n")
         threading.Thread(target=ejecutar, daemon=True).start()
@@ -507,21 +552,19 @@ class VistaAuditoria(tk.Frame):
             self.auditoria_text.config(state=tk.DISABLED)
     
     def cancelar_rootkits(self):
-        """Cancelar detección de rootkits mediante terminación de procesos activos."""
         def ejecutar():
             try:
                 self._actualizar_texto_auditoria("=== CANCELANDO DETECCIÓN ROOTKITS ===\n")
-                from aresitos.utils.gestor_permisos import ejecutar_comando_seguro
                 procesos_rootkits = ['rkhunter', 'chkrootkit', 'unhide', 'lynis']
                 procesos_terminados = 0
                 for proceso in procesos_rootkits:
                     try:
-                        exito, out, err = ejecutar_comando_seguro('pgrep', ['-f', proceso])
+                        exito, out, err = self._gestor_permisos.ejecutar_con_permisos('pgrep', ['-f', proceso])
                         if exito and out.strip():
                             pids = out.strip().split('\n')
                             for pid in pids:
                                 if pid.strip():
-                                    exito_kill, _, err_kill = ejecutar_comando_seguro('kill', ['-TERM', pid.strip()])
+                                    exito_kill, _, err_kill = self._gestor_permisos.ejecutar_con_permisos('kill', ['-TERM', pid.strip()])
                                     if exito_kill:
                                         self._actualizar_texto_auditoria(f"OK Terminado proceso {proceso} (PID: {pid.strip()})\n")
                                         procesos_terminados += 1
@@ -540,7 +583,7 @@ class VistaAuditoria(tk.Frame):
                 ]
                 for archivo in archivos_temp:
                     try:
-                        exito_rm, _, err_rm = ejecutar_comando_seguro('rm', ['-f', archivo])
+                        exito_rm, _, err_rm = self._gestor_permisos.ejecutar_con_permisos('rm', ['-f', archivo])
                         if not exito_rm:
                             self._actualizar_texto_auditoria(f"[ERROR] Fallo eliminando archivo temporal {archivo}: {err_rm}\n")
                     except Exception as e:
@@ -552,7 +595,6 @@ class VistaAuditoria(tk.Frame):
         threading.Thread(target=ejecutar, daemon=True).start()
     
     def ejecutar_nuclei(self):
-        """Ejecutar auditoría completa con nuclei - escáner de vulnerabilidades profesional mejorado."""
         if self.proceso_auditoria_activo:
             self._actualizar_texto_auditoria("ERROR Auditoría nuclei ya en ejecución\n")
             return
@@ -583,7 +625,6 @@ class VistaAuditoria(tk.Frame):
         self.thread_auditoria.start()
     
     def ejecutar_httpx(self):
-        """Ejecutar escaneo web completo con httpx - probe HTTP avanzado."""
         def ejecutar():
             try:
                 self._actualizar_texto_auditoria("=== INICIANDO ESCANEO HTTPX ===\n")
@@ -605,14 +646,12 @@ class VistaAuditoria(tk.Frame):
         threading.Thread(target=ejecutar, daemon=True).start()
     
     def analizar_suid_sgid(self):
-        """Analizar archivos SUID/SGID."""
         def ejecutar():
             try:
                 self._actualizar_texto_auditoria(" Analizando archivos SUID/SGID...\n")
-                from aresitos.utils.gestor_permisos import ejecutar_comando_seguro
                 try:
                     self._actualizar_texto_auditoria(" Buscando archivos SUID...\n")
-                    exito_suid, out_suid, err_suid = ejecutar_comando_seguro('find', ['/', '-perm', '-4000', '-type', 'f', '2>/dev/null'], timeout=30)
+                    exito_suid, out_suid, err_suid = self._gestor_permisos.ejecutar_con_permisos('find', ['/', '-perm', '-4000', '-type', 'f', '2>/dev/null'], timeout=30)
                     if out_suid:
                         archivos_suid = out_suid.strip().split('\n')[:20]
                         self._actualizar_texto_auditoria(f" Archivos SUID encontrados ({len(archivos_suid)} de muchos):\n")
@@ -620,7 +659,7 @@ class VistaAuditoria(tk.Frame):
                             if archivo.strip():
                                 self._actualizar_texto_auditoria(f"  {archivo}\n")
                     self._actualizar_texto_auditoria(" Buscando archivos SGID...\n")
-                    exito_sgid, out_sgid, err_sgid = ejecutar_comando_seguro('find', ['/', '-perm', '-2000', '-type', 'f', '2>/dev/null'], timeout=30)
+                    exito_sgid, out_sgid, err_sgid = self._gestor_permisos.ejecutar_con_permisos('find', ['/', '-perm', '-2000', '-type', 'f', '2>/dev/null'], timeout=30)
                     if out_sgid:
                         archivos_sgid = out_sgid.strip().split('\n')[:20]
                         self._actualizar_texto_auditoria(f" Archivos SGID encontrados ({len(archivos_sgid)} de muchos):\n")
@@ -635,11 +674,22 @@ class VistaAuditoria(tk.Frame):
         threading.Thread(target=ejecutar, daemon=True).start()
     
     def auditar_ssh(self):
-        """Auditar configuración SSH (stub seguro)."""
-        self._actualizar_texto_auditoria("[INFO] Auditoría SSH aún no implementada.\n")
+        self._actualizar_texto_auditoria("[INFO] Auditando configuración SSH...\n")
+        try:
+            sshd_config = os.path.join(self.etc_dir, 'ssh', 'sshd_config')
+            if os.path.exists(sshd_config):
+                exito, out, err = self._ejecutar_comando_seguro(f'grep -E "^PermitRootLogin|^PasswordAuthentication|^Port" {sshd_config}', "Opciones críticas SSH", timeout=10, usar_sudo=True)
+                if out:
+                    self._actualizar_texto_auditoria(f"\n--- Opciones críticas ---\n{out}\n")
+                if err:
+                    self._actualizar_texto_auditoria(f"[ERROR] {err}\n")
+            else:
+                self._actualizar_texto_auditoria("[ADVERTENCIA] sshd_config no encontrado.\n")
+        except Exception as e:
+            self._actualizar_texto_auditoria(f"[ERROR] No se pudo auditar SSH: {e}\n")
+        self._actualizar_texto_auditoria("[INFO] Auditoría SSH finalizada.\n\n")
     
     def verificar_password_policy(self):
-        """Verificar políticas de contraseñas."""
         def ejecutar():
             try:
                 self._actualizar_texto_auditoria(" Verificando políticas de contraseñas...\n")
@@ -647,12 +697,11 @@ class VistaAuditoria(tk.Frame):
                 import os
                 
                 try:
-                    from aresitos.utils.gestor_permisos import ejecutar_comando_seguro
                     # Verificar /etc/login.defs
                     login_defs_path = os.path.join(self.etc_dir, 'login.defs')
                     if os.path.exists(login_defs_path):
                         self._actualizar_texto_auditoria(f" Configuración en {login_defs_path}:\n")
-                        exito_grep, out_grep, err_grep = ejecutar_comando_seguro('grep', ['-E', 'PASS_MAX_DAYS|PASS_MIN_DAYS|PASS_MIN_LEN|PASS_WARN_AGE', login_defs_path])
+                        exito_grep, out_grep, err_grep = self._gestor_permisos.ejecutar_con_permisos('grep', ['-E', 'PASS_MAX_DAYS|PASS_MIN_DAYS|PASS_MIN_LEN|PASS_WARN_AGE', login_defs_path])
                         if out_grep:
                             for linea in out_grep.split('\n'):
                                 if linea.strip() and not linea.startswith('#'):
@@ -661,7 +710,7 @@ class VistaAuditoria(tk.Frame):
                     pam_common_path = os.path.join(self.etc_dir, 'pam.d', 'common-password')
                     if os.path.exists(pam_common_path):
                         self._actualizar_texto_auditoria(f" Configuración PAM (common-password):\n")
-                        exito_pam, out_pam, err_pam = ejecutar_comando_seguro('grep', ['pam_pwquality', pam_common_path])
+                        exito_pam, out_pam, err_pam = self._gestor_permisos.ejecutar_con_permisos('grep', ['pam_pwquality', pam_common_path])
                         if out_pam:
                             self._actualizar_texto_auditoria(f"  OK pwquality configurado\n")
                         else:
@@ -669,7 +718,7 @@ class VistaAuditoria(tk.Frame):
                     # Verificar usuarios con contraseñas vacías
                     self._actualizar_texto_auditoria(" Verificando usuarios sin contraseña:\n")
                     shadow_path = os.path.join(self.etc_dir, 'shadow')
-                    exito_awk, out_awk, err_awk = ejecutar_comando_seguro('awk', ['-F:', '($2 == "") {print $1}', shadow_path])
+                    exito_awk, out_awk, err_awk = self._gestor_permisos.ejecutar_con_permisos('awk', ['-F:', '($2 == "") {print $1}', shadow_path])
                     if out_awk and out_awk.strip():
                         self._actualizar_texto_auditoria("  WARNING Usuarios sin contraseña encontrados:\n")
                         for usuario in out_awk.split('\n'):
@@ -686,19 +735,15 @@ class VistaAuditoria(tk.Frame):
         threading.Thread(target=ejecutar, daemon=True).start()
 
     def _log_terminal(self, mensaje, modulo="AUDITORIA", nivel="INFO"):
-        """Registrar mensaje en el terminal integrado global."""
-        # Usar el terminal global de VistaDashboard
         from aresitos.vista.vista_dashboard import VistaDashboard
         VistaDashboard.log_actividad_global(mensaje, modulo, nivel)
 
     def _analizar_resultados_chkrootkit(self, output):
-        """Analizar resultados de chkrootkit de forma robusta y mostrar todo en pantalla."""
         try:
             lineas = output.split('\n')
             sospechas_criticas = []
             sospechas_moderadas = []
             total_checks = 0
-            # Patrones mejorados de detección para chkrootkit
             patrones_criticos = ['INFECTED', 'SUSPECT', 'MALWARE', 'ROOTKIT', 'TROJAN']
             patrones_moderados = ['WARNING', 'POSSIBLE', 'SUSPICIOUS', 'UNKNOWN']
             for linea in lineas:
@@ -706,10 +751,8 @@ class VistaAuditoria(tk.Frame):
                 if not linea_clean:
                     continue
                 linea_upper = linea_clean.upper()
-                # Contar checks realizados (líneas que contienen "CHECKING")
                 if 'CHECKING' in linea_upper:
                     total_checks += 1
-                # Clasificar hallazgos por criticidad
                 if any(patron in linea_upper for patron in patrones_criticos):
                     sospechas_criticas.append(linea_clean)
                 elif any(patron in linea_upper for patron in patrones_moderados):

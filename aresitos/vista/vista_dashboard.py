@@ -185,38 +185,9 @@ class VistaDashboard(tk.Frame):
         self.actualizacion_activa = False
         self.shell_detectado = self._detectar_shell()
 
-        # Favicon cartoon seguro multiplataforma para la ventana principal (centralizado)
+    # ...existing code...
         # ...existing code...
 
-    def _set_favicon(self, parent):
-        """Carga el favicon cartoon border collie (iconito.png) de forma robusta y multiplataforma (Kali/VM), solo si no está ya puesto."""
-        try:
-            from tkinter import PhotoImage, messagebox
-            import os
-            root = parent.winfo_toplevel() if hasattr(parent, 'winfo_toplevel') else parent
-            if hasattr(root, '_aresitos_icono_set') and root._aresitos_icono_set:
-                return
-            base_dir = os.path.abspath(os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..'))
-            icon_path = os.path.join(base_dir, 'recursos', 'icono', 'iconito.png')
-            if os.path.exists(icon_path):
-                try:
-                    self._icon_img = PhotoImage(file=icon_path)
-                    root.iconphoto(True, self._icon_img)
-                    root._aresitos_icono_set = True
-                except Exception as e:
-                    print(f"[ARESITOS] Error cargando icono: {e}")
-                    messagebox.showwarning("Icono no cargado", f"No se pudo cargar el icono: {e}\nRuta: {icon_path}")
-            else:
-                print(f"[ARESITOS] Icono no encontrado en: {icon_path}")
-                messagebox.showwarning("Icono no encontrado", f"No se encontró el icono en: {icon_path}")
-        except Exception as e:
-            print(f"[ARESITOS] Error inesperado cargando icono: {e}")
-            try:
-                from tkinter import messagebox
-                messagebox.showwarning("Error inesperado", f"Error inesperado cargando icono: {e}")
-            except Exception:
-                pass
-        # ...existing code...
 
         # Variables para el terminal integrado
         self.terminal_handler = None

@@ -135,6 +135,26 @@ class VistaReportes(tk.Frame):
                                                      font=('Consolas', 10),
                                                      relief='flat', bd=1)
         self.reporte_text.pack(fill=tk.BOTH, expand=True)
+        # Explicación general del reporte
+        explicacion = (
+            "INFORME DE SEGURIDAD ARESITOS\n"
+            "============================\n"
+            "Este informe proporciona un análisis completo y estructurado del estado de seguridad de su sistema Kali Linux.\n\n"
+            "¿Qué encontrará en este informe?\n"
+            "- Un resumen claro y detallado de cada área clave de seguridad, organizado por módulos:\n"
+            "   • Dashboard: Estado general y resumen del sistema.\n"
+            "   • Escaneo: Resultados de análisis de red y vulnerabilidades detectadas.\n"
+            "   • Monitoreo: Actividad de procesos y eventos relevantes en tiempo real.\n"
+            "   • FIM: Integridad y cambios en archivos críticos del sistema.\n"
+            "   • SIEM: Eventos de seguridad y correlación de incidentes.\n"
+            "   • Cuarentena: Elementos y amenazas aisladas para su revisión.\n\n"
+            "¿Cómo usar este informe?\n"
+            "- Revise cada sección para identificar riesgos, anomalías o áreas de mejora.\n"
+            "- Utilice la información como base para auditorías, análisis forense o acciones preventivas.\n"
+            "- Puede personalizar el contenido seleccionando los módulos a incluir desde el panel derecho.\n\n"
+            "Este informe está diseñado para ser claro, profesional y útil tanto para usuarios técnicos como para responsables de seguridad.\n\n"
+        )
+        self.reporte_text.insert('end', explicacion)
         
         # Panel derecho con tema
         right_frame = tk.Frame(main_frame, bg=self.colors['bg_secondary'])

@@ -210,8 +210,7 @@ class VistaGestionDatos(tk.Frame):
             (" Guardar", self.guardar_archivo, '#FF9800'),
             (" Eliminar", self.eliminar_archivo, '#f44336'),
             (" Exportar", self.exportar_archivo, '#9C27B0'),
-            (" Análisis Kali", self.analizar_con_kali, '#FF5722'),
-            ("[SECURITY] Formatos", self.mostrar_ayuda_formatos, '#607D8B')
+            (" Análisis Kali", self.analizar_con_kali, '#FF5722')
         ]
         
         for i, (texto, comando, color) in enumerate(acciones):
@@ -233,9 +232,8 @@ class VistaGestionDatos(tk.Frame):
         
         # Botones de gestión de archivos
         gestión_acciones = [
-            ("[PROCESO] Refrescar", self.cargar_archivos, '#17a2b8'),
-            ("📁 Abrir Carpeta", self.abrir_carpeta_actual, '#007acc'),
-            ("[STATS] Estadísticas", self.obtener_estadisticas_datos, '#6c757d')
+            ("Refrescar", self.cargar_archivos, '#17a2b8'),
+            ("📁 Abrir Carpeta", self.abrir_carpeta_actual, '#007acc')
         ]
         
         for texto, comando, color in gestión_acciones:
@@ -345,10 +343,10 @@ class VistaGestionDatos(tk.Frame):
             archivos.sort(key=lambda x: x.name.lower())
             
             # Mostrar información de refresco
-            self._log_terminal(f"[PROCESO] Actualizando lista de {tipo_str}... Encontrados {len(archivos)} archivos", "GESTION")
+            self._log_terminal(f"Actualizando lista de {tipo_str}... Encontrados {len(archivos)} archivos", "GESTION")
             
             for archivo in archivos:
-                # Mostrar nombre del archivo con icono según tipo
+                # ...existing code...
                 if archivo.suffix == '.json':
                     icono = "📄"
                 else:
@@ -368,7 +366,7 @@ class VistaGestionDatos(tk.Frame):
         selection = self.lista_archivos.curselection()
         if selection:
             nombre_archivo = self.lista_archivos.get(selection[0])
-            # Quitar el icono del nombre
+            # ...existing code...
             nombre_archivo = nombre_archivo.split(' ', 1)[1]
             
             if self.tipo_actual == "wordlists":

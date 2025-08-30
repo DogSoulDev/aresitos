@@ -132,23 +132,7 @@ class VistaFIM(tk.Frame):
         except Exception:
             return False
 
-    def _deshabilitar_todo_fim_por_root(self):
-        # Deshabilita todos los botones de monitoreo y muestra advertencia
-        try:
-            if hasattr(self, 'btn_iniciar'):
-                self.btn_iniciar.config(state="disabled")
-            if hasattr(self, 'btn_detener'):
-                self.btn_detener.config(state="disabled")
-            if hasattr(self, 'btn_verificar'):
-                self.btn_verificar.config(state="disabled")
-            if hasattr(self, 'btn_monitoreo_avanzado'):
-                self.btn_monitoreo_avanzado.config(state="disabled")
-            if hasattr(self, 'btn_analisis_forense'):
-                self.btn_analisis_forense.config(state="disabled")
-            if hasattr(self, 'btn_tiempo_real'):
-                self.btn_tiempo_real.config(state="disabled")
-        except Exception:
-            pass
+    # Eliminada función de deshabilitar botones por root/sudo. Ahora el feedback es solo al intentar usar funciones avanzadas.
     
     def _log_terminal(self, mensaje, modulo="FIM", nivel="INFO"):
         """Registrar actividad en el terminal integrado global."""
@@ -503,18 +487,12 @@ class VistaFIM(tk.Frame):
         """Iniciar monitoreo continuo con información detallada."""
         if self.proceso_monitoreo_activo:
             return
-        # Comprobar privilegios solo al iniciar monitoreo
-        if not self._es_root():
-            self._actualizar_texto_fim("[ERROR] FIM requiere privilegios root/sudo para monitoreo avanzado. Ejecute ARESITOS como root o con sudo.\n")
-            self._log_terminal("Intento de iniciar monitoreo FIM sin privilegios root", "FIM", "WARNING")
-            return
+        # Permitir iniciar monitoreo aunque no sea root, pero mostrar advertencia si alguna función lo requiere
         self.proceso_monitoreo_activo = True
         self._habilitar_botones_monitoreo(False)
-        # Log al terminal integrado
         self._log_terminal("Iniciando sistema FIM - File Integrity Monitoring", "FIM", "INFO")
         self.log_to_terminal("FIM Iniciando monitoreo FIM del sistema...")
         self._actualizar_texto_fim("=== INICIANDO MONITOREO FIM - FILE INTEGRITY MONITORING ===\n\n")
-        # Ejecutar en thread separado
         self.thread_monitoreo = threading.Thread(target=self._ejecutar_monitoreo_async)
         self.thread_monitoreo.daemon = True
         self.thread_monitoreo.start()
@@ -540,8 +518,9 @@ class VistaFIM(tk.Frame):
                 self.after(0, self._actualizar_texto_fim, "COMANDO: find /etc -type f -mtime -1\n")
                 self.after(0, self._actualizar_texto_fim, "PROPÓSITO: Archivos de configuración modificados en las últimas 24 horas\n")
                 try:
-                    from aresitos.utils.gestor_permisos import ejecutar_comando_seguro
-                    exito, out, err = ejecutar_comando_seguro('find', ['/etc', '-type', 'f', '-mtime', '-1'])
+                    from aresitos.utils.gestor_permisos import GestorPermisosSeguro
+                    gestor = GestorPermisosSeguro()
+                    exito, out, err = gestor.ejecutar_con_permisos('find', ['/etc', '-type', 'f', '-mtime', '-1'])
                     if exito and out:
                         archivos_modificados = out.strip().split('\n')
                         self.after(0, self._actualizar_texto_fim, f"RESULTADO: {len(archivos_modificados)} archivos modificados\n")
@@ -558,8 +537,9 @@ class VistaFIM(tk.Frame):
                 self.after(0, self._actualizar_texto_fim, "COMANDO: find /usr/bin -perm -4000 -type f\n")
                 self.after(0, self._actualizar_texto_fim, "PROPÓSITO: Detectar binarios con permisos SUID sospechosos\n")
                 try:
-                    from aresitos.utils.gestor_permisos import ejecutar_comando_seguro
-                    exito, out, err = ejecutar_comando_seguro('find', ['/usr/bin', '-perm', '-4000', '-type', 'f'])
+                    from aresitos.utils.gestor_permisos import GestorPermisosSeguro
+                    gestor = GestorPermisosSeguro()
+                    exito, out, err = gestor.ejecutar_con_permisos('find', ['/usr/bin', '-perm', '-4000', '-type', 'f'])
                     if exito and out:
                         binarios_suid = out.strip().split('\n')
                         self.after(0, self._actualizar_texto_fim, f"RESULTADO: {len(binarios_suid)} binarios con SUID encontrados\n")
@@ -585,8 +565,9 @@ class VistaFIM(tk.Frame):
             self.after(0, self._actualizar_texto_fim, "COMANDO: lsof -i :22,80,443,8080,4444\n")
             self.after(0, self._actualizar_texto_fim, "PROPÓSITO: Detectar procesos usando puertos comunes y backdoors\n")
             try:
-                from aresitos.utils.gestor_permisos import ejecutar_comando_seguro
-                exito, out, err = ejecutar_comando_seguro('lsof', ['-i', ':22,80,443,8080,4444'])
+                from aresitos.utils.gestor_permisos import GestorPermisosSeguro
+                gestor = GestorPermisosSeguro()
+                exito, out, err = gestor.ejecutar_con_permisos('lsof', ['-i', ':22,80,443,8080,4444'])
                 if exito and out:
                     conexiones = out.strip().split('\n')[1:]
                     self.after(0, self._actualizar_texto_fim, f"RESULTADO: {len(conexiones)} conexiones activas en puertos críticos\n")

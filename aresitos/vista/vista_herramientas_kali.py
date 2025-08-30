@@ -37,11 +37,9 @@ class VistaHerramientasKali(tk.Frame):
     
     def __init__(self, parent, callback_completado=None):
         super().__init__(parent)
-        
         # VERIFICACIÓN CRÍTICA: Solo para Kali Linux (con soporte modo desarrollo)
         import sys
         modo_desarrollo = '--dev' in sys.argv or '--desarrollo' in sys.argv
-        
         if not self._verificar_kali_linux() and not modo_desarrollo:
             messagebox.showerror(
                 "Error - Solo Kali Linux", 
@@ -52,15 +50,12 @@ class VistaHerramientasKali(tk.Frame):
             )
             self.destroy()
             return
-        
         if modo_desarrollo:
             print("[MODO DESARROLLO] VistaHerramientasKali: Ejecutando en entorno no-Kali")
-            
         self.controlador = None  # Patrón MVC
         self.callback_completado = callback_completado
         self.proceso_activo = False
         self.logger = logging.getLogger(__name__)
-        
         # Configurar tema
         if BURP_THEME_AVAILABLE and burp_theme:
             self.theme = burp_theme
@@ -79,12 +74,14 @@ class VistaHerramientasKali(tk.Frame):
                 'bg_primary': '#2e2e2e',
                 'bg_secondary': '#404040',
                 'fg_primary': '#ffffff',
-                'fg_accent': '#ff6633',
+                'fg_accent': '#00ffe7',
                 'button_bg': '#007acc',
                 'success': '#00ff00',
-                'warning': '#ffaa00'
+                'warning': '#ffcc00'
             }
             self.configure(bg=self.colors['bg_primary'])
+        # Construir la interfaz gráfica
+        self.crear_interfaz()
 
 
 

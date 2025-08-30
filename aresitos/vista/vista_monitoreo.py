@@ -163,39 +163,11 @@ class VistaMonitoreo(tk.Frame):
                 'info': 'blue'
             }
 
-    # Favicon cartoon border collie (iconito.png) seguro multiplataforma para la ventana principal (centralizado, compatible con Kali Linux y VMs)
-        self._set_favicon(parent)
+    # ...existing code...
         self.crear_widgets()
         self.actualizar_estado()
 
-    def _set_favicon(self, parent):
-        """Carga el favicon cartoon border collie (iconito.png) de forma robusta y multiplataforma (Kali/VM), solo si no está ya puesto."""
-        try:
-            from tkinter import PhotoImage, messagebox
-            import os
-            root = parent.winfo_toplevel() if hasattr(parent, 'winfo_toplevel') else parent
-            if hasattr(root, '_aresitos_icono_set') and root._aresitos_icono_set:
-                return
-            base_dir = os.path.abspath(os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..', '..'))
-            icon_path = os.path.join(base_dir, 'recursos', 'icono', 'iconito.png')
-            if os.path.exists(icon_path):
-                try:
-                    self._icon_img = PhotoImage(file=icon_path)
-                    root.iconphoto(True, self._icon_img)
-                    root._aresitos_icono_set = True
-                except Exception as e:
-                    print(f"[ARESITOS] Error cargando icono: {e}")
-                    messagebox.showwarning("Icono no cargado", f"No se pudo cargar el icono: {e}\nRuta: {icon_path}")
-            else:
-                print(f"[ARESITOS] Icono no encontrado en: {icon_path}")
-                messagebox.showwarning("Icono no encontrado", f"No se encontró el icono en: {icon_path}")
-        except Exception as e:
-            print(f"[ARESITOS] Error inesperado cargando icono: {e}")
-            try:
-                from tkinter import messagebox
-                messagebox.showwarning("Error inesperado", f"Error inesperado cargando icono: {e}")
-            except Exception:
-                pass
+    # ...existing code...
     
     def set_controlador(self, controlador):
         self.controlador = controlador
@@ -231,16 +203,31 @@ class VistaMonitoreo(tk.Frame):
                 }
             else:
                 # Ejecutar comando normal
-                from aresitos.utils.gestor_permisos import ejecutar_comando_seguro
-                herramienta = comando[0]
-                argumentos = comando[1:]
-                exito, out, err = ejecutar_comando_seguro(herramienta, argumentos, timeout=timeout)
-                return {
-                    'success': exito,
-                    'output': out,
-                    'error': err,
-                    'returncode': 0 if exito else 1
-                }
+                from aresitos.utils.seguridad_comandos import validar_comando_seguro
+                comando_str = ' '.join(comando)
+                valido, comando_sanitizado, mensaje = validar_comando_seguro(comando_str)
+                if not valido:
+                    return {
+                        'success': False,
+                        'output': '',
+                        'error': f'Comando no permitido: {mensaje}',
+                        'returncode': -5
+                    }
+                try:
+                    resultado = subprocess.run(comando, capture_output=True, text=True, timeout=timeout)
+                    return {
+                        'success': resultado.returncode == 0,
+                        'output': resultado.stdout,
+                        'error': resultado.stderr,
+                        'returncode': resultado.returncode
+                    }
+                except Exception as e:
+                    return {
+                        'success': False,
+                        'output': '',
+                        'error': f'Error ejecutando comando: {str(e)}',
+                        'returncode': -6
+                    }
             
         except subprocess.TimeoutExpired:
             return {
