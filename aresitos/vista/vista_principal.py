@@ -17,7 +17,7 @@ import logging
 import os
 import gc  # Issue 21/24 - Optimización de memoria
 import threading  # Issue 21/24 - Gestión de hilos
-from tkinter import PhotoImage
+from tkinter import messagebox
 
 # Importar todas las vistas disponibles
 from aresitos.vista.vista_dashboard import VistaDashboard
@@ -50,59 +50,25 @@ class VistaPrincipal(tk.Frame):
         # Configurar logging
         self.logger = logging.getLogger(__name__)
 
-        # Favicon cartoon seguro multiplataforma para la ventana principal (centralizado)
-        self._set_favicon(parent)
-
-    def _set_favicon(self, parent):
-        """Carga el favicon cartoon border collie de forma robusta y multiplataforma, solo si no está ya puesto."""
-        try:
-            from tkinter import PhotoImage, messagebox
-            import os
-            root = parent.winfo_toplevel() if hasattr(parent, 'winfo_toplevel') else parent
-            if hasattr(root, '_aresitos_icono_set') and root._aresitos_icono_set:
-                return
-            base_dir = os.path.abspath(os.path.join(os.path.dirname(os.path.abspath(__file__)), '..'))
-            icon_path = os.path.join(base_dir, 'recursos', 'icono', 'iconito.png')
-            if os.path.exists(icon_path):
-                try:
-                    self._icon_img = PhotoImage(file=icon_path)
-                    root.iconphoto(True, self._icon_img)
-                    root._aresitos_icono_set = True
-                except Exception as e:
-                    print(f"[ARESITOS] Error cargando icono: {e}")
-                    messagebox.showwarning("Icono no cargado", f"No se pudo cargar el icono: {e}\nRuta: {icon_path}")
-            else:
-                print(f"[ARESITOS] Icono no encontrado en: {icon_path}")
-                messagebox.showwarning("Icono no encontrado", f"No se encontró el icono en: {icon_path}")
-        except Exception as e:
-            print(f"[ARESITOS] Error inesperado cargando icono: {e}")
-            try:
-                from tkinter import messagebox
-                messagebox.showwarning("Error inesperado", f"Error inesperado cargando icono: {e}")
-            except Exception:
-                pass
-
-        # Solo aplicar tema si está disponible
-        if BURP_THEME_AVAILABLE:
+        # Inicializar tema visual
+        if BURP_THEME_AVAILABLE and burp_theme:
             self.theme = burp_theme
-            self.setup_burp_theme(parent)
         else:
             self.theme = None
         self.crear_widgets()
+
+    # ...existing code...
 
     def setup_burp_theme(self, parent):
         """Configura el tema visual de Burp Suite"""
         if not self.theme:
             return
-            
         # Configurar el fondo de la ventana principal
         parent.configure(bg=self.theme.get_color('bg_primary'))
         self.configure(bg=self.theme.get_color('bg_primary'))
-        
         # Configurar estilos TTK
         self.style = ttk.Style()
         self.theme.configure_ttk_style(self.style)
-        
         # Aplicar estilos específicos para el notebook
         self.style.configure('Custom.TNotebook', 
                            background=self.theme.get_color('bg_primary'),
@@ -202,73 +168,40 @@ class VistaPrincipal(tk.Frame):
         self.crear_barra_estado()
     
     def crear_barra_titulo(self):
-        """Crea la barra de título estilo Burp Suite"""
-        if self.theme:
-            titulo_frame = tk.Frame(self, bg=self.theme.get_color('bg_secondary'), height=50)
-        else:
-            titulo_frame = tk.Frame(self, bg='#3c3c3c', height=50)  # Gris oscuro Burp Suite
+        """Crea la barra de título sin iconos ni referencias a temas externos."""
+        # Frame de título
+        titulo_frame = tk.Frame(self, bg='#3c3c3c', height=50)
         titulo_frame.pack(fill="x", padx=2, pady=(2, 0))
         titulo_frame.pack_propagate(False)
-        
-        # Logo y título principal con icono
-        titulo_main_frame = tk.Frame(titulo_frame, bg=self.theme.get_color('bg_secondary') if self.theme else '#3c3c3c')
-        titulo_main_frame.pack(side="left", padx=15, pady=5)
-        
+
         # Título principal
-        if self.theme:
-            titulo_label = tk.Label(
-                titulo_main_frame,
-                text="Aresitos",
-                font=("Arial", 16, "bold"),
-                fg=self.theme.get_color('fg_accent'),
-                bg=self.theme.get_color('bg_secondary')
-            )
-        else:
-            titulo_label = tk.Label(
-                titulo_main_frame,
-                text="Aresitos",
-                font=("Arial", 16, "bold"),
-                fg='#ff6633',
-                bg='#3c3c3c'
-            )
-        titulo_label.pack(side="left")
-        
+        titulo_label = tk.Label(
+            titulo_frame,
+            text="Aresitos",
+            font=("Arial", 16, "bold"),
+            fg='#ff6633',
+            bg='#3c3c3c'
+        )
+        titulo_label.pack(side="left", padx=15, pady=5)
+
         # Subtítulo
-        if self.theme:
-            subtitulo_label = tk.Label(
-                titulo_frame,
-                text="Herramienta de Ciberseguridad",
-                font=("Arial", 9),
-                fg=self.theme.get_color('fg_secondary'),
-                bg=self.theme.get_color('bg_secondary')
-            )
-        else:
-            subtitulo_label = tk.Label(
-                titulo_frame,
-                text="Herramienta de Ciberseguridad",
-                font=("Arial", 9),
-                fg='#cccccc',
-                bg='#3c3c3c'
-            )
+        subtitulo_label = tk.Label(
+            titulo_frame,
+            text="Herramienta de Ciberseguridad",
+            font=("Arial", 9),
+            fg='#cccccc',
+            bg='#3c3c3c'
+        )
         subtitulo_label.pack(side="left", padx=(5, 0), pady=10)
-        
+
         # Información del sistema
-        if self.theme:
-            info_label = tk.Label(
-                titulo_frame,
-                text="DogSoulDev crafted in Galicia",
-                font=("Arial", 8),
-                fg=self.theme.get_color('fg_secondary'),
-                bg=self.theme.get_color('bg_secondary')
-            )
-        else:
-            info_label = tk.Label(
-                titulo_frame,
-                text="DogSoulDev crafted in Galicia",
-                font=("Arial", 8),
-                fg='#cccccc',
-                bg='#3c3c3c'
-            )
+        info_label = tk.Label(
+            titulo_frame,
+            text="DogSoulDev crafted in Galicia",
+            font=("Arial", 8),
+            fg='#cccccc',
+            bg='#3c3c3c'
+        )
         info_label.pack(side="right", padx=15, pady=10)
     
     def crear_notebook_principal(self):

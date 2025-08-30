@@ -1,6 +1,6 @@
 # ARESITOS - Herramienta de Ciberseguridad
 
-![ARESITOS](aresitos/recursos/aresitos.png)
+
 
 > **Recomendación importante:**
 > Antes de instalar o ejecutar ARESITOS, asegúrate de tener tu sistema Kali Linux completamente actualizado para evitar problemas de dependencias o incompatibilidades:
@@ -87,9 +87,7 @@ python3 main.py --dev
 
 ## Capturas de pantalla
 
-![Vista Login](aresitos/recursos/capturas/vista_login.png)
-![Vista Herramientas](aresitos/recursos/capturas/vista_herramientas.png)
-![Vista Principal](aresitos/recursos/capturas/vista_principal.png)
+
 
 ---
 
@@ -114,7 +112,7 @@ aresitos/
 │   ├── vista_escaneo.py             # Panel de escaneo de vulnerabilidades
 │   ├── vista_reportes.py            # Panel de reportes
 │   └── ...                          # Otras vistas especializadas
-├── utils/           # Utilidades y módulos auxiliares: configuración, detección de red, sanitización, permisos, comandos, detección de sistema, iconos, etc.
+├── utils/           # Utilidades y módulos auxiliares: configuración, detección de red, sanitización, permisos, comandos, detección de sistema, etc.
 │   ├── configurar.py                 # Configuración y utilidades generales
 │   ├── detector_red.py               # Detección de red y objetivos
 │   ├── sanitizador_archivos.py       # Sanitización y validación de archivos
@@ -122,9 +120,8 @@ aresitos/
 │   ├── detector_sistema.py           # Detección robusta de sistema operativo/distribución
 │   ├── permisos_sistema.py           # Verificación de root/admin multiplataforma
 │   └── ...                          # Otros scripts de soporte
-├── recursos/        # Imágenes, iconos, capturas de pantalla y recursos gráficos
-│   ├── aresitos.png                  # Icono principal
-│   ├── iconos/                      # Iconos adicionales
+├── recursos/        # Imágenes, capturas de pantalla y recursos gráficos
+
 │   └── ...
 ├── data/            # Datos persistentes: bases de datos SQLite, cuarentena, wordlists, diccionarios, cheatsheets
 │   ├── fim_kali2025.db               # Base de datos de integridad de archivos
@@ -207,13 +204,7 @@ Este proyecto no habría sido posible sin el apoyo y la formación recibida en e
 
 ---
 
-## Logos institucionales
 
-<p align="center">
-  <img src="aresitos/recursos/tfm/logo.png" alt="Logo TFM" width="120" style="margin: 0 20px;"/>
-  <img src="aresitos/recursos/tfm/logo_tele.png" alt="Logo Teleco" width="120" style="margin: 0 20px;"/>
-  <img src="aresitos/recursos/tfm/logo_uni.png" alt="Logo UCAM" width="120" style="margin: 0 20px;"/>
-</p>
 
 ## Instalación manual paso a paso (alternativa)
 

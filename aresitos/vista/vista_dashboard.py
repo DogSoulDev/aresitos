@@ -186,7 +186,7 @@ class VistaDashboard(tk.Frame):
         self.shell_detectado = self._detectar_shell()
 
         # Favicon cartoon seguro multiplataforma para la ventana principal (centralizado)
-        self._set_favicon(parent)
+        # ...existing code...
 
     def _set_favicon(self, parent):
         """Carga el favicon cartoon border collie (iconito.png) de forma robusta y multiplataforma (Kali/VM), solo si no está ya puesto."""
@@ -216,6 +216,7 @@ class VistaDashboard(tk.Frame):
                 messagebox.showwarning("Error inesperado", f"Error inesperado cargando icono: {e}")
             except Exception:
                 pass
+        # ...existing code...
 
         # Variables para el terminal integrado
         self.terminal_handler = None

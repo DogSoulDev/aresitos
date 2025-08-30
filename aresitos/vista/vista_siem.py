@@ -94,32 +94,11 @@ class VistaSIEM(tk.Frame):
                 'info': 'blue'
             }
         
-        # Favicon cartoon seguro multiplataforma para la ventana principal (centralizado)
-        self._set_favicon(parent)
+
         self.vista_principal = parent  # Referencia al padre para acceder al terminal
         self.crear_interfaz()
 
-    def _set_favicon(self, parent):
-        """Carga el favicon cartoon border collie de forma robusta y multiplataforma, solo si no está ya puesto."""
-        try:
-            from tkinter import PhotoImage
-            import platform
-            import os
-            root = parent.winfo_toplevel() if hasattr(parent, 'winfo_toplevel') else parent
-            # Evitar recargar el icono si ya está puesto
-            if hasattr(root, '_aresitos_icono_set') and root._aresitos_icono_set:
-                return
-            base_dir = os.path.abspath(os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..'))
-            icon_path = os.path.join(base_dir, 'recursos', 'icono', 'iconito.png')
-            if os.path.exists(icon_path):
-                try:
-                    self._icon_img = PhotoImage(file=icon_path)
-                    root.iconphoto(True, self._icon_img)
-                    root._aresitos_icono_set = True
-                except Exception:
-                    pass
-        except Exception:
-            pass
+
     
     def set_controlador(self, controlador):
         self.controlador = controlador

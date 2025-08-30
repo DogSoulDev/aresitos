@@ -16,26 +16,7 @@ except ImportError:
     DetectorRed = None
 
 class VistaEscaneo(tk.Frame):
-    def _set_favicon(self, parent):
-        """Carga el favicon cartoon border collie de forma robusta y multiplataforma, solo si no está ya puesto."""
-        import os
-        try:
-            from tkinter import PhotoImage
-            base_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-            root = parent.winfo_toplevel() if hasattr(parent, 'winfo_toplevel') else parent
-            # Evitar recargar el icono si ya está puesto
-            if hasattr(root, '_aresitos_icono_set') and root._aresitos_icono_set:
-                return
-            icon_path = os.path.join(base_dir, 'recursos', 'icono', 'iconito.png')
-            if os.path.exists(icon_path):
-                try:
-                    self._icon_img = PhotoImage(file=icon_path)
-                    root.iconphoto(True, self._icon_img)
-                    root._aresitos_icono_set = True
-                except Exception:
-                    pass
-        except Exception:
-            pass
+
     @staticmethod
     def _get_base_dir():
         """Obtener la ruta base absoluta del proyecto ARESITOS."""
@@ -95,8 +76,7 @@ class VistaEscaneo(tk.Frame):
         self.controlador = controlador
     
     def crear_widgets(self):
-        # Favicon cartoon seguro multiplataforma para la ventana principal (centralizado)
-        self._set_favicon(self)
+
         # PanedWindow principal para dividir contenido y terminal
         self.paned_window = tk.PanedWindow(self, orient="vertical", bg=self.colors['bg_primary'])
         self.paned_window.pack(fill="both", expand=True, padx=5, pady=5)

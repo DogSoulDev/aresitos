@@ -248,7 +248,7 @@ include-package-data = true
 
 [tool.setuptools.package-data]
 aresitos = [
-    "recursos/*.ico",
+
     "recursos/cheatsheets/*.md",
     "configuracion/*.json"
 ]

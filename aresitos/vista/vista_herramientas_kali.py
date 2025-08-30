@@ -86,39 +86,9 @@ class VistaHerramientasKali(tk.Frame):
             }
             self.configure(bg=self.colors['bg_primary'])
 
-        # Favicon cartoon border collie (iconito.png) seguro multiplataforma para la ventana principal (centralizado, compatible con Kali Linux y VMs)
-        self._set_favicon(self)
 
-    def _set_favicon(self, parent):
-        """Carga el favicon cartoon border collie (iconito.png) de forma robusta y multiplataforma (Kali/VM), solo si no está ya puesto."""
-        try:
-            from tkinter import PhotoImage, messagebox
-            import os
-            root = parent.winfo_toplevel() if hasattr(parent, 'winfo_toplevel') else parent
-            if hasattr(root, '_aresitos_icono_set') and root._aresitos_icono_set:
-                return
-            base_dir = os.path.abspath(os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..'))
-            icon_path = os.path.join(base_dir, 'recursos', 'icono', 'iconito.png')
-            if os.path.exists(icon_path):
-                try:
-                    self._icon_img = PhotoImage(file=icon_path)
-                    root.iconphoto(True, self._icon_img)
-                    root._aresitos_icono_set = True
-                except Exception as e:
-                    print(f"[ARESITOS] Error cargando icono: {e}")
-                    messagebox.showwarning("Icono no cargado", f"No se pudo cargar el icono: {e}\nRuta: {icon_path}")
-            else:
-                print(f"[ARESITOS] Icono no encontrado en: {icon_path}")
-                messagebox.showwarning("Icono no encontrado", f"No se encontró el icono en: {icon_path}")
-        except Exception as e:
-            print(f"[ARESITOS] Error inesperado cargando icono: {e}")
-            try:
-                from tkinter import messagebox
-                messagebox.showwarning("Error inesperado", f"Error inesperado cargando icono: {e}")
-            except Exception:
-                pass
-        
-        self.crear_interfaz()
+
+
     
     def set_controlador(self, controlador: Optional[Any]):
         """Establecer controlador siguiendo patrón MVC"""
@@ -130,20 +100,7 @@ class VistaHerramientasKali(tk.Frame):
         main_frame = tk.Frame(self, bg=self.colors['bg_primary'])
         main_frame.pack(fill="both", expand=True, padx=20, pady=20)
         
-        # Icono estándar de Kali Linux (terminal)
-        try:
-            import os
-            icon_path = '/usr/share/icons/Adwaita/48x48/apps/utilities-terminal.png'
-            if os.path.exists(icon_path):
-                self.logo_img = tk.PhotoImage(file=icon_path)
-                logo_label = tk.Label(
-                    main_frame,
-                    image=self.logo_img,
-                    bg=self.colors['bg_primary']
-                )
-                logo_label.pack(pady=(0, 10))
-        except Exception:
-            pass  # Continuar sin icono si hay problemas
+
         
         # Título
         titulo_label = tk.Label(
