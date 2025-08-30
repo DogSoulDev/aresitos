@@ -104,7 +104,7 @@ class VistaReportes(tk.Frame):
             if hasattr(root, '_aresitos_icono_set') and root._aresitos_icono_set:
                 return
             base_dir = os.path.abspath(os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..'))
-            icon_path = os.path.join(base_dir, 'recursos', 'icono', 'aresitos_icono.png')
+            icon_path = os.path.join(base_dir, 'recursos', 'icono', 'iconito.png')
             if os.path.exists(icon_path):
                 try:
                     self._icon_img = PhotoImage(file=icon_path)
