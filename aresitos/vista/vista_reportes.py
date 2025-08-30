@@ -567,10 +567,11 @@ class VistaReportes(tk.Frame):
     
     def analizar_logs_kali(self):
         """Análisis avanzado de logs usando herramientas nativas de Kali con permisos seguros."""
-        from aresitos.utils.gestor_permisos import ejecutar_comando_seguro
         import datetime
         import json
+        from aresitos.utils.gestor_permisos import GestorPermisosSeguro
         def realizar_analisis():
+            gestor_permisos = GestorPermisosSeguro()
             try:
                 self.reporte_text.delete(1.0, tk.END)
                 self.reporte_text.insert(tk.END, "=== ANÁLISIS DE LOGS CON HERRAMIENTAS KALI ===\n\n")
@@ -582,21 +583,21 @@ class VistaReportes(tk.Frame):
                     "alertas": []
                 }
                 # Últimos errores críticos
-                exito, out, err = ejecutar_comando_seguro('cat', ['/var/log/syslog'])
+                exito, out, err = gestor_permisos.ejecutar_con_permisos('cat', ['/var/log/syslog'])
                 if exito:
                     lines = [l for l in out.split('\n') if 'error' in l.lower()]
                     analisis["logs_sistema"]["errores_syslog"] = lines[-10:]
                 else:
                     analisis["logs_sistema"]["errores_syslog"] = ["Error accediendo a syslog"]
                 # Análisis de autenticación
-                exito, out, err = ejecutar_comando_seguro('cat', ['/var/log/auth.log'])
+                exito, out, err = gestor_permisos.ejecutar_con_permisos('cat', ['/var/log/auth.log'])
                 if exito:
                     lines = [l for l in out.split('\n') if 'Failed' in l]
                     analisis["logs_sistema"]["fallos_auth"] = len(lines)
                 else:
                     analisis["logs_sistema"]["fallos_auth"] = 0
                 # Estadísticas de memoria y CPU (solo si permitido)
-                exito, out, err = ejecutar_comando_seguro('top', ['-bn1']) if 'top' in ejecutar_comando_seguro.__code__.co_varnames else (False, '', '')
+                exito, out, err = gestor_permisos.ejecutar_con_permisos('top', ['-bn1'])
                 if exito:
                     analisis["estadisticas"]["top_info"] = out.split('\n')[:5]
                 else:
@@ -612,10 +613,11 @@ class VistaReportes(tk.Frame):
     
     def generar_estadisticas_kali(self):
         """Generar estadísticas del sistema usando comandos nativos de Kali con permisos seguros."""
-        from aresitos.utils.gestor_permisos import ejecutar_comando_seguro
         import datetime
         import json
+        from aresitos.utils.gestor_permisos import GestorPermisosSeguro
         def generar():
+            gestor_permisos = GestorPermisosSeguro()
             try:
                 self.reporte_text.delete(1.0, tk.END)
                 self.reporte_text.insert(tk.END, "=== ESTADÍSTICAS DEL SISTEMA KALI ===\n\n")
@@ -628,31 +630,31 @@ class VistaReportes(tk.Frame):
                     "disco": {}
                 }
                 # Información del sistema
-                exito, out, err = ejecutar_comando_seguro('uname', ['-a']) if 'uname' in ejecutar_comando_seguro.__code__.co_varnames else (False, '', '')
+                exito, out, err = gestor_permisos.ejecutar_con_permisos('uname', ['-a'])
                 if exito:
                     estadisticas["sistema"]["kernel"] = out.strip()
                 else:
                     estadisticas["sistema"]["kernel"] = "Error obteniendo info del kernel"
                 # Uso de memoria
-                exito, out, err = ejecutar_comando_seguro('free', ['-h']) if 'free' in ejecutar_comando_seguro.__code__.co_varnames else (False, '', '')
+                exito, out, err = gestor_permisos.ejecutar_con_permisos('free', ['-h'])
                 if exito:
                     estadisticas["sistema"]["memoria"] = out.split('\n')[:3]
                 else:
                     estadisticas["sistema"]["memoria"] = ["Error obteniendo memoria"]
                 # Procesos activos
-                exito, out, err = ejecutar_comando_seguro('ps', ['aux', '--sort=-%cpu']) if 'ps' in ejecutar_comando_seguro.__code__.co_varnames else (False, '', '')
+                exito, out, err = gestor_permisos.ejecutar_con_permisos('ps', ['aux', '--sort=-%cpu'])
                 if exito:
                     estadisticas["procesos"]["top_cpu"] = out.split('\n')[:10]
                 else:
                     estadisticas["procesos"]["top_cpu"] = ["Error obteniendo procesos"]
                 # Conexiones de red
-                exito, out, err = ejecutar_comando_seguro('ss', ['-tuln'])
+                exito, out, err = gestor_permisos.ejecutar_con_permisos('ss', ['-tuln'])
                 if exito:
                     estadisticas["red"]["conexiones"] = len(out.split('\n'))
                 else:
                     estadisticas["red"]["conexiones"] = 0
                 # Uso del disco
-                exito, out, err = ejecutar_comando_seguro('df', ['-h']) if 'df' in ejecutar_comando_seguro.__code__.co_varnames else (False, '', '')
+                exito, out, err = gestor_permisos.ejecutar_con_permisos('df', ['-h'])
                 if exito:
                     estadisticas["disco"]["particiones"] = out.split('\n')[1:6]
                 else:
@@ -668,10 +670,11 @@ class VistaReportes(tk.Frame):
     
     def generar_informe_seguridad(self):
         """Generar informe de seguridad usando herramientas de Kali con permisos seguros."""
-        from aresitos.utils.gestor_permisos import ejecutar_comando_seguro
         import datetime
         import json
+        from aresitos.utils.gestor_permisos import GestorPermisosSeguro
         def generar_informe():
+            gestor_permisos = GestorPermisosSeguro()
             try:
                 self.reporte_text.delete(1.0, tk.END)
                 self.reporte_text.insert(tk.END, "=== INFORME DE SEGURIDAD KALI ===\n\n")
@@ -684,32 +687,32 @@ class VistaReportes(tk.Frame):
                     "red": {}
                 }
                 # Servicios activos
-                exito, out, err = ejecutar_comando_seguro('systemctl', ['list-units', '--type=service', '--state=running']) if 'systemctl' in ejecutar_comando_seguro.__code__.co_varnames else (False, '', '')
+                exito, out, err = gestor_permisos.ejecutar_con_permisos('systemctl', ['list-units', '--type=service', '--state=running'])
                 if exito:
                     servicios_activos = len([line for line in out.split('\n') if '.service' in line])
                     informe["servicios"]["activos"] = servicios_activos
                 else:
                     informe["servicios"]["activos"] = 0
                 # Usuarios conectados
-                exito, out, err = ejecutar_comando_seguro('who', []) if 'who' in ejecutar_comando_seguro.__code__.co_varnames else (False, '', '')
+                exito, out, err = gestor_permisos.ejecutar_con_permisos('who', [])
                 if exito:
                     informe["usuarios"]["conectados"] = len(out.split('\n')) - 1
                 else:
                     informe["usuarios"]["conectados"] = 0
                 # Archivos SUID
-                exito, out, err = ejecutar_comando_seguro('find', ['/usr', '-perm', '-4000', '-type', 'f']) if 'find' in ejecutar_comando_seguro.__code__.co_varnames else (False, '', '')
+                exito, out, err = gestor_permisos.ejecutar_con_permisos('find', ['/usr', '-perm', '-4000', '-type', 'f'])
                 if exito:
                     informe["archivos"]["suid_binaries"] = len(out.split('\n')) - 1
                 else:
                     informe["archivos"]["suid_binaries"] = 0
                 # Conexiones sospechosas
-                exito, out, err = ejecutar_comando_seguro('ss', ['-tuln'])
+                exito, out, err = gestor_permisos.ejecutar_con_permisos('ss', ['-tuln'])
                 if exito:
                     informe["red"]["puertos_escucha"] = len([line for line in out.split('\n') if 'LISTEN' in line])
                 else:
                     informe["red"]["puertos_escucha"] = 0
                 # Verificar logs de seguridad
-                exito, out, err = ejecutar_comando_seguro('cat', ['/var/log/auth.log'])
+                exito, out, err = gestor_permisos.ejecutar_con_permisos('cat', ['/var/log/auth.log'])
                 if exito:
                     informe["usuarios"]["fallos_auth"] = len([l for l in out.split('\n') if 'authentication failure' in l])
                 else:
