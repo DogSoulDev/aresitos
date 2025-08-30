@@ -203,7 +203,7 @@ class VistaGestionDatos(tk.Frame):
             btn_frame = tk.Frame(right_frame)
         btn_frame.pack(fill=tk.X, pady=(0, 10))
         
-        # Botones de acción
+        # Botones de acción (solo los requeridos, sin Formatos ni Estadísticas)
         acciones = [
             (" Cargar", self.cargar_archivo, '#4CAF50'),
             (" Editar", self.editar_archivo, '#2196F3'),
@@ -212,7 +212,6 @@ class VistaGestionDatos(tk.Frame):
             (" Exportar", self.exportar_archivo, '#9C27B0'),
             (" Análisis Kali", self.analizar_con_kali, '#FF5722')
         ]
-        
         for i, (texto, comando, color) in enumerate(acciones):
             if self.theme:
                 btn = tk.Button(btn_frame, text=texto, command=comando,
@@ -230,13 +229,12 @@ class VistaGestionDatos(tk.Frame):
             gestion_frame = tk.Frame(right_frame)
         gestion_frame.pack(fill=tk.X, pady=(5, 10))
         
-        # Botones de gestión de archivos
-        gestión_acciones = [
+        # Botones de gestión de archivos (sin [PROCESO] ni textos extra)
+        gestion_acciones = [
             ("Refrescar", self.cargar_archivos, '#17a2b8'),
             ("📁 Abrir Carpeta", self.abrir_carpeta_actual, '#007acc')
         ]
-        
-        for texto, comando, color in gestión_acciones:
+        for texto, comando, color in gestion_acciones:
             if self.theme:
                 btn = tk.Button(gestion_frame, text=texto, command=comando,
                               bg=color, fg='white', font=('Arial', 9),
@@ -475,12 +473,7 @@ class VistaGestionDatos(tk.Frame):
                 self.log_to_terminal(f"ERROR Error al cargar archivo: {str(e)}")
                 messagebox.showerror("Error", f"Error al cargar archivo: {str(e)}")
     
-    def mostrar_ayuda_formatos(self):
-        """Mostrar ayuda sobre formatos de archivo soportados."""
-        from aresitos.utils.helper_seguridad import HelperSeguridad
-        
-        self.log_to_terminal(f"INFO Mostrando ayuda de formatos para {self.tipo_actual}")
-        HelperSeguridad.mostrar_ayuda_formatos(self.tipo_actual)
+
     
     def editar_archivo(self):
         """Habilitar edición del archivo actual."""
