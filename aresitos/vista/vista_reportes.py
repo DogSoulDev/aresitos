@@ -162,28 +162,23 @@ class VistaReportes(tk.Frame):
         # Panel derecho con tema
         right_frame = tk.Frame(main_frame, bg=self.colors['bg_secondary'])
         right_frame.pack(side=tk.RIGHT, fill=tk.Y)
-        
         right_label = tk.Label(right_frame, text="Panel de Control",
                               font=('Arial', 12, 'bold'),
                               bg=self.colors['bg_secondary'], fg=self.colors['fg_accent'])
         right_label.pack(anchor=tk.W, pady=(0, 10))
-        
         # Frame de configuración con tema
         config_frame = tk.Frame(right_frame, bg=self.colors['bg_secondary'])
         config_frame.pack(fill=tk.X, pady=(0, 10))
-        
         config_label = tk.Label(config_frame, text="Incluir en el Reporte:",
                                font=('Arial', 10, 'bold'),
                                bg=self.colors['bg_secondary'], fg=self.colors['fg_primary'])
         config_label.pack(anchor=tk.W)
-        
         self.incluir_dashboard = tk.BooleanVar(value=True)
         self.incluir_escaneo = tk.BooleanVar(value=True)
         self.incluir_monitoreo = tk.BooleanVar(value=True)
         self.incluir_fim = tk.BooleanVar(value=True)
         self.incluir_siem = tk.BooleanVar(value=True)
         self.incluir_cuarentena = tk.BooleanVar(value=True)
-        
         opciones = [
             ("Datos de Dashboard", self.incluir_dashboard),
             ("Resultados de Escaneo", self.incluir_escaneo),
@@ -192,7 +187,6 @@ class VistaReportes(tk.Frame):
             ("Datos de SIEM (Herramientas Forenses)", self.incluir_siem),
             ("Estado de Cuarentena", self.incluir_cuarentena)
         ]
-        
         for texto, variable in opciones:
             cb = tk.Checkbutton(config_frame, text=texto, variable=variable,
                                bg=self.colors['bg_secondary'], fg=self.colors['fg_primary'],
@@ -201,13 +195,12 @@ class VistaReportes(tk.Frame):
                                activeforeground=self.colors['fg_accent'],
                                font=('Arial', 9))
             cb.pack(anchor=tk.W, pady=2)
-        
         # Botones de acción con tema Burp Suite
         botones_generar = [
             ("Generar Reporte Completo", self.generar_reporte_completo),
-            ("Actualizar Vista", self.actualizar_reporte)
+            ("Actualizar Vista", self.actualizar_reporte),
+            ("Exportar PDF", self.exportar_pdf)
         ]
-        
         for texto, comando in botones_generar:
             btn = tk.Button(right_frame, text=texto, command=comando,
                            bg=self.colors['fg_accent'], fg=self.colors['bg_primary'],
@@ -215,11 +208,9 @@ class VistaReportes(tk.Frame):
                            relief='flat', padx=10, pady=5,
                            activebackground=self.colors['warning'])
             btn.pack(fill=tk.X, pady=5)
-        
         # Separador con tema
         separador = tk.Frame(right_frame, height=2, bg=self.colors['bg_primary'])
         separador.pack(fill=tk.X, pady=10)
-        
         # Botones de gestión con tema Burp Suite
         botones_gestion = [
             ("Guardar JSON", self.guardar_json),
@@ -228,7 +219,6 @@ class VistaReportes(tk.Frame):
             ("Listar Reportes", self.listar_reportes),
             ("Limpiar Vista", self.limpiar_reporte)
         ]
-        
         for texto, comando in botones_gestion:
             btn = tk.Button(right_frame, text=texto, command=comando,
                            bg=self.colors['bg_primary'], fg=self.colors['fg_primary'],
@@ -236,47 +226,72 @@ class VistaReportes(tk.Frame):
                            relief='flat', padx=10, pady=5,
                            activebackground=self.colors['bg_secondary'])
             btn.pack(fill=tk.X, pady=5)
-        
         # Frame de información con tema
         info_frame = tk.Frame(right_frame, bg=self.colors['bg_secondary'])
         info_frame.pack(fill=tk.X, pady=(20, 0))
-        
         info_title = tk.Label(info_frame, text="Información",
                              font=('Arial', 10, 'bold'),
                              bg=self.colors['bg_secondary'], fg=self.colors['fg_accent'])
         info_title.pack(anchor=tk.W)
-        
         info_text = "Genera reportes completos del sistema con datos de Dashboard, Escaneo, Monitoreo, FIM, SIEM con herramientas forenses y estado de Cuarentena - optimizado para Kali Linux."
         info_label = tk.Label(info_frame, text=info_text, 
                              wraplength=180, justify=tk.LEFT,
                              bg=self.colors['bg_secondary'], fg=self.colors['fg_primary'],
                              font=('Arial', 9))
         info_label.pack(anchor=tk.W, pady=(5, 0))
-        
         # Frame de herramientas de análisis Kali
         kali_frame = tk.Frame(right_frame, bg=self.colors['bg_secondary'])
-        kali_frame.pack(fill=tk.X, pady=(10, 0))
-        
-        kali_title = tk.Label(kali_frame, text="Análisis Avanzado Kali",
+        kali_frame.pack(fill=tk.X, pady=(20, 0))
+        kali_title = tk.Label(kali_frame, text="Herramientas Kali Linux",
                              font=('Arial', 10, 'bold'),
                              bg=self.colors['bg_secondary'], fg=self.colors['fg_accent'])
         kali_title.pack(anchor=tk.W)
+        # ...
+    def exportar_pdf(self):
+        """Exportar el reporte mostrado a PDF usando enscript y ps2pdf (nativo Kali)."""
+        import tempfile, os, subprocess
+        from tkinter import messagebox, filedialog
+        try:
+            contenido = self.reporte_text.get(1.0, tk.END)
+            if not contenido.strip():
+                messagebox.showwarning("Advertencia", "No hay contenido para exportar")
+                return
+            # Guardar a archivo temporal TXT
+            with tempfile.NamedTemporaryFile(delete=False, suffix='.txt', mode='w', encoding='utf-8') as tmp_txt:
+                tmp_txt.write(contenido)
+                tmp_txt_path = tmp_txt.name
+            # Archivo temporal PS
+            tmp_ps_path = tmp_txt_path.replace('.txt', '.ps')
+            # Archivo destino PDF
+            pdf_destino = filedialog.asksaveasfilename(
+                title="Exportar Reporte PDF",
+                defaultextension=".pdf",
+                filetypes=[("Archivo PDF", "*.pdf"), ("Todos los archivos", "*.*")]
+            )
+            if not pdf_destino:
+                os.unlink(tmp_txt_path)
+                return
+            # 1. TXT a PS
+            res1 = subprocess.run(['enscript', '-B', '-o', tmp_ps_path, tmp_txt_path], capture_output=True, text=True)
+            if res1.returncode != 0:
+                os.unlink(tmp_txt_path)
+                messagebox.showerror("Error", f"Error ejecutando enscript: {res1.stderr}")
+                return
+            # 2. PS a PDF
+            res2 = subprocess.run(['ps2pdf', tmp_ps_path, pdf_destino], capture_output=True, text=True)
+            if res2.returncode != 0:
+                os.unlink(tmp_txt_path)
+                os.unlink(tmp_ps_path)
+                messagebox.showerror("Error", f"Error ejecutando ps2pdf: {res2.stderr}")
+                return
+            # Limpieza
+            os.unlink(tmp_txt_path)
+            os.unlink(tmp_ps_path)
+            messagebox.showinfo("Éxito", f"Reporte exportado correctamente a {pdf_destino}")
+        except Exception as e:
+            messagebox.showerror("Error", f"Error exportando PDF: {str(e)}")
         
-        # Botones de análisis con herramientas de Kali
-        botones_kali = [
-            ("Análisis de Logs", self.analizar_logs_kali),
-            ("Estadísticas Sistema", self.generar_estadisticas_kali),
-            ("Informe Seguridad", self.generar_informe_seguridad),
-            ("Comparar Reportes", self.comparar_reportes_kali)
-        ]
-        
-        for texto, comando in botones_kali:
-            btn = tk.Button(kali_frame, text=texto, command=comando,
-                           bg=self.colors['info'], fg=self.colors['bg_primary'],
-                           font=('Arial', 9, 'bold'),
-                           relief='flat', padx=8, pady=3,
-                           activebackground=self.colors['warning'])
-            btn.pack(fill=tk.X, pady=2)
+    # ... (widgets de análisis Kali solo deben estar en crear_interfaz)
         
         # Crear terminal integrado
         self.crear_terminal_integrado()
@@ -288,36 +303,34 @@ class VistaReportes(tk.Frame):
                 if not self.controlador:
                     messagebox.showerror("Error", "Controlador no configurado")
                     return
-                
                 self._actualizar_reporte_seguro("", "clear")
                 self._actualizar_reporte_seguro(" Generando reporte completo...\n\n")
-                
                 self.log_to_terminal("DATOS Recopilando datos del sistema...")
-                
-                # Obtener datos reales de cada módulo
-                datos_dashboard = self._obtener_datos_dashboard() if self.incluir_dashboard.get() else None
-                datos_escaneo = self._obtener_datos_escaneo() if self.incluir_escaneo.get() else None  
-                datos_monitoreo = self._obtener_datos_monitoreo() if self.incluir_monitoreo.get() else None
-                datos_fim = self._obtener_datos_fim() if self.incluir_fim.get() else None
-                datos_siem = self._obtener_datos_siem() if self.incluir_siem.get() else None
-                datos_cuarentena = self._obtener_datos_cuarentena() if self.incluir_cuarentena.get() else None
-                
-                # Capturar terminal principal de Aresitos - Issue 20/24
-                datos_terminal_principal = self._obtener_terminal_principal()
-                
-                self.log_to_terminal("REPORTE Generando reporte con módulos seleccionados...")
-                
-                # Llamar con parámetros correctos incluyendo terminal principal - Issue 20/24
+                # Obtener datos de todos los módulos y terminales posibles
+                datos_dashboard = self._obtener_datos_dashboard() if hasattr(self, 'incluir_dashboard') and self.incluir_dashboard.get() else self._obtener_datos_dashboard() if hasattr(self, '_obtener_datos_dashboard') else None
+                datos_escaneo = self._obtener_datos_escaneo() if hasattr(self, 'incluir_escaneo') and self.incluir_escaneo.get() else self._obtener_datos_escaneo() if hasattr(self, '_obtener_datos_escaneo') else None
+                datos_monitoreo = self._obtener_datos_monitoreo() if hasattr(self, 'incluir_monitoreo') and self.incluir_monitoreo.get() else self._obtener_datos_monitoreo() if hasattr(self, '_obtener_datos_monitoreo') else None
+                datos_fim = self._obtener_datos_fim() if hasattr(self, 'incluir_fim') and self.incluir_fim.get() else self._obtener_datos_fim() if hasattr(self, '_obtener_datos_fim') else None
+                datos_siem = self._obtener_datos_siem() if hasattr(self, 'incluir_siem') and self.incluir_siem.get() else self._obtener_datos_siem() if hasattr(self, '_obtener_datos_siem') else None
+                datos_cuarentena = self._obtener_datos_cuarentena() if hasattr(self, 'incluir_cuarentena') and self.incluir_cuarentena.get() else self._obtener_datos_cuarentena() if hasattr(self, '_obtener_datos_cuarentena') else None
+                # Capturar terminal principal y terminales de módulos si existen
+                datos_terminal_principal = self._obtener_terminal_principal() if hasattr(self, '_obtener_terminal_principal') else None
+                datos_terminales_modulos = {}
+                for nombre_modulo in ['dashboard', 'escaneo', 'monitoreo', 'fim', 'siem', 'cuarentena']:
+                    metodo = getattr(self, f'_obtener_terminal_{nombre_modulo}', None)
+                    if callable(metodo):
+                        datos_terminales_modulos[nombre_modulo] = metodo()
+                self.log_to_terminal("REPORTE Generando reporte con módulos y terminales asociados...")
                 self.reporte_actual = self.controlador.generar_reporte_completo(
                     datos_escaneo=datos_escaneo,
-                    datos_monitoreo=datos_monitoreo, 
-                    datos_utilidades=datos_dashboard,  # Dashboard como utilidades
+                    datos_monitoreo=datos_monitoreo,
+                    datos_utilidades=datos_dashboard,
                     datos_fim=datos_fim,
                     datos_siem=datos_siem,
                     datos_cuarentena=datos_cuarentena,
-                    datos_terminal_principal=datos_terminal_principal
+                    datos_terminal_principal=datos_terminal_principal,
+                    datos_terminales_modulos=datos_terminales_modulos
                 )
-                
                 if self.reporte_actual:
                     self.log_to_terminal("OK Reporte generado correctamente")
                     self.mostrar_reporte(self.reporte_actual)
@@ -325,25 +338,88 @@ class VistaReportes(tk.Frame):
                 else:
                     self._actualizar_reporte_seguro(" Error al generar el reporte")
                     self.log_to_terminal("ERROR Error al generar el reporte")
-                    
             except Exception as e:
                 self._actualizar_reporte_seguro(f" Error durante la generación: {str(e)}")
-        
-        # Issue 21/24: Threading optimizado con gestión de memoria
         thread = threading.Thread(target=generar, name="ReporteCompleto")
         thread.daemon = True
         thread.start()
-        
-        # Optimización de memoria después del threading
         gc.collect()
     
     def mostrar_reporte(self, reporte):
         self._actualizar_reporte_seguro("", "clear")
-        
         try:
             if isinstance(reporte, dict):
-                import json
-                texto_reporte = json.dumps(reporte, indent=2, ensure_ascii=False)
+                secciones = []
+                # Portada
+                secciones.append("="*80)
+                secciones.append("INFORME DE INCIDENTE Y SEGURIDAD - ARESITOS")
+                secciones.append("="*80)
+                secciones.append(f"Fecha de generación: {reporte.get('fecha_generacion', 'No disponible')}")
+                secciones.append(f"Versión: {reporte.get('version', 'ARESITOS')}")
+                secciones.append("")
+                # Resumen Ejecutivo
+                secciones.append("--- RESUMEN EJECUTIVO ---")
+                resumen = reporte.get('resumen', {})
+                for k, v in resumen.items():
+                    secciones.append(f"{k.replace('_',' ').capitalize()}: {v}")
+                secciones.append("")
+                # Detalles Técnicos por módulo
+                modulos = [
+                    ("DASHBOARD", reporte.get('dashboard', {})),
+                    ("ESCANEO", reporte.get('escaneo', {})),
+                    ("MONITOREO", reporte.get('monitoreo', {})),
+                    ("FIM", reporte.get('fim', {})),
+                    ("SIEM", reporte.get('siem', {})),
+                    ("CUARENTENA", reporte.get('cuarentena', {})),
+                    ("TERMINAL PRINCIPAL", reporte.get('terminal_principal', {})),
+                ]
+                secciones.append("--- DETALLES TÉCNICOS POR MÓDULO ---")
+                for nombre, datos in modulos:
+                    secciones.append("-"*60)
+                    secciones.append(f"[ {nombre} ]")
+                    if datos:
+                        if isinstance(datos, dict):
+                            for k, v in datos.items():
+                                secciones.append(f"  {k.replace('_',' ').capitalize()}: {v}")
+                        elif isinstance(datos, list):
+                            for item in datos:
+                                secciones.append(f"  - {item}")
+                        else:
+                            secciones.append(f"  {str(datos)}")
+                    else:
+                        secciones.append("  Sin datos disponibles.")
+                secciones.append("")
+                # Cronología (si existe)
+                if 'cronologia' in reporte:
+                    secciones.append("--- CRONOLOGÍA DEL INCIDENTE ---")
+                    for evento in reporte['cronologia']:
+                        secciones.append(f"- {evento}")
+                    secciones.append("")
+                # Acciones tomadas (si existe)
+                if 'acciones' in reporte:
+                    secciones.append("--- ACCIONES TOMADAS ---")
+                    for accion in reporte['acciones']:
+                        secciones.append(f"- {accion}")
+                    secciones.append("")
+                # Impacto (si existe)
+                if 'impacto' in reporte:
+                    secciones.append("--- IMPACTO ---")
+                    secciones.append(str(reporte['impacto']))
+                    secciones.append("")
+                # Lecciones aprendidas (si existe)
+                if 'lecciones_aprendidas' in reporte:
+                    secciones.append("--- LECCIONES APRENDIDAS ---")
+                    for leccion in reporte['lecciones_aprendidas']:
+                        secciones.append(f"- {leccion}")
+                    secciones.append("")
+                # Anexos (si existe)
+                if 'anexos' in reporte:
+                    secciones.append("--- ANEXOS ---")
+                    for anexo in reporte['anexos']:
+                        secciones.append(f"- {anexo}")
+                    secciones.append("")
+                secciones.append("="*80)
+                texto_reporte = "\n".join(secciones)
             else:
                 texto_reporte = str(reporte)
             self._actualizar_reporte_seguro(texto_reporte, "replace")

@@ -105,7 +105,18 @@ class VistaEscaneo(tk.Frame):
                                     activebackground=self.colors['danger'],
                                     activeforeground='white')
         self.btn_escanear.pack(side="left", padx=(0, 10))
-        
+
+        self.btn_actualizar_bases = tk.Button(
+            btn_frame,
+            text="Actualizar Bases",
+            command=self.actualizar_bases_datos,
+            bg=self.colors['info'], fg='white',
+            font=('Arial', 10, 'bold'),
+            relief='flat', padx=15, pady=8,
+            activebackground=self.colors['fg_accent'],
+            activeforeground='white')
+        self.btn_actualizar_bases.pack(side="left", padx=(0, 10))
+
         self.btn_cancelar_escaneo = tk.Button(btn_frame, text="Cancelar", 
                                             command=self.cancelar_escaneo,
                                             state="disabled",
@@ -115,7 +126,7 @@ class VistaEscaneo(tk.Frame):
                                             activebackground=self.colors['danger'],
                                             activeforeground='white')
         self.btn_cancelar_escaneo.pack(side="left", padx=(0, 15))
-        
+
         self.btn_logs = tk.Button(btn_frame, text="Ver Logs", 
                                 command=self.ver_logs,
                                 bg=self.colors['button_bg'], fg='white',
@@ -124,19 +135,19 @@ class VistaEscaneo(tk.Frame):
                                 activebackground=self.colors['fg_accent'],
                                 activeforeground='white')
         self.btn_logs.pack(side="left", padx=(0, 10))
-        
+
         # Barra de progreso
         self.progress_frame = tk.Frame(main_frame, bg=self.colors['bg_primary'])
         self.progress_frame.pack(fill="x", padx=10, pady=(10, 5))
-        
+
         self.progress_label = tk.Label(self.progress_frame, text="Estado: Listo", 
                                      bg=self.colors['bg_primary'], fg=self.colors['fg_primary'],
                                      font=('Arial', 9))
         self.progress_label.pack(side="left")
-        
+
         self.progress_bar = ttk.Progressbar(self.progress_frame, mode='determinate', length=300)
         self.progress_bar.pack(side="right", padx=(10, 0))
-        
+
         # Área de resultados con tema Burp Suite
         self.text_resultados = scrolledtext.ScrolledText(main_frame, height=20,
                                                        bg=self.colors['bg_secondary'], 
@@ -145,11 +156,35 @@ class VistaEscaneo(tk.Frame):
                                                        insertbackground=self.colors['fg_accent'],
                                                        selectbackground=self.colors['fg_accent'],
                                                        relief='flat', bd=1)
-        
+
         self.text_resultados.pack(fill="both", expand=True, padx=10)
-        
+
         # Crear terminal integrado
         self.crear_terminal_integrado()
+
+    def actualizar_bases_datos(self):
+        """Actualizar todas las bases de datos de firmas y herramientas soportadas."""
+        import threading
+        from aresitos.utils.actualizador_bases import actualizar_bases_datos
+        self.progress_label.config(text="Estado: Actualizando bases de datos...")
+        self.progress_bar['value'] = 0
+        self._log_terminal("Iniciando actualización de bases de datos...", "ACTUALIZADOR", "INFO")
+        self.log_to_terminal("Iniciando actualización de bases de datos...")
+        self.btn_actualizar_bases.config(state="disabled")
+        def run_update():
+            def callback(msg):
+                self._log_terminal(msg, "ACTUALIZADOR", "INFO")
+                self.log_to_terminal(msg)
+            resultados = actualizar_bases_datos(callback=callback)
+            self.progress_label.config(text="Estado: Actualización completada")
+            self.progress_bar['value'] = 100
+            for nombre, estado in resultados.items():
+                self._log_terminal(f"{nombre}: {estado}", "ACTUALIZADOR", "INFO")
+                self.log_to_terminal(f"{nombre}: {estado}")
+            self.btn_actualizar_bases.config(state="normal")
+        thread = threading.Thread(target=run_update)
+        thread.daemon = True
+        thread.start()
     
     def crear_terminal_integrado(self):
         """Crear terminal integrado Escaneo con diseño estándar coherente."""

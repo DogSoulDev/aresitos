@@ -1238,13 +1238,12 @@ class VistaMonitoreo(tk.Frame):
     def _detectar_dispositivos_red_seguro(self):
         """Detectar dispositivos de red con manejo robusto de errores - Issue 19/24."""
         try:
-            # Usar el método de comando seguro
+            # Usar el método de comando seguro para obtener redes locales
             resultado = self._ejecutar_comando_seguro(['ip', 'route', 'show'], timeout=10)
-            
             if not resultado['success']:
+                self.text_monitor.insert(tk.END, f"[FASE 1] Error obteniendo rutas: {resultado['error']}\n")
                 self._log_terminal(f"Error obteniendo rutas: {resultado['error']}", "MONITOREO-RED", "WARNING")
                 return
-            
             redes_locales = []
             for linea in resultado['output'].split('\n'):
                 if 'src' in linea and ('192.168.' in linea or '10.' in linea or '172.' in linea):
@@ -1253,36 +1252,47 @@ class VistaMonitoreo(tk.Frame):
                         red = partes[0]
                         if '/' in red:
                             redes_locales.append(red)
-                            
             if not redes_locales:
+                self.text_monitor.insert(tk.END, "[FASE 1] No se detectaron redes locales.\n")
                 self._log_terminal("No se detectaron redes locales", "MONITOREO-RED", "INFO")
                 return
-                            
-            # Escanear dispositivos en cada red local (limitado y seguro)
+            self.text_monitor.insert(tk.END, f"[FASE 1] Redes locales detectadas: {', '.join(redes_locales)}\n")
             dispositivos_encontrados = 0
-            for red in redes_locales[:1]:  # Solo la primera red para evitar timeouts
-                try:
-                    red_base = red.split('/')[0].rsplit('.', 1)[0]
-                    self._log_terminal(f"Escaneando red {red_base}.x", "MONITOREO-RED", "INFO")
-                    
-                    # Escanear solo primeras 5 IPs para evitar timeouts largos
-                    for i in range(1, 6):
+            dispositivos_info = []
+            # Usar nmap si está disponible para escaneo profesional
+            try:
+                resultado_nmap = self._ejecutar_comando_seguro(['nmap', '-sn', redes_locales[0]], timeout=15)
+                if resultado_nmap['success'] and resultado_nmap['output']:
+                    for linea in resultado_nmap['output'].split('\n'):
+                        if 'Nmap scan report for' in linea:
+                            ip = linea.split()[-1]
+                            dispositivos_encontrados += 1
+                            dispositivos_info.append(ip)
+                    if dispositivos_info:
+                        self.text_monitor.insert(tk.END, f"[FASE 1] Dispositivos detectados (nmap): {', '.join(dispositivos_info)}\n")
+                    else:
+                        self.text_monitor.insert(tk.END, "[FASE 1] No se detectaron dispositivos activos con nmap.\n")
+                else:
+                    self.text_monitor.insert(tk.END, "[FASE 1] nmap no disponible o sin resultados, usando ping básico...\n")
+                    # Fallback a ping básico
+                    red_base = redes_locales[0].split('/')[0].rsplit('.', 1)[0]
+                    for i in range(1, 11):
                         if not self.flag_red.is_set():
                             break
-                        
                         ip = f"{red_base}.{i}"
                         resultado_ping = self._ejecutar_comando_seguro(['ping', '-c', '1', '-W', '1', ip], timeout=3)
-                        
                         if resultado_ping['success'] and resultado_ping['returncode'] == 0:
                             dispositivos_encontrados += 1
-                            self._log_terminal(f"DISPOSITIVO DETECTADO: {ip} activo en red local", "MONITOREO-RED", "INFO")
-                                
-                except Exception as e:
-                    self._log_terminal(f"Error escaneando red {red}: {str(e)}", "MONITOREO-RED", "WARNING")
-                    
+                            dispositivos_info.append(ip)
+                    if dispositivos_info:
+                        self.text_monitor.insert(tk.END, f"[FASE 1] Dispositivos detectados (ping): {', '.join(dispositivos_info)}\n")
+                    else:
+                        self.text_monitor.insert(tk.END, "[FASE 1] No se detectaron dispositivos activos con ping.\n")
+            except Exception as e:
+                self.text_monitor.insert(tk.END, f"[FASE 1] Error usando nmap/ping: {str(e)}\n")
             self._log_terminal(f"Total dispositivos detectados: {dispositivos_encontrados}", "MONITOREO-RED", "INFO")
-            
         except Exception as e:
+            self.text_monitor.insert(tk.END, f"[FASE 1] Error en detección de dispositivos: {str(e)}\n")
             self._log_terminal(f"Error en detección segura de dispositivos: {str(e)}", "MONITOREO-RED", "WARNING")
 
     def _detectar_dispositivos_red(self):
@@ -1343,119 +1353,94 @@ class VistaMonitoreo(tk.Frame):
     def _monitorear_interfaces_red_seguro(self):
         """Monitorear interfaces de red de forma segura - Issue 19/24."""
         try:
-            # Obtener información de interfaces usando comando seguro
-            resultado = self._ejecutar_comando_seguro(['ip', 'addr', 'show'], timeout=10)
-            
+            resultado = self._ejecutar_comando_seguro(['ip', '-brief', 'addr'], timeout=10)
             if not resultado['success']:
+                self.text_monitor.insert(tk.END, f"[FASE 2] Error obteniendo interfaces: {resultado['error']}\n")
                 self._log_terminal(f"Error obteniendo interfaces: {resultado['error']}", "MONITOREO-RED", "WARNING")
                 return
-            
-            interfaces_activas = 0
-            interface_actual = None
-            
+            interfaces_activas = []
             for linea in resultado['output'].split('\n'):
-                if ': ' in linea and 'state' in linea.lower():
-                    partes = linea.split(': ')
-                    if len(partes) > 1:
-                        nombre = partes[1].split('@')[0]
-                        estado = 'UP' if 'state UP' in linea else 'DOWN'
-                        if estado == 'UP':
-                            interfaces_activas += 1
-                            self._log_terminal(f"INTERFAZ ACTIVA: {nombre}", "MONITOREO-RED", "INFO")
-                        
-                elif 'inet ' in linea and 'state UP' in str(interface_actual):
-                    ip = linea.strip().split()[1] if linea.strip().split() else "N/A"
-                    self._log_terminal(f"  IP asignada: {ip}", "MONITOREO-RED", "INFO")
-                    
-            self._log_terminal(f"Total interfaces activas: {interfaces_activas}", "MONITOREO-RED", "INFO")
-            
+                partes = linea.split()
+                if len(partes) >= 3 and partes[1] == 'UP':
+                    nombre = partes[0]
+                    ip = partes[2] if len(partes) > 2 else 'N/A'
+                    interfaces_activas.append(f"{nombre} ({ip})")
+            if interfaces_activas:
+                self.text_monitor.insert(tk.END, f"[FASE 2] Interfaces activas: {', '.join(interfaces_activas)}\n")
+            else:
+                self.text_monitor.insert(tk.END, "[FASE 2] No hay interfaces activas.\n")
+            self._log_terminal(f"Total interfaces activas: {len(interfaces_activas)}", "MONITOREO-RED", "INFO")
         except Exception as e:
+            self.text_monitor.insert(tk.END, f"[FASE 2] Error monitoreando interfaces: {str(e)}\n")
             self._log_terminal(f"Error monitoreando interfaces de red: {str(e)}", "MONITOREO-RED", "WARNING")
 
     def _monitorear_conexiones_activas_seguro(self):
         """Monitorear conexiones activas de forma segura - Issue 19/24."""
         try:
-            resultado = self._ejecutar_comando_seguro(['ss', '-tuln'], timeout=10)
-            
+            resultado = self._ejecutar_comando_seguro(['ss', '-tupna'], timeout=10)
             if not resultado['success']:
+                self.text_monitor.insert(tk.END, f"[FASE 3] Error obteniendo conexiones: {resultado['error']}\n")
                 self._log_terminal(f"Error obteniendo conexiones: {resultado['error']}", "MONITOREO-RED", "WARNING")
                 return
-            
-            conexiones_tcp = 0
-            conexiones_udp = 0
-            
+            conexiones_tcp = []
+            conexiones_udp = []
             for linea in resultado['output'].split('\n'):
-                if 'tcp' in linea.lower() and 'LISTEN' in linea:
-                    conexiones_tcp += 1
-                elif 'udp' in linea.lower():
-                    conexiones_udp += 1
-                    
-            self._log_terminal(f"CONEXIONES ACTIVAS: {conexiones_tcp} TCP, {conexiones_udp} UDP", "MONITOREO-RED", "INFO")
-            
+                if linea.startswith('tcp') and 'LISTEN' in linea:
+                    conexiones_tcp.append(linea)
+                elif linea.startswith('udp'):
+                    conexiones_udp.append(linea)
+            self.text_monitor.insert(tk.END, f"[FASE 3] Conexiones TCP en escucha: {len(conexiones_tcp)}\n")
+            for c in conexiones_tcp[:5]:
+                self.text_monitor.insert(tk.END, f"  {c}\n")
+            self.text_monitor.insert(tk.END, f"[FASE 3] Conexiones UDP: {len(conexiones_udp)}\n")
+            for c in conexiones_udp[:5]:
+                self.text_monitor.insert(tk.END, f"  {c}\n")
+            self._log_terminal(f"CONEXIONES ACTIVAS: {len(conexiones_tcp)} TCP, {len(conexiones_udp)} UDP", "MONITOREO-RED", "INFO")
         except Exception as e:
+            self.text_monitor.insert(tk.END, f"[FASE 3] Error monitoreando conexiones: {str(e)}\n")
             self._log_terminal(f"Error monitoreando conexiones: {str(e)}", "MONITOREO-RED", "WARNING")
 
     def _verificar_puertos_abiertos_seguro(self):
         """Verificar puertos abiertos de forma segura - Issue 19/24."""
         try:
-            resultado = self._ejecutar_comando_seguro(['netstat', '-tlnp'], timeout=10)
-            
+            resultado = self._ejecutar_comando_seguro(['ss', '-lntup'], timeout=10)
             if not resultado['success']:
+                self.text_monitor.insert(tk.END, f"[FASE 4] Error obteniendo puertos: {resultado['error']}\n")
                 self._log_terminal(f"Error obteniendo puertos: {resultado['error']}", "MONITOREO-RED", "WARNING")
                 return
-            
             puertos_tcp = []
             for linea in resultado['output'].split('\n'):
                 if 'LISTEN' in linea and ':' in linea:
                     partes = linea.split()
-                    if len(partes) >= 4:
-                        direccion = partes[3]
+                    if len(partes) >= 5:
+                        direccion = partes[4]
                         if ':' in direccion:
                             puerto = direccion.split(':')[-1]
                             if puerto.isdigit():
                                 puertos_tcp.append(puerto)
-                                
             puertos_unicos = list(set(puertos_tcp))
-            self._log_terminal(f"PUERTOS ABIERTOS: {len(puertos_unicos)} puertos TCP en escucha", "MONITOREO-RED", "INFO")
-            
-            # Mostrar algunos puertos importantes
+            self.text_monitor.insert(tk.END, f"[FASE 4] Puertos TCP abiertos: {', '.join(puertos_unicos) if puertos_unicos else 'Ninguno'}\n")
             puertos_importantes = ['22', '80', '443', '3389', '21', '25']
             for puerto in puertos_importantes:
                 if puerto in puertos_unicos:
-                    self._log_terminal(f"  Puerto crítico abierto: {puerto}", "MONITOREO-RED", "WARNING")
-                    
+                    self.text_monitor.insert(tk.END, f"  [ALERTA] Puerto crítico abierto: {puerto}\n")
+            self._log_terminal(f"PUERTOS ABIERTOS: {len(puertos_unicos)} puertos TCP en escucha", "MONITOREO-RED", "INFO")
         except Exception as e:
+            self.text_monitor.insert(tk.END, f"[FASE 4] Error verificando puertos: {str(e)}\n")
             self._log_terminal(f"Error verificando puertos: {str(e)}", "MONITOREO-RED", "WARNING")
 
     def _monitorear_trafico_red_seguro(self):
         """Monitorear tráfico de red de forma segura - Issue 19/24."""
         try:
-            resultado = self._ejecutar_comando_seguro(['cat', '/proc/net/dev'], timeout=5)
-            
+            resultado = self._ejecutar_comando_seguro(['ifstat', '-q', '1', '1'], timeout=5)
             if not resultado['success']:
+                self.text_monitor.insert(tk.END, f"[FASE 5] Error obteniendo estadísticas de red: {resultado['error']}\n")
                 self._log_terminal(f"Error obteniendo estadísticas de red: {resultado['error']}", "MONITOREO-RED", "WARNING")
                 return
-            
-            interfaces_con_trafico = 0
-            for linea in resultado['output'].split('\n'):
-                if ':' in linea and not linea.strip().startswith('Inter'):
-                    interface = linea.split(':')[0].strip()
-                    if interface not in ['lo']:  # Excluir loopback
-                        datos = linea.split(':')[1].split()
-                        if len(datos) >= 8:
-                            rx_bytes = int(datos[0]) if datos[0].isdigit() else 0
-                            tx_bytes = int(datos[8]) if datos[8].isdigit() else 0
-                            
-                            if rx_bytes > 0 or tx_bytes > 0:
-                                interfaces_con_trafico += 1
-                                rx_mb = rx_bytes / (1024*1024)
-                                tx_mb = tx_bytes / (1024*1024)
-                                self._log_terminal(f"TRAFICO {interface}: RX {rx_mb:.1f}MB, TX {tx_mb:.1f}MB", "MONITOREO-RED", "INFO")
-                                
-            if interfaces_con_trafico == 0:
-                self._log_terminal("Sin tráfico de red detectado", "MONITOREO-RED", "INFO")
-                
+            self.text_monitor.insert(tk.END, f"[FASE 5] Estadísticas de tráfico de red (ifstat):\n{resultado['output']}\n")
+            self._log_terminal(f"Tráfico de red mostrado con ifstat", "MONITOREO-RED", "INFO")
         except Exception as e:
+            self.text_monitor.insert(tk.END, f"[FASE 5] Error monitoreando tráfico: {str(e)}\n")
             self._log_terminal(f"Error monitoreando tráfico: {str(e)}", "MONITOREO-RED", "WARNING")
 
     def _verificar_configuracion_red_seguro(self):
