@@ -215,6 +215,59 @@ Este proyecto no habría sido posible sin el apoyo y la formación recibida en e
   <img src="aresitos/recursos/tfm/logo_uni.png" alt="Logo UCAM" width="120" style="margin: 0 20px;"/>
 </p>
 
+## Instalación manual paso a paso (alternativa)
+
+Si la instalación rápida falla o tienes un entorno personalizado, puedes instalar ARESITOS manualmente siguiendo estos pasos:
+
+1. **Clona el repositorio y entra en la carpeta:**
+   ```sh
+   git clone https://github.com/DogSoulDev/aresitos.git
+   cd aresitos
+   ```
+2. **Instala dependencias del sistema (Kali Linux):**
+   ```sh
+   sudo apt update && sudo apt install -y python3 python3-tk python3-venv nmap masscan nuclei gobuster ffuf feroxbuster wireshark autopsy sleuthkit hashdeep testdisk bulk-extractor dc3dd guymager git curl wget sqlite3
+   ```
+3. **Da permisos de ejecución a los scripts principales:**
+   ```sh
+   chmod +x configurar_kali.sh main.py
+   ```
+4. **Configura permisos para los archivos Python (opcional):**
+   ```sh
+   find . -name "*.py" -exec chmod +x {} \;
+   ```
+5. **Configura permisos para carpetas de datos y logs:**
+   ```sh
+   chmod -R 755 data/ logs/ configuración/
+   ```
+6. **Ejecuta el script de configuración (como root o con sudo):**
+   ```sh
+   sudo ./configurar_kali.sh
+   ```
+7. **Inicia la aplicación:**
+   ```sh
+   python3 main.py
+   ```
+
+> **Nota:** Si usas otra distribución Linux, adapta los comandos de instalación de dependencias a tu gestor de paquetes (por ejemplo, `apt`, `dnf`, `yum`, `zypper`, etc.).
+
+---
+
+## Solución de problemas de instalación
+
+- Si ves errores de permisos, ejecuta:
+  ```sh
+  chmod -R 755 data/ logs/ configuración/
+  find . -name "*.py" -exec chmod +x {} \;
+  ```
+- Si falta alguna dependencia, instálala manualmente con `sudo apt install <paquete>`.
+- Si usas entorno Python gestionado (externally-managed), instala dependencias vía APT, no con pip.
+- Si tienes problemas con la interfaz gráfica, asegúrate de tener instalado `python3-tk`.
+- Si el script de configuración no detecta alguna herramienta, instálala manualmente y vuelve a ejecutar el script.
+- Consulta la guía `documentacion/GUIA_INSTALACION.md` para más detalles y soluciones avanzadas.
+
+---
+
 ---
 
 ## DEDICATORIA

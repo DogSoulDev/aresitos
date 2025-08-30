@@ -110,11 +110,7 @@ class VistaFIM(tk.Frame):
                 'info': '#17a2b8'
             }
         self.crear_interfaz()
-        # Verificar permisos root al iniciar
-        if not self._es_root():
-            self._deshabilitar_todo_fim_por_root()
-            # Eliminar advertencia global de root: solo loguear en terminal si es necesario
-            self._actualizar_texto_fim("[INFO] FIM requiere privilegios elevados para ciertas operaciones.\n")
+        # No deshabilitar botones por privilegios al iniciar. Feedback solo al intentar usar funciones avanzadas.
 
 
     def _es_root(self):
@@ -507,15 +503,17 @@ class VistaFIM(tk.Frame):
         """Iniciar monitoreo continuo con información detallada."""
         if self.proceso_monitoreo_activo:
             return
-        
+        # Comprobar privilegios solo al iniciar monitoreo
+        if not self._es_root():
+            self._actualizar_texto_fim("[ERROR] FIM requiere privilegios root/sudo para monitoreo avanzado. Ejecute ARESITOS como root o con sudo.\n")
+            self._log_terminal("Intento de iniciar monitoreo FIM sin privilegios root", "FIM", "WARNING")
+            return
         self.proceso_monitoreo_activo = True
         self._habilitar_botones_monitoreo(False)
-        
         # Log al terminal integrado
         self._log_terminal("Iniciando sistema FIM - File Integrity Monitoring", "FIM", "INFO")
         self.log_to_terminal("FIM Iniciando monitoreo FIM del sistema...")
         self._actualizar_texto_fim("=== INICIANDO MONITOREO FIM - FILE INTEGRITY MONITORING ===\n\n")
-        
         # Ejecutar en thread separado
         self.thread_monitoreo = threading.Thread(target=self._ejecutar_monitoreo_async)
         self.thread_monitoreo.daemon = True

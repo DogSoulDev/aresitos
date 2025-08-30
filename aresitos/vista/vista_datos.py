@@ -40,29 +40,24 @@ class VistaGestionDatos(tk.Frame):
         super().__init__(parent)
         self.controlador = None
         self.vista_principal = parent  # Referencia al padre para acceder al terminal
-        # Configurar logging
         self.logger = logging.getLogger(__name__)
-        # Configuración del tema Burp Suite
         if BURP_THEME_AVAILABLE and burp_theme:
             self.theme = burp_theme
-            # Diccionario de colores consistente con otras vistas
             self.colors = {
-                'bg_primary': burp_theme.get_color('bg_primary'),      # #2b2b2b
-                'bg_secondary': burp_theme.get_color('bg_secondary'),  # #1e1e1e  
-                'fg_primary': burp_theme.get_color('fg_primary'),      # #ffffff
-                'fg_accent': burp_theme.get_color('fg_accent'),        # #ff6633
-                'success': burp_theme.get_color('success'),            # #00ff88
-                'warning': burp_theme.get_color('warning'),            # #ffcc00
-                'danger': burp_theme.get_color('danger'),              # #ff4444
-                'info': burp_theme.get_color('info')                   # #44aaff
+                'bg_primary': burp_theme.get_color('bg_primary'),
+                'bg_secondary': burp_theme.get_color('bg_secondary'),
+                'fg_primary': burp_theme.get_color('fg_primary'),
+                'fg_accent': burp_theme.get_color('fg_accent'),
+                'success': burp_theme.get_color('success'),
+                'warning': burp_theme.get_color('warning'),
+                'danger': burp_theme.get_color('danger'),
+                'info': burp_theme.get_color('info')
             }
             self.configure(bg=self.colors['bg_primary'])
-            # Configurar estilos TTK
             style = ttk.Style()
             burp_theme.configure_ttk_style(style)
         else:
             self.theme = None
-            # Colores por defecto para compatibilidad
             self.colors = {
                 'bg_primary': '#f0f0f0',
                 'bg_secondary': '#ffffff',
@@ -73,20 +68,19 @@ class VistaGestionDatos(tk.Frame):
                 'danger': '#cc0000',
                 'info': '#0066cc'
             }
-
-        # Inicializar rutas de datos robustas y relativas al root del proyecto
         self.ruta_wordlists = self._get_base_dir() / "data" / "wordlists"
         self.ruta_diccionarios = self._get_base_dir() / "data" / "diccionarios"
-
-
+        # Mostrar wordlists por defecto
+        self.tipo_actual = "wordlists"
+        self.archivo_seleccionado = None
+        self.crear_interfaz()
+        self.cargar_archivos()
 
     def set_controlador(self, controlador):
         self.controlador = controlador
         self.logger.info("Controlador establecido en VistaGestionDatos")
-        
-        # Cargar datos desde el controlador si está disponible
         self.actualizar_desde_controlador()
-    
+
     def crear_interfaz(self):
         """Crear interfaz principal con estilo Burp Suite."""
         # PanedWindow principal para dividir contenido y terminal

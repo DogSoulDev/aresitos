@@ -23,45 +23,47 @@ class VistaAuditoria(tk.Frame):
     # - Prohibido shell=True salvo justificación y validación exhaustiva.
     # - Si algún desarrollador necesita privilegios, usar solo gestor_permisos.
     # =============================================================
+    # Variables de clase solo para constantes, el resto en __init__
     herramientas_apt = [
         'lynis', 'rkhunter', 'chkrootkit', 'clamav', 'nuclei', 'httpx', 'linpeas', 'pspy'
     ]
-    import os
-    etc_dir = os.path.join(os.sep, 'etc')
-    var_log_dir = os.path.join(os.sep, 'var', 'log')
-    usr_bin_dir = os.path.join(os.sep, 'usr', 'bin')
-    usr_sbin_dir = os.path.join(os.sep, 'usr', 'sbin')
-    bin_dir = os.path.join(os.sep, 'bin')
-    sbin_dir = os.path.join(os.sep, 'sbin')
-    usr_local_bin_dir = os.path.join(os.sep, 'usr', 'local', 'bin')
-    usr_local_sbin_dir = os.path.join(os.sep, 'usr', 'local', 'sbin')
-    rutas_criticas = [
-        os.path.join(etc_dir, 'passwd'),
-        os.path.join(etc_dir, 'shadow'),
-        os.path.join(etc_dir, 'group'),
-        os.path.join(etc_dir, 'sudoers'),
-        os.path.join(etc_dir, 'ssh', 'sshd_config'),
-        os.path.join(etc_dir, 'hosts'),
-        os.path.join(var_log_dir, 'auth.log'),
-        os.path.join(var_log_dir, 'syslog'),
-        os.path.join(var_log_dir, 'kern.log'),
-        os.path.join(var_log_dir, 'secure'),
-        os.path.join(var_log_dir, 'wtmp'),
-        os.path.join(var_log_dir, 'btmp'),
-        usr_bin_dir + '/',
-        usr_sbin_dir + '/',
-        bin_dir + '/',
-        sbin_dir + '/',
-        usr_local_bin_dir + '/',
-        usr_local_sbin_dir + '/',
-        os.path.join(var_log_dir, 'lynis.log'),
-        os.path.join(var_log_dir, 'rkhunter.log'),
-        os.path.join(var_log_dir, 'chkrootkit.log')
-    ]
 
     def __init__(self, *args, **kwargs):
-    # NUNCA solicitar ni almacenar la contraseña de root en la interfaz.
-    # Si el usuario no es root, solo mostrar advertencia y bloquear acciones.
+        import os
+        # Inicializar rutas críticas y directorios
+        self.etc_dir = os.path.join(os.sep, 'etc')
+        self.var_log_dir = os.path.join(os.sep, 'var', 'log')
+        self.usr_bin_dir = os.path.join(os.sep, 'usr', 'bin')
+        self.usr_sbin_dir = os.path.join(os.sep, 'usr', 'sbin')
+        self.bin_dir = os.path.join(os.sep, 'bin')
+        self.sbin_dir = os.path.join(os.sep, 'sbin')
+        self.usr_local_bin_dir = os.path.join(os.sep, 'usr', 'local', 'bin')
+        self.usr_local_sbin_dir = os.path.join(os.sep, 'usr', 'local', 'sbin')
+        self.rutas_criticas = [
+            os.path.join(self.etc_dir, 'passwd'),
+            os.path.join(self.etc_dir, 'shadow'),
+            os.path.join(self.etc_dir, 'group'),
+            os.path.join(self.etc_dir, 'sudoers'),
+            os.path.join(self.etc_dir, 'ssh', 'sshd_config'),
+            os.path.join(self.etc_dir, 'hosts'),
+            os.path.join(self.var_log_dir, 'auth.log'),
+            os.path.join(self.var_log_dir, 'syslog'),
+            os.path.join(self.var_log_dir, 'kern.log'),
+            os.path.join(self.var_log_dir, 'secure'),
+            os.path.join(self.var_log_dir, 'wtmp'),
+            os.path.join(self.var_log_dir, 'btmp'),
+            self.usr_bin_dir + '/',
+            self.usr_sbin_dir + '/',
+            self.bin_dir + '/',
+            self.sbin_dir + '/',
+            self.usr_local_bin_dir + '/',
+            self.usr_local_sbin_dir + '/',
+            os.path.join(self.var_log_dir, 'lynis.log'),
+            os.path.join(self.var_log_dir, 'rkhunter.log'),
+            os.path.join(self.var_log_dir, 'chkrootkit.log')
+        ]
+        # NUNCA solicitar ni almacenar la contraseña de root en la interfaz.
+        # Si el usuario no es root, solo mostrar advertencia y bloquear acciones.
         super().__init__(*args, **kwargs)
         self.colors = {
             'bg_primary': '#232629',
@@ -80,13 +82,24 @@ class VistaAuditoria(tk.Frame):
                 self.colors.update(burp_theme)
         self.proceso_auditoria_activo = False
         self.crear_interfaz()
+        # Inicializar referencias para evitar errores de acceso temprano
+        # (Se asignan en crear_interfaz, pero aseguramos que existan)
+        if not hasattr(self, 'auditoria_text'):
+            self.auditoria_text = None
+        if not hasattr(self, 'comando_entry'):
+            self.comando_entry = None
+        # Mostrar mensaje inicial siempre
+        self._actualizar_texto_auditoria("[INFO] Auditoría de seguridad lista. Selecciona una acción o ejecuta un comando.\n")
         # Verificar permisos root o sesión sudo activa al iniciar
-        from aresitos.utils.sudo_manager import get_sudo_manager
-        sudo_manager = get_sudo_manager()
-        if not self._es_root() and not sudo_manager.is_sudo_active():
-            self._deshabilitar_todo_auditoria_por_root()
-            messagebox.showwarning("Permisos insuficientes", "Debes ejecutar ARESITOS como root para usar la Auditoría.")
-            self._actualizar_texto_auditoria("[ERROR] Debes ejecutar ARESITOS como root para usar la Auditoría.\n")
+        try:
+            from aresitos.utils.sudo_manager import get_sudo_manager
+            sudo_manager = get_sudo_manager()
+            if not self._es_root() and not sudo_manager.is_sudo_active():
+                # Solo deshabilitar botones, pero NO ocultar terminal ni entrada de comandos
+                self._deshabilitar_todo_auditoria_por_root()
+                self._actualizar_texto_auditoria("[ADVERTENCIA] Permisos insuficientes: algunas acciones están deshabilitadas. Ejecuta como root/sudo para acceso completo.\n")
+        except Exception:
+            pass
 
     def _es_root(self):
         try:
@@ -152,32 +165,45 @@ class VistaAuditoria(tk.Frame):
         self._actualizar_texto_auditoria("[INFO] Verificación de permisos no implementada aún.\n")
     def crear_interfaz(self):
         """Crear interfaz especializada para auditorías de seguridad."""
-        # PanedWindow principal para dividir contenido y terminal
-        self.paned_window = tk.PanedWindow(self, orient="vertical", bg=self.colors['bg_primary'])
+        self.configure(bg=self.colors['bg_primary'])
+        self.pack_propagate(False)
+        # PanedWindow principal para dividir botones (izquierda) y terminal (derecha)
+        self.paned_window = tk.PanedWindow(self, orient="horizontal", bg=self.colors['bg_primary'])
         self.paned_window.pack(fill="both", expand=True, padx=5, pady=5)
 
-        # Frame superior para el contenido principal
-        contenido_frame = tk.Frame(self.paned_window, bg=self.colors['bg_primary'])
-        self.paned_window.add(contenido_frame, minsize=400)
+        # Frame lateral izquierdo para botones
+        botones_frame = tk.Frame(self.paned_window, bg=self.colors['bg_primary'])
+        self.paned_window.add(botones_frame, minsize=220)
 
-        # Frame del título con tema Burp Suite
-        titulo_frame = tk.Frame(contenido_frame, bg=self.colors['bg_primary'])
+        # Frame principal derecho para terminal y entrada
+        terminal_frame = tk.Frame(self.paned_window, bg=self.colors['bg_primary'])
+        self.paned_window.add(terminal_frame, minsize=400)
+
+        # Frame del título
+        titulo_frame = tk.Frame(terminal_frame, bg=self.colors['bg_primary'])
         titulo_frame.pack(fill=tk.X, pady=(10, 10))
-
         titulo = tk.Label(titulo_frame, text="Auditoría de Seguridad del Sistema",
-                 bg=self.colors['bg_primary'], fg=self.colors['fg_accent'],
-                 font=('Arial', 16, 'bold'))
+             bg=self.colors['bg_primary'], fg=self.colors['fg_accent'],
+             font=('Arial', 16, 'bold'))
         titulo.pack(pady=10)
 
+        # Secciones de botones
+        self._crear_seccion_deteccion_malware(botones_frame)
+        self._crear_seccion_configuraciones(botones_frame)
+        self._crear_seccion_utilidades(botones_frame)
+
         # Área de texto para la terminal de auditoría
-        self.auditoria_text = tk.Text(self, wrap=tk.WORD, height=25, width=120, bg="#181818", fg="#00FF00", insertbackground="#00FF00")
+        self.auditoria_text = tk.Text(terminal_frame, wrap=tk.WORD, height=20, width=120, bg="#181818", fg="#00FF00", insertbackground="#00FF00")
         self.auditoria_text.pack(padx=10, pady=10, fill="both", expand=True)
 
-        # Entrada de comandos
-        self.comando_entry = tk.Entry(self, width=80, bg="#222", fg="#00FF00", insertbackground="#00FF00")
-        self.comando_entry.pack(padx=10, pady=5, fill="x")
+        # Etiqueta para la entrada de comandos
+        comando_label = tk.Label(terminal_frame, text="COMANDO:", bg=self.colors['bg_primary'], fg=self.colors['fg_accent'], font=('Arial', 10, 'bold'))
+        comando_label.pack(padx=10, anchor="w")
 
-        # ...otros widgets y botones...
+        # Entrada de comandos
+        self.comando_entry = tk.Entry(terminal_frame, width=80, bg="#222", fg="#00FF00", insertbackground="#00FF00")
+        self.comando_entry.pack(padx=10, pady=5, fill="x")
+        self.comando_entry.bind('<Return>', self.ejecutar_comando_entry)
 
     def _mostrar_info_seguridad(self):
         """Mostrar información de seguridad y buenas prácticas."""
@@ -233,7 +259,7 @@ class VistaAuditoria(tk.Frame):
         """Limpiar terminal Auditoría manteniendo cabecera."""
         try:
             import datetime
-            if hasattr(self, 'terminal_output'):
+            if hasattr(self, 'auditoria_text') and self.auditoria_text:
                 self.auditoria_text.delete(1.0, tk.END)
                 # Recrear cabecera estándar
                 self.auditoria_text.insert(tk.END, "="*60 + "\n")
@@ -247,16 +273,18 @@ class VistaAuditoria(tk.Frame):
     
     def ejecutar_comando_entry(self, event=None):
         """Ejecutar comando desde la entrada, sin validación de seguridad, si el usuario autenticó como root/sudo."""
-        comando = self.comando_entry.get().strip()
-        if not comando:
-            return
-        self.auditoria_text.insert(tk.END, f"\n> {comando}\n")
-        self.auditoria_text.see(tk.END)
-        self.comando_entry.delete(0, tk.END)
-        # Ejecutar el comando tal cual en thread
-        thread = threading.Thread(target=self._ejecutar_comando_async, args=(comando,))
-        thread.daemon = True
-        thread.start()
+        if hasattr(self, 'comando_entry') and self.comando_entry:
+            comando = self.comando_entry.get().strip()
+            if not comando:
+                return
+            if hasattr(self, 'auditoria_text') and self.auditoria_text:
+                self.auditoria_text.insert(tk.END, f"\n> {comando}\n")
+                self.auditoria_text.see(tk.END)
+            self.comando_entry.delete(0, tk.END)
+            # Ejecutar el comando tal cual en thread
+            thread = threading.Thread(target=self._ejecutar_comando_async, args=(comando,))
+            thread.daemon = True
+            thread.start()
     
     def _ejecutar_comando_async(self, comando):
         """Ejecutar comando de forma asíncrona, validando y registrando la acción."""
@@ -272,13 +300,13 @@ class VistaAuditoria(tk.Frame):
                 self.limpiar_terminal_auditoria()
                 return
             self._ejecutar_comando_seguro(comando, descripcion="Comando terminal usuario", timeout=30, usar_sudo=False, mostrar_en_terminal=True)
-            self.auditoria_text.see(tk.END)
+            if hasattr(self, 'auditoria_text') and self.auditoria_text:
+                self.auditoria_text.see(tk.END)
         threading.Thread(target=worker, daemon=True).start()
     
     def abrir_logs_auditoria(self):
-        """Abrir carpeta de logs Auditoría."""
-    # Acción no implementada aún.
-    pass
+        """Abrir carpeta de logs Auditoría (stub seguro)."""
+        self._actualizar_texto_auditoria("[INFO] Función para abrir logs aún no implementada.\n")
     
     def _crear_seccion_deteccion_malware(self, parent):
         """Crear sección de detección de malware y rootkits."""
@@ -457,26 +485,26 @@ class VistaAuditoria(tk.Frame):
 
     
     def guardar_auditoria(self):
+        if hasattr(self, 'auditoria_text') and self.auditoria_text:
             contenido = self.auditoria_text.get(1.0, tk.END)
             if not contenido.strip():
                 messagebox.showwarning("Advertencia", "No hay resultados para guardar")
                 return
-            
             archivo = filedialog.asksaveasfilename(
                 title="Guardar Resultados de Auditoria",
                 defaultextension=".txt",
                 filetypes=[("Archivo de texto", "*.txt"), ("Todos los archivos", "*.*")]
             )
-            
             if archivo:
                 with open(archivo, 'w', encoding='utf-8') as f:
                     f.write(contenido)
                 messagebox.showinfo("Exito", f"Auditoria guardada en {archivo}")
     
     def limpiar_auditoria(self):
-        self.auditoria_text.config(state=tk.NORMAL)
-        self.auditoria_text.delete(1.0, tk.END)
-        self.auditoria_text.config(state=tk.DISABLED)
+        if hasattr(self, 'auditoria_text') and self.auditoria_text:
+            self.auditoria_text.config(state=tk.NORMAL)
+            self.auditoria_text.delete(1.0, tk.END)
+            self.auditoria_text.config(state=tk.DISABLED)
     
     def cancelar_rootkits(self):
         """Cancelar detección de rootkits mediante terminación de procesos activos."""
@@ -607,40 +635,8 @@ class VistaAuditoria(tk.Frame):
         threading.Thread(target=ejecutar, daemon=True).start()
     
     def auditar_ssh(self):
-        """Auditar configuración SSH."""
-        def ejecutar():
-            try:
-                self._actualizar_texto_auditoria(" Auditando configuración SSH...\n")
-                from aresitos.utils.gestor_permisos import ejecutar_comando_seguro
-                import os
-                try:
-                    sshd_config_path = os.path.join(self.etc_dir, 'ssh', 'sshd_config')
-                    if os.path.exists(sshd_config_path):
-                        self._actualizar_texto_auditoria("OK SSH configurado en el sistema\n")
-                        try:
-                            with open(sshd_config_path, 'r') as f:
-                                for linea in f:
-                                    if linea.strip().startswith('Port'):
-                                        puerto = linea.strip().split()[1]
-                                        if puerto == '22':
-                                            self._actualizar_texto_auditoria("  WARNING Puerto por defecto 22 en uso\n")
-                                        else:
-                                            self._actualizar_texto_auditoria("  OK Puerto: Cambiado del puerto por defecto\n")
-                        except Exception as e:
-                            self._actualizar_texto_auditoria(f"ERROR leyendo sshd_config: {str(e)}\n")
-                    else:
-                        self._actualizar_texto_auditoria("ERROR SSH no encontrado o no configurado\n")
-                    exito, out, err = ejecutar_comando_seguro('systemctl', ['is-active', 'ssh'])
-                    if out.strip() == 'active':
-                        self._actualizar_texto_auditoria("OK Servicio SSH: Activo\n")
-                    else:
-                        self._actualizar_texto_auditoria("ERROR Servicio SSH: Inactivo\n")
-                except Exception as e:
-                    self._actualizar_texto_auditoria(f"ERROR auditando SSH: {str(e)}\n")
-                self._actualizar_texto_auditoria("OK Auditoría SSH completada\n\n")
-            except Exception as e:
-                self._actualizar_texto_auditoria(f"ERROR en auditoría SSH: {str(e)}\n")
-    # threading.Thread(target=ejecutar, daemon=True).start()  # Comentado: 'ejecutar' no está definido en este ámbito
+        """Auditar configuración SSH (stub seguro)."""
+        self._actualizar_texto_auditoria("[INFO] Auditoría SSH aún no implementada.\n")
     
     def verificar_password_policy(self):
         """Verificar políticas de contraseñas."""

@@ -52,19 +52,38 @@ class ThreadSafeFlag:
             self.flag = False
 
 class VistaMonitoreo(tk.Frame):
-    def _actualizar_texto_monitor_seguro(self, texto):
-        def _update():
+    def _monitorear_cambios_sistema(self):
+        """Detectar cambios recientes en directorios críticos y mostrar resultados en la vista."""
+        import subprocess
+        directorios_criticos = ['/etc', '/var', '/usr', '/bin', '/sbin', '/opt']
+        cambios_detectados = 0
+        for directorio in directorios_criticos:
             try:
-                if hasattr(self, 'text_monitor') and self.text_monitor.winfo_exists():
-                    self.text_monitor.insert(tk.END, texto)
-                    self.text_monitor.see(tk.END)
-            except (tk.TclError, AttributeError):
-                pass
-        try:
-            if hasattr(self, 'after'):
-                self.after(0, _update)
-        except RuntimeError:
-            pass
+                resultado = self._ejecutar_comando_seguro(['find', directorio, '-type', 'f', '-mmin', '-10'], timeout=20, usar_sudo=True)
+                if resultado['success']:
+                    archivos_modificados = resultado['output'].strip().split('\n') if resultado['output'].strip() else []
+                    if len(archivos_modificados) > 0:
+                        cambios_detectados += len(archivos_modificados)
+                        if len(archivos_modificados) > 5:
+                            self._log_terminal(f"MUCHOS CAMBIOS: {len(archivos_modificados)} archivos modificados en {directorio}", "MONITOREO", "WARNING")
+                            self.text_monitor.insert(tk.END, f"MUCHOS CAMBIOS: {len(archivos_modificados)} archivos modificados en {directorio}\n")
+                        else:
+                            for archivo in archivos_modificados[:3]:
+                                self._log_terminal(f"CAMBIO DETECTADO: {archivo}", "MONITOREO", "INFO")
+                                self.text_monitor.insert(tk.END, f"CAMBIO DETECTADO: {archivo}\n")
+                else:
+                    self._log_terminal(f"Error ejecutando find en {directorio}: {resultado['error']}", "MONITOREO", "WARNING")
+                    self.text_monitor.insert(tk.END, f"Error ejecutando find en {directorio}: {resultado['error']}\n")
+            except Exception as e:
+                self._log_terminal(f"Error monitoreando cambios en {directorio}: {str(e)}", "MONITOREO", "WARNING")
+                self.text_monitor.insert(tk.END, f"Error monitoreando cambios en {directorio}: {str(e)}\n")
+        if cambios_detectados == 0:
+            self._log_terminal("No se detectaron cambios recientes en el sistema", "MONITOREO", "INFO")
+            self.text_monitor.insert(tk.END, "No se detectaron cambios recientes en el sistema\n")
+        elif cambios_detectados > 20:
+            self._log_terminal(f"ALERTA: {cambios_detectados} cambios detectados en directorios criticos", "MONITOREO", "ERROR")
+            self.text_monitor.insert(tk.END, f"ALERTA: {cambios_detectados} cambios detectados en directorios críticos\n")
+        self.text_monitor.see(tk.END)
 
     def _actualizar_label_estado_seguro(self, texto):
         def _update():
@@ -714,46 +733,46 @@ class VistaMonitoreo(tk.Frame):
             pass
 
     def _monitoreo_completo_async(self):
-        """Ejecutar monitoreo completo de procesos, permisos y usuarios."""
+        """Ejecutar monitoreo completo de procesos, permisos y usuarios con feedback detallado en la vista."""
         import time
-        
         try:
-            try:
-                ciclo = 0
-                while not self.flag_monitoreo.is_set():
-                    ciclo += 1
-                    self._log_terminal(f"Ciclo de monitoreo #{ciclo} iniciado", "MONITOREO", "INFO")
-                    self._actualizar_texto_monitor_seguro(f"[CICLO {ciclo}] Monitoreo iniciado\n")
-                    # FASE 1: Monitorear procesos del sistema
-                    self._log_terminal("FASE 1: Monitoreando procesos del sistema", "MONITOREO", "INFO")
-                    self._monitorear_procesos_sistema()
-                    # FASE 2: Verificar permisos de archivos críticos
-                    self._log_terminal("FASE 2: Verificando permisos de archivos criticos", "MONITOREO", "INFO")
-                    self._monitorear_permisos_archivos()
-                    # FASE 3: Monitorear usuarios y sesiones
-                    self._log_terminal("FASE 3: Monitoreando usuarios y sesiones activas", "MONITOREO", "INFO")
-                    self._monitorear_usuarios_sesiones()
-                    # FASE 4: Verificar procesos con privilegios elevados
-                    self._log_terminal("FASE 4: Verificando procesos con privilegios elevados", "MONITOREO", "WARNING")
-                    self._monitorear_procesos_privilegiados()
-                    # FASE 5: Monitorear cambios en el sistema
-                    self._log_terminal("FASE 5: Detectando cambios en el sistema", "MONITOREO", "INFO")
-                    self._monitorear_cambios_sistema()
-                    self._log_terminal(f"Ciclo de monitoreo #{ciclo} completado", "MONITOREO", "SUCCESS")
-                    self._actualizar_texto_monitor_seguro(f"[CICLO {ciclo}] Monitoreo completado\n")
-                    # Pausa entre ciclos (15 segundos)
-                    for i in range(15):
-                        if self.flag_monitoreo.is_set():
-                            break
-                        time.sleep(1)
-            except Exception as e:
-                self._log_terminal(f"Error en monitoreo completo: {str(e)}", "MONITOREO", "ERROR")
+            ciclo = 0
+            while not self.flag_monitoreo.is_set():
+                ciclo += 1
+                self._log_terminal(f"Ciclo de monitoreo #{ciclo} iniciado", "MONITOREO", "INFO")
+                self.text_monitor.insert(tk.END, f"\n[CICLO {ciclo}] Monitoreo iniciado\n")
+                self.text_monitor.insert(tk.END, "[FASE 1] Monitoreando procesos del sistema...\n")
+                self.text_monitor.see(tk.END)
+                # FASE 1: Monitorear procesos del sistema
+                self._log_terminal("FASE 1: Monitoreando procesos del sistema", "MONITOREO", "INFO")
+                self._monitorear_procesos_sistema()
+                self.text_monitor.insert(tk.END, "[FASE 2] Verificando permisos de archivos críticos...\n")
+                self.text_monitor.see(tk.END)
+                self._log_terminal("FASE 2: Verificando permisos de archivos criticos", "MONITOREO", "INFO")
+                self._monitorear_permisos_archivos()
+                self.text_monitor.insert(tk.END, "[FASE 3] Monitoreando usuarios y sesiones activas...\n")
+                self.text_monitor.see(tk.END)
+                self._log_terminal("FASE 3: Monitoreando usuarios y sesiones activas", "MONITOREO", "INFO")
+                self._monitorear_usuarios_sesiones()
+                self.text_monitor.insert(tk.END, "[FASE 4] Verificando procesos con privilegios elevados...\n")
+                self.text_monitor.see(tk.END)
+                self._log_terminal("FASE 4: Verificando procesos con privilegios elevados", "MONITOREO", "WARNING")
+                self._monitorear_procesos_privilegiados()
+                self.text_monitor.insert(tk.END, "[FASE 5] Detectando cambios en el sistema...\n")
+                self.text_monitor.see(tk.END)
+                self._log_terminal("FASE 5: Detectando cambios en el sistema", "MONITOREO", "INFO")
+                self._monitorear_cambios_sistema()
+                self.text_monitor.insert(tk.END, f"[CICLO {ciclo}] Monitoreo completado\n")
+                self.text_monitor.see(tk.END)
+                self._log_terminal(f"Ciclo de monitoreo #{ciclo} completado", "MONITOREO", "SUCCESS")
+                # Pausa entre ciclos (15 segundos)
                 for i in range(15):
                     if self.flag_monitoreo.is_set():
                         break
                     time.sleep(1)
-                    
         except Exception as e:
+            self.text_monitor.insert(tk.END, f"\nError en monitoreo completo: {str(e)}\n")
+            self.text_monitor.see(tk.END)
             self._log_terminal(f"Error en monitoreo completo: {str(e)}", "MONITOREO", "ERROR")
 
     def _monitorear_procesos_sistema(self):
@@ -937,84 +956,63 @@ class VistaMonitoreo(tk.Frame):
 
     def _monitorear_procesos_privilegiados(self):
         """Monitorear procesos ejecutándose con privilegios elevados con manejo seguro."""
-        try:
-            # Procesos ejecutándose como root usando método seguro
-            resultado = self._ejecutar_comando_seguro(['ps', '-eo', 'pid,user,comm,args'], timeout=15)
-            
-            if not resultado['success']:
-                self._log_terminal(f"Error obteniendo procesos privilegiados: {resultado['error']}", "PROCESOS", "WARNING")
-                return
-            
-            procesos_root = []
-            procesos_suid = []
-            
-            for linea in resultado['output'].split('\n')[1:]:  # Saltar header
-                partes = linea.strip().split(None, 3)
-                if len(partes) >= 3:
-                    pid = partes[0]
-                    usuario = partes[1]
-                    comando = partes[2]
-                    args = partes[3] if len(partes) > 3 else ''
-                    
-                    if usuario == 'root':
-                        # Filtrar procesos del sistema normales
-                        procesos_sistema = [
-                            'systemd', 'kthreadd', 'ksoftirqd', 'migration', 'watchdog',
-                            'systemd-', 'dbus', 'NetworkManager', 'sshd'
-                        ]
-                        
-                        if not any(sys_proc in comando for sys_proc in procesos_sistema):
-                            if args and len(args) > 10:  # Solo procesos con argumentos significativos
-                                procesos_root.append((pid, comando, args[:100]))
-                                
-            # Reportar procesos root sospechosos
-            for pid, comando, args in procesos_root[:5]:  # Limitar a 5
-                self._log_terminal(f"PROCESO ROOT: PID {pid} - {comando} {args}", "MONITOREO", "WARNING")
-                
-            if len(procesos_root) > 10:
-                self._log_terminal(f"ALERTA: {len(procesos_root)} procesos ejecutandose como root", "MONITOREO", "WARNING")
-            else:
-                self._log_terminal(f"Procesos root monitoreados: {len(procesos_root)}", "MONITOREO", "INFO")
-                
-        except Exception as e:
-            self._log_terminal(f"Error monitoreando procesos privilegiados: {str(e)}", "MONITOREO", "WARNING")
-
-    def _monitorear_cambios_sistema(self):
-        """Detectar cambios recientes en el sistema."""
-        import subprocess
-        import os
+        # Procesos ejecutándose como root usando método seguro
+        resultado = self._ejecutar_comando_seguro(['ps', '-eo', 'pid,user,comm,args'], timeout=15)
         
-        try:
-            # Verificar archivos modificados recientemente en directorios críticos
-            directorios_criticos = ['/etc', '/bin', '/sbin', '/usr/bin', '/usr/sbin']
-            
-            cambios_detectados = 0
-            for directorio in directorios_criticos:
-                if os.path.exists(directorio):
-                    try:
-                        resultado = subprocess.run(['find', directorio, '-type', 'f', '-mtime', '-1'], 
-                                                 capture_output=True, text=True, timeout=10)
-                        
-                        archivos_modificados = resultado.stdout.strip().split('\n') if resultado.stdout.strip() else []
-                        archivos_modificados = [f for f in archivos_modificados if f.strip()]
-                        
-                        if len(archivos_modificados) > 0:
-                            cambios_detectados += len(archivos_modificados)
-                            if len(archivos_modificados) > 5:
-                                self._log_terminal(f"MUCHOS CAMBIOS: {len(archivos_modificados)} archivos modificados en {directorio}", "MONITOREO", "WARNING")
-                            else:
-                                for archivo in archivos_modificados[:3]:  # Mostrar solo los primeros 3
-                                    self._log_terminal(f"CAMBIO DETECTADO: {archivo}", "MONITOREO", "INFO")
-                    except:
-                        pass
-                        
-            if cambios_detectados == 0:
-                self._log_terminal("No se detectaron cambios recientes en el sistema", "MONITOREO", "INFO")
-            elif cambios_detectados > 20:
-                self._log_terminal(f"ALERTA: {cambios_detectados} cambios detectados en directorios criticos", "MONITOREO", "ERROR")
-                
-        except Exception as e:
-            self._log_terminal(f"Error monitoreando cambios: {str(e)}", "MONITOREO", "WARNING")
+        if not resultado['success']:
+            self._log_terminal(f"Error obteniendo procesos privilegiados: {resultado['error']}", "PROCESOS", "WARNING")
+            return
+        
+        # Obtener lista completa de procesos usando método seguro
+        resultado = self._ejecutar_comando_seguro(['ps', 'aux'], timeout=15)
+        if not resultado['success']:
+            self._log_terminal(f"Error obteniendo procesos: {resultado['error']}", "PROCESOS", "ERROR")
+            self.text_monitor.insert(tk.END, f"Error obteniendo procesos: {resultado['error']}\n")
+            self.text_monitor.see(tk.END)
+            return
+        lineas = resultado['output'].strip().split('\n')[1:]  # Saltar header
+        procesos_sospechosos = []
+        procesos_alta_cpu = []
+        procesos_alta_memoria = []
+        total_procesos = len(lineas)
+        for linea in lineas:
+            try:
+                partes = linea.split()
+                if len(partes) >= 11:
+                    usuario = partes[0]
+                    pid = partes[1]
+                    cpu = float(partes[2]) if partes[2].replace('.', '').isdigit() else 0.0
+                    memoria = float(partes[3]) if partes[3].replace('.', '').isdigit() else 0.0
+                    comando = ' '.join(partes[10:])
+                    # Detectar procesos con alto uso de CPU
+                    if cpu > 50.0:
+                        procesos_alta_cpu.append((pid, comando, cpu))
+                    # Detectar procesos con alto uso de memoria
+                    if memoria > 10.0:
+                        procesos_alta_memoria.append((pid, comando, memoria))
+                    # Detectar procesos sospechosos
+                    comandos_sospechosos = [
+                        'nc ', 'netcat', '/tmp/', '/var/tmp/', 'wget', 'curl http',
+                        'python -c', 'perl -e', 'bash -c', '/dev/tcp/'
+                    ]
+                    for sospechoso in comandos_sospechosos:
+                        if sospechoso in comando.lower():
+                            procesos_sospechosos.append((pid, usuario, comando))
+                            break
+            except (ValueError, IndexError):
+                continue
+        # Reportar hallazgos
+        self._log_terminal(f"Procesos totales monitoreados: {total_procesos}", "MONITOREO", "INFO")
+        self.text_monitor.insert(tk.END, f"Procesos totales monitoreados: {total_procesos}\n")
+        for pid, comando, cpu in procesos_alta_cpu:
+            self.text_monitor.insert(tk.END, f"PROCESO ALTO CPU: PID {pid} usando {cpu}% - {comando[:80]}\n")
+        for pid, comando, memoria in procesos_alta_memoria:
+            self.text_monitor.insert(tk.END, f"PROCESO ALTA MEMORIA: PID {pid} usando {memoria}% - {comando[:80]}\n")
+        for pid, usuario, comando in procesos_sospechosos:
+            self.text_monitor.insert(tk.END, f"PROCESO SOSPECHOSO: PID {pid} usuario {usuario} - {comando[:80]}\n")
+        if not procesos_sospechosos and len(procesos_alta_cpu) == 0:
+            self.text_monitor.insert(tk.END, "Procesos del sistema funcionando normalmente\n")
+        self.text_monitor.see(tk.END)
 
     def _actualizar_monitoreo_basico(self):
         """Actualizar la interfaz durante el monitoreo básico."""
@@ -1110,105 +1108,130 @@ class VistaMonitoreo(tk.Frame):
             self._finalizar_monitoreo_red()
 
     def _monitorear_red_completo_async(self):
-        """Monitorear red de forma completa con protección contra crashes - Issue 19/24."""
+        """Monitorear red de forma completa con feedback detallado en la vista."""
         import subprocess
         import time
-        
         try:
+            self.text_monitor.insert(tk.END, "\n=== INICIANDO MONITOREO COMPLETO DE RED ===\n")
+            self.text_monitor.insert(tk.END, "Este proceso analizará dispositivos, interfaces, conexiones, puertos y tráfico de red.\n")
+            self.text_monitor.see(tk.END)
             self._log_terminal("Iniciando monitoreo de red con protección anti-crash", "MONITOREO-RED", "INFO")
-            
             ciclo = 0
             errores_consecutivos = 0
             max_errores = 3
-            
             while not self.flag_red.is_set() and errores_consecutivos < max_errores:
                 ciclo += 1
                 ciclo_exitoso = True
-                
                 try:
+                    self.text_monitor.insert(tk.END, f"\n[CICLO #{ciclo}] Iniciando ciclo de monitoreo de red...\n")
+                    self.text_monitor.see(tk.END)
                     self._log_terminal(f"Ciclo de monitoreo de red #{ciclo}", "MONITOREO-RED", "INFO")
-                    
-                    # FASE 1: Detectar dispositivos conectados a la red (con timeout y manejo de errores)
+                    # FASE 1: Detectar dispositivos conectados a la red
                     if not self.flag_red.is_set():
                         try:
+                            self.text_monitor.insert(tk.END, "[FASE 1] Detectando dispositivos conectados a la red...\n")
+                            self.text_monitor.see(tk.END)
                             self._log_terminal("FASE 1: Detectando dispositivos conectados a la red", "MONITOREO-RED", "INFO")
                             self._detectar_dispositivos_red_seguro()
                         except Exception as e:
+                            self.text_monitor.insert(tk.END, f"[FASE 1] Error: {str(e)}\n")
+                            self.text_monitor.see(tk.END)
                             self._log_terminal(f"Error en FASE 1: {str(e)}", "MONITOREO-RED", "WARNING")
                             ciclo_exitoso = False
-                    
                     # FASE 2: Monitorear interfaces de red activas
                     if not self.flag_red.is_set():
                         try:
+                            self.text_monitor.insert(tk.END, "[FASE 2] Monitoreando interfaces de red activas...\n")
+                            self.text_monitor.see(tk.END)
                             self._log_terminal("FASE 2: Monitoreando interfaces de red activas", "MONITOREO-RED", "INFO")
                             self._monitorear_interfaces_red_seguro()
                         except Exception as e:
+                            self.text_monitor.insert(tk.END, f"[FASE 2] Error: {str(e)}\n")
+                            self.text_monitor.see(tk.END)
                             self._log_terminal(f"Error en FASE 2: {str(e)}", "MONITOREO-RED", "WARNING")
                             ciclo_exitoso = False
-                    
                     # FASE 3: Verificar conexiones activas
                     if not self.flag_red.is_set():
                         try:
+                            self.text_monitor.insert(tk.END, "[FASE 3] Verificando conexiones de red activas...\n")
+                            self.text_monitor.see(tk.END)
                             self._log_terminal("FASE 3: Verificando conexiones de red activas", "MONITOREO-RED", "INFO")
                             self._monitorear_conexiones_activas_seguro()
                         except Exception as e:
+                            self.text_monitor.insert(tk.END, f"[FASE 3] Error: {str(e)}\n")
+                            self.text_monitor.see(tk.END)
                             self._log_terminal(f"Error en FASE 3: {str(e)}", "MONITOREO-RED", "WARNING")
                             ciclo_exitoso = False
-                    
                     # FASE 4: Verificar puertos abiertos del sistema local
                     if not self.flag_red.is_set():
                         try:
+                            self.text_monitor.insert(tk.END, "[FASE 4] Verificando puertos abiertos del sistema local...\n")
+                            self.text_monitor.see(tk.END)
                             self._log_terminal("FASE 4: Verificando puertos abiertos del sistema local", "MONITOREO-RED", "INFO")
                             self._verificar_puertos_abiertos_seguro()
                         except Exception as e:
+                            self.text_monitor.insert(tk.END, f"[FASE 4] Error: {str(e)}\n")
+                            self.text_monitor.see(tk.END)
                             self._log_terminal(f"Error en FASE 4: {str(e)}", "MONITOREO-RED", "WARNING")
                             ciclo_exitoso = False
-                    
                     # FASE 5: Monitorear tráfico de red
                     if not self.flag_red.is_set():
                         try:
+                            self.text_monitor.insert(tk.END, "[FASE 5] Monitoreando tráfico de red...\n")
+                            self.text_monitor.see(tk.END)
                             self._log_terminal("FASE 5: Monitoreando trafico de red", "MONITOREO-RED", "INFO")
                             self._monitorear_trafico_red_seguro()
                         except Exception as e:
+                            self.text_monitor.insert(tk.END, f"[FASE 5] Error: {str(e)}\n")
+                            self.text_monitor.see(tk.END)
                             self._log_terminal(f"Error en FASE 5: {str(e)}", "MONITOREO-RED", "WARNING")
                             ciclo_exitoso = False
-                    
                     # FASE 6: Verificar configuración de red
                     if not self.flag_red.is_set():
                         try:
+                            self.text_monitor.insert(tk.END, "[FASE 6] Verificando configuración de red...\n")
+                            self.text_monitor.see(tk.END)
                             self._log_terminal("FASE 6: Verificando configuracion de red", "MONITOREO-RED", "INFO")
                             self._verificar_configuracion_red_seguro()
                         except Exception as e:
+                            self.text_monitor.insert(tk.END, f"[FASE 6] Error: {str(e)}\n")
+                            self.text_monitor.see(tk.END)
                             self._log_terminal(f"Error en FASE 6: {str(e)}", "MONITOREO-RED", "WARNING")
                             ciclo_exitoso = False
-                    
                     if ciclo_exitoso:
                         errores_consecutivos = 0
+                        self.text_monitor.insert(tk.END, f"[CICLO #{ciclo}] Monitoreo de red completado exitosamente.\n")
+                        self.text_monitor.see(tk.END)
                         self._log_terminal(f"Ciclo de monitoreo de red #{ciclo} completado exitosamente", "MONITOREO-RED", "SUCCESS")
                     else:
                         errores_consecutivos += 1
+                        self.text_monitor.insert(tk.END, f"[CICLO #{ciclo}] Monitoreo de red completado con errores ({errores_consecutivos}/{max_errores}).\n")
+                        self.text_monitor.see(tk.END)
                         self._log_terminal(f"Ciclo #{ciclo} completado con errores ({errores_consecutivos}/{max_errores})", "MONITOREO-RED", "WARNING")
-                    
-                    # Pausa entre ciclos (15 segundos) con verificación de estado
                     for i in range(15):
                         if self.flag_red.is_set():
                             break
                         time.sleep(1)
-                        
                 except Exception as e:
                     errores_consecutivos += 1
+                    self.text_monitor.insert(tk.END, f"[CICLO #{ciclo}] Error crítico: {str(e)} ({errores_consecutivos}/{max_errores})\n")
+                    self.text_monitor.see(tk.END)
                     self._log_terminal(f"Error crítico en ciclo #{ciclo}: {str(e)} ({errores_consecutivos}/{max_errores})", "MONITOREO-RED", "ERROR")
-                    
-                    # Pausa más larga tras error
                     for i in range(5):
                         if self.flag_red.is_set():
                             break
                         time.sleep(1)
             if errores_consecutivos >= max_errores:
+                self.text_monitor.insert(tk.END, f"\nMonitoreo detenido: {max_errores} errores consecutivos detectados.\n")
+                self.text_monitor.see(tk.END)
                 self._log_terminal(f"Monitoreo detenido: {max_errores} errores consecutivos detectados", "MONITOREO-RED", "ERROR")
         except Exception as e:
+            self.text_monitor.insert(tk.END, f"\nError fatal en monitoreo de red: {str(e)}\n")
+            self.text_monitor.see(tk.END)
             self._log_terminal(f"Error fatal en monitoreo de red: {str(e)}", "MONITOREO-RED", "ERROR")
         finally:
+            self.text_monitor.insert(tk.END, "\nFinalizando monitoreo de red.\n")
+            self.text_monitor.see(tk.END)
             self._log_terminal("Finalizando monitoreo de red", "MONITOREO-RED", "INFO")
             self.after(0, self._finalizar_monitoreo_red)
 
