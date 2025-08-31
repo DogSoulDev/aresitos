@@ -38,6 +38,7 @@ class ControladorFIM(ControladorBase):
         self.monitoreo_activo = False
         self.thread_monitoreo = None
         self.archivos_monitoreados = set()
+        self.controlador_cuarentena = None
         self.configuracion_fim = {
             'rutas_criticas': [
                 '/etc/passwd',
@@ -51,6 +52,12 @@ class ControladorFIM(ControladorBase):
             'intervalo_verificacion': 300,  # 5 minutos
             'generar_alertas': True
         }
+        def configurar_cuarentena(self, controlador_cuarentena):
+            """
+            Configura la referencia al controlador de cuarentena.
+            """
+            self.controlador_cuarentena = controlador_cuarentena
+            self.logger.info("Referencia a Controlador Cuarentena configurada en FIM")
         
     async def _inicializar_impl(self) -> Dict[str, Any]:
         """
@@ -224,7 +231,21 @@ class ControladorFIM(ControladorBase):
                     # (simplificada para seguir principios ARESITOS)
                     
             if cambios_detectados and self.configuracion_fim['generar_alertas']:
-                self._generar_alerta_cambios(cambios_detectados)
+                    self._generar_alerta_cambios(cambios_detectados)
+                
+                    # Enviar archivos sospechosos a Cuarentena si está configurado
+                    if hasattr(self, 'controlador_cuarentena') and self.controlador_cuarentena:
+                        for cambio in cambios_detectados:
+                            archivo = cambio.get('archivo') or cambio.get('ruta')
+                            if archivo:
+                                try:
+                                    resultado = self.controlador_cuarentena.cuarentenar_archivo(archivo, razon='Detectado por FIM')
+                                    if resultado.get('exito'):
+                                        self.log(f"Archivo enviado a cuarentena: {archivo}")
+                                    else:
+                                        self.log(f"Error enviando a cuarentena: {resultado.get('mensaje','sin mensaje')}")
+                                except Exception as e:
+                                    self.log(f"Excepción enviando a cuarentena: {e}")
                 
         except Exception as e:
             self.log(f"Error verificando integridad: {e}")

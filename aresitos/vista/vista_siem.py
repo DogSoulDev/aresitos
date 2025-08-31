@@ -28,6 +28,65 @@ except ImportError:
     burp_theme = None
 
 class VistaSIEM(tk.Frame):
+    def crear_tab_alertas(self):
+        """Crear pestaña de alertas y correlación."""
+        if self.theme:
+            tab_alertas = tk.Frame(self.notebook, bg='#2b2b2b')
+        else:
+            tab_alertas = tk.Frame(self.notebook)
+        self.notebook.add(tab_alertas, text='Alertas y Correlación')
+        # Frame principal dividido
+        if self.theme:
+            main_frame = tk.Frame(tab_alertas, bg='#2b2b2b')
+        else:
+            main_frame = tk.Frame(tab_alertas)
+        main_frame.pack(fill=tk.BOTH, expand=True, padx=10, pady=10)
+        # Panel izquierdo - Alertas activas
+        if self.theme:
+            left_frame = tk.Frame(main_frame, bg='#2b2b2b')
+            label_alertas = tk.Label(left_frame, text="Alertas de Seguridad Activas", 
+                                   bg='#2b2b2b', fg='#ff6633', font=('Arial', 12, 'bold'))
+            label_alertas.pack(anchor=tk.W, pady=(0, 5))
+        else:
+            left_frame = ttk.LabelFrame(main_frame, text="Alertas Activas", padding=10)
+        left_frame.pack(side=tk.LEFT, fill=tk.BOTH, expand=True, padx=(0, 10))
+        self.siem_alertas_text = scrolledtext.ScrolledText(left_frame, height=20, width=60,
+                                                         bg='#1e1e1e' if self.theme else 'white',
+                                                         fg='white' if self.theme else 'black',
+                                                         insertbackground='white' if self.theme else 'black',
+                                                         font=('Consolas', 9))
+        self.siem_alertas_text.pack(fill=tk.BOTH, expand=True)
+
+        # Panel derecho - Configuración de reglas y botones de alertas/correlación
+        if self.theme:
+            right_frame = tk.Frame(main_frame, bg='#2b2b2b')
+            label_reglas = tk.Label(right_frame, text="Motor de Correlación", 
+                                  bg='#2b2b2b', fg='#ff6633', font=('Arial', 12, 'bold'))
+            label_reglas.pack(anchor=tk.W, pady=(0, 10))
+        else:
+            right_frame = ttk.LabelFrame(main_frame, text="Motor de Correlación", padding=10)
+        right_frame.pack(side=tk.RIGHT, fill=tk.Y)
+
+        # Botones de configuración de alertas (definir lista una vez)
+        buttons_alertas = [
+            (" Detectar Intrusion", self.detectar_intrusion, '#d9534f'),
+            (" Activar IDS", self.activar_ids, '#5cb85c'),
+            (" Monitor Honeypot", self.monitor_honeypot, '#404040'),
+            ("WARNING Eventos Críticos", self.eventos_criticos, '#f0ad4e'),
+            (" Brute Force", self.detectar_brute_force, '#404040'),
+            (" Notificaciones", self.configurar_notificaciones, '#404040'),
+            (" Actualizar Reglas", self.actualizar_reglas, '#404040'),
+            (" Exportar Alertas", self.exportar_alertas, '#404040')
+        ]
+        if self.theme:
+            for text, command, bg_color in buttons_alertas:
+                btn = tk.Button(right_frame, text=text, command=command,
+                              bg=bg_color, fg='white', font=('Arial', 9))
+                btn.pack(fill=tk.X, pady=2)
+        else:
+            for text, command, _ in buttons_alertas:
+                ttk.Button(right_frame, text=text, command=command).pack(fill=tk.X, pady=2)
+        # ...existing code for right panel and buttons...
     def _actualizar_texto_siem_seguro(self, texto):
         def _update():
             try:
@@ -431,13 +490,21 @@ class VistaSIEM(tk.Frame):
         else:
             tab_analisis = tk.Frame(self.notebook)
         self.notebook.add(tab_analisis, text='Análisis de Logs')
-        
+
         # Frame principal
         if self.theme:
             main_frame = tk.Frame(tab_analisis, bg='#2b2b2b')
         else:
             main_frame = tk.Frame(tab_analisis)
         main_frame.pack(fill=tk.BOTH, expand=True, padx=10, pady=10)
+
+        # Área de texto para resultados de análisis
+        self.siem_analisis_text = scrolledtext.ScrolledText(main_frame, height=20, width=80,
+            bg='#1e1e1e' if self.theme else 'white',
+            fg='white' if self.theme else 'black',
+            insertbackground='white' if self.theme else 'black',
+            font=('Consolas', 9))
+        self.siem_analisis_text.pack(fill=tk.BOTH, expand=True, pady=(10, 0))
         
         # Panel superior - Selección de logs
         if self.theme:
@@ -542,23 +609,19 @@ class VistaSIEM(tk.Frame):
         if self.theme:
             btn_frame = tk.Frame(top_frame, bg='#2b2b2b')
             btn_frame.pack(fill=tk.X, pady=10)
-            
             btn_analizar = tk.Button(btn_frame, text=" Analizar Logs Seleccionados", 
                                    command=self.analizar_logs_seleccionados,
                                    bg='#ff6633', fg='white', font=('Arial', 10))
             btn_analizar.pack(side=tk.LEFT, padx=5)
-            
             btn_buscar = tk.Button(btn_frame, text=" Buscar Patrones", 
                                  command=self.buscar_patrones,
                                  bg='#404040', fg='white', font=('Arial', 10))
             btn_buscar.pack(side=tk.LEFT, padx=5)
-            
             # NUEVOS BOTONES FASE 3.2 - ANÁLISIS AVANZADO
             btn_patrones = tk.Button(btn_frame, text="Análisis Avanzado", 
                                    command=self.analizar_patrones_avanzados,
                                    bg='#d9534f', fg='white', font=('Arial', 10))
             btn_patrones.pack(side=tk.LEFT, padx=5)
-            
             btn_correlacion = tk.Button(btn_frame, text="Correlación", 
                                       command=self.correlacionar_eventos_avanzado,
                                       bg='#5bc0de', fg='white', font=('Arial', 10))
@@ -566,200 +629,91 @@ class VistaSIEM(tk.Frame):
         else:
             btn_frame = tk.Frame(top_frame)
             btn_frame.pack(fill=tk.X, pady=10)
-            
             ttk.Button(btn_frame, text=" Analizar Logs Seleccionados", 
                       command=self.analizar_logs_seleccionados).pack(side=tk.LEFT, padx=5)
             ttk.Button(btn_frame, text=" Buscar Patrones", 
                       command=self.buscar_patrones).pack(side=tk.LEFT, padx=5)
-            
             # NUEVOS BOTONES FASE 3.2 - ANÁLISIS AVANZADO (versión TTK)
             ttk.Button(btn_frame, text="Análisis Avanzado", 
                       command=self.analizar_patrones_avanzados).pack(side=tk.LEFT, padx=5)
             ttk.Button(btn_frame, text="Correlación", 
                       command=self.correlacionar_eventos_avanzado).pack(side=tk.LEFT, padx=5)
-        
-        # Panel inferior - Resultados de análisis
-        if self.theme:
-            bottom_frame = tk.Frame(main_frame, bg='#2b2b2b')
-            label_results = tk.Label(bottom_frame, text="Resultados del Análisis", 
-                                   bg='#2b2b2b', fg='#ff6633', font=('Arial', 12, 'bold'))
-            label_results.pack(anchor=tk.W, pady=(0, 5))
-        else:
-            bottom_frame = ttk.LabelFrame(main_frame, text="Resultados del Análisis", padding=10)
-        bottom_frame.pack(fill=tk.BOTH, expand=True)
-        
-        self.siem_analisis_text = scrolledtext.ScrolledText(bottom_frame, height=15,
-                                                          bg='#1e1e1e' if self.theme else 'white',
-                                                          fg='white' if self.theme else 'black',
-                                                          insertbackground='white' if self.theme else 'black',
-                                                          font=('Consolas', 9))
-        self.siem_analisis_text.pack(fill=tk.BOTH, expand=True)
-    
-    def crear_tab_alertas(self):
-        """Crear pestaña de alertas y correlación."""
-        if self.theme:
-            tab_alertas = tk.Frame(self.notebook, bg='#2b2b2b')
-        else:
-            tab_alertas = tk.Frame(self.notebook)
-        self.notebook.add(tab_alertas, text='Alertas y Correlación')
-        
-        # Frame principal dividido
-        if self.theme:
-            main_frame = tk.Frame(tab_alertas, bg='#2b2b2b')
-        else:
-            main_frame = tk.Frame(tab_alertas)
-        main_frame.pack(fill=tk.BOTH, expand=True, padx=10, pady=10)
-        
-        # Panel izquierdo - Alertas activas
-        if self.theme:
-            left_frame = tk.Frame(main_frame, bg='#2b2b2b')
-            label_alertas = tk.Label(left_frame, text="Alertas de Seguridad Activas", 
-                                   bg='#2b2b2b', fg='#ff6633', font=('Arial', 12, 'bold'))
-            label_alertas.pack(anchor=tk.W, pady=(0, 5))
-        else:
-            left_frame = ttk.LabelFrame(main_frame, text="Alertas Activas", padding=10)
-        left_frame.pack(side=tk.LEFT, fill=tk.BOTH, expand=True, padx=(0, 10))
-        
-        self.siem_alertas_text = scrolledtext.ScrolledText(left_frame, height=20, width=60,
-                                                         bg='#1e1e1e' if self.theme else 'white',
-                                                         fg='white' if self.theme else 'black',
-                                                         insertbackground='white' if self.theme else 'black',
-                                                         font=('Consolas', 9))
-        self.siem_alertas_text.pack(fill=tk.BOTH, expand=True)
-        
-        # Panel derecho - Configuración de reglas
-        if self.theme:
-            right_frame = tk.Frame(main_frame, bg='#2b2b2b')
-            label_reglas = tk.Label(right_frame, text="Motor de Correlación", 
-                                  bg='#2b2b2b', fg='#ff6633', font=('Arial', 12, 'bold'))
-            label_reglas.pack(anchor=tk.W, pady=(0, 10))
-        else:
-            right_frame = ttk.LabelFrame(main_frame, text="Motor de Correlación", padding=10)
-        right_frame.pack(side=tk.RIGHT, fill=tk.Y)
-        
-        # Botones de configuración de alertas
-        if self.theme:
-            buttons_alertas = [
-                (" Detectar Intrusion", self.detectar_intrusion, '#d9534f'),
-                (" Activar IDS", self.activar_ids, '#5cb85c'),
-                (" Monitor Honeypot", self.monitor_honeypot, '#404040'),
-                ("WARNING Eventos Críticos", self.eventos_criticos, '#f0ad4e'),
-                (" Brute Force", self.detectar_brute_force, '#404040'),
-                (" Notificaciones", self.configurar_notificaciones, '#404040'),
-                (" Actualizar Reglas", self.actualizar_reglas, '#404040'),
-                (" Exportar Alertas", self.exportar_alertas, '#404040')
-            ]
-            
-            for text, command, bg_color in buttons_alertas:
-                btn = tk.Button(right_frame, text=text, command=command,
-                              bg=bg_color, fg='white', font=('Arial', 9))
-                btn.pack(fill=tk.X, pady=2)
-        else:
-            ttk.Button(right_frame, text=" Detectar Intrusion", 
-                      command=self.detectar_intrusion).pack(fill=tk.X, pady=2)
-            ttk.Button(right_frame, text=" Activar IDS", 
-                      command=self.activar_ids).pack(fill=tk.X, pady=2)
-            ttk.Button(right_frame, text=" Monitor Honeypot", 
-                      command=self.monitor_honeypot).pack(fill=tk.X, pady=2)
     
     def crear_tab_forense(self):
-        """Crear pestaña de análisis forense."""
+        """Crear pestaña de análisis forense con panel de herramientas y resultados."""
         if self.theme:
             tab_forense = tk.Frame(self.notebook, bg='#2b2b2b')
         else:
             tab_forense = tk.Frame(self.notebook)
         self.notebook.add(tab_forense, text='Forense Digital')
 
-        # Frame principal
-        if self.theme:
-            main_frame = tk.Frame(tab_forense, bg='#2b2b2b')
-        else:
-            main_frame = tk.Frame(tab_forense)
+        # Frame principal horizontal: izquierda (botones), derecha (resultados)
+        main_frame = tk.Frame(tab_forense, bg='#2b2b2b' if self.theme else 'white')
         main_frame.pack(fill=tk.BOTH, expand=True, padx=10, pady=10)
 
-        # Panel superior - Herramientas forenses
-        if self.theme:
-            top_frame = tk.Frame(main_frame, bg='#2b2b2b')
-            label_tools = tk.Label(top_frame, text="Herramientas Forenses de Kali Linux", 
-                                 bg='#2b2b2b', fg='#ff6633', font=('Arial', 12, 'bold'))
-            label_tools.pack(anchor=tk.W, pady=(0, 10))
-        else:
-            top_frame = ttk.LabelFrame(main_frame, text="Herramientas Forenses", padding=10)
-        top_frame.pack(fill=tk.X, pady=(0, 10))
+        # Panel izquierdo: botones de herramientas forenses
+        left_frame = tk.Frame(main_frame, bg='#232629' if self.theme else 'white')
+        left_frame.pack(side=tk.LEFT, fill=tk.Y, padx=(0, 10), pady=5)
 
-        # Botones de herramientas forenses (ampliado)
-        if self.theme:
-            tools_frame = tk.Frame(top_frame, bg='#2b2b2b')
-            tools_frame.pack(fill=tk.X)
-            tools_forenses = [
-                (" Sleuth Kit", self.usar_sleuthkit),
-                (" Binwalk", self.usar_binwalk),
-                (" Foremost", self.usar_foremost),
-                ("Extraer Strings", self.usar_strings),
-                (" DD/DCFLDD", self.usar_dd),
-                (" Head/Tail", self.usar_head_tail),
-                (" exiftool", self.usar_exiftool),
-                (" photorec", self.usar_photorec),
-                (" hexdump", self.usar_hexdump),
-                (" xxd", self.usar_xxd),
-                (" hashdeep", self.usar_hashdeep),
-                (" testdisk", self.usar_testdisk),
-                (" bulk_extractor", self.usar_bulk_extractor),
-                (" dc3dd", self.usar_dc3dd),
-                (" guymager", self.usar_guymager),
-                (" Check Kali Tools", self.verificar_herramientas_kali),
-                (" Monitor Real-time", self.monitorear_tiempo_real_kali),
-                (" Stop Monitor", self.parar_monitoreo),
-                (" OSQuery Analysis", self.integrar_osquery_kali)
-            ]
-            for i, (text, command) in enumerate(tools_forenses):
-                btn = tk.Button(tools_frame, text=text, command=command,
-                              bg='#404040', fg='white', font=('Arial', 9))
-                btn.grid(row=i//3, column=i%3, padx=5, pady=2, sticky='ew')
-        else:
-            tools_frame = tk.Frame(top_frame)
-            tools_frame.pack(fill=tk.X)
-            tools_forenses = [
-                (" Sleuth Kit", self.usar_sleuthkit),
-                (" Binwalk", self.usar_binwalk),
-                (" Foremost", self.usar_foremost),
-                ("Extraer Strings", self.usar_strings),
-                (" DD/DCFLDD", self.usar_dd),
-                (" Head/Tail", self.usar_head_tail),
-                (" exiftool", self.usar_exiftool),
-                (" photorec", self.usar_photorec),
-                (" hexdump", self.usar_hexdump),
-                (" xxd", self.usar_xxd),
-                (" hashdeep", self.usar_hashdeep),
-                (" testdisk", self.usar_testdisk),
-                (" bulk_extractor", self.usar_bulk_extractor),
-                (" dc3dd", self.usar_dc3dd),
-                (" guymager", self.usar_guymager),
-                (" Check Kali Tools", self.verificar_herramientas_kali),
-                (" Monitor Real-time", self.monitorear_tiempo_real_kali),
-                (" Stop Monitor", self.parar_monitoreo),
-                (" OSQuery Analysis", self.integrar_osquery_kali)
-            ]
-            for i, (text, command) in enumerate(tools_forenses):
-                ttk.Button(tools_frame, text=text, command=command).grid(
-                    row=i//3, column=i%3, padx=5, pady=2, sticky='ew')
+        tk.Label(left_frame, text="Herramientas Forenses", bg='#232629' if self.theme else 'white',
+                fg='#ffb86c' if self.theme else 'black', font=('Arial', 12, 'bold')).pack(pady=(0, 10))
 
-        # Panel inferior - Resultados forenses
-        if self.theme:
-            bottom_frame = tk.Frame(main_frame, bg='#2b2b2b')
-            label_results = tk.Label(bottom_frame, text="Resultados del Análisis Forense", 
-                                   bg='#2b2b2b', fg='#ff6633', font=('Arial', 12, 'bold'))
-            label_results.pack(anchor=tk.W, pady=(0, 5))
-        else:
-            bottom_frame = ttk.LabelFrame(main_frame, text="Resultados del Análisis Forense", padding=10)
-        bottom_frame.pack(fill=tk.BOTH, expand=True)
+        # Solo botones de handlers implementados
+        botones = [
+            ("ExifTool", getattr(self, 'usar_exiftool', None), '#8be9fd'),
+            ("Photorec", getattr(self, 'usar_photorec', None), '#50fa7b'),
+            ("Hexdump", getattr(self, 'usar_hexdump', None), '#ffb86c'),
+            ("XXD", getattr(self, 'usar_xxd', None), '#bd93f9'),
+            ("Hashdeep", getattr(self, 'usar_hashdeep', None), '#ff5555'),
+            ("TestDisk", getattr(self, 'usar_testdisk', None), '#f1fa8c'),
+            ("Bulk Extractor", getattr(self, 'usar_bulk_extractor', None), '#ff79c6'),
+        ]
+        for text, cmd, color in botones:
+            if callable(cmd):
+                tk.Button(left_frame, text=text, command=cmd,
+                          bg=color if self.theme else 'lightgray',
+                          fg='black',
+                          font=('Arial', 10, 'bold'), relief='raised', padx=8, pady=4).pack(fill=tk.X, pady=2)
 
-        self.siem_forense_text = scrolledtext.ScrolledText(bottom_frame, height=15,
-                                                          bg='#1e1e1e' if self.theme else 'white',
-                                                          fg='white' if self.theme else 'black',
-                                                          insertbackground='white' if self.theme else 'black',
-                                                          font=('Consolas', 9))
-        self.siem_forense_text.pack(fill=tk.BOTH, expand=True)
+        # Botón para instalar todas las herramientas
+        tk.Button(left_frame, text="Instalar Herramientas", command=self.instalar_herramientas_forenses,
+                  bg='#44475a' if self.theme else 'gray', fg='#f8f8f2' if self.theme else 'black',
+                  font=('Arial', 10, 'bold'), relief='groove', padx=8, pady=4).pack(fill=tk.X, pady=(10, 2))
+
+        # Panel derecho: área de resultados
+        right_frame = tk.Frame(main_frame, bg='#2b2b2b' if self.theme else 'white')
+        right_frame.pack(side=tk.RIGHT, fill=tk.BOTH, expand=True, pady=5)
+
+        self.siem_forense_text = scrolledtext.ScrolledText(right_frame, height=20, width=80,
+            bg='#1e1e1e' if self.theme else 'white',
+            fg='white' if self.theme else 'black',
+            insertbackground='white' if self.theme else 'black',
+            font=('Consolas', 9))
+        self.siem_forense_text.pack(fill=tk.BOTH, expand=True, pady=(10, 0), padx=5)
+
+    # ...existing code...
+
+    # ...existing code...
+
+    def instalar_herramientas_forenses(self):
+        """Instala todas las herramientas forenses recomendadas con apt."""
+        import subprocess
+        herramientas = [
+            "sleuthkit", "binwalk", "foremost", "strings", "dcfldd", "exiftool", "testdisk",
+            "bulk-extractor", "dc3dd", "guymager", "hashdeep", "bsdmainutils", "xxd"
+        ]
+        self._actualizar_texto_forense("Instalando herramientas forenses recomendadas...\n")
+        try:
+            comando = ["sudo", "apt", "install", "-y"] + herramientas
+            resultado = subprocess.run(comando, capture_output=True, text=True, timeout=300)
+            if resultado.returncode == 0:
+                self._actualizar_texto_forense("Herramientas instaladas correctamente.\n")
+            else:
+                self._actualizar_texto_forense(f"Error instalando herramientas: {resultado.stderr}\n")
+        except Exception as e:
+            self._actualizar_texto_forense(f"ERROR instalando herramientas: {str(e)}\n")
+
+    # ...existing code...
     # === NUEVOS HANDLERS FORENSE ===
     def usar_exiftool(self):
         def ejecutar():

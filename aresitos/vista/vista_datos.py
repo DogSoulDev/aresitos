@@ -70,8 +70,10 @@ class VistaGestionDatos(tk.Frame):
                 'danger': '#cc0000',
                 'info': '#0066cc'
             }
+
         self.ruta_wordlists = self._get_base_dir() / "data" / "wordlists"
         self.ruta_diccionarios = self._get_base_dir() / "data" / "diccionarios"
+        self.ruta_cheatsheets = self._get_base_dir() / "data" / "cheatsheets"
         # Mostrar wordlists por defecto
         self.tipo_actual = "wordlists"
         self.archivo_seleccionado = None
@@ -130,20 +132,26 @@ class VistaGestionDatos(tk.Frame):
                                          bg='#ff6633', fg='white', font=('Arial', 11, 'bold'),
                                          relief='flat', padx=20, pady=8)
             self.btn_wordlists.pack(side=tk.LEFT, padx=(0, 10))
-            
             self.btn_diccionarios = tk.Button(selector_frame, text=" Diccionarios", 
                                             command=lambda: self.cambiar_tipo("diccionarios"),
                                             bg='#404040', fg='white', font=('Arial', 11),
                                             relief='flat', padx=20, pady=8)
-            self.btn_diccionarios.pack(side=tk.LEFT)
+            self.btn_diccionarios.pack(side=tk.LEFT, padx=(0, 10))
+            self.btn_cheatsheets = tk.Button(selector_frame, text=" Cheatsheets", 
+                                            command=lambda: self.cambiar_tipo("cheatsheets"),
+                                            bg='#404040', fg='white', font=('Arial', 11),
+                                            relief='flat', padx=20, pady=8)
+            self.btn_cheatsheets.pack(side=tk.LEFT)
         else:
             self.btn_wordlists = ttk.Button(selector_frame, text=" Wordlists", 
                                           command=lambda: self.cambiar_tipo("wordlists"))
             self.btn_wordlists.pack(side=tk.LEFT, padx=(0, 10))
-            
             self.btn_diccionarios = ttk.Button(selector_frame, text=" Diccionarios", 
                                              command=lambda: self.cambiar_tipo("diccionarios"))
-            self.btn_diccionarios.pack(side=tk.LEFT)
+            self.btn_diccionarios.pack(side=tk.LEFT, padx=(0, 10))
+            self.btn_cheatsheets = ttk.Button(selector_frame, text=" Cheatsheets", 
+                                             command=lambda: self.cambiar_tipo("cheatsheets"))
+            self.btn_cheatsheets.pack(side=tk.LEFT)
     
     def crear_panel_archivos(self, parent):
         """Crear panel de lista de archivos."""
@@ -231,19 +239,23 @@ class VistaGestionDatos(tk.Frame):
             gestion_frame = tk.Frame(right_frame)
         gestion_frame.pack(fill=tk.X, pady=(5, 10))
         
-        # Botones de gestión de archivos (sin [PROCESO] ni textos extra)
-        gestion_acciones = [
+        # Botones de gestión de cheatsheets/comandos/referencias
+        cheatsheets_acciones = [
+            ("Buscar", self.usar_grep_kali, '#607D8B'),
+            ("Ver Lista", self.cargar_archivos, '#2196F3'),
             ("Refrescar", self.cargar_archivos, '#17a2b8'),
-            ("📁 Abrir Carpeta", self.abrir_carpeta_actual, '#007acc')
+            ("Abrir Carpeta", self.abrir_carpeta_actual, '#007acc'),
+            ("Guardar Cambios", self.guardar_archivo, '#FF9800')
         ]
-        for texto, comando, color in gestion_acciones:
+        for texto, comando, color in cheatsheets_acciones:
+            texto_limpio = texto.replace('[BUSCAR]', '').replace('[PROCESO]', '').strip()
             if self.theme:
-                btn = tk.Button(gestion_frame, text=texto, command=comando,
+                btn = tk.Button(gestion_frame, text=texto_limpio, command=comando,
                               bg=color, fg='white', font=('Arial', 9),
                               relief='flat', padx=10, pady=3)
                 btn.pack(side=tk.LEFT, padx=(0, 5))
             else:
-                btn = ttk.Button(gestion_frame, text=texto, command=comando)
+                btn = ttk.Button(gestion_frame, text=texto_limpio, command=comando)
                 btn.pack(side=tk.LEFT, padx=(0, 5))
         
         # Frame adicional para herramientas de Kali
@@ -260,8 +272,9 @@ class VistaGestionDatos(tk.Frame):
             (" wc", self.contar_lineas_kali, '#9E9E9E'),
             (" uniq", self.lineas_unicas_kali, '#673AB7')
         ]
-        
-        for texto, comando, color in herramientas_kali:
+
+        self.btn_grep = None
+        for i, (texto, comando, color) in enumerate(herramientas_kali):
             if self.theme:
                 btn = tk.Button(kali_frame, text=texto, command=comando,
                               bg=color, fg='white', font=('Arial', 9),
@@ -270,6 +283,39 @@ class VistaGestionDatos(tk.Frame):
             else:
                 btn = ttk.Button(kali_frame, text=texto, command=comando)
                 btn.pack(side=tk.LEFT, padx=(0, 3))
+            if texto.strip() == 'grep':
+                self.btn_grep = btn
+
+        # Botón pequeño "Limpiar" solo para cheatsheets
+        def limpiar_busqueda():
+            self.text_contenido.tag_remove('sel', '1.0', tk.END)
+            self._actualizar_contenido_seguro("", "clear")
+            if self.archivo_seleccionado:
+                try:
+                    with open(self.archivo_seleccionado, 'r', encoding='utf-8') as f:
+                        contenido = f.read()
+                    self.text_contenido.insert('1.0', contenido)
+                except Exception:
+                    pass
+
+        if self.theme:
+            self.btn_limpiar = tk.Button(kali_frame, text="Limpiar", command=limpiar_busqueda,
+                                         bg="#bdbdbd", fg="black", font=('Arial', 8),
+                                         relief='flat', padx=6, pady=2)
+            self.btn_limpiar.pack(side=tk.LEFT, padx=(0, 3))
+        else:
+            self.btn_limpiar = ttk.Button(kali_frame, text="Limpiar", command=limpiar_busqueda)
+            self.btn_limpiar.pack(side=tk.LEFT, padx=(0, 3))
+
+        # Mostrar/ocultar el botón "Limpiar" según el tipo actual
+        def actualizar_boton_limpiar():
+            if hasattr(self, 'btn_limpiar'):
+                if self.tipo_actual == "cheatsheets":
+                    self.btn_limpiar.pack(side=tk.LEFT, padx=(0, 3))
+                else:
+                    self.btn_limpiar.pack_forget()
+        self.actualizar_boton_limpiar = actualizar_boton_limpiar
+        # Llamar al cambiar tipo
         
         # Área de contenido
         if self.theme:
@@ -295,9 +341,15 @@ class VistaGestionDatos(tk.Frame):
                 if nuevo_tipo == "wordlists":
                     self.btn_wordlists['bg'] = '#ff6633'
                     self.btn_diccionarios['bg'] = '#404040'
-                else:
+                    self.btn_cheatsheets['bg'] = '#404040'
+                elif nuevo_tipo == "diccionarios":
                     self.btn_wordlists['bg'] = '#404040'
                     self.btn_diccionarios['bg'] = '#ff6633'
+                    self.btn_cheatsheets['bg'] = '#404040'
+                elif nuevo_tipo == "cheatsheets":
+                    self.btn_wordlists['bg'] = '#404040'
+                    self.btn_diccionarios['bg'] = '#404040'
+                    self.btn_cheatsheets['bg'] = '#ff6633'
             
             # Limpiar selección y contenido
             self.archivo_seleccionado = None
@@ -308,15 +360,21 @@ class VistaGestionDatos(tk.Frame):
                 if nuevo_tipo == "wordlists":
                     wordlists_data = self.controlador.obtener_wordlists_disponibles()
                     self.logger.info(f"Wordlists disponibles: {len(wordlists_data) if wordlists_data else 0}")
-                else:
+                elif nuevo_tipo == "diccionarios":
                     diccionarios_data = self.controlador.obtener_diccionarios_disponibles()
                     self.logger.info(f"Diccionarios disponibles: {len(diccionarios_data) if diccionarios_data else 0}")
-                    
+                elif nuevo_tipo == "cheatsheets":
+                    # Si se quiere, se puede agregar lógica de cheatsheets aquí
+                    self.logger.info("Cheatsheets seleccionados")
                 # Actualizar estadísticas en la vista
                 self.actualizar_desde_controlador()
             
             # Recargar archivos
             self.cargar_archivos()
+
+            # Mostrar/ocultar botón Limpiar
+            if hasattr(self, 'actualizar_boton_limpiar'):
+                self.actualizar_boton_limpiar()
             
         except Exception as e:
             self.logger.error(f"Error cambiando tipo de gestión: {e}")
@@ -329,10 +387,18 @@ class VistaGestionDatos(tk.Frame):
             ruta = self.ruta_wordlists
             extensiones = ['.txt', '.json']
             tipo_str = "wordlists"
-        else:
+        elif self.tipo_actual == "diccionarios":
             ruta = self.ruta_diccionarios
             extensiones = ['.json']
             tipo_str = "diccionarios"
+        elif self.tipo_actual == "cheatsheets":
+            ruta = self.ruta_cheatsheets
+            extensiones = ['.txt', '.md']
+            tipo_str = "cheatsheets"
+        else:
+            ruta = self.ruta_wordlists
+            extensiones = ['.txt', '.json']
+            tipo_str = "wordlists"
         
         if ruta.exists():
             archivos = []
@@ -474,7 +540,12 @@ class VistaGestionDatos(tk.Frame):
             
             contenido_final = '\n'.join(contenido_limpio).rstrip()
             
-            if self.archivo_seleccionado.suffix == '.json':
+            # Guardar en cheatsheets, wordlists o diccionarios según corresponda
+            if self.tipo_actual == "cheatsheets":
+                # Guardar como texto plano o markdown
+                with open(self.archivo_seleccionado, 'w', encoding='utf-8') as f:
+                    f.write(contenido_final)
+            elif self.archivo_seleccionado.suffix == '.json':
                 # Validar JSON
                 try:
                     datos = json.loads(contenido_final)
@@ -1041,9 +1112,15 @@ class VistaGestionDatos(tk.Frame):
             if self.tipo_actual == "wordlists":
                 carpeta_path = str(self.ruta_wordlists.resolve())
                 tipo_carpeta = "wordlists"
-            else:
+            elif self.tipo_actual == "diccionarios":
                 carpeta_path = str(self.ruta_diccionarios.resolve())
                 tipo_carpeta = "diccionarios"
+            elif self.tipo_actual == "cheatsheets":
+                carpeta_path = str(self.ruta_cheatsheets.resolve())
+                tipo_carpeta = "cheatsheets"
+            else:
+                carpeta_path = str(self.ruta_wordlists.resolve())
+                tipo_carpeta = "wordlists"
             
             if os.path.exists(carpeta_path):
                 # Comandos específicos para Kali Linux

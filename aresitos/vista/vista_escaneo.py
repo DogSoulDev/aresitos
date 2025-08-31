@@ -187,46 +187,43 @@ class VistaEscaneo(tk.Frame):
                                                          relief='flat', bd=1)
         self.text_resultados.pack(fill="both", expand=True, padx=10, pady=(0, 8))
 
-        # --- 4. Terminal integrado (abajo) ---
-        self.terminal_frame = tk.LabelFrame(self.main_frame, text="Terminal ARESITOS - Escaneador",
-                                            bg=self.colors['bg_secondary'], fg=self.colors['fg_primary'], font=("Arial", 10, "bold"))
-        self.terminal_frame.pack(fill="x", padx=8, pady=(0, 4), side="bottom")
+        # --- 4. Terminal integrado (estilo SIEM/Monitoreo) ---
+        self.terminal_frame = tk.LabelFrame(
+            self.main_frame,
+            text="Terminal ARESITOS - Escaneador",
+            bg="#232629",
+            fg="#ffb86c",
+            font=("Arial", 10, "bold")
+        )
+        self.terminal_frame.pack(fill="both", expand=True, padx=5, pady=5)
 
-        # Controles del terminal
-        controles_frame = tk.Frame(self.terminal_frame, bg=self.colors['bg_secondary'])
+        # Controles de terminal (estilo SIEM)
+        controles_frame = tk.Frame(self.terminal_frame, bg="#232629")
         controles_frame.pack(fill="x", padx=5, pady=2)
+
         btn_limpiar = tk.Button(
             controles_frame,
             text="LIMPIAR",
             command=self.limpiar_terminal_escaneo,
-            bg='#8be9fd',
-            fg='#232629',
-            font=("Arial", 11, "bold"),
-            height=2,
-            relief="raised",
-            activebackground='#e3f6ff',
-            activeforeground='#ff5555',
-            padx=10,
-            pady=6
+            bg="#ffaa00",
+            fg='white',
+            font=("Arial", 8, "bold"),
+            height=1
         )
-        btn_limpiar.pack(side="left", padx=6, pady=4, fill="x", expand=True)
+        btn_limpiar.pack(side="left", padx=2, fill="x", expand=True)
+
         btn_logs = tk.Button(
             controles_frame,
             text="VER LOGS",
             command=self.abrir_logs_escaneo,
-            bg='#ffb86c',
-            fg='#232629',
-            font=("Arial", 11, "bold"),
-            height=2,
-            relief="raised",
-            activebackground='#fffae3',
-            activeforeground='#ff5555',
-            padx=10,
-            pady=6
+            bg="#007acc",
+            fg='white',
+            font=("Arial", 8, "bold"),
+            height=1
         )
-        btn_logs.pack(side="left", padx=6, pady=4, fill="x", expand=True)
+        btn_logs.pack(side="left", padx=2, fill="x", expand=True)
 
-        # Área de terminal
+        # Área de terminal (estilo SIEM)
         self.terminal_output = scrolledtext.ScrolledText(
             self.terminal_frame,
             height=6,
@@ -238,7 +235,7 @@ class VistaEscaneo(tk.Frame):
         )
         self.terminal_output.pack(fill="both", expand=True, padx=5, pady=5)
 
-        # Entrada de comandos
+        # Entrada de comandos (estilo SIEM)
         entrada_frame = tk.Frame(self.terminal_frame, bg='#1e1e1e')
         entrada_frame.pack(fill="x", padx=5, pady=2)
         tk.Label(entrada_frame, text="COMANDO:", bg='#1e1e1e', fg='#00ff00', font=("Arial", 9, "bold")).pack(side="left", padx=(0, 5))
@@ -246,10 +243,17 @@ class VistaEscaneo(tk.Frame):
         self.comando_entry.pack(side="left", fill="x", expand=True, padx=(0, 5))
         self.comando_entry.bind("<Return>", self.ejecutar_comando_entry)
         ejecutar_btn = tk.Button(entrada_frame, text="EJECUTAR", command=self.ejecutar_comando_entry, bg='#2d5aa0', fg='white', font=("Arial", 8, "bold"))
-        ejecutar_btn = tk.Button(entrada_frame, text="EJECUTAR", command=self.ejecutar_comando_entry,
-            font=("Arial", 12, "bold"), relief='raised', padx=18, pady=8, bd=2,
-            bg='#ffb86c', fg='#232629', activebackground='#fffae3', activeforeground='#ff5555')
-        ejecutar_btn.pack(side="right", padx=6, pady=4)
+        ejecutar_btn.pack(side="right")
+
+        # Mensaje inicial estilo SIEM
+        self._actualizar_terminal_seguro("="*60 + "\n")
+        self._actualizar_terminal_seguro("Terminal ARESITOS - Escaneador v2.0\n")
+        import datetime
+        self._actualizar_terminal_seguro(f"Iniciado: {datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')}\n")
+        self._actualizar_terminal_seguro("Sistema: Kali Linux - Network & Vulnerability Scanner\n")
+        self._actualizar_terminal_seguro("="*60 + "\n")
+        self._actualizar_terminal_seguro("LOG Escaneo en tiempo real\n\n")
+
     # ...existing code...
 
     # ...existing code...
@@ -1731,12 +1735,11 @@ class VistaEscaneo(tk.Frame):
             return {"exito": False, "error": str(e)}
 
     def _escaneo_profundo_vulnerabilidades(self, objetivo):
-        """Escaneo profundo enfocado en vulnerabilidades."""
+        """Escaneo profundo enfocado en vulnerabilidades y seguridad avanzada solo con herramientas ya presentes y comandos nativos."""
         import subprocess
+        import os
         from datetime import datetime
-        
-        self._actualizar_texto_seguro(f"\n=== ESCANEO PROFUNDO DE VULNERABILIDADES: {objetivo} ===\n")
-        
+        self._actualizar_texto_seguro(f"\n=== ESCANEO PROFUNDO DE VULNERABILIDADES Y SEGURIDAD: {objetivo} ===\n")
         resultado = {
             "objetivo": objetivo,
             "tipo": "profundo",
@@ -1744,54 +1747,188 @@ class VistaEscaneo(tk.Frame):
             "vulnerabilidades_criticas": [],
             "vulnerabilidades_altas": [],
             "servicios_vulnerables": [],
-            "scripts_ejecutados": []
+            "scripts_ejecutados": [],
+            "suid_sgid": [],
+            "rootkits": [],
+            "malware": [],
+            "integridad": [],
+            "logs": [],
+            "usuarios_inseguros": [],
+            "servicios_expuestos": []
         }
-        
         try:
-            # Fase 1: Escaneo con scripts de vulnerabilidades de nmap
+            # Fase 1: Nmap scripts de vulnerabilidades
             self._actualizar_texto_seguro("Fase 1: Ejecutando scripts de vulnerabilidades nmap...\n")
-            cmd = ['nmap', '-sV', '--script', 'vuln', objetivo, '-T4']
-            result = subprocess.run(cmd, capture_output=True, text=True, timeout=300)
-            
-            if result.stdout:
-                resultado["scripts_ejecutados"].append("nmap-vuln")
-                lineas = result.stdout.split('\n')
-                for i, linea in enumerate(lineas):
-                    if 'CVE-' in linea or 'VULNERABLE' in linea:
-                        if 'CRITICAL' in linea.upper() or 'HIGH' in linea.upper():
-                            resultado["vulnerabilidades_criticas"].append(linea.strip())
-                        else:
-                            resultado["vulnerabilidades_altas"].append(linea.strip())
-                        self._actualizar_texto_seguro(f"Vulnerabilidad: {linea.strip()}\n")
-            
-            # Fase 2: Nuclei si está disponible
             try:
-                self._actualizar_texto_seguro("Fase 2: Ejecutando nuclei para detección avanzada...\n")
-                cmd = ['nuclei', '-u', f'http://{objetivo}', '-severity', 'critical,high,medium', '-silent']
-                result = subprocess.run(cmd, capture_output=True, text=True, timeout=180)
-                
+                cmd = ['nmap', '-sV', '--script', 'vuln', objetivo, '-T4']
+                result = subprocess.run(cmd, capture_output=True, text=True, timeout=300)
                 if result.stdout:
-                    resultado["scripts_ejecutados"].append("nuclei")
-                    for linea in result.stdout.strip().split('\n'):
-                        if linea.strip():
-                            if 'critical' in linea.lower():
+                    resultado["scripts_ejecutados"].append("nmap-vuln")
+                    for linea in result.stdout.split('\n'):
+                        if 'CVE-' in linea or 'VULNERABLE' in linea:
+                            if 'CRITICAL' in linea.upper() or 'HIGH' in linea.upper():
                                 resultado["vulnerabilidades_criticas"].append(linea.strip())
                             else:
                                 resultado["vulnerabilidades_altas"].append(linea.strip())
-                            self._actualizar_texto_seguro(f"Nuclei: {linea.strip()}\n")
-            except:
-                self._actualizar_texto_seguro("Nuclei no disponible, continuando...\n")
-            
+                            self._actualizar_texto_seguro(f"Vulnerabilidad: {linea.strip()}\n")
+            except Exception as e:
+                self._actualizar_texto_seguro(f"Nmap vuln error: {e}\n")
+
+            # Fase 2: Nuclei si está disponible
+            try:
+                from shutil import which
+                if which('nuclei'):
+                    self._actualizar_texto_seguro("Fase 2: Ejecutando nuclei para detección avanzada...\n")
+                    cmd = ['nuclei', '-u', f'http://{objetivo}', '-severity', 'critical,high,medium', '-silent']
+                    result = subprocess.run(cmd, capture_output=True, text=True, timeout=180)
+                    if result.stdout:
+                        resultado["scripts_ejecutados"].append("nuclei")
+                        for linea in result.stdout.strip().split('\n'):
+                            if linea.strip():
+                                if 'critical' in linea.lower():
+                                    resultado["vulnerabilidades_criticas"].append(linea.strip())
+                                else:
+                                    resultado["vulnerabilidades_altas"].append(linea.strip())
+                                self._actualizar_texto_seguro(f"Nuclei: {linea.strip()}\n")
+                else:
+                    self._actualizar_texto_seguro("Nuclei no disponible, continuando...\n")
+            except Exception as e:
+                self._actualizar_texto_seguro(f"Nuclei error: {e}\n")
+
+            # Fase 3: Buscar binarios SUID/SGID
+            self._actualizar_texto_seguro("Fase 3: Buscando binarios SUID/SGID peligrosos...\n")
+            try:
+                cmd = ['find', '/', '-perm', '-4000', '-type', 'f', '-exec', 'ls', '-l', '{}', '+']
+                result = subprocess.run(cmd, capture_output=True, text=True, timeout=60)
+                if result.stdout:
+                    for linea in result.stdout.strip().split('\n'):
+                        if '/bin/' in linea or '/usr/bin/' in linea:
+                            resultado["suid_sgid"].append(linea.strip())
+                            self._actualizar_texto_seguro(f"SUID: {linea.strip()}\n")
+            except Exception as e:
+                self._actualizar_texto_seguro(f"SUID/SGID error: {e}\n")
+
+            # Fase 4: Rootkits (chkrootkit/rkhunter)
+            for tool in ['chkrootkit', 'rkhunter']:
+                try:
+                    from shutil import which
+                    if which(tool):
+                        self._actualizar_texto_seguro(f"Fase 4: Ejecutando {tool}...\n")
+                        if tool == 'chkrootkit':
+                            cmd = [tool]
+                        else:
+                            cmd = [tool, '--check', '--sk', '--nocolors']
+                        result = subprocess.run(cmd, capture_output=True, text=True, timeout=180)
+                        if result.stdout:
+                            for linea in result.stdout.strip().split('\n'):
+                                if 'INFECTED' in linea or 'WARNING' in linea or 'Vulnerable' in linea:
+                                    resultado["rootkits"].append(linea.strip())
+                                    self._actualizar_texto_seguro(f"Rootkit: {linea.strip()}\n")
+                    else:
+                        self._actualizar_texto_seguro(f"{tool} no disponible\n")
+                except Exception as e:
+                    self._actualizar_texto_seguro(f"{tool} error: {e}\n")
+
+            # Fase 5: Malware (clamscan)
+            try:
+                from shutil import which
+                if which('clamscan'):
+                    self._actualizar_texto_seguro("Fase 5: Ejecutando clamscan (malware)...\n")
+                    cmd = ['clamscan', '--infected', '--no-summary', '/usr/bin/']
+                    result = subprocess.run(cmd, capture_output=True, text=True, timeout=180)
+                    if result.stdout:
+                        for linea in result.stdout.strip().split('\n'):
+                            if 'FOUND' in linea:
+                                resultado["malware"].append(linea.strip())
+                                self._actualizar_texto_seguro(f"Malware: {linea.strip()}\n")
+                else:
+                    self._actualizar_texto_seguro("clamscan no disponible\n")
+            except Exception as e:
+                self._actualizar_texto_seguro(f"clamscan error: {e}\n")
+
+            # Fase 6: Integridad básica de archivos críticos (debsums, sha256sum)
+            try:
+                from shutil import which
+                if which('debsums'):
+                    self._actualizar_texto_seguro("Fase 6: Verificando integridad con debsums...\n")
+                    cmd = ['debsums', '-s']
+                    result = subprocess.run(cmd, capture_output=True, text=True, timeout=120)
+                    if result.stdout:
+                        for linea in result.stdout.strip().split('\n'):
+                            resultado["integridad"].append(linea.strip())
+                            self._actualizar_texto_seguro(f"Integridad: {linea.strip()}\n")
+                else:
+                    self._actualizar_texto_seguro("debsums no disponible, usando sha256sum sobre /etc/passwd...\n")
+                    cmd = ['sha256sum', '/etc/passwd']
+                    result = subprocess.run(cmd, capture_output=True, text=True, timeout=10)
+                    if result.stdout:
+                        resultado["integridad"].append(result.stdout.strip())
+                        self._actualizar_texto_seguro(f"sha256sum /etc/passwd: {result.stdout.strip()}\n")
+            except Exception as e:
+                self._actualizar_texto_seguro(f"Integridad error: {e}\n")
+
+            # Fase 7: Logs de seguridad (journalctl, /var/log/auth.log)
+            try:
+                self._actualizar_texto_seguro("Fase 7: Analizando logs de seguridad...\n")
+                from shutil import which
+                if which('journalctl'):
+                    cmd = ['journalctl', '-n', '50', '-p', 'err']
+                    result = subprocess.run(cmd, capture_output=True, text=True, timeout=20)
+                    if result.stdout:
+                        for linea in result.stdout.strip().split('\n'):
+                            resultado["logs"].append(linea.strip())
+                            self._actualizar_texto_seguro(f"Log: {linea.strip()}\n")
+                elif os.path.exists('/var/log/auth.log'):
+                    with open('/var/log/auth.log', 'r') as f:
+                        for linea in f.readlines()[-50:]:
+                            resultado["logs"].append(linea.strip())
+                            self._actualizar_texto_seguro(f"Log: {linea.strip()}\n")
+                else:
+                    self._actualizar_texto_seguro("No se encontraron logs de seguridad\n")
+            except Exception as e:
+                self._actualizar_texto_seguro(f"Logs error: {e}\n")
+
+            # Fase 8: Usuarios inseguros
+            try:
+                self._actualizar_texto_seguro("Fase 8: Buscando usuarios y grupos inseguros...\n")
+                cmd = ['cat', '/etc/passwd']
+                result = subprocess.run(cmd, capture_output=True, text=True, timeout=10)
+                if result.stdout:
+                    for linea in result.stdout.strip().split('\n'):
+                        if '/bin/bash' in linea or '/bin/sh' in linea:
+                            campos = linea.split(':')
+                            if len(campos) > 2 and (campos[2] == '0' or campos[0] in ['root', 'toor']):
+                                resultado["usuarios_inseguros"].append(linea.strip())
+                                self._actualizar_texto_seguro(f"Usuario inseguro: {linea.strip()}\n")
+            except Exception as e:
+                self._actualizar_texto_seguro(f"Usuarios error: {e}\n")
+
+            # Fase 9: Servicios expuestos (ss -tulpan)
+            try:
+                self._actualizar_texto_seguro("Fase 9: Listando servicios expuestos (ss -tulpan)...\n")
+                cmd = ['ss', '-tulpan']
+                result = subprocess.run(cmd, capture_output=True, text=True, timeout=15)
+                if result.stdout:
+                    for linea in result.stdout.strip().split('\n'):
+                        if 'LISTEN' in linea or 'tcp' in linea or 'udp' in linea:
+                            resultado["servicios_expuestos"].append(linea.strip())
+                            self._actualizar_texto_seguro(f"Servicio: {linea.strip()}\n")
+            except Exception as e:
+                self._actualizar_texto_seguro(f"Servicios expuestos error: {e}\n")
+
             # Resumen
             total_vulns = len(resultado["vulnerabilidades_criticas"]) + len(resultado["vulnerabilidades_altas"])
-            self._actualizar_texto_seguro(f"\n=== RESUMEN DE VULNERABILIDADES ===\n")
+            self._actualizar_texto_seguro(f"\n=== RESUMEN DE VULNERABILIDADES Y SEGURIDAD ===\n")
             self._actualizar_texto_seguro(f"Vulnerabilidades críticas: {len(resultado['vulnerabilidades_criticas'])}\n")
             self._actualizar_texto_seguro(f"Vulnerabilidades altas: {len(resultado['vulnerabilidades_altas'])}\n")
-            self._actualizar_texto_seguro(f"Total encontradas: {total_vulns}\n")
+            self._actualizar_texto_seguro(f"Binarios SUID/SGID: {len(resultado['suid_sgid'])}\n")
+            self._actualizar_texto_seguro(f"Rootkits detectados: {len(resultado['rootkits'])}\n")
+            self._actualizar_texto_seguro(f"Malware detectado: {len(resultado['malware'])}\n")
+            self._actualizar_texto_seguro(f"Archivos con problemas de integridad: {len(resultado['integridad'])}\n")
+            self._actualizar_texto_seguro(f"Usuarios inseguros: {len(resultado['usuarios_inseguros'])}\n")
+            self._actualizar_texto_seguro(f"Servicios expuestos: {len(resultado['servicios_expuestos'])}\n")
             self._actualizar_texto_seguro("=" * 50 + "\n\n")
-            
             return {"exito": True, "resultado": resultado}
-            
         except Exception as e:
             self._actualizar_texto_seguro(f"Error en escaneo profundo: {str(e)}\n")
             return {"exito": False, "error": str(e)}

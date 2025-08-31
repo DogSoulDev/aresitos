@@ -511,7 +511,7 @@ class VistaDashboard(tk.Frame):
         # Botones de comandos rápidos optimizados para Kali Linux
         comandos_rapidos = [
             # Conexiones de red activas y resumen
-            ("echo '=== CONEXIONES DE RED ACTIVAS ===' && echo && ss -tulnp 2>/dev/null | awk 'NR==1 {print; next} /ESTAB|LISTEN/ {printf \"%-8s %-12s %-25s %-25s %-20s\\n\", $1, $2, $5, $6, $7}' | head -20 && echo && echo '=== RESUMEN ===' && echo \"TCP Establecidas: $(ss -t 2>/dev/null | grep -c ESTAB)\" && echo \"TCP en Escucha: $(ss -tln 2>/dev/null | grep -c LISTEN)\" && echo \"UDP Activas: $(ss -u 2>/dev/null | grep -v State | wc -l)\" && echo \"Total Conexiones: $(ss -tuln 2>/dev/null | grep -v State | wc -l)\"", "Ver Conexiones de Red"),
+            ("ss -tulpan", "Ver Conexiones de Red"),
             # Procesos top por CPU y memoria
             ("ps aux --sort=-%cpu | head -15 && echo && echo '--- TOP MEMORIA ---' && ps aux --sort=-%mem | head -15", "Procesos que Más CPU/Memoria Usan"),
             # Interfaces de red

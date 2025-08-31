@@ -25,6 +25,31 @@ from aresitos.modelo.modelo_siem import SIEMKali2025
 
 
 class ControladorMonitoreo(ControladorBase):
+    def configurar_cuarentena(self, controlador_cuarentena):
+        """
+        Configura la referencia al controlador de cuarentena.
+        """
+        self.controlador_cuarentena = controlador_cuarentena
+        self.logger.info("Referencia a Controlador Cuarentena configurada en Monitoreo")
+
+    def enviar_a_cuarentena(self, archivo, razon="Detectado por Monitoreo"):
+        """
+        Envía un archivo sospechoso a cuarentena si el controlador está configurado.
+        """
+        if hasattr(self, 'controlador_cuarentena') and self.controlador_cuarentena:
+            try:
+                resultado = self.controlador_cuarentena.cuarentenar_archivo(archivo, razon=razon)
+                if resultado.get('exito'):
+                    self.logger.info(f"Archivo enviado a cuarentena: {archivo}")
+                else:
+                    self.logger.warning(f"Error enviando a cuarentena: {resultado.get('mensaje','sin mensaje')}")
+                return resultado
+            except Exception as e:
+                self.logger.error(f"Excepción enviando a cuarentena: {e}")
+                return {'exito': False, 'error': str(e)}
+        else:
+            self.logger.warning("Controlador de cuarentena no configurado")
+            return {'exito': False, 'error': 'Controlador de cuarentena no configurado'}
     """
     Controlador de monitoreo que integra capacidades avanzadas de análisis
     mientras mantiene compatibilidad con la interfaz gráfica actual.

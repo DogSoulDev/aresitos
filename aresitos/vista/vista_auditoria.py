@@ -69,37 +69,47 @@ class VistaAuditoria(tk.Frame):
     def crear_interfaz(self):
         self.configure(bg=self.colors['bg_primary'])
         self.pack_propagate(False)
-        self.paned_window = tk.PanedWindow(self, orient="vertical", bg=self.colors['bg_primary'])
-        self.paned_window.pack(fill="both", expand=True, padx=5, pady=5)
 
-        # Frame superior para el contenido principal
-        contenido_frame = tk.Frame(self.paned_window, bg=self.colors['bg_primary'])
-        self.paned_window.add(contenido_frame, minsize=400)
+        # Frame principal vertical
+        main_frame = tk.Frame(self, bg=self.colors['bg_primary'])
+        main_frame.pack(fill="both", expand=True, padx=5, pady=5)
 
-        # Frame título
-        titulo_frame = tk.Frame(contenido_frame, bg=self.colors['bg_primary'])
+        # Título arriba
+        titulo_frame = tk.Frame(main_frame, bg=self.colors['bg_primary'])
         titulo_frame.pack(fill=tk.X, pady=(10, 10))
         titulo = tk.Label(titulo_frame, text="Auditoría de Seguridad del Sistema",
             bg=self.colors['bg_primary'], fg=self.colors['fg_accent'],
             font=('Arial', 16, 'bold'))
         titulo.pack(pady=10)
 
-        # Aquí puedes añadir secciones de botones, paneles, etc. como antes
-        # ...
+        # Frame horizontal para dividir botones y terminal
+        content_frame = tk.Frame(main_frame, bg=self.colors['bg_primary'])
+        content_frame.pack(fill=tk.BOTH, expand=True)
 
-        # Crear terminal integrado estilo SIEM
-        self.crear_terminal_integrado()
+        # Panel izquierdo: botones
+        left_frame = tk.Frame(content_frame, bg=self.colors['bg_secondary'])
+        left_frame.pack(side=tk.LEFT, fill=tk.Y, padx=(0, 10), pady=5)
+        self._crear_seccion_deteccion_malware(left_frame)
+        self._crear_seccion_configuraciones(left_frame)
+        self._crear_seccion_utilidades(left_frame)
 
-    def crear_terminal_integrado(self):
+        # Panel derecho: terminal integrado
+        right_frame = tk.Frame(content_frame, bg=self.colors['bg_primary'])
+        right_frame.pack(side=tk.RIGHT, fill=tk.BOTH, expand=True, pady=5)
+        self.crear_terminal_integrado(parent=right_frame)
+
+    def crear_terminal_integrado(self, parent=None):
         try:
+            if parent is None:
+                parent = self
             terminal_frame = tk.LabelFrame(
-                self.paned_window,
+                parent,
                 text="Terminal ARESITOS - Auditoría",
                 bg=self.colors['bg_secondary'],
                 fg=self.colors['fg_primary'],
                 font=("Arial", 10, "bold")
             )
-            self.paned_window.add(terminal_frame, minsize=120)
+            terminal_frame.pack(fill="both", expand=True, padx=5, pady=5)
 
             controles_frame = tk.Frame(terminal_frame, bg=self.colors['bg_secondary'])
             controles_frame.pack(fill="x", padx=5, pady=2)
@@ -128,10 +138,10 @@ class VistaAuditoria(tk.Frame):
 
             self.terminal_output = scrolledtext.ScrolledText(
                 terminal_frame,
-                height=6,
+                height=12,
                 bg='#000000',
                 fg='#00ff00',
-                font=("Consolas", 8),
+                font=("Consolas", 10),
                 insertbackground='#00ff00',
                 selectbackground='#333333'
             )
