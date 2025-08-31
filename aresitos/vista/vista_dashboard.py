@@ -1100,6 +1100,21 @@ class VistaDashboard(tk.Frame):
         except Exception as e:
             print(f"Error actualizando métricas: {e}")
         
+        # --- SINCRONIZACIÓN SILENCIOSA DE DATOS PARA REPORTES ---
+        try:
+            from aresitos.vista.vista_reportes import VistaReportes
+            vista_reportes = None
+            if hasattr(self.master, 'vista_reportes'):
+                vista_reportes = getattr(self.master, 'vista_reportes', None)
+            else:
+                vistas = getattr(self.master, 'vistas', None)
+                if vistas and hasattr(vistas, 'get'):
+                    vista_reportes = vistas.get('reportes', None)
+            if vista_reportes and hasattr(self, 'obtener_datos_para_reporte'):
+                datos = self.obtener_datos_para_reporte()
+                vista_reportes.set_datos_modulo('dashboard', datos)
+        except Exception:
+            pass
         # Programar siguiente actualización en 60 segundos
         if self.actualizacion_activa:
             self.after(60000, self.actualizar_metricas)  # 60 segundos = 60000 ms

@@ -46,6 +46,52 @@ class VistaReportes(tk.Frame):
         from pathlib import Path
         return Path(os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..")))
     
+    # --- NUEVO: Almacenamiento persistente de datos de módulos para reportes ---
+    def inicializar_datos_modulos(self):
+        """Inicializa los atributos de datos de cada módulo para sincronización."""
+        self._datos_dashboard = None
+        self._datos_escaneo = None
+        self._datos_monitoreo = None
+        self._datos_fim = None
+        self._datos_siem = None
+        self._datos_cuarentena = None
+        self._datos_terminal_principal = None
+
+    def set_datos_modulo(self, modulo, datos):
+        """Permite a los controladores o vistas de cada módulo actualizar sus datos para reportes."""
+        if modulo == 'dashboard':
+            self._datos_dashboard = datos
+        elif modulo == 'escaneo':
+            self._datos_escaneo = datos
+        elif modulo == 'monitoreo':
+            self._datos_monitoreo = datos
+        elif modulo == 'fim':
+            self._datos_fim = datos
+        elif modulo == 'siem':
+            self._datos_siem = datos
+        elif modulo == 'cuarentena':
+            self._datos_cuarentena = datos
+        elif modulo == 'terminal_principal':
+            self._datos_terminal_principal = datos
+
+    def get_datos_modulo(self, modulo):
+        """Devuelve los datos almacenados del módulo solicitado."""
+        if modulo == 'dashboard':
+            return self._datos_dashboard
+        elif modulo == 'escaneo':
+            return self._datos_escaneo
+        elif modulo == 'monitoreo':
+            return self._datos_monitoreo
+        elif modulo == 'fim':
+            return self._datos_fim
+        elif modulo == 'siem':
+            return self._datos_siem
+        elif modulo == 'cuarentena':
+            return self._datos_cuarentena
+        elif modulo == 'terminal_principal':
+            return self._datos_terminal_principal
+        return None
+
     def __init__(self, parent):
         super().__init__(parent)
         self.controlador = None
@@ -54,6 +100,7 @@ class VistaReportes(tk.Frame):
         self.logger = LoggerAresitos.get_instance()
         self.reporte_actual = None
         self.vista_principal = parent  # Referencia al padre para acceder al terminal
+        self.inicializar_datos_modulos()  # Inicializa almacenamiento de datos de módulos
         # Configurar tema y colores de manera consistente
         if BURP_THEME_AVAILABLE and burp_theme:
             self.theme = burp_theme
@@ -956,15 +1003,18 @@ class VistaReportes(tk.Frame):
     def _obtener_datos_dashboard(self):
         """Obtener datos del módulo Dashboard."""
         try:
-            # Acceder a la vista principal para obtener datos del dashboard
+            # Prioridad: devolver datos sincronizados si existen
+            if self._datos_dashboard:
+                return self._datos_dashboard
+            # Si no hay datos sincronizados, intentar obtenerlos en vivo
             if hasattr(self.vista_principal, 'notebook') and hasattr(self.vista_principal.notebook, 'tab'):
-                # Buscar la pestaña del dashboard
                 for i, (nombre, vista) in enumerate(self.vista_principal.vistas.items()):
                     if 'dashboard' in nombre.lower():
                         if hasattr(vista, 'obtener_datos_para_reporte'):
-                            return vista.obtener_datos_para_reporte()
-            
-            # Datos básicos por defecto
+                            datos = vista.obtener_datos_para_reporte()
+                            self._datos_dashboard = datos
+                            return datos
+            # Fallback: datos básicos
             return {
                 'timestamp': datetime.datetime.now().isoformat(),
                 'modulo': 'Dashboard',
@@ -973,10 +1023,13 @@ class VistaReportes(tk.Frame):
             }
         except Exception as e:
             return {'error': f'Error obteniendo datos dashboard: {str(e)}'}
-    
+
     def _obtener_datos_escaneo(self):
         """Obtener datos completos del módulo Escaneador - Issue 20/24."""
         try:
+            if self._datos_escaneo:
+                return self._datos_escaneo
+            # Si no hay datos sincronizados, obtener en vivo
             datos = {
                 'timestamp': datetime.datetime.now().isoformat(),
                 'modulo': 'Escaneador',
@@ -985,12 +1038,9 @@ class VistaReportes(tk.Frame):
                 'estadisticas': {},
                 'configuracion': {}
             }
-            
-            # Buscar la vista de escaneo y capturar su terminal
             if hasattr(self.vista_principal, 'vistas'):
                 for nombre, vista in self.vista_principal.vistas.items():
                     if 'escaneo' in nombre.lower():
-                        # Capturar contenido del terminal de escaneador
                         if hasattr(vista, 'text_terminal'):
                             try:
                                 contenido_terminal = vista.text_terminal.get(1.0, tk.END)
@@ -998,26 +1048,18 @@ class VistaReportes(tk.Frame):
                                 datos['terminal_lines'] = len(contenido_terminal.split('\n'))
                             except Exception:
                                 datos['terminal_content'] = 'No se pudo capturar terminal de escaneador'
-                        
-                        # Capturar datos específicos si tiene método
                         if hasattr(vista, 'obtener_datos_para_reporte'):
                             datos_especificos = vista.obtener_datos_para_reporte()
                             if isinstance(datos_especificos, dict):
                                 datos.update(datos_especificos)
-                        
-                        # Capturar estadísticas de escaneador
                         if hasattr(vista, 'estadisticas_escaneador'):
                             datos['estadisticas'] = vista.estadisticas_escaneador
-                        
                         break
-            
-            # Si no se encontró terminal, marcar como limitado
             if not datos['terminal_content']:
                 datos['estado'] = 'datos_limitados'
                 datos['info'] = 'Terminal de escaneador no accesible'
-            
+            self._datos_escaneo = datos
             return datos
-            
         except Exception as e:
             return {
                 'timestamp': datetime.datetime.now().isoformat(),
@@ -1025,10 +1067,12 @@ class VistaReportes(tk.Frame):
                 'error': f'Error obteniendo datos escaneo: {str(e)}',
                 'estado': 'error'
             }
-    
+
     def _obtener_datos_monitoreo(self):
         """Obtener datos completos del módulo Monitoreo - Issue 20/24."""
         try:
+            if self._datos_monitoreo:
+                return self._datos_monitoreo
             datos = {
                 'timestamp': datetime.datetime.now().isoformat(),
                 'modulo': 'Monitoreo',
@@ -1037,48 +1081,34 @@ class VistaReportes(tk.Frame):
                 'monitor_estado': {},
                 'alertas': []
             }
-            
-            # Buscar la vista de monitoreo y capturar su terminal
             if hasattr(self.vista_principal, 'vistas'):
                 for nombre, vista in self.vista_principal.vistas.items():
                     if 'monitoreo' in nombre.lower():
-                        # Capturar contenido del terminal de monitoreo
                         if hasattr(vista, 'text_monitor'):
                             try:
                                 contenido_terminal = vista.text_monitor.get(1.0, tk.END)
                                 datos['terminal_content'] = contenido_terminal.strip()
                                 datos['terminal_lines'] = len(contenido_terminal.split('\n'))
-                                
-                                # Analizar contenido para extraer alertas
                                 lineas = contenido_terminal.split('\n')
                                 for linea in lineas:
                                     if any(palabra in linea.upper() for palabra in ['ERROR', 'WARNING', 'CRITICO', 'ALERTA']):
                                         datos['alertas'].append(linea.strip())
-                                        
                             except Exception:
                                 datos['terminal_content'] = 'No se pudo capturar terminal de monitoreo'
-                        
-                        # Capturar estado del monitor
                         if hasattr(vista, 'monitor_activo'):
                             datos['monitor_estado']['activo'] = vista.monitor_activo
                         if hasattr(vista, 'monitor_red_activo'):
                             datos['monitor_estado']['red_activo'] = vista.monitor_red_activo
-                        
-                        # Capturar datos específicos si tiene método
                         if hasattr(vista, 'obtener_datos_para_reporte'):
                             datos_especificos = vista.obtener_datos_para_reporte()
                             if isinstance(datos_especificos, dict):
                                 datos.update(datos_especificos)
-                        
                         break
-            
-            # Si no se encontró terminal, marcar como limitado
             if not datos['terminal_content']:
                 datos['estado'] = 'datos_limitados'
                 datos['info'] = 'Terminal de monitoreo no accesible'
-            
+            self._datos_monitoreo = datos
             return datos
-            
         except Exception as e:
             return {
                 'timestamp': datetime.datetime.now().isoformat(),
@@ -1086,10 +1116,12 @@ class VistaReportes(tk.Frame):
                 'error': f'Error obteniendo datos monitoreo: {str(e)}',
                 'estado': 'error'
             }
-    
+
     def _obtener_datos_fim(self):
         """Obtener datos completos del módulo FIM - Issue 20/24."""
         try:
+            if self._datos_fim:
+                return self._datos_fim
             datos = {
                 'timestamp': datetime.datetime.now().isoformat(),
                 'modulo': 'FIM',
@@ -1099,55 +1131,39 @@ class VistaReportes(tk.Frame):
                 'archivos_monitoreados': [],
                 'alertas_integridad': []
             }
-            
-            # Buscar la vista FIM y capturar su terminal
             if hasattr(self.vista_principal, 'vistas'):
                 for nombre, vista in self.vista_principal.vistas.items():
                     if 'fim' in nombre.lower():
-                        # Capturar contenido del terminal FIM
                         if hasattr(vista, 'text_fim'):
                             try:
                                 contenido_terminal = vista.text_fim.get(1.0, tk.END)
                                 datos['terminal_content'] = contenido_terminal.strip()
                                 datos['terminal_lines'] = len(contenido_terminal.split('\n'))
-                                
-                                # Analizar contenido para extraer información de integridad
                                 lineas = contenido_terminal.split('\n')
                                 for linea in lineas:
                                     if 'PROBLEMA:' in linea or 'WARNING:' in linea or 'ERROR' in linea:
                                         datos['alertas_integridad'].append(linea.strip())
                                     elif 'Verificando:' in linea or 'ARCHIVO:' in linea:
                                         datos['archivos_monitoreados'].append(linea.strip())
-                                        
                             except Exception:
                                 datos['terminal_content'] = 'No se pudo capturar terminal FIM'
-                        
-                        # Capturar estado del monitoreo FIM
                         if hasattr(vista, 'proceso_monitoreo_activo'):
                             datos['monitor_fim_activo'] = vista.proceso_monitoreo_activo
-                        
-                        # Capturar datos específicos si tiene método
                         if hasattr(vista, 'obtener_datos_para_reporte'):
                             datos_especificos = vista.obtener_datos_para_reporte()
                             if isinstance(datos_especificos, dict):
                                 datos.update(datos_especificos)
-                        
                         break
-            
-            # Estadísticas del análisis
             datos['estadisticas'] = {
                 'archivos_monitoreados': len(datos['archivos_monitoreados']),
                 'alertas_detectadas': len(datos['alertas_integridad']),
                 'monitor_activo': datos['monitor_fim_activo']
             }
-            
-            # Si no se encontró terminal, marcar como limitado
             if not datos['terminal_content']:
                 datos['estado'] = 'datos_limitados'
                 datos['info'] = 'Terminal FIM no accesible'
-            
+            self._datos_fim = datos
             return datos
-            
         except Exception as e:
             return {
                 'timestamp': datetime.datetime.now().isoformat(),
@@ -1155,10 +1171,12 @@ class VistaReportes(tk.Frame):
                 'error': f'Error obteniendo datos FIM: {str(e)}',
                 'estado': 'error'
             }
-    
+
     def _obtener_datos_siem(self):
         """Obtener datos completos del módulo SIEM - Issue 20/24."""
         try:
+            if self._datos_siem:
+                return self._datos_siem
             datos = {
                 'timestamp': datetime.datetime.now().isoformat(),
                 'modulo': 'SIEM',
@@ -1168,57 +1186,41 @@ class VistaReportes(tk.Frame):
                 'eventos_seguridad': [],
                 'alertas_criticas': []
             }
-            
-            # Buscar la vista SIEM y capturar su terminal
             if hasattr(self.vista_principal, 'vistas'):
                 for nombre, vista in self.vista_principal.vistas.items():
                     if 'siem' in nombre.lower():
-                        # Capturar contenido del terminal SIEM
                         if hasattr(vista, 'text_siem'):
                             try:
                                 contenido_terminal = vista.text_siem.get(1.0, tk.END)
                                 datos['terminal_content'] = contenido_terminal.strip()
                                 datos['terminal_lines'] = len(contenido_terminal.split('\n'))
-                                
-                                # Analizar contenido para extraer eventos de seguridad
                                 lineas = contenido_terminal.split('\n')
                                 for linea in lineas:
                                     if any(palabra in linea.upper() for palabra in ['CRITICO', 'ALERTA', 'VULNERABILIDAD', 'BACKDOOR', 'MALWARE']):
                                         datos['alertas_criticas'].append(linea.strip())
                                     elif any(palabra in linea.upper() for palabra in ['DETECTADO', 'MONITOREO', 'PUERTOS', 'CONEXIONES']):
                                         datos['eventos_seguridad'].append(linea.strip())
-                                        
                             except Exception:
                                 datos['terminal_content'] = 'No se pudo capturar terminal SIEM'
-                        
-                        # Capturar estado del SIEM
                         if hasattr(vista, 'siem_activo'):
                             datos['siem_activo'] = vista.siem_activo
                         elif hasattr(vista, 'proceso_siem_activo'):
                             datos['siem_activo'] = vista.proceso_siem_activo
-                        
-                        # Capturar datos específicos si tiene método
                         if hasattr(vista, 'obtener_datos_para_reporte'):
                             datos_especificos = vista.obtener_datos_para_reporte()
                             if isinstance(datos_especificos, dict):
                                 datos.update(datos_especificos)
-                        
                         break
-            
-            # Estadísticas del análisis SIEM
             datos['estadisticas'] = {
                 'eventos_detectados': len(datos['eventos_seguridad']),
                 'alertas_criticas': len(datos['alertas_criticas']),
                 'siem_activo': datos['siem_activo']
             }
-            
-            # Si no se encontró terminal, marcar como limitado
             if not datos['terminal_content']:
                 datos['estado'] = 'datos_limitados'
                 datos['info'] = 'Terminal SIEM no accesible'
-            
+            self._datos_siem = datos
             return datos
-            
         except Exception as e:
             return {
                 'timestamp': datetime.datetime.now().isoformat(),
@@ -1226,10 +1228,12 @@ class VistaReportes(tk.Frame):
                 'error': f'Error obteniendo datos SIEM: {str(e)}',
                 'estado': 'error'
             }
-    
+
     def _obtener_datos_cuarentena(self):
         """Obtener datos completos del módulo de cuarentena - Issue 20/24."""
         try:
+            if self._datos_cuarentena:
+                return self._datos_cuarentena
             datos = {
                 'timestamp': datetime.datetime.now().isoformat(),
                 'modulo': 'Cuarentena',
@@ -1239,19 +1243,14 @@ class VistaReportes(tk.Frame):
                 'alertas_cuarentena': [],
                 'procesos_monitoreados': []
             }
-            
-            # Buscar la vista de cuarentena y capturar su terminal
             if hasattr(self.vista_principal, 'vistas'):
                 for nombre, vista in self.vista_principal.vistas.items():
                     if 'cuarentena' in nombre.lower():
-                        # Capturar contenido del terminal de cuarentena
                         if hasattr(vista, 'text_terminal'):
                             try:
                                 contenido_terminal = vista.text_terminal.get(1.0, tk.END)
                                 datos['terminal_content'] = contenido_terminal.strip()
                                 datos['terminal_lines'] = len(contenido_terminal.split('\n'))
-                                
-                                # Analizar contenido para extraer datos de cuarentena
                                 lineas = contenido_terminal.split('\n')
                                 for linea in lineas:
                                     if any(palabra in linea.upper() for palabra in ['CUARENTENA', 'AISLADO', 'BLOQUEADO']):
@@ -1260,36 +1259,25 @@ class VistaReportes(tk.Frame):
                                         datos['alertas_cuarentena'].append(linea.strip())
                                     elif any(palabra in linea.upper() for palabra in ['PROCESO', 'PID', 'MONITOREO']):
                                         datos['procesos_monitoreados'].append(linea.strip())
-                                        
                             except Exception:
                                 datos['terminal_content'] = 'No se pudo capturar terminal cuarentena'
-                        
-                        # Capturar estado específico de cuarentena
                         if hasattr(vista, 'cuarentena_activa'):
                             datos['cuarentena_activa'] = vista.cuarentena_activa
-                        
-                        # Capturar datos específicos si tiene método
                         if hasattr(vista, 'obtener_datos_para_reporte'):
                             datos_especificos = vista.obtener_datos_para_reporte()
                             if isinstance(datos_especificos, dict):
                                 datos.update(datos_especificos)
-                        
                         break
-            
-            # Estadísticas del análisis de cuarentena
             datos['estadisticas'] = {
                 'archivos_en_cuarentena': len(datos['archivos_cuarentena']),
                 'alertas_activas': len(datos['alertas_cuarentena']),
                 'procesos_monitoreados': len(datos['procesos_monitoreados'])
             }
-            
-            # Si no se encontró terminal, marcar como limitado
             if not datos['terminal_content']:
                 datos['estado'] = 'datos_limitados'
                 datos['info'] = 'Terminal de cuarentena no accesible'
-            
+            self._datos_cuarentena = datos
             return datos
-            
         except Exception as e:
             return {
                 'timestamp': datetime.datetime.now().isoformat(),

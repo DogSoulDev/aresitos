@@ -272,21 +272,60 @@ class VistaAuditoria(tk.Frame):
                 font=('Arial', 10, 'bold')).pack(anchor=tk.W, pady=(5, 5))
         # Botones adaptados: solo muestran info en terminal
         buttons = [
-            ("Detectar Rootkits", lambda: self.log_terminal("[INFO] Ejecutar: rkhunter --check --sk --nocolors o chkrootkit"), self.colors['warning'],
+            ("Detectar Rootkits", "rkhunter --check --sk --nocolors || chkrootkit", self.colors['warning'],
              "Analiza el sistema en busca de rootkits y malware usando herramientas nativas de Linux/Kali. Muestra hallazgos críticos y sugerencias de seguridad."),
-            ("Auditoría nuclei", lambda: self.log_terminal("[INFO] Ejecutar: nuclei -update-templates && nuclei ..."), self.colors['info'],
+            ("Auditoría nuclei", "nuclei -update-templates && nuclei -l targets.txt -o nuclei_report.txt", self.colors['info'],
              "Ejecuta un escaneo de vulnerabilidades profesional con nuclei. Requiere tener nuclei instalado y actualizado."),
-            ("Scan httpx", lambda: self.log_terminal("[INFO] Ejecutar: httpx -u http://localhost:80 ..."), self.colors['fg_accent'],
+            ("Scan httpx", "httpx -u http://localhost:80", self.colors['fg_accent'],
              "Realiza un escaneo rápido de servicios web usando httpx para detectar tecnologías, títulos y estado HTTP."),
         ]
-        for text, command, color, ayuda in buttons:
+        for text, comando, color, ayuda in buttons:
             def make_cmd(cmd, ayuda_text):
-                return lambda: (self.actualizar_info_panel(text, ayuda_text), cmd())
-            btn = tk.Button(section_frame, text=text, command=make_cmd(command, ayuda),
+                def ejecutar_y_reportar():
+                    self.actualizar_info_panel(text, ayuda_text)
+                    self.log_terminal(f"[EJECUTANDO] {cmd}")
+                    import subprocess
+                    try:
+                        resultado = subprocess.run(cmd, shell=True, capture_output=True, text=True, timeout=120)
+                        salida = resultado.stdout.strip()
+                        error = resultado.stderr.strip()
+                        if salida:
+                            self.log_terminal(salida)
+                            self._enviar_a_reportes(text, cmd, salida, False)
+                        if error:
+                            self.log_terminal(error, nivel="ERROR")
+                            self._enviar_a_reportes(text, cmd, error, True)
+                    except Exception as e:
+                        self.log_terminal(f"[ERROR] {e}", nivel="ERROR")
+                        self._enviar_a_reportes(text, cmd, str(e), True)
+                return ejecutar_y_reportar
+            btn = tk.Button(section_frame, text=text, command=make_cmd(comando, ayuda),
                            bg=color, fg=self.colors['bg_primary'],
                            font=('Arial', 9, 'bold'), relief='flat',
                            padx=10, pady=5)
             btn.pack(fill=tk.X, pady=2)
+
+    def _enviar_a_reportes(self, herramienta, comando, salida, es_error=False):
+        """Envía la información de la ejecución a la vista de reportes si está disponible."""
+        try:
+            vista_reportes = None
+            if hasattr(self.master, 'vista_reportes'):
+                vista_reportes = getattr(self.master, 'vista_reportes', None)
+            else:
+                vistas = getattr(self.master, 'vistas', None)
+                if vistas and hasattr(vistas, 'get'):
+                    vista_reportes = vistas.get('reportes', None)
+            if vista_reportes:
+                datos = {
+                    'timestamp': datetime.datetime.now().isoformat(),
+                    'herramienta': herramienta,
+                    'comando': comando,
+                    'salida': salida,
+                    'es_error': es_error
+                }
+                vista_reportes.set_datos_modulo('auditoria', datos)
+        except Exception:
+            pass
     
     def _crear_seccion_configuraciones(self, parent):
         section_frame = tk.Frame(parent, bg=self.colors['bg_secondary'])
@@ -296,17 +335,34 @@ class VistaAuditoria(tk.Frame):
                 font=('Arial', 10, 'bold')).pack(anchor=tk.W, pady=(5, 5))
         # Botones adaptados: solo muestran info en terminal
         buttons = [
-            ("Configuración SSH", lambda: self.log_terminal("[INFO] Auditar SSH: función no implementada en este modo."), self.colors['fg_accent'],
+            ("Configuración SSH", "cat /etc/ssh/sshd_config", self.colors['fg_accent'],
              "Audita la configuración del servicio SSH para detectar debilidades y malas prácticas."),
-            ("Políticas de Contraseña", lambda: self.log_terminal("[INFO] Verificar políticas de contraseña: función no implementada en este modo."), self.colors['danger'],
+            ("Políticas de Contraseña", "cat /etc/login.defs", self.colors['danger'],
              "Verifica las políticas de contraseñas del sistema y detecta usuarios sin contraseña o configuraciones débiles."),
-            ("Análisis SUID/SGID", lambda: self.log_terminal("[INFO] Analizar SUID/SGID: función no implementada en este modo."), self.colors['warning'],
+            ("Análisis SUID/SGID", "find / -perm /6000 -type f 2>/dev/null", self.colors['warning'],
              "Busca archivos con permisos SUID/SGID que pueden ser explotados para escalar privilegios."),
         ]
-        for text, command, color, ayuda in buttons:
+        for text, comando, color, ayuda in buttons:
             def make_cmd(cmd, ayuda_text):
-                return lambda: (self.actualizar_info_panel(text, ayuda_text), cmd())
-            btn = tk.Button(section_frame, text=text, command=make_cmd(command, ayuda),
+                def ejecutar_y_reportar():
+                    self.actualizar_info_panel(text, ayuda_text)
+                    self.log_terminal(f"[EJECUTANDO] {cmd}")
+                    import subprocess
+                    try:
+                        resultado = subprocess.run(cmd, shell=True, capture_output=True, text=True, timeout=120)
+                        salida = resultado.stdout.strip()
+                        error = resultado.stderr.strip()
+                        if salida:
+                            self.log_terminal(salida)
+                            self._enviar_a_reportes(text, cmd, salida, False)
+                        if error:
+                            self.log_terminal(error, nivel="ERROR")
+                            self._enviar_a_reportes(text, cmd, error, True)
+                    except Exception as e:
+                        self.log_terminal(f"[ERROR] {e}", nivel="ERROR")
+                        self._enviar_a_reportes(text, cmd, str(e), True)
+                return ejecutar_y_reportar
+            btn = tk.Button(section_frame, text=text, command=make_cmd(comando, ayuda),
                            bg=color, fg=self.colors['bg_primary'],
                            font=('Arial', 9, 'bold'), relief='flat',
                            padx=10, pady=5)

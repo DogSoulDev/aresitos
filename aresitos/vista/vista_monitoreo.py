@@ -49,6 +49,33 @@ class ThreadSafeFlag:
             self.flag = False
 
 class VistaMonitoreo(tk.Frame):
+    def obtener_datos_para_reporte(self):
+        """Obtener datos del monitoreo para incluir en reportes automáticos."""
+        try:
+            contenido = ""
+            if hasattr(self, 'text_monitor') and self.text_monitor:
+                contenido = self.text_monitor.get(1.0, 'end-1c')
+            datos = {
+                'timestamp': datetime.datetime.now().isoformat(),
+                'modulo': 'Monitoreo',
+                'estado': 'activo' if hasattr(self, 'flag_monitoreo') and getattr(self.flag_monitoreo, 'is_set', lambda: False)() == False else 'inactivo',
+                'resumen': contenido[-2000:] if len(contenido) > 2000 else contenido,
+                'estadisticas': {
+                    'lineas': len(contenido.split('\n')),
+                    'errores': contenido.lower().count('error'),
+                    'procesos_sospechosos': contenido.lower().count('sospechoso'),
+                    'alertas': contenido.lower().count('alerta'),
+                }
+            }
+            return datos
+        except Exception as e:
+            return {
+                'timestamp': datetime.datetime.now().isoformat(),
+                'modulo': 'Monitoreo',
+                'estado': 'error',
+                'error': f'Error obteniendo datos: {str(e)}',
+                'info': 'Error al obtener datos de monitoreo para reporte'
+            }
     def limpiar_terminal_monitoreo(self):
         """Limpiar terminal Monitoreo manteniendo cabecera."""
         try:
@@ -663,6 +690,21 @@ class VistaMonitoreo(tk.Frame):
             if self.text_monitor is not None:
                 self.text_monitor.insert(tk.END, f"\nError en monitoreo completo: {str(e)}\n")
             self._log_terminal(f"Error en monitoreo completo: {str(e)}", "MONITOREO", "ERROR")
+        # --- SINCRONIZACIÓN SILENCIOSA DE DATOS PARA REPORTES ---
+        try:
+            from aresitos.vista.vista_reportes import VistaReportes
+            vista_reportes = None
+            if hasattr(self.master, 'vista_reportes'):
+                vista_reportes = getattr(self.master, 'vista_reportes', None)
+            else:
+                vistas = getattr(self.master, 'vistas', None)
+                if vistas and hasattr(vistas, 'get'):
+                    vista_reportes = vistas.get('reportes', None)
+            if vista_reportes and hasattr(self, 'obtener_datos_para_reporte'):
+                datos = self.obtener_datos_para_reporte()
+                vista_reportes.set_datos_modulo('monitoreo', datos)
+        except Exception:
+            pass
 
     def _monitorear_procesos_sistema(self):
         """Monitorear todos los procesos del sistema y sus características con manejo seguro."""

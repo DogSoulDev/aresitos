@@ -909,6 +909,23 @@ class VistaFIM(tk.Frame):
             self._log_terminal(error_msg, "FIM", "ERROR")
             self.after(0, self._actualizar_texto_fim, f"ERROR: {error_msg}\n")
         finally:
+            # --- SINCRONIZACIÓN SILENCIOSA DE DATOS PARA REPORTES ---
+            try:
+                from aresitos.vista.vista_reportes import VistaReportes
+                vista_reportes = None
+                if hasattr(self.master, 'vista_reportes'):
+                    vista_reportes = getattr(self.master, 'vista_reportes', None)
+                else:
+                    vistas = getattr(self.master, 'vistas', None)
+                    if vistas and hasattr(vistas, 'get'):
+                        vista_reportes = vistas.get('reportes', None)
+                if vista_reportes and hasattr(self, 'obtener_datos_para_reporte'):
+                    metodo = getattr(self, 'obtener_datos_para_reporte', None)
+                    if callable(metodo):
+                        datos = metodo()
+                        vista_reportes.set_datos_modulo('fim', datos)
+            except Exception:
+                pass
             # Reactivar botones
             self.after(0, self._habilitar_botones_monitoreo, True)
 

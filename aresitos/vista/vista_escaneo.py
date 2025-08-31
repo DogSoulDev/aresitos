@@ -698,7 +698,24 @@ class VistaEscaneo(tk.Frame):
                 self._actualizar_texto_seguro("        ESCANEO KALI 2025 COMPLETADO EXITOSAMENTE\n")
             self._actualizar_texto_seguro("=" * 70 + "\n")
 
+
             self._log_terminal("CONTROLADOR Escaneo Kali 2025 finalizado", "ESCANEADOR", "SUCCESS" if not errores_detectados else "WARNING")
+
+            # --- SINCRONIZACIÓN SILENCIOSA DE DATOS PARA REPORTES ---
+            try:
+                from aresitos.vista.vista_reportes import VistaReportes
+                vista_reportes = None
+                if hasattr(self.master, 'vista_reportes'):
+                    vista_reportes = getattr(self.master, 'vista_reportes', None)
+                else:
+                    vistas = getattr(self.master, 'vistas', None)
+                    if vistas and hasattr(vistas, 'get'):
+                        vista_reportes = vistas.get('reportes', None)
+                if vista_reportes and hasattr(self, 'obtener_datos_para_reporte'):
+                    datos = self.obtener_datos_para_reporte()
+                    vista_reportes.set_datos_modulo('escaneo', datos)
+            except Exception:
+                pass
 
         except Exception as e:
             self._actualizar_texto_seguro(f"Error mostrando resultados consolidados: {str(e)}\n")

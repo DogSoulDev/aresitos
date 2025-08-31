@@ -1038,6 +1038,21 @@ class VistaSIEM(tk.Frame):
             self._log_terminal(f"Excepcion critica en SIEM: {str(e)}", "SIEM", "ERROR")
             self.after(0, self._actualizar_texto_monitoreo, f"ERROR Excepción: {str(e)}\n")
         finally:
+            # --- SINCRONIZACIÓN SILENCIOSA DE DATOS PARA REPORTES ---
+            try:
+                from aresitos.vista.vista_reportes import VistaReportes
+                vista_reportes = None
+                if hasattr(self.master, 'vista_reportes'):
+                    vista_reportes = getattr(self.master, 'vista_reportes', None)
+                else:
+                    vistas = getattr(self.master, 'vistas', None)
+                    if vistas and hasattr(vistas, 'get'):
+                        vista_reportes = vistas.get('reportes', None)
+                if vista_reportes and hasattr(self, 'obtener_datos_para_reporte'):
+                    datos = self.obtener_datos_para_reporte()
+                    vista_reportes.set_datos_modulo('siem', datos)
+            except Exception:
+                pass
             self.after(0, self._habilitar_botones_siem, True)
 
     def _proteger_configuracion_ip(self):
