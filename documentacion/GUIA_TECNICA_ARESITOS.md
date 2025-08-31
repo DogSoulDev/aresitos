@@ -403,11 +403,14 @@ python3 main.py
 ```
 
 ### Requisitos mínimos recomendados (Kali Linux):
-- CPU: 2 núcleos x86_64 (recomendado 4 núcleos)
-- RAM: 2 GB (recomendado 4 GB para análisis forense y escaneos simultáneos)
-- Almacenamiento: 500 MB libres para bases de datos, logs y cuarentena
-- Python 3.8+
-- Paquetes: `tkinter`, `sqlite3`, `hashlib`, `subprocess`, `threading`, `inotify-tools`, `chkrootkit`, `rkhunter`, `clamav`, `yara`, `linpeas`, `pspy`
+
+### Requisitos mínimos reales (Kali Linux, medidos en pruebas reales):
+- **CPU:** 1 núcleo x86_64 (recomendado 2 núcleos para multitarea)
+- **RAM:** 1 GB libre (uso típico bajo, recomendado 2 GB para análisis forense o escaneos intensivos)
+- **Almacenamiento:** ~25 MB libres para instalación base, más 20 MB adicionales para datos, reportes y logs
+- **Python:** 3.8 o superior
+- **Paquetes Python:** Solo biblioteca estándar (`tkinter`, `sqlite3`, `hashlib`, `subprocess`, `threading`, `os`, `json`, `logging`)
+- **Herramientas externas:** nmap, masscan, nuclei, gobuster, ffuf, feroxbuster, wireshark, autopsy, sleuthkit, hashdeep, testdisk, bulk-extractor, dc3dd, guymager, git, curl, wget, sqlite3, inotify-tools, chkrootkit, rkhunter, clamav, yara, linpeas (todas instalables vía APT en Kali Linux)
 
 ---
 
