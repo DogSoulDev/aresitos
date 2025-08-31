@@ -1,3 +1,4 @@
+Además, ARESITOS permite al usuario generar un reporte integral y profesional que consolida todos los hallazgos, análisis y resultados obtenidos durante la auditoría. Este informe unificado facilita la documentación, la trazabilidad y la presentación de evidencias técnicas, adaptándose a los estándares del sector y permitiendo exportar la información en múltiples formatos para su análisis, entrega o archivo. Así, el usuario dispone de una visión global y estructurada de la seguridad de su entorno, optimizando la toma de decisiones y la comunicación con equipos o clientes.
 
 ![ARESITOS](aresitos/recursos/aresitos.png)
 # ARESITOS - Herramienta de Ciberseguridad
@@ -30,7 +31,12 @@ ARESITOS representa una solución profesional, académica y práctica para la ge
 
 # Descripción general
 
+
 ARESITOS es una herramienta de ciberseguridad 100% Python nativo (sin librerías externas) para sistemas operativos Kali Linux. Integra escaneo de vulnerabilidades, SIEM, FIM, cuarentena, panel principal, reportes y utilidades forenses, todo bajo arquitectura MVC y principios SOLID/DRY. El sistema aprovecha herramientas nativas de Kali Linux y automatiza su verificación e instalación, garantizando robustez, seguridad y compatibilidad total con entornos forenses y de auditoría.
+
+### Recursos avanzados para expertos: cheatsheets, wordlists y diccionarios
+
+ARESITOS incorpora una colección curada de cheatsheets, wordlists y diccionarios técnicos, diseñados para maximizar la eficiencia y profundidad de las auditorías de seguridad. Los **cheatsheets** ofrecen referencias rápidas y comandos esenciales para pentesting, análisis forense y respuesta ante incidentes, facilitando el acceso inmediato a técnicas y sintaxis avanzadas. Las **wordlists** incluidas están optimizadas para ataques de fuerza bruta, pruebas de diccionario y evaluación de contraseñas, cubriendo escenarios reales y adaptándose a distintos vectores de ataque. Los **diccionarios técnicos** permiten enriquecer análisis semánticos, búsquedas inteligentes y correlación de eventos, aportando contexto y precisión en la interpretación de resultados. Todo este material es actualizable, ampliable y se integra de forma nativa en los módulos de escaneo, monitoreo y generación de reportes, aportando un valor diferencial para profesionales y equipos de ciberseguridad que buscan agilidad, profundidad y rigor en sus operaciones.
 
 ---
 
