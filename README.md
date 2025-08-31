@@ -143,48 +143,108 @@ ARESITOS cuenta con una interfaz profesional y modular. A continuación se muest
 
 ```
 aresitos/
-├── controlador/     # Controladores principales y secundarios. Orquestan la lógica de negocio, gestionan la interacción entre vistas y modelos, y coordinan módulos como escaneo, SIEM, FIM, cuarentena, reportes, monitoreo, herramientas, auditoría, etc.
+├── controlador/           # Lógica de negocio, orquestación de módulos y flujos
+│   ├── __init__.py
 │   ├── controlador_principal.py      # Punto de entrada de la lógica de control
-│   ├── controlador_escaneo.py       # Lógica de escaneo de vulnerabilidades
-│   ├── controlador_reportes.py      # Generación y gestión de reportes
-├── modelo/          # Modelos de datos, acceso a bases SQLite, gestión de wordlists, diccionarios, cuarentena, FIM, SIEM, reportes, etc.
+│   ├── controlador_escaneo.py        # Lógica de escaneo de vulnerabilidades
+│   ├── controlador_reportes.py       # Generación y gestión de reportes
+│   ├── controlador_dashboard.py      # Dashboard y métricas
+│   ├── controlador_fim.py            # Integridad de archivos (FIM)
+│   ├── controlador_cuarentena.py     # Gestión de cuarentena
+│   ├── controlador_siem.py           # SIEM y correlación de eventos
+│   ├── controlador_monitoreo.py      # Monitoreo de procesos y recursos
+│   ├── controlador_herramientas.py   # Instalación/verificación de herramientas
+│   ├── controlador_auditoria.py      # Auditoría avanzada (lynis, chkrootkit, etc)
+│   ├── controlador_componentes.py    # Componentes auxiliares
+│   ├── controlador_configuracion.py  # Configuración avanzada
+│   └── ...
+├── modelo/                # Modelos de datos, acceso a bases SQLite, wordlists, diccionarios, cuarentena, FIM, SIEM, reportes
+│   ├── __init__.py
 │   ├── modelo_principal.py          # Modelo principal de la aplicación
 │   ├── modelo_cuarentena.py         # Gestión de archivos en cuarentena
 │   ├── modelo_fim.py                # Integridad de archivos (FIM)
-│   └── ...                          # Otros modelos de datos
-├── vista/           # Interfaz gráfica Tkinter: paneles, terminal integrado, dashboard, escaneo, reportes, monitoreo, herramientas, etc.
+│   ├── modelo_dashboard.py          # Métricas y datos de dashboard
+│   ├── modelo_diccionarios.py       # Diccionarios y wordlists
+│   ├── modelo_escaneador.py         # Escaneo de vulnerabilidades
+│   ├── modelo_escaneador_base.py    # Base para escaneadores
+│   ├── modelo_monitor.py            # Monitoreo de recursos
+│   ├── modelo_reportes.py           # Reportes y exportación
+│   ├── modelo_siem.py               # SIEM y eventos
+│   ├── modelo_sistema.py            # Información del sistema
+│   ├── modelo_wordlists.py          # Gestión de wordlists
+│   ├── modelo_wordlists_gestor.py   # Gestor de wordlists
+│   └── ...
+├── vista/                  # Interfaz gráfica Tkinter: paneles, terminal integrado, dashboard, escaneo, reportes, monitoreo, herramientas
+│   ├── __init__.py
 │   ├── vista_principal.py           # Vista principal y orquestación de paneles
 │   ├── vista_dashboard.py           # Dashboard de métricas y terminal
 │   ├── vista_escaneo.py             # Panel de escaneo de vulnerabilidades
 │   ├── vista_reportes.py            # Panel de reportes
-│   └── ...                          # Otras vistas especializadas
-├── utils/           # Utilidades y módulos auxiliares: configuración, detección de red, sanitización, permisos, comandos, detección de sistema, etc.
+│   ├── vista_monitoreo.py           # Monitoreo y cuarentena
+│   ├── vista_herramientas_kali.py   # Instalación/verificación de herramientas
+│   ├── vista_auditoria.py           # Auditoría avanzada
+│   ├── vista_fim.py                 # Integridad de archivos
+│   ├── vista_login.py               # Login y control de acceso
+│   ├── vista_datos.py               # Visualización de datos
+│   ├── burp_theme.py                # Temas visuales
+│   ├── terminal_mixin.py            # Terminal integrado
+│   └── ...
+├── utils/                  # Utilidades y módulos auxiliares: configuración, detección de red, sanitización, permisos, sistema, logging, etc.
+│   ├── __init__.py
 │   ├── configurar.py                 # Configuración y utilidades generales
 │   ├── detector_red.py               # Detección de red y objetivos
-│   ├── sanitizador_archivos.py       # Sanitización y validación de archivos
-│   ├── comandos_sistema.py           # Verificación centralizada de comandos/herramientas
 │   ├── detector_sistema.py           # Detección robusta de sistema operativo/distribución
 │   ├── permisos_sistema.py           # Verificación de root/admin multiplataforma
-│   └── ...                          # Otros scripts de soporte
-├── recursos/        # Imágenes, capturas de pantalla y recursos gráficos
-
+│   ├── sanitizador_archivos.py       # Sanitización y validación de archivos
+│   ├── gestor_permisos.py            # Gestión avanzada de permisos
+│   ├── logger_aresitos.py            # Logging centralizado
+│   ├── sudo_manager.py               # Gestión de privilegios y sudo
+│   ├── detener_procesos.py           # Control de procesos
+│   ├── thread_safe_gui.py            # GUI thread-safe
+│   ├── crash_fix_kali.py             # Fixes para Kali
 │   └── ...
-├── data/            # Datos persistentes: bases de datos SQLite, cuarentena, wordlists, diccionarios, cheatsheets
+├── recursos/               # Imágenes, capturas de pantalla y recursos gráficos
+│   ├── aresitos.ico
+│   ├── aresitos.png
+│   ├── capturas/                    # Capturas de pantalla para documentación
+│   │   ├── 1_instalacion.png
+│   │   ├── 2_login.png
+│   │   ├── ...
+│   └── ...
+├── data/                   # Datos persistentes: bases de datos SQLite, cuarentena, wordlists, diccionarios, cheatsheets
 │   ├── fim_kali2025.db               # Base de datos de integridad de archivos
 │   ├── cuarentena_kali2025.db        # Base de datos de cuarentena
+│   ├── siem_aresitos.db              # Base de datos SIEM
+│   ├── siem_kali2025.db              # Base de datos SIEM alternativa
+│   ├── vulnerability_database.json   # Base de datos de vulnerabilidades
 │   ├── wordlists/                    # Wordlists para escaneo y fuerza bruta
+│   ├── diccionarios/                 # Diccionarios
+│   ├── cheatsheets/                  # Cheatsheets
+│   ├── cuarentena/                   # Archivos y metadatos de cuarentena
+│   │   ├── archivos/
+│   │   ├── metadatos/
+│   │   ├── respaldos/
+│   │   └── ...
 │   └── ...
-├── configuración/   # Archivos de configuración JSON, textos, mapas de navegación, traducciones
+├── configuración/          # Archivos de configuración JSON, textos, mapas de navegación, traducciones
 │   ├── aresitos_config_completo.json # Configuración global
 │   ├── textos_castellano_corregido.json # Traducciones y textos
+│   ├── MAPA_NAVEGACION_ESCANEADOR.md # Mapa de navegación
 │   └── ...
-├── logs/            # Resultados de escaneo, actividad y logs de la aplicación
-├── reportes/        # Reportes generados (JSON, TXT, CSV)
-├── documentacion/   # Manuales técnicos, arquitectura, guías de instalación y uso
-├── main.py          # Script principal de arranque de la aplicación
-├── configurar_kali.sh # Script de configuración y dependencias para Kali Linux
-├── requirements.txt # Requisitos Python (solo para desarrollo, no se usan librerías externas en producción)
-└── README.md        # Documentación principal del proyecto
+├── logs/                   # Resultados de escaneo, actividad y logs de la aplicación
+│   ├── aresitos_errores.log
+│   ├── ...
+├── reportes/               # Reportes generados (JSON, TXT, CSV)
+├── documentacion/          # Manuales técnicos, arquitectura, guías de instalación y uso
+│   ├── GUIA_TECNICA_ARESITOS.md
+│   ├── GUIA_INSTALACION.md
+│   └── ...
+├── main.py                 # Script principal de arranque de la aplicación
+├── configurar_kali.sh      # Script de configuración y dependencias para Kali Linux
+├── requirements.txt        # Requisitos Python (solo para desarrollo, no se usan librerías externas en producción)
+├── pyproject.toml          # Configuración de proyecto Python
+├── LICENSE                 # Licencia del proyecto
+└── README.md               # Documentación principal del proyecto
 ```
 
 **Explicación concreta:**
@@ -192,13 +252,30 @@ aresitos/
 - Los controladores gestionan la lógica de negocio y la interacción entre la interfaz gráfica (vistas) y los datos (modelos).
 - El sistema es robusto, modular, seguro y fácilmente extensible, cumpliendo los principios SOLID y DRY.
 
-- Cuarentena: aislamiento de archivos sospechosos, preservación de evidencia
-- Reportes: exportación en JSON, TXT, CSV
-- Inteligencia: base de datos de vulnerabilidades, wordlists, diccionarios, cheatsheets
-- Auditoría: integración con lynis y chkrootkit
-- Logs: carpeta `logs/` con resultados de escaneo y actividad
+- **Cuarentena:** aislamiento de archivos sospechosos, preservación de evidencia
+- **Reportes:** exportación en JSON, TXT, CSV
+- **Inteligencia:** base de datos de vulnerabilidades, wordlists, diccionarios, cheatsheets
+- **Auditoría:** integración con lynis y chkrootkit
+- **Logs:** carpeta `logs/` con resultados de escaneo y actividad
+
 **Sanitización y seguridad:**
 - Validación de extensiones, nombres, rutas y tipos MIME en subida de archivos
+- Módulo de sanitización en `utils/sanitizador_archivos.py`
+
+**Documentación y soporte**
+Manuales y guías disponibles:
+
+- `DOCUMENTACION_TECNICA_CONSOLIDADA.md`: Manual técnico completo y actualizado del sistema.
+- `ARQUITECTURA_DESARROLLO.md`: Guía de arquitectura, patrones y estructura del proyecto.
+- `AUDITORIA_SEGURIDAD_ARESITOS.md`: Auditoría de seguridad, controles y recomendaciones.
+- `GUIA_INSTALACION.md`: Guía de instalación, solución de problemas y mejores prácticas.
+- `HERRAMIENTAS_FASE_3_ACTUALIZACION.md`: Herramientas avanzadas y configuraciones de Fase 3.
+- `REVISION_MVC_ARESITOS.md`: Revisión exhaustiva de conexiones y flujos MVC.
+- `SANITIZACION_ARCHIVOS.md`: Resumen de la implementación de seguridad en carga de archivos.
+- `TERMINAL_INTEGRADO.md`: Manual del terminal integrado y sus ventajas.
+
+Repositorio oficial: https://github.com/DogSoulDev/aresitos
+Email: dogsouldev@protonmail.com
 - Módulo de sanitización en `utils/sanitizador_archivos.py`
 
 ---
