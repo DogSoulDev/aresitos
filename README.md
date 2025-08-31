@@ -265,14 +265,8 @@ aresitos/
 **Documentación y soporte**
 Manuales y guías disponibles:
 
-- `DOCUMENTACION_TECNICA_CONSOLIDADA.md`: Manual técnico completo y actualizado del sistema.
-- `ARQUITECTURA_DESARROLLO.md`: Guía de arquitectura, patrones y estructura del proyecto.
-- `AUDITORIA_SEGURIDAD_ARESITOS.md`: Auditoría de seguridad, controles y recomendaciones.
+- `GUIA_TECNICA_ARESITOS.md`: Manual técnico completo y actualizado del sistema.
 - `GUIA_INSTALACION.md`: Guía de instalación, solución de problemas y mejores prácticas.
-- `HERRAMIENTAS_FASE_3_ACTUALIZACION.md`: Herramientas avanzadas y configuraciones de Fase 3.
-- `REVISION_MVC_ARESITOS.md`: Revisión exhaustiva de conexiones y flujos MVC.
-- `SANITIZACION_ARCHIVOS.md`: Resumen de la implementación de seguridad en carga de archivos.
-- `TERMINAL_INTEGRADO.md`: Manual del terminal integrado y sus ventajas.
 
 Repositorio oficial: https://github.com/DogSoulDev/aresitos
 Email: dogsouldev@protonmail.com
