@@ -1,328 +1,185 @@
+
 # Guía de Instalación - ARESITOS
 
-## 🔄 Política de Rutas Dinámicas y Portabilidad
-Todas las rutas de recursos, datos y configuraciones en ARESITOS son ahora relativas al root del proyecto y se construyen dinámicamente usando `os.path` o `pathlib`. No se usan rutas absolutas, ni dependientes de `/home`, ni del `cwd`. Esto garantiza portabilidad, seguridad y compatibilidad con Kali Linux y otros entornos. Cualquier acceso a archivos, logs, wordlists, diccionarios o recursos debe seguir este principio.
 
-## Requisitos
+## 🔄 Política de rutas dinámicas y portabilidad
+Todas las rutas de recursos, datos y configuraciones en ARESITOS son relativas a la raíz del proyecto y se construyen dinámicamente usando `os.path` o `pathlib`. No se utilizan rutas absolutas ni dependientes de `/home` ni del directorio de trabajo actual. Esto garantiza portabilidad, seguridad y compatibilidad con Kali Linux y otros entornos.
+
+
+
+## Requisitos y consumo real
 
 - **Kali Linux 2025** (recomendado)
 - Python 3.8 o superior
 - Permisos sudo
-- 100MB de espacio en disco
+- Espacio ocupado tras instalación base: ~25 MB
+- Espacio recomendado para datos y reportes: 20 MB adicionales
+- RAM recomendada: mínimo 1 GB libre (uso típico bajo, depende de los módulos activos)
+
 
 ## Instalación rápida
 
 1. Clona el repositorio:
-```bash
-git clone https://github.com/DogSoulDev/aresitos.git
-cd aresitos
-```
-2. **El script de configuración ha sido eliminado ya que la información está integrada en la guía técnica única.**
-```bash
-# El script de configuración ha sido eliminado.
-```
-3. Inicia la aplicación:
-```bash
-python3 main.py
-```
+    ```bash
+    git clone https://github.com/DogSoulDev/aresitos.git
+    cd aresitos
+    ```
+2. Da permisos de ejecución a los scripts principales:
+    ```bash
+   chmod +x configurar_kali.sh main.py
+    ```
+3. Ejecuta el script de configuración (como root o con sudo):
+    ```bash
+   sudo ./configurar_kali.sh
+    ```
+4. Inicia la aplicación:
+    ```bash
+   python3 main.py
+    ```
+
 
 ## Instalación manual (opcional)
 
-1. Instala dependencias principales:
-```bash
-sudo apt update
-sudo apt install python3 python3-tk python3-venv nmap masscan nuclei gobuster ffuf feroxbuster wireshark autopsy sleuthkit git curl wget sqlite3
-```
-2. Ejecuta la aplicación:
-```bash
-python3 main.py
-```
+1. Instala las dependencias principales:
+    ```bash
+   sudo apt update
+   sudo apt install python3 python3-tk python3-venv nmap masscan nuclei gobuster ffuf feroxbuster wireshark autopsy sleuthkit hashdeep testdisk bulk-extractor dc3dd guymager git curl wget sqlite3
+    ```
+2. Inicia la aplicación:
+    ```bash
+   python3 main.py
+    ```
+
 
 ## Notas
 - **Privilegios root persistentes:** Mientras ARESITOS esté abierto, los privilegios root (sudo) se mantienen activos para permitir instalaciones y operaciones avanzadas sin cortes. El root se libera automáticamente al cerrar la aplicación.
 - Para modo desarrollo en otros sistemas: `python3 main.py --dev`
 - Si tienes problemas de dependencias, ejecuta de nuevo `sudo ./configurar_kali.sh`.
 - Consulta la documentación técnica en la carpeta `documentacion/`.
-[INFO] Instalando herramienta CRÍTICA: tcpdump...
-[✓] tcpdump ya está instalado
-[INFO] Instalando herramienta CRÍTICA: iftop...
-[✓] iftop ya está instalado
-[INFO] Instalando herramienta CRÍTICA: netcat-openbsd...
-[✓] netcat-openbsd ya está instalado
-[INFO] Instalando herramienta CRÍTICA: htop...
-[✓] htop ya está instalado
-[INFO] Instalando herramienta CRÍTICA: lsof...
-[✓] lsof ya está instalado
-[INFO] Instalando herramienta CRÍTICA: psmisc...
-[✓] psmisc ya está instalado
-[INFO] Instalando herramienta CRÍTICA: iproute2...
-[✓] iproute2 ya está instalado
-```
 
-### Paso 5: Instalación de Herramientas Opcionales
+
+### Instalación de herramientas opcionales
+El script de configuración instala automáticamente las herramientas opcionales recomendadas para análisis forense y pentesting. Si alguna herramienta opcional no se instala, ARESITOS seguirá funcionando, pero con funcionalidad limitada en algunos módulos avanzados.
+
+
+### Reporte de instalación
+Al finalizar la instalación, se mostrará un resumen indicando si todas las herramientas esenciales y opcionales están disponibles. Si alguna herramienta opcional no se instala, se notificará como advertencia.
+
+
+### Configuración de permisos
+El script configura automáticamente los permisos necesarios para herramientas de red (nmap, tcpdump), añade el usuario a los grupos requeridos (wireshark, netdev) y crea la configuración sudo específica para ARESITOS en `/etc/sudoers.d/aresitos-v2`.
+
+
+### Configuración de Python
+ARESITOS solo utiliza la biblioteca estándar de Python. El script verifica que todos los módulos necesarios (tkinter, sqlite3, threading, subprocess, os, sys, json, hashlib) estén disponibles. No se requieren paquetes externos ni instalación vía pip.
+
+
+### Verificación final
+Al finalizar la configuración, asegúrate de cerrar y reabrir la terminal para aplicar los cambios de grupo. Inicia la aplicación con:
 ```bash
-INSTALANDO herramientas OPCIONALES...
-[INFO] Instalando herramienta opcional: rustscan...
-[WARN] No se pudo instalar rustscan (continuando...)
-[INFO] Instalando herramienta opcional: masscan...
-[✓] masscan ya está instalado
-[INFO] Instalando herramienta opcional: gobuster...
-[✓] gobuster ya está instalado
-[INFO] Instalando herramienta opcional: nikto...
-[✓] nikto ya está instalado
-[INFO] Instalando herramienta opcional: whatweb...
-[✓] whatweb ya está instalado
-[INFO] Instalando herramienta opcional: lynis...
-[✓] lynis ya está instalado
-[INFO] Instalando herramienta opcional: chkrootkit...
-[✓] chkrootkit ya está instalado
-[INFO] Instalando herramienta opcional: foremost...
-[✓] foremost ya está instalado
-[INFO] Instalando herramienta opcional: binwalk...
-[✓] binwalk ya está instalado
-[INFO] Instalando herramienta opcional: exiftool...
-[✓] exiftool instalado correctamente
-[INFO] Instalando herramienta opcional: feroxbuster...
-[✓] feroxbuster ya está instalado
-[INFO] Instalando herramienta opcional: httpx-toolkit...
-[✓] httpx-toolkit ya está instalado
-```
-
-### Paso 6: Reporte de Instalación
-```bash
-REPORTE DE INSTALACIÓN
-[✓] Todas las herramientas ESENCIALES instaladas correctamente
-[WARN] Herramientas opcionales no instaladas: rustscan
-[INFO] ARESITOS funcionará sin estas herramientas, pero con funcionalidad limitada
-[INFO] Actualizando base de datos del sistema...
-```
-
-### Paso 7: Configuración de Permisos
-```bash
-PERMISOS Configurando permisos de red...
-[INFO] Configurando permisos para nmap...
-[✓] Permisos de nmap configurados
-[INFO] Configurando permisos para tcpdump...
-[✓] Permisos de tcpdump configurados
-[INFO] Añadiendo usuario kali a grupos necesarios...
-[✓] Usuario añadido al grupo wireshark
-[✓] Usuario añadido al grupo netdev
-
-CONFIG Configurando sudo para ARESITOS v2.0...
-/etc/sudoers.d/aresitos-v2: parsed OK
-[✓] Configuración sudo creada en /etc/sudoers.d/aresitos-v2
-```
-
-### Paso 8: Configuración Python
-```bash
-🐍 Configurando entorno Python para ARESITOS...
-[WARN] Detectado entorno Python externally-managed (Kali Linux 2024+)
-[INFO] Configurando solución compatible para ARESITOS...
-[INFO] Instalando dependencias Python vía APT (recomendado)...
-[INFO] Instalando python3-pil...
-[✓] python3-pil instalado vía APT
-[INFO] Instalando python3-requests...
-[✓] python3-requests instalado vía APT
-[INFO] Instalando python3-urllib3...
-[✓] python3-urllib3 instalado vía APT
-
-🧪 Verificando dependencias...
-   OK tkinter: Interfaz gráfica
-   OK PIL: Procesamiento de imágenes
-   OK sqlite3: Base de datos
-   OK json: Manejo de JSON
-   OK threading: Multihilo
-   OK subprocess: Ejecución de comandos
-   OK os: Sistema operativo
-   OK sys: Sistema Python
-
-OK Todas las dependencias están disponibles
-[✓] Configuración Python completada
-```
-
-### Paso 9: Verificación Final
-```bash
-🧪 Verificando configuración...
-[✓] nmap disponible
-[✓] nmap ejecutable sin contraseña
-[✓] netstat disponible
-[✓] netstat ejecutable sin contraseña
-[✓] ss disponible
-[✓] ss ejecutable sin contraseña
-[✓] tcpdump disponible
-[✓] tcpdump ejecutable sin contraseña
-[INFO] Verificando membresía de grupos para kali...
-[✓] Usuario en grupo wireshark
-
-COMPLETADO CONFIGURACIÓN COMPLETADA
-============================
-[✓] Ares Aegis está configurado para Kali Linux
-
-[INFO] Pasos siguientes:
-  1. Cierre y reabra la terminal para aplicar cambios de grupo
-  2. Execute el script de prueba: python3 /home/kali/test_ares_permissions.py
-  3. Execute la verificación de permisos: python3 verificacion_permisos.py
-  4. Inicie Ares Aegis: python3 main.py
-```
-
-### Paso 10: Inicio de la Aplicación
-```bash
-└─$ python3 main.py
-Aresitos - Sistema de Seguridad Cibernética
-==================================================
-Iniciando con interfaz de login...
-OK Tkinter disponible y funcional
-Creando aplicación de login...
-Aplicación de login creada
-Iniciando interfaz gráfica...
-```
-
-## Configuración Automática
-
-### Script de Configuración `configurar_kali.sh`
-El script de configuración automática realiza todas las tareas necesarias para preparar Kali Linux:
-
-#### ✅ **Herramientas Críticas Instaladas**
-- **python3-dev, python3-venv, python3-tk**: Entorno Python completo
-- **curl, wget, git**: Herramientas de descarga y control de versiones
-- **nmap**: Escaneador de red principal
-- **net-tools, iproute2**: Herramientas de red fundamentales
-- **tcpdump**: Captura de tráfico de red
-- **netcat-openbsd**: Utilidad de red versátil
-- **htop, lsof, psmisc**: Monitoreo de sistema y procesos
-
-#### ✅ **Herramientas de Seguridad Opcionales**
-- **masscan**: Escaneador de puertos de alta velocidad
-- **gobuster**: Enumeración de directorios web
-- **nikto**: Escaneador de vulnerabilidades web
-- **whatweb**: Identificador de tecnologías web
-- **lynis**: Auditor de seguridad del sistema
-- **chkrootkit**: Detector de rootkits
-- **foremost**: Recuperación de archivos
-- **binwalk**: Análisis de firmwares
-- **exiftool**: Análisis de metadatos
-- **feroxbuster**: Fuzzing de directorios
-- **httpx-toolkit**: Herramientas HTTP modernas
-
-#### ⚠️ **Herramientas que Requieren Instalación Manual**
-- **rustscan**: Escaneador moderno (requiere Rust)
-  ```bash
-  # Para instalar rustscan manualmente:
-  cargo install rustscan
-  ```
-
-#### 🔧 **Configuraciones Automáticas**
-1. **Permisos de Red**: Configuración de nmap y tcpdump sin sudo
-2. **Grupos de Usuario**: Adición a grupos wireshark y netdev
-3. **Configuración Sudo**: Archivo `/etc/sudoers.d/aresitos-v2` para herramientas específicas
-4. **Dependencias Python**: Instalación vía APT para compatibilidad con Kali 2024+
-5. **Permisos de Archivos**: Configuración automática de todos los permisos necesarios
-
-#### 🧪 **Verificación Automática**
-El script verifica automáticamente:
-- Disponibilidad de todas las herramientas críticas
-- Permisos de ejecución sin contraseña
-- Membresía en grupos necesarios
-- Funcionamiento de dependencias Python
-- Creación de scripts de prueba
-
-#### Herramientas de Análisis Forense
-- **volatility3**: Framework de análisis forense de memoria
-- **binwalk**: Análisis y extracción de firmware
-- **strings**: Extracción de cadenas de texto de archivos binarios
-- **file**: Identificación de tipos de archivo por contenido
-- **exiftool**: Lectura y escritura de metadatos de archivos
-
-#### Herramientas de Seguridad Anti-Malware
-- **clamscan**: Motor antivirus ClamAV para detección de malware
-- **yara**: Engine de detección de patrones de malware
-- **chkrootkit**: Detector de rootkits para sistemas Unix
-- **rkhunter**: Herramienta de verificación de rootkits y backdoors
-
-## Modos de Ejecución
-
-### Modo Producción (Kali Linux)
-```bash
-# Ejecución estándar con funcionalidades completas
 python3 main.py
 ```
 
-### Modo Desarrollo (Otros Sistemas)
+
+### Inicio de la aplicación
+Al ejecutar `python3 main.py`, se iniciará la interfaz gráfica de login y el panel principal de ARESITOS.
+
+
+## Configuración automática
+
+### Script de configuración `configurar_kali.sh`
+El script de configuración automática instala todas las herramientas críticas y opcionales, configura permisos, grupos y sudo, y verifica que el entorno Python esté listo para ejecutar ARESITOS. Si alguna herramienta opcional no se instala, el sistema seguirá funcionando, pero con funciones limitadas en algunos módulos avanzados.
+
+
+## Modos de ejecución
+
+### Modo producción (Kali Linux)
 ```bash
-# Modo desarrollo para testing y desarrollo en sistemas no-Kali
+python3 main.py
+```
+
+### Modo desarrollo (otros sistemas)
+```bash
 python3 main.py --dev
 ```
 
-## Estructura Post-Instalación
+
+
+aresitos/
+├── controlador/            # Lógica de negocio y orquestación
+├── modelo/                 # Modelos de datos y acceso a bases
+├── vista/                  # Interfaz gráfica y paneles
+├── utils/                  # Utilidades y helpers
+├── recursos/               # Imágenes, iconos y capturas
+├── __init__.py
+data/
+├── *.db                    # Bases de datos SQLite
+├── wordlists/              # Listas de palabras para pentesting
+├── diccionarios/           # Diccionarios de términos técnicos
+├── cheatsheets/            # Guías de comandos
+├── cuarentena/             # Archivos y metadatos de cuarentena
+## Estructura real tras la instalación
 
 ```
-Aresitos/
-├── main.py                     # Punto de entrada principal
-├── configurar_kali.sh          # Script de configuración automática
-├── aresitos/                   # Módulo principal de la aplicación
-│   ├── controlador/            # Lógica de negocio (15 controladores)
-│   ├── modelo/                 # Gestión de datos y persistencia (19 modelos)
-│   ├── vista/                  # Interfaces de usuario (12 vistas)
-│   │   ├── terminal_mixin.py   # Funcionalidad de terminales reutilizable
-│   │   ├── burp_theme.py       # Tema visual profesional
-│   │   └── vista_*.py          # Vistas con layout PanedWindow
-│   └── utils/                  # Utilidades del sistema (4 módulos)
-├── data/                       # Datos y recursos del sistema
-│   ├── *.db                    # Bases de datos SQLite
-│   ├── wordlists/              # Diccionarios para pentesting
-│   ├── diccionarios/           # Diccionarios de términos técnicos
-│   └── cheatsheets/            # Guías de comandos de Kali Linux
-├── logs/                       # Sistema de logs centralizado
-├── configuración/             # Archivos de configuración JSON
-└── documentacion/              # Documentación técnica completa
-```
-## Verificación de Instalación
+aresitos/
+├── controlador/            # Lógica de negocio y orquestación
+├── modelo/                 # Modelos de datos y acceso a bases
+├── vista/                  # Interfaz gráfica y paneles
+├── utils/                  # Utilidades y helpers
+├── recursos/               # Imágenes, iconos y capturas
+├── __init__.py
 
-### Verificación Automática
+data/
+├── *.db                    # Bases de datos SQLite
+├── wordlists/              # Listas de palabras para pentesting
+├── diccionarios/           # Diccionarios de términos técnicos
+├── cheatsheets/            # Guías de comandos
+├── cuarentena/             # Archivos y metadatos de cuarentena
+
+logs/                       # Registros y logs de la aplicación
+reportes/                   # Reportes generados (vacío por defecto)
+configuración/              # Archivos de configuración JSON y textos
+documentacion/              # Manuales técnicos y guías
+main.py                     # Script principal
+configurar_kali.sh          # Script de configuración automática
+requirements.txt            # Solo para desarrollo
+pyproject.toml              # Configuración de proyecto Python
+LICENSE                     # Licencia del proyecto
+README.md                   # Documentación principal
+```
+
+## Verificación de instalación
+
+
+Para verificar que la instalación ha sido exitosa, simplemente inicia la aplicación:
 ```bash
-# Verificar integridad de todos los componentes
-python3 verificacion_final.py
-
-# Verificar herramientas específicas de Kali Linux
-python3 -c "from aresitos.utils.verificar_kali import verificar_herramientas; verificar_herramientas()"
-```
-
-### Verificación Manual de la Interfaz
-```bash
-# Iniciar la aplicación
 python3 main.py
 ```
+Si la interfaz gráfica se muestra correctamente y puedes acceder a los módulos principales, la instalación es correcta.
 
-#### Módulos Disponibles
-Al ejecutar Aresitos, debe tener acceso a los siguientes módulos:
 
-1. **Dashboard**: Métricas del sistema con terminal de monitoreo
-2. **Escaneado**: Análisis de vulnerabilidades con terminales integrados (nmap/nuclei)
-3. **Monitoreo y Cuarentena**: Vigilancia de malware con terminal ClamAV
-4. **Auditoría**: Evaluación de seguridad con terminales LinPEAS/chkrootkit
-5. **Gestión de Datos**: Wordlists y diccionarios con terminal de generación
-6. **Reportes**: Exportación de resultados con terminal de análisis
-7. **FIM**: Monitoreo de integridad con terminal inotifywait
-8. **SIEM**: Correlación de eventos con terminales Volatility/Binwalk
+### Módulos disponibles
+Al ejecutar ARESITOS, tendrás acceso a los siguientes módulos:
 
-#### Verificación de Interfaz
-Cada vista debe mostrar:
-- **Panel izquierdo**: Controles y configuración del módulo
-- **Panel derecho**: Terminal integrado con salida en tiempo real
-- **Navegación**: Pestañas o botones para cambiar entre módulos
-- **Tema visual**: Interfaz profesional estilo Burp Suite
-# - 48 terminales activos en total
-```
+1. **Dashboard**: Métricas del sistema y terminal de monitoreo
+2. **Escaneo**: Análisis de vulnerabilidades
+3. **Monitoreo y cuarentena**: Vigilancia de procesos y archivos
+4. **Auditoría**: Evaluación de seguridad
+5. **Gestión de datos**: Wordlists y diccionarios
+6. **Reportes**: Exportación de resultados
+7. **FIM**: Monitoreo de integridad
+8. **SIEM**: Correlación de eventos
 
-## 🔒 **Permisos y Seguridad**
+Cada vista muestra controles, configuración y un terminal integrado con salida en tiempo real. El diseño visual es profesional y claro.
 
-## Configuración de Permisos y Seguridad
 
-### Configuración de Permisos Básicos
+## 🔒 Permisos y seguridad
+
+
+### Configuración de permisos básicos
 ```bash
 # Permisos necesarios para archivos ejecutables
 chmod +x configurar_kali.sh
-chmod +x verificacion_final.py
 chmod +x main.py
 
 # Permisos para todos los archivos Python
@@ -334,28 +191,34 @@ chmod -R 755 logs/
 chmod -R 755 configuración/
 ```
 
-### Configuración Automática de Seguridad
+
+### Configuración automática de seguridad
 El script `configurar_kali.sh` establece automáticamente:
 - **Permisos sudo**: Configuración granular para herramientas específicas
 - **Grupos de usuario**: Acceso controlado a herramientas del sistema
 - **Rutas del sistema**: Configuración de PATH para herramientas
 - **Verificación de integridad**: Validación de herramientas instaladas
 
-### Características de Seguridad
+
+### Características de seguridad
 - **Gestor de permisos**: Control granular de acceso sudo/root
-- **Validación de entrada**: Sanitización completa de inputs
+- **Validación de entrada**: Sanitización completa de entradas
 - **Logging de auditoría**: Trazabilidad de todas las operaciones
 - **Ejecución segura**: Timeouts y validación de comandos
 
-## Solución de Problemas Comunes
 
-### Errores de Compatibilidad
+## Solución de problemas comunes
+
+
+### Errores de compatibilidad
+
 
 #### "ARESITOS requiere Kali Linux"
 ```bash
 # Utilizar modo desarrollo en otros sistemas operativos
 python3 main.py --dev
 ```
+
 
 #### "Herramienta X no encontrada"
 ```bash
@@ -367,17 +230,20 @@ which nmap
 which clamscan
 ```
 
+
 #### "Error de permisos"
 ```bash
 # Verificar que el usuario pertenece a los grupos correctos
 sudo usermod -a -G sudo,adm $USER
 
 # Reiniciar sesión para aplicar cambios de grupo
+
 #### "Base de datos no encontrada"
 ```bash
 # Recrear bases de datos automáticamente
 python3 -c "from aresitos.modelo.modelo_principal import ModeloPrincipal; ModeloPrincipal()"
 ```
+
 
 #### "Error de dependencias Python"
 ```bash
@@ -388,7 +254,9 @@ python3 --version
 python3 -c "import tkinter, sqlite3, subprocess, threading; print('Módulos OK')"
 ```
 
-### Problemas de Rendimiento
+
+### Problemas de rendimiento
+
 
 #### "Aplicación lenta"
 ```bash
@@ -400,6 +268,7 @@ df -h
 find /tmp -name "*aresitos*" -delete
 ```
 
+
 #### "Terminales no responden"
 ```bash
 # Verificar procesos colgados
@@ -407,38 +276,44 @@ ps aux | grep python3
 killall python3  # Si es necesario
 ```
 
-## Verificación del Estado del Sistema
 
-### Comandos de Diagnóstico
+## Verificación del estado del sistema
+
+
+
+### Comandos de diagnóstico
 ```bash
 # Estado herramientas Kali
 which nmap masscan gobuster nuclei ffuf
 
-```bash
 # Verificar estado de las bases de datos
 ls -la data/*.db
 
 # Monitorear logs en tiempo real
-tail -f logs/aresitos.log
+tail -f logs/aresitos_errores.log
 
 # Verificar procesos de Aresitos activos
 ps aux | grep python3 | grep aresitos
 ```
 
-### Indicadores de Salud del Sistema
-Verificar que estén operativos:
+
+
+### Indicadores de salud del sistema
+Verifica que estén operativos:
 - ✅ **Herramientas de Kali**: Todas disponibles y funcionales
-- ✅ **Bases de datos**: Creadas y accesibles en directorio data/
+- ✅ **Bases de datos**: Creadas y accesibles en `data/`
 - ✅ **Permisos**: Configurados correctamente para ejecución
 - ✅ **Interfaz**: Todos los módulos cargan sin errores
 - ✅ **Terminales**: Terminales integrados funcionando en cada vista
-- ✅ **Layout**: Diseño PanedWindow con división controles/terminal
+- ✅ **Layout**: Diseño visual claro y profesional
 - ✅ **Threading**: Operaciones no bloqueantes activas
-- ✅ **Logs**: Archivo de logs generándose en directorio logs/
+- ✅ **Logs**: Archivo de logs generándose en `logs/`
 
-## Guía de Primer Uso
 
-### Flujo de Trabajo Inicial Recomendado
+## Guía de primer uso
+
+
+### Flujo de trabajo inicial recomendado
 
 1. **Verificar el entorno**
    - Acceder al Dashboard
@@ -469,9 +344,11 @@ Verificar que estén operativos:
    - Auditoría: Herramientas de verificación
    - Verificar que todos los terminales integrados funcionan correctamente
 
-## Mantenimiento y Actualizaciones
 
-### Actualización del Sistema
+## Mantenimiento y actualizaciones
+
+
+### Actualización del sistema
 ```bash
 # Actualizar Aresitos desde el repositorio
 cd ~/Ares/Aresitos
@@ -481,7 +358,8 @@ git pull origin main
 python3 verificacion_final.py
 ```
 
-### Limpieza Periódica
+
+### Limpieza periódica
 ```bash
 # Limpiar logs antiguos (opcional)
 find logs/ -name "*.log" -mtime +30 -delete
@@ -492,80 +370,19 @@ find /tmp -name "*aresitos*" -delete
 
 ---
 
-**ARESITOS v2.0 - Guía de Instalación**
+
+**ARESITOS v2.0 - Guía de instalación**
 *Desarrollado por DogSoulDev para la comunidad de ciberseguridad*
 
-# Actualizar bases de datos
+
+
+
+# Actualizar bases de datos de firmas (opcional)
 freshclam
 updatedb
 ```
 
-## ✅ VERIFICACIÓN FINAL
 
-### Script de Verificación
-```python
-# verificacion_final.py - Validación completa del sistema
-import subprocess
-import sys
-import os
-
-def verificar_herramienta(comando):
-    """Verifica si una herramienta está instalada y funcional"""
-    try:
-        resultado = subprocess.run([comando, '--version'], 
-                                 capture_output=True, text=True, timeout=10)
-        return resultado.returncode == 0
-    except:
-        return False
-
-def main():
-    herramientas = [
-        'nmap', 'masscan', 'gobuster', 'nuclei', 'ffuf',
-        'volatility3', 'binwalk', 'sleuthkit', 'foremost', 'exiftool',
-        'clamscan', 'yara', 'inotifywait', 'chkrootkit', 'rkhunter'
-    ]
-    
-    print("🔍 VERIFICANDO HERRAMIENTAS KALI...")
-    errores = []
-    
-    for herramienta in herramientas:
-        if verificar_herramienta(herramienta):
-            print(f"✅ {herramienta}")
-        else:
-            print(f"❌ {herramienta}")
-            errores.append(herramienta)
-    
-    # Verificar estructura de archivos
-    print("\n📁 VERIFICANDO ESTRUCTURA...")
-    archivos_criticos = [
-        'main.py',
-        'aresitos/__init__.py',
-        'aresitos/modelo/modelo_escaneador_kali2025.py',
-        'aresitos/vista/vista_principal.py',
-        'aresitos/controlador/controlador_principal_nuevo.py',
-        'configuración/aresitos_config_kali.json'
-    ]
-    
-    for archivo in archivos_criticos:
-        if os.path.exists(archivo):
-            print(f"✅ {archivo}")
-        else:
-            print(f"❌ {archivo}")
-            errores.append(archivo)
-    
-    # Resultado final
-    if errores:
-        print(f"\n❌ VERIFICACIÓN FALLIDA. Errores: {len(errores)}")
-        print("Ejecutar: sudo ./configurar_kali.sh")
-        return False
-    else:
-        print("\n✅ SISTEMA VERIFICADO - LISTO PARA USAR")
-        print("Ejecutar: python main.py")
-        return True
-
-if __name__ == "__main__":
-    main()
-```
 
 ## 🛠️ SOLUCIÓN DE PROBLEMAS
 
@@ -642,37 +459,38 @@ clamscan --version && echo "✅ clamscan OK"
 inotifywait --help && echo "✅ inotify OK"
 ```
 
+
 ## 📋 CHECKLIST DE INSTALACIÓN
 
+
 - [ ] **Kali Linux 2025** instalado y actualizado
-- [ ] **Git** disponible para clonar repositorio
+- [ ] **Git** disponible para clonar el repositorio
 - [ ] **Permisos root** para instalación de herramientas
-- [ ] **Conexión internet** para descargar dependencias
-- [ ] **100MB espacio libre** en disco mínimo
-- [ ] **2GB RAM** disponible (recomendado)
+- [ ] **Conexión a internet** para descargar dependencias
+- [ ] **25 MB espacio libre** en disco mínimo (instalación base, medido real)
+- [ ] **20 MB adicionales** para datos y reportes
+- [ ] **1 GB RAM** disponible (mínimo recomendado, medido real)
 - [ ] **Ejecutar** `configurar_kali.sh` como root
-- [ ] **Verificar** con `python verificacion_final.py`
-- [ ] **Probar** ejecución con `python main.py`
+- [ ] **Probar** ejecución con `python3 main.py`
 
 ## 🎯 COMANDOS ESENCIALES
 
 ```bash
 # Instalación completa paso a paso
-mkdir -p ~/Ares && cd ~/Ares
-git clone https://github.com/DogSoulDev/Aresitos.git && cd Aresitos
-chmod +x configurar_kali.sh verificacion_final.py
+git clone https://github.com/DogSoulDev/aresitos.git
+cd aresitos
+chmod +x configurar_kali.sh main.py
 sudo ./configurar_kali.sh
-python verificacion_final.py
-python main.py
+python3 main.py
 
 # Verificación rápida
-python -c "import aresitos; print('ARESITOS OK')"
+python3 -c "import aresitos; print('ARESITOS OK')"
 
-# Debug mode
-python main.py --dev
+# Modo desarrollo
+python3 main.py --dev
 
 # Logs de depuración
-tail -f logs/aresitos.log
+tail -f logs/aresitos_errores.log
 ```
 
 ## 📋 NOTAS IMPORTANTES DE INSTALACIÓN
@@ -752,6 +570,6 @@ cargo install rustscan
 
 ---
 
-**TIEMPO INSTALACIÓN**: ~15 minutos  
+**TIEMPO DE INSTALACIÓN**: ~10-15 minutos (medido real)  
 **DIFICULTAD**: Básica  
 **SOPORTE**: Solo Kali Linux 2025
