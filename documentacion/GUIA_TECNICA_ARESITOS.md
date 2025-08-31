@@ -5,12 +5,13 @@
 El siguiente recorrido visual muestra el flujo completo de uso de Aresitos, desde la instalación en terminal hasta la generación de reportes, ilustrando cada pantalla y funcionalidad clave:
 
 
-<div align="center">
-	<img src="../aresitos/recursos/capturas/1_instalacion.png" alt="Instalación de Aresitos" width="500" />
+
+![Instalación de Aresitos](../aresitos/recursos/capturas/1_instalacion.png)
+
 **Instalación en terminal:**
 La instalación de Aresitos se realiza desde la terminal de Kali Linux, clonando el repositorio y ejecutando el script de configuración. Se instalan todas las dependencias y herramientas necesarias para el funcionamiento integral de la suite.
-	<br><sub>Instalación y primer inicio</sub>
-</div>
+
+*Instalación y primer inicio*
 
 
 ---
@@ -78,19 +79,21 @@ Todas las rutas de recursos, datos y configuraciones en ARESITOS son relativas a
 
 ## 1. ¿Qué es Aresitos?
 
-<div align="center">
-	<img src="../aresitos/recursos/capturas/2_login.png" alt="Pantalla de login" width="400" />
+
+![Pantalla de login](../aresitos/recursos/capturas/2_login.png)
+
 **Pantalla de login segura:**
 Al iniciar Aresitos, se presenta una pantalla de autenticación que protege el acceso a la suite, garantizando que solo usuarios autorizados puedan operar las herramientas avanzadas.
-	<br><sub>Pantalla de login segura</sub>
-</div>
 
-<div align="center">
-	<img src="../aresitos/recursos/capturas/3_herramientas.png" alt="Selector de herramientas Kali" width="500" />
+*Pantalla de login segura*
+
+
+![Selector de herramientas Kali](../aresitos/recursos/capturas/3_herramientas.png)
+
 **Selector de herramientas Kali:**
-Tras el login, el usuario accede a un panel visual donde puede seleccionar y lanzar las principales herramientas de Kali Linux integradas en Aresitos, facilitando la gestión centralizada de utilidades de ciberseguridad.
-	<br><sub>Selector visual de herramientas Kali integradas</sub>
-</div>
+Tras el inicio de sesión, el usuario accede a un panel visual donde puede seleccionar y lanzar las principales herramientas de Kali Linux integradas en Aresitos, facilitando la gestión centralizada de utilidades de ciberseguridad.
+
+*Selector visual de herramientas Kali integradas*
 
 
 **Aresitos** es una suite profesional de ciberseguridad para Kali Linux, con escaneador, SIEM, FIM, cuarentena y dashboard integrados. Arquitectura 100% Python nativo + herramientas Kali. Prioriza la seguridad, la modularidad y la extensibilidad, permitiendo la integración de herramientas nativas de Kali y la gestión avanzada de privilegios.
@@ -103,12 +106,13 @@ Aresitos es una suite de seguridad ofensiva y defensiva para Kali Linux, desarro
 
 ### 📁 Estructura de Carpetas y Módulos
 
-<div align="center">
-	<img src="../aresitos/recursos/capturas/4_dashboard.png" alt="Dashboard principal" width="500" />
+
+![Dashboard principal](../aresitos/recursos/capturas/4_dashboard.png)
+
 **Dashboard principal:**
-El dashboard centraliza la navegación y el estado general del sistema, mostrando accesos rápidos a los módulos de escaneo, SIEM, FIM, cuarentena, reportes y configuración, así como información de estado y alertas.
-	<br><sub>Dashboard principal: visión general y navegación</sub>
-</div>
+El panel principal centraliza la navegación y el estado general del sistema, mostrando accesos rápidos a los módulos de escaneo, SIEM, FIM, cuarentena, reportes y configuración, así como información de estado y alertas.
+
+*Visión general y navegación*
 
 
 - `aresitos/modelo/`: Lógica de datos, acceso a bases, validaciones, modelos de negocio.
@@ -181,8 +185,6 @@ El flujo concluye con la generación automática de reportes técnicos y ejecuti
 ARESITOS usa el patrón **MVC** (Modelo-Vista-Controlador) para organizar el código de manera clara y mantenible.
 
 
-### 🔗 Mapeo de conexiones MVC
-```
 vista_principal.py       → ControladorPrincipal
 	├── vista_dashboard.py     → ControladorPrincipal
 	├── vista_escaneo.py       → ControladorEscaneo
@@ -194,8 +196,24 @@ vista_principal.py       → ControladorPrincipal
 	├── vista_gestion_datos.py → ControladorPrincipal
 	├── vista_herramientas_kali.py → ControladorHerramientas
 	└── vista_login.py         → Sin controlador específico
-```
-Controladores → Modelos: cada controlador está vinculado a su modelo correspondiente.
+
+### 🔗 Mapeo de conexiones MVC
+
+| Vista                      | Controlador                | Modelo relacionado                |
+|----------------------------|----------------------------|------------------------------------|
+| vista_principal.py         | controlador_principal.py   | modelo_principal.py                |
+| vista_dashboard.py         | controlador_dashboard.py   | modelo_dashboard.py                |
+| vista_escaneo.py           | controlador_escaneo.py     | modelo_escaneador.py, modelo_escaneador_base.py |
+| vista_auditoria.py         | controlador_auditoria.py   | modelo_diccionarios.py, modelo_principal.py     |
+| vista_fim.py               | controlador_fim.py         | modelo_fim.py, modelo_fim_base.py  |
+| vista_siem.py              | controlador_siem.py        | modelo_siem.py, modelo_siem_base.py|
+| vista_monitoreo.py         | controlador_monitoreo.py   | modelo_monitor.py                  |
+| vista_reportes.py          | controlador_reportes.py    | modelo_reportes.py                 |
+| vista_herramientas_kali.py | controlador_herramientas.py| modelo_principal.py                |
+| vista_login.py             | controlador_principal.py   | modelo_principal.py                |
+| vista_datos.py             | controlador_principal.py   | modelo_principal.py                |
+
+> Cada controlador está vinculado a uno o varios modelos según la funcionalidad. La vista orquesta la interacción con el usuario y delega la lógica al controlador, que a su vez gestiona los datos a través del modelo correspondiente.
 
 
 ### ⚙️ Inicialización principal
