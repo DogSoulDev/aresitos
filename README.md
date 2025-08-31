@@ -1,4 +1,4 @@
-Además, ARESITOS permite al usuario generar un reporte integral y profesional que consolida todos los hallazgos, análisis y resultados obtenidos durante la auditoría. Este informe unificado facilita la documentación, la trazabilidad y la presentación de evidencias técnicas, adaptándose a los estándares del sector y permitiendo exportar la información en múltiples formatos para su análisis, entrega o archivo. Así, el usuario dispone de una visión global y estructurada de la seguridad de su entorno, optimizando la toma de decisiones y la comunicación con equipos o clientes.
+
 
 ![ARESITOS](aresitos/recursos/aresitos.png)
 # ARESITOS - Herramienta de Ciberseguridad
@@ -32,11 +32,20 @@ ARESITOS representa una solución profesional, académica y práctica para la ge
 # Descripción general
 
 
-ARESITOS es una herramienta de ciberseguridad 100% Python nativo (sin librerías externas) para sistemas operativos Kali Linux. Integra escaneo de vulnerabilidades, SIEM, FIM, cuarentena, panel principal, reportes y utilidades forenses, todo bajo arquitectura MVC y principios SOLID/DRY. El sistema aprovecha herramientas nativas de Kali Linux y automatiza su verificación e instalación, garantizando robustez, seguridad y compatibilidad total con entornos forenses y de auditoría.
 
-### Recursos avanzados para expertos: cheatsheets, wordlists y diccionarios
+ARESITOS es una suite profesional de ciberseguridad para Kali Linux, desarrollada íntegramente en Python 3 estándar (sin dependencias externas) y basada en arquitectura Modelo-Vista-Controlador (MVC). Su objetivo es centralizar y automatizar todas las fases de una auditoría técnica, integrando en una sola interfaz:
 
-ARESITOS incorpora una colección curada de cheatsheets, wordlists y diccionarios técnicos, diseñados para maximizar la eficiencia y profundidad de las auditorías de seguridad. Los **cheatsheets** ofrecen referencias rápidas y comandos esenciales para pentesting, análisis forense y respuesta ante incidentes, facilitando el acceso inmediato a técnicas y sintaxis avanzadas. Las **wordlists** incluidas están optimizadas para ataques de fuerza bruta, pruebas de diccionario y evaluación de contraseñas, cubriendo escenarios reales y adaptándose a distintos vectores de ataque. Los **diccionarios técnicos** permiten enriquecer análisis semánticos, búsquedas inteligentes y correlación de eventos, aportando contexto y precisión en la interpretación de resultados. Todo este material es actualizable, ampliable y se integra de forma nativa en los módulos de escaneo, monitoreo y generación de reportes, aportando un valor diferencial para profesionales y equipos de ciberseguridad que buscan agilidad, profundidad y rigor en sus operaciones.
+- **Escaneo de vulnerabilidades**: análisis de puertos, servicios, configuraciones y detección de debilidades mediante herramientas nativas y bases de datos actualizadas.
+- **SIEM**: correlación y análisis de eventos de seguridad en tiempo real, con alertas y trazabilidad.
+- **FIM (File Integrity Monitoring)**: monitorización de la integridad de archivos críticos, detección de cambios y generación de alertas forenses.
+- **Cuarentena y monitoreo**: aislamiento y análisis de archivos sospechosos, vigilancia de procesos y recursos del sistema.
+- **Auditoría avanzada**: integración con herramientas como lynis, chkrootkit y linpeas para análisis profundo y recomendaciones técnicas.
+- **Gestión de wordlists, diccionarios y cheatsheets**: recursos actualizables y personalizables para pentesting, fuerza bruta, análisis semántico y respuesta ante incidentes, integrados en los módulos de escaneo y monitoreo.
+- **Panel principal y dashboard**: métricas del sistema, estado de módulos, logs en tiempo real y acceso rápido a todas las funciones.
+- **Terminal integrado**: ejecución segura de comandos y scripts desde la propia interfaz, con gestión avanzada de privilegios.
+- **Generación de reportes profesionales**: el usuario puede crear un informe integral y estructurado que consolida todos los hallazgos, análisis y resultados obtenidos durante la auditoría, exportable en múltiples formatos (TXT, JSON, CSV) y adaptado a los estándares del sector.
+
+ARESITOS automatiza la verificación e instalación de todas las herramientas requeridas, gestiona privilegios de forma segura y centraliza la documentación, trazabilidad y exportación de evidencias técnicas. Todo el flujo está diseñado para ser visual, ágil y robusto, facilitando el trabajo tanto a expertos como a equipos de ciberseguridad que buscan eficiencia, profundidad y rigor en sus operaciones.
 
 ---
 
