@@ -262,11 +262,45 @@ aresitos/
 - Validación de extensiones, nombres, rutas y tipos MIME en subida de archivos
 - Módulo de sanitización en `utils/sanitizador_archivos.py`
 
-**Documentación y soporte**
-Manuales y guías disponibles:
 
-- `GUIA_TECNICA_ARESITOS.md`: Manual técnico completo y actualizado del sistema.
-- `GUIA_INSTALACION.md`: Guía de instalación, solución de problemas y mejores prácticas.
+## Resumen de la Guía Técnica y del Programa ARESITOS
+
+### ¿Qué es ARESITOS?
+
+ARESITOS es una suite profesional de ciberseguridad para Kali Linux, desarrollada en Python 3 puro (sin dependencias externas), con arquitectura Modelo-Vista-Controlador (MVC) y una interfaz gráfica robusta basada en Tkinter. Integra módulos de escaneo de vulnerabilidades, SIEM, FIM, cuarentena, dashboard, reportes y utilidades forenses, todo gestionado bajo principios SOLID y DRY. El sistema automatiza la verificación e instalación de herramientas nativas de Kali, garantizando robustez, seguridad y compatibilidad total con entornos forenses y de auditoría.
+
+### Características principales
+
+- **Arquitectura modular y extensible:** Separación clara entre lógica de negocio, interfaz y datos.
+- **Gestión avanzada de privilegios:** Uso seguro y controlado de sudo/root durante la ejecución.
+- **Automatización de herramientas Kali:** Instalación, verificación y actualización centralizada de utilidades críticas y opcionales.
+- **Flujo visual profesional:** Desde la instalación hasta la generación de reportes, con paneles dedicados para cada función.
+- **Portabilidad y seguridad:** Todas las rutas y configuraciones son dinámicas y relativas al proyecto, sin rutas absolutas.
+
+### Instalación y uso
+
+1. Clona el repositorio y accede a la carpeta:
+   ```bash
+   git clone https://github.com/DogSoulDev/aresitos.git
+   cd aresitos
+   ```
+2. Inicia la aplicación:
+   ```bash
+   python3 main.py
+   ```
+3. Para modo desarrollo (otros sistemas):
+   ```bash
+   python3 main.py --dev
+   ```
+
+> Consulta la guía de instalación completa en [`documentacion/GUIA_INSTALACION.md`](documentacion/GUIA_INSTALACION.md).
+
+### Documentación técnica
+
+- **Guía técnica completa:** Explica la arquitectura, el flujo de uso, la integración de herramientas, la política de rutas, la gestión de privilegios y las mejores prácticas de seguridad. Incluye tablas de herramientas, diagramas y capturas de pantalla.
+  - Ver [`documentacion/GUIA_TECNICA_ARESITOS.md`](documentacion/GUIA_TECNICA_ARESITOS.md)
+- **Guía de instalación:** Instrucciones paso a paso para instalar y ejecutar ARESITOS en Kali Linux, requisitos, solución de problemas y recomendaciones.
+  - Ver [`documentacion/GUIA_INSTALACION.md`](documentacion/GUIA_INSTALACION.md)
 
 Repositorio oficial: https://github.com/DogSoulDev/aresitos
 Email: dogsouldev@protonmail.com
