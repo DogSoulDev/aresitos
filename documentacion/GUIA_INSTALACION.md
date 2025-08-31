@@ -17,10 +17,9 @@ Todas las rutas de recursos, datos y configuraciones en ARESITOS son ahora relat
 git clone https://github.com/DogSoulDev/aresitos.git
 cd aresitos
 ```
-2. Ejecuta el script de configuración:
+2. **El script de configuración ha sido eliminado ya que la información está integrada en la guía técnica única.**
 ```bash
-chmod +x configurar_kali.sh
-sudo ./configurar_kali.sh
+# El script de configuración ha sido eliminado.
 ```
 3. Inicia la aplicación:
 ```bash
