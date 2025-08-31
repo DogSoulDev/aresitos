@@ -1,10 +1,11 @@
-# ![ARESITOS](aresitos/recursos/aresitos.png)
+
+![ARESITOS](aresitos/recursos/aresitos.png)
 # ARESITOS - Herramienta de Ciberseguridad
 
 
 
 > **Recomendación importante:**
-> Antes de instalar o ejecutar ARESITOS, asegúrate de tener tu sistema Kali Linux completamente actualizado para evitar problemas de dependencias o incompatibilidades:
+> Antes de instalar o ejecutar ARESITOS, asegúrate de que tu sistema Kali Linux esté completamente actualizado para evitar problemas de dependencias o incompatibilidades:
 > ```sh
 > sudo apt update && sudo apt upgrade -y
 > ```
@@ -19,23 +20,26 @@ ARESITOS representa una solución profesional, académica y práctica para la ge
 
 ---
 
-# Descripción General
 
-ARESITOS es una herramienta de ciberseguridad 100% Python nativo (sin librerías externas) para sistemas operativos Kali Linux. Integra escaneo de vulnerabilidades, SIEM, FIM, cuarentena, dashboard, reportes y utilidades forenses, todo bajo arquitectura MVC y principios SOLID/DRY. El sistema aprovecha herramientas nativas de Kali Linux y automatiza su verificación e instalación, garantizando robustez, seguridad y compatibilidad total con entornos forenses y de auditoría.
+# Descripción general
+
+ARESITOS es una herramienta de ciberseguridad 100% Python nativo (sin librerías externas) para sistemas operativos Kali Linux. Integra escaneo de vulnerabilidades, SIEM, FIM, cuarentena, panel principal, reportes y utilidades forenses, todo bajo arquitectura MVC y principios SOLID/DRY. El sistema aprovecha herramientas nativas de Kali Linux y automatiza su verificación e instalación, garantizando robustez, seguridad y compatibilidad total con entornos forenses y de auditoría.
 
 ---
 
 
-## Instalación rápida (Kali Linux recomendado)
+
+## Instalación rápida (Kali Linux recomendada)
+
 
 > ⚠️ **Advertencia importante sobre la instalación de herramientas**
 >
 > Cuando utilices el **Configurador de Herramientas Kali** para instalar las herramientas faltantes, el proceso puede tardar varios minutos. Algunas utilidades avanzadas (como nuclei o httpx) se instalan mediante Go y requieren descargas y compilación adicionales.
-> 
+>
 > **Ten paciencia y no cierres la aplicación** hasta que el proceso finalice y se muestre el mensaje de instalación completa.
 
 ```bash
-# 1. Clona el repositorio y entra en la carpeta
+# 1. Clona el repositorio y accede a la carpeta
 git clone https://github.com/DogSoulDev/aresitos.git
 cd aresitos
 
@@ -80,16 +84,16 @@ python3 main.py --dev
 ---
 
 ## Flujo de uso
-1. **Login**: Verificación automática de entorno, dependencias, permisos y privilegios.
+1. **Inicio de sesión**: Verificación automática de entorno, dependencias, permisos y privilegios.
 2. **Herramientas**: Detección, verificación visual (check verde/cruz roja) e instalación guiada de todas las herramientas requeridas.
-3. **Principal**: Acceso a dashboard, escaneo, SIEM, FIM, cuarentena, monitoreo y reportes.
+3. **Principal**: Acceso al panel principal, escaneo, SIEM, FIM, cuarentena, monitoreo y reportes.
 
 ---
 
 
 ## Capturas de pantalla y explicación de módulos
 
-ARESITOS cuenta con una interfaz profesional y modular. A continuación se muestran capturas de cada sección principal, junto con una breve explicación de su función:
+ARESITOS cuenta con una interfaz profesional y modular. A continuación, se muestran capturas de cada sección principal, junto con una breve explicación de su función:
 
 ### 1. Instalación y entorno
 ![Instalación](aresitos/recursos/capturas/1_instalacion.png)
@@ -105,7 +109,7 @@ ARESITOS cuenta con una interfaz profesional y modular. A continuación se muest
 
 ### 4. Dashboard
 ![Dashboard](aresitos/recursos/capturas/4_dashboard.png)
-**Explicación:** Panel principal con métricas del sistema, estado de módulos, logs en tiempo real y acceso rápido a las funciones principales.
+**Explicación:** Panel principal con métricas del sistema, estado de módulos, registros en tiempo real y acceso rápido a las funciones principales.
 
 ### 5. Escaneo
 ![Escaneo](aresitos/recursos/capturas/5_escaneo.png)
@@ -113,7 +117,7 @@ ARESITOS cuenta con una interfaz profesional y modular. A continuación se muest
 
 ### 6. SIEM
 ![SIEM](aresitos/recursos/capturas/6_SIEM.png)
-**Explicación:** Sistema de gestión y correlación de eventos de seguridad. Analiza logs, detecta anomalías y muestra alertas en tiempo real.
+**Explicación:** Sistema de gestión y correlación de eventos de seguridad. Analiza registros, detecta anomalías y muestra alertas en tiempo real.
 
 ### 7. FIM (File Integrity Monitoring)
 ![FIM](aresitos/recursos/capturas/7_FIM.png)
@@ -125,15 +129,15 @@ ARESITOS cuenta con una interfaz profesional y modular. A continuación se muest
 
 ### 9. Auditoría
 ![Auditoría](aresitos/recursos/capturas/9_Auditoria.png)
-**Explicación:** Herramientas de auditoría profesional (lynis, chkrootkit, linpeas, etc). Permite ejecutar análisis avanzados y obtener recomendaciones de seguridad.
+**Explicación:** Herramientas de auditoría profesional (lynis, chkrootkit, linpeas, etc.). Permite ejecutar análisis avanzados y obtener recomendaciones de seguridad.
 
 ### 10. Wordlists y Diccionarios
 ![Wordlists y Diccionarios](aresitos/recursos/capturas/10_wordlistsydiccionarios.png)
-**Explicación:** Gestión de wordlists y diccionarios para escaneo, fuerza bruta y análisis. Permite cargar, validar y actualizar recursos de forma segura.
+**Explicación:** Gestión de listas de palabras y diccionarios para escaneo, fuerza bruta y análisis. Permite cargar, validar y actualizar recursos de forma segura.
 
 ### 11. Reportes
 ![Reportes](aresitos/recursos/capturas/11_reportes.png)
-**Explicación:** Generación, visualización y exportación de reportes profesionales en múltiples formatos (TXT, JSON, CSV). Incluye terminal integrado para trazabilidad completa.
+**Explicación:** Generación, visualización y exportación de informes profesionales en múltiples formatos (TXT, JSON, CSV). Incluye terminal integrado para trazabilidad completa.
 
 ---
 
@@ -252,15 +256,15 @@ aresitos/
 - Los controladores gestionan la lógica de negocio y la interacción entre la interfaz gráfica (vistas) y los datos (modelos).
 - El sistema es robusto, modular, seguro y fácilmente extensible, cumpliendo los principios SOLID y DRY.
 
-- **Cuarentena:** aislamiento de archivos sospechosos, preservación de evidencia
-- **Reportes:** exportación en JSON, TXT, CSV
-- **Inteligencia:** base de datos de vulnerabilidades, wordlists, diccionarios, cheatsheets
-- **Auditoría:** integración con lynis y chkrootkit
-- **Logs:** carpeta `logs/` con resultados de escaneo y actividad
+- **Cuarentena:** aislamiento de archivos sospechosos, preservación de evidencia.
+- **Informes:** exportación en JSON, TXT, CSV.
+- **Inteligencia:** base de datos de vulnerabilidades, listas de palabras, diccionarios, cheatsheets.
+- **Auditoría:** integración con lynis y chkrootkit.
+- **Registros:** carpeta `logs/` con resultados de escaneo y actividad.
 
 **Sanitización y seguridad:**
-- Validación de extensiones, nombres, rutas y tipos MIME en subida de archivos
-- Módulo de sanitización en `utils/sanitizador_archivos.py`
+- Validación de extensiones, nombres, rutas y tipos MIME en la subida de archivos.
+- Módulo de sanitización en `utils/sanitizador_archivos.py`.
 
 
 ## Resumen de la Guía Técnica y del Programa ARESITOS
@@ -269,13 +273,15 @@ aresitos/
 
 ARESITOS es una suite profesional de ciberseguridad para Kali Linux, desarrollada en Python 3 puro (sin dependencias externas), con arquitectura Modelo-Vista-Controlador (MVC) y una interfaz gráfica robusta basada en Tkinter. Integra módulos de escaneo de vulnerabilidades, SIEM, FIM, cuarentena, dashboard, reportes y utilidades forenses, todo gestionado bajo principios SOLID y DRY. El sistema automatiza la verificación e instalación de herramientas nativas de Kali, garantizando robustez, seguridad y compatibilidad total con entornos forenses y de auditoría.
 
+
 ### Características principales
 
 - **Arquitectura modular y extensible:** Separación clara entre lógica de negocio, interfaz y datos.
 - **Gestión avanzada de privilegios:** Uso seguro y controlado de sudo/root durante la ejecución.
 - **Automatización de herramientas Kali:** Instalación, verificación y actualización centralizada de utilidades críticas y opcionales.
-- **Flujo visual profesional:** Desde la instalación hasta la generación de reportes, con paneles dedicados para cada función.
+- **Flujo visual profesional:** Desde la instalación hasta la generación de informes, con paneles dedicados para cada función.
 - **Portabilidad y seguridad:** Todas las rutas y configuraciones son dinámicas y relativas al proyecto, sin rutas absolutas.
+
 
 ### Instalación y uso
 
@@ -293,67 +299,63 @@ ARESITOS es una suite profesional de ciberseguridad para Kali Linux, desarrollad
    python3 main.py --dev
    ```
 
+
 > Consulta la guía de instalación completa en [`documentacion/GUIA_INSTALACION.md`](documentacion/GUIA_INSTALACION.md).
+
 
 ### Documentación técnica
 
 - **Guía técnica completa:** Explica la arquitectura, el flujo de uso, la integración de herramientas, la política de rutas, la gestión de privilegios y las mejores prácticas de seguridad. Incluye tablas de herramientas, diagramas y capturas de pantalla.
-  - Ver [`documentacion/GUIA_TECNICA_ARESITOS.md`](documentacion/GUIA_TECNICA_ARESITOS.md)
+   - Ver [`documentacion/GUIA_TECNICA_ARESITOS.md`](documentacion/GUIA_TECNICA_ARESITOS.md)
 - **Guía de instalación:** Instrucciones paso a paso para instalar y ejecutar ARESITOS en Kali Linux, requisitos, solución de problemas y recomendaciones.
-  - Ver [`documentacion/GUIA_INSTALACION.md`](documentacion/GUIA_INSTALACION.md)
+   - Ver [`documentacion/GUIA_INSTALACION.md`](documentacion/GUIA_INSTALACION.md)
+
 
 Repositorio oficial: https://github.com/DogSoulDev/aresitos
-Email: dogsouldev@protonmail.com
-- Módulo de sanitización en `utils/sanitizador_archivos.py`
+Correo electrónico: dogsouldev@protonmail.com
 
 ---
 
-## Documentación y soporte
 
-**Manuales y guías disponibles:**
-- [`DOCUMENTACION_TECNICA_CONSOLIDADA.md`](documentacion/DOCUMENTACION_TECNICA_CONSOLIDADA.md): Manual técnico completo y actualizado del sistema.
-- [`ARQUITECTURA_DESARROLLO.md`](documentacion/ARQUITECTURA_DESARROLLO.md): Guía de arquitectura, patrones y estructura del proyecto.
-- [`AUDITORIA_SEGURIDAD_ARESITOS.md`](documentacion/AUDITORIA_SEGURIDAD_ARESITOS.md): Auditoría de seguridad, controles y recomendaciones.
-- [`GUIA_INSTALACION.md`](documentacion/GUIA_INSTALACION.md): Guía de instalación, solución de problemas y mejores prácticas.
-- [`HERRAMIENTAS_FASE_3_ACTUALIZACION.md`](documentacion/HERRAMIENTAS_FASE_3_ACTUALIZACION.md): Herramientas avanzadas y configuraciones de Fase 3.
-- [`REVISION_MVC_ARESITOS.md`](documentacion/REVISION_MVC_ARESITOS.md): Revisión exhaustiva de conexiones y flujos MVC.
-- [`SANITIZACION_ARCHIVOS.md`](documentacion/SANITIZACION_ARCHIVOS.md): Resumen de la implementación de seguridad en carga de archivos.
-- [`TERMINAL_INTEGRADO.md`](documentacion/TERMINAL_INTEGRADO.md): Manual del terminal integrado y sus ventajas.
-
-Repositorio oficial: https://github.com/DogSoulDev/aresitos
-Email: dogsouldev@protonmail.com
 
 ---
 
 ## Licencia y uso ético
 
-**Open Source Non-Commercial License**
+
+**Licencia Open Source No Comercial**
+
 
 **Permitido:**
-- Educación, investigación, testing en sistemas propios o autorizados, proyectos open source sin monetización, aprendizaje y comunidad.
+- Educación, investigación, pruebas en sistemas propios o autorizados, proyectos de código abierto sin monetización, aprendizaje y comunidad.
+
 
 **Prohibido:**
 - Venta, consultoría comercial, productos comerciales, monetización, SaaS o servicios gestionados.
+
 
 **Atribución obligatoria:**
 - Creador: DogSoulDev
 - Contacto: dogsouldev@protonmail.com
 - Fuente: https://github.com/DogSoulDev/aresitos
-- Licencia: Open Source Non-Commercial
+- Licencia: Open Source No Comercial
+
 
 **Código de ética:**
-- Solo sistemas autorizados (permiso explícito)
-- Propósitos constructivos
-- Divulgación responsable
-- Prohibido hacking malicioso o daño intencional
+- Solo sistemas autorizados (permiso explícito).
+- Propósitos constructivos.
+- Divulgación responsable.
+- Prohibido el hacking malicioso o el daño intencional.
 
 ---
+
 
 ## Reconocimientos y agradecimientos
 
-Este proyecto no habría sido posible sin el apoyo y la formación recibida en el Campus Internacional de Ciberseguridad y la Universidad Católica San Antonio de Murcia (UCAM).
+Este proyecto no habría sido posible sin el apoyo y la formación recibidos en el Campus Internacional de Ciberseguridad y la Universidad Católica San Antonio de Murcia (UCAM).
 
 ---
+
 
 
 
@@ -366,7 +368,7 @@ Si la instalación rápida falla o tienes un entorno personalizado, puedes insta
    git clone https://github.com/DogSoulDev/aresitos.git
    cd aresitos
    ```
-2. **Instala dependencias del sistema (Kali Linux):**
+2. **Instala las dependencias del sistema (Kali Linux):**
    ```sh
    sudo apt update && sudo apt install -y python3 python3-tk python3-venv nmap masscan nuclei gobuster ffuf feroxbuster wireshark autopsy sleuthkit hashdeep testdisk bulk-extractor dc3dd guymager git curl wget sqlite3
    ```
@@ -378,7 +380,7 @@ Si la instalación rápida falla o tienes un entorno personalizado, puedes insta
    ```sh
    find . -name "*.py" -exec chmod +x {} \;
    ```
-5. **Configura permisos para carpetas de datos y logs:**
+5. **Configura permisos para carpetas de datos y registros:**
    ```sh
    chmod -R 755 data/ logs/ configuración/
    ```
@@ -395,6 +397,7 @@ Si la instalación rápida falla o tienes un entorno personalizado, puedes insta
 
 ---
 
+
 ## Solución de problemas de instalación
 
 - Si ves errores de permisos, ejecuta:
@@ -403,7 +406,7 @@ Si la instalación rápida falla o tienes un entorno personalizado, puedes insta
   find . -name "*.py" -exec chmod +x {} \;
   ```
 - Si falta alguna dependencia, instálala manualmente con `sudo apt install <paquete>`.
-- Si usas entorno Python gestionado (externally-managed), instala dependencias vía APT, no con pip.
+- Si usas un entorno Python gestionado (externally-managed), instala dependencias vía APT, no con pip.
 - Si tienes problemas con la interfaz gráfica, asegúrate de tener instalado `python3-tk`.
 - Si el script de configuración no detecta alguna herramienta, instálala manualmente y vuelve a ejecutar el script.
 - Consulta la guía `documentacion/GUIA_INSTALACION.md` para más detalles y soluciones avanzadas.
@@ -412,10 +415,12 @@ Si la instalación rápida falla o tienes un entorno personalizado, puedes insta
 
 ---
 
+
 ## DEDICATORIA
 
-En Memoria de Ares
-*25 de Abril 2013 - 5 de Agosto 2025*
+
+En memoria de Ares
+*25 de abril de 2013 - 5 de agosto de 2025*
 Hasta que volvamos a vernos.
 
 ---
