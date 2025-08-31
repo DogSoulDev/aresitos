@@ -86,9 +86,54 @@ python3 main.py --dev
 
 ---
 
-## Capturas de pantalla
 
+## Capturas de pantalla y explicación de módulos
 
+ARESITOS cuenta con una interfaz profesional y modular. A continuación se muestran capturas de cada sección principal, junto con una breve explicación de su función:
+
+### 1. Instalación y entorno
+![Instalación](aresitos/recursos/capturas/1_instalacion.png)
+**Explicación:** Pantalla de instalación y verificación de entorno. Aquí se comprueba que todas las dependencias y herramientas estén listas antes de iniciar.
+
+### 2. Login
+![Login](aresitos/recursos/capturas/2_login.png)
+**Explicación:** Acceso seguro al sistema. Se validan permisos, entorno y usuario antes de permitir el uso de la suite.
+
+### 3. Herramientas
+![Herramientas](aresitos/recursos/capturas/3_herramientas.png)
+**Explicación:** Panel de verificación e instalación de herramientas críticas y opcionales de Kali Linux. Permite instalar, actualizar y comprobar el estado de cada utilidad.
+
+### 4. Dashboard
+![Dashboard](aresitos/recursos/capturas/4_dashboard.png)
+**Explicación:** Panel principal con métricas del sistema, estado de módulos, logs en tiempo real y acceso rápido a las funciones principales.
+
+### 5. Escaneo
+![Escaneo](aresitos/recursos/capturas/5_escaneo.png)
+**Explicación:** Módulo de escaneo de vulnerabilidades. Permite analizar puertos, servicios, configuraciones y detectar debilidades usando herramientas nativas y bases de datos actualizadas.
+
+### 6. SIEM
+![SIEM](aresitos/recursos/capturas/6_SIEM.png)
+**Explicación:** Sistema de gestión y correlación de eventos de seguridad. Analiza logs, detecta anomalías y muestra alertas en tiempo real.
+
+### 7. FIM (File Integrity Monitoring)
+![FIM](aresitos/recursos/capturas/7_FIM.png)
+**Explicación:** Monitoriza la integridad de archivos críticos del sistema. Detecta cambios no autorizados y genera alertas forenses.
+
+### 8. Monitoreo y Cuarentena
+![Monitoreo y Cuarentena](aresitos/recursos/capturas/8_Monitoreo y Cuarentena.png)
+**Explicación:** Supervisa procesos, recursos y amenazas. Permite aislar archivos sospechosos en cuarentena y analizar su comportamiento.
+
+### 9. Auditoría
+![Auditoría](aresitos/recursos/capturas/9_Auditoria.png)
+**Explicación:** Herramientas de auditoría profesional (lynis, chkrootkit, linpeas, etc). Permite ejecutar análisis avanzados y obtener recomendaciones de seguridad.
+
+### 10. Wordlists y Diccionarios
+![Wordlists y Diccionarios](aresitos/recursos/capturas/10_wordlistsydiccionarios.png)
+**Explicación:** Gestión de wordlists y diccionarios para escaneo, fuerza bruta y análisis. Permite cargar, validar y actualizar recursos de forma segura.
+
+### 11. Reportes
+![Reportes](aresitos/recursos/capturas/11_reportes.png)
+**Explicación:** Generación, visualización y exportación de reportes profesionales en múltiples formatos (TXT, JSON, CSV). Incluye terminal integrado para trazabilidad completa.
 
 ---
 

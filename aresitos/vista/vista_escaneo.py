@@ -1,12 +1,14 @@
 
 # -*- coding: utf-8 -*-
 
+
 import tkinter as tk
 from tkinter import ttk, scrolledtext, messagebox
-
 import threading
 import datetime
 from aresitos.utils.detector_red import DetectorRed
+# Importar el gestor de sudo de ARESITOS
+from aresitos.utils.sudo_manager import get_sudo_manager
 
 
 
@@ -20,14 +22,70 @@ class VistaEscaneo(tk.Frame):
         from pathlib import Path
         return Path(os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..", "..")))
     def actualizar_bases_datos(self):
-        # Stub para evitar error de atributo
-        pass
+        """Actualizar todas las bases de datos usadas por ARESITOS (vulnerabilidades, wordlists, diccionarios)."""
+        import os
+        import json
+        from tkinter import messagebox
+        self.progress_label.config(text="Actualizando bases de datos...")
+        self.progress_bar['value'] = 0
+        self.log_to_terminal("Iniciando actualización de bases de datos...")
+        errores = []
+        try:
+            # Recargar wordlists
+            try:
+                from aresitos.modelo.modelo_wordlists_gestor import ModeloGestorWordlists
+                gestor_wordlists = ModeloGestorWordlists()
+                gestor_wordlists._cargar_wordlists_desde_data()
+                self.log_to_terminal("Wordlists actualizadas correctamente.")
+                self.progress_bar['value'] = 33
+            except Exception as e:
+                errores.append(f"Wordlists: {e}")
+                self.log_to_terminal(f"ERROR actualizando wordlists: {e}")
+
+            # Recargar diccionarios
+            try:
+                from aresitos.modelo.modelo_diccionarios import ModeloGestorDiccionarios
+                gestor_diccionarios = ModeloGestorDiccionarios()
+                gestor_diccionarios._cargar_diccionarios_desde_data()
+                self.log_to_terminal("Diccionarios actualizados correctamente.")
+                self.progress_bar['value'] = 66
+            except Exception as e:
+                errores.append(f"Diccionarios: {e}")
+                self.log_to_terminal(f"ERROR actualizando diccionarios: {e}")
+
+            # Recargar base de vulnerabilidades
+            try:
+                base_path = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..", "data", "vulnerability_database.json"))
+                if os.path.exists(base_path):
+                    with open(base_path, 'r', encoding='utf-8') as f:
+                        data = json.load(f)
+                    total = data.get('metadatos', {}).get('total_vulnerabilidades', '?')
+                    self.log_to_terminal(f"Base de vulnerabilidades recargada ({total} vulnerabilidades).")
+                else:
+                    raise FileNotFoundError("vulnerability_database.json no encontrada")
+                self.progress_bar['value'] = 100
+            except Exception as e:
+                errores.append(f"Vulnerabilidades: {e}")
+                self.log_to_terminal(f"ERROR recargando base de vulnerabilidades: {e}")
+
+            if errores:
+                self.progress_label.config(text="Actualización completada con errores")
+                messagebox.showwarning("Actualizar Bases", "Actualización completada con errores:\n" + "\n".join(errores))
+            else:
+                self.progress_label.config(text="Bases de datos actualizadas correctamente")
+                messagebox.showinfo("Actualizar Bases", "¡Todas las bases de datos han sido actualizadas correctamente!")
+        except Exception as e:
+            self.progress_label.config(text="Error actualizando bases de datos")
+            self.log_to_terminal(f"ERROR crítico en actualización de bases: {e}")
+            messagebox.showerror("Actualizar Bases", f"Error crítico actualizando bases: {e}")
     def __init__(self, parent=None):
         super().__init__(parent)
         self.parent = parent
         self.controlador = None
-        self.proceso_activo = False  # Inicializar correctamente para evitar errores
-        # Inicializar colores por defecto (igual que Dashboard)
+        from aresitos.utils.logger_aresitos import LoggerAresitos
+        self.logger = LoggerAresitos.get_instance()
+        self.proceso_activo = False
+        # Colores estándar
         self.colors = {
             'bg_primary': '#f0f0f0',
             'bg_secondary': '#ffffff',
@@ -38,9 +96,8 @@ class VistaEscaneo(tk.Frame):
             'button_fg': '#ffffff',
             'danger': '#d32f2f',
             'info': '#1976d2',
-            'warning': '#ffaa00',
+            'warning': '#ffaa00'
         }
-        # Si hay un tema burp_theme disponible, usarlo
         try:
             from aresitos.vista.burp_theme import burp_theme
             if burp_theme:
@@ -55,181 +112,147 @@ class VistaEscaneo(tk.Frame):
                 })
         except Exception:
             pass
-        # Crear widgets al inicializar la vista
-        self.crear_widgets()
-    # ... otras funciones ...
-    def crear_widgets(self):
-        # PanedWindow principal para dividir contenido y terminal
-        self.paned_window = tk.PanedWindow(self, orient="vertical", bg=self.colors['bg_primary'])
-        self.paned_window.pack(fill="both", expand=True, padx=5, pady=5)
 
-        # Frame superior para el contenido principal
-        main_frame = tk.Frame(self.paned_window, bg=self.colors['bg_primary'])
-        self.paned_window.add(main_frame, minsize=400)
+        # Frame principal vertical
+        self.main_frame = tk.Frame(self, bg=self.colors['bg_primary'])
+        self.main_frame.pack(fill="both", expand=True, padx=5, pady=5)
 
-        # Título con tema Burp Suite
-        titulo_frame = tk.Frame(main_frame, bg=self.colors['bg_primary'])
-        titulo_frame.pack(fill="x", pady=(10, 15))
+        # --- 1. Botones principales (arriba, horizontal) ---
+        self.top_buttons_frame = tk.Frame(self.main_frame, bg=self.colors['bg_primary'])
+        self.top_buttons_frame.pack(fill="x", pady=(8, 2))
 
-        titulo_label = tk.Label(titulo_frame, text="ESCANEADOR DE VULNERABILIDADES", 
-                              font=('Arial', 14, 'bold'),
-                              bg=self.colors['bg_primary'], fg=self.colors['fg_accent'])
-        titulo_label.pack()
+        # Unificado: estilo compacto y colores del tema para todos los botones principales
+        button_style = {
+            'font': ('Arial', 9, 'bold'),
+            'relief': 'flat',
+            'bd': 0,
+            'padx': 10,
+            'pady': 5,
+            'bg': self.colors['button_bg'],
+            'fg': self.colors['button_fg'],
+            'activebackground': self.colors['fg_accent'],
+            'activeforeground': 'white',
+        }
 
-        # Frame de botones y barra de progreso juntos
-        btn_frame = tk.Frame(main_frame, bg=self.colors['bg_primary'])
-        btn_frame.pack(fill="x", pady=(0, 10))
-
-        self.btn_escanear = tk.Button(btn_frame, text="Escanear Sistema", 
-                                    command=self.ejecutar_escaneo,
-                                    bg=self.colors['fg_accent'], fg='white', 
-                                    font=('Arial', 10, 'bold'),
-                                    relief='flat', padx=15, pady=8,
-                                    activebackground=self.colors['danger'],
-                                    activeforeground='white')
-        self.btn_escanear.pack(side="left", padx=(0, 10))
+        self.btn_escanear = tk.Button(
+            self.top_buttons_frame, text="Escanear Sistema",
+            command=self.ejecutar_escaneo,
+            font=("Arial", 12, "bold"), relief='raised', padx=18, pady=8, bd=2,
+            bg='#ffb86c', fg='#232629', activebackground='#fffae3', activeforeground='#ff5555'
+        )
+        self.btn_escanear.pack(side="left", padx=(8, 8), pady=4)
 
         self.btn_actualizar_bases = tk.Button(
-            btn_frame,
-            text="Actualizar Bases",
+            self.top_buttons_frame, text="Actualizar Bases",
             command=self.actualizar_bases_datos,
-            bg=self.colors['info'], fg='white',
-            font=('Arial', 10, 'bold'),
-            relief='flat', padx=15, pady=8,
-            activebackground=self.colors['fg_accent'],
-            activeforeground='white')
-        self.btn_actualizar_bases.pack(side="left", padx=(0, 10))
+            font=("Arial", 12, "bold"), relief='raised', padx=18, pady=8, bd=2,
+            bg='#8be9fd', fg='#232629', activebackground='#e3f6ff', activeforeground='#ff5555'
+        )
+        self.btn_actualizar_bases.pack(side="left", padx=8, pady=4)
 
-        self.btn_cancelar_escaneo = tk.Button(btn_frame, text="Cancelar", 
-                                            command=self.cancelar_escaneo,
-                                            state="disabled",
-                                            bg=self.colors['button_bg'], fg='white',
-                                            font=('Arial', 10),
-                                            relief='flat', padx=15, pady=8,
-                                            activebackground=self.colors['danger'],
-                                            activeforeground='white')
-        self.btn_cancelar_escaneo.pack(side="left", padx=(0, 15))
+        self.btn_cancelar_escaneo = tk.Button(
+            self.top_buttons_frame, text="Cancelar",
+            state="disabled",
+            font=("Arial", 12, "bold"), relief='raised', padx=18, pady=8, bd=2,
+            bg='#ff5555', fg='#f8f8f2', activebackground='#ffeaea', activeforeground='#232629'
+        )
+        self.btn_cancelar_escaneo.pack(side="left", padx=8, pady=4)
 
-        self.btn_logs = tk.Button(btn_frame, text="Ver Logs", 
-                                command=self.ver_logs,
-                                bg=self.colors['button_bg'], fg='white',
-                                font=('Arial', 10),
-                                relief='flat', padx=15, pady=8,
-                                activebackground=self.colors['fg_accent'],
-                                activeforeground='white')
-        self.btn_logs.pack(side="left", padx=(0, 10))
+        self.btn_logs = tk.Button(
+            self.top_buttons_frame, text="Ver Logs",
+            command=self.ver_logs,
+            font=("Arial", 12, "bold"), relief='raised', padx=18, pady=8, bd=2,
+            bg='#50fa7b', fg='#232629', activebackground='#e3ffe3', activeforeground='#ff5555'
+        )
+        self.btn_logs.pack(side="left", padx=8, pady=4)
 
-        # Barra de progreso y label al lado de los botones
-        self.progress_label = tk.Label(btn_frame, text="Estado: Listo", 
-                                     bg=self.colors['bg_primary'], fg=self.colors['fg_primary'],
-                                     font=('Arial', 9))
-        self.progress_label.pack(side="left", padx=(10, 0))
+        # --- 2. Barra de progreso y estado ---
+        self.progress_frame = tk.Frame(self.main_frame, bg=self.colors['bg_primary'])
+        self.progress_frame.pack(fill="x", pady=(0, 8))
+        self.progress_label = tk.Label(self.progress_frame, text="Estado: Listo",
+                                       bg=self.colors['bg_primary'],
+                                       fg=self.colors['fg_primary'],
+                                       font=('Arial', 9))
+        self.progress_label.pack(side="left", padx=(8, 10))
+        self.progress_bar = ttk.Progressbar(self.progress_frame, mode='determinate', length=200)
+        self.progress_bar.pack(side="left")
 
-        self.progress_bar = ttk.Progressbar(btn_frame, mode='determinate', length=200)
-        self.progress_bar.pack(side="left", padx=(10, 0))
+        # --- 3. Área de resultados ---
+        self.text_resultados = scrolledtext.ScrolledText(self.main_frame, height=18,
+                                                         bg=self.colors['bg_secondary'],
+                                                         fg=self.colors['fg_primary'],
+                                                         font=('Consolas', 10),
+                                                         insertbackground=self.colors['fg_accent'],
+                                                         selectbackground=self.colors['fg_accent'],
+                                                         relief='flat', bd=1)
+        self.text_resultados.pack(fill="both", expand=True, padx=10, pady=(0, 8))
 
-        # Área de resultados con tema Burp Suite
-        self.text_resultados = scrolledtext.ScrolledText(main_frame, height=20,
-                                                       bg=self.colors['bg_secondary'], 
-                                                       fg=self.colors['fg_primary'],
-                                                       font=('Consolas', 10),
-                                                       insertbackground=self.colors['fg_accent'],
-                                                       selectbackground=self.colors['fg_accent'],
-                                                       relief='flat', bd=1)
-        self.text_resultados.pack(fill="both", expand=True, padx=10)
+        # --- 4. Terminal integrado (abajo) ---
+        self.terminal_frame = tk.LabelFrame(self.main_frame, text="Terminal ARESITOS - Escaneador",
+                                            bg=self.colors['bg_secondary'], fg=self.colors['fg_primary'], font=("Arial", 10, "bold"))
+        self.terminal_frame.pack(fill="x", padx=8, pady=(0, 4), side="bottom")
 
-        # Crear terminal integrado
-        try:
-            terminal_frame = tk.LabelFrame(
-                self.paned_window,
-                text="Terminal ARESITOS - Escaneador",
-                bg=self.colors['bg_secondary'],
-                fg=self.colors['fg_primary'],
-                font=("Arial", 10, "bold")
-            )
-            self.paned_window.add(terminal_frame, minsize=120)
-            
-            # Frame para controles del terminal (compacto)
-            controles_frame = tk.Frame(terminal_frame, bg=self.colors['bg_secondary'])
-            controles_frame.pack(fill="x", padx=5, pady=2)
-            
-            # Botón limpiar terminal (estilo dashboard, compacto)
-            btn_limpiar = tk.Button(
-                controles_frame,
-                text="LIMPIAR",
-                command=self.limpiar_terminal_escaneo,
-                bg=self.colors.get('warning', '#ffaa00'),
-                fg='white',
-                font=("Arial", 8, "bold"),
-                height=1
-            )
-            btn_limpiar.pack(side="left", padx=2, fill="x", expand=True)
-            
-            # Botón ver logs (estilo dashboard, compacto)
-            btn_logs = tk.Button(
-                controles_frame,
-                text="VER LOGS",
-                command=self.abrir_logs_escaneo,
-                bg=self.colors.get('info', '#007acc'),
-                fg='white',
-                font=("Arial", 8, "bold"),
-                height=1
-            )
-            btn_logs.pack(side="left", padx=2, fill="x", expand=True)
-            
-            # Área de terminal (misma estética que dashboard, más pequeña)
-            self.terminal_output = scrolledtext.ScrolledText(
-                terminal_frame,
-                height=6,  # Más pequeño que dashboard
-                bg='#000000',  # Fondo negro como dashboard
-                fg='#00ff00',  # Texto verde como dashboard
-                font=("Consolas", 8),  # Fuente menor que dashboard
-                insertbackground='#00ff00',
-                selectbackground='#333333'
-            )
-            self.terminal_output.pack(fill="both", expand=True, padx=5, pady=5)
-            
-            # Frame para entrada de comandos (como Dashboard)
-            entrada_frame = tk.Frame(terminal_frame, bg='#1e1e1e')
-            entrada_frame.pack(fill="x", padx=5, pady=2)
-            
-            tk.Label(entrada_frame, text="COMANDO:",
-                    bg='#1e1e1e', fg='#00ff00',
-                    font=("Arial", 9, "bold")).pack(side="left", padx=(0, 5))
-            
-            self.comando_entry = tk.Entry(
-                entrada_frame,
-                bg='#000000',
-                fg='#00ff00',
-                font=("Consolas", 9),
-                insertbackground='#00ff00'
-            )
-            self.comando_entry.pack(side="left", fill="x", expand=True, padx=(0, 5))
-            self.comando_entry.bind("<Return>", self.ejecutar_comando_entry)
-            
-            ejecutar_btn = tk.Button(
-                entrada_frame,
-                text="EJECUTAR",
-                command=self.ejecutar_comando_entry,
-                bg='#2d5aa0',
-                fg='white',
-                font=("Arial", 8, "bold")
-            )
-            ejecutar_btn.pack(side="right")
-            
-            # Mensaje inicial estilo dashboard
-            import datetime
-            self._actualizar_terminal_seguro("="*60 + "\n")
-            self._actualizar_terminal_seguro("Terminal ARESITOS - Escaneador v2.0\n")
-            self._actualizar_terminal_seguro(f"Iniciado: {datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')}\n")
-            self._actualizar_terminal_seguro(f"Sistema: Kali Linux - Network & Vulnerability Scanner\n")
-            self._actualizar_terminal_seguro("="*60 + "\n")
-            self._actualizar_terminal_seguro("LOG Escaneador en tiempo real\n\n")
-            
-            self.log_to_terminal("Terminal Escaneo iniciado correctamente")
-            
-        except Exception as e:
-            print(f"Error creando terminal integrado en Vista Escaneo: {e}")
+        # Controles del terminal
+        controles_frame = tk.Frame(self.terminal_frame, bg=self.colors['bg_secondary'])
+        controles_frame.pack(fill="x", padx=5, pady=2)
+        btn_limpiar = tk.Button(
+            controles_frame,
+            text="LIMPIAR",
+            command=self.limpiar_terminal_escaneo,
+            bg='#8be9fd',
+            fg='#232629',
+            font=("Arial", 11, "bold"),
+            height=2,
+            relief="raised",
+            activebackground='#e3f6ff',
+            activeforeground='#ff5555',
+            padx=10,
+            pady=6
+        )
+        btn_limpiar.pack(side="left", padx=6, pady=4, fill="x", expand=True)
+        btn_logs = tk.Button(
+            controles_frame,
+            text="VER LOGS",
+            command=self.abrir_logs_escaneo,
+            bg='#ffb86c',
+            fg='#232629',
+            font=("Arial", 11, "bold"),
+            height=2,
+            relief="raised",
+            activebackground='#fffae3',
+            activeforeground='#ff5555',
+            padx=10,
+            pady=6
+        )
+        btn_logs.pack(side="left", padx=6, pady=4, fill="x", expand=True)
+
+        # Área de terminal
+        self.terminal_output = scrolledtext.ScrolledText(
+            self.terminal_frame,
+            height=6,
+            bg='#000000',
+            fg='#00ff00',
+            font=("Consolas", 8),
+            insertbackground='#00ff00',
+            selectbackground='#333333'
+        )
+        self.terminal_output.pack(fill="both", expand=True, padx=5, pady=5)
+
+        # Entrada de comandos
+        entrada_frame = tk.Frame(self.terminal_frame, bg='#1e1e1e')
+        entrada_frame.pack(fill="x", padx=5, pady=2)
+        tk.Label(entrada_frame, text="COMANDO:", bg='#1e1e1e', fg='#00ff00', font=("Arial", 9, "bold")).pack(side="left", padx=(0, 5))
+        self.comando_entry = tk.Entry(entrada_frame, bg='#000000', fg='#00ff00', font=("Consolas", 9), insertbackground='#00ff00')
+        self.comando_entry.pack(side="left", fill="x", expand=True, padx=(0, 5))
+        self.comando_entry.bind("<Return>", self.ejecutar_comando_entry)
+        ejecutar_btn = tk.Button(entrada_frame, text="EJECUTAR", command=self.ejecutar_comando_entry, bg='#2d5aa0', fg='white', font=("Arial", 8, "bold"))
+        ejecutar_btn = tk.Button(entrada_frame, text="EJECUTAR", command=self.ejecutar_comando_entry,
+            font=("Arial", 12, "bold"), relief='raised', padx=18, pady=8, bd=2,
+            bg='#ffb86c', fg='#232629', activebackground='#fffae3', activeforeground='#ff5555')
+        ejecutar_btn.pack(side="right", padx=6, pady=4)
+    # ...existing code...
+
+    # ...existing code...
     
     def limpiar_terminal_escaneo(self):
         """Limpiar terminal Escaneo manteniendo cabecera."""
@@ -245,7 +268,8 @@ class VistaEscaneo(tk.Frame):
                 self._actualizar_terminal_seguro("="*60 + "\n")
                 self._actualizar_terminal_seguro("LOG Terminal Escaneador reiniciado\n\n")
         except Exception as e:
-            print(f"Error limpiando terminal Escaneador: {e}")
+            if hasattr(self, 'logger'):
+                self.logger.log(f"Error limpiando terminal Escaneador: {e}", modulo="ESCANEO", nivel="ERROR")
     
     def ejecutar_comando_entry(self, event=None):
         """Ejecutar comando desde la entrada (sin validación de seguridad, root/sudo autenticado)."""
@@ -280,12 +304,9 @@ class VistaEscaneo(tk.Frame):
             else:
                 comando_completo = ["/bin/bash", "-c", comando]
             
-            resultado = subprocess.run(
-                comando_completo,
-                capture_output=True,
-                text=True,
-                timeout=30
-            )
+            # Usar el gestor de sudo para ejecutar comandos en Linux
+            sudo_manager = get_sudo_manager()
+            resultado = sudo_manager.execute_sudo_command(' '.join(comando_completo), timeout=30)
             
             if resultado.stdout:
                 self.terminal_output.insert(tk.END, resultado.stdout)
@@ -310,10 +331,13 @@ class VistaEscaneo(tk.Frame):
             logs_path = self._get_base_dir() / 'logs'
             if logs_path.exists():
                 if platform.system() == "Linux":
+                    import subprocess
                     subprocess.run(["xdg-open", str(logs_path)], check=False)
                 elif platform.system() == "Windows":
+                    import subprocess
                     subprocess.run(["explorer", str(logs_path)], check=False)
                 else:
+                    import subprocess
                     subprocess.run(["open", str(logs_path)], check=False)
                 self.log_to_terminal("Carpeta de logs Escaneador abierta")
             else:
@@ -322,18 +346,21 @@ class VistaEscaneo(tk.Frame):
             self.log_to_terminal(f"ERROR abriendo logs Escaneador: {e}")
     
     def log_to_terminal(self, mensaje):
-        """Registrar mensaje en el terminal con formato estándar."""
+        """Registrar mensaje en el terminal con formato estándar y en el logger global."""
         try:
             import datetime
             timestamp = datetime.datetime.now().strftime("%H:%M:%S")
             mensaje_completo = f"[{timestamp}] {mensaje}\n"
-            
             # Log al terminal integrado estándar
             if hasattr(self, 'terminal_output'):
                 self.terminal_output.insert(tk.END, mensaje_completo)
                 self.terminal_output.see(tk.END)
+            # Log global
+            if hasattr(self, 'logger'):
+                self.logger.log(mensaje, modulo="ESCANEO", nivel="INFO")
         except Exception as e:
-            print(f"Error en log_to_terminal: {e}")
+            if hasattr(self, 'logger'):
+                self.logger.log(f"Error en log_to_terminal: {e}", modulo="ESCANEO", nivel="ERROR")
     
     def sincronizar_terminal(self):
         """Sincronizar terminal - funcionalidad mantenida para compatibilidad."""
@@ -872,88 +899,75 @@ class VistaEscaneo(tk.Frame):
             self._actualizar_texto_seguro("\n=== MODO FALLBACK: ESCANEO DIRECTO ===\n\n")
             self._log_terminal("Ejecutando escaneo básico directo", "ESCANEADOR", "WARNING")
             
-            import subprocess
-            import os
-            
+            import platform
+            sudo_manager = get_sudo_manager()
             # Variables para contar fases
             fases_completadas = 0
             fases_con_error = 0
             total_fases = 7
-            
-            # FASE 1: Información del sistema
-            try:
-                self._log_terminal("FASE 1: Recopilando información del sistema", "ESCANEADOR", "INFO")
-                self._actualizar_texto_seguro("--- FASE 1: INFORMACIÓN DEL SISTEMA ---\n")
-                
-                resultado = subprocess.run(['uname', '-a'], capture_output=True, text=True, timeout=10)
-                if resultado.returncode == 0:
-                    self._actualizar_texto_seguro(f"Sistema: {resultado.stdout.strip()}\n")
-                
-                resultado = subprocess.run(['whoami'], capture_output=True, text=True, timeout=5)
-                if resultado.returncode == 0:
-                    self._actualizar_texto_seguro(f"Usuario actual: {resultado.stdout.strip()}\n")
-                
-                fases_completadas += 1
-                self._log_terminal("CONTROLADOR FASE 1 completada", "ESCANEADOR", "SUCCESS")
-                
-            except Exception as e:
-                fases_con_error += 1
-                self._log_terminal(f"ERROR ERROR en FASE 1: {str(e)}", "ESCANEADOR", "ERROR")
-            
-            # FASE 2: Análisis de red básico
-            try:
-                self._log_terminal("FASE 2: Análisis básico de red", "ESCANEADOR", "INFO")
-                self._actualizar_texto_seguro("\n--- FASE 2: ANÁLISIS DE RED ---\n")
-                
-                # Interfaces de red
-                resultado = subprocess.run(['ip', 'addr', 'show'], capture_output=True, text=True, timeout=10)
-                if resultado.returncode == 0:
-                    lineas = resultado.stdout.split('\n')
-                    interfaces_activas = [l.strip() for l in lineas if 'inet ' in l and '127.0.0.1' not in l]
-                    self._actualizar_texto_seguro(f"Interfaces activas: {len(interfaces_activas)}\n")
-                    for interfaz in interfaces_activas[:3]:
-                        self._actualizar_texto_seguro(f"  {interfaz}\n")
-                
-                # Gateway
-                resultado = subprocess.run(['ip', 'route', 'show', 'default'], capture_output=True, text=True, timeout=5)
-                if resultado.returncode == 0 and resultado.stdout.strip():
-                    self._actualizar_texto_seguro(f"Gateway: {resultado.stdout.strip()}\n")
-                
-                fases_completadas += 1
-                self._log_terminal("CONTROLADOR FASE 2 completada", "ESCANEADOR", "SUCCESS")
-                
-            except Exception as e:
-                fases_con_error += 1
-                self._log_terminal(f"ERROR ERROR en FASE 2: {str(e)}", "ESCANEADOR", "ERROR")
+            if platform.system() == "Linux":
+                # FASE 1: Información del sistema
+                try:
+                    self._log_terminal("FASE 1: Recopilando información del sistema", "ESCANEADOR", "INFO")
+                    self._actualizar_texto_seguro("--- FASE 1: INFORMACIÓN DEL SISTEMA ---\n")
+                    resultado = sudo_manager.execute_sudo_command('uname -a', timeout=10)
+                    if resultado.stdout:
+                        self._actualizar_texto_seguro(f"Sistema: {resultado.stdout.strip()}\n")
+                    resultado = sudo_manager.execute_sudo_command('whoami', timeout=5)
+                    if resultado.stdout:
+                        self._actualizar_texto_seguro(f"Usuario actual: {resultado.stdout.strip()}\n")
+                    fases_completadas += 1
+                    self._log_terminal("CONTROLADOR FASE 1 completada", "ESCANEADOR", "SUCCESS")
+                except Exception as e:
+                    fases_con_error += 1
+                    self._log_terminal(f"ERROR ERROR en FASE 1: {str(e)}", "ESCANEADOR", "ERROR")
+                # FASE 2: Análisis de red básico
+                try:
+                    self._log_terminal("FASE 2: Análisis básico de red", "ESCANEADOR", "INFO")
+                    self._actualizar_texto_seguro("\n--- FASE 2: ANÁLISIS DE RED ---\n")
+                    # Interfaces de red
+                    resultado = sudo_manager.execute_sudo_command('ip addr show', timeout=10)
+                    if resultado.stdout:
+                        lineas = resultado.stdout.split('\n')
+                        interfaces_activas = [l.strip() for l in lineas if 'inet ' in l and '127.0.0.1' not in l]
+                        self._actualizar_texto_seguro(f"Interfaces activas: {len(interfaces_activas)}\n")
+                        for interfaz in interfaces_activas[:3]:
+                            self._actualizar_texto_seguro(f"  {interfaz}\n")
+                    # Gateway
+                    resultado = sudo_manager.execute_sudo_command('ip route show default', timeout=5)
+                    if resultado.stdout and resultado.stdout.strip():
+                        self._actualizar_texto_seguro(f"Gateway: {resultado.stdout.strip()}\n")
+                    fases_completadas += 1
+                    self._log_terminal("CONTROLADOR FASE 2 completada", "ESCANEADOR", "SUCCESS")
+                except Exception as e:
+                    fases_con_error += 1
+                    self._log_terminal(f"ERROR ERROR en FASE 2: {str(e)}", "ESCANEADOR", "ERROR")
+            else:
+                self._actualizar_texto_seguro("\n[!] Escaneo básico solo disponible en Linux.\n")
             
             # FASE 3: Puertos en escucha
             try:
                 self._log_terminal("FASE 3: Verificando puertos en escucha", "ESCANEADOR", "INFO")
                 self._actualizar_texto_seguro("\n--- FASE 3: PUERTOS EN ESCUCHA ---\n")
-                
-                resultado = subprocess.run(['ss', '-tuln'], capture_output=True, text=True, timeout=10)
-                if resultado.returncode == 0:
+                resultado = sudo_manager.execute_sudo_command('ss -tuln', timeout=10)
+                if resultado.stdout:
                     lineas = [l for l in resultado.stdout.split('\n') if 'LISTEN' in l]
                     self._actualizar_texto_seguro(f"Puertos TCP en escucha: {len(lineas)}\n")
                     for linea in lineas[:5]:  # Mostrar primeros 5
                         self._actualizar_texto_seguro(f"  {linea.strip()}\n")
                     if len(lineas) > 5:
                         self._actualizar_texto_seguro(f"  ... y {len(lineas) - 5} puertos más\n")
-                
                 fases_completadas += 1
                 self._log_terminal("CONTROLADOR FASE 3 completada", "ESCANEADOR", "SUCCESS")
-                
             except Exception as e:
                 fases_con_error += 1
                 self._log_terminal(f"ERROR ERROR en FASE 3: {str(e)}", "ESCANEADOR", "ERROR")
-            
             # FASE 4: Procesos activos
             try:
                 self._log_terminal("FASE 4: Analizando procesos activos", "ESCANEADOR", "INFO")
                 self._actualizar_texto_seguro("\n--- FASE 4: PROCESOS CRÍTICOS ---\n")
-                
-                resultado = subprocess.run(['ps', 'aux', '--sort=-%cpu'], capture_output=True, text=True, timeout=10)
-                if resultado.returncode == 0:
+                resultado = sudo_manager.execute_sudo_command('ps aux --sort=-%cpu', timeout=10)
+                if resultado.stdout:
                     lineas = resultado.stdout.split('\n')[1:8]  # Primeros 7 procesos
                     self._actualizar_texto_seguro("Top procesos por CPU:\n")
                     for linea in lineas:
@@ -964,22 +978,17 @@ class VistaEscaneo(tk.Frame):
                                 cpu = campos[2]
                                 comando = ' '.join(campos[10:])[:40]
                                 self._actualizar_texto_seguro(f"  {usuario} ({cpu}%): {comando}\n")
-                
                 fases_completadas += 1
                 self._log_terminal("CONTROLADOR FASE 4 completada", "ESCANEADOR", "SUCCESS")
-                
             except Exception as e:
                 fases_con_error += 1
                 self._log_terminal(f"ERROR ERROR en FASE 4: {str(e)}", "ESCANEADOR", "ERROR")
-            
             # FASE 5: Servicios del sistema
             try:
                 self._log_terminal("FASE 5: Verificando servicios del sistema", "ESCANEADOR", "INFO")
                 self._actualizar_texto_seguro("\n--- FASE 5: SERVICIOS ACTIVOS ---\n")
-                
-                resultado = subprocess.run(['systemctl', 'list-units', '--type=service', '--state=running', '--no-pager'], 
-                                         capture_output=True, text=True, timeout=15)
-                if resultado.returncode == 0:
+                resultado = sudo_manager.execute_sudo_command('systemctl list-units --type=service --state=running --no-pager', timeout=15)
+                if resultado.stdout:
                     lineas = [l for l in resultado.stdout.split('\n') if '.service' in l and 'running' in l]
                     self._actualizar_texto_seguro(f"Servicios activos: {len(lineas)}\n")
                     for linea in lineas[:6]:  # Mostrar primeros 6
@@ -987,69 +996,55 @@ class VistaEscaneo(tk.Frame):
                         self._actualizar_texto_seguro(f"  {servicio}\n")
                     if len(lineas) > 6:
                         self._actualizar_texto_seguro(f"  ... y {len(lineas) - 6} servicios más\n")
-                
                 fases_completadas += 1
                 self._log_terminal("CONTROLADOR FASE 5 completada", "ESCANEADOR", "SUCCESS")
-                
             except Exception as e:
                 fases_con_error += 1
                 self._log_terminal(f"ERROR ERROR en FASE 5: {str(e)}", "ESCANEADOR", "ERROR")
-            
             # FASE 6: Verificación de herramientas de seguridad
             try:
                 self._log_terminal("FASE 6: Verificando herramientas de seguridad disponibles", "ESCANEADOR", "INFO")
                 self._actualizar_texto_seguro("\n--- FASE 6: HERRAMIENTAS DE SEGURIDAD ---\n")
-                
                 herramientas = ['nmap', 'masscan', 'gobuster', 'nuclei', 'nikto']
                 disponibles = []
-                
                 for herramienta in herramientas:
                     try:
-                        resultado = subprocess.run(['which', herramienta], capture_output=True, text=True, timeout=3)
-                        if resultado.returncode == 0:
+                        resultado = sudo_manager.execute_sudo_command(f'which {herramienta}', timeout=3)
+                        if resultado.stdout and resultado.stdout.strip():
                             disponibles.append(herramienta)
                             self._actualizar_texto_seguro(f"  CONTROLADOR {herramienta}: {resultado.stdout.strip()}\n")
                         else:
                             self._actualizar_texto_seguro(f"  ERROR {herramienta}: No disponible\n")
-                    except:
+                    except Exception:
                         self._actualizar_texto_seguro(f"  ? {herramienta}: Error verificando\n")
-                
                 self._actualizar_texto_seguro(f"\nHerramientas disponibles: {len(disponibles)}/{len(herramientas)}\n")
-                
                 fases_completadas += 1
                 self._log_terminal("CONTROLADOR FASE 6 completada", "ESCANEADOR", "SUCCESS")
-                
             except Exception as e:
                 fases_con_error += 1
                 self._log_terminal(f"ERROR ERROR en FASE 6: {str(e)}", "ESCANEADOR", "ERROR")
-            
             # FASE 7: Resumen de seguridad
             try:
                 self._log_terminal("FASE 7: Generando resumen de seguridad", "ESCANEADOR", "INFO")
                 self._actualizar_texto_seguro("\n--- FASE 7: RESUMEN DE SEGURIDAD ---\n")
-                
                 # Verificar si es Kali Linux
                 try:
-                    resultado = subprocess.run(['cat', '/etc/os-release'], capture_output=True, text=True, timeout=5)
-                    if 'kali' in resultado.stdout.lower():
+                    resultado = sudo_manager.execute_sudo_command('cat /etc/os-release', timeout=5)
+                    if resultado.stdout and 'kali' in resultado.stdout.lower():
                         self._actualizar_texto_seguro("CONTROLADOR Sistema: Kali Linux detectado\n")
                     else:
                         self._actualizar_texto_seguro("WARNING Sistema: No es Kali Linux\n")
-                except:
+                except Exception:
                     pass
-                
                 # Estado general
                 self._actualizar_texto_seguro(f"CONTROLADOR Fases completadas: {fases_completadas}/{total_fases}\n")
                 if fases_con_error > 0:
                     self._actualizar_texto_seguro(f"WARNING Fases con errores: {fases_con_error}\n")
-                
                 fases_completadas += 1
                 self._log_terminal("CONTROLADOR FASE 7 completada", "ESCANEADOR", "SUCCESS")
-                
             except Exception as e:
                 fases_con_error += 1
                 self._log_terminal(f"ERROR ERROR en FASE 7: {str(e)}", "ESCANEADOR", "ERROR")
-            
             # Resumen final
             self._actualizar_texto_seguro("\n" + "=" * 60 + "\n")
             self._actualizar_texto_seguro("RESUMEN DEL ESCANEO BÁSICO\n")
@@ -3700,77 +3695,51 @@ class VistaEscaneo(tk.Frame):
         return conteo
 
     def _mostrar_ayuda_comandos(self):
-        """Mostrar ayuda de comandos disponibles."""
-        try:
-            from aresitos.utils.seguridad_comandos import validador_comandos
-            
-            comandos = validador_comandos.obtener_comandos_disponibles()
-            
-            self.terminal_output.insert(tk.END, "\n" + "="*60 + "\n")
-            self.terminal_output.insert(tk.END, "  COMANDOS DISPONIBLES EN ARESITOS v2.0 - ESCANEADOR\n")
-            self.terminal_output.insert(tk.END, "="*60 + "\n\n")
-            
-            for categoria, lista_comandos in comandos.items():
-                self.terminal_output.insert(tk.END, f"[CATEGORIA] {categoria.upper()}:\n")
-                comandos_linea = ", ".join(lista_comandos)
-                self.terminal_output.insert(tk.END, f"   {comandos_linea}\n\n")
-            
-            self.terminal_output.insert(tk.END, "🔧 COMANDOS ESPECIALES:\n")
-            self.terminal_output.insert(tk.END, "   ayuda-comandos, info-seguridad, clear/cls\n\n")
-            self.terminal_output.insert(tk.END, "="*60 + "\n")
-            
-        except Exception as e:
-            self.terminal_output.insert(tk.END, f"Error mostrando ayuda: {e}\n")
-        
-        self.terminal_output.see(tk.END)
-    
-    def _mostrar_info_seguridad(self):
-        """Mostrar información de seguridad actual."""
-        try:
-            from aresitos.utils.seguridad_comandos import validador_comandos
-            
-            info = validador_comandos.obtener_info_seguridad()
-            
-            self.terminal_output.insert(tk.END, "\n" + "="*60 + "\n")
-            self.terminal_output.insert(tk.END, "🔐 INFORMACIÓN DE SEGURIDAD ARESITOS - ESCANEADOR\n")
-            self.terminal_output.insert(tk.END, "="*60 + "\n\n")
-            
-            estado_seguridad = "OK SEGURO" if info['es_usuario_kali'] else "ERROR INSEGURO"
-            
-            self.terminal_output.insert(tk.END, f"Estado: {estado_seguridad}\n")
-            self.terminal_output.insert(tk.END, f"Usuario: {info['usuario_actual']}\n")
-            self.terminal_output.insert(tk.END, f"Sistema: {info['sistema']}\n")
-            self.terminal_output.insert(tk.END, f"Usuario Kali válido: {info['es_usuario_kali']}\n")
-            self.terminal_output.insert(tk.END, f"Comandos permitidos: {info['total_comandos_permitidos']}\n")
-            self.terminal_output.insert(tk.END, f"Comandos prohibidos: {info['total_comandos_prohibidos']}\n")
-            self.terminal_output.insert(tk.END, f"Patrones de seguridad: {info['patrones_seguridad']}\n\n")
-            self.terminal_output.insert(tk.END, "="*60 + "\n")
-            
-        except Exception as e:
-            self.terminal_output.insert(tk.END, f"Error mostrando info seguridad: {e}\n")
-        
+        """Mostrar ayuda de comandos disponibles (versión simplificada)."""
+        self.terminal_output.insert(tk.END, "\n" + "="*60 + "\n")
+        self.terminal_output.insert(tk.END, "[INFO]  Terminal Escaneo - Comandos disponibles\n")
+        self.terminal_output.insert(tk.END, "="*60 + "\n\n")
+        self.terminal_output.insert(tk.END, "Puedes ejecutar cualquier comando del sistema.\n")
+        self.terminal_output.insert(tk.END, "Comandos especiales: clear/cls\n")
+        self.terminal_output.insert(tk.END, "="*60 + "\n")
         self.terminal_output.see(tk.END)
 
-    def _actualizar_terminal_seguro(self, texto, modo="append"):
-        """Actualizar terminal_output de forma segura desde threads."""
+    def _mostrar_info_seguridad(self):
+        """Mostrar información de seguridad (deshabilitado)."""
+        self.terminal_output.insert(tk.END, "\n[INFO] Seguridad: validación deshabilitada.\n")
+        self.terminal_output.see(tk.END)
+
+    def _actualizar_terminal_seguro(self, texto, modo="append", nivel="INFO"):
+        """Actualizar terminal_output de forma segura desde threads, con colores y no editable."""
         def _update():
             try:
                 if hasattr(self, 'terminal_output') and self.terminal_output.winfo_exists():
+                    self.terminal_output.config(state='normal')
                     if modo == "clear":
                         self.terminal_output.delete(1.0, tk.END)
                     elif modo == "replace":
                         self.terminal_output.delete(1.0, tk.END)
-                        self.terminal_output.insert(1.0, texto)
+                        self.terminal_output.insert(1.0, texto, nivel)
                     elif modo == "append":
-                        self.terminal_output.insert(tk.END, texto)
+                        self.terminal_output.insert(tk.END, texto, nivel)
                     elif modo == "insert_start":
-                        self.terminal_output.insert(1.0, texto)
+                        self.terminal_output.insert(1.0, texto, nivel)
+                    # Configurar color según nivel
+                    if nivel == "ERROR":
+                        color = "#ff4444"
+                    elif nivel == "WARNING":
+                        color = "#ffaa00"
+                    elif nivel == "INFO":
+                        color = "#00ff00"
+                    else:
+                        color = "#00ff00"
+                    self.terminal_output.tag_config(nivel, foreground=color)
+                    self.terminal_output.config(state='disabled')
                     self.terminal_output.see(tk.END)
                     if hasattr(self.terminal_output, 'update'):
                         self.terminal_output.update()
             except (tk.TclError, AttributeError):
                 pass  # Widget ya no existe o ha sido destruido
-        
         # Programar la actualización para el hilo principal
         try:
             self.after_idle(_update)

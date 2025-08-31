@@ -269,97 +269,66 @@ class VistaSIEM(tk.Frame):
     
     def _ejecutar_comando_async(self, comando):
         """Ejecutar comando de forma asíncrona con comandos especiales."""
-        try:
-            # Comandos especiales de ARESITOS
-            if comando == "ayuda-comandos":
-                self._mostrar_ayuda_comandos()
-                return
-            elif comando == "info-seguridad":
-                self._mostrar_info_seguridad()
-                return
-            elif comando == "clear" or comando == "cls":
-                self.limpiar_terminal_siem()
-                return
-            
-            import platform
+        # Comandos especiales de ARESITOS
+        if comando == "ayuda-comandos":
+            self._mostrar_ayuda_comandos()
+            return
+        elif comando == "info-seguridad":
+            self._mostrar_info_seguridad()
+            return
+        elif comando == "clear" or comando == "cls":
+            self.limpiar_terminal_siem()
+            return
+        import platform
+        sudo_manager = get_sudo_manager()
+        if platform.system() == "Windows":
             import subprocess
-            
-            if platform.system() == "Windows":
-                comando_completo = ["cmd", "/c", comando]
-            else:
-                comando_completo = ["/bin/bash", "-c", comando]
-            
-            resultado = subprocess.run(
-                comando_completo,
-                capture_output=True,
-                text=True,
-                timeout=30
-            )
-            
-            if resultado.stdout:
-                self.terminal_output.insert(tk.END, resultado.stdout)
-            if resultado.stderr:
-                self.terminal_output.insert(tk.END, f"ERROR: {resultado.stderr}")
-            
-            self.terminal_output.see(tk.END)
-            
-        except subprocess.TimeoutExpired:
-            self.terminal_output.insert(tk.END, "ERROR: Comando timeout (30s)\n")
-        except Exception as e:
-            self.terminal_output.insert(tk.END, f"ERROR ejecutando comando: {e}\n")
-        
+            comando_completo = ["cmd", "/c", comando]
+            try:
+                resultado = subprocess.run(comando_completo, capture_output=True, text=True, timeout=30)
+                if resultado.stdout:
+                    self.terminal_output.insert(tk.END, resultado.stdout)
+                if resultado.stderr:
+                    self.terminal_output.insert(tk.END, f"ERROR: {resultado.stderr}")
+            except subprocess.TimeoutExpired:
+                self.terminal_output.insert(tk.END, "ERROR: Comando timeout (30s)\n")
+            except Exception as e:
+                self.terminal_output.insert(tk.END, f"ERROR ejecutando comando: {e}\n")
+        else:
+            try:
+                resultado = sudo_manager.execute_sudo_command(comando, timeout=30)
+                if resultado.stdout:
+                    self.terminal_output.insert(tk.END, resultado.stdout)
+                if resultado.stderr:
+                    self.terminal_output.insert(tk.END, f"ERROR: {resultado.stderr}")
+            except Exception as e:
+                self.terminal_output.insert(tk.END, f"ERROR ejecutando comando: {e}\n")
         self.terminal_output.see(tk.END)
     
     def _mostrar_ayuda_comandos(self):
         """Mostrar ayuda de comandos disponibles."""
         try:
-            from aresitos.utils.seguridad_comandos import obtener_comandos_disponibles
-            
-            comandos = obtener_comandos_disponibles()
-            
             self.terminal_output.insert(tk.END, "\n" + "="*60 + "\n")
             self.terminal_output.insert(tk.END, "  COMANDOS DISPONIBLES EN ARESITOS v2.0\n")
             self.terminal_output.insert(tk.END, "="*60 + "\n\n")
-            
-            for categoria, lista_comandos in comandos.items():
-                self.terminal_output.insert(tk.END, f"[CATEGORIA] {categoria.upper()}:\n")
-                comandos_linea = ", ".join(lista_comandos)
-                self.terminal_output.insert(tk.END, f"   {comandos_linea}\n\n")
-            
             self.terminal_output.insert(tk.END, "🔧 COMANDOS ESPECIALES:\n")
             self.terminal_output.insert(tk.END, "   ayuda-comandos, info-seguridad, clear/cls\n\n")
             self.terminal_output.insert(tk.END, "="*60 + "\n")
-            
         except Exception as e:
             self.terminal_output.insert(tk.END, f"Error mostrando ayuda: {e}\n")
-        
         self.terminal_output.see(tk.END)
     
     def _mostrar_info_seguridad(self):
         """Mostrar información de seguridad actual."""
         try:
-            from aresitos.utils.seguridad_comandos import validador_comandos
-            
-            info = validador_comandos.obtener_info_seguridad()
-            
             self.terminal_output.insert(tk.END, "\n" + "="*60 + "\n")
             self.terminal_output.insert(tk.END, "🔐 INFORMACIÓN DE SEGURIDAD ARESITOS\n")
             self.terminal_output.insert(tk.END, "="*60 + "\n\n")
-            
-            estado_seguridad = "OK SEGURO" if info['es_usuario_kali'] else "ERROR INSEGURO"
-            
-            self.terminal_output.insert(tk.END, f"Estado: {estado_seguridad}\n")
-            self.terminal_output.insert(tk.END, f"Usuario: {info['usuario_actual']}\n")
-            self.terminal_output.insert(tk.END, f"Sistema: {info['sistema']}\n")
-            self.terminal_output.insert(tk.END, f"Usuario Kali válido: {info['es_usuario_kali']}\n")
-            self.terminal_output.insert(tk.END, f"Comandos permitidos: {info['total_comandos_permitidos']}\n")
-            self.terminal_output.insert(tk.END, f"Comandos prohibidos: {info['total_comandos_prohibidos']}\n")
-            self.terminal_output.insert(tk.END, f"Patrones de seguridad: {info['patrones_seguridad']}\n\n")
+            self.terminal_output.insert(tk.END, "Estado: Seguridad estándar, sin validación restrictiva.\n")
+            self.terminal_output.insert(tk.END, "Para más detalles revise la configuración y logs.\n")
             self.terminal_output.insert(tk.END, "="*60 + "\n")
-            
         except Exception as e:
             self.terminal_output.insert(tk.END, f"Error mostrando info seguridad: {e}\n")
-        
         self.terminal_output.see(tk.END)
     
     def abrir_logs_siem(self):
@@ -700,14 +669,14 @@ class VistaSIEM(tk.Frame):
         else:
             tab_forense = tk.Frame(self.notebook)
         self.notebook.add(tab_forense, text='Forense Digital')
-        
+
         # Frame principal
         if self.theme:
             main_frame = tk.Frame(tab_forense, bg='#2b2b2b')
         else:
             main_frame = tk.Frame(tab_forense)
         main_frame.pack(fill=tk.BOTH, expand=True, padx=10, pady=10)
-        
+
         # Panel superior - Herramientas forenses
         if self.theme:
             top_frame = tk.Frame(main_frame, bg='#2b2b2b')
@@ -717,12 +686,11 @@ class VistaSIEM(tk.Frame):
         else:
             top_frame = ttk.LabelFrame(main_frame, text="Herramientas Forenses", padding=10)
         top_frame.pack(fill=tk.X, pady=(0, 10))
-        
-        # Botones de herramientas forenses
+
+        # Botones de herramientas forenses (ampliado)
         if self.theme:
             tools_frame = tk.Frame(top_frame, bg='#2b2b2b')
             tools_frame.pack(fill=tk.X)
-            
             tools_forenses = [
                 (" Sleuth Kit", self.usar_sleuthkit),
                 (" Binwalk", self.usar_binwalk),
@@ -730,12 +698,20 @@ class VistaSIEM(tk.Frame):
                 ("Extraer Strings", self.usar_strings),
                 (" DD/DCFLDD", self.usar_dd),
                 (" Head/Tail", self.usar_head_tail),
+                (" exiftool", self.usar_exiftool),
+                (" photorec", self.usar_photorec),
+                (" hexdump", self.usar_hexdump),
+                (" xxd", self.usar_xxd),
+                (" hashdeep", self.usar_hashdeep),
+                (" testdisk", self.usar_testdisk),
+                (" bulk_extractor", self.usar_bulk_extractor),
+                (" dc3dd", self.usar_dc3dd),
+                (" guymager", self.usar_guymager),
                 (" Check Kali Tools", self.verificar_herramientas_kali),
                 (" Monitor Real-time", self.monitorear_tiempo_real_kali),
                 (" Stop Monitor", self.parar_monitoreo),
                 (" OSQuery Analysis", self.integrar_osquery_kali)
             ]
-            
             for i, (text, command) in enumerate(tools_forenses):
                 btn = tk.Button(tools_frame, text=text, command=command,
                               bg='#404040', fg='white', font=('Arial', 9))
@@ -743,7 +719,6 @@ class VistaSIEM(tk.Frame):
         else:
             tools_frame = tk.Frame(top_frame)
             tools_frame.pack(fill=tk.X)
-            
             tools_forenses = [
                 (" Sleuth Kit", self.usar_sleuthkit),
                 (" Binwalk", self.usar_binwalk),
@@ -751,35 +726,202 @@ class VistaSIEM(tk.Frame):
                 ("Extraer Strings", self.usar_strings),
                 (" DD/DCFLDD", self.usar_dd),
                 (" Head/Tail", self.usar_head_tail),
+                (" exiftool", self.usar_exiftool),
+                (" photorec", self.usar_photorec),
+                (" hexdump", self.usar_hexdump),
+                (" xxd", self.usar_xxd),
+                (" hashdeep", self.usar_hashdeep),
+                (" testdisk", self.usar_testdisk),
+                (" bulk_extractor", self.usar_bulk_extractor),
+                (" dc3dd", self.usar_dc3dd),
+                (" guymager", self.usar_guymager),
                 (" Check Kali Tools", self.verificar_herramientas_kali),
                 (" Monitor Real-time", self.monitorear_tiempo_real_kali),
                 (" Stop Monitor", self.parar_monitoreo),
                 (" OSQuery Analysis", self.integrar_osquery_kali)
             ]
-            
             for i, (text, command) in enumerate(tools_forenses):
                 ttk.Button(tools_frame, text=text, command=command).grid(
                     row=i//3, column=i%3, padx=5, pady=2, sticky='ew')
-        
+
         # Panel inferior - Resultados forenses
         if self.theme:
             bottom_frame = tk.Frame(main_frame, bg='#2b2b2b')
-            label_forense = tk.Label(bottom_frame, text="Análisis Forense - Resultados", 
+            label_results = tk.Label(bottom_frame, text="Resultados del Análisis Forense", 
                                    bg='#2b2b2b', fg='#ff6633', font=('Arial', 12, 'bold'))
-            label_forense.pack(anchor=tk.W, pady=(0, 5))
+            label_results.pack(anchor=tk.W, pady=(0, 5))
         else:
-            bottom_frame = ttk.LabelFrame(main_frame, text="Resultados Forenses", padding=10)
+            bottom_frame = ttk.LabelFrame(main_frame, text="Resultados del Análisis Forense", padding=10)
         bottom_frame.pack(fill=tk.BOTH, expand=True)
-        
+
         self.siem_forense_text = scrolledtext.ScrolledText(bottom_frame, height=15,
-                                                         bg='#1e1e1e' if self.theme else 'white',
-                                                         fg='white' if self.theme else 'black',
-                                                         insertbackground='white' if self.theme else 'black',
-                                                         font=('Consolas', 9))
+                                                          bg='#1e1e1e' if self.theme else 'white',
+                                                          fg='white' if self.theme else 'black',
+                                                          insertbackground='white' if self.theme else 'black',
+                                                          font=('Consolas', 9))
         self.siem_forense_text.pack(fill=tk.BOTH, expand=True)
-        
-        # Mensaje inicial en todas las pestañas
-        self._inicializar_mensajes()
+    # === NUEVOS HANDLERS FORENSE ===
+    def usar_exiftool(self):
+        def ejecutar():
+            try:
+                self._actualizar_texto_forense("EXIFTOOL - Metadatos de archivos\n" + "="*50 + "\n")
+                import subprocess
+                try:
+                    resultado = subprocess.run(['exiftool', '-ver'], capture_output=True, text=True, timeout=10)
+                    if resultado.returncode == 0:
+                        self._actualizar_texto_forense("OK exiftool disponible\n\n")
+                        self._actualizar_texto_forense("Comandos útiles:\n  exiftool archivo.jpg\n  exiftool -a -u -g1 archivo.docx\n  exiftool -r carpeta/\n\n")
+                    else:
+                        self._actualizar_texto_forense("ERROR ejecutando exiftool\n")
+                except FileNotFoundError:
+                    self._actualizar_texto_forense("exiftool no encontrado. Instalar: sudo apt install exiftool\n")
+            except Exception as e:
+                self._actualizar_texto_forense(f"ERROR usando exiftool: {str(e)}\n")
+        threading.Thread(target=ejecutar, daemon=True).start()
+
+    def usar_photorec(self):
+        def ejecutar():
+            try:
+                self._actualizar_texto_forense("PHOTOREC - Recuperación de archivos\n" + "="*50 + "\n")
+                import subprocess
+                try:
+                    resultado = subprocess.run(['photorec', '--version'], capture_output=True, text=True, timeout=10)
+                    if resultado.returncode == 0:
+                        self._actualizar_texto_forense("OK photorec disponible\n\n")
+                        self._actualizar_texto_forense("Comando: photorec\n  photorec (interfaz interactiva)\n  photorec /log /d carpeta_salida imagen.dd\n\n")
+                    else:
+                        self._actualizar_texto_forense("ERROR ejecutando photorec\n")
+                except FileNotFoundError:
+                    self._actualizar_texto_forense("photorec no encontrado. Instalar: sudo apt install testdisk\n")
+            except Exception as e:
+                self._actualizar_texto_forense(f"ERROR usando photorec: {str(e)}\n")
+        threading.Thread(target=ejecutar, daemon=True).start()
+
+    def usar_hexdump(self):
+        def ejecutar():
+            try:
+                self._actualizar_texto_forense("HEXDUMP - Visualización hexadecimal\n" + "="*50 + "\n")
+                import subprocess
+                try:
+                    resultado = subprocess.run(['hexdump', '--version'], capture_output=True, text=True, timeout=10)
+                    if resultado.returncode == 0:
+                        self._actualizar_texto_forense("OK hexdump disponible\n\n")
+                        self._actualizar_texto_forense("Comandos:\n  hexdump -C archivo.bin\n  hexdump -n 256 archivo.bin\n\n")
+                    else:
+                        self._actualizar_texto_forense("ERROR ejecutando hexdump\n")
+                except FileNotFoundError:
+                    self._actualizar_texto_forense("hexdump no encontrado. Instalar: sudo apt install bsdmainutils\n")
+            except Exception as e:
+                self._actualizar_texto_forense(f"ERROR usando hexdump: {str(e)}\n")
+        threading.Thread(target=ejecutar, daemon=True).start()
+
+    def usar_xxd(self):
+        def ejecutar():
+            try:
+                self._actualizar_texto_forense("XXD - Editor hexadecimal\n" + "="*50 + "\n")
+                import subprocess
+                try:
+                    resultado = subprocess.run(['xxd', '-h'], capture_output=True, text=True, timeout=10)
+                    if resultado.returncode == 0:
+                        self._actualizar_texto_forense("OK xxd disponible\n\n")
+                        self._actualizar_texto_forense("Comandos:\n  xxd archivo.bin\n  xxd -r archivo.hex > archivo.bin\n\n")
+                    else:
+                        self._actualizar_texto_forense("ERROR ejecutando xxd\n")
+                except FileNotFoundError:
+                    self._actualizar_texto_forense("xxd no encontrado. Instalar: sudo apt install xxd\n")
+            except Exception as e:
+                self._actualizar_texto_forense(f"ERROR usando xxd: {str(e)}\n")
+        threading.Thread(target=ejecutar, daemon=True).start()
+
+    def usar_hashdeep(self):
+        def ejecutar():
+            try:
+                self._actualizar_texto_forense("HASHDEEP - Hashes recursivos\n" + "="*50 + "\n")
+                import subprocess
+                try:
+                    resultado = subprocess.run(['hashdeep', '-v'], capture_output=True, text=True, timeout=10)
+                    if resultado.returncode == 0:
+                        self._actualizar_texto_forense("OK hashdeep disponible\n\n")
+                        self._actualizar_texto_forense("Comandos:\n  hashdeep -r carpeta/\n  hashdeep -c md5,sha1,sha256 archivo\n\n")
+                    else:
+                        self._actualizar_texto_forense("ERROR ejecutando hashdeep\n")
+                except FileNotFoundError:
+                    self._actualizar_texto_forense("hashdeep no encontrado. Instalar: sudo apt install hashdeep\n")
+            except Exception as e:
+                self._actualizar_texto_forense(f"ERROR usando hashdeep: {str(e)}\n")
+        threading.Thread(target=ejecutar, daemon=True).start()
+
+    def usar_testdisk(self):
+        def ejecutar():
+            try:
+                self._actualizar_texto_forense("TESTDISK - Recuperación de particiones\n" + "="*50 + "\n")
+                import subprocess
+                try:
+                    resultado = subprocess.run(['testdisk', '--version'], capture_output=True, text=True, timeout=10)
+                    if resultado.returncode == 0:
+                        self._actualizar_texto_forense("OK testdisk disponible\n\n")
+                        self._actualizar_texto_forense("Comando: testdisk\n  testdisk (interfaz interactiva)\n\n")
+                    else:
+                        self._actualizar_texto_forense("ERROR ejecutando testdisk\n")
+                except FileNotFoundError:
+                    self._actualizar_texto_forense("testdisk no encontrado. Instalar: sudo apt install testdisk\n")
+            except Exception as e:
+                self._actualizar_texto_forense(f"ERROR usando testdisk: {str(e)}\n")
+        threading.Thread(target=ejecutar, daemon=True).start()
+
+    def usar_bulk_extractor(self):
+        def ejecutar():
+            try:
+                self._actualizar_texto_forense("BULK_EXTRACTOR - Extracción masiva de artefactos\n" + "="*50 + "\n")
+                import subprocess
+                try:
+                    resultado = subprocess.run(['bulk_extractor', '-V'], capture_output=True, text=True, timeout=10)
+                    if resultado.returncode == 0:
+                        self._actualizar_texto_forense("OK bulk_extractor disponible\n\n")
+                        self._actualizar_texto_forense("Comando:\n  bulk_extractor -o salida/ imagen.dd\n\n")
+                    else:
+                        self._actualizar_texto_forense("ERROR ejecutando bulk_extractor\n")
+                except FileNotFoundError:
+                    self._actualizar_texto_forense("bulk_extractor no encontrado. Instalar: sudo apt install bulk-extractor\n")
+            except Exception as e:
+                self._actualizar_texto_forense(f"ERROR usando bulk_extractor: {str(e)}\n")
+        threading.Thread(target=ejecutar, daemon=True).start()
+
+    def usar_dc3dd(self):
+        def ejecutar():
+            try:
+                self._actualizar_texto_forense("DC3DD - Clonado forense avanzado\n" + "="*50 + "\n")
+                import subprocess
+                try:
+                    resultado = subprocess.run(['dc3dd', '--version'], capture_output=True, text=True, timeout=10)
+                    if resultado.returncode == 0:
+                        self._actualizar_texto_forense("OK dc3dd disponible\n\n")
+                        self._actualizar_texto_forense("Comando:\n  dc3dd if=/dev/sdX of=imagen.dd hash=sha256 log=log.txt\n\n")
+                    else:
+                        self._actualizar_texto_forense("ERROR ejecutando dc3dd\n")
+                except FileNotFoundError:
+                    self._actualizar_texto_forense("dc3dd no encontrado. Instalar: sudo apt install dc3dd\n")
+            except Exception as e:
+                self._actualizar_texto_forense(f"ERROR usando dc3dd: {str(e)}\n")
+        threading.Thread(target=ejecutar, daemon=True).start()
+
+    def usar_guymager(self):
+        def ejecutar():
+            try:
+                self._actualizar_texto_forense("GUYMAGER - Adquisición forense de discos (GUI)\n" + "="*50 + "\n")
+                import subprocess
+                try:
+                    resultado = subprocess.run(['guymager', '--version'], capture_output=True, text=True, timeout=10)
+                    if resultado.returncode == 0:
+                        self._actualizar_texto_forense("OK guymager disponible\n\n")
+                        self._actualizar_texto_forense("Comando: guymager (interfaz gráfica)\n\n")
+                    else:
+                        self._actualizar_texto_forense("ERROR ejecutando guymager\n")
+                except FileNotFoundError:
+                    self._actualizar_texto_forense("guymager no encontrado. Instalar: sudo apt install guymager\n")
+            except Exception as e:
+                self._actualizar_texto_forense(f"ERROR usando guymager: {str(e)}\n")
+        threading.Thread(target=ejecutar, daemon=True).start()
     
     def _inicializar_mensajes(self):
         """Inicializar mensajes en todas las pestañas."""
@@ -946,13 +1088,12 @@ class VistaSIEM(tk.Frame):
 
     def _proteger_configuracion_ip(self):
         """Proteger y monitorear configuración de IP del sistema."""
-        import subprocess
         import os
-        
         try:
-            from aresitos.utils.gestor_permisos import ejecutar_comando_seguro
+            from aresitos.utils.gestor_permisos import GestorPermisosSeguro
+            gestor = GestorPermisosSeguro()
             # Obtener configuración actual de red
-            exito, out, err = ejecutar_comando_seguro('ip', ['addr', 'show'])
+            exito, out, err = gestor.ejecutar_con_permisos('ip', ['addr', 'show'])
             interfaces_detectadas = []
             if exito:
                 for linea in out.split('\n'):
@@ -961,12 +1102,12 @@ class VistaSIEM(tk.Frame):
                         interfaces_detectadas.append(ip)
                         self._log_terminal(f"IP detectada y protegida: {ip}", "SIEM", "INFO")
             # Verificar tabla de rutas
-            exito, out, err = ejecutar_comando_seguro('ip', ['route', 'show'])
+            exito, out, err = gestor.ejecutar_con_permisos('ip', ['route', 'show'])
             if exito:
                 rutas = len(out.strip().split('\n'))
                 self._log_terminal(f"Tabla de rutas verificada - {rutas} rutas activas", "SIEM", "INFO")
             # Verificar configuración iptables si está disponible
-            exito, out, err = ejecutar_comando_seguro('iptables', ['-L', '-n'])
+            exito, out, err = gestor.ejecutar_con_permisos('iptables', ['-L', '-n'])
             if exito:
                 reglas = len([l for l in out.split('\n') if l.strip() and not l.startswith('Chain')])
                 self._log_terminal(f"Firewall iptables - {reglas} reglas activas", "SIEM", "INFO")
@@ -1029,17 +1170,16 @@ class VistaSIEM(tk.Frame):
 
     def _monitorear_trafico_red(self):
         """Monitorear tráfico de red en busca de anomalías."""
-        import subprocess
-        
         try:
-            from aresitos.utils.gestor_permisos import ejecutar_comando_seguro
+            from aresitos.utils.gestor_permisos import GestorPermisosSeguro
+            gestor = GestorPermisosSeguro()
             # Monitorear conexiones activas
-            exito, out, err = ejecutar_comando_seguro('ss', ['-tuln'])
+            exito, out, err = gestor.ejecutar_con_permisos('ss', ['-tuln'])
             if exito:
                 conexiones_activas = len(out.strip().split('\n')) - 1
                 self._log_terminal(f"Conexiones de red activas: {conexiones_activas}", "SIEM", "INFO")
             # Verificar estadísticas de interfaz
-            exito, out, err = ejecutar_comando_seguro('cat', ['/proc/net/dev'])
+            exito, out, err = gestor.ejecutar_con_permisos('cat', ['/proc/net/dev'])
             interfaces_con_trafico = []
             if exito:
                 for linea in out.split('\n')[2:]:
@@ -1050,7 +1190,7 @@ class VistaSIEM(tk.Frame):
             for interfaz in interfaces_con_trafico:
                 self._log_terminal(f"Interfaz de red monitoreada: {interfaz}", "SIEM", "INFO")
             # Verificar procesos con conexiones de red
-            exito, out, err = ejecutar_comando_seguro('ss', ['-tulpn'])
+            exito, out, err = gestor.ejecutar_con_permisos('ss', ['-tulpn'])
             procesos_red = []
             if exito:
                 for linea in out.split('\n'):

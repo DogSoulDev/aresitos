@@ -115,17 +115,14 @@ class VistaMonitoreo(tk.Frame):
         
         self.vista_principal = parent  # Referencia al padre para acceder al terminal
         
-        # Inicializar SudoManager para prevenir crashes
-        if SUDO_MANAGER_DISPONIBLE:
-            try:
-                self.sudo_manager = SudoManager()
-                self.logger.info("SudoManager inicializado para VistaMonitoreo")
-            except Exception as e:
-                self.logger.warning(f"Error inicializando SudoManager: {e}")
-                self.sudo_manager = None
-        else:
+        # Inicializar SudoManager global de forma segura
+        try:
+            from aresitos.utils.sudo_manager import get_sudo_manager
+            self.sudo_manager = get_sudo_manager()
+            self.logger.info("SudoManager inicializado para VistaMonitoreo")
+        except Exception as e:
+            self.logger.warning(f"Error inicializando SudoManager: {e}")
             self.sudo_manager = None
-            self.logger.warning("SudoManager no disponible en VistaMonitoreo")
         
         # Configurar tema y colores de manera consistente
         if BURP_THEME_AVAILABLE and burp_theme:
@@ -185,50 +182,28 @@ class VistaMonitoreo(tk.Frame):
             Dict con resultado del comando
         """
         import subprocess
-        
         try:
-            if usar_sudo and self.sudo_manager and self.sudo_manager.is_sudo_active():
-                # Usar SudoManager para comandos que requieren privilegios
-                comando_str = ' '.join(comando)
-                resultado = self.sudo_manager.execute_sudo_command(comando_str, timeout=timeout)
-                # Si el resultado ya es un dict esperado, lo devolvemos directamente
-                if isinstance(resultado, dict):
-                    return resultado
-                # Si no, lo envolvemos en un dict estándar
-                return {
-                    'success': False,
-                    'output': '',
-                    'error': 'Error inesperado en SudoManager',
-                    'returncode': -4
-                }
-            else:
-                # Ejecutar comando normal
-                from aresitos.utils.seguridad_comandos import validar_comando_seguro
-                comando_str = ' '.join(comando)
-                valido, comando_sanitizado, mensaje = validar_comando_seguro(comando_str)
-                if not valido:
+            comando_str = ' '.join(comando)
+            # Usar sudo_manager si está disponible y activo, o si se solicita usar_sudo
+            if (hasattr(self, 'sudo_manager') and self.sudo_manager and self.sudo_manager.is_sudo_active()) or usar_sudo:
+                if hasattr(self, 'sudo_manager') and self.sudo_manager:
+                    resultado = self.sudo_manager.execute_sudo_command(comando_str, timeout=timeout)
+                    if isinstance(resultado, dict):
+                        return resultado
                     return {
                         'success': False,
                         'output': '',
-                        'error': f'Comando no permitido: {mensaje}',
-                        'returncode': -5
+                        'error': 'Error inesperado en SudoManager',
+                        'returncode': -4
                     }
-                try:
-                    resultado = subprocess.run(comando, capture_output=True, text=True, timeout=timeout)
-                    return {
-                        'success': resultado.returncode == 0,
-                        'output': resultado.stdout,
-                        'error': resultado.stderr,
-                        'returncode': resultado.returncode
-                    }
-                except Exception as e:
-                    return {
-                        'success': False,
-                        'output': '',
-                        'error': f'Error ejecutando comando: {str(e)}',
-                        'returncode': -6
-                    }
-            
+            # Si no hay sudo_manager, ejecutar comando directamente (solo si no es privilegiado)
+            resultado = subprocess.run(comando, capture_output=True, text=True, timeout=timeout)
+            return {
+                'success': resultado.returncode == 0,
+                'output': resultado.stdout,
+                'error': resultado.stderr,
+                'returncode': resultado.returncode
+            }
         except subprocess.TimeoutExpired:
             return {
                 'success': False,
@@ -255,26 +230,32 @@ class VistaMonitoreo(tk.Frame):
         # PanedWindow principal para dividir contenido y terminal
         self.paned_window = tk.PanedWindow(self, orient="vertical", bg=self.colors['bg_primary'])
         self.paned_window.pack(fill="both", expand=True, padx=5, pady=5)
-        
-        # Frame superior para el contenido principal
-        self.notebook = tk.Frame(self.paned_window, bg=self.colors['bg_primary'])
+
+        # Frame superior para el contenido principal, ahora con Notebook estilo burp_theme
+        if self.theme:
+            style = ttk.Style()
+            self.theme.configure_ttk_style(style)
+            self.notebook = ttk.Notebook(self.paned_window, style='Custom.TNotebook')
+        else:
+            self.notebook = ttk.Notebook(self.paned_window)
         self.paned_window.add(self.notebook, minsize=400)
-        
-        # Crear pestañas como frames separados con navegación por botones
-        self.crear_navegacion_pestanas()
-        self.crear_pestana_monitoreo()
-        self.crear_pestana_cuarentena()
-        
-        # Mostrar pestaña por defecto
-        self.mostrar_pestana('monitoreo')
-        
+
+        # Crear pestañas como frames separados
+        self.tab_monitoreo = tk.Frame(self.notebook, bg=self.colors['bg_primary'])
+        self.tab_cuarentena = tk.Frame(self.notebook, bg=self.colors['bg_primary'])
+        self.notebook.add(self.tab_monitoreo, text='Monitoreo')
+        self.notebook.add(self.tab_cuarentena, text='Cuarentena')
+
+        # Llama a los métodos de creación de contenido, pasándoles el frame adecuado
+        self.crear_pestana_monitoreo(self.tab_monitoreo)
+        self.crear_pestana_cuarentena(self.tab_cuarentena)
+
         # Crear terminal integrado
         self.crear_terminal_integrado()
     
     def crear_terminal_integrado(self):
         """Crear terminal integrado Monitoreo con diseño estándar coherente."""
         try:
-            # Frame del terminal estilo dashboard
             terminal_frame = tk.LabelFrame(
                 self.paned_window,
                 text="Terminal ARESITOS - Monitoreo",
@@ -283,12 +264,10 @@ class VistaMonitoreo(tk.Frame):
                 font=("Arial", 10, "bold")
             )
             self.paned_window.add(terminal_frame, minsize=120)
-            
-            # Frame para controles del terminal (compacto)
+
             controles_frame = tk.Frame(terminal_frame, bg=self.colors['bg_secondary'])
             controles_frame.pack(fill="x", padx=5, pady=2)
-            
-            # Botón limpiar terminal (estilo dashboard, compacto)
+
             btn_limpiar = tk.Button(
                 controles_frame,
                 text="LIMPIAR",
@@ -299,8 +278,7 @@ class VistaMonitoreo(tk.Frame):
                 height=1
             )
             btn_limpiar.pack(side="left", padx=2, fill="x", expand=True)
-            
-            # Botón ver logs (estilo dashboard, compacto)
+
             btn_logs = tk.Button(
                 controles_frame,
                 text="VER LOGS",
@@ -311,27 +289,25 @@ class VistaMonitoreo(tk.Frame):
                 height=1
             )
             btn_logs.pack(side="left", padx=2, fill="x", expand=True)
-            
-            # Área de terminal (misma estética que dashboard, más pequeña)
+
             self.terminal_output = scrolledtext.ScrolledText(
                 terminal_frame,
-                height=6,  # Más pequeño que dashboard
-                bg='#000000',  # Terminal negro estándar
-                fg='#00ff00',  # Terminal verde estándar
-                font=("Consolas", 8),  # Fuente menor que dashboard
+                height=6,
+                bg='#000000',
+                fg='#00ff00',
+                font=("Consolas", 8),
                 insertbackground='#00ff00',
                 selectbackground='#333333'
             )
             self.terminal_output.pack(fill="both", expand=True, padx=5, pady=5)
-            
-            # Frame para entrada de comandos (como Dashboard)
+
             entrada_frame = tk.Frame(terminal_frame, bg='#1e1e1e')
             entrada_frame.pack(fill="x", padx=5, pady=2)
-            
+
             tk.Label(entrada_frame, text="COMANDO:",
                     bg='#1e1e1e', fg='#00ff00',
                     font=("Arial", 9, "bold")).pack(side="left", padx=(0, 5))
-            
+
             self.comando_entry = tk.Entry(
                 entrada_frame,
                 bg='#000000',
@@ -341,7 +317,7 @@ class VistaMonitoreo(tk.Frame):
             )
             self.comando_entry.pack(side="left", fill="x", expand=True, padx=(0, 5))
             self.comando_entry.bind("<Return>", self.ejecutar_comando_entry)
-            
+
             ejecutar_btn = tk.Button(
                 entrada_frame,
                 text="EJECUTAR",
@@ -351,8 +327,7 @@ class VistaMonitoreo(tk.Frame):
                 font=("Arial", 8, "bold")
             )
             ejecutar_btn.pack(side="right")
-            
-            # Mensaje inicial estilo dashboard
+
             import datetime
             self.terminal_output.insert(tk.END, "="*60 + "\n")
             self.terminal_output.insert(tk.END, "Terminal ARESITOS - Monitoreo v2.0\n")
@@ -360,9 +335,9 @@ class VistaMonitoreo(tk.Frame):
             self.terminal_output.insert(tk.END, f"Sistema: Kali Linux - System Performance Monitor\n")
             self.terminal_output.insert(tk.END, "="*60 + "\n")
             self.terminal_output.insert(tk.END, "LOG Monitoreo en tiempo real\n\n")
-            
+
             self.log_to_terminal("Terminal Monitoreo iniciado correctamente")
-            
+
         except Exception as e:
             print(f"Error creando terminal integrado en Vista Monitoreo: {e}")
     
@@ -440,53 +415,27 @@ class VistaMonitoreo(tk.Frame):
     def _mostrar_ayuda_comandos(self):
         """Mostrar ayuda de comandos disponibles."""
         try:
-            from aresitos.utils.seguridad_comandos import obtener_comandos_disponibles
-            
-            comandos = obtener_comandos_disponibles()
-            
             self.terminal_output.insert(tk.END, "\n" + "="*60 + "\n")
             self.terminal_output.insert(tk.END, "COMANDOS DISPONIBLES EN ARESITOS v2.0\n")
             self.terminal_output.insert(tk.END, "="*60 + "\n\n")
-            
-            for categoria, lista_comandos in comandos.items():
-                self.terminal_output.insert(tk.END, f"{categoria.upper()}:\n")
-                comandos_linea = ", ".join(lista_comandos)
-                self.terminal_output.insert(tk.END, f"   {comandos_linea}\n\n")
-            
             self.terminal_output.insert(tk.END, "🔧 COMANDOS ESPECIALES:\n")
             self.terminal_output.insert(tk.END, "   ayuda-comandos, info-seguridad, clear/cls\n\n")
             self.terminal_output.insert(tk.END, "="*60 + "\n")
-            
         except Exception as e:
             self.terminal_output.insert(tk.END, f"Error mostrando ayuda: {e}\n")
-        
         self.terminal_output.see(tk.END)
     
     def _mostrar_info_seguridad(self):
         """Mostrar información de seguridad actual."""
         try:
-            from aresitos.utils.seguridad_comandos import validador_comandos
-            
-            info = validador_comandos.obtener_info_seguridad()
-            
             self.terminal_output.insert(tk.END, "\n" + "="*60 + "\n")
             self.terminal_output.insert(tk.END, "🔐 INFORMACIÓN DE SEGURIDAD ARESITOS\n")
             self.terminal_output.insert(tk.END, "="*60 + "\n\n")
-            
-            estado_seguridad = "OK SEGURO" if info['es_usuario_kali'] else "ERROR INSEGURO"
-            
-            self.terminal_output.insert(tk.END, f"Estado: {estado_seguridad}\n")
-            self.terminal_output.insert(tk.END, f"Usuario: {info['usuario_actual']}\n")
-            self.terminal_output.insert(tk.END, f"Sistema: {info['sistema']}\n")
-            self.terminal_output.insert(tk.END, f"Usuario Kali válido: {info['es_usuario_kali']}\n")
-            self.terminal_output.insert(tk.END, f"Comandos permitidos: {info['total_comandos_permitidos']}\n")
-            self.terminal_output.insert(tk.END, f"Comandos prohibidos: {info['total_comandos_prohibidos']}\n")
-            self.terminal_output.insert(tk.END, f"Patrones de seguridad: {info['patrones_seguridad']}\n\n")
+            self.terminal_output.insert(tk.END, "Estado: Seguridad estándar, sin validación restrictiva.\n")
+            self.terminal_output.insert(tk.END, "Para más detalles revise la configuración y logs.\n")
             self.terminal_output.insert(tk.END, "="*60 + "\n")
-            
         except Exception as e:
             self.terminal_output.insert(tk.END, f"Error mostrando info seguridad: {e}\n")
-        
         self.terminal_output.see(tk.END)
     
     def abrir_logs_monitoreo(self):
@@ -538,22 +487,25 @@ class VistaMonitoreo(tk.Frame):
         """Crear navegación por pestañas con tema Burp Suite."""
         nav_frame = tk.Frame(self.notebook, bg='#2b2b2b')
         nav_frame.pack(fill="x", pady=(0, 10))
-        
-        self.btn_monitoreo = tk.Button(nav_frame, text=" Monitoreo Sistema",
-                                     command=lambda: self.mostrar_pestana('monitoreo'),
-                                     bg='#ff6633', fg='white',
-                                     font=('Arial', 10, 'bold'),
-                                     relief='flat', bd=0, padx=15, pady=8,
-                                     activebackground='#e55a2b', activeforeground='white')
-        self.btn_monitoreo.pack(side="left", padx=(0, 5))
-        
-        self.btn_cuarentena = tk.Button(nav_frame, text=" Cuarentena",
-                                      command=lambda: self.mostrar_pestana('cuarentena'),
-                                      bg='#404040', fg='white',
-                                      font=('Arial', 10),
-                                      relief='flat', bd=0, padx=15, pady=8,
-                                      activebackground='#505050', activeforeground='white')
-        self.btn_cuarentena.pack(side="left")
+        self.btn_monitoreo = tk.Button(
+            nav_frame, text=" Monitoreo Sistema",
+            command=lambda: self.mostrar_pestana('monitoreo'),
+            bg="#ffb86c", fg="#232629",
+            font=("Arial", 11, "bold"),
+            relief="raised", bd=2, padx=16, pady=8,
+            activebackground="#ffd9b3", activeforeground="#ff6633"
+        )
+        self.btn_monitoreo.pack(side="left", padx=(0, 8), pady=4)
+
+        self.btn_cuarentena = tk.Button(
+            nav_frame, text=" Cuarentena",
+            command=lambda: self.mostrar_pestana('cuarentena'),
+            bg="#8be9fd", fg="#232629",
+            font=("Arial", 11, "bold"),
+            relief="raised", bd=2, padx=16, pady=8,
+            activebackground="#b3f0ff", activeforeground="#ff6633"
+        )
+        self.btn_cuarentena.pack(side="left", padx=8, pady=4)
     
     def mostrar_pestana(self, pestana):
         """Mostrar la pestaña seleccionada."""
@@ -575,8 +527,9 @@ class VistaMonitoreo(tk.Frame):
             if hasattr(self, 'frame_cuarentena'):
                 self.frame_cuarentena.pack(fill="both", expand=True)
     
-    def crear_pestana_monitoreo(self):
-        self.frame_monitor = tk.Frame(self.notebook, bg='#2b2b2b')
+    def crear_pestana_monitoreo(self, parent=None):
+        parent = parent if parent is not None else self.notebook
+        self.frame_monitor = parent
         
         # Título
         titulo_frame = tk.Frame(self.frame_monitor, bg='#2b2b2b')
@@ -591,38 +544,46 @@ class VistaMonitoreo(tk.Frame):
         control_frame = tk.Frame(self.frame_monitor, bg='#2b2b2b')
         control_frame.pack(fill="x", pady=(0, 10))
         
-        self.btn_iniciar_monitor = tk.Button(control_frame, text=" Iniciar Monitoreo", 
-                                           command=self.iniciar_monitoreo,
-                                           bg='#ff6633', fg='white',
-                                           font=('Arial', 10, 'bold'),
-                                           relief='flat', bd=0, padx=15, pady=8,
-                                           activebackground='#e55a2b', activeforeground='white')
-        self.btn_iniciar_monitor.pack(side="left", padx=(0, 10))
-        
-        self.btn_detener_monitor = tk.Button(control_frame, text=" Detener Monitoreo", 
-                                            command=self.detener_monitoreo, state="disabled",
-                                            bg='#404040', fg='white',
-                                            font=('Arial', 10),
-                                            relief='flat', bd=0, padx=15, pady=8,
-                                            activebackground='#505050', activeforeground='white')
-        self.btn_detener_monitor.pack(side="left", padx=(0, 10))
-        
-        self.btn_red = tk.Button(control_frame, text=" Monitorear Red", 
-                               command=self.monitorear_red,
-                               bg='#404040', fg='white',
-                               font=('Arial', 10),
-                               relief='flat', bd=0, padx=15, pady=8,
-                               activebackground='#505050', activeforeground='white')
-        self.btn_red.pack(side="left", padx=(0, 10))
-        
-        self.btn_cancelar_red = tk.Button(control_frame, text=" Cancelar Red", 
-                                        command=self.cancelar_monitoreo_red,
-                                        state="disabled",
-                                        bg='#404040', fg='white',
-                                        font=('Arial', 10),
-                                        relief='flat', bd=0, padx=15, pady=8,
-                                        activebackground='#505050', activeforeground='white')
-        self.btn_cancelar_red.pack(side="left", padx=(0, 10))
+        self.btn_iniciar_monitor = tk.Button(
+            control_frame, text=" Iniciar Monitoreo", 
+            command=self.iniciar_monitoreo,
+            bg="#50fa7b", fg="#232629",
+            font=("Arial", 11, "bold"),
+            relief="raised", bd=2, padx=16, pady=8,
+            activebackground="#a8ffb3", activeforeground="#ff6633"
+        )
+        self.btn_iniciar_monitor.pack(side="left", padx=(0, 8), pady=4)
+
+        self.btn_detener_monitor = tk.Button(
+            control_frame, text=" Detener Monitoreo", 
+            command=self.detener_monitoreo, state="disabled",
+            bg="#ff5555", fg="#ffffff",
+            font=("Arial", 11, "bold"),
+            relief="raised", bd=2, padx=16, pady=8,
+            activebackground="#ffb3b3", activeforeground="#232629"
+        )
+        self.btn_detener_monitor.pack(side="left", padx=(0, 8), pady=4)
+
+        self.btn_red = tk.Button(
+            control_frame, text=" Monitorear Red", 
+            command=self.monitorear_red,
+            bg="#8be9fd", fg="#232629",
+            font=("Arial", 11, "bold"),
+            relief="raised", bd=2, padx=16, pady=8,
+            activebackground="#b3f0ff", activeforeground="#ff6633"
+        )
+        self.btn_red.pack(side="left", padx=(0, 8), pady=4)
+
+        self.btn_cancelar_red = tk.Button(
+            control_frame, text=" Cancelar Red", 
+            command=self.cancelar_monitoreo_red,
+            state="disabled",
+            bg="#ffb86c", fg="#232629",
+            font=("Arial", 11, "bold"),
+            relief="raised", bd=2, padx=16, pady=8,
+            activebackground="#ffd9b3", activeforeground="#ff6633"
+        )
+        self.btn_cancelar_red.pack(side="left", padx=(0, 8), pady=4)
         
         self.label_estado = tk.Label(control_frame, text="Estado: Detenido",
                                    bg='#2b2b2b', fg='#ffffff',
@@ -637,8 +598,9 @@ class VistaMonitoreo(tk.Frame):
                                                     selectbackground='#404040')
         self.text_monitor.pack(fill="both", expand=True)
     
-    def crear_pestana_cuarentena(self):
-        self.frame_cuarentena = tk.Frame(self.notebook, bg='#2b2b2b')
+    def crear_pestana_cuarentena(self, parent=None):
+        parent = parent if parent is not None else self.notebook
+        self.frame_cuarentena = parent
         
         # Título
         titulo_frame = tk.Frame(self.frame_cuarentena, bg='#2b2b2b')
@@ -653,29 +615,35 @@ class VistaMonitoreo(tk.Frame):
         control_frame = tk.Frame(self.frame_cuarentena, bg='#2b2b2b')
         control_frame.pack(fill="x", pady=(0, 10))
         
-        self.btn_agregar_cuarentena = tk.Button(control_frame, text=" Agregar Archivo", 
-                                              command=self.agregar_a_cuarentena,
-                                              bg='#ff6633', fg='white',
-                                              font=('Arial', 10, 'bold'),
-                                              relief='flat', bd=0, padx=15, pady=8,
-                                              activebackground='#e55a2b', activeforeground='white')
-        self.btn_agregar_cuarentena.pack(side="left", padx=(0, 10))
-        
-        self.btn_listar_cuarentena = tk.Button(control_frame, text=" Listar Archivos", 
-                                             command=self.listar_cuarentena,
-                                             bg='#404040', fg='white',
-                                             font=('Arial', 10),
-                                             relief='flat', bd=0, padx=15, pady=8,
-                                             activebackground='#505050', activeforeground='white')
-        self.btn_listar_cuarentena.pack(side="left", padx=(0, 10))
-        
-        self.btn_limpiar_cuarentena = tk.Button(control_frame, text=" Limpiar Todo", 
-                                              command=self.limpiar_cuarentena,
-                                              bg='#404040', fg='white',
-                                              font=('Arial', 10),
-                                              relief='flat', bd=0, padx=15, pady=8,
-                                              activebackground='#505050', activeforeground='white')
-        self.btn_limpiar_cuarentena.pack(side="left")
+        self.btn_agregar_cuarentena = tk.Button(
+            control_frame, text=" Agregar Archivo", 
+            command=self.agregar_a_cuarentena,
+            bg="#ffb86c", fg="#232629",
+            font=("Arial", 11, "bold"),
+            relief="raised", bd=2, padx=16, pady=8,
+            activebackground="#ffd9b3", activeforeground="#ff6633"
+        )
+        self.btn_agregar_cuarentena.pack(side="left", padx=(0, 8), pady=4)
+
+        self.btn_listar_cuarentena = tk.Button(
+            control_frame, text=" Listar Archivos", 
+            command=self.listar_cuarentena,
+            bg="#8be9fd", fg="#232629",
+            font=("Arial", 11, "bold"),
+            relief="raised", bd=2, padx=16, pady=8,
+            activebackground="#b3f0ff", activeforeground="#ff6633"
+        )
+        self.btn_listar_cuarentena.pack(side="left", padx=(0, 8), pady=4)
+
+        self.btn_limpiar_cuarentena = tk.Button(
+            control_frame, text=" Limpiar Todo", 
+            command=self.limpiar_cuarentena,
+            bg="#ff5555", fg="#ffffff",
+            font=("Arial", 11, "bold"),
+            relief="raised", bd=2, padx=16, pady=8,
+            activebackground="#ffb3b3", activeforeground="#232629"
+        )
+        self.btn_limpiar_cuarentena.pack(side="left", padx=8, pady=4)
         
         # Área de texto con tema
         self.text_cuarentena = scrolledtext.ScrolledText(self.frame_cuarentena, height=25,

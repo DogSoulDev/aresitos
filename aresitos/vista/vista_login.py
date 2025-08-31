@@ -900,58 +900,30 @@ class LoginAresitos:
             self.escribir_log(f"ERROR en instalación automática: {e}")
     
     def _ejecutar_instalacion_herramientas(self, herramientas, password):
-        """Ejecutar instalación de herramientas en thread separado"""
+        """Ejecutar instalación de herramientas en thread separado usando SudoManager"""
         try:
-            # Actualizar repositorios primero
             self.escribir_log(" Actualizando repositorios...")
-            cmd_update = f"echo '{password}' | sudo -S apt update"
-            
-            result = subprocess.run(
-                cmd_update, 
-                shell=True, 
-                capture_output=True, 
-                text=True, 
-                timeout=60
-            )
-            
+            result = self.sudo_manager.execute_sudo_command('apt update', timeout=60)
             if result.returncode == 0:
                 self.escribir_log("OK Repositorios actualizados")
             else:
                 self.escribir_log("WARNING al actualizar repositorios")
-            
-            # Filtrar herramientas problemáticas
             herramientas_seguras = [h for h in herramientas if h not in HERRAMIENTAS_PROBLEMATICAS]
             herramientas_problematicas = [h for h in herramientas if h in HERRAMIENTAS_PROBLEMATICAS]
-            
             if herramientas_problematicas:
                 self.escribir_log(f"ADVERTENCIA️  Omitiendo herramientas problemáticas: {', '.join(herramientas_problematicas)}")
                 self.escribir_log("[SUGERENCIA] Instale manualmente con: sudo apt install <herramienta>")
-            
-            # Instalar herramientas seguras una por una
-            for herramienta in herramientas_seguras[:8]:  # Aumentamos a 8 pero solo seguras
+            for herramienta in herramientas_seguras[:8]:
                 self.escribir_log(f" Instalando {herramienta}...")
-                
-                cmd_install = f"echo '{password}' | sudo -S apt install -y {herramienta}"
-                
-                # Timeout diferencial basado en el tipo de herramienta
-                timeout_herramienta = 60  # Por defecto 60 segundos
+                timeout_herramienta = 60
                 if herramienta in ['nmap', 'wireshark', 'burpsuite']:
-                    timeout_herramienta = 180  # Herramientas grandes: 3 minutos
+                    timeout_herramienta = 180
                 elif herramienta in ['python3', 'curl', 'wget', 'git']:
-                    timeout_herramienta = 30   # Herramientas básicas: 30 segundos
-                
+                    timeout_herramienta = 30
                 try:
-                    result = subprocess.run(
-                        cmd_install,
-                        shell=True,
-                        capture_output=True,
-                        text=True,
-                        timeout=timeout_herramienta
-                    )
-                    
+                    result = self.sudo_manager.execute_sudo_command(f'apt install -y {herramienta}', timeout=timeout_herramienta)
                     if result.returncode == 0:
                         self.escribir_log(f"OK {herramienta} instalado correctamente")
-                        # Remover de la lista de faltantes
                         if herramienta in self.herramientas_faltantes:
                             self.herramientas_faltantes.remove(herramienta)
                     else:
@@ -960,16 +932,10 @@ class LoginAresitos:
                             self.escribir_log(f"[SUGERENCIA] {herramienta} no disponible en repositorios")
                         elif "timeout" in str(result.stderr).lower():
                             self.escribir_log(f"⏱️  {herramienta} timeout - requiere instalación manual")
-                            
-                except subprocess.TimeoutExpired:
-                    self.escribir_log(f"⏱️  Timeout instalando {herramienta} - continuando...")
                 except Exception as e:
                     self.escribir_log(f"ERROR Error inesperado con {herramienta}: {e}")
             self.escribir_log(" Instalación automática completada")
-            
-            # Limpiar password de memoria
             self.utils_seguridad.limpiar_memoria_string(password)
-            
         except Exception as e:
             self.escribir_log(f"ERROR en instalación: {e}")
 

@@ -37,19 +37,19 @@ except ImportError:
     burp_theme = None
 
 class VistaPrincipal(tk.Frame):
-    # Métodos seguros eliminados porque no existen los widgets label_estado ni text_log en VistaPrincipal
     @staticmethod
     def _get_base_dir():
         """Obtener la ruta base absoluta del proyecto ARESITOS."""
         import os
         from pathlib import Path
         return Path(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
+
     def __init__(self, parent):
         super().__init__(parent)
         self.controlador = None
-        # Configurar logging
-        self.logger = logging.getLogger(__name__)
-
+        # Configurar logger global ARESITOS correctamente
+        from aresitos.utils.logger_aresitos import LoggerAresitos
+        self.logger = LoggerAresitos.get_instance()
         # Inicializar tema visual
         if BURP_THEME_AVAILABLE and burp_theme:
             self.theme = burp_theme
@@ -86,58 +86,51 @@ class VistaPrincipal(tk.Frame):
 
     def set_controlador(self, controlador):
         self.controlador = controlador
-        self.logger.info("Controlador principal establecido en VistaPrincipal")
-        
+        self.logger.log("Controlador principal establecido en VistaPrincipal", modulo="PRINCIPAL", nivel="INFO")
         # Configurar controladores para todas las vistas
         if hasattr(self, 'vista_dashboard'):
             self.vista_dashboard.set_controlador(controlador)
-            self.logger.info("OK Vista Dashboard conectada")
+            self.logger.log("OK Vista Dashboard conectada", modulo="PRINCIPAL", nivel="INFO")
         else:
-            self.logger.warning("WARN Vista Dashboard no disponible")
-            
+            self.logger.log("WARN Vista Dashboard no disponible", modulo="PRINCIPAL", nivel="WARNING")
         if hasattr(self.controlador, 'controlador_escaneador'):
             self.vista_escaneo.set_controlador(self.controlador.controlador_escaneador)
-            self.logger.info("OK Vista Escaneo conectada")
+            self.logger.log("OK Vista Escaneo conectada", modulo="PRINCIPAL", nivel="INFO")
         else:
-            self.logger.warning("WARN Controlador Escaneador no disponible")
-            
+            self.logger.log("WARN Controlador Escaneador no disponible", modulo="PRINCIPAL", nivel="WARNING")
         if hasattr(self.controlador, 'controlador_monitoreo'):
             self.vista_monitoreo.set_controlador(self.controlador.controlador_monitoreo)
-            self.logger.info("OK Vista Monitoreo conectada")
+            self.logger.log("OK Vista Monitoreo conectada", modulo="PRINCIPAL", nivel="INFO")
         else:
-            self.logger.warning("WARN Controlador Monitoreo no disponible")
-            
+            self.logger.log("WARN Controlador Monitoreo no disponible", modulo="PRINCIPAL", nivel="WARNING")
+        # VistaAuditoria ya no requiere set_controlador (principios ARESITOS, control centralizado)
         if hasattr(self.controlador, 'controlador_auditoria'):
-            self.vista_auditoria.set_controlador(self.controlador.controlador_auditoria)
-            self.logger.info("OK Vista Auditoría conectada")
+            # self.vista_auditoria.set_controlador(self.controlador.controlador_auditoria)  # Eliminado: método no existe
+            self.logger.log("OK Vista Auditoría conectada (sin set_controlador)", modulo="PRINCIPAL", nivel="INFO")
         else:
-            self.logger.warning("WARN Controlador Auditoría no disponible")
-            
+            self.logger.log("WARN Controlador Auditoría no disponible", modulo="PRINCIPAL", nivel="WARNING")
         if hasattr(self, 'vista_gestion_datos'):
             # Vista unificada para wordlists y diccionarios
             self.vista_gestion_datos.set_controlador(self.controlador)
-            self.logger.info("OK Vista Gestión Datos conectada")
+            self.logger.log("OK Vista Gestión Datos conectada", modulo="PRINCIPAL", nivel="INFO")
         else:
-            self.logger.warning("WARN Vista Gestión Datos no disponible")
-            
+            self.logger.log("WARN Vista Gestión Datos no disponible", modulo="PRINCIPAL", nivel="WARNING")
         if hasattr(self.controlador, 'controlador_reportes'):
             self.vista_reportes.set_controlador(self.controlador.controlador_reportes)
-            self.logger.info("OK Vista Reportes conectada")
+            self.logger.log("OK Vista Reportes conectada", modulo="PRINCIPAL", nivel="INFO")
         else:
-            self.logger.warning("WARN Controlador Reportes no disponible")
+            self.logger.log("WARN Controlador Reportes no disponible", modulo="PRINCIPAL", nivel="WARNING")
         # Conectar FIM y SIEM correctamente
         if hasattr(self.controlador, 'controlador_fim'):
             self.vista_fim.set_controlador(self.controlador.controlador_fim)
-            self.logger.info("OK Vista FIM conectada")
+            self.logger.log("OK Vista FIM conectada", modulo="PRINCIPAL", nivel="INFO")
         else:
-            self.logger.warning("WARN Controlador FIM no disponible")
-            
+            self.logger.log("WARN Controlador FIM no disponible", modulo="PRINCIPAL", nivel="WARNING")
         if hasattr(self.controlador, 'controlador_siem'):
             self.vista_siem.set_controlador(self.controlador.controlador_siem)
-            self.logger.info("OK Vista SIEM conectada")
+            self.logger.log("OK Vista SIEM conectada", modulo="PRINCIPAL", nivel="INFO")
         else:
-            self.logger.warning("WARN Controlador SIEM no disponible")
-        
+            self.logger.log("WARN Controlador SIEM no disponible", modulo="PRINCIPAL", nivel="WARNING")
         # Inicializar vista con datos del controlador
         self.actualizar_vista_principal()
     
@@ -317,21 +310,18 @@ class VistaPrincipal(tk.Frame):
         """Actualiza la vista principal con datos del controlador"""
         try:
             if self.controlador:
-                self.logger.info("Actualizando vista principal con datos del controlador")
+                self.logger.log("Actualizando vista principal con datos del controlador", modulo="PRINCIPAL", nivel="INFO")
                 # Actualizar estado general
                 self.actualizar_estado("Sistema inicializado - Aresitos")
-                
                 # Verificar y actualizar sub-vistas que tienen el método actualizar_desde_controlador
                 if hasattr(self, 'vista_gestion_datos') and hasattr(self.vista_gestion_datos, 'actualizar_desde_controlador'):
                     self.vista_gestion_datos.actualizar_desde_controlador()
-                    
                 # Actualizar vista principal después de un breve delay para permitir que los controladores se inicialicen
                 self.after(100, self._actualizar_estado_componentes)
             else:
-                self.logger.warning("No hay controlador disponible para actualizar vista principal")
-                
+                self.logger.log("No hay controlador disponible para actualizar vista principal", modulo="PRINCIPAL", nivel="WARNING")
         except Exception as e:
-            self.logger.error(f"Error actualizando vista principal: {e}")
+            self.logger.log(f"Error actualizando vista principal: {e}", modulo="PRINCIPAL", nivel="ERROR")
             self.actualizar_estado("Error en inicialización del sistema")
     
     def _actualizar_estado_componentes(self):
@@ -341,9 +331,9 @@ class VistaPrincipal(tk.Frame):
             if self.controlador and hasattr(self.controlador, 'modelo'):
                 estado_sistema = "Sistema operativo - Todos los módulos cargados"
                 self.actualizar_estado(estado_sistema)
-                self.logger.info("Estado de componentes actualizado correctamente")
+                self.logger.log("Estado de componentes actualizado correctamente", modulo="PRINCIPAL", nivel="INFO")
         except Exception as e:
-            self.logger.error(f"Error actualizando estado de componentes: {e}")
+            self.logger.log(f"Error actualizando estado de componentes: {e}", modulo="PRINCIPAL", nivel="ERROR")
     
     def actualizar_estado(self, mensaje):
         """Actualiza el mensaje de la barra de estado"""
@@ -355,7 +345,6 @@ class VistaPrincipal(tk.Frame):
         """Optimizar memoria y rendimiento de todas las vistas activas"""
         try:
             optimizaciones_realizadas = []
-            
             # Optimizar SudoManager
             try:
                 from aresitos.utils.sudo_manager import get_sudo_manager
@@ -364,7 +353,6 @@ class VistaPrincipal(tk.Frame):
                 optimizaciones_realizadas.append(f"SudoManager: {resultado}")
             except Exception as e:
                 optimizaciones_realizadas.append(f"SudoManager: Error - {str(e)}")
-            
             # Optimizar cada vista activa
             vistas_disponibles = {
                 'dashboard': getattr(self, 'vista_dashboard', None),
@@ -376,7 +364,6 @@ class VistaPrincipal(tk.Frame):
                 'fim': getattr(self, 'vista_fim', None),
                 'siem': getattr(self, 'vista_siem', None)
             }
-            
             for nombre_vista, vista in vistas_disponibles.items():
                 if vista is not None:
                     try:
@@ -386,28 +373,22 @@ class VistaPrincipal(tk.Frame):
                             optimizaciones_realizadas.append(f"{nombre_vista}: Terminal optimizado")
                     except Exception as e:
                         optimizaciones_realizadas.append(f"{nombre_vista}: Error - {str(e)}")
-            
             # Limpiar threading orphan y memoria global
             for thread in threading.enumerate():
                 if thread != threading.current_thread() and not thread.is_alive():
                     optimizaciones_realizadas.append(f"Thread limpiado: {thread.name}")
-            
             # Garbage collection global
             collected = gc.collect()
             optimizaciones_realizadas.append(f"Memoria global: {collected} objetos liberados")
-            
             # Log del resultado
-            self.logger.info(f"Optimización completada: {len(optimizaciones_realizadas)} operaciones")
+            self.logger.log(f"Optimización completada: {len(optimizaciones_realizadas)} operaciones", modulo="PRINCIPAL", nivel="INFO")
             for opt in optimizaciones_realizadas:
-                self.logger.debug(opt)
-            
+                self.logger.log(opt, modulo="PRINCIPAL", nivel="DEBUG")
             # Actualizar estado
             self.actualizar_estado(f"Sistema optimizado - {collected} objetos liberados")
-            
             return optimizaciones_realizadas
-            
         except Exception as e:
-            self.logger.error(f"Error en optimización del sistema: {e}")
+            self.logger.log(f"Error en optimización del sistema: {e}", modulo="PRINCIPAL", nivel="ERROR")
             return [f"Error general: {str(e)}"]
 
 

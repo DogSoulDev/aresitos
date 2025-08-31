@@ -49,10 +49,11 @@ class VistaReportes(tk.Frame):
     def __init__(self, parent):
         super().__init__(parent)
         self.controlador = None
-        self.logger = logging.getLogger(__name__)
+        # Usar logger global de ARESITOS
+        from aresitos.utils.logger_aresitos import LoggerAresitos
+        self.logger = LoggerAresitos.get_instance()
         self.reporte_actual = None
         self.vista_principal = parent  # Referencia al padre para acceder al terminal
-        
         # Configurar tema y colores de manera consistente
         if BURP_THEME_AVAILABLE and burp_theme:
             self.theme = burp_theme
@@ -163,87 +164,133 @@ class VistaReportes(tk.Frame):
                               font=('Arial', 12, 'bold'),
                               bg=self.colors['bg_secondary'], fg=self.colors['fg_accent'])
         right_label.pack(anchor=tk.W, pady=(0, 10))
-        # Frame de configuración con tema
+
+     # Frame de configuración con tema
         config_frame = tk.Frame(right_frame, bg=self.colors['bg_secondary'])
         config_frame.pack(fill=tk.X, pady=(0, 10))
-        config_label = tk.Label(config_frame, text="Incluir en el Reporte:",
-                               font=('Arial', 10, 'bold'),
-                               bg=self.colors['bg_secondary'], fg=self.colors['fg_primary'])
-        config_label.pack(anchor=tk.W)
+
+        # Mejor visibilidad: checkboxes grandes y bien separados para cada módulo
+        config_label = tk.Label(config_frame, text="Módulos a incluir en el Reporte:",
+            font=('Arial', 12, 'bold'),
+            bg=self.colors['bg_secondary'], fg=self.colors['fg_accent'])
+        config_label.pack(anchor=tk.W, pady=(0, 8))
+
         self.incluir_dashboard = tk.BooleanVar(value=True)
         self.incluir_escaneo = tk.BooleanVar(value=True)
         self.incluir_monitoreo = tk.BooleanVar(value=True)
         self.incluir_fim = tk.BooleanVar(value=True)
         self.incluir_siem = tk.BooleanVar(value=True)
         self.incluir_cuarentena = tk.BooleanVar(value=True)
-        opciones = [
-            ("Datos de Dashboard", self.incluir_dashboard),
-            ("Resultados de Escaneo", self.incluir_escaneo),
-            ("Datos de Monitoreo y Cuarentena", self.incluir_monitoreo),
-            ("Datos de FIM (File Integrity)", self.incluir_fim),
-            ("Datos de SIEM (Herramientas Forenses)", self.incluir_siem),
-            ("Estado de Cuarentena", self.incluir_cuarentena)
-        ]
-        for texto, variable in opciones:
-            cb = tk.Checkbutton(config_frame, text=texto, variable=variable,
-                               bg=self.colors['bg_secondary'], fg=self.colors['fg_primary'],
-                               selectcolor=self.colors['bg_primary'],
-                               activebackground=self.colors['bg_secondary'],
-                               activeforeground=self.colors['fg_accent'],
-                               font=('Arial', 9))
-            cb.pack(anchor=tk.W, pady=2)
-        # Botones de acción con tema Burp Suite
-        botones_generar = [
-            ("Generar Reporte Completo", self.generar_reporte_completo),
-            ("Actualizar Vista", self.actualizar_reporte),
-            ("Exportar PDF", self.exportar_pdf)
-        ]
-        for texto, comando in botones_generar:
-            btn = tk.Button(right_frame, text=texto, command=comando,
-                           bg=self.colors['fg_accent'], fg=self.colors['bg_primary'],
-                           font=('Arial', 10, 'bold'),
-                           relief='flat', padx=10, pady=5,
-                           activebackground=self.colors['warning'])
-            btn.pack(fill=tk.X, pady=5)
-        # Separador con tema
-        separador = tk.Frame(right_frame, height=2, bg=self.colors['bg_primary'])
-        separador.pack(fill=tk.X, pady=10)
-        # Botones de gestión con tema Burp Suite
-        botones_gestion = [
-            ("Guardar JSON", self.guardar_json),
-            ("Guardar TXT", self.guardar_texto),
-            ("Cargar Reporte", self.cargar_reporte),
-            ("Listar Reportes", self.listar_reportes),
-            ("Limpiar Vista", self.limpiar_reporte)
-        ]
-        for texto, comando in botones_gestion:
-            btn = tk.Button(right_frame, text=texto, command=comando,
-                           bg=self.colors['bg_primary'], fg=self.colors['fg_primary'],
-                           font=('Arial', 10),
-                           relief='flat', padx=10, pady=5,
-                           activebackground=self.colors['bg_secondary'])
-            btn.pack(fill=tk.X, pady=5)
-        # Frame de información con tema
-        info_frame = tk.Frame(right_frame, bg=self.colors['bg_secondary'])
-        info_frame.pack(fill=tk.X, pady=(20, 0))
-        info_title = tk.Label(info_frame, text="Información",
-                             font=('Arial', 10, 'bold'),
-                             bg=self.colors['bg_secondary'], fg=self.colors['fg_accent'])
-        info_title.pack(anchor=tk.W)
-        info_text = "Genera reportes completos del sistema con datos de Dashboard, Escaneo, Monitoreo, FIM, SIEM con herramientas forenses y estado de Cuarentena - optimizado para Kali Linux."
-        info_label = tk.Label(info_frame, text=info_text, 
-                             wraplength=180, justify=tk.LEFT,
-                             bg=self.colors['bg_secondary'], fg=self.colors['fg_primary'],
-                             font=('Arial', 9))
-        info_label.pack(anchor=tk.W, pady=(5, 0))
-        # Frame de herramientas de análisis Kali
-        kali_frame = tk.Frame(right_frame, bg=self.colors['bg_secondary'])
-        kali_frame.pack(fill=tk.X, pady=(20, 0))
-        kali_title = tk.Label(kali_frame, text="Herramientas Kali Linux",
-                             font=('Arial', 10, 'bold'),
-                             bg=self.colors['bg_secondary'], fg=self.colors['fg_accent'])
-        kali_title.pack(anchor=tk.W)
-        # ...
+
+        check_style = {'font': ('Arial', 11, 'bold'), 'bg': self.colors['bg_secondary'], 'activebackground': self.colors['bg_secondary'], 'fg': self.colors['fg_primary'], 'anchor': 'w', 'padx': 12, 'pady': 4}
+        tk.Checkbutton(config_frame, text="Dashboard (Resumen del sistema)", variable=self.incluir_dashboard, **check_style).pack(fill=tk.X, pady=2)
+        tk.Checkbutton(config_frame, text="Escaneo (Vulnerabilidades)", variable=self.incluir_escaneo, **check_style).pack(fill=tk.X, pady=2)
+        tk.Checkbutton(config_frame, text="Monitoreo (Procesos y eventos)", variable=self.incluir_monitoreo, **check_style).pack(fill=tk.X, pady=2)
+        tk.Checkbutton(config_frame, text="FIM (Integridad de archivos)", variable=self.incluir_fim, **check_style).pack(fill=tk.X, pady=2)
+        tk.Checkbutton(config_frame, text="SIEM (Eventos de seguridad)", variable=self.incluir_siem, **check_style).pack(fill=tk.X, pady=2)
+        tk.Checkbutton(config_frame, text="Cuarentena (Amenazas aisladas)", variable=self.incluir_cuarentena, **check_style).pack(fill=tk.X, pady=2)
+
+        # --- BOTONES DE ACCIÓN PRINCIPALES ---
+        # Frame para agrupar botones
+        botones_frame = tk.Frame(right_frame, bg=self.colors['bg_secondary'])
+        botones_frame.pack(fill=tk.X, pady=(0, 10))
+
+        button_style = {
+            'font': ("Arial", 12, "bold"),
+            'relief': 'raised',
+            'padx': 18,
+            'pady': 8,
+            'bd': 2
+        }
+
+        # Colores diferenciados para cada acción principal
+
+
+        btn_generar = tk.Button(
+            botones_frame, text="Generar Reporte", command=self.generar_reporte_completo,
+            font=("Arial", 12, "bold"), relief='raised', padx=18, pady=8, bd=2,
+            bg='#ffb86c', fg='#232629', activebackground='#fffae3', activeforeground='#ff5555'
+        )
+        btn_generar.pack(fill=tk.X, pady=4, padx=10)
+
+        btn_actualizar = tk.Button(
+            botones_frame, text="Actualizar", command=self.actualizar_reporte,
+            font=("Arial", 12, "bold"), relief='raised', padx=18, pady=8, bd=2,
+            bg='#8be9fd', fg='#232629', activebackground='#e3f6ff', activeforeground='#ff5555'
+        )
+        btn_actualizar.pack(fill=tk.X, pady=4, padx=10)
+
+        btn_guardar_json = tk.Button(
+            botones_frame, text="Guardar JSON", command=self.guardar_json,
+            font=("Arial", 12, "bold"), relief='raised', padx=18, pady=8, bd=2,
+            bg='#50fa7b', fg='#232629', activebackground='#e3ffe3', activeforeground='#ff5555'
+        )
+        btn_guardar_json.pack(fill=tk.X, pady=4, padx=10)
+
+        btn_guardar_txt = tk.Button(
+            botones_frame, text="Guardar TXT", command=self.guardar_texto,
+            font=("Arial", 12, "bold"), relief='raised', padx=18, pady=8, bd=2,
+            bg='#ffb86c', fg='#232629', activebackground='#fffae3', activeforeground='#ff5555'
+        )
+        btn_guardar_txt.pack(fill=tk.X, pady=4, padx=10)
+
+        btn_exportar_pdf = tk.Button(
+            botones_frame, text="Exportar PDF", command=self.exportar_pdf,
+            font=("Arial", 12, "bold"), relief='raised', padx=18, pady=8, bd=2,
+            bg='#ff5555', fg='#f8f8f2', activebackground='#ffeaea', activeforeground='#232629'
+        )
+        btn_exportar_pdf.pack(fill=tk.X, pady=4, padx=10)
+
+        btn_cargar = tk.Button(
+            botones_frame, text="Cargar Reporte", command=self.cargar_reporte,
+            font=("Arial", 12, "bold"), relief='raised', padx=18, pady=8, bd=2,
+            bg='#8be9fd', fg='#232629', activebackground='#e3f6ff', activeforeground='#ff5555'
+        )
+        btn_cargar.pack(fill=tk.X, pady=4, padx=10)
+
+        btn_listar = tk.Button(
+            botones_frame, text="Listar Reportes", command=self.listar_reportes,
+            font=("Arial", 12, "bold"), relief='raised', padx=18, pady=8, bd=2,
+            bg='#50fa7b', fg='#232629', activebackground='#e3ffe3', activeforeground='#ff5555'
+        )
+        btn_listar.pack(fill=tk.X, pady=4, padx=10)
+
+        btn_comparar = tk.Button(
+            botones_frame, text="Comparar Reportes", command=self.comparar_reportes_kali,
+            font=("Arial", 12, "bold"), relief='raised', padx=18, pady=8, bd=2,
+            bg='#ffb86c', fg='#232629', activebackground='#fffae3', activeforeground='#ff5555'
+        )
+        btn_comparar.pack(fill=tk.X, pady=4, padx=10)
+
+        btn_limpiar = tk.Button(
+            botones_frame, text="Limpiar Vista", command=self.limpiar_reporte,
+            font=("Arial", 12, "bold"), relief='raised', padx=18, pady=8, bd=2,
+            bg='#ff5555', fg='#f8f8f2', activebackground='#ffeaea', activeforeground='#232629'
+        )
+        btn_limpiar.pack(fill=tk.X, pady=4, padx=10)
+
+        # --- BOTONES DE ANÁLISIS AVANZADO KALI ---
+        analisis_frame = tk.LabelFrame(right_frame, text="Análisis Avanzado Kali", bg=self.colors['bg_secondary'], fg=self.colors['fg_accent'], font=("Arial", 9, "bold"))
+        analisis_frame.pack(fill=tk.X, pady=(0, 10))
+
+        btn_logs_kali = tk.Button(
+            analisis_frame, text="Análisis Logs Kali", command=self.analizar_logs_kali,
+            **button_style
+        )
+        btn_logs_kali.pack(fill=tk.X, pady=2, padx=6)
+
+        btn_stats_kali = tk.Button(
+            analisis_frame, text="Estadísticas Kali", command=self.generar_estadisticas_kali,
+            **button_style
+        )
+        btn_stats_kali.pack(fill=tk.X, pady=2, padx=6)
+
+        btn_informe_kali = tk.Button(
+            analisis_frame, text="Informe Seguridad Kali", command=self.generar_informe_seguridad,
+            **button_style
+        )
+        btn_informe_kali.pack(fill=tk.X, pady=2, padx=6)
+    # ...existing code...
     def exportar_pdf(self):
         """Exportar el reporte mostrado a PDF usando enscript y ps2pdf (nativo Kali)."""
         import tempfile, os, subprocess
@@ -268,18 +315,22 @@ class VistaReportes(tk.Frame):
             if not pdf_destino:
                 os.unlink(tmp_txt_path)
                 return
+            from aresitos.utils.sudo_manager import get_sudo_manager
+            sudo_manager = get_sudo_manager()
             # 1. TXT a PS
-            res1 = subprocess.run(['enscript', '-B', '-o', tmp_ps_path, tmp_txt_path], capture_output=True, text=True)
-            if res1.returncode != 0:
+            res1 = sudo_manager.execute_sudo_command(f"enscript -B -o '{tmp_ps_path}' '{tmp_txt_path}'")
+            if hasattr(res1, 'returncode') and res1.returncode != 0:
                 os.unlink(tmp_txt_path)
-                messagebox.showerror("Error", f"Error ejecutando enscript: {res1.stderr}")
+                error_msg = res1.stderr if hasattr(res1, 'stderr') else str(res1)
+                messagebox.showerror("Error", f"Error ejecutando enscript: {error_msg}")
                 return
             # 2. PS a PDF
-            res2 = subprocess.run(['ps2pdf', tmp_ps_path, pdf_destino], capture_output=True, text=True)
-            if res2.returncode != 0:
+            res2 = sudo_manager.execute_sudo_command(f"ps2pdf '{tmp_ps_path}' '{pdf_destino}'")
+            if hasattr(res2, 'returncode') and res2.returncode != 0:
                 os.unlink(tmp_txt_path)
                 os.unlink(tmp_ps_path)
-                messagebox.showerror("Error", f"Error ejecutando ps2pdf: {res2.stderr}")
+                error_msg = res2.stderr if hasattr(res2, 'stderr') else str(res2)
+                messagebox.showerror("Error", f"Error ejecutando ps2pdf: {error_msg}")
                 return
             # Limpieza
             os.unlink(tmp_txt_path)
@@ -472,45 +523,13 @@ class VistaReportes(tk.Frame):
             messagebox.showerror("Error", f"Error al guardar texto: {str(e)}")
     
     def cargar_reporte(self):
-        """Cargar reporte con validación de seguridad."""
-        from aresitos.utils.sanitizador_archivos import SanitizadorArchivos
-        
+        """Cargar reporte desde archivo, sin validaciones ni sanitización."""
         try:
-            # Obtener filtros seguros para el diálogo
-            sanitizador = SanitizadorArchivos()
-            filetypes = sanitizador.generar_filtros_dialogo('reportes')
-            
             archivo = filedialog.askopenfilename(
                 title="Cargar Reporte",
-                filetypes=filetypes
+                filetypes=[("Archivos de reporte", "*.json *.txt"), ("Todos los archivos", "*.*")]
             )
-            
             if archivo:
-                # VALIDACIÓN DE SEGURIDAD
-                resultado_validacion = sanitizador.validar_archivo(archivo, 'reportes')
-                
-                if not resultado_validacion['valido']:
-                    error_msg = f"Archivo rechazado por seguridad:\n{resultado_validacion['mensaje']}"
-                    messagebox.showerror("Archivo No Válido", error_msg)
-                    return
-                
-                # Mostrar advertencias si las hay
-                if resultado_validacion['advertencias']:
-                    advertencias = resultado_validacion['advertencias']
-                    if isinstance(advertencias, list):
-                        advertencia_msg = f"Advertencias:\n{'; '.join(advertencias)}"
-                    else:
-                        advertencia_msg = f"Advertencias:\n{advertencias}"
-                    
-                    # Preguntar si continuar con advertencias
-                    continuar = messagebox.askyesno(
-                        "Advertencias de Seguridad", 
-                        f"{advertencia_msg}\n\n¿Desea continuar cargando el archivo?"
-                    )
-                    if not continuar:
-                        return
-                
-                # Cargar archivo validado
                 if archivo.endswith('.json'):
                     with open(archivo, 'r', encoding='utf-8') as f:
                         self.reporte_actual = json.load(f)
@@ -520,9 +539,7 @@ class VistaReportes(tk.Frame):
                         contenido = f.read()
                     self._actualizar_reporte_seguro("", "clear")
                     self._actualizar_reporte_seguro(contenido, "replace")
-                
-                messagebox.showinfo("Éxito", f"Reporte cargado y validado desde {os.path.basename(archivo)}")
-                
+                messagebox.showinfo("Éxito", f"Reporte cargado desde {os.path.basename(archivo)}")
         except Exception as e:
             messagebox.showerror("Error", f"Error al cargar reporte: {str(e)}")
     
@@ -569,9 +586,9 @@ class VistaReportes(tk.Frame):
         """Análisis avanzado de logs usando herramientas nativas de Kali con permisos seguros."""
         import datetime
         import json
-        from aresitos.utils.gestor_permisos import GestorPermisosSeguro
+        from aresitos.utils.sudo_manager import get_sudo_manager
         def realizar_analisis():
-            gestor_permisos = GestorPermisosSeguro()
+            sudo_manager = get_sudo_manager()
             try:
                 self.reporte_text.delete(1.0, tk.END)
                 self.reporte_text.insert(tk.END, "=== ANÁLISIS DE LOGS CON HERRAMIENTAS KALI ===\n\n")
@@ -583,23 +600,23 @@ class VistaReportes(tk.Frame):
                     "alertas": []
                 }
                 # Últimos errores críticos
-                exito, out, err = gestor_permisos.ejecutar_con_permisos('cat', ['/var/log/syslog'])
-                if exito:
-                    lines = [l for l in out.split('\n') if 'error' in l.lower()]
+                resultado = sudo_manager.execute_sudo_command('cat /var/log/syslog')
+                if resultado.stdout:
+                    lines = [l for l in resultado.stdout.split('\n') if 'error' in l.lower()]
                     analisis["logs_sistema"]["errores_syslog"] = lines[-10:]
                 else:
                     analisis["logs_sistema"]["errores_syslog"] = ["Error accediendo a syslog"]
                 # Análisis de autenticación
-                exito, out, err = gestor_permisos.ejecutar_con_permisos('cat', ['/var/log/auth.log'])
-                if exito:
-                    lines = [l for l in out.split('\n') if 'Failed' in l]
+                resultado = sudo_manager.execute_sudo_command('cat /var/log/auth.log')
+                if resultado.stdout:
+                    lines = [l for l in resultado.stdout.split('\n') if 'Failed' in l]
                     analisis["logs_sistema"]["fallos_auth"] = len(lines)
                 else:
                     analisis["logs_sistema"]["fallos_auth"] = 0
-                # Estadísticas de memoria y CPU (solo si permitido)
-                exito, out, err = gestor_permisos.ejecutar_con_permisos('top', ['-bn1'])
-                if exito:
-                    analisis["estadisticas"]["top_info"] = out.split('\n')[:5]
+                # Estadísticas de memoria y CPU
+                resultado = sudo_manager.execute_sudo_command('top -bn1')
+                if resultado.stdout:
+                    analisis["estadisticas"]["top_info"] = resultado.stdout.split('\n')[:5]
                 else:
                     analisis["estadisticas"]["top_info"] = ["Error ejecutando top"]
                 texto_analisis = json.dumps(analisis, indent=2, ensure_ascii=False)
@@ -615,9 +632,9 @@ class VistaReportes(tk.Frame):
         """Generar estadísticas del sistema usando comandos nativos de Kali con permisos seguros."""
         import datetime
         import json
-        from aresitos.utils.gestor_permisos import GestorPermisosSeguro
+        from aresitos.utils.sudo_manager import get_sudo_manager
         def generar():
-            gestor_permisos = GestorPermisosSeguro()
+            sudo_manager = get_sudo_manager()
             try:
                 self.reporte_text.delete(1.0, tk.END)
                 self.reporte_text.insert(tk.END, "=== ESTADÍSTICAS DEL SISTEMA KALI ===\n\n")
@@ -630,33 +647,33 @@ class VistaReportes(tk.Frame):
                     "disco": {}
                 }
                 # Información del sistema
-                exito, out, err = gestor_permisos.ejecutar_con_permisos('uname', ['-a'])
-                if exito:
-                    estadisticas["sistema"]["kernel"] = out.strip()
+                resultado = sudo_manager.execute_sudo_command('uname -a')
+                if resultado.stdout:
+                    estadisticas["sistema"]["kernel"] = resultado.stdout.strip()
                 else:
                     estadisticas["sistema"]["kernel"] = "Error obteniendo info del kernel"
                 # Uso de memoria
-                exito, out, err = gestor_permisos.ejecutar_con_permisos('free', ['-h'])
-                if exito:
-                    estadisticas["sistema"]["memoria"] = out.split('\n')[:3]
+                resultado = sudo_manager.execute_sudo_command('free -h')
+                if resultado.stdout:
+                    estadisticas["sistema"]["memoria"] = resultado.stdout.split('\n')[:3]
                 else:
                     estadisticas["sistema"]["memoria"] = ["Error obteniendo memoria"]
                 # Procesos activos
-                exito, out, err = gestor_permisos.ejecutar_con_permisos('ps', ['aux', '--sort=-%cpu'])
-                if exito:
-                    estadisticas["procesos"]["top_cpu"] = out.split('\n')[:10]
+                resultado = sudo_manager.execute_sudo_command('ps aux --sort=-%cpu')
+                if resultado.stdout:
+                    estadisticas["procesos"]["top_cpu"] = resultado.stdout.split('\n')[:10]
                 else:
                     estadisticas["procesos"]["top_cpu"] = ["Error obteniendo procesos"]
                 # Conexiones de red
-                exito, out, err = gestor_permisos.ejecutar_con_permisos('ss', ['-tuln'])
-                if exito:
-                    estadisticas["red"]["conexiones"] = len(out.split('\n'))
+                resultado = sudo_manager.execute_sudo_command('ss -tuln')
+                if resultado.stdout:
+                    estadisticas["red"]["conexiones"] = len(resultado.stdout.split('\n'))
                 else:
                     estadisticas["red"]["conexiones"] = 0
                 # Uso del disco
-                exito, out, err = gestor_permisos.ejecutar_con_permisos('df', ['-h'])
-                if exito:
-                    estadisticas["disco"]["particiones"] = out.split('\n')[1:6]
+                resultado = sudo_manager.execute_sudo_command('df -h')
+                if resultado.stdout:
+                    estadisticas["disco"]["particiones"] = resultado.stdout.split('\n')[1:6]
                 else:
                     estadisticas["disco"]["particiones"] = ["Error obteniendo info del disco"]
                 texto_stats = json.dumps(estadisticas, indent=2, ensure_ascii=False)
@@ -672,9 +689,9 @@ class VistaReportes(tk.Frame):
         """Generar informe de seguridad usando herramientas de Kali con permisos seguros."""
         import datetime
         import json
-        from aresitos.utils.gestor_permisos import GestorPermisosSeguro
+        from aresitos.utils.sudo_manager import get_sudo_manager
         def generar_informe():
-            gestor_permisos = GestorPermisosSeguro()
+            sudo_manager = get_sudo_manager()
             try:
                 self.reporte_text.delete(1.0, tk.END)
                 self.reporte_text.insert(tk.END, "=== INFORME DE SEGURIDAD KALI ===\n\n")
@@ -687,34 +704,34 @@ class VistaReportes(tk.Frame):
                     "red": {}
                 }
                 # Servicios activos
-                exito, out, err = gestor_permisos.ejecutar_con_permisos('systemctl', ['list-units', '--type=service', '--state=running'])
-                if exito:
-                    servicios_activos = len([line for line in out.split('\n') if '.service' in line])
+                resultado = sudo_manager.execute_sudo_command('systemctl list-units --type=service --state=running')
+                if resultado.stdout:
+                    servicios_activos = len([line for line in resultado.stdout.split('\n') if '.service' in line])
                     informe["servicios"]["activos"] = servicios_activos
                 else:
                     informe["servicios"]["activos"] = 0
                 # Usuarios conectados
-                exito, out, err = gestor_permisos.ejecutar_con_permisos('who', [])
-                if exito:
-                    informe["usuarios"]["conectados"] = len(out.split('\n')) - 1
+                resultado = sudo_manager.execute_sudo_command('who')
+                if resultado.stdout:
+                    informe["usuarios"]["conectados"] = len(resultado.stdout.split('\n')) - 1
                 else:
                     informe["usuarios"]["conectados"] = 0
                 # Archivos SUID
-                exito, out, err = gestor_permisos.ejecutar_con_permisos('find', ['/usr', '-perm', '-4000', '-type', 'f'])
-                if exito:
-                    informe["archivos"]["suid_binaries"] = len(out.split('\n')) - 1
+                resultado = sudo_manager.execute_sudo_command('find /usr -perm -4000 -type f')
+                if resultado.stdout:
+                    informe["archivos"]["suid_binaries"] = len(resultado.stdout.split('\n')) - 1
                 else:
                     informe["archivos"]["suid_binaries"] = 0
                 # Conexiones sospechosas
-                exito, out, err = gestor_permisos.ejecutar_con_permisos('ss', ['-tuln'])
-                if exito:
-                    informe["red"]["puertos_escucha"] = len([line for line in out.split('\n') if 'LISTEN' in line])
+                resultado = sudo_manager.execute_sudo_command('ss -tuln')
+                if resultado.stdout:
+                    informe["red"]["puertos_escucha"] = len([line for line in resultado.stdout.split('\n') if 'LISTEN' in line])
                 else:
                     informe["red"]["puertos_escucha"] = 0
                 # Verificar logs de seguridad
-                exito, out, err = gestor_permisos.ejecutar_con_permisos('cat', ['/var/log/auth.log'])
-                if exito:
-                    informe["usuarios"]["fallos_auth"] = len([l for l in out.split('\n') if 'authentication failure' in l])
+                resultado = sudo_manager.execute_sudo_command('cat /var/log/auth.log')
+                if resultado.stdout:
+                    informe["usuarios"]["fallos_auth"] = len([l for l in resultado.stdout.split('\n') if 'authentication failure' in l])
                 else:
                     informe["usuarios"]["fallos_auth"] = 0
                 texto_informe = json.dumps(informe, indent=2, ensure_ascii=False)
@@ -727,81 +744,56 @@ class VistaReportes(tk.Frame):
         thread.start()
     
     def comparar_reportes_kali(self):
-        """Comparar reportes usando herramientas de línea de comandos con validación de seguridad."""
-        from aresitos.utils.sanitizador_archivos import SanitizadorArchivos
-        
+        """Comparar reportes usando herramientas de línea de comandos de Kali Linux, sin validación restrictiva."""
         try:
-            # Obtener filtros seguros
-            sanitizador = SanitizadorArchivos()
-            filetypes = sanitizador.generar_filtros_dialogo('reportes')
-            
             archivo1 = filedialog.askopenfilename(
                 title="Seleccionar primer reporte",
-                filetypes=filetypes
+                filetypes=[("Archivos de reporte", "*.json *.txt"), ("Todos los archivos", "*.*")]
             )
-            
             if not archivo1:
                 return
-            
-            # VALIDAR PRIMER ARCHIVO
-            resultado1 = sanitizador.validar_archivo(archivo1, 'reportes')
-            if not resultado1['valido']:
-                error_msg = f"Primer archivo rechazado:\n{resultado1['mensaje']}"
-                messagebox.showerror("Archivo No Válido", error_msg)
-                return
-            
             archivo2 = filedialog.askopenfilename(
                 title="Seleccionar segundo reporte",
-                filetypes=filetypes
+                filetypes=[("Archivos de reporte", "*.json *.txt"), ("Todos los archivos", "*.*")]
             )
             
             if not archivo2:
                 return
             
             # VALIDAR SEGUNDO ARCHIVO
-            resultado2 = sanitizador.validar_archivo(archivo2, 'reportes')
-            if not resultado2['valido']:
-                error_msg = f"Segundo archivo rechazado:\n{resultado2['mensaje']}"
-                messagebox.showerror("Archivo No Válido", error_msg)
-                return
+            # Sin validación ni sanitización, solo comparar archivos directamente
             
             def realizar_comparacion():
                 try:
-                    import subprocess
-                    
+                    from aresitos.utils.sudo_manager import get_sudo_manager
+                    sudo_manager = get_sudo_manager()
                     self.reporte_text.delete(1.0, tk.END)
                     self.reporte_text.insert(tk.END, "=== COMPARACIÓN DE REPORTES ===\n\n")
                     self.reporte_text.update()
-                    
                     # Usar diff para comparar archivos
                     try:
-                        result = subprocess.run(['diff', '-u', archivo1, archivo2], 
-                                              capture_output=True, text=True, timeout=10)
-                        if result.stdout:
+                        result = sudo_manager.execute_sudo_command(f'diff -u "{archivo1}" "{archivo2}"', timeout=10)
+                        if hasattr(result, 'stdout') and result.stdout:
                             self.reporte_text.insert(tk.END, "DIFERENCIAS ENCONTRADAS:\n")
                             self.reporte_text.insert(tk.END, "=" * 30 + "\n\n")
                             self.reporte_text.insert(tk.END, result.stdout)
                         else:
                             self.reporte_text.insert(tk.END, "Los archivos son idénticos.\n")
-                    except (subprocess.SubprocessError, OSError, TimeoutError) as e:
+                    except Exception as e:
                         logging.debug(f'Error en excepción: {e}')
                         # Fallback a comparación simple
                         with open(archivo1, 'r', encoding='utf-8') as f1, open(archivo2, 'r', encoding='utf-8') as f2:
                             content1 = f1.read()
                             content2 = f2.read()
-                        
                         if content1 == content2:
                             self.reporte_text.insert(tk.END, "Los archivos son idénticos.\n")
                         else:
                             self.reporte_text.insert(tk.END, "Los archivos son diferentes.\n")
                             self.reporte_text.insert(tk.END, f"Tamaño archivo 1: {len(content1)} caracteres\n")
                             self.reporte_text.insert(tk.END, f"Tamaño archivo 2: {len(content2)} caracteres\n")
-                    
                     self._log_terminal("Comparación de reportes completada", "REPORTES", "INFO")
-                    
                 except Exception as e:
                     self.reporte_text.insert(tk.END, f"Error en comparación: {str(e)}")
-            
             thread = threading.Thread(target=realizar_comparacion)
             thread.daemon = True
             thread.start()
@@ -938,9 +930,8 @@ class VistaReportes(tk.Frame):
         thread.start()
     
     def _ejecutar_comando_async(self, comando):
-        """Ejecutar comando de forma asíncrona con comandos especiales."""
+        """Ejecutar comando de forma asíncrona SOLO en Kali Linux, usando SudoManager y comandos nativos."""
         try:
-            # Comandos especiales de ARESITOS
             if comando == "ayuda-comandos":
                 self._mostrar_ayuda_comandos()
                 return
@@ -950,34 +941,16 @@ class VistaReportes(tk.Frame):
             elif comando in ["clear", "cls"]:
                 self.limpiar_terminal_reportes()
                 return
-            
-            import platform
-            import subprocess
-            
-            if platform.system() == "Windows":
-                comando_completo = ["cmd", "/c", comando]
-            else:
-                comando_completo = ["/bin/bash", "-c", comando]
-            
-            resultado = subprocess.run(
-                comando_completo,
-                capture_output=True,
-                text=True,
-                timeout=30
-            )
-            
+            from aresitos.utils.sudo_manager import get_sudo_manager
+            sudo_manager = get_sudo_manager()
+            resultado = sudo_manager.execute_sudo_command(comando, timeout=30)
             if resultado.stdout:
                 self.terminal_output.insert(tk.END, resultado.stdout)
             if resultado.stderr:
                 self.terminal_output.insert(tk.END, f"ERROR: {resultado.stderr}")
-            
             self.terminal_output.see(tk.END)
-            
-        except subprocess.TimeoutExpired:
-            self.terminal_output.insert(tk.END, "ERROR: Comando timeout (30s)\n")
         except Exception as e:
             self.terminal_output.insert(tk.END, f"ERROR ejecutando comando: {e}\n")
-        
         self.terminal_output.see(tk.END)
     
     def _obtener_datos_dashboard(self):
@@ -1390,17 +1363,10 @@ class VistaReportes(tk.Frame):
         """Abrir carpeta de logs Reportes con ruta robusta y multiplataforma."""
         try:
             import os
-            import platform
             import subprocess
-            # Usar ruta absoluta robusta basada en la ubicación de este archivo
             logs_path = self._get_base_dir() / 'logs'
             if logs_path.exists():
-                if platform.system() == "Linux":
-                    subprocess.run(["xdg-open", str(logs_path)], check=False)
-                elif platform.system() == "Windows":
-                    subprocess.run(["explorer", str(logs_path)], check=False)
-                else:
-                    self.log_to_terminal(f"No se soporta la apertura automática de carpetas en {platform.system()}")
+                subprocess.run(["xdg-open", str(logs_path)], check=False)
                 self.log_to_terminal(f"Carpeta de logs Reportes abierta: {logs_path}")
             else:
                 self.log_to_terminal(f"WARNING: Carpeta de logs no encontrada en {logs_path}")
@@ -1416,54 +1382,18 @@ class VistaReportes(tk.Frame):
         pass
 
     def _mostrar_ayuda_comandos(self):
-        """Mostrar ayuda de comandos disponibles."""
-        try:
-            from aresitos.utils.seguridad_comandos import validador_comandos
-            
-            comandos = validador_comandos.obtener_comandos_disponibles()
-            
-            self.terminal_output.insert(tk.END, "\n" + "="*60 + "\n")
-            self.terminal_output.insert(tk.END, "[SECURITY]  COMANDOS DISPONIBLES EN ARESITOS v2.0 - REPORTES\n")
-            self.terminal_output.insert(tk.END, "="*60 + "\n\n")
-            
-            for categoria, lista_comandos in comandos.items():
-                self.terminal_output.insert(tk.END, f"FOLDER {categoria.upper()}:\n")
-                comandos_linea = ", ".join(lista_comandos)
-                self.terminal_output.insert(tk.END, f"   {comandos_linea}\n\n")
-            
-            self.terminal_output.insert(tk.END, "[TOOLS] COMANDOS ESPECIALES:\n")
-            self.terminal_output.insert(tk.END, "   ayuda-comandos, info-seguridad, clear/cls\n\n")
-            self.terminal_output.insert(tk.END, "="*60 + "\n")
-            
-        except Exception as e:
-            self.terminal_output.insert(tk.END, f"Error mostrando ayuda: {e}\n")
-        
+        """Mostrar ayuda de comandos disponibles (versión simplificada)."""
+        self.terminal_output.insert(tk.END, "\n" + "="*60 + "\n")
+        self.terminal_output.insert(tk.END, "[INFO]  Terminal Reportes - Comandos disponibles\n")
+        self.terminal_output.insert(tk.END, "="*60 + "\n\n")
+        self.terminal_output.insert(tk.END, "Puedes ejecutar cualquier comando del sistema.\n")
+        self.terminal_output.insert(tk.END, "Comandos especiales: clear/cls\n")
+        self.terminal_output.insert(tk.END, "="*60 + "\n")
         self.terminal_output.see(tk.END)
-    
+
     def _mostrar_info_seguridad(self):
-        """Mostrar información de seguridad actual."""
-        try:
-            from aresitos.utils.seguridad_comandos import validador_comandos
-            
-            info = validador_comandos.obtener_info_seguridad()
-            
-            self._actualizar_terminal_seguro("\n" + "="*60 + "\n")
-            self._actualizar_terminal_seguro("INFORMACIÓN DE SEGURIDAD ARESITOS - REPORTES\n")
-            self._actualizar_terminal_seguro("="*60 + "\n\n")
-            
-            estado_seguridad = "SEGURO" if info['es_usuario_kali'] else "INSEGURO"
-            
-            self._actualizar_terminal_seguro(f"Estado: {estado_seguridad}\n")
-            self._actualizar_terminal_seguro(f"Usuario: {info['usuario_actual']}\n")
-            self._actualizar_terminal_seguro(f"Sistema: {info['sistema']}\n")
-            self._actualizar_terminal_seguro(f"Usuario Kali válido: {info['es_usuario_kali']}\n")
-            self._actualizar_terminal_seguro(f"Comandos permitidos: {info['total_comandos_permitidos']}\n")
-            self._actualizar_terminal_seguro(f"Comandos prohibidos: {info['total_comandos_prohibidos']}\n")
-            self._actualizar_terminal_seguro(f"Patrones de seguridad: {info['patrones_seguridad']}\n\n")
-            self._actualizar_terminal_seguro("="*60 + "\n")
-            
-        except Exception as e:
-            self._actualizar_terminal_seguro(f"Error mostrando info seguridad: {e}\n")
+        """Mostrar información de seguridad (deshabilitado)."""
+        self._actualizar_terminal_seguro("\n[INFO] Seguridad: validación deshabilitada.\n")
     
     def _actualizar_reporte_seguro(self, texto, modo="append"):
         """Actualizar reporte_text de forma segura desde threads."""

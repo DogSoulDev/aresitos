@@ -16,6 +16,8 @@ from tkinter import ttk, scrolledtext, messagebox, filedialog
 import threading
 import os
 import subprocess
+# Importar el gestor de sudo de ARESITOS
+from aresitos.utils.sudo_manager import get_sudo_manager
 import logging
 import datetime
 import time
@@ -37,7 +39,8 @@ class VistaFIM(tk.Frame):
                     self.fim_text.config(state=tk.NORMAL)
                     self.fim_text.insert(tk.END, texto)
                     self.fim_text.see(tk.END)
-                    self.fim_text.config(state=tk.DISABLED)
+                from aresitos.utils.logger_aresitos import LoggerAresitos
+                self.logger = LoggerAresitos.get_instance()
             except (tk.TclError, AttributeError):
                 pass
         self.after(0, _update)
@@ -195,26 +198,18 @@ class VistaFIM(tk.Frame):
     def crear_terminal_integrado(self, parent_frame):
         """Crear terminal integrado FIM con diseño estándar coherente."""
         try:
-            # Frame del terminal estilo dashboard (reemplaza el parent_frame directamente)
-            # Configurar el parent_frame como LabelFrame estilo dashboard
-            parent_frame.config(relief="ridge", bd=2)
-            
-            # Título del terminal estilo dashboard
-            titulo_frame = tk.Frame(parent_frame, bg=self.colors['bg_secondary'])
-            titulo_frame.pack(fill="x", padx=5, pady=2)
-            
-            titulo_label = tk.Label(titulo_frame,
-                                   text="Terminal ARESITOS - FIM",
-                                   bg=self.colors['bg_secondary'],
-                                   fg=self.colors['fg_primary'],
-                                   font=("Arial", 10, "bold"))
-            titulo_label.pack(side="left")
-            
-            # Frame para controles del terminal (compacto)
-            controles_frame = tk.Frame(parent_frame, bg=self.colors['bg_secondary'])
+            terminal_frame = tk.LabelFrame(
+                parent_frame,
+                text="Terminal ARESITOS - FIM",
+                bg=self.colors['bg_secondary'],
+                fg=self.colors['fg_primary'],
+                font=("Arial", 10, "bold")
+            )
+            terminal_frame.pack(fill="both", expand=True)
+
+            controles_frame = tk.Frame(terminal_frame, bg=self.colors['bg_secondary'])
             controles_frame.pack(fill="x", padx=5, pady=2)
-            
-            # Botón limpiar terminal (estilo dashboard, compacto)
+
             btn_limpiar = tk.Button(
                 controles_frame,
                 text="LIMPIAR",
@@ -225,8 +220,7 @@ class VistaFIM(tk.Frame):
                 height=1
             )
             btn_limpiar.pack(side="left", padx=2, fill="x", expand=True)
-            
-            # Botón ver logs (estilo dashboard, compacto)
+
             btn_logs = tk.Button(
                 controles_frame,
                 text="VER LOGS",
@@ -237,27 +231,25 @@ class VistaFIM(tk.Frame):
                 height=1
             )
             btn_logs.pack(side="left", padx=2, fill="x", expand=True)
-            
-            # Área de terminal (misma estética que dashboard, más pequeña)
+
             self.terminal_output = scrolledtext.ScrolledText(
-                parent_frame,
-                height=6,  # Más pequeño que dashboard
-                bg='#000000',  # Fondo negro como dashboard
-                fg='#00ff00',  # Texto verde como dashboard
-                font=("Consolas", 8),  # Fuente menor que dashboard
+                terminal_frame,
+                height=6,
+                bg='#000000',
+                fg='#00ff00',
+                font=("Consolas", 8),
                 insertbackground='#00ff00',
                 selectbackground='#333333'
             )
             self.terminal_output.pack(fill="both", expand=True, padx=5, pady=5)
-            
-            # Frame para entrada de comandos (como Dashboard)
-            entrada_frame = tk.Frame(parent_frame, bg='#1e1e1e')
+
+            entrada_frame = tk.Frame(terminal_frame, bg='#1e1e1e')
             entrada_frame.pack(fill="x", padx=5, pady=2)
-            
+
             tk.Label(entrada_frame, text="COMANDO:",
                     bg='#1e1e1e', fg='#00ff00',
                     font=("Arial", 9, "bold")).pack(side="left", padx=(0, 5))
-            
+
             self.comando_entry = tk.Entry(
                 entrada_frame,
                 bg='#000000',
@@ -267,7 +259,7 @@ class VistaFIM(tk.Frame):
             )
             self.comando_entry.pack(side="left", fill="x", expand=True, padx=(0, 5))
             self.comando_entry.bind("<Return>", self.ejecutar_comando_entry)
-            
+
             ejecutar_btn = tk.Button(
                 entrada_frame,
                 text="EJECUTAR",
@@ -277,17 +269,16 @@ class VistaFIM(tk.Frame):
                 font=("Arial", 8, "bold")
             )
             ejecutar_btn.pack(side="right")
-            
-            # Mensaje inicial estilo dashboard
+
+            import datetime
             self.terminal_output.insert(tk.END, "="*60 + "\n")
             self.terminal_output.insert(tk.END, "Terminal ARESITOS - FIM v2.0\n")
             self.terminal_output.insert(tk.END, f"Iniciado: {datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')}\n")
             self.terminal_output.insert(tk.END, f"Sistema: Kali Linux - File Integrity Monitoring\n")
             self.terminal_output.insert(tk.END, "="*60 + "\n")
             self.terminal_output.insert(tk.END, "LOG Monitoreo FIM en tiempo real\n\n")
-            
+
         except Exception as e:
-            # Fallback: crear terminal básico
             self.crear_terminal_local(parent_frame)
     
     def limpiar_terminal_fim(self):
@@ -330,34 +321,31 @@ class VistaFIM(tk.Frame):
             elif comando in ["clear", "cls"]:
                 self.limpiar_terminal_fim()
                 return
-            
+
             import platform
-            import subprocess
-            
             if platform.system() == "Windows":
+                import subprocess
                 comando_completo = ["cmd", "/c", comando]
+                resultado = subprocess.run(
+                    comando_completo,
+                    capture_output=True,
+                    text=True,
+                    timeout=30
+                )
             else:
-                comando_completo = ["/bin/bash", "-c", comando]
-            
-            resultado = subprocess.run(
-                comando_completo,
-                capture_output=True,
-                text=True,
-                timeout=30
-            )
-            
+                # Usar el gestor de sudo para ejecutar comandos en Linux
+                sudo_manager = get_sudo_manager()
+                resultado = sudo_manager.execute_sudo_command(comando, timeout=30)
+
             if resultado.stdout:
                 self.terminal_output.insert(tk.END, resultado.stdout)
             if resultado.stderr:
                 self.terminal_output.insert(tk.END, f"ERROR: {resultado.stderr}")
-            
+
             self.terminal_output.see(tk.END)
-            
-        except subprocess.TimeoutExpired:
-            self.terminal_output.insert(tk.END, "ERROR: Comando timeout (30s)\n")
+
         except Exception as e:
             self.terminal_output.insert(tk.END, f"ERROR ejecutando comando: {e}\n")
-        
         self.terminal_output.see(tk.END)
     
     def abrir_logs_fim(self):
@@ -2308,52 +2296,26 @@ class VistaFIM(tk.Frame):
     def _mostrar_ayuda_comandos(self):
         """Mostrar ayuda de comandos disponibles."""
         try:
-            from aresitos.utils.seguridad_comandos import validador_comandos
-            
-            comandos = validador_comandos.obtener_comandos_disponibles()
-            
             self.terminal_output.insert(tk.END, "\n" + "="*60 + "\n")
-            self.terminal_output.insert(tk.END, "  COMANDOS DISPONIBLES EN ARESITOS v2.0 - FIM\n")
+            self.terminal_output.insert(tk.END, "COMANDOS DISPONIBLES EN ARESITOS v2.0 - FIM\n")
             self.terminal_output.insert(tk.END, "="*60 + "\n\n")
-            
-            for categoria, lista_comandos in comandos.items():
-                self.terminal_output.insert(tk.END, f"[CATEGORIA] {categoria.upper()}:\n")
-                comandos_linea = ", ".join(lista_comandos)
-                self.terminal_output.insert(tk.END, f"   {comandos_linea}\n\n")
-            
             self.terminal_output.insert(tk.END, "🔧 COMANDOS ESPECIALES:\n")
             self.terminal_output.insert(tk.END, "   ayuda-comandos, info-seguridad, clear/cls\n\n")
             self.terminal_output.insert(tk.END, "="*60 + "\n")
-            
         except Exception as e:
             self.terminal_output.insert(tk.END, f"Error mostrando ayuda: {e}\n")
-        
         self.terminal_output.see(tk.END)
     
     def _mostrar_info_seguridad(self):
         """Mostrar información de seguridad actual."""
         try:
-            from aresitos.utils.seguridad_comandos import validador_comandos
-            
-            info = validador_comandos.obtener_info_seguridad()
-            
             self.terminal_output.insert(tk.END, "\n" + "="*60 + "\n")
             self.terminal_output.insert(tk.END, "🔐 INFORMACIÓN DE SEGURIDAD ARESITOS - FIM\n")
             self.terminal_output.insert(tk.END, "="*60 + "\n\n")
-            
-            estado_seguridad = "OK SEGURO" if info['es_usuario_kali'] else "ERROR INSEGURO"
-            
-            self.terminal_output.insert(tk.END, f"Estado: {estado_seguridad}\n")
-            self.terminal_output.insert(tk.END, f"Usuario: {info['usuario_actual']}\n")
-            self.terminal_output.insert(tk.END, f"Sistema: {info['sistema']}\n")
-            self.terminal_output.insert(tk.END, f"Usuario Kali válido: {info['es_usuario_kali']}\n")
-            self.terminal_output.insert(tk.END, f"Comandos permitidos: {info['total_comandos_permitidos']}\n")
-            self.terminal_output.insert(tk.END, f"Comandos prohibidos: {info['total_comandos_prohibidos']}\n")
-            self.terminal_output.insert(tk.END, f"Patrones de seguridad: {info['patrones_seguridad']}\n\n")
+            self.terminal_output.insert(tk.END, "Estado: Seguridad estándar, sin validación restrictiva.\n")
+            self.terminal_output.insert(tk.END, "Para más detalles revise la configuración y logs.\n")
             self.terminal_output.insert(tk.END, "="*60 + "\n")
-            
         except Exception as e:
             self.terminal_output.insert(tk.END, f"Error mostrando info seguridad: {e}\n")
-        
         self.terminal_output.see(tk.END)
 

@@ -14,7 +14,6 @@ PRINCIPIOS DE SEGURIDAD ARESITOS (NO MODIFICAR SIN AUDITORÍA)
 import tkinter as tk
 from tkinter import ttk, scrolledtext
 import subprocess
-from aresitos.utils.seguridad_comandos import validar_comando_seguro
 import threading
 import time
 import platform
@@ -331,8 +330,13 @@ class VistaDashboard(tk.Frame):
         )
         titulo_label.pack()
         
-        # Crear notebook para organizar las secciones
-        self.notebook = ttk.Notebook(self)
+        # Crear notebook para organizar las secciones con estilo unificado
+        if self.theme:
+            style = ttk.Style()
+            self.theme.configure_ttk_style(style)
+            self.notebook = ttk.Notebook(self, style='Custom.TNotebook')
+        else:
+            self.notebook = ttk.Notebook(self)
         self.notebook.pack(fill="both", expand=True, padx=10, pady=5)
         
         # ORDEN DE PESTAÑAS:
@@ -427,48 +431,68 @@ class VistaDashboard(tk.Frame):
             botones_control_frame,
             text="ACTIVAR CAPTURA LOGS",
             command=self.toggle_captura_logs,
-            bg='#ff4444',
-            fg='white',
-            font=("Arial", 10, "bold"),
-            height=2
+            bg='#ffb86c',  # naranja
+            fg='#232629',
+            font=("Arial", 12, "bold"),
+            height=2,
+            relief="raised",
+            activebackground='#fffae3',
+            activeforeground='#ff5555',
+            padx=18,
+            pady=8
         )
-        self.btn_toggle_logs.pack(side="left", padx=5, fill="x", expand=True)
+        self.btn_toggle_logs.pack(side="left", padx=6, pady=4, fill="x", expand=True)
         
         # Botón para limpiar terminal
         btn_limpiar = tk.Button(
             botones_control_frame,
             text="🧹 LIMPIAR",
             command=self.limpiar_terminal,
-            bg='#ffaa00',
-            fg='white',
-            font=("Arial", 10, "bold"),
-            height=2
+            bg='#8be9fd',  # azul claro
+            fg='#232629',
+            font=("Arial", 12, "bold"),
+            height=2,
+            relief="raised",
+            activebackground='#e3f6ff',
+            activeforeground='#ff5555',
+            padx=18,
+            pady=8
         )
-        btn_limpiar.pack(side="left", padx=5, fill="x", expand=True)
+        btn_limpiar.pack(side="left", padx=6, pady=4, fill="x", expand=True)
         
         # Botón para abrir carpeta de logs
         btn_ver_logs = tk.Button(
             botones_control_frame,
             text="LOGS VER LOGS",
             command=self.abrir_carpeta_logs,
-            bg='#007acc',
-            fg='white',
-            font=("Arial", 10, "bold"),
-            height=2
+            bg='#50fa7b',  # verde
+            fg='#232629',
+            font=("Arial", 12, "bold"),
+            height=2,
+            relief="raised",
+            activebackground='#e3ffe3',
+            activeforeground='#ff5555',
+            padx=18,
+            pady=8
         )
-        btn_ver_logs.pack(side="left", padx=5, fill="x", expand=True)
+        btn_ver_logs.pack(side="left", padx=6, pady=4, fill="x", expand=True)
         
         # Botón para abrir terminal externo
         btn_terminal_externo = tk.Button(
             botones_control_frame,
             text="TERMINAL KALI",
             command=self.abrir_terminal_kali,
-            bg='#00ff00',
-            fg='black',
-            font=("Arial", 10, "bold"),
-            height=2
+            bg='#ff5555',  # rojo
+            fg='#f8f8f2',
+            font=("Arial", 12, "bold"),
+            height=2,
+            relief="raised",
+            activebackground='#ffeaea',
+            activeforeground='#232629',
+            padx=18,
+            pady=8
         )
-        btn_terminal_externo.pack(side="left", padx=5, fill="x", expand=True)
+        btn_terminal_externo.pack(side="left", padx=6, pady=4, fill="x", expand=True)
         
         # Frame para comandos rápidos
         comandos_frame = tk.LabelFrame(
@@ -526,13 +550,18 @@ class VistaDashboard(tk.Frame):
                 botones_grid_frame,
                 text=descripcion,
                 command=lambda cmd=comando: self.ejecutar_comando_rapido(cmd),
-                bg=self.colors['button_bg'],
-                fg=self.colors['button_fg'],
-                font=("Arial", 8),
-                height=3,
-                wraplength=150
+                bg='#31363b',
+                fg='#ffb86c',
+                font=("Arial", 11, "bold"),
+                height=2,
+                relief="raised",
+                activebackground='#232629',
+                activeforeground='#50fa7b',
+                padx=10,
+                pady=6,
+                wraplength=160
             )
-            btn.grid(row=row, column=col, padx=5, pady=5, sticky="ew")
+            btn.grid(row=row, column=col, padx=6, pady=4, sticky="ew")
         
         # Configurar columnas para que se expandan
         for i in range(3):
@@ -580,11 +609,17 @@ class VistaDashboard(tk.Frame):
             entrada_frame,
             text="EJECUTAR",
             command=self.ejecutar_comando_entry,
-            bg=self.colors['button_bg'],
-            fg=self.colors['button_fg'],
-            font=("Arial", 10, "bold")
+            bg='#ffb86c',
+            fg='#232629',
+            font=("Arial", 12, "bold"),
+            height=2,
+            relief="raised",
+            activebackground='#fffae3',
+            activeforeground='#ff5555',
+            padx=18,
+            pady=8
         )
-        ejecutar_btn.pack(side="right")
+        ejecutar_btn.pack(side="right", padx=6, pady=4)
         
         # REGISTRAR TERMINAL GLOBAL PARA TODAS LAS VISTAS
         VistaDashboard._terminal_widget = self.terminal_output
