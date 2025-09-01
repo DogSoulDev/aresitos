@@ -17,6 +17,7 @@ import os
 import logging
 import threading
 import datetime
+from aresitos.utils.logger_aresitos import LoggerAresitos
 
 # Importar SudoManager para prevenir crashes
 try:
@@ -49,6 +50,27 @@ class ThreadSafeFlag:
             self.flag = False
 
 class VistaMonitoreo(tk.Frame):
+    def _enviar_a_reportes(self, accion, mensaje, error=False):
+        """Helper estándar para enviar información al módulo de Reportes de forma robusta y silenciosa."""
+        try:
+            # Buscar la vista de reportes en el master o en el diccionario de vistas
+            vista_reportes = None
+            if hasattr(self.master, 'vista_reportes'):
+                vista_reportes = getattr(self.master, 'vista_reportes', None)
+            else:
+                vistas = getattr(self.master, 'vistas', None)
+                if vistas and hasattr(vistas, 'get'):
+                    vista_reportes = vistas.get('reportes', None)
+            if vista_reportes and hasattr(vista_reportes, 'agregar_evento_modulo'):
+                vista_reportes.agregar_evento_modulo(
+                    modulo='Monitoreo',
+                    accion=accion,
+                    mensaje=mensaje,
+                    error=error
+                )
+        except Exception as e:
+            if hasattr(self, 'logger') and self.logger:
+                self.logger.log(f"Error enviando a reportes: {e}", nivel="ERROR", modulo="MONITOREO")
     def obtener_datos_para_reporte(self):
         """Obtener datos del monitoreo para incluir en reportes automáticos."""
         try:
@@ -180,7 +202,7 @@ class VistaMonitoreo(tk.Frame):
     def __init__(self, parent):
         super().__init__(parent)
         self.controlador = None
-        self.logger = logging.getLogger(__name__)
+        self.logger = LoggerAresitos.get_instance()
         self.flag_monitoreo = ThreadSafeFlag()
         self.flag_red = ThreadSafeFlag()
         self.terminal_output = None
@@ -206,22 +228,24 @@ class VistaMonitoreo(tk.Frame):
         self.paned_window = tk.PanedWindow(self, orient="vertical", bg="#232629")
         self.paned_window.pack(fill="both", expand=True, padx=5, pady=5)
 
-        # --- Frame superior: Pantalla informativa ---
-        self.info_frame = tk.LabelFrame(
-            self.paned_window,
-            text="Información de Monitoreo y Cuarentena",
-            bg="#232629",
-            fg="#ffaa00",
-            font=("Arial", 10, "bold")
-        )
-        self.info_label = tk.Label(
+        # --- Header superior unificado ---
+        self.info_frame = tk.Frame(self.paned_window, bg="#232629")
+        header = tk.Label(
             self.info_frame,
-            text="Panel de monitoreo y cuarentena: aquí se muestran eventos, alertas y estado del sistema en tiempo real.",
+            text="Monitoreo y Cuarentena",
             bg="#232629",
             fg="#ffaa00",
+            font=("Arial", 16, "bold")
+        )
+        header.pack(pady=(10, 2))
+        desc = tk.Label(
+            self.info_frame,
+            text="Supervisa el sistema, detecta amenazas y gestiona la cuarentena de forma centralizada.",
+            bg="#232629",
+            fg="#cccccc",
             font=("Arial", 10)
         )
-        self.info_label.pack(fill="x", padx=8, pady=6)
+        desc.pack(pady=(0, 8))
         self.paned_window.add(self.info_frame, minsize=60)
 
         # --- Frame medio: Contenido principal (navegación y pestañas) ---
@@ -357,17 +381,34 @@ class VistaMonitoreo(tk.Frame):
             messagebox.showerror("Error", error_msg)
     
     def log_to_terminal(self, mensaje):
-        """Registrar mensaje en el terminal con formato estándar."""
+        """Registrar mensaje en el terminal con formato estándar y logger centralizado."""
         try:
             import datetime
             timestamp = datetime.datetime.now().strftime("%H:%M:%S")
             mensaje_completo = f"[{timestamp}] {mensaje}\n"
-            # Log al terminal integrado estándar
             if hasattr(self, 'terminal_output') and self.terminal_output is not None:
                 self.terminal_output.insert(tk.END, mensaje_completo)
                 self.terminal_output.see(tk.END)
+            # Registrar en logger centralizado
+            self.logger.log(mensaje, nivel="INFO", modulo="MONITOREO")
         except Exception as e:
             print(f"Error en log_to_terminal: {e}")
+
+    def _log_terminal(self, mensaje, modulo="MONITOREO", nivel="INFO"):
+        """Registrar mensaje en el terminal global, logger y en la interfaz de monitoreo."""
+        try:
+            from aresitos.vista.vista_dashboard import VistaDashboard
+            VistaDashboard.log_actividad_global(mensaje, modulo, nivel)
+            if hasattr(self, 'logger') and self.logger:
+                self.logger.log(mensaje, nivel=nivel, modulo=modulo)
+            import datetime
+            timestamp = datetime.datetime.now().strftime("%H:%M:%S")
+            mensaje_formateado = f"[{timestamp}] {mensaje}\n"
+            if hasattr(self, 'terminal_output') and self.terminal_output is not None:
+                self.terminal_output.insert(tk.END, mensaje_formateado)
+                self.terminal_output.see(tk.END)
+        except Exception as e:
+            print(f"Error logging a terminal: {e}")
     
     def sincronizar_terminal(self):
         """Función de compatibilidad - ya no necesaria con terminal estándar."""
@@ -424,20 +465,9 @@ class VistaMonitoreo(tk.Frame):
         parent = parent if parent is not None else self.notebook
         self.frame_monitor = tk.Frame(parent, bg='#2b2b2b')
         self.frame_monitor.pack(fill="both", expand=True)
-        
-        # Título
-        titulo_frame = tk.Frame(self.frame_monitor, bg='#2b2b2b')
-        titulo_frame.pack(fill="x", pady=(0, 15))
-        
-        titulo_label = tk.Label(titulo_frame, text=" MONITOR DEL SISTEMA", 
-                              font=('Arial', 14, 'bold'),
-                              bg='#2b2b2b', fg='#ff6633')
-        titulo_label.pack()
-        
         # Frame de controles con tema
         control_frame = tk.Frame(self.frame_monitor, bg='#2b2b2b')
-        control_frame.pack(fill="x", pady=(0, 10))
-        
+        control_frame.pack(fill="x", pady=(10, 10))
         self.btn_iniciar_monitor = tk.Button(
             control_frame, text=" Iniciar Monitoreo", 
             command=self.iniciar_monitoreo,
@@ -447,7 +477,6 @@ class VistaMonitoreo(tk.Frame):
             activebackground="#a8ffb3", activeforeground="#ff6633"
         )
         self.btn_iniciar_monitor.pack(side="left", padx=(0, 8), pady=4)
-
         self.btn_detener_monitor = tk.Button(
             control_frame, text=" Detener Monitoreo",
             command=self.detener_monitoreo,
@@ -458,7 +487,6 @@ class VistaMonitoreo(tk.Frame):
             activebackground="#ffb3b3", activeforeground="#232629"
         )
         self.btn_detener_monitor.pack(side="left", padx=(0, 8), pady=4)
-
         self.btn_red = tk.Button(
             control_frame, text=" Monitorear Red", 
             command=self.monitorear_red,
@@ -468,7 +496,6 @@ class VistaMonitoreo(tk.Frame):
             activebackground="#b3f0ff", activeforeground="#ff6633"
         )
         self.btn_red.pack(side="left", padx=(0, 8), pady=4)
-
         self.btn_cancelar_red = tk.Button(
             control_frame, text=" Cancelar Red", 
             command=self.cancelar_monitoreo_red,
@@ -479,6 +506,17 @@ class VistaMonitoreo(tk.Frame):
             activebackground="#ffd9b3", activeforeground="#ff6633"
         )
         self.btn_cancelar_red.pack(side="left", padx=(0, 8), pady=4)
+
+        # Campo y botón para poner en cuarentena
+        cuarentena_frame = tk.Frame(control_frame, bg='#2b2b2b')
+        cuarentena_frame.pack(side="left", padx=(20, 0), pady=4)
+        self.cuarentena_entry = tk.Entry(cuarentena_frame, width=32, font=('Consolas', 10))
+        self.cuarentena_entry.pack(side="left", padx=(0, 5))
+        self.cuarentena_entry.insert(0, "Ruta del archivo a poner en cuarentena")
+        btn_cuarentena = tk.Button(cuarentena_frame, text="Poner en cuarentena",
+                                   command=self._poner_en_cuarentena_desde_entry,
+                                   bg="#ff5555", fg='white', font=("Arial", 10, "bold"), relief='flat', padx=10, pady=5)
+        btn_cuarentena.pack(side="left")
 
         self.label_estado = tk.Label(control_frame, text="Estado: Detenido",
                                    bg='#2b2b2b', fg='#ffffff',
@@ -493,40 +531,74 @@ class VistaMonitoreo(tk.Frame):
                                                     selectbackground='#404040')
         self.text_monitor.pack(fill="both", expand=True)
 
-    def detener_monitoreo(self):
-        """Detener monitoreo de forma segura, sin crash ni deslogueo (usando ThreadSafeFlag)."""
+    def _poner_en_cuarentena_desde_entry(self):
+        """Pone en cuarentena el archivo especificado en el campo de entrada."""
+        ruta = self.cuarentena_entry.get().strip()
+        if not ruta or ruta == "Ruta del archivo a poner en cuarentena":
+            self.log_to_terminal("Debe especificar la ruta del archivo a poner en cuarentena.")
+            return
+        if not hasattr(self, 'controlador') or not self.controlador or not hasattr(self.controlador, 'controlador_cuarentena'):
+            self.log_to_terminal("Controlador de cuarentena no disponible.")
+            return
         try:
-            self.flag_monitoreo.set()
+            resultado = self.controlador.controlador_cuarentena.cuarentenar_archivo(ruta, razon="Manual desde Monitoreo")
+            if resultado.get('exito'):
+                self.log_to_terminal(f"Archivo puesto en cuarentena: {ruta}")
+                if hasattr(self, '_enviar_a_reportes'):
+                    self._enviar_a_reportes('poner_en_cuarentena', f"Archivo puesto en cuarentena: {ruta}", False)
+            else:
+                self.log_to_terminal(f"Error poniendo en cuarentena: {resultado.get('mensaje','sin mensaje')}")
+                if hasattr(self, '_enviar_a_reportes'):
+                    self._enviar_a_reportes('poner_en_cuarentena', f"Error: {resultado.get('mensaje','sin mensaje')}", True)
+        except Exception as e:
+            self.log_to_terminal(f"Excepción poniendo en cuarentena: {e}")
+            if hasattr(self, '_enviar_a_reportes'):
+                self._enviar_a_reportes('poner_en_cuarentena', str(e), True)
+
+    def detener_monitoreo(self):
+        """Detener monitoreo de forma segura, invocando al controlador y reportando."""
+        try:
+            exito = False
+            mensaje = ""
+            if hasattr(self, 'controlador') and self.controlador and hasattr(self.controlador, 'detener_monitoreo'):
+                resultado = self.controlador.detener_monitoreo()
+                exito = resultado.get('exito', False)
+                mensaje = resultado.get('mensaje', resultado.get('error', ''))
+                if exito:
+                    if self.text_monitor is not None:
+                        self.text_monitor.insert(tk.END, "\nMonitoreo avanzado detenido correctamente.\n")
+                    self._enviar_a_reportes('detener_monitoreo', 'Monitoreo avanzado detenido correctamente.', False)
+                    self.log_to_terminal("Monitoreo avanzado detenido correctamente.")
+                else:
+                    if self.text_monitor is not None:
+                        self.text_monitor.insert(tk.END, f"\n[ERROR] No se pudo detener monitoreo avanzado: {mensaje}\n")
+                    self._enviar_a_reportes('detener_monitoreo', f"Error: {mensaje}", True)
+                    self.log_to_terminal(f"[ERROR] No se pudo detener monitoreo avanzado: {mensaje}")
+            else:
+                # Fallback: detener flag de monitoreo básico
+                self.flag_monitoreo.set()
+                if self.text_monitor is not None:
+                    self.text_monitor.insert(tk.END, "\nMonitoreo básico detenido.\n")
+                self._enviar_a_reportes('detener_monitoreo', 'Monitoreo básico detenido.', False)
+                self.log_to_terminal("Monitoreo básico detenido.")
             if self.btn_iniciar_monitor is not None:
                 self.btn_iniciar_monitor.config(state="normal")
             if self.btn_detener_monitor is not None:
                 self.btn_detener_monitor.config(state="disabled")
             if self.label_estado is not None:
                 self.label_estado.config(text="Estado: Detenido")
-            if self.text_monitor is not None:
-                self.text_monitor.insert(tk.END, "\nMonitoreo detenido de forma segura.\n")
         except Exception as e:
             if self.text_monitor is not None:
                 self.text_monitor.insert(tk.END, f"\n[ERROR] al detener monitoreo: {e}\n")
+            self._enviar_a_reportes('detener_monitoreo', str(e), True)
+            self.log_to_terminal(f"[ERROR] al detener monitoreo: {e}")
     
     def crear_pestana_cuarentena(self, parent=None):
         parent = parent if parent is not None else self.notebook
         self.frame_cuarentena = tk.Frame(parent, bg='#232629')
-        # No hacer pack aquí, solo cuando se muestre la pestaña
-        
-        # Título
-        titulo_frame = tk.Frame(self.frame_cuarentena, bg='#2b2b2b')
-        titulo_frame.pack(fill="x", pady=(0, 15))
-        
-        titulo_label = tk.Label(titulo_frame, text=" GESTIÓN DE CUARENTENA", 
-                              font=('Arial', 14, 'bold'),
-                              bg='#2b2b2b', fg='#ff6633')
-        titulo_label.pack()
-        
         # Frame de controles con tema
         control_frame = tk.Frame(self.frame_cuarentena, bg='#2b2b2b')
-        control_frame.pack(fill="x", pady=(0, 10))
-
+        control_frame.pack(fill="x", pady=(10, 10))
         self.btn_agregar_cuarentena = tk.Button(
             control_frame, text=" Agregar Archivo",
             command=self.agregar_a_cuarentena,
@@ -536,7 +608,6 @@ class VistaMonitoreo(tk.Frame):
             activebackground="#ffd9b3", activeforeground="#ff6633"
         )
         self.btn_agregar_cuarentena.pack(side="left", padx=(0, 8), pady=4)
-
         self.btn_listar_cuarentena = tk.Button(
             control_frame, text=" Listar Archivos",
             command=self.listar_cuarentena,
@@ -546,8 +617,6 @@ class VistaMonitoreo(tk.Frame):
             activebackground="#b3f0ff", activeforeground="#ff6633"
         )
         self.btn_listar_cuarentena.pack(side="left", padx=(0, 8), pady=4)
-
-
         # Selector de archivo en cuarentena
         self.selector_frame = tk.Frame(self.frame_cuarentena, bg='#232629')
         self.selector_frame.pack(fill="x", pady=(0, 8))
@@ -613,8 +682,38 @@ class VistaMonitoreo(tk.Frame):
         pass
 
     def iniciar_monitoreo(self):
-        """Iniciar monitoreo completo con herramientas avanzadas de Linux."""
-        pass
+        """Iniciar monitoreo completo usando el controlador, con fallback a monitoreo básico."""
+        try:
+            if hasattr(self, 'controlador') and self.controlador and hasattr(self.controlador, 'iniciar_monitoreo'):
+                resultado = self.controlador.iniciar_monitoreo()
+                if resultado.get('exito'):
+                    if self.btn_iniciar_monitor is not None:
+                        self.btn_iniciar_monitor.config(state="disabled")
+                    if self.btn_detener_monitor is not None:
+                        self.btn_detener_monitor.config(state="normal")
+                    if self.label_estado is not None:
+                        self.label_estado.config(text="Estado: Activo (Avanzado)")
+                    if self.text_monitor is not None:
+                        self.text_monitor.insert(tk.END, "Monitoreo avanzado iniciado correctamente.\n")
+                    self._enviar_a_reportes('iniciar_monitoreo', 'Monitoreo avanzado iniciado correctamente.', False)
+                    self.log_to_terminal("Monitoreo avanzado iniciado correctamente.")
+                else:
+                    if self.text_monitor is not None:
+                        self.text_monitor.insert(tk.END, f"[ERROR] No se pudo iniciar monitoreo avanzado: {resultado.get('error','Error desconocido')}\n")
+                    self._enviar_a_reportes('iniciar_monitoreo', f"Error: {resultado.get('error','Error desconocido')}", True)
+                    self.log_to_terminal(f"[ERROR] No se pudo iniciar monitoreo avanzado: {resultado.get('error','Error desconocido')}")
+                    # Fallback a monitoreo básico
+                    self._iniciar_monitoreo_basico()
+            else:
+                # Fallback a monitoreo básico si no hay controlador
+                if self.text_monitor is not None:
+                    self.text_monitor.insert(tk.END, "[INFO] Controlador no disponible, iniciando monitoreo básico...\n")
+                self._iniciar_monitoreo_basico()
+        except Exception as e:
+            if self.text_monitor is not None:
+                self.text_monitor.insert(tk.END, f"[ERROR] Excepción al iniciar monitoreo: {e}\n")
+            self._enviar_a_reportes('iniciar_monitoreo', str(e), True)
+            self.log_to_terminal(f"[ERROR] Excepción al iniciar monitoreo: {e}")
 
     def _iniciar_monitoreo_basico(self):
         """Iniciar monitoreo básico cuando el controlador no está disponible."""
@@ -1977,13 +2076,13 @@ class VistaMonitoreo(tk.Frame):
                         resultado = subprocess.run(['ss', '-tuln'], 
                                                  capture_output=True, text=True, timeout=10)
                         if resultado.returncode == 0:
-                            lineas = resultado.stdout.strip().split('\n')[1:]  # Skip header
-                            conexiones_tcp = sum(1 for linea in lineas if linea.strip() and 'tcp' in linea.lower())
-                            conexiones_udp = sum(1 for linea in lineas if linea.strip() and 'udp' in linea.lower())
-                            self.after(0, self._actualizar_texto_monitor, f"CONEXIONES ACTIVAS: TCP:{conexiones_tcp} UDP:{conexiones_udp}\n")
+                            lineas = resultado.stdout.strip().split('\n')
+                            puertos_tcp = sum(1 for linea in lineas if linea.strip() and 'tcp' in linea.lower())
+                            puertos_udp = sum(1 for linea in lineas if linea.strip() and 'udp' in linea.lower())
+                            self.after(0, self._actualizar_texto_monitor, f"CONEXIONES ACTIVAS: TCP:{puertos_tcp} UDP:{puertos_udp}\n")
                             
                             # Mostrar puertos en escucha más relevantes
-                            puertos_criticos = ['22', '80', '443', '8080', '3389', '4444', '5555']
+                            puertos_criticos = ['22', '80', '443', '21', '25', '53', '110', '143', '993', '995']
                             for linea in lineas:
                                 if any(puerto in linea for puerto in puertos_criticos):
                                     partes = linea.split()
@@ -2126,19 +2225,4 @@ class VistaMonitoreo(tk.Frame):
     
     def actualizar_estado(self):
         pass
-    
-    def _log_terminal(self, mensaje, modulo="MONITOREO", nivel="INFO"):
-        """Registrar mensaje en el terminal integrado global."""
-        try:
-            # Usar el terminal global de VistaDashboard
-            from aresitos.vista.vista_dashboard import VistaDashboard
-            VistaDashboard.log_actividad_global(mensaje, modulo, nivel)
-            
-        except Exception as e:
-            # Fallback a consola si hay problemas
-            print(f"[{modulo}] {mensaje}")
-            print(f"Error logging a terminal: {e}")
-
-
-# RESUMEN: Sistema de monitoreo de red y procesos usando herramientas nativas.
 

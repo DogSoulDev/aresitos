@@ -212,7 +212,7 @@ class VistaReportes(tk.Frame):
                               bg=self.colors['bg_secondary'], fg=self.colors['fg_accent'])
         right_label.pack(anchor=tk.W, pady=(0, 10))
 
-     # Frame de configuración con tema
+        # Frame de configuración con tema
         config_frame = tk.Frame(right_frame, bg=self.colors['bg_secondary'])
         config_frame.pack(fill=tk.X, pady=(0, 10))
 
@@ -230,12 +230,12 @@ class VistaReportes(tk.Frame):
         self.incluir_cuarentena = tk.BooleanVar(value=True)
 
         check_style = {'font': ('Arial', 11, 'bold'), 'bg': self.colors['bg_secondary'], 'activebackground': self.colors['bg_secondary'], 'fg': self.colors['fg_primary'], 'anchor': 'w', 'padx': 12, 'pady': 4}
-        tk.Checkbutton(config_frame, text="Dashboard (Resumen del sistema)", variable=self.incluir_dashboard, **check_style).pack(fill=tk.X, pady=2)
-        tk.Checkbutton(config_frame, text="Escaneo (Vulnerabilidades)", variable=self.incluir_escaneo, **check_style).pack(fill=tk.X, pady=2)
-        tk.Checkbutton(config_frame, text="Monitoreo (Procesos y eventos)", variable=self.incluir_monitoreo, **check_style).pack(fill=tk.X, pady=2)
-        tk.Checkbutton(config_frame, text="FIM (Integridad de archivos)", variable=self.incluir_fim, **check_style).pack(fill=tk.X, pady=2)
-        tk.Checkbutton(config_frame, text="SIEM (Eventos de seguridad)", variable=self.incluir_siem, **check_style).pack(fill=tk.X, pady=2)
-        tk.Checkbutton(config_frame, text="Cuarentena (Amenazas aisladas)", variable=self.incluir_cuarentena, **check_style).pack(fill=tk.X, pady=2)
+        tk.Checkbutton(config_frame, text="Dashboard (Resumen del sistema)", variable=self.incluir_dashboard, command=self.actualizar_reporte, **check_style).pack(fill=tk.X, pady=2)
+        tk.Checkbutton(config_frame, text="Escaneo (Vulnerabilidades)", variable=self.incluir_escaneo, command=self.actualizar_reporte, **check_style).pack(fill=tk.X, pady=2)
+        tk.Checkbutton(config_frame, text="Monitoreo (Procesos y eventos)", variable=self.incluir_monitoreo, command=self.actualizar_reporte, **check_style).pack(fill=tk.X, pady=2)
+        tk.Checkbutton(config_frame, text="FIM (Integridad de archivos)", variable=self.incluir_fim, command=self.actualizar_reporte, **check_style).pack(fill=tk.X, pady=2)
+        tk.Checkbutton(config_frame, text="SIEM (Eventos de seguridad)", variable=self.incluir_siem, command=self.actualizar_reporte, **check_style).pack(fill=tk.X, pady=2)
+        tk.Checkbutton(config_frame, text="Cuarentena (Amenazas aisladas)", variable=self.incluir_cuarentena, command=self.actualizar_reporte, **check_style).pack(fill=tk.X, pady=2)
 
         # --- BOTONES DE ACCIÓN PRINCIPALES ---
         # Frame para agrupar botones
@@ -337,7 +337,7 @@ class VistaReportes(tk.Frame):
             **button_style
         )
         btn_informe_kali.pack(fill=tk.X, pady=2, padx=6)
-    # ...existing code...
+
     def exportar_pdf(self):
         """Exportar el reporte mostrado a PDF usando enscript y ps2pdf (nativo Kali)."""
         import tempfile, os, subprocess
@@ -1432,4 +1432,27 @@ class VistaReportes(tk.Frame):
             self.after_idle(_update)
         except (tk.TclError, AttributeError):
             pass
+    
+    def mostrar_log_centralizado(self):
+        """Muestra el log centralizado de LoggerAresitos en una ventana nueva."""
+        from aresitos.utils.logger_aresitos import LoggerAresitos
+        log = LoggerAresitos.get_instance().get_log()
+        ventana = tk.Toplevel(self)
+        ventana.title("Log Centralizado de ARESITOS")
+        ventana.geometry("900x500")
+        ventana.configure(bg=self.colors.get('bg_secondary', '#f0f0f0'))
+        text_log = scrolledtext.ScrolledText(ventana, bg='#1e1e1e', fg='#00ff00', font=("Consolas", 10))
+        text_log.pack(fill=tk.BOTH, expand=True, padx=10, pady=10)
+        for linea in log:
+            text_log.insert(tk.END, linea + "\n")
+        text_log.see(tk.END)
+        text_log.config(state=tk.DISABLED)
+
+    def crear_boton_log_centralizado(self, parent=None):
+        """Crea un botón para mostrar el log centralizado en la interfaz de reportes."""
+        if parent is None:
+            parent = self
+        btn = tk.Button(parent, text="Ver Log Centralizado", command=self.mostrar_log_centralizado,
+                        bg=self.colors.get('info', '#007acc'), fg='white', font=("Arial", 9, "bold"))
+        btn.pack(side=tk.TOP, anchor=tk.NE, padx=10, pady=5)
 

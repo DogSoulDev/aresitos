@@ -28,6 +28,28 @@ except ImportError:
     burp_theme = None
 
 class VistaSIEM(tk.Frame):
+    def _enviar_a_reportes(self, comando, salida, es_error=False):
+        """Envía la información de la ejecución a la vista de reportes si está disponible."""
+        try:
+            vista_reportes = None
+            if hasattr(self.master, 'vista_reportes'):
+                vista_reportes = getattr(self.master, 'vista_reportes', None)
+            else:
+                vistas = getattr(self.master, 'vistas', None)
+                if vistas and hasattr(vistas, 'get'):
+                    vista_reportes = vistas.get('reportes', None)
+            if vista_reportes:
+                import datetime
+                datos = {
+                    'timestamp': datetime.datetime.now().isoformat(),
+                    'modulo': 'siem',
+                    'comando': comando,
+                    'salida': salida,
+                    'es_error': es_error
+                }
+                vista_reportes.set_datos_modulo('siem', datos)
+        except Exception:
+            pass
     def crear_tab_alertas(self):
         """Crear pestaña de alertas y correlación."""
         if self.theme:
@@ -166,21 +188,37 @@ class VistaSIEM(tk.Frame):
         # PanedWindow principal para dividir contenido y terminal
         self.paned_window = tk.PanedWindow(self, orient="vertical", bg=self.colors['bg_primary'])
         self.paned_window.pack(fill="both", expand=True, padx=5, pady=5)
-        
+
         # Frame superior para el contenido principal
         contenido_frame = tk.Frame(self.paned_window, bg=self.colors['bg_primary'])
         self.paned_window.add(contenido_frame, minsize=400)
-        
+
         # Frame título con tema
         titulo_frame = tk.Frame(contenido_frame, bg=self.colors['bg_primary'])
         titulo_frame.pack(fill=tk.X, pady=(10, 10))
-        
+
         # Título con tema Burp Suite
         titulo = tk.Label(titulo_frame, text="SIEM - Security Information & Event Management",
                          font=('Arial', 16, 'bold'),
                          bg=self.colors['bg_primary'], fg=self.colors['fg_accent'])
         titulo.pack()
-        
+
+        # BOTÓN PONER EN CUARENTENA
+        cuarentena_label = tk.Label(contenido_frame, text="Cuarentena de Archivos", 
+                                  bg=self.colors['bg_primary'], fg=self.colors['danger'],
+                                  font=('Arial', 11, 'bold'))
+        cuarentena_label.pack(anchor="w", padx=10, pady=(0, 5))
+
+        self.cuarentena_entry = tk.Entry(contenido_frame, width=40, font=('Consolas', 10))
+        self.cuarentena_entry.pack(fill="x", padx=10, pady=(0, 5))
+        self.cuarentena_entry.insert(0, "Ruta del archivo a poner en cuarentena")
+
+        btn_cuarentena = tk.Button(contenido_frame, text="Poner en cuarentena",
+                                   command=self._poner_en_cuarentena_desde_entry,
+                                   bg=self.colors['danger'], fg='white',
+                                   font=('Arial', 10, 'bold'), relief='flat', padx=15, pady=8)
+        btn_cuarentena.pack(fill="x", padx=10, pady=5)
+
         # Notebook para múltiples pestañas con tema
         if self.theme:
             style = ttk.Style()
@@ -189,21 +227,42 @@ class VistaSIEM(tk.Frame):
         else:
             self.notebook = ttk.Notebook(contenido_frame)
         self.notebook.pack(fill=tk.BOTH, expand=True, padx=10, pady=10)
-        
+
         # Pestaña 1: Monitoreo en Tiempo Real
         self.crear_tab_monitoreo()
-        
+
         # Pestaña 2: Análisis de Logs
         self.crear_tab_analisis()
-        
+
         # Pestaña 3: Alertas y Correlación
         self.crear_tab_alertas()
-        
+
         # Pestaña 4: Forense Digital
         self.crear_tab_forense()
-        
+
         # Crear terminal integrado
         self.crear_terminal_integrado()
+
+    def _poner_en_cuarentena_desde_entry(self):
+        """Pone en cuarentena el archivo especificado en el campo de entrada."""
+        ruta = self.cuarentena_entry.get().strip()
+        if not ruta or ruta == "Ruta del archivo a poner en cuarentena":
+            self.log_to_terminal("Debe especificar la ruta del archivo a poner en cuarentena.")
+            return
+        if not hasattr(self, 'controlador') or not self.controlador or not hasattr(self.controlador, 'controlador_cuarentena'):
+            self.log_to_terminal("Controlador de cuarentena no disponible.")
+            return
+        try:
+            resultado = self.controlador.controlador_cuarentena.cuarentenar_archivo(ruta, razon="Manual desde SIEM")
+            if resultado.get('exito'):
+                self.log_to_terminal(f"Archivo puesto en cuarentena: {ruta}")
+                self._enviar_a_reportes('poner_en_cuarentena', f"Archivo puesto en cuarentena: {ruta}", False)
+            else:
+                self.log_to_terminal(f"Error poniendo en cuarentena: {resultado.get('mensaje','sin mensaje')}")
+                self._enviar_a_reportes('poner_en_cuarentena', f"Error: {resultado.get('mensaje','sin mensaje')}", True)
+        except Exception as e:
+            self.log_to_terminal(f"Excepción poniendo en cuarentena: {e}")
+            self._enviar_a_reportes('poner_en_cuarentena', str(e), True)
     
     def crear_terminal_integrado(self):
         """Crear terminal integrado SIEM con diseño estándar coherente."""
@@ -340,6 +399,8 @@ class VistaSIEM(tk.Frame):
             return
         import platform
         sudo_manager = get_sudo_manager()
+        salida = ""
+        es_error = False
         if platform.system() == "Windows":
             import subprocess
             comando_completo = ["cmd", "/c", comando]
@@ -347,22 +408,36 @@ class VistaSIEM(tk.Frame):
                 resultado = subprocess.run(comando_completo, capture_output=True, text=True, timeout=30)
                 if resultado.stdout:
                     self.terminal_output.insert(tk.END, resultado.stdout)
+                    salida += resultado.stdout
                 if resultado.stderr:
                     self.terminal_output.insert(tk.END, f"ERROR: {resultado.stderr}")
+                    salida += f"ERROR: {resultado.stderr}"
+                    es_error = True
             except subprocess.TimeoutExpired:
                 self.terminal_output.insert(tk.END, "ERROR: Comando timeout (30s)\n")
+                salida += "ERROR: Comando timeout (30s)\n"
+                es_error = True
             except Exception as e:
                 self.terminal_output.insert(tk.END, f"ERROR ejecutando comando: {e}\n")
+                salida += f"ERROR ejecutando comando: {e}\n"
+                es_error = True
         else:
             try:
                 resultado = sudo_manager.execute_sudo_command(comando, timeout=30)
                 if resultado.stdout:
                     self.terminal_output.insert(tk.END, resultado.stdout)
+                    salida += resultado.stdout
                 if resultado.stderr:
                     self.terminal_output.insert(tk.END, f"ERROR: {resultado.stderr}")
+                    salida += f"ERROR: {resultado.stderr}"
+                    es_error = True
             except Exception as e:
                 self.terminal_output.insert(tk.END, f"ERROR ejecutando comando: {e}\n")
+                salida += f"ERROR ejecutando comando: {e}\n"
+                es_error = True
         self.terminal_output.see(tk.END)
+        # Enviar a reportes
+        self._enviar_a_reportes(comando, salida, es_error)
     
     def _mostrar_ayuda_comandos(self):
         """Mostrar ayuda de comandos disponibles."""
@@ -717,164 +792,218 @@ class VistaSIEM(tk.Frame):
     # === NUEVOS HANDLERS FORENSE ===
     def usar_exiftool(self):
         def ejecutar():
+            salida = "EXIFTOOL - Metadatos de archivos\n" + "="*50 + "\n"
+            es_error = False
             try:
-                self._actualizar_texto_forense("EXIFTOOL - Metadatos de archivos\n" + "="*50 + "\n")
                 import subprocess
                 try:
                     resultado = subprocess.run(['exiftool', '-ver'], capture_output=True, text=True, timeout=10)
                     if resultado.returncode == 0:
-                        self._actualizar_texto_forense("OK exiftool disponible\n\n")
-                        self._actualizar_texto_forense("Comandos útiles:\n  exiftool archivo.jpg\n  exiftool -a -u -g1 archivo.docx\n  exiftool -r carpeta/\n\n")
+                        salida += "OK exiftool disponible\n\n"
+                        salida += "Comandos útiles:\n  exiftool archivo.jpg\n  exiftool -a -u -g1 archivo.docx\n  exiftool -r carpeta/\n\n"
                     else:
-                        self._actualizar_texto_forense("ERROR ejecutando exiftool\n")
+                        salida += "ERROR ejecutando exiftool\n"
+                        es_error = True
                 except FileNotFoundError:
-                    self._actualizar_texto_forense("exiftool no encontrado. Instalar: sudo apt install exiftool\n")
+                    salida += "exiftool no encontrado. Instalar: sudo apt install exiftool\n"
+                    es_error = True
             except Exception as e:
-                self._actualizar_texto_forense(f"ERROR usando exiftool: {str(e)}\n")
+                salida += f"ERROR usando exiftool: {str(e)}\n"
+                es_error = True
+            self._actualizar_texto_forense(salida)
+            self._enviar_a_reportes('exiftool -ver', salida, es_error)
         threading.Thread(target=ejecutar, daemon=True).start()
 
     def usar_photorec(self):
         def ejecutar():
+            salida = "PHOTOREC - Recuperación de archivos\n" + "="*50 + "\n"
+            es_error = False
             try:
-                self._actualizar_texto_forense("PHOTOREC - Recuperación de archivos\n" + "="*50 + "\n")
                 import subprocess
                 try:
                     resultado = subprocess.run(['photorec', '--version'], capture_output=True, text=True, timeout=10)
                     if resultado.returncode == 0:
-                        self._actualizar_texto_forense("OK photorec disponible\n\n")
-                        self._actualizar_texto_forense("Comando: photorec\n  photorec (interfaz interactiva)\n  photorec /log /d carpeta_salida imagen.dd\n\n")
+                        salida += "OK photorec disponible\n\n"
+                        salida += "Comando: photorec\n  photorec (interfaz interactiva)\n  photorec /log /d carpeta_salida imagen.dd\n\n"
                     else:
-                        self._actualizar_texto_forense("ERROR ejecutando photorec\n")
+                        salida += "ERROR ejecutando photorec\n"
+                        es_error = True
                 except FileNotFoundError:
-                    self._actualizar_texto_forense("photorec no encontrado. Instalar: sudo apt install testdisk\n")
+                    salida += "photorec no encontrado. Instalar: sudo apt install testdisk\n"
+                    es_error = True
             except Exception as e:
-                self._actualizar_texto_forense(f"ERROR usando photorec: {str(e)}\n")
+                salida += f"ERROR usando photorec: {str(e)}\n"
+                es_error = True
+            self._actualizar_texto_forense(salida)
+            self._enviar_a_reportes('photorec --version', salida, es_error)
         threading.Thread(target=ejecutar, daemon=True).start()
 
     def usar_hexdump(self):
         def ejecutar():
+            salida = "HEXDUMP - Visualización hexadecimal\n" + "="*50 + "\n"
+            es_error = False
             try:
-                self._actualizar_texto_forense("HEXDUMP - Visualización hexadecimal\n" + "="*50 + "\n")
                 import subprocess
                 try:
                     resultado = subprocess.run(['hexdump', '--version'], capture_output=True, text=True, timeout=10)
                     if resultado.returncode == 0:
-                        self._actualizar_texto_forense("OK hexdump disponible\n\n")
-                        self._actualizar_texto_forense("Comandos:\n  hexdump -C archivo.bin\n  hexdump -n 256 archivo.bin\n\n")
+                        salida += "OK hexdump disponible\n\n"
+                        salida += "Comandos:\n  hexdump -C archivo.bin\n  hexdump -n 256 archivo.bin\n\n"
                     else:
-                        self._actualizar_texto_forense("ERROR ejecutando hexdump\n")
+                        salida += "ERROR ejecutando hexdump\n"
+                        es_error = True
                 except FileNotFoundError:
-                    self._actualizar_texto_forense("hexdump no encontrado. Instalar: sudo apt install bsdmainutils\n")
+                    salida += "hexdump no encontrado. Instalar: sudo apt install bsdmainutils\n"
+                    es_error = True
             except Exception as e:
-                self._actualizar_texto_forense(f"ERROR usando hexdump: {str(e)}\n")
+                salida += f"ERROR usando hexdump: {str(e)}\n"
+                es_error = True
+            self._actualizar_texto_forense(salida)
+            self._enviar_a_reportes('hexdump --version', salida, es_error)
         threading.Thread(target=ejecutar, daemon=True).start()
 
     def usar_xxd(self):
         def ejecutar():
+            salida = "XXD - Editor hexadecimal\n" + "="*50 + "\n"
+            es_error = False
             try:
-                self._actualizar_texto_forense("XXD - Editor hexadecimal\n" + "="*50 + "\n")
                 import subprocess
                 try:
                     resultado = subprocess.run(['xxd', '-h'], capture_output=True, text=True, timeout=10)
                     if resultado.returncode == 0:
-                        self._actualizar_texto_forense("OK xxd disponible\n\n")
-                        self._actualizar_texto_forense("Comandos:\n  xxd archivo.bin\n  xxd -r archivo.hex > archivo.bin\n\n")
+                        salida += "OK xxd disponible\n\n"
+                        salida += "Comandos:\n  xxd archivo.bin\n  xxd -r archivo.hex > archivo.bin\n\n"
                     else:
-                        self._actualizar_texto_forense("ERROR ejecutando xxd\n")
+                        salida += "ERROR ejecutando xxd\n"
+                        es_error = True
                 except FileNotFoundError:
-                    self._actualizar_texto_forense("xxd no encontrado. Instalar: sudo apt install xxd\n")
+                    salida += "xxd no encontrado. Instalar: sudo apt install xxd\n"
+                    es_error = True
             except Exception as e:
-                self._actualizar_texto_forense(f"ERROR usando xxd: {str(e)}\n")
+                salida += f"ERROR usando xxd: {str(e)}\n"
+                es_error = True
+            self._actualizar_texto_forense(salida)
+            self._enviar_a_reportes('xxd -h', salida, es_error)
         threading.Thread(target=ejecutar, daemon=True).start()
 
     def usar_hashdeep(self):
         def ejecutar():
+            salida = "HASHDEEP - Hashes recursivos\n" + "="*50 + "\n"
+            es_error = False
             try:
-                self._actualizar_texto_forense("HASHDEEP - Hashes recursivos\n" + "="*50 + "\n")
                 import subprocess
                 try:
                     resultado = subprocess.run(['hashdeep', '-v'], capture_output=True, text=True, timeout=10)
                     if resultado.returncode == 0:
-                        self._actualizar_texto_forense("OK hashdeep disponible\n\n")
-                        self._actualizar_texto_forense("Comandos:\n  hashdeep -r carpeta/\n  hashdeep -c md5,sha1,sha256 archivo\n\n")
+                        salida += "OK hashdeep disponible\n\n"
+                        salida += "Comandos:\n  hashdeep -r carpeta/\n  hashdeep -c md5,sha1,sha256 archivo\n\n"
                     else:
-                        self._actualizar_texto_forense("ERROR ejecutando hashdeep\n")
+                        salida += "ERROR ejecutando hashdeep\n"
+                        es_error = True
                 except FileNotFoundError:
-                    self._actualizar_texto_forense("hashdeep no encontrado. Instalar: sudo apt install hashdeep\n")
+                    salida += "hashdeep no encontrado. Instalar: sudo apt install hashdeep\n"
+                    es_error = True
             except Exception as e:
-                self._actualizar_texto_forense(f"ERROR usando hashdeep: {str(e)}\n")
+                salida += f"ERROR usando hashdeep: {str(e)}\n"
+                es_error = True
+            self._actualizar_texto_forense(salida)
+            self._enviar_a_reportes('hashdeep -v', salida, es_error)
         threading.Thread(target=ejecutar, daemon=True).start()
 
     def usar_testdisk(self):
         def ejecutar():
+            salida = "TESTDISK - Recuperación de particiones\n" + "="*50 + "\n"
+            es_error = False
             try:
-                self._actualizar_texto_forense("TESTDISK - Recuperación de particiones\n" + "="*50 + "\n")
                 import subprocess
                 try:
                     resultado = subprocess.run(['testdisk', '--version'], capture_output=True, text=True, timeout=10)
                     if resultado.returncode == 0:
-                        self._actualizar_texto_forense("OK testdisk disponible\n\n")
-                        self._actualizar_texto_forense("Comando: testdisk\n  testdisk (interfaz interactiva)\n\n")
+                        salida += "OK testdisk disponible\n\n"
+                        salida += "Comando: testdisk\n  testdisk (interfaz interactiva)\n\n"
                     else:
-                        self._actualizar_texto_forense("ERROR ejecutando testdisk\n")
+                        salida += "ERROR ejecutando testdisk\n"
+                        es_error = True
                 except FileNotFoundError:
-                    self._actualizar_texto_forense("testdisk no encontrado. Instalar: sudo apt install testdisk\n")
+                    salida += "testdisk no encontrado. Instalar: sudo apt install testdisk\n"
+                    es_error = True
             except Exception as e:
-                self._actualizar_texto_forense(f"ERROR usando testdisk: {str(e)}\n")
+                salida += f"ERROR usando testdisk: {str(e)}\n"
+                es_error = True
+            self._actualizar_texto_forense(salida)
+            self._enviar_a_reportes('testdisk --version', salida, es_error)
         threading.Thread(target=ejecutar, daemon=True).start()
 
     def usar_bulk_extractor(self):
         def ejecutar():
+            salida = "BULK_EXTRACTOR - Extracción masiva de artefactos\n" + "="*50 + "\n"
+            es_error = False
             try:
-                self._actualizar_texto_forense("BULK_EXTRACTOR - Extracción masiva de artefactos\n" + "="*50 + "\n")
                 import subprocess
                 try:
                     resultado = subprocess.run(['bulk_extractor', '-V'], capture_output=True, text=True, timeout=10)
                     if resultado.returncode == 0:
-                        self._actualizar_texto_forense("OK bulk_extractor disponible\n\n")
-                        self._actualizar_texto_forense("Comando:\n  bulk_extractor -o salida/ imagen.dd\n\n")
+                        salida += "OK bulk_extractor disponible\n\n"
+                        salida += "Comando:\n  bulk_extractor -o salida/ imagen.dd\n\n"
                     else:
-                        self._actualizar_texto_forense("ERROR ejecutando bulk_extractor\n")
+                        salida += "ERROR ejecutando bulk_extractor\n"
+                        es_error = True
                 except FileNotFoundError:
-                    self._actualizar_texto_forense("bulk_extractor no encontrado. Instalar: sudo apt install bulk-extractor\n")
+                    salida += "bulk_extractor no encontrado. Instalar: sudo apt install bulk-extractor\n"
+                    es_error = True
             except Exception as e:
-                self._actualizar_texto_forense(f"ERROR usando bulk_extractor: {str(e)}\n")
+                salida += f"ERROR usando bulk_extractor: {str(e)}\n"
+                es_error = True
+            self._actualizar_texto_forense(salida)
+            self._enviar_a_reportes('bulk_extractor -V', salida, es_error)
         threading.Thread(target=ejecutar, daemon=True).start()
 
     def usar_dc3dd(self):
         def ejecutar():
+            salida = "DC3DD - Clonado forense avanzado\n" + "="*50 + "\n"
+            es_error = False
             try:
-                self._actualizar_texto_forense("DC3DD - Clonado forense avanzado\n" + "="*50 + "\n")
                 import subprocess
                 try:
                     resultado = subprocess.run(['dc3dd', '--version'], capture_output=True, text=True, timeout=10)
                     if resultado.returncode == 0:
-                        self._actualizar_texto_forense("OK dc3dd disponible\n\n")
-                        self._actualizar_texto_forense("Comando:\n  dc3dd if=/dev/sdX of=imagen.dd hash=sha256 log=log.txt\n\n")
+                        salida += "OK dc3dd disponible\n\n"
+                        salida += "Comando:\n  dc3dd if=/dev/sdX of=imagen.dd hash=sha256 log=log.txt\n\n"
                     else:
-                        self._actualizar_texto_forense("ERROR ejecutando dc3dd\n")
+                        salida += "ERROR ejecutando dc3dd\n"
+                        es_error = True
                 except FileNotFoundError:
-                    self._actualizar_texto_forense("dc3dd no encontrado. Instalar: sudo apt install dc3dd\n")
+                    salida += "dc3dd no encontrado. Instalar: sudo apt install dc3dd\n"
+                    es_error = True
             except Exception as e:
-                self._actualizar_texto_forense(f"ERROR usando dc3dd: {str(e)}\n")
+                salida += f"ERROR usando dc3dd: {str(e)}\n"
+                es_error = True
+            self._actualizar_texto_forense(salida)
+            self._enviar_a_reportes('dc3dd --version', salida, es_error)
         threading.Thread(target=ejecutar, daemon=True).start()
 
     def usar_guymager(self):
         def ejecutar():
+            salida = "GUYMAGER - Adquisición forense de discos (GUI)\n" + "="*50 + "\n"
+            es_error = False
             try:
-                self._actualizar_texto_forense("GUYMAGER - Adquisición forense de discos (GUI)\n" + "="*50 + "\n")
                 import subprocess
                 try:
                     resultado = subprocess.run(['guymager', '--version'], capture_output=True, text=True, timeout=10)
                     if resultado.returncode == 0:
-                        self._actualizar_texto_forense("OK guymager disponible\n\n")
-                        self._actualizar_texto_forense("Comando: guymager (interfaz gráfica)\n\n")
+                        salida += "OK guymager disponible\n\n"
+                        salida += "Comando: guymager (interfaz gráfica)\n\n"
                     else:
-                        self._actualizar_texto_forense("ERROR ejecutando guymager\n")
+                        salida += "ERROR ejecutando guymager\n"
+                        es_error = True
                 except FileNotFoundError:
-                    self._actualizar_texto_forense("guymager no encontrado. Instalar: sudo apt install guymager\n")
+                    salida += "guymager no encontrado. Instalar: sudo apt install guymager\n"
+                    es_error = True
             except Exception as e:
-                self._actualizar_texto_forense(f"ERROR usando guymager: {str(e)}\n")
+                salida += f"ERROR usando guymager: {str(e)}\n"
+                es_error = True
+            self._actualizar_texto_forense(salida)
+            self._enviar_a_reportes('guymager --version', salida, es_error)
         threading.Thread(target=ejecutar, daemon=True).start()
     
     def _inicializar_mensajes(self):
@@ -1972,27 +2101,27 @@ class VistaSIEM(tk.Frame):
         """Analizar logs seleccionados con comandos avanzados de Linux - VERSION ORGANIZADA."""
         self.log_to_terminal("Iniciando análisis estructurado de logs...")
         def ejecutar():
+            salida_reporte = ""
+            es_error = False
             try:
                 logs_seleccionados = [path for path, var in self.logs_vars.items() if var.get()]
-                
                 if not logs_seleccionados:
-                    self.after(0, self._actualizar_texto_analisis, "WARNING: No se seleccionaron logs para analizar\n")
+                    msg = "WARNING: No se seleccionaron logs para analizar\n"
+                    self.after(0, self._actualizar_texto_analisis, msg)
                     self.after(0, lambda: self.log_to_terminal("Advertencia: No hay logs seleccionados"))
+                    self._enviar_a_reportes('analizar_logs_seleccionados', msg, True)
                     return
-                
                 # HEADER PRINCIPAL
-                self.after(0, self._actualizar_texto_analisis, "="*80 + "\n")
-                self.after(0, self._actualizar_texto_analisis, "              ANÁLISIS PROFESIONAL DE LOGS DE SEGURIDAD\n")
-                self.after(0, self._actualizar_texto_analisis, "="*80 + "\n\n")
+                header = "="*80 + "\n" + "              ANÁLISIS PROFESIONAL DE LOGS DE SEGURIDAD\n" + "="*80 + "\n\n"
+                self.after(0, self._actualizar_texto_analisis, header)
                 self.after(0, lambda: self.log_to_terminal(f"Iniciando análisis de {len(logs_seleccionados)} archivos de log..."))
-                
+                salida_reporte += header
                 total_eventos_criticos = 0
                 resumen_alertas = {}
-                
                 for idx, log_path in enumerate(logs_seleccionados, 1):
-                    self.after(0, self._actualizar_texto_analisis, f"\n[{idx}/{len(logs_seleccionados)}] " + "-"*60 + "\n")
-                    self.after(0, self._actualizar_texto_analisis, f"ARCHIVO: {log_path}\n")
-                    self.after(0, self._actualizar_texto_analisis, "-"*60 + "\n")
+                    bloque = f"\n[{idx}/{len(logs_seleccionados)}] " + "-"*60 + "\n" + f"ARCHIVO: {log_path}\n" + "-"*60 + "\n"
+                    self.after(0, self._actualizar_texto_analisis, bloque)
+                    salida_reporte += bloque
                     if os.path.exists(log_path):
                         try:
                             import subprocess
@@ -2003,19 +2132,28 @@ class VistaSIEM(tk.Frame):
                                 resultado_wc = subprocess.run(['wc', '-l', log_path], capture_output=True, text=True, timeout=5)
                                 if resultado_wc.returncode == 0:
                                     lineas_total = resultado_wc.stdout.strip().split()[0]
-                                    self.after(0, self._actualizar_texto_analisis, f"   • Total de líneas: {lineas_total}\n")
+                                    linea = f"   • Total de líneas: {lineas_total}\n"
+                                    self.after(0, self._actualizar_texto_analisis, linea)
+                                    salida_reporte += linea
                                 tamano = os.path.getsize(log_path)
                                 tamano_mb = tamano / (1024 * 1024)
-                                self.after(0, self._actualizar_texto_analisis, f"   • Tamaño: {tamano_mb:.2f} MB\n")
+                                linea = f"   • Tamaño: {tamano_mb:.2f} MB\n"
+                                self.after(0, self._actualizar_texto_analisis, linea)
+                                salida_reporte += linea
                                 import time
                                 mtime = os.path.getmtime(log_path)
                                 fecha_mod = time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(mtime))
-                                self.after(0, self._actualizar_texto_analisis, f"   • Última modificación: {fecha_mod}\n")
+                                linea = f"   • Última modificación: {fecha_mod}\n"
+                                self.after(0, self._actualizar_texto_analisis, linea)
+                                salida_reporte += linea
                             except Exception as e:
-                                self.after(0, self._actualizar_texto_analisis, f"   [ERROR] No se pudo obtener información básica: {e}\n")
+                                linea = f"   [ERROR] No se pudo obtener información básica: {e}\n"
+                                self.after(0, self._actualizar_texto_analisis, linea)
+                                salida_reporte += linea
 
                             # 2. ANÁLISIS DE PATRONES DE SEGURIDAD Y APLICACIÓN
                             self.after(0, self._actualizar_texto_analisis, "\n2. ANÁLISIS DE SEGURIDAD Y APLICACIÓN:\n")
+                            salida_reporte += "\n2. ANÁLISIS DE SEGURIDAD Y APLICACIÓN:\n"
                             patrones_seguridad = [
                                 ('Failed password', 'Intentos de login fallidos', 'HIGH'),
                                 ('Invalid user', 'Usuarios inválidos', 'MEDIUM'),
@@ -2058,23 +2196,35 @@ class VistaSIEM(tk.Frame):
                                             'MEDIUM': '[!]',
                                             'LOW': '[·]'
                                         }.get(nivel, '[·]')
-                                        self.after(0, self._actualizar_texto_analisis, f"   {indicador} {descripcion}: {count} eventos\n")
+                                        linea = f"   {indicador} {descripcion}: {count} eventos\n"
+                                        self.after(0, self._actualizar_texto_analisis, linea)
+                                        salida_reporte += linea
                                         if count > 0:
                                             resumen_alertas[descripcion] = resumen_alertas.get(descripcion, 0) + count
                                             if nivel in ['CRITICAL', 'HIGH'] and count > 0:
                                                 self.after(0, self._actualizar_texto_analisis, f"       Muestras de eventos:\n")
+                                                salida_reporte += "       Muestras de eventos:\n"
                                                 for i, linea in enumerate(coincidencias[-3:], 1):
-                                                    self.after(0, self._actualizar_texto_analisis, f"       [{i}] {linea[:120]}...\n")
+                                                    linea_muestra = f"       [{i}] {linea[:120]}...\n"
+                                                    self.after(0, self._actualizar_texto_analisis, linea_muestra)
+                                                    salida_reporte += linea_muestra
                                     else:
-                                        self.after(0, self._actualizar_texto_analisis, f"   [OK] {descripcion}: Sin eventos\n")
+                                        linea = f"   [OK] {descripcion}: Sin eventos\n"
+                                        self.after(0, self._actualizar_texto_analisis, linea)
+                                        salida_reporte += linea
                                 except subprocess.TimeoutExpired:
-                                    self.after(0, self._actualizar_texto_analisis, f"   [TIMEOUT] {descripcion}: Análisis excedió tiempo límite\n")
+                                    linea = f"   [TIMEOUT] {descripcion}: Análisis excedió tiempo límite\n"
+                                    self.after(0, self._actualizar_texto_analisis, linea)
+                                    salida_reporte += linea
                                 except Exception as e:
-                                    self.after(0, self._actualizar_texto_analisis, f"   [ERROR] {descripcion}: {e}\n")
+                                    linea = f"   [ERROR] {descripcion}: {e}\n"
+                                    self.after(0, self._actualizar_texto_analisis, linea)
+                                    salida_reporte += linea
 
                             # 3. ANÁLISIS DE IPs SOSPECHOSAS (solo para logs de auth)
                             if any(x in log_path for x in ['auth.log', 'secure', 'sshd']):
                                 self.after(0, self._actualizar_texto_analisis, "\n3. ANÁLISIS DE IPs SOSPECHOSAS:\n")
+                                salida_reporte += "\n3. ANÁLISIS DE IPs SOSPECHOSAS:\n"
                                 try:
                                     resultado_ips = subprocess.run(['bash', '-c', f"grep 'Failed password' {log_path} | awk '{{print $(NF-3)}}' | sort | uniq -c | sort -nr | head -5"], capture_output=True, text=True, timeout=15)
                                     if resultado_ips.returncode == 0 and resultado_ips.stdout.strip():
@@ -2085,9 +2235,13 @@ class VistaSIEM(tk.Frame):
                                                 if len(partes) >= 2:
                                                     intentos = partes[0]
                                                     ip = ' '.join(partes[1:])
-                                                    self.after(0, self._actualizar_texto_analisis, f"       • {ip}: {intentos} intentos\n")
+                                                    linea = f"       • {ip}: {intentos} intentos\n"
+                                                    self.after(0, self._actualizar_texto_analisis, linea)
+                                                    salida_reporte += linea
                                     else:
-                                        self.after(0, self._actualizar_texto_analisis, "   [OK] No hay intentos de login fallidos\n")
+                                        linea = "   [OK] No hay intentos de login fallidos\n"
+                                        self.after(0, self._actualizar_texto_analisis, linea)
+                                        salida_reporte += linea
                                 except Exception as e:
                                     self.after(0, self._actualizar_texto_analisis, f"   [ERROR] No se pudo analizar IPs: {e}\n")
 
@@ -2102,52 +2256,75 @@ class VistaSIEM(tk.Frame):
                                     lineas = resultado.stdout.strip().split('\n')
                                     for i, linea in enumerate(lineas, 1):
                                         if linea.strip():
-                                            self.after(0, self._actualizar_texto_analisis, f"   [{i}] {linea[:120]}...\n")
+                                            linea = f"   [{i}] {linea[:120]}...\n"
+                                            self.after(0, self._actualizar_texto_analisis, linea)
+                                            salida_reporte += linea
                             except Exception as e:
-                                self.after(0, self._actualizar_texto_analisis, f"   [ERROR] No se pudieron obtener eventos recientes: {e}\n")
+                                linea = f"   [ERROR] No se pudieron obtener eventos recientes: {e}\n"
+                                self.after(0, self._actualizar_texto_analisis, linea)
+                                salida_reporte += linea
 
                             # RESUMEN DEL ARCHIVO
                             total_eventos_criticos += alertas_archivo
                             nivel_riesgo = "BAJO" if alertas_archivo < 10 else "MEDIO" if alertas_archivo < 50 else "ALTO"
-                            self.after(0, self._actualizar_texto_analisis, f"\n   RESUMEN: {alertas_archivo} eventos detectados - Riesgo: {nivel_riesgo}\n")
+                            linea = f"\n   RESUMEN: {alertas_archivo} eventos detectados - Riesgo: {nivel_riesgo}\n"
+                            self.after(0, self._actualizar_texto_analisis, linea)
+                            salida_reporte += linea
                         except Exception as e:
-                            self.after(0, self._actualizar_texto_analisis, f"   [ERROR] Error procesando archivo: {str(e)}\n")
+                            linea = f"   [ERROR] Error procesando archivo: {str(e)}\n"
+                            self.after(0, self._actualizar_texto_analisis, linea)
+                            salida_reporte += linea
                     else:
-                        self.after(0, self._actualizar_texto_analisis, f"   [WARNING] Archivo no encontrado\n")
+                        linea = f"   [WARNING] Archivo no encontrado\n"
+                        self.after(0, self._actualizar_texto_analisis, linea)
+                        salida_reporte += linea
                 
                 # RESUMEN GLOBAL
-                self.after(0, self._actualizar_texto_analisis, "\n" + "="*80 + "\n")
-                self.after(0, self._actualizar_texto_analisis, "                        RESUMEN GLOBAL DEL ANÁLISIS\n")
-                self.after(0, self._actualizar_texto_analisis, "="*80 + "\n")
-                self.after(0, self._actualizar_texto_analisis, f"• Archivos analizados: {len(logs_seleccionados)}\n")
-                self.after(0, self._actualizar_texto_analisis, f"• Total eventos detectados: {total_eventos_criticos}\n\n")
-                
+                resumen = "\n" + "="*80 + "\n" + "                        RESUMEN GLOBAL DEL ANÁLISIS\n" + "="*80 + "\n"
+                self.after(0, self._actualizar_texto_analisis, resumen)
+                salida_reporte += resumen
+                linea = f"• Archivos analizados: {len(logs_seleccionados)}\n"
+                self.after(0, self._actualizar_texto_analisis, linea)
+                salida_reporte += linea
+                linea = f"• Total eventos detectados: {total_eventos_criticos}\n\n"
+                self.after(0, self._actualizar_texto_analisis, linea)
+                salida_reporte += linea
                 if resumen_alertas:
                     self.after(0, self._actualizar_texto_analisis, "TIPOS DE EVENTOS ENCONTRADOS:\n")
+                    salida_reporte += "TIPOS DE EVENTOS ENCONTRADOS:\n"
                     for tipo, cantidad in sorted(resumen_alertas.items(), key=lambda x: x[1], reverse=True):
-                        self.after(0, self._actualizar_texto_analisis, f"   • {tipo}: {cantidad} eventos\n")
+                        linea = f"   • {tipo}: {cantidad} eventos\n"
+                        self.after(0, self._actualizar_texto_analisis, linea)
+                        salida_reporte += linea
                 else:
-                    self.after(0, self._actualizar_texto_analisis, "No se detectaron eventos de seguridad críticos.\n")
-                
+                    linea = "No se detectaron eventos de seguridad críticos.\n"
+                    self.after(0, self._actualizar_texto_analisis, linea)
+                    salida_reporte += linea
                 # RECOMENDACIONES
                 self.after(0, self._actualizar_texto_analisis, "\nRECOMENDACIONES:\n")
+                salida_reporte += "\nRECOMENDACIONES:\n"
                 if total_eventos_criticos > 100:
-                    self.after(0, self._actualizar_texto_analisis, "   • CRÍTICO: Revisar inmediatamente los eventos detectados\n")
-                    self.after(0, self._actualizar_texto_analisis, "   • Implementar medidas de seguridad adicionales\n")
+                    linea = "   • CRÍTICO: Revisar inmediatamente los eventos detectados\n   • Implementar medidas de seguridad adicionales\n"
+                    self.after(0, self._actualizar_texto_analisis, linea)
+                    salida_reporte += linea
                 elif total_eventos_criticos > 20:
-                    self.after(0, self._actualizar_texto_analisis, "   • MEDIO: Monitorear actividad sospechosa\n")
-                    self.after(0, self._actualizar_texto_analisis, "   • Revisar configuraciones de seguridad\n")
+                    linea = "   • MEDIO: Monitorear actividad sospechosa\n   • Revisar configuraciones de seguridad\n"
+                    self.after(0, self._actualizar_texto_analisis, linea)
+                    salida_reporte += linea
                 else:
-                    self.after(0, self._actualizar_texto_analisis, "   • Sistema con actividad normal\n")
-                    self.after(0, self._actualizar_texto_analisis, "   • Mantener monitoreo rutinario\n")
-                
+                    linea = "   • Sistema con actividad normal\n   • Mantener monitoreo rutinario\n"
+                    self.after(0, self._actualizar_texto_analisis, linea)
+                    salida_reporte += linea
                 self.after(0, self._actualizar_texto_analisis, "\n" + "="*80 + "\n")
+                salida_reporte += "\n" + "="*80 + "\n"
                 self.after(0, self._actualizar_texto_analisis, "ANÁLISIS COMPLETADO\n")
+                salida_reporte += "ANÁLISIS COMPLETADO\n"
                 self.after(0, lambda: self.log_to_terminal("Análisis de logs completado exitosamente"))
-                
+                self._enviar_a_reportes('analizar_logs_seleccionados', salida_reporte, es_error)
             except Exception as e:
-                self.after(0, self._actualizar_texto_analisis, f"ERROR CRÍTICO en análisis: {str(e)}\n")
-        
+                msg = f"ERROR CRÍTICO en análisis: {str(e)}\n"
+                self.after(0, self._actualizar_texto_analisis, msg)
+                self._enviar_a_reportes('analizar_logs_seleccionados', msg, True)
         threading.Thread(target=ejecutar, daemon=True).start()
     
     def buscar_patrones(self):
@@ -2345,44 +2522,43 @@ class VistaSIEM(tk.Frame):
             import time
             import os
             import json
-            
+            salida_reporte = ""
             archivo_eve = os.path.join(log_dir, 'eve.json')
             archivo_fast = os.path.join(log_dir, 'fast.log')
-            
             self.after(0, self._actualizar_texto_alertas, "\n" + "="*70 + "\n")
             self.after(0, self._actualizar_texto_alertas, "           SISTEMA IDS/IPS ACTIVO - MONITOREO EN TIEMPO REAL\n")
             self.after(0, self._actualizar_texto_alertas, "="*70 + "\n\n")
-            
+            salida_reporte += "\n" + "="*70 + "\n"
+            salida_reporte += "           SISTEMA IDS/IPS ACTIVO - MONITOREO EN TIEMPO REAL\n"
+            salida_reporte += "="*70 + "\n\n"
             contador = 0
             alertas_totales = 0
             alertas_criticas = 0
-            
             while contador < 20:  # Monitorear por 20 ciclos
                 try:
-                    # HEADER DE CICLO
-                    self.after(0, self._actualizar_texto_alertas, f"[CICLO {contador+1:02d}/20] " + "-"*50 + "\n")
+                    bloque = f"[CICLO {contador+1:02d}/20] " + "-"*50 + "\n"
+                    self.after(0, self._actualizar_texto_alertas, bloque)
+                    salida_reporte += bloque
                     hora_actual = time.strftime('%H:%M:%S')
-                    self.after(0, self._actualizar_texto_alertas, f"Timestamp: {hora_actual}\n")
-                    
+                    linea = f"Timestamp: {hora_actual}\n"
+                    self.after(0, self._actualizar_texto_alertas, linea)
+                    salida_reporte += linea
                     alertas_ciclo = 0
-                    
                     # 1. ANÁLISIS DE EVENTOS DETALLADOS (eve.json)
                     if os.path.exists(archivo_eve):
                         self.after(0, self._actualizar_texto_alertas, "\n1. ANÁLISIS DE EVENTOS DETALLADOS:\n")
+                        salida_reporte += "\n1. ANÁLISIS DE EVENTOS DETALLADOS:\n"
                         resultado = subprocess.run(['tail', '-n', '5', archivo_eve], 
                                                  capture_output=True, text=True, timeout=5)
                         if resultado.returncode == 0 and resultado.stdout.strip():
                             lineas = resultado.stdout.strip().split('\n')
                             eventos_procesados = 0
-                            
-                            for linea in lineas:
-                                if '"event_type":' in linea:
+                            for linea_json in lineas:
+                                if '"event_type":' in linea_json:
                                     try:
-                                        evento = json.loads(linea)
+                                        evento = json.loads(linea_json)
                                         tipo_evento = evento.get('event_type', 'desconocido')
                                         timestamp = evento.get('timestamp', '')[:19]
-                                        
-                                        # Clasificar severidad según tipo de evento
                                         if tipo_evento in ['alert']:
                                             severidad = "CRÍTICA"
                                             alertas_criticas += 1
@@ -2396,8 +2572,6 @@ class VistaSIEM(tk.Frame):
                                         else:
                                             severidad = "BAJA"
                                             icono = "[·]"
-                                        
-                                        # Extraer información específica según tipo
                                         info_adicional = ""
                                         if tipo_evento == 'alert':
                                             alert_info = evento.get('alert', {})
@@ -2405,54 +2579,53 @@ class VistaSIEM(tk.Frame):
                                             category = alert_info.get('category', 'General')
                                             severity = alert_info.get('severity', 'N/A')
                                             info_adicional = f"\n       Descripción: {signature[:60]}...\n       Categoría: {category}\n       Severidad Suricata: {severity}"
-                                            
-                                            # Información de red si está disponible
                                             src_ip = evento.get('src_ip', '')
                                             dest_ip = evento.get('dest_ip', '')
                                             if src_ip and dest_ip:
                                                 info_adicional += f"\n       Flujo: {src_ip} → {dest_ip}"
-                                        
                                         elif tipo_evento in ['flow', 'netflow']:
                                             src_ip = evento.get('src_ip', '')
                                             dest_ip = evento.get('dest_ip', '')
                                             proto = evento.get('proto', '')
                                             if src_ip and dest_ip:
                                                 info_adicional = f"\n       Red: {src_ip} → {dest_ip} ({proto})"
-                                        
-                                        self.after(0, self._actualizar_texto_alertas, 
-                                                 f"   {icono} [{severidad}] {timestamp} - {tipo_evento.upper()}{info_adicional}\n")
+                                        linea_alerta = f"   {icono} [{severidad}] {timestamp} - {tipo_evento.upper()}{info_adicional}\n"
+                                        self.after(0, self._actualizar_texto_alertas, linea_alerta)
+                                        salida_reporte += linea_alerta
                                         alertas_ciclo += 1
                                         eventos_procesados += 1
-                                        
                                     except json.JSONDecodeError:
-                                        self.after(0, self._actualizar_texto_alertas, 
-                                                 f"   [?] Evento malformado: {linea[:50]}...\n")
-                            
+                                        linea_alerta = f"   [?] Evento malformado: {linea_json[:50]}...\n"
+                                        self.after(0, self._actualizar_texto_alertas, linea_alerta)
+                                        salida_reporte += linea_alerta
                             if eventos_procesados == 0:
-                                self.after(0, self._actualizar_texto_alertas, "   [OK] Sin eventos nuevos en eve.json\n")
+                                linea = "   [OK] Sin eventos nuevos en eve.json\n"
+                                self.after(0, self._actualizar_texto_alertas, linea)
+                                salida_reporte += linea
                         else:
-                            self.after(0, self._actualizar_texto_alertas, "   [INFO] Eve.json sin contenido nuevo\n")
+                            linea = "   [INFO] Eve.json sin contenido nuevo\n"
+                            self.after(0, self._actualizar_texto_alertas, linea)
+                            salida_reporte += linea
                     else:
-                        self.after(0, self._actualizar_texto_alertas, "   [WARNING] Archivo eve.json no encontrado\n")
-                    
+                        linea = "   [WARNING] Archivo eve.json no encontrado\n"
+                        self.after(0, self._actualizar_texto_alertas, linea)
+                        salida_reporte += linea
                     # 2. ANÁLISIS DE ALERTAS RÁPIDAS (fast.log)
                     if os.path.exists(archivo_fast):
                         self.after(0, self._actualizar_texto_alertas, "\n2. ALERTAS RÁPIDAS:\n")
+                        salida_reporte += "\n2. ALERTAS RÁPIDAS:\n"
                         resultado = subprocess.run(['tail', '-n', '3', archivo_fast], 
                                                  capture_output=True, text=True, timeout=5)
                         if resultado.returncode == 0 and resultado.stdout.strip():
                             lineas = resultado.stdout.strip().split('\n')
                             for i, linea in enumerate(lineas, 1):
                                 if linea.strip():
-                                    # Parsear formato fast.log: timestamp [**] [sid:id] descripción [**] [Classification: class] [Priority: X] {protocol} src -> dst
                                     try:
                                         partes = linea.split('[**]')
                                         if len(partes) >= 3:
                                             timestamp = partes[0].strip()[:19]
                                             sid_info = partes[1].strip()
                                             descripcion = partes[2].strip()
-                                            
-                                            # Extraer prioridad si está disponible
                                             priority = "N/A"
                                             if '[Priority:' in linea:
                                                 try:
@@ -2460,8 +2633,6 @@ class VistaSIEM(tk.Frame):
                                                     priority = priority_part
                                                 except:
                                                     pass
-                                            
-                                            # Determinar nivel según prioridad
                                             if priority in ['1', '2']:
                                                 nivel = "CRÍTICA"
                                                 icono = "[!!!]"
@@ -2471,38 +2642,35 @@ class VistaSIEM(tk.Frame):
                                             else:
                                                 nivel = "MEDIA"
                                                 icono = "[!]"
-                                            
-                                            self.after(0, self._actualizar_texto_alertas, 
-                                                     f"   {icono} [{nivel}] {timestamp}\n")
-                                            self.after(0, self._actualizar_texto_alertas, 
-                                                     f"       SID: {sid_info}\n")
-                                            self.after(0, self._actualizar_texto_alertas, 
-                                                     f"       Evento: {descripcion[:70]}...\n")
-                                            self.after(0, self._actualizar_texto_alertas, 
-                                                     f"       Prioridad: {priority}\n")
+                                            linea_alerta = f"   {icono} [{nivel}] {timestamp}\n       SID: {sid_info}\n       Evento: {descripcion[:70]}...\n       Prioridad: {priority}\n"
+                                            self.after(0, self._actualizar_texto_alertas, linea_alerta)
+                                            salida_reporte += linea_alerta
                                             alertas_ciclo += 1
                                         else:
-                                            self.after(0, self._actualizar_texto_alertas, 
-                                                     f"   [?] Formato no estándar: {linea[:50]}...\n")
+                                            linea_alerta = f"   [?] Formato no estándar: {linea[:50]}...\n"
+                                            self.after(0, self._actualizar_texto_alertas, linea_alerta)
+                                            salida_reporte += linea_alerta
                                     except Exception:
-                                        self.after(0, self._actualizar_texto_alertas, 
-                                                 f"   [ERROR] Error parseando alerta: {linea[:40]}...\n")
-                            
+                                        linea_alerta = f"   [ERROR] Error parseando alerta: {linea[:40]}...\n"
+                                        self.after(0, self._actualizar_texto_alertas, linea_alerta)
+                                        salida_reporte += linea_alerta
                             if not lineas or all(not line.strip() for line in lineas):
-                                self.after(0, self._actualizar_texto_alertas, "   [OK] Sin alertas nuevas en fast.log\n")
+                                linea = "   [OK] Sin alertas nuevas en fast.log\n"
+                                self.after(0, self._actualizar_texto_alertas, linea)
+                                salida_reporte += linea
                         else:
-                            self.after(0, self._actualizar_texto_alertas, "   [INFO] Fast.log sin contenido nuevo\n")
+                            linea = "   [INFO] Fast.log sin contenido nuevo\n"
+                            self.after(0, self._actualizar_texto_alertas, linea)
+                            salida_reporte += linea
                     else:
-                        self.after(0, self._actualizar_texto_alertas, "   [WARNING] Archivo fast.log no encontrado\n")
-                    
+                        linea = "   [WARNING] Archivo fast.log no encontrado\n"
+                        self.after(0, self._actualizar_texto_alertas, linea)
+                        salida_reporte += linea
                     # 3. ESTADÍSTICAS DEL CICLO
                     alertas_totales += alertas_ciclo
-                    self.after(0, self._actualizar_texto_alertas, f"\n3. ESTADÍSTICAS DEL CICLO:\n")
-                    self.after(0, self._actualizar_texto_alertas, f"   • Alertas en este ciclo: {alertas_ciclo}\n")
-                    self.after(0, self._actualizar_texto_alertas, f"   • Total acumulado: {alertas_totales}\n")
-                    self.after(0, self._actualizar_texto_alertas, f"   • Alertas críticas: {alertas_criticas}\n")
-                    
-                    # Nivel de riesgo actual
+                    bloque_stats = f"\n3. ESTADÍSTICAS DEL CICLO:\n   • Alertas en este ciclo: {alertas_ciclo}\n   • Total acumulado: {alertas_totales}\n   • Alertas críticas: {alertas_criticas}\n"
+                    self.after(0, self._actualizar_texto_alertas, bloque_stats)
+                    salida_reporte += bloque_stats
                     if alertas_criticas > 5:
                         nivel_riesgo = "CRÍTICO"
                         recomendacion = "Revisar inmediatamente"
@@ -2515,52 +2683,67 @@ class VistaSIEM(tk.Frame):
                     else:
                         nivel_riesgo = "BAJO"
                         recomendacion = "Sistema estable"
-                    
-                    self.after(0, self._actualizar_texto_alertas, f"   • Nivel de riesgo: {nivel_riesgo}\n")
-                    self.after(0, self._actualizar_texto_alertas, f"   • Recomendación: {recomendacion}\n")
-                    
-                    # 4. VERIFICACIÓN DE ESTADO DEL PROCESO
+                    linea = f"   • Nivel de riesgo: {nivel_riesgo}\n   • Recomendación: {recomendacion}\n"
+                    self.after(0, self._actualizar_texto_alertas, linea)
+                    salida_reporte += linea
                     try:
                         resultado_stats = subprocess.run(['pgrep', 'suricata'], 
                                                        capture_output=True, text=True, timeout=5)
                         if resultado_stats.returncode == 0:
                             pids = resultado_stats.stdout.strip().split('\n')
-                            self.after(0, self._actualizar_texto_alertas, f"   • Procesos Suricata activos: {len(pids)}\n")
+                            linea = f"   • Procesos Suricata activos: {len(pids)}\n"
+                            self.after(0, self._actualizar_texto_alertas, linea)
+                            salida_reporte += linea
                         else:
-                            self.after(0, self._actualizar_texto_alertas, "   [WARNING] Suricata no parece estar ejecutándose\n")
+                            linea = "   [WARNING] Suricata no parece estar ejecutándose\n"
+                            self.after(0, self._actualizar_texto_alertas, linea)
+                            salida_reporte += linea
                     except:
-                        self.after(0, self._actualizar_texto_alertas, "   [ERROR] No se pudo verificar estado de Suricata\n")
-                    
+                        linea = "   [ERROR] No se pudo verificar estado de Suricata\n"
+                        self.after(0, self._actualizar_texto_alertas, linea)
+                        salida_reporte += linea
                     self.after(0, self._actualizar_texto_alertas, "\n")
-                    
+                    salida_reporte += "\n"
                     contador += 1
                     if contador < 20:
-                        self.after(0, self._actualizar_texto_alertas, f"Esperando 15 segundos para el siguiente ciclo...\n\n")
-                    time.sleep(12)  # Issue 21/24: Optimizado de 15 a 12 segundos - Verificar cada 12 segundos
-                    
+                        linea = f"Esperando 15 segundos para el siguiente ciclo...\n\n"
+                        self.after(0, self._actualizar_texto_alertas, linea)
+                        salida_reporte += linea
+                    time.sleep(12)
                 except Exception as e:
-                    self.after(0, self._actualizar_texto_alertas, f"[ERROR] Error en monitoreo: {str(e)}\n")
+                    linea = f"[ERROR] Error en monitoreo: {str(e)}\n"
+                    self.after(0, self._actualizar_texto_alertas, linea)
+                    salida_reporte += linea
                     time.sleep(5)
-            
-            # RESUMEN FINAL
-            self.after(0, self._actualizar_texto_alertas, "="*70 + "\n")
-            self.after(0, self._actualizar_texto_alertas, "                    RESUMEN DEL MONITOREO COMPLETADO\n")
-            self.after(0, self._actualizar_texto_alertas, "="*70 + "\n")
-            self.after(0, self._actualizar_texto_alertas, f"• Duración del monitoreo: 20 ciclos (5 minutos)\n")
-            self.after(0, self._actualizar_texto_alertas, f"• Total de alertas detectadas: {alertas_totales}\n")
-            self.after(0, self._actualizar_texto_alertas, f"• Alertas críticas: {alertas_criticas}\n")
-            
+            resumen = "="*70 + "\n" + "                    RESUMEN DEL MONITOREO COMPLETADO\n" + "="*70 + "\n"
+            self.after(0, self._actualizar_texto_alertas, resumen)
+            salida_reporte += resumen
+            linea = f"• Duración del monitoreo: 20 ciclos (5 minutos)\n"
+            self.after(0, self._actualizar_texto_alertas, linea)
+            salida_reporte += linea
+            linea = f"• Total de alertas detectadas: {alertas_totales}\n"
+            self.after(0, self._actualizar_texto_alertas, linea)
+            salida_reporte += linea
+            linea = f"• Alertas críticas: {alertas_criticas}\n"
+            self.after(0, self._actualizar_texto_alertas, linea)
+            salida_reporte += linea
             if alertas_criticas > 0:
                 self.after(0, self._actualizar_texto_alertas, "\nACCIONES RECOMENDADAS:\n")
+                salida_reporte += "\nACCIONES RECOMENDADAS:\n"
                 self.after(0, self._actualizar_texto_alertas, "• Revisar logs detallados en /var/log/suricata/\n")
+                salida_reporte += "• Revisar logs detallados en /var/log/suricata/\n"
                 self.after(0, self._actualizar_texto_alertas, "• Analizar tráfico sospechoso\n")
+                salida_reporte += "• Analizar tráfico sospechoso\n"
                 self.after(0, self._actualizar_texto_alertas, "• Considerar implementar contramedidas\n")
+                salida_reporte += "• Considerar implementar contramedidas\n"
             else:
                 self.after(0, self._actualizar_texto_alertas, "\nSISTEMA SEGURO: No se detectaron amenazas críticas\n")
-            
+                salida_reporte += "\nSISTEMA SEGURO: No se detectaron amenazas críticas\n"
             self.after(0, self._actualizar_texto_alertas, "\nEl monitoreo en tiempo real ha finalizado.\n")
+            salida_reporte += "\nEl monitoreo en tiempo real ha finalizado.\n"
             self.after(0, self._actualizar_texto_alertas, "Para continuar monitoreando, reactive el IDS.\n")
-        
+            salida_reporte += "Para continuar monitoreando, reactive el IDS.\n"
+            self._enviar_a_reportes('monitoreo_suricata', salida_reporte, alertas_criticas > 0)
         threading.Thread(target=monitorear_logs, daemon=True).start()
     
     def monitor_honeypot(self):

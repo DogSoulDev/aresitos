@@ -18,6 +18,7 @@ import datetime
 
 # Importar el gestor de sudo de ARESITOS
 from aresitos.utils.sudo_manager import get_sudo_manager
+from aresitos.utils.logger_aresitos import LoggerAresitos
 
 try:
     from aresitos.vista.burp_theme import burp_theme
@@ -31,13 +32,14 @@ class VistaAuditoria(tk.Frame):
         'lynis', 'rkhunter', 'chkrootkit', 'clamav', 'nuclei', 'httpx', 'linpeas', 'pspy'
     ]
 
-    def __init__(self, *args, root_session=None, **kwargs):
+    def __init__(self, *args, root_session=None, controlador=None, **kwargs):
         """
         root_session: objeto o token de sesión root pasado desde el login principal.
         Debe mantenerse en memoria en todas las vistas importantes para evitar problemas de permisos.
         """
         super().__init__(*args, **kwargs)
         self.root_session = root_session
+        self.controlador = controlador
         self.colors = {
             'bg_primary': '#232629',
             'bg_secondary': '#31363b',
@@ -53,6 +55,7 @@ class VistaAuditoria(tk.Frame):
                 self.colors.update(burp_theme.colors)
             elif isinstance(burp_theme, dict):
                 self.colors.update(burp_theme)
+        self.logger = LoggerAresitos.get_instance()
         self.crear_interfaz()
 
     # Métodos eliminados: _es_root, _deshabilitar_todo_auditoria_por_root, set_controlador, analizar_servicios, verificar_permisos
@@ -66,6 +69,10 @@ class VistaAuditoria(tk.Frame):
             VistaDashboard.log_actividad_global(mensaje, modulo, nivel)
         except Exception:
             pass
+        # Registrar en logger centralizado
+        if hasattr(self, 'logger') and self.logger:
+            self.logger.log(mensaje, nivel=nivel, modulo=modulo)
+
     def crear_interfaz(self):
         self.configure(bg=self.colors['bg_primary'])
         self.pack_propagate(False)
@@ -225,18 +232,24 @@ class VistaAuditoria(tk.Frame):
             return
         self.log_terminal(f"> {comando}")
         self.comando_entry.delete(0, tk.END)
-        thread = threading.Thread(target=self._ejecutar_comando_async, args=(comando,))
+        def run_and_report():
+            self._ejecutar_comando_async(comando, reportar=True)
+        thread = threading.Thread(target=run_and_report)
         thread.daemon = True
         thread.start()
     
-    def _ejecutar_comando_async(self, comando):
+    def _ejecutar_comando_async(self, comando, reportar=False):
         try:
             # Comandos especiales de ARESITOS
             if comando == "info-seguridad":
                 self._mostrar_info_seguridad()
+                if reportar:
+                    self._enviar_a_reportes("info-seguridad", comando, "[INFO SEGURIDAD]", False)
                 return
             elif comando in ["clear", "cls"]:
                 self.limpiar_terminal_auditoria()
+                if reportar:
+                    self._enviar_a_reportes("limpiar", comando, "Pantalla limpiada", False)
                 return
 
             import platform
@@ -256,10 +269,16 @@ class VistaAuditoria(tk.Frame):
 
             if resultado.stdout:
                 self.log_terminal(resultado.stdout)
+                if reportar:
+                    self._enviar_a_reportes("terminal", comando, resultado.stdout, False)
             if resultado.stderr:
                 self.log_terminal(resultado.stderr, nivel="ERROR")
+                if reportar:
+                    self._enviar_a_reportes("terminal", comando, resultado.stderr, True)
         except Exception as e:
             self.log_terminal(f"[ERROR] {e}", nivel="ERROR")
+            if reportar:
+                self._enviar_a_reportes("terminal", comando, str(e), True)
     
     def abrir_logs_auditoria(self):
         self.log_terminal("[INFO] Función para abrir logs aún no implementada.")
@@ -389,6 +408,43 @@ class VistaAuditoria(tk.Frame):
                            font=('Arial', 9, 'bold'), relief='flat',
                            padx=10, pady=5)
             btn.pack(fill=tk.X, pady=2)
+
+        # BOTÓN PONER EN CUARENTENA
+        cuarentena_label = tk.Label(section_frame, text="Cuarentena de Archivos", 
+                                  bg=self.colors['bg_secondary'], fg=self.colors['danger'],
+                                  font=('Arial', 10, 'bold'))
+        cuarentena_label.pack(anchor="w", padx=10, pady=(10, 2))
+
+        self.cuarentena_entry = tk.Entry(section_frame, width=30, font=('Consolas', 10))
+        self.cuarentena_entry.pack(fill="x", padx=10, pady=(0, 5))
+        self.cuarentena_entry.insert(0, "Ruta del archivo a poner en cuarentena")
+
+        btn_cuarentena = tk.Button(section_frame, text="Poner en cuarentena",
+                                   command=self._poner_en_cuarentena_desde_entry,
+                                   bg=self.colors['danger'], fg='white',
+                                   font=('Arial', 9, 'bold'), relief='flat', padx=10, pady=5)
+        btn_cuarentena.pack(fill=tk.X, padx=10, pady=2)
+
+    def _poner_en_cuarentena_desde_entry(self):
+        """Pone en cuarentena el archivo especificado en el campo de entrada."""
+        ruta = self.cuarentena_entry.get().strip()
+        if not ruta or ruta == "Ruta del archivo a poner en cuarentena":
+            self.log_terminal("Debe especificar la ruta del archivo a poner en cuarentena.")
+            return
+        if not hasattr(self, 'controlador') or not self.controlador or not hasattr(self.controlador, 'controlador_cuarentena'):
+            self.log_terminal("Controlador de cuarentena no disponible.")
+            return
+        try:
+            resultado = self.controlador.controlador_cuarentena.cuarentenar_archivo(ruta, razon="Manual desde Auditoría")
+            if resultado.get('exito'):
+                self.log_terminal(f"Archivo puesto en cuarentena: {ruta}")
+                self._enviar_a_reportes('poner_en_cuarentena', f"Archivo puesto en cuarentena: {ruta}", False)
+            else:
+                self.log_terminal(f"Error poniendo en cuarentena: {resultado.get('mensaje','sin mensaje')}")
+                self._enviar_a_reportes('poner_en_cuarentena', f"Error: {resultado.get('mensaje','sin mensaje')}", True)
+        except Exception as e:
+            self.log_terminal(f"Excepción poniendo en cuarentena: {e}")
+            self._enviar_a_reportes('poner_en_cuarentena', str(e), True)
     
     # Método eliminado: ejecutar_lynis (no se usa en el nuevo flujo)
     

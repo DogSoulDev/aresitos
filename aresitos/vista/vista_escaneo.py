@@ -497,32 +497,52 @@ class VistaEscaneo(tk.Frame):
                 for i, objetivo in enumerate(objetivos):
                     progreso_actual = 40 + (i * progreso_por_objetivo)
                     self._actualizar_progreso_seguro(progreso_actual, f"Estado: Escaneando {objetivo}...")
-                    
-                    self._log_terminal(f"Escaneando objetivo: {objetivo}", "ESCANEADOR", "INFO")
-                    self._actualizar_texto_seguro(f"ESCANEANDO: {objetivo}\n")
-                    
+                    self._log_terminal(f"[FASE] Iniciando escaneo sobre objetivo: {objetivo}", "ESCANEADOR", "INFO")
+                    self._actualizar_texto_seguro(f"\n=== ESCANEANDO OBJETIVO: {objetivo} ===\n")
+                    self.log_to_terminal(f"[FASE] Lanzando herramientas sobre {objetivo}")
                     try:
-                        # Intentar método Kali 2025 primero
+                        # Lanzar y mostrar cada herramienta
                         if hasattr(self.controlador, 'escaneo_completo_kali2025'):
+                            self.log_to_terminal("[MASSCAN] Ejecutando masscan...")
+                            self._actualizar_texto_seguro("[MASSCAN] Ejecutando masscan...\n")
                             resultado = self.controlador.escaneo_completo_kali2025(objetivo)
-                        # Fallback a método genérico
                         elif hasattr(self.controlador, 'escaneo_completo'):
+                            self.log_to_terminal("[ESCANEO COMPLETO] Ejecutando escaneo_completo...")
+                            self._actualizar_texto_seguro("[ESCANEO COMPLETO] Ejecutando escaneo_completo...\n")
                             resultado = self.controlador.escaneo_completo(objetivo)
-                        # Fallback a escaneo básico del controlador
                         elif hasattr(self.controlador, 'escanear_sistema'):
+                            self.log_to_terminal("[ESCANEO BASICO] Ejecutando escanear_sistema...")
+                            self._actualizar_texto_seguro("[ESCANEO BASICO] Ejecutando escanear_sistema...\n")
                             resultado = self.controlador.escanear_sistema(objetivo)
                         else:
-                            self._log_terminal("Métodos de escaneo no encontrados en controlador", "ESCANEADOR", "ERROR")
+                            self._log_terminal("❗ Métodos de escaneo no encontrados en controlador", "ESCANEADOR", "ERROR")
+                            self._actualizar_texto_seguro("❗ ERROR: Métodos de escaneo no encontrados en el controlador\n")
                             raise Exception("Controlador sin métodos de escaneo")
-                        
+                        # Mostrar resultado bruto si se desea depuración
+                        # self._actualizar_texto_seguro(f"[DEBUG] Resultado bruto: {resultado}\n")
                         if resultado and resultado.get("exito"):
+                            self._log_terminal(f"✔️ Escaneo de {objetivo} completado", "ESCANEADOR", "SUCCESS")
+                            self._actualizar_texto_seguro("✔️ Escaneo completado correctamente\n")
+                            # Remarcar vulnerabilidades encontradas
+                            resumen = resultado.get("resultado", {}).get("resumen", {})
+                            vulns = resumen.get("vulnerabilidades_encontradas", 0)
+                            if vulns and vulns > 0:
+                                self._actualizar_texto_seguro(f"❗❗ CRITICO: Se encontraron {vulns} vulnerabilidades en {objetivo}\n")
+                                self.log_to_terminal(f"❗❗ CRITICO: Se encontraron {vulns} vulnerabilidades en {objetivo}")
+                            puertos = resumen.get("puertos_abiertos", 0)
+                            if puertos and puertos > 20:
+                                self._actualizar_texto_seguro(f"⚠️ ATENCIÓN: {puertos} puertos abiertos detectados en {objetivo}\n")
+                                self.log_to_terminal(f"⚠️ ATENCIÓN: {puertos} puertos abiertos detectados en {objetivo}")
                             resultados_totales["resultados"].append(resultado)
-                            self._log_terminal(f"CONTROLADOR Escaneo de {objetivo} completado", "ESCANEADOR", "SUCCESS")
                         else:
-                            self._log_terminal(f"ERROR Error en escaneo de {objetivo}: {resultado.get('error', 'Error desconocido')}", "ESCANEADOR", "ERROR")
-                            
+                            error_msg = resultado.get('error', 'Error desconocido') if resultado else 'Error desconocido'
+                            self._log_terminal(f"❗ ERROR en escaneo de {objetivo}: {error_msg}", "ESCANEADOR", "ERROR")
+                            self._actualizar_texto_seguro(f"❗ ERROR en escaneo de {objetivo}: {error_msg}\n")
+                            self.log_to_terminal(f"❗ ERROR en escaneo de {objetivo}: {error_msg}")
                     except Exception as e:
-                        self._log_terminal(f"ERROR Excepción escaneando {objetivo}: {str(e)}", "ESCANEADOR", "ERROR")
+                        self._log_terminal(f"❗ Excepción escaneando {objetivo}: {str(e)}", "ESCANEADOR", "ERROR")
+                        self._actualizar_texto_seguro(f"❗ Excepción escaneando {objetivo}: {str(e)}\n")
+                        self.log_to_terminal(f"❗ Excepción escaneando {objetivo}: {str(e)}")
                         continue
                 
                 # Mostrar resultados consolidados

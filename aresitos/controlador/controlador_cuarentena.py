@@ -33,6 +33,19 @@ except ImportError:
 
 
 class ControladorCuarentena(ControladorBase):
+
+    def cuarentenar_archivo(self, ruta_archivo: str, descripcion: str = "") -> dict:
+        """
+        Método uniforme para poner en cuarentena desde otros módulos.
+        Args:
+            ruta_archivo: Ruta del archivo a aislar
+            descripcion: Descripción o motivo
+        Returns:
+            dict con resultado
+        """
+        tipo_amenaza = "desconocido"
+        razon = descripcion or "Archivo puesto en cuarentena por integración de módulo."
+        return self.poner_en_cuarentena(ruta_archivo, tipo_amenaza, razon)
     """
     Controlador para gestionar el sistema de cuarentena siguiendo principios ARESITOS.
     Utiliza CuarentenaKali2025 como modelo y herramientas nativas de Kali Linux.

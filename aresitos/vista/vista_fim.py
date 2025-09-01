@@ -32,6 +32,28 @@ except ImportError:
     burp_theme = None
 
 class VistaFIM(tk.Frame):
+    def _enviar_a_reportes(self, comando, salida, es_error=False):
+        """Envía la información de la ejecución a la vista de reportes si está disponible."""
+        try:
+            vista_reportes = None
+            if hasattr(self.master, 'vista_reportes'):
+                vista_reportes = getattr(self.master, 'vista_reportes', None)
+            else:
+                vistas = getattr(self.master, 'vistas', None)
+                if vistas and hasattr(vistas, 'get'):
+                    vista_reportes = vistas.get('reportes', None)
+            if vista_reportes:
+                import datetime
+                datos = {
+                    'timestamp': datetime.datetime.now().isoformat(),
+                    'modulo': 'fim',
+                    'comando': comando,
+                    'salida': salida,
+                    'es_error': es_error
+                }
+                vista_reportes.set_datos_modulo('fim', datos)
+        except Exception:
+            pass
     def _actualizar_texto_fim_seguro(self, texto):
         def _update():
             try:
@@ -304,22 +326,30 @@ class VistaFIM(tk.Frame):
         self.terminal_output.insert(tk.END, f"\n> {comando}\n")
         self.terminal_output.see(tk.END)
         self.comando_entry.delete(0, tk.END)
-        thread = threading.Thread(target=self._ejecutar_comando_async, args=(comando,))
+        def run_and_report():
+            self._ejecutar_comando_async(comando, reportar=True)
+        thread = threading.Thread(target=run_and_report)
         thread.daemon = True
         thread.start()
     
-    def _ejecutar_comando_async(self, comando):
+    def _ejecutar_comando_async(self, comando, reportar=False):
         """Ejecutar comando de forma asíncrona con comandos especiales."""
         try:
             # Comandos especiales de ARESITOS
             if comando == "ayuda-comandos":
                 self._mostrar_ayuda_comandos()
+                if reportar:
+                    self._enviar_a_reportes(comando, "[AYUDA COMANDOS]", False)
                 return
             elif comando == "info-seguridad":
                 self._mostrar_info_seguridad()
+                if reportar:
+                    self._enviar_a_reportes(comando, "[INFO SEGURIDAD]", False)
                 return
             elif comando in ["clear", "cls"]:
                 self.limpiar_terminal_fim()
+                if reportar:
+                    self._enviar_a_reportes(comando, "Pantalla limpiada", False)
                 return
 
             import platform
@@ -339,13 +369,19 @@ class VistaFIM(tk.Frame):
 
             if resultado.stdout:
                 self.terminal_output.insert(tk.END, resultado.stdout)
+                if reportar:
+                    self._enviar_a_reportes(comando, resultado.stdout, False)
             if resultado.stderr:
                 self.terminal_output.insert(tk.END, f"ERROR: {resultado.stderr}")
+                if reportar:
+                    self._enviar_a_reportes(comando, resultado.stderr, True)
 
             self.terminal_output.see(tk.END)
 
         except Exception as e:
             self.terminal_output.insert(tk.END, f"ERROR ejecutando comando: {e}\n")
+            if reportar:
+                self._enviar_a_reportes(comando, str(e), True)
         self.terminal_output.see(tk.END)
     
     def abrir_logs_fim(self):
@@ -400,17 +436,17 @@ class VistaFIM(tk.Frame):
         # Panel izquierdo - Controles
         left_frame = tk.Frame(parent_frame, bg=self.colors['bg_secondary'], relief="solid", bd=1)
         left_frame.pack(side="left", fill="y", padx=(0, 10))
-        
+
         # Panel derecho - Resultados
         right_frame = tk.Frame(parent_frame, bg=self.colors['bg_primary'])
         right_frame.pack(side="right", fill="both", expand=True)
-        
+
         # Controles del FIM
         controles_label = tk.Label(left_frame, text="Controles FIM", 
                                   bg=self.colors['bg_secondary'], fg=self.colors['fg_accent'],
                                   font=('Arial', 12, 'bold'))
         controles_label.pack(anchor="w", padx=10, pady=(10, 5))
-        
+
         # Botones de control
         self.btn_iniciar = tk.Button(left_frame, text="Iniciar Monitoreo",
                                     command=self.iniciar_monitoreo,
@@ -418,7 +454,7 @@ class VistaFIM(tk.Frame):
                                     font=('Arial', 10, 'bold'),
                                     relief='flat', padx=15, pady=8)
         self.btn_iniciar.pack(fill="x", padx=10, pady=5)
-        
+
         self.btn_detener = tk.Button(left_frame, text="Detener Monitoreo",
                                     command=self.detener_monitoreo,
                                     state="disabled",
@@ -426,14 +462,14 @@ class VistaFIM(tk.Frame):
                                     font=('Arial', 10),
                                     relief='flat', padx=15, pady=8)
         self.btn_detener.pack(fill="x", padx=10, pady=5)
-        
+
         self.btn_verificar = tk.Button(left_frame, text="Verificar Integridad",
                                       command=self.verificar_integridad,
                                       bg=self.colors['info'], fg='white',
                                       font=('Arial', 10),
                                       relief='flat', padx=15, pady=8)
         self.btn_verificar.pack(fill="x", padx=10, pady=5)
-        
+
         # NUEVOS BOTONES FASE 3.3 - FIM AVANZADO
         self.btn_monitoreo_avanzado = tk.Button(left_frame, text="Monitoreo Avanzado",
                                                command=self.monitoreo_avanzado_kali,
@@ -441,27 +477,43 @@ class VistaFIM(tk.Frame):
                                                font=('Arial', 10),
                                                relief='flat', padx=15, pady=8)
         self.btn_monitoreo_avanzado.pack(fill="x", padx=10, pady=5)
-        
+
         self.btn_analisis_forense = tk.Button(left_frame, text="Análisis Forense",
                                              command=self.analisis_forense_archivos,
                                              bg='#dc3545', fg='white',
                                              font=('Arial', 10),
                                              relief='flat', padx=15, pady=8)
         self.btn_analisis_forense.pack(fill="x", padx=10, pady=5)
-        
+
         self.btn_tiempo_real = tk.Button(left_frame, text="Monitoreo Tiempo Real",
                                         command=self.iniciar_monitoreo_tiempo_real,
                                         bg='#28a745', fg='white',
                                         font=('Arial', 10),
                                         relief='flat', padx=15, pady=8)
         self.btn_tiempo_real.pack(fill="x", padx=10, pady=5)
-        
+
+        # BOTÓN PONER EN CUARENTENA
+        cuarentena_label = tk.Label(left_frame, text="Cuarentena de Archivos", 
+                                  bg=self.colors['bg_secondary'], fg=self.colors['danger'],
+                                  font=('Arial', 11, 'bold'))
+        cuarentena_label.pack(anchor="w", padx=10, pady=(20, 5))
+
+        self.cuarentena_entry = tk.Entry(left_frame, width=30, font=('Consolas', 10))
+        self.cuarentena_entry.pack(fill="x", padx=10, pady=(0, 5))
+        self.cuarentena_entry.insert(0, "Ruta del archivo a poner en cuarentena")
+
+        btn_cuarentena = tk.Button(left_frame, text="Poner en cuarentena",
+                                   command=self._poner_en_cuarentena_desde_entry,
+                                   bg=self.colors['danger'], fg='white',
+                                   font=('Arial', 10, 'bold'), relief='flat', padx=15, pady=8)
+        btn_cuarentena.pack(fill="x", padx=10, pady=5)
+
         # Área de resultados
         resultados_label = tk.Label(right_frame, text="Resultados del Monitoreo FIM",
                                    bg=self.colors['bg_primary'], fg=self.colors['fg_accent'],
                                    font=('Arial', 12, 'bold'))
         resultados_label.pack(anchor="w", pady=(0, 10))
-        
+
         self.fim_text = scrolledtext.ScrolledText(right_frame, height=25,
                                                  bg=self.colors['bg_secondary'], 
                                                  fg=self.colors['fg_primary'],
@@ -470,6 +522,27 @@ class VistaFIM(tk.Frame):
                                                  selectbackground=self.colors['fg_accent'],
                                                  wrap=tk.WORD, state=tk.DISABLED)
         self.fim_text.pack(fill="both", expand=True)
+
+    def _poner_en_cuarentena_desde_entry(self):
+        """Pone en cuarentena el archivo especificado en el campo de entrada."""
+        ruta = self.cuarentena_entry.get().strip()
+        if not ruta or ruta == "Ruta del archivo a poner en cuarentena":
+            self.log_to_terminal("Debe especificar la ruta del archivo a poner en cuarentena.")
+            return
+        if not hasattr(self, 'controlador') or not self.controlador or not hasattr(self.controlador, 'controlador_cuarentena'):
+            self.log_to_terminal("Controlador de cuarentena no disponible.")
+            return
+        try:
+            resultado = self.controlador.controlador_cuarentena.cuarentenar_archivo(ruta, razon="Manual desde FIM")
+            if resultado.get('exito'):
+                self.log_to_terminal(f"Archivo puesto en cuarentena: {ruta}")
+                self._enviar_a_reportes('poner_en_cuarentena', f"Archivo puesto en cuarentena: {ruta}", False)
+            else:
+                self.log_to_terminal(f"Error poniendo en cuarentena: {resultado.get('mensaje','sin mensaje')}")
+                self._enviar_a_reportes('poner_en_cuarentena', f"Error: {resultado.get('mensaje','sin mensaje')}", True)
+        except Exception as e:
+            self.log_to_terminal(f"Excepción poniendo en cuarentena: {e}")
+            self._enviar_a_reportes('poner_en_cuarentena', str(e), True)
     
     def iniciar_monitoreo(self):
         """Iniciar monitoreo continuo con información detallada."""

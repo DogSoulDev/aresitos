@@ -348,22 +348,18 @@ class CuarentenaKali2025:
         
         return resultado
     
-    def listar_archivos_cuarentena(self, estado: str = "activo") -> List[Dict[str, Any]]:
+    def listar_archivos_cuarentena(self, estado: str = "activo") -> list:
         """
-        Listar archivos en cuarentena.
-        
+        Lista todos los archivos en cuarentena, filtrando por estado si se indica.
         Args:
             estado: Estado de los archivos ('activo', 'restaurado', 'eliminado', 'todos')
-            
         Returns:
-            Lista de diccionarios con información de archivos
+            Lista de diccionarios con información completa de archivos en cuarentena.
         """
         archivos = []
-        
         try:
             with sqlite3.connect(self.db_path) as conn:
                 cursor = conn.cursor()
-                
                 if estado == "todos":
                     cursor.execute('''
                         SELECT id, ruta_original, ruta_cuarentena, hash_sha256, tipo_amenaza,
@@ -376,7 +372,6 @@ class CuarentenaKali2025:
                                razon, fecha_cuarentena, tamano_bytes, estado, metadatos
                         FROM archivos_cuarentena WHERE estado = ? ORDER BY fecha_cuarentena DESC
                     ''', (estado,))
-                
                 for fila in cursor.fetchall():
                     archivo_info = {
                         'id': fila[0],
@@ -391,10 +386,8 @@ class CuarentenaKali2025:
                         'metadatos': json.loads(fila[9]) if fila[9] else {}
                     }
                     archivos.append(archivo_info)
-                    
         except Exception as e:
             self.logger.error(f"Error listando archivos en cuarentena: {e}")
-        
         return archivos
     
     def verificar_integridad(self) -> Dict[str, Any]:
@@ -562,3 +555,58 @@ class CuarentenaKali2025:
             self.logger.error(f"Error en limpieza de cuarentena: {e}")
         
         return resultado
+    
+
+
+    def eliminar_archivo_cuarentena(self, ruta_original):
+        """Elimina un archivo de la cuarentena y su registro."""
+        try:
+            with sqlite3.connect(self.db_path) as conn:
+                cursor = conn.cursor()
+                cursor.execute("SELECT ruta_cuarentena FROM archivos_cuarentena WHERE ruta_original=?", (ruta_original,))
+                row = cursor.fetchone()
+                if not row:
+                    raise Exception("Archivo no encontrado en cuarentena")
+                ruta_cuarentena = row[0]
+                if os.path.exists(ruta_cuarentena):
+                    os.remove(ruta_cuarentena)
+                cursor.execute("DELETE FROM archivos_cuarentena WHERE ruta_original=?", (ruta_original,))
+                conn.commit()
+            return True
+        except Exception as e:
+            self.logger.error(f"Error eliminando archivo de cuarentena: {e}")
+            raise
+
+    def restaurar_archivo_cuarentena(self, ruta_original):
+        """Restaura un archivo de la cuarentena a su ubicación original."""
+        try:
+            with sqlite3.connect(self.db_path) as conn:
+                cursor = conn.cursor()
+                cursor.execute("SELECT ruta_cuarentena, ruta_original FROM archivos_cuarentena WHERE ruta_original=?", (ruta_original,))
+                row = cursor.fetchone()
+                if not row:
+                    raise Exception("Archivo no encontrado en cuarentena")
+                ruta_cuarentena, ruta_original = row
+                if os.path.exists(ruta_cuarentena):
+                    os.replace(ruta_cuarentena, ruta_original)
+                cursor.execute("UPDATE archivos_cuarentena SET estado='restaurado' WHERE ruta_original=?", (ruta_original,))
+                conn.commit()
+            return True
+        except Exception as e:
+            self.logger.error(f"Error restaurando archivo de cuarentena: {e}")
+            raise
+
+    def obtener_detalles_archivo(self, ruta_original):
+        """Obtiene todos los detalles de un archivo en cuarentena."""
+        detalles = {}
+        try:
+            with sqlite3.connect(self.db_path) as conn:
+                cursor = conn.cursor()
+                cursor.execute("SELECT * FROM archivos_cuarentena WHERE ruta_original=?", (ruta_original,))
+                row = cursor.fetchone()
+                if row:
+                    columnas = [desc[0] for desc in cursor.description]
+                    detalles = dict(zip(columnas, row))
+        except Exception as e:
+            self.logger.error(f"Error obteniendo detalles de archivo en cuarentena: {e}")
+        return detalles
