@@ -1,4 +1,5 @@
 
+
 # -*- coding: utf-8 -*-
 """
 PRINCIPIOS DE SEGURIDAD ARESITOS (NO MODIFICAR SIN AUDITORÍA)
@@ -9,6 +10,14 @@ PRINCIPIOS DE SEGURIDAD ARESITOS (NO MODIFICAR SIN AUDITORÍA)
 - Prohibido el uso de eval, exec, os.system, subprocess.Popen directo.
 - Prohibido shell=True salvo justificación y validación exhaustiva.
 - Si algún desarrollador necesita privilegios, usar solo gestor_permisos.
+
+ADVERTENCIA DE INTEGRACIÓN:
+Esta vista debe ser utilizada SIEMPRE como tk.Frame hijo de un contenedor principal (Notebook o root existente).
+Prohibido instanciar esta clase en una ventana independiente (tk.Tk o tk.Toplevel).
+No ejecutar este archivo directamente ni usarlo como script de test aislado.
+El incumplimiento de este principio puede causar dobles ventanas, fugas de memoria o errores de integración.
+
+Cumple con el patrón MVC y los principios de seguridad y portabilidad de ARESITOS.
 """
 
 import tkinter as tk

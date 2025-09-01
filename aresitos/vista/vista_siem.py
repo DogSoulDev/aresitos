@@ -265,9 +265,9 @@ class VistaSIEM(tk.Frame):
             self._enviar_a_reportes('poner_en_cuarentena', str(e), True)
     
     def crear_terminal_integrado(self):
-        """Crear terminal integrado SIEM con diseño estándar coherente."""
+        """Crear terminal integrado SIEM con diseño estándar coherente y tema burp_theme."""
         try:
-            # Frame del terminal estilo dashboard
+            from aresitos.vista.burp_theme import burp_theme
             terminal_frame = tk.LabelFrame(
                 self.paned_window,
                 text="Terminal ARESITOS - SIEM",
@@ -276,85 +276,75 @@ class VistaSIEM(tk.Frame):
                 font=("Arial", 10, "bold")
             )
             self.paned_window.add(terminal_frame, minsize=120)
-            
-            # Frame para controles del terminal (compacto)
+
             controles_frame = tk.Frame(terminal_frame, bg=self.colors['bg_secondary'])
             controles_frame.pack(fill="x", padx=5, pady=2)
-            
-            # Botón limpiar terminal (estilo dashboard, compacto)
+
             btn_limpiar = tk.Button(
                 controles_frame,
                 text="LIMPIAR",
                 command=self.limpiar_terminal_siem,
                 bg=self.colors.get('warning', '#ffaa00'),
-                fg='white',
+                fg=self.colors.get('button_fg', 'white'),
                 font=("Arial", 8, "bold"),
                 height=1
             )
             btn_limpiar.pack(side="left", padx=2, fill="x", expand=True)
-            
-            # Botón ver logs (estilo dashboard, compacto)
+
             btn_logs = tk.Button(
                 controles_frame,
                 text="VER LOGS",
                 command=self.abrir_logs_siem,
                 bg=self.colors.get('info', '#007acc'),
-                fg='white',
+                fg=self.colors.get('button_fg', 'white'),
                 font=("Arial", 8, "bold"),
                 height=1
             )
             btn_logs.pack(side="left", padx=2, fill="x", expand=True)
-            
-            # Área de terminal (misma estética que dashboard, más pequeña)
+
             self.terminal_output = scrolledtext.ScrolledText(
                 terminal_frame,
-                height=6,  # Más pequeño que dashboard (que tiene más altura)
-                bg='#000000',  # Terminal negro estándar
-                fg='#00ff00',  # Terminal verde estándar
-                font=("Consolas", 8),  # Fuente smaller que dashboard
-                insertbackground='#00ff00',
-                selectbackground='#333333'
+                height=6,
+                font=("Consolas", 8)
             )
+            burp_theme.configure_text_widget(self.terminal_output)
             self.terminal_output.pack(fill="both", expand=True, padx=5, pady=5)
-            
-            # Frame para entrada de comandos (como Dashboard)
-            entrada_frame = tk.Frame(terminal_frame, bg='#1e1e1e')
+
+            entrada_frame = tk.Frame(terminal_frame, bg=self.colors['bg_secondary'])
             entrada_frame.pack(fill="x", padx=5, pady=2)
-            
+
             tk.Label(entrada_frame, text="COMANDO:",
-                    bg='#1e1e1e', fg='#00ff00',
+                    bg=self.colors['bg_secondary'], fg=self.colors['fg_accent'],
                     font=("Arial", 9, "bold")).pack(side="left", padx=(0, 5))
-            
+
             self.comando_entry = tk.Entry(
                 entrada_frame,
-                bg='#000000',
-                fg='#00ff00',
-                font=("Consolas", 9),
-                insertbackground='#00ff00'
+                font=("Consolas", 9)
             )
             self.comando_entry.pack(side="left", fill="x", expand=True, padx=(0, 5))
+            burp_theme.configure_text_widget(self.comando_entry)
             self.comando_entry.bind("<Return>", self.ejecutar_comando_entry)
-            
+
             ejecutar_btn = tk.Button(
                 entrada_frame,
                 text="EJECUTAR",
                 command=self.ejecutar_comando_entry,
-                bg='#2d5aa0',
-                fg='white',
+                bg=self.colors.get('button_bg', '#2d5aa0'),
+                fg=self.colors.get('button_fg', 'white'),
                 font=("Arial", 8, "bold")
             )
             ejecutar_btn.pack(side="right")
-            
-            # Mensaje inicial estilo dashboard
+
             self._actualizar_terminal_seguro("="*60 + "\n")
             self._actualizar_terminal_seguro("Terminal ARESITOS - SIEM v2.0\n")
+            from datetime import datetime
             self._actualizar_terminal_seguro(f"Iniciado: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}\n")
             self._actualizar_terminal_seguro(f"Sistema: Kali Linux - Security Information & Event Management\n")
             self._actualizar_terminal_seguro("="*60 + "\n")
             self._actualizar_terminal_seguro("LOG Monitoreo SIEM en tiempo real\n\n")
-            
+
             self.log_to_terminal("Terminal SIEM iniciado correctamente")
-            
+
         except Exception as e:
             print(f"Error creando terminal integrado en Vista SIEM: {e}")
     

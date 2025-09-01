@@ -26,6 +26,131 @@ except ImportError:
     burp_theme = None
 
 class VistaReportes(tk.Frame):
+    def _abrir_ventana_edicion_reporte(self, callback_guardar):
+        import tkinter as tk
+        ventana = tk.Toplevel(self)
+        ventana.title("Editar campos del reporte")
+        ventana.transient(self.winfo_toplevel())
+        ventana.grab_set()
+        colors = getattr(self, 'colors', {
+            'bg_primary': '#2b2b2b', 'fg_primary': '#ffffff', 'fg_accent': '#ff6633',
+            'button_bg': '#ffb86c', 'button_fg': '#232629'
+        })
+        ventana.configure(bg=colors['bg_primary'])
+        campos = {
+            'titulo': tk.StringVar(value="INFORME DE INCIDENTE Y SEGURIDAD - ARESITOS"),
+            'autor': tk.StringVar(value=""),
+            'fecha': tk.StringVar(value=""),
+            'resumen': tk.StringVar(value=""),
+            'objetivos': tk.StringVar(value=""),
+            'alcance': tk.StringVar(value=""),
+            'recomendaciones': tk.StringVar(value="")
+        }
+        if self.reporte_actual and isinstance(self.reporte_actual, dict):
+            resumen = self.reporte_actual.get('resumen', {})
+            campos['titulo'].set(self.reporte_actual.get('titulo', campos['titulo'].get()))
+            campos['autor'].set(self.reporte_actual.get('autor', campos['autor'].get()))
+            campos['fecha'].set(self.reporte_actual.get('fecha_generacion', campos['fecha'].get()))
+            campos['resumen'].set(resumen.get('resumen_ejecutivo', campos['resumen'].get()))
+            campos['objetivos'].set(resumen.get('objetivos', campos['objetivos'].get()))
+            campos['alcance'].set(resumen.get('alcance', campos['alcance'].get()))
+            campos['recomendaciones'].set(resumen.get('recomendaciones', campos['recomendaciones'].get()))
+        row = 0
+        text_widgets = {}
+        for label, var in [('Título', 'titulo'), ('Autor', 'autor'), ('Fecha', 'fecha'),
+                           ('Resumen Ejecutivo', 'resumen'), ('Objetivos', 'objetivos'),
+                           ('Alcance', 'alcance'), ('Recomendaciones', 'recomendaciones')]:
+            tk.Label(ventana, text=label+':', bg=colors['bg_primary'], fg=colors['fg_accent'], font=("Arial", 11, "bold")).grid(row=row, column=0, sticky='e', padx=8, pady=4)
+            if var in ['resumen', 'objetivos', 'alcance', 'recomendaciones']:
+                entry = tk.Text(ventana, height=3, width=48, bg=colors['bg_primary'], fg=colors['fg_primary'], insertbackground=colors['fg_accent'], font=("Consolas", 10))
+                entry.insert('1.0', campos[var].get())
+                entry.grid(row=row, column=1, padx=8, pady=4)
+                text_widgets[var] = entry
+            else:
+                entry = tk.Entry(ventana, textvariable=campos[var], width=50, bg=colors['bg_primary'], fg=colors['fg_primary'], insertbackground=colors['fg_accent'], font=("Consolas", 10))
+                entry.grid(row=row, column=1, padx=8, pady=4)
+            row += 1
+        def on_guardar():
+            datos = {}
+            for k in campos:
+                if k in text_widgets:
+                    datos[k] = text_widgets[k].get('1.0', 'end').strip()
+                else:
+                    datos[k] = campos[k].get().strip()
+            ventana.destroy()
+            callback_guardar(datos)
+        btn_guardar = tk.Button(ventana, text="Generar y Guardar Reporte", command=on_guardar,
+                                bg=colors['button_bg'], fg=colors['button_fg'], font=("Arial", 12, "bold"), relief='raised', padx=18, pady=8)
+        btn_guardar.grid(row=row, column=0, columnspan=2, pady=12)
+
+    # ...existing code...
+    def guardar_texto(self):
+        """Guardar reporte con edición previa de campos clave."""
+        import getpass, datetime
+        def guardar_con_campos(campos):
+            contenido = self._generar_reporte_profesional_txt(campos)
+            from tkinter import filedialog, messagebox
+            archivo = filedialog.asksaveasfilename(
+                title="Guardar Reporte TXT",
+                defaultextension=".txt",
+                filetypes=[("Archivo de texto", "*.txt"), ("Todos los archivos", "*.*")]
+            )
+            if archivo:
+                try:
+                    with open(archivo, 'w', encoding='utf-8') as f:
+                        f.write(contenido)
+                    usuario = getpass.getuser()
+                    fecha = datetime.datetime.now().isoformat()
+                    resumen = f"Título: {campos.get('titulo','')}, Autor: {campos.get('autor','')}, Fecha: {campos.get('fecha','')}, Archivo: {archivo}"
+                    self.logger.log(f"[EXPORTACIÓN TXT] Usuario: {usuario}, Fecha: {fecha}, {resumen}", nivel="INFO", modulo="REPORTES")
+                    self._log_terminal(f"[EXPORTACIÓN TXT] Usuario: {usuario}, Fecha: {fecha}, {resumen}", modulo="REPORTES", nivel="INFO")
+                    messagebox.showinfo("Éxito", f"Reporte guardado correctamente en {archivo}")
+                except Exception as e:
+                    self.logger.log(f"[EXPORTACIÓN TXT][ERROR] {str(e)}", nivel="ERROR", modulo="REPORTES")
+                    self._log_terminal(f"[EXPORTACIÓN TXT][ERROR] {str(e)}", modulo="REPORTES", nivel="ERROR")
+                    messagebox.showerror("Error", f"Error al guardar texto: {str(e)}")
+        self._abrir_ventana_edicion_reporte(guardar_con_campos)
+
+    def _generar_reporte_profesional_txt(self, campos):
+        """Genera el texto plano profesional del reporte con los campos editados y los datos técnicos."""
+        # Portada
+        line = lambda c: c*80
+        secciones = [line('='), campos['titulo'], line('='),
+                     f"Fecha de generación: {campos['fecha']}",
+                     f"Autor/Analista: {campos['autor']}", ""]
+        # Resumen ejecutivo y objetivos
+        secciones += ["--- RESUMEN EJECUTIVO ---",
+                     f"Resumen: {campos['resumen']}",
+                     f"Objetivos: {campos['objetivos']}",
+                     f"Alcance: {campos['alcance']}",
+                     f"Recomendaciones: {campos['recomendaciones']}", ""]
+        # Hallazgos y evidencias técnicas
+        secciones.append("--- HALLAZGOS Y EVIDENCIAS TÉCNICAS ---")
+        # Incluir datos técnicos de los módulos seleccionados
+        if self.reporte_actual and isinstance(self.reporte_actual, dict):
+            modulos = [
+                ("DASHBOARD", self.reporte_actual.get('dashboard', {})),
+                ("ESCANEO", self.reporte_actual.get('escaneo', {})),
+                ("MONITOREO", self.reporte_actual.get('monitoreo', {})),
+                ("FIM", self.reporte_actual.get('fim', {})),
+                ("SIEM", self.reporte_actual.get('siem', {})),
+                ("CUARENTENA", self.reporte_actual.get('cuarentena', {})),
+                ("TERMINAL PRINCIPAL", self.reporte_actual.get('terminal_principal', {})),
+            ]
+            for nombre, datos in modulos:
+                secciones.append(line('-'))
+                secciones.append(f"[ {nombre} ]")
+                if isinstance(datos, dict):
+                    for k, v in datos.items():
+                        secciones.append(f"{k}: {v}")
+                elif isinstance(datos, str):
+                    secciones.append(datos)
+                else:
+                    secciones.append(str(datos))
+        secciones.append("")
+        secciones.append(line('='))
+        secciones.append("Reporte generado por ARESITOS - https://github.com/DogSoulDev/aresitos")
+        return '\n'.join(secciones)
     def _actualizar_texto_reporte_seguro(self, texto):
         def _update():
             try:
@@ -342,18 +467,16 @@ class VistaReportes(tk.Frame):
         """Exportar el reporte mostrado a PDF usando enscript y ps2pdf (nativo Kali)."""
         import tempfile, os, subprocess
         from tkinter import messagebox, filedialog
+        import getpass, datetime
         try:
             contenido = self.reporte_text.get(1.0, tk.END)
             if not contenido.strip():
                 messagebox.showwarning("Advertencia", "No hay contenido para exportar")
                 return
-            # Guardar a archivo temporal TXT
             with tempfile.NamedTemporaryFile(delete=False, suffix='.txt', mode='w', encoding='utf-8') as tmp_txt:
                 tmp_txt.write(contenido)
                 tmp_txt_path = tmp_txt.name
-            # Archivo temporal PS
             tmp_ps_path = tmp_txt_path.replace('.txt', '.ps')
-            # Archivo destino PDF
             pdf_destino = filedialog.asksaveasfilename(
                 title="Exportar Reporte PDF",
                 defaultextension=".pdf",
@@ -364,14 +487,12 @@ class VistaReportes(tk.Frame):
                 return
             from aresitos.utils.sudo_manager import get_sudo_manager
             sudo_manager = get_sudo_manager()
-            # 1. TXT a PS
             res1 = sudo_manager.execute_sudo_command(f"enscript -B -o '{tmp_ps_path}' '{tmp_txt_path}'")
             if hasattr(res1, 'returncode') and res1.returncode != 0:
                 os.unlink(tmp_txt_path)
                 error_msg = res1.stderr if hasattr(res1, 'stderr') else str(res1)
                 messagebox.showerror("Error", f"Error ejecutando enscript: {error_msg}")
                 return
-            # 2. PS a PDF
             res2 = sudo_manager.execute_sudo_command(f"ps2pdf '{tmp_ps_path}' '{pdf_destino}'")
             if hasattr(res2, 'returncode') and res2.returncode != 0:
                 os.unlink(tmp_txt_path)
@@ -379,11 +500,16 @@ class VistaReportes(tk.Frame):
                 error_msg = res2.stderr if hasattr(res2, 'stderr') else str(res2)
                 messagebox.showerror("Error", f"Error ejecutando ps2pdf: {error_msg}")
                 return
-            # Limpieza
             os.unlink(tmp_txt_path)
             os.unlink(tmp_ps_path)
+            usuario = getpass.getuser()
+            fecha = datetime.datetime.now().isoformat()
+            self.logger.log(f"[EXPORTACIÓN PDF] Usuario: {usuario}, Fecha: {fecha}, Archivo: {pdf_destino}", nivel="INFO", modulo="REPORTES")
+            self._log_terminal(f"[EXPORTACIÓN PDF] Usuario: {usuario}, Fecha: {fecha}, Archivo: {pdf_destino}", modulo="REPORTES", nivel="INFO")
             messagebox.showinfo("Éxito", f"Reporte exportado correctamente a {pdf_destino}")
         except Exception as e:
+            self.logger.log(f"[EXPORTACIÓN PDF][ERROR] {str(e)}", nivel="ERROR", modulo="REPORTES")
+            self._log_terminal(f"[EXPORTACIÓN PDF][ERROR] {str(e)}", modulo="REPORTES", nivel="ERROR")
             messagebox.showerror("Error", f"Error exportando PDF: {str(e)}")
         
     # ... (widgets de análisis Kali solo deben estar en crear_interfaz)
@@ -528,46 +654,31 @@ class VistaReportes(tk.Frame):
             messagebox.showwarning("Advertencia", "No hay reporte generado para actualizar")
     
     def guardar_json(self):
+        import getpass, datetime
         try:
             if not self.reporte_actual:
                 messagebox.showwarning("Advertencia", "No hay reporte para guardar")
                 return
-            
             archivo = filedialog.asksaveasfilename(
                 title="Guardar Reporte JSON",
                 defaultextension=".json",
                 filetypes=[("Archivo JSON", "*.json"), ("Todos los archivos", "*.*")]
             )
-            
             if archivo:
                 import json
                 with open(archivo, 'w', encoding='utf-8') as f:
                     json.dump(self.reporte_actual, f, indent=2, ensure_ascii=False)
+                usuario = getpass.getuser()
+                fecha = datetime.datetime.now().isoformat()
+                resumen = f"Autor: {self.reporte_actual.get('autor','')}, Fecha: {self.reporte_actual.get('fecha_generacion','')}, Archivo: {archivo}"
+                self.logger.log(f"[EXPORTACIÓN JSON] Usuario: {usuario}, Fecha: {fecha}, {resumen}", nivel="INFO", modulo="REPORTES")
+                self._log_terminal(f"[EXPORTACIÓN JSON] Usuario: {usuario}, Fecha: {fecha}, {resumen}", modulo="REPORTES", nivel="INFO")
                 messagebox.showinfo("Éxito", f"Reporte guardado correctamente en {archivo}")
-                    
         except Exception as e:
+            self.logger.log(f"[EXPORTACIÓN JSON][ERROR] {str(e)}", nivel="ERROR", modulo="REPORTES")
+            self._log_terminal(f"[EXPORTACIÓN JSON][ERROR] {str(e)}", modulo="REPORTES", nivel="ERROR")
             messagebox.showerror("Error", f"Error al guardar JSON: {str(e)}")
     
-    def guardar_texto(self):
-        try:
-            contenido = self.reporte_text.get(1.0, tk.END)
-            if not contenido.strip():
-                messagebox.showwarning("Advertencia", "No hay contenido para guardar")
-                return
-            
-            archivo = filedialog.asksaveasfilename(
-                title="Guardar Reporte TXT",
-                defaultextension=".txt",
-                filetypes=[("Archivo de texto", "*.txt"), ("Todos los archivos", "*.*")]
-            )
-            
-            if archivo:
-                with open(archivo, 'w', encoding='utf-8') as f:
-                    f.write(contenido)
-                messagebox.showinfo("Éxito", f"Reporte guardado correctamente en {archivo}")
-                
-        except Exception as e:
-            messagebox.showerror("Error", f"Error al guardar texto: {str(e)}")
     
     def cargar_reporte(self):
         """Cargar reporte desde archivo, sin validaciones ni sanitización."""
