@@ -1236,14 +1236,14 @@ class VistaMonitoreo(tk.Frame):
             self.after(0, self._finalizar_monitoreo_red)
 
     def _detectar_dispositivos_red_seguro(self):
-        """Detectar dispositivos de red con manejo robusto de errores - Issue 19/24."""
+        """Detectar dispositivos de red con manejo robusto de errores y reportar hallazgos críticos."""
         try:
-            # Usar el método de comando seguro para obtener redes locales
             resultado = self._ejecutar_comando_seguro(['ip', 'route', 'show'], timeout=10)
             if not resultado['success']:
                 if self.text_monitor is not None:
                     self.text_monitor.insert(tk.END, f"[FASE 1] Error obteniendo rutas: {resultado['error']}\n")
                 self._log_terminal(f"Error obteniendo rutas: {resultado['error']}", "MONITOREO-RED", "WARNING")
+                self._enviar_a_reportes('monitoreo_red', f"Error obteniendo rutas: {resultado['error']}", True)
                 return
             redes_locales = []
             for linea in resultado['output'].split('\n'):
@@ -1257,12 +1257,12 @@ class VistaMonitoreo(tk.Frame):
                 if self.text_monitor is not None:
                     self.text_monitor.insert(tk.END, "[FASE 1] No se detectaron redes locales.\n")
                 self._log_terminal("No se detectaron redes locales", "MONITOREO-RED", "INFO")
+                self._enviar_a_reportes('monitoreo_red', "No se detectaron redes locales", False)
                 return
             if self.text_monitor is not None:
                 self.text_monitor.insert(tk.END, f"[FASE 1] Redes locales detectadas: {', '.join(redes_locales)}\n")
             dispositivos_encontrados = 0
             dispositivos_info = []
-            # Usar nmap si está disponible para escaneo profesional
             try:
                 resultado_nmap = self._ejecutar_comando_seguro(['nmap', '-sn', redes_locales[0]], timeout=15)
                 if resultado_nmap['success'] and resultado_nmap['output']:
@@ -1274,13 +1274,13 @@ class VistaMonitoreo(tk.Frame):
                     if dispositivos_info:
                         if self.text_monitor is not None:
                             self.text_monitor.insert(tk.END, f"[FASE 1] Dispositivos detectados (nmap): {', '.join(dispositivos_info)}\n")
+                        self._enviar_a_reportes('monitoreo_red', f"Dispositivos detectados en red: {', '.join(dispositivos_info)}", False)
                     else:
                         if self.text_monitor is not None:
                             self.text_monitor.insert(tk.END, "[FASE 1] No se detectaron dispositivos activos con nmap.\n")
                 else:
                     if self.text_monitor is not None:
                         self.text_monitor.insert(tk.END, "[FASE 1] nmap no disponible o sin resultados, usando ping básico...\n")
-                    # Fallback a ping básico
                     red_base = redes_locales[0].split('/')[0].rsplit('.', 1)[0]
                     for i in range(1, 11):
                         if not self.flag_red.is_set():
@@ -1293,17 +1293,20 @@ class VistaMonitoreo(tk.Frame):
                     if dispositivos_info:
                         if self.text_monitor is not None:
                             self.text_monitor.insert(tk.END, f"[FASE 1] Dispositivos detectados (ping): {', '.join(dispositivos_info)}\n")
+                        self._enviar_a_reportes('monitoreo_red', f"Dispositivos detectados en red: {', '.join(dispositivos_info)}", False)
                     else:
                         if self.text_monitor is not None:
                             self.text_monitor.insert(tk.END, "[FASE 1] No se detectaron dispositivos activos con ping.\n")
             except Exception as e:
                 if self.text_monitor is not None:
                     self.text_monitor.insert(tk.END, f"[FASE 1] Error usando nmap/ping: {str(e)}\n")
+                self._enviar_a_reportes('monitoreo_red', f"Error usando nmap/ping: {str(e)}", True)
             self._log_terminal(f"Total dispositivos detectados: {dispositivos_encontrados}", "MONITOREO-RED", "INFO")
         except Exception as e:
             if self.text_monitor is not None:
                 self.text_monitor.insert(tk.END, f"[FASE 1] Error en detección de dispositivos: {str(e)}\n")
             self._log_terminal(f"Error en detección segura de dispositivos: {str(e)}", "MONITOREO-RED", "WARNING")
+            self._enviar_a_reportes('monitoreo_red', f"Error en detección de dispositivos: {str(e)}", True)
 
     def _detectar_dispositivos_red(self):
         """Detectar todos los dispositivos conectados a la red local."""
@@ -1368,6 +1371,7 @@ class VistaMonitoreo(tk.Frame):
                 if self.text_monitor is not None:
                     self.text_monitor.insert(tk.END, f"[FASE 2] Error obteniendo interfaces: {resultado['error']}\n")
                 self._log_terminal(f"Error obteniendo interfaces: {resultado['error']}", "MONITOREO-RED", "WARNING")
+                self._enviar_a_reportes('monitoreo_red', f"Error obteniendo interfaces: {resultado['error']}", True)
                 return
             interfaces_activas = []
             for linea in resultado['output'].split('\n'):
@@ -1382,11 +1386,13 @@ class VistaMonitoreo(tk.Frame):
             else:
                 if self.text_monitor is not None:
                     self.text_monitor.insert(tk.END, "[FASE 2] No hay interfaces activas.\n")
+                self._enviar_a_reportes('monitoreo_red', "No hay interfaces de red activas", True)
             self._log_terminal(f"Total interfaces activas: {len(interfaces_activas)}", "MONITOREO-RED", "INFO")
         except Exception as e:
             if self.text_monitor is not None:
                 self.text_monitor.insert(tk.END, f"[FASE 2] Error monitoreando interfaces: {str(e)}\n")
             self._log_terminal(f"Error monitoreando interfaces de red: {str(e)}", "MONITOREO-RED", "WARNING")
+            self._enviar_a_reportes('monitoreo_red', f"Error monitoreando interfaces: {str(e)}", True)
 
     def _monitorear_conexiones_activas_seguro(self):
         """Monitorear conexiones activas de forma segura - Issue 19/24."""
@@ -1428,6 +1434,7 @@ class VistaMonitoreo(tk.Frame):
                 if self.text_monitor is not None:
                     self.text_monitor.insert(tk.END, f"[FASE 4] Error obteniendo puertos: {resultado['error']}\n")
                 self._log_terminal(f"Error obteniendo puertos: {resultado['error']}", "MONITOREO-RED", "WARNING")
+                self._enviar_a_reportes('monitoreo_red', f"Error obteniendo puertos: {resultado['error']}", True)
                 return
             puertos_tcp = []
             for linea in resultado['output'].split('\n'):
@@ -1443,15 +1450,20 @@ class VistaMonitoreo(tk.Frame):
             if self.text_monitor is not None:
                 self.text_monitor.insert(tk.END, f"[FASE 4] Puertos TCP abiertos: {', '.join(puertos_unicos) if puertos_unicos else 'Ninguno'}\n")
             puertos_importantes = ['22', '80', '443', '3389', '21', '25']
+            puertos_criticos = []
             for puerto in puertos_importantes:
                 if puerto in puertos_unicos:
+                    puertos_criticos.append(puerto)
                     if self.text_monitor is not None:
                         self.text_monitor.insert(tk.END, f"  [ALERTA] Puerto crítico abierto: {puerto}\n")
+            if puertos_criticos:
+                self._enviar_a_reportes('monitoreo_red', f"Puertos críticos abiertos detectados: {', '.join(puertos_criticos)}", True)
             self._log_terminal(f"PUERTOS ABIERTOS: {len(puertos_unicos)} puertos TCP en escucha", "MONITOREO-RED", "INFO")
         except Exception as e:
             if self.text_monitor is not None:
                 self.text_monitor.insert(tk.END, f"[FASE 4] Error verificando puertos: {str(e)}\n")
             self._log_terminal(f"Error verificando puertos: {str(e)}", "MONITOREO-RED", "WARNING")
+            self._enviar_a_reportes('monitoreo_red', f"Error verificando puertos: {str(e)}", True)
 
     def _monitorear_trafico_red_seguro(self):
         """Monitorear tráfico de red de forma segura - Issue 19/24."""
@@ -1461,14 +1473,28 @@ class VistaMonitoreo(tk.Frame):
                 if self.text_monitor is not None:
                     self.text_monitor.insert(tk.END, f"[FASE 5] Error obteniendo estadísticas de red: {resultado['error']}\n")
                 self._log_terminal(f"Error obteniendo estadísticas de red: {resultado['error']}", "MONITOREO-RED", "WARNING")
+                self._enviar_a_reportes('monitoreo_red', f"Error obteniendo estadísticas de red: {resultado['error']}", True)
                 return
             if self.text_monitor is not None:
                 self.text_monitor.insert(tk.END, f"[FASE 5] Estadísticas de tráfico de red (ifstat):\n{resultado['output']}\n")
+            # Analizar tráfico sospechoso (ejemplo: >100MB en 1s)
+            for linea in resultado['output'].split('\n'):
+                if linea.strip() and not linea.lower().startswith('interface'):
+                    partes = linea.split()
+                    if len(partes) >= 3:
+                        try:
+                            rx = float(partes[1])
+                            tx = float(partes[2])
+                            if rx > 100000 or tx > 100000:  # >100MB/s
+                                self._enviar_a_reportes('monitoreo_red', f"Tráfico de red sospechoso detectado: RX={rx} KB/s, TX={tx} KB/s", True)
+                        except Exception:
+                            continue
             self._log_terminal(f"Tráfico de red mostrado con ifstat", "MONITOREO-RED", "INFO")
         except Exception as e:
             if self.text_monitor is not None:
                 self.text_monitor.insert(tk.END, f"[FASE 5] Error monitoreando tráfico: {str(e)}\n")
             self._log_terminal(f"Error monitoreando tráfico: {str(e)}", "MONITOREO-RED", "WARNING")
+            self._enviar_a_reportes('monitoreo_red', f"Error monitoreando tráfico: {str(e)}", True)
 
     def _verificar_configuracion_red_seguro(self):
         """Verificar configuración de red de forma segura - Issue 19/24."""
