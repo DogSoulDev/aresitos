@@ -79,10 +79,11 @@ class CuarentenaKali2025:
             raise
     
     def _inicializar_base_datos(self):
-        """Inicializar base de datos SQLite para tracking de cuarentena."""
+        """Inicializar base de datos SQLite para tracking de cuarentena (archivos e IPs)."""
         try:
             with sqlite3.connect(self.db_path) as conn:
                 cursor = conn.cursor()
+                # Tabla de archivos en cuarentena
                 cursor.execute('''
                     CREATE TABLE IF NOT EXISTS archivos_cuarentena (
                         id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -97,7 +98,7 @@ class CuarentenaKali2025:
                         metadatos TEXT
                     )
                 ''')
-                
+                # Tabla de operaciones sobre archivos
                 cursor.execute('''
                     CREATE TABLE IF NOT EXISTS operaciones_cuarentena (
                         id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -109,12 +110,223 @@ class CuarentenaKali2025:
                         FOREIGN KEY (archivo_id) REFERENCES archivos_cuarentena (id)
                     )
                 ''')
-                
+                # Tabla de IPs en cuarentena
+                cursor.execute('''
+                    CREATE TABLE IF NOT EXISTS ips_cuarentena (
+                        id INTEGER PRIMARY KEY AUTOINCREMENT,
+                        ip TEXT NOT NULL,
+                        tipo_amenaza TEXT,
+                        razon TEXT,
+                        fecha_cuarentena TEXT NOT NULL,
+                        estado TEXT DEFAULT 'bloqueada',
+                        metadatos TEXT
+                    )
+                ''')
+                # Tabla de operaciones sobre IPs
+                cursor.execute('''
+                    CREATE TABLE IF NOT EXISTS operaciones_ips_cuarentena (
+                        id INTEGER PRIMARY KEY AUTOINCREMENT,
+                        ip_id INTEGER,
+                        operacion TEXT NOT NULL,
+                        fecha TEXT NOT NULL,
+                        usuario TEXT,
+                        resultado TEXT,
+                        FOREIGN KEY (ip_id) REFERENCES ips_cuarentena (id)
+                    )
+                ''')
                 conn.commit()
-            
         except Exception as e:
             self.logger.error(f"Error inicializando base de datos de cuarentena: {e}")
             raise
+
+    # --- MÉTODOS PARA CUARENTENA DE IPs ---
+    def poner_ip_en_cuarentena(self, ip: str, tipo_amenaza: str = "desconocido", razon: str = "", metadatos: Optional[dict] = None) -> dict:
+        """
+        Añade una IP a la cuarentena (bloqueo de red).
+        Args:
+            ip: IP a bloquear
+            tipo_amenaza: Tipo de amenaza detectada
+            razon: Razón específica
+            metadatos: Diccionario opcional de metadatos
+        Returns:
+            Diccionario con resultado
+        """
+        resultado = {'exito': False, 'mensaje': '', 'id_cuarentena': None}
+        try:
+            fecha = datetime.now().isoformat()
+            metadatos_str = json.dumps(metadatos or {})
+            with sqlite3.connect(self.db_path) as conn:
+                cursor = conn.cursor()
+                cursor.execute('''
+                    INSERT INTO ips_cuarentena (ip, tipo_amenaza, razon, fecha_cuarentena, estado, metadatos)
+                    VALUES (?, ?, ?, ?, ?, ?)
+                ''', (ip, tipo_amenaza, razon, fecha, 'bloqueada', metadatos_str))
+                ip_id = cursor.lastrowid
+                cursor.execute('''
+                    INSERT INTO operaciones_ips_cuarentena (ip_id, operacion, fecha, usuario, resultado)
+                    VALUES (?, ?, ?, ?, ?)
+                ''', (ip_id, 'CUARENTENA', fecha, os.getenv('USER', 'unknown'), 'EXITOSO'))
+                conn.commit()
+            resultado.update({'exito': True, 'mensaje': f'IP {ip} puesta en cuarentena', 'id_cuarentena': ip_id})
+            self.logger.info(f"IP {ip} puesta en cuarentena (bloqueada)")
+        except Exception as e:
+            resultado['mensaje'] = f"Error poniendo IP en cuarentena: {e}"
+            self.logger.error(resultado['mensaje'])
+        return resultado
+
+    def listar_ips_cuarentena(self, estado: str = "bloqueada") -> list:
+        """
+        Lista todas las IPs en cuarentena, filtrando por estado si se indica.
+        Args:
+            estado: Estado de las IPs ('bloqueada', 'permitida', 'eliminada', 'todas')
+        Returns:
+            Lista de diccionarios con información de IPs en cuarentena
+        """
+        ips = []
+        try:
+            with sqlite3.connect(self.db_path) as conn:
+                cursor = conn.cursor()
+                if estado == "todas":
+                    cursor.execute('''SELECT id, ip, tipo_amenaza, razon, fecha_cuarentena, estado, metadatos FROM ips_cuarentena ORDER BY fecha_cuarentena DESC''')
+                else:
+                    cursor.execute('''SELECT id, ip, tipo_amenaza, razon, fecha_cuarentena, estado, metadatos FROM ips_cuarentena WHERE estado = ? ORDER BY fecha_cuarentena DESC''', (estado,))
+                for fila in cursor.fetchall():
+                    ip_info = {
+                        'id': fila[0],
+                        'ip': fila[1],
+                        'tipo_amenaza': fila[2],
+                        'razon': fila[3],
+                        'fecha_cuarentena': fila[4],
+                        'estado': fila[5],
+                        'metadatos': json.loads(fila[6]) if fila[6] else {}
+                    }
+                    ips.append(ip_info)
+        except Exception as e:
+            self.logger.error(f"Error listando IPs en cuarentena: {e}")
+        return ips
+
+    def cambiar_estado_ip(self, ip: str, nuevo_estado: str) -> dict:
+        """
+        Cambia el estado de una IP en cuarentena (bloqueada, permitida, eliminada) y ejecuta la acción real en el sistema.
+        Args:
+            ip: IP a modificar
+            nuevo_estado: Estado destino ('bloqueada', 'permitida', 'eliminada')
+        Returns:
+            Diccionario con resultado
+        """
+        resultado = {'exito': False, 'mensaje': ''}
+        try:
+            # Intentar importar SudoManager solo si es necesario
+            try:
+                from aresitos.utils.sudo_manager import SudoManager
+                sudo = SudoManager()
+            except Exception as e:
+                sudo = None
+                self.logger.warning(f"SudoManager no disponible: {e}")
+
+            with sqlite3.connect(self.db_path) as conn:
+                cursor = conn.cursor()
+                cursor.execute('''SELECT id, estado FROM ips_cuarentena WHERE ip = ? AND estado != 'eliminada' ORDER BY fecha_cuarentena DESC LIMIT 1''', (ip,))
+                row = cursor.fetchone()
+                if not row:
+                    resultado['mensaje'] = f"IP {ip} no encontrada en cuarentena activa"
+                    return resultado
+                ip_id, estado_actual = row
+                if estado_actual == nuevo_estado:
+                    resultado['mensaje'] = f"La IP ya está en estado {nuevo_estado}"
+                    return resultado
+
+                # Acción real de red
+                accion_ok = True
+                accion_msg = ""
+                if sudo:
+                    if nuevo_estado == 'bloqueada':
+                        # Bloquear IP con iptables/ipset
+                        try:
+                            cmd = f"iptables -A INPUT -s {ip} -j DROP"
+                            sudo.execute_sudo_command(cmd)
+                            accion_msg = f"IP {ip} bloqueada con iptables"
+                        except Exception as e:
+                            accion_ok = False
+                            accion_msg = f"Error bloqueando IP en iptables: {e}"
+                    elif nuevo_estado == 'permitida':
+                        # Quitar bloqueo de IP
+                        try:
+                            cmd = f"iptables -D INPUT -s {ip} -j DROP"
+                            sudo.execute_sudo_command(cmd)
+                            accion_msg = f"IP {ip} permitida (regla eliminada de iptables)"
+                        except Exception as e:
+                            accion_ok = False
+                            accion_msg = f"Error permitiendo IP en iptables: {e}"
+                    # No acción real para 'eliminada', solo marca lógica
+                else:
+                    accion_msg = "SudoManager no disponible, solo cambio lógico."
+
+                if not accion_ok:
+                    resultado['mensaje'] = accion_msg
+                    self.logger.error(accion_msg)
+                    return resultado
+
+                cursor.execute('''UPDATE ips_cuarentena SET estado = ? WHERE id = ?''', (nuevo_estado, ip_id))
+                cursor.execute('''INSERT INTO operaciones_ips_cuarentena (ip_id, operacion, fecha, usuario, resultado) VALUES (?, ?, ?, ?, ?)''', (ip_id, f'CAMBIO_ESTADO_{nuevo_estado.upper()}', datetime.now().isoformat(), os.getenv('USER', 'unknown'), 'EXITOSO'))
+                conn.commit()
+            resultado['exito'] = True
+            resultado['mensaje'] = f"IP {ip} cambiada a estado {nuevo_estado}. {accion_msg}"
+            self.logger.info(resultado['mensaje'])
+        except Exception as e:
+            resultado['mensaje'] = f"Error cambiando estado de IP: {e}"
+            self.logger.error(resultado['mensaje'])
+        return resultado
+
+    def eliminar_ip_cuarentena(self, ip: str) -> dict:
+        """
+        Elimina una IP de la cuarentena (marca como eliminada y borra registro).
+        Args:
+            ip: IP a eliminar
+        Returns:
+            Diccionario con resultado
+        """
+        resultado = {'exito': False, 'mensaje': ''}
+        try:
+            with sqlite3.connect(self.db_path) as conn:
+                cursor = conn.cursor()
+                cursor.execute('''SELECT id FROM ips_cuarentena WHERE ip = ? AND estado != 'eliminada' ORDER BY fecha_cuarentena DESC LIMIT 1''', (ip,))
+                row = cursor.fetchone()
+                if not row:
+                    resultado['mensaje'] = f"IP {ip} no encontrada en cuarentena activa"
+                    return resultado
+                ip_id = row[0]
+                cursor.execute('''UPDATE ips_cuarentena SET estado = 'eliminada' WHERE id = ?''', (ip_id,))
+                cursor.execute('''INSERT INTO operaciones_ips_cuarentena (ip_id, operacion, fecha, usuario, resultado) VALUES (?, ?, ?, ?, ?)''', (ip_id, 'ELIMINADA', datetime.now().isoformat(), os.getenv('USER', 'unknown'), 'EXITOSO'))
+                conn.commit()
+            resultado['exito'] = True
+            resultado['mensaje'] = f"IP {ip} eliminada de la cuarentena"
+            self.logger.info(resultado['mensaje'])
+        except Exception as e:
+            resultado['mensaje'] = f"Error eliminando IP de cuarentena: {e}"
+            self.logger.error(resultado['mensaje'])
+        return resultado
+
+    def obtener_detalles_ip(self, ip: str) -> dict:
+        """
+        Obtiene todos los detalles de una IP en cuarentena.
+        Args:
+            ip: IP a consultar
+        Returns:
+            Diccionario con detalles
+        """
+        detalles = {}
+        try:
+            with sqlite3.connect(self.db_path) as conn:
+                cursor = conn.cursor()
+                cursor.execute('''SELECT * FROM ips_cuarentena WHERE ip = ? ORDER BY fecha_cuarentena DESC LIMIT 1''', (ip,))
+                row = cursor.fetchone()
+                if row:
+                    columnas = [desc[0] for desc in cursor.description]
+                    detalles = dict(zip(columnas, row))
+        except Exception as e:
+            self.logger.error(f"Error obteniendo detalles de IP en cuarentena: {e}")
+        return detalles
     
     def _calcular_hash_archivo(self, ruta_archivo: str) -> str:
         """Calcular hash SHA256 de un archivo."""

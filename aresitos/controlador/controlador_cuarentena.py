@@ -34,6 +34,75 @@ except ImportError:
 
 class ControladorCuarentena(ControladorBase):
 
+    # --- MÉTODOS PARA CUARENTENA DE IPs ---
+    def poner_ip_en_cuarentena(self, ip: str, tipo_amenaza: str = "desconocido", razon: str = "", metadatos: Optional[dict] = None) -> dict:
+        """
+        Añade una IP a la cuarentena (bloqueo de red).
+        Args:
+            ip: IP a bloquear
+            tipo_amenaza: Tipo de amenaza detectada
+            razon: Razón específica
+            metadatos: Diccionario opcional de metadatos
+        Returns:
+            Diccionario con resultado
+        """
+        return self.ejecutar_operacion_segura(
+            lambda: self.cuarentena.poner_ip_en_cuarentena(ip, tipo_amenaza, razon, metadatos)
+        )
+
+    def listar_ips_cuarentena(self, estado: str = "bloqueada") -> list:
+        """
+        Lista todas las IPs en cuarentena, filtrando por estado si se indica.
+        Args:
+            estado: Estado de las IPs ('bloqueada', 'permitida', 'eliminada', 'todas')
+        Returns:
+            Lista de diccionarios con información de IPs en cuarentena
+        """
+        try:
+            return self.cuarentena.listar_ips_cuarentena(estado)
+        except Exception as e:
+            self.logger.error(f"Error listando IPs en cuarentena: {e}")
+            return []
+
+    def cambiar_estado_ip(self, ip: str, nuevo_estado: str) -> dict:
+        """
+        Cambia el estado de una IP en cuarentena (bloqueada, permitida, eliminada).
+        Args:
+            ip: IP a modificar
+            nuevo_estado: Estado destino ('bloqueada', 'permitida', 'eliminada')
+        Returns:
+            Diccionario con resultado
+        """
+        return self.ejecutar_operacion_segura(
+            lambda: self.cuarentena.cambiar_estado_ip(ip, nuevo_estado)
+        )
+
+    def eliminar_ip_cuarentena(self, ip: str) -> dict:
+        """
+        Elimina una IP de la cuarentena (marca como eliminada y borra registro).
+        Args:
+            ip: IP a eliminar
+        Returns:
+            Diccionario con resultado
+        """
+        return self.ejecutar_operacion_segura(
+            lambda: self.cuarentena.eliminar_ip_cuarentena(ip)
+        )
+
+    def obtener_detalles_ip(self, ip: str) -> dict:
+        """
+        Obtiene todos los detalles de una IP en cuarentena.
+        Args:
+            ip: IP a consultar
+        Returns:
+            Diccionario con detalles
+        """
+        try:
+            return self.cuarentena.obtener_detalles_ip(ip)
+        except Exception as e:
+            self.logger.error(f"Error obteniendo detalles de IP en cuarentena: {e}")
+            return {}
+
     def cuarentenar_archivo(self, ruta_archivo: str, descripcion: str = "") -> dict:
         """
         Método uniforme para poner en cuarentena desde otros módulos.

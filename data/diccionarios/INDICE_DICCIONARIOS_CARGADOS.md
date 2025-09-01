@@ -1,6 +1,6 @@
 # Índice de Diccionarios Cargados - Aresitos
 
-**Generado el:** 2025-09-01 10:24:48
+**Generado el:** 2025-09-01 15:20:16
 
 **Total de categorías:** 17
 
