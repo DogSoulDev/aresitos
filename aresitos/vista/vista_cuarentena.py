@@ -67,11 +67,13 @@ class VistaCuarentena(tk.Frame):
 
         # --- TABLA DE ARCHIVOS ---
         frame_archivos = tk.Frame(self.notebook, bg=self.colors['bg_primary'])
-        self.lista_archivos = ttk.Treeview(frame_archivos, columns=("Archivo", "Hash", "Tipo", "Fecha", "Estado"), show="headings")
-        for col in ("Archivo", "Hash", "Tipo", "Fecha", "Estado"):
+        self.lista_archivos = ttk.Treeview(frame_archivos, columns=("Archivo", "Hash", "Tipo", "Fecha", "Estado", "Acción"), show="headings")
+        for col in ("Archivo", "Hash", "Tipo", "Fecha", "Estado", "Acción"):
             self.lista_archivos.heading(col, text=col)
-            self.lista_archivos.column(col, width=180 if col=="Archivo" else 120)
+            self.lista_archivos.column(col, width=180 if col=="Archivo" else (100 if col=="Acción" else 120))
         self.lista_archivos.pack(fill=tk.BOTH, expand=True, padx=5, pady=5)
+        self.dropdown_vars_archivos = {}
+        self.combobox_iid_archivos = {}
 
         # Menú contextual para archivos
         self.menu_archivos = tk.Menu(self, tearoff=0, bg=self.colors['bg_secondary'], fg=self.colors['fg_primary'], activebackground=self.colors['button_bg'], activeforeground=self.colors['button_fg'])
@@ -104,11 +106,13 @@ class VistaCuarentena(tk.Frame):
 
         # --- TABLA DE IPs ---
         frame_ips = tk.Frame(self.notebook, bg=self.colors['bg_primary'])
-        self.lista_ips = ttk.Treeview(frame_ips, columns=("IP", "Tipo", "Razón", "Fecha", "Estado"), show="headings")
-        for col in ("IP", "Tipo", "Razón", "Fecha", "Estado"):
+        self.lista_ips = ttk.Treeview(frame_ips, columns=("IP", "Tipo", "Razón", "Fecha", "Estado", "Acción"), show="headings")
+        for col in ("IP", "Tipo", "Razón", "Fecha", "Estado", "Acción"):
             self.lista_ips.heading(col, text=col)
-            self.lista_ips.column(col, width=160 if col=="IP" else 120)
+            self.lista_ips.column(col, width=160 if col=="IP" else (100 if col=="Acción" else 120))
         self.lista_ips.pack(fill=tk.BOTH, expand=True, padx=5, pady=5)
+        self.dropdown_vars_ips = {}
+        self.combobox_iid_ips = {}
 
         # Menú contextual para IPs
         self.menu_ips = tk.Menu(self, tearoff=0, bg=self.colors['bg_secondary'], fg=self.colors['fg_primary'], activebackground=self.colors['button_bg'], activeforeground=self.colors['button_fg'])
@@ -152,29 +156,87 @@ class VistaCuarentena(tk.Frame):
     def actualizar_lista_archivos(self):
         for i in self.lista_archivos.get_children():
             self.lista_archivos.delete(i)
+        self.dropdown_vars_archivos.clear()
+        self.combobox_iid_archivos = {}
         try:
             archivos = self.modelo.listar_archivos_cuarentena()
             for a in archivos:
-                self.lista_archivos.insert('', 'end', values=(a['ruta_original'], a['hash_sha256'], a['tipo_amenaza'], a['fecha_cuarentena'], a['estado']))
+                iid = self.lista_archivos.insert('', 'end', values=(a['ruta_original'], a['hash_sha256'], a['tipo_amenaza'], a['fecha_cuarentena'], a['estado'], "Acción..."))
+                var = tk.StringVar(value="Acción...")
+                cb = ttk.Combobox(self.lista_archivos, textvariable=var, values=["Restaurar", "Eliminar", "Ver Detalles"], width=10, state="readonly")
+                self.combobox_iid_archivos[cb] = iid
+                cb.bind("<<ComboboxSelected>>", self._on_accion_archivo)
+                self.lista_archivos.set(iid, "Acción", "Acción...")
+                self.lista_archivos.update_idletasks()
+                bbox = self.lista_archivos.bbox(iid, "Acción")
+                if bbox:
+                    x, y, w, h = bbox
+                    cb.place(in_=self.lista_archivos, x=x, y=y, width=w, height=h)
+                self.dropdown_vars_archivos[iid] = cb
             self.texto_estado.config(text=f"{len(archivos)} archivos/amenazas en cuarentena.")
             self.logger.log(f"Actualizada la lista de archivos en cuarentena ({len(archivos)} elementos)", nivel="INFO", modulo="CUARENTENA")
         except Exception as e:
             self.texto_estado.config(text=f"Error actualizando lista de archivos: {e}")
             self.logger.log(f"Error actualizando lista de archivos en cuarentena: {e}", nivel="ERROR", modulo="CUARENTENA")
 
+    def _on_accion_archivo(self, event):
+        cb = event.widget
+        iid = self.combobox_iid_archivos.get(cb)
+        if iid is None:
+            return
+        accion = cb.get()
+        self.lista_archivos.selection_set(iid)
+        if accion == "Restaurar":
+            self.restaurar_archivo_seleccionado()
+        elif accion == "Eliminar":
+            self.eliminar_archivo_seleccionado()
+        elif accion == "Ver Detalles":
+            self.ver_detalles_archivo()
+        cb.set("Acción...")
+
     def actualizar_lista_ips(self):
         for i in self.lista_ips.get_children():
             self.lista_ips.delete(i)
+        self.dropdown_vars_ips.clear()
+        self.combobox_iid_ips = {}
         try:
             if hasattr(self.controlador, 'listar_ips_cuarentena'):
                 ips = self.controlador.listar_ips_cuarentena()
             else:
                 ips = []
             for ip in ips:
-                self.lista_ips.insert('', 'end', values=(ip['ip'], ip['tipo_amenaza'], ip['razon'], ip['fecha_cuarentena'], ip['estado']))
+                iid = self.lista_ips.insert('', 'end', values=(ip['ip'], ip['tipo_amenaza'], ip['razon'], ip['fecha_cuarentena'], ip['estado'], "Acción..."))
+                var = tk.StringVar(value="Acción...")
+                cb = ttk.Combobox(self.lista_ips, textvariable=var, values=["Bloquear", "Permitir", "Eliminar", "Ver Detalles"], width=10, state="readonly")
+                self.combobox_iid_ips[cb] = iid
+                cb.bind("<<ComboboxSelected>>", self._on_accion_ip)
+                self.lista_ips.set(iid, "Acción", "Acción...")
+                self.lista_ips.update_idletasks()
+                bbox = self.lista_ips.bbox(iid, "Acción")
+                if bbox:
+                    x, y, w, h = bbox
+                    cb.place(in_=self.lista_ips, x=x, y=y, width=w, height=h)
+                self.dropdown_vars_ips[iid] = cb
             self.logger.log(f"Actualizada la lista de IPs en cuarentena ({len(ips)} elementos)", nivel="INFO", modulo="CUARENTENA")
         except Exception as e:
             self.logger.log(f"Error actualizando lista de IPs en cuarentena: {e}", nivel="ERROR", modulo="CUARENTENA")
+
+    def _on_accion_ip(self, event):
+        cb = event.widget
+        iid = self.combobox_iid_ips.get(cb)
+        if iid is None:
+            return
+        accion = cb.get()
+        self.lista_ips.selection_set(iid)
+        if accion == "Bloquear":
+            self.bloquear_ip_seleccionada()
+        elif accion == "Permitir":
+            self.permitir_ip_seleccionada()
+        elif accion == "Eliminar":
+            self.eliminar_ip_seleccionada()
+        elif accion == "Ver Detalles":
+            self.ver_detalles_ip()
+        cb.set("Acción...")
 
     def eliminar_archivo_seleccionado(self):
         item = self.lista_archivos.selection()

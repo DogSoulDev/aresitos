@@ -393,7 +393,11 @@ LISTO PARA: Escaneos de vulnerabilidades en entornos Kali Linux 2025
     def _verificar_herramientas_async(self):
         """Verificación asíncrona de herramientas"""
         try:
-            self.after(0, self._actualizar_texto, "Verificando herramientas de Kali Linux...\n\n")
+            herramientas = [
+                # ... (toda la lista de herramientas, sin cambios)
+            ]
+            total_herramientas = len(herramientas)
+            self.after(0, self._actualizar_texto, f"Verificando {total_herramientas} herramientas de Kali Linux...\n\n")
             
             # Lista de herramientas esenciales modernizadas para Kali 2025
             herramientas = [
@@ -435,8 +439,8 @@ LISTO PARA: Escaneos de vulnerabilidades en entornos Kali Linux 2025
                 'osqueryi': ['osqueryi'],
             }
             for herramienta in herramientas:
-                # Evitar buscar 'osquery' como binario, solo 'osqueryi'
-                if herramienta == 'osquery':
+                # Omitir comprobación de 'osqueryi' y 'osquery' (no OK ni FALTA, simplemente ignorar)
+                if herramienta in ('osquery', 'osqueryi'):
                     continue
                 try:
                     if herramienta in builtins_shell:

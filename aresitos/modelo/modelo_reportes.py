@@ -74,43 +74,70 @@ class ModeloReportes:
             logging.warning(f"Usando directorio temporal: {directorio_temporal}")
             return directorio_temporal
 
-    def generar_reporte_completo(self, datos_escaneo: Dict, datos_monitoreo: Dict, datos_utilidades: Dict, datos_fim: Optional[Dict] = None, datos_siem: Optional[Dict] = None, datos_cuarentena: Optional[Dict] = None, datos_terminal_principal: Optional[Dict] = None) -> Dict[str, Any]:
-        """Genera un reporte completo con todos los datos recopilados"""
-        
-        # Validar datos de entrada
+    def generar_reporte_completo(self, datos_escaneo: Dict, datos_monitoreo: Dict, datos_utilidades: Dict, datos_fim: Optional[Dict] = None, datos_siem: Optional[Dict] = None, datos_cuarentena: Optional[Dict] = None, datos_terminal_principal: Optional[Dict] = None, usuario: Optional[str] = None, sistema: Optional[str] = None, anexos: Optional[Dict] = None) -> Dict[str, Any]:
+        """Genera un reporte completo con todos los datos recopilados, metadatos, advertencias y trazabilidad siguiendo los principios de ARESITOS."""
+        import uuid
+        import platform
+        import hashlib
+        # Validación robusta de datos de entrada
+        advertencias = []
+        modulos = {
+            'escaneo': datos_escaneo,
+            'monitoreo': datos_monitoreo,
+            'utilidades': datos_utilidades,
+            'fim': datos_fim,
+            'siem': datos_siem,
+            'cuarentena': datos_cuarentena,
+            'terminal_principal': datos_terminal_principal
+        }
+        for nombre, datos in modulos.items():
+            if datos is None or (isinstance(datos, dict) and not datos):
+                advertencias.append(f"El módulo '{nombre}' no aportó datos o está vacío.")
         if not self.validar_datos_reporte({'escaneo': datos_escaneo, 'monitoreo': datos_monitoreo, 'utilidades': datos_utilidades}):
-            raise ValueError("Datos de entrada inválidos para generar reporte")
-        
+            advertencias.append("Datos mínimos de entrada inválidos para generar el reporte.")
         timestamp = datetime.datetime.now()
         fecha_formateada = timestamp.strftime("%Y-%m-%d %H:%M:%S")
-        
+        referencia_informe = str(uuid.uuid4())
+        usuario_generador = usuario if usuario else os.getenv('USERNAME') or os.getenv('USER') or 'desconocido'
+        sistema_operativo = sistema if sistema else platform.platform()
+        # Resumen profesional
+        resumen = {
+            'total_herramientas': len(datos_utilidades.get('herramientas_disponibles', [])),
+            'servicios_activos': len(datos_monitoreo.get('servicios', [])),
+            'problemas_permisos': len(datos_utilidades.get('problemas_permisos', [])),
+            'alertas_escaneo': len(datos_escaneo.get('alertas', [])),
+            'eventos_monitoreo': len(datos_monitoreo.get('eventos', [])),
+            'cambios_fim': len(datos_fim.get('cambios', [])) if datos_fim else 0,
+            'alertas_siem': len(datos_siem.get('alertas', [])) if datos_siem else 0,
+            'archivos_cuarentena': len(datos_cuarentena.get('archivos', [])) if datos_cuarentena else 0,
+            'terminal_principal_lineas': datos_terminal_principal.get('lineas_ejecutadas', 0) if datos_terminal_principal else 0
+        }
+        # Historial de acciones
+        historial = [
+            {
+                'accion': 'generación',
+                'usuario': usuario_generador,
+                'fecha': fecha_formateada,
+                'sistema': sistema_operativo
+            }
+        ]
         reporte = {
+            'referencia_informe': referencia_informe,
             'version': 'ARESITOS v3.0',
             'fecha_generacion': fecha_formateada,
             'timestamp': timestamp.isoformat(),
+            'usuario_generador': usuario_generador,
+            'sistema_operativo': sistema_operativo,
             'tipo': 'completo',
-            'resumen': {
-                'total_herramientas': len(datos_utilidades.get('herramientas_disponibles', [])),
-                'servicios_activos': len(datos_monitoreo.get('servicios', [])),
-                'problemas_permisos': len(datos_utilidades.get('problemas_permisos', [])),
-                'alertas_escaneo': len(datos_escaneo.get('alertas', [])),
-                'eventos_monitoreo': len(datos_monitoreo.get('eventos', [])),
-                'cambios_fim': len(datos_fim.get('cambios', [])) if datos_fim else 0,
-                'alertas_siem': len(datos_siem.get('alertas', [])) if datos_siem else 0,
-                'archivos_cuarentena': len(datos_cuarentena.get('archivos', [])) if datos_cuarentena else 0,
-                'terminal_principal_lineas': datos_terminal_principal.get('lineas_ejecutadas', 0) if datos_terminal_principal else 0
-            },
-            'detalles': {
-                'escaneo': datos_escaneo,
-                'monitoreo': datos_monitoreo,
-                'utilidades': datos_utilidades,
-                'fim': datos_fim,
-                'siem': datos_siem,
-                'cuarentena': datos_cuarentena,
-                'terminal_principal': datos_terminal_principal
-            }
+            'resumen': resumen,
+            'detalles': modulos,
+            'advertencias': advertencias,
+            'historial_acciones': historial,
+            'anexos': anexos if anexos else {}
         }
-        
+        # Hash de integridad del reporte (sin el propio hash)
+        hash_reporte = hashlib.sha256(json.dumps(reporte, sort_keys=True, ensure_ascii=False, default=str).encode('utf-8')).hexdigest()
+        reporte['hash_integridad'] = hash_reporte
         return reporte
 
     def generar_reporte_texto(self, reporte: Dict) -> str:

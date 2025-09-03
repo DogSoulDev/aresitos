@@ -29,7 +29,7 @@ class VistaReportes(tk.Frame):
     def _abrir_ventana_edicion_reporte(self, callback_guardar):
         import tkinter as tk
         ventana = tk.Toplevel(self)
-        ventana.title("Editar campos del reporte")
+        ventana.title("Editar campos del reporte de incidente")
         ventana.transient(self.winfo_toplevel())
         ventana.grab_set()
         colors = getattr(self, 'colors', {
@@ -38,30 +38,58 @@ class VistaReportes(tk.Frame):
         })
         ventana.configure(bg=colors['bg_primary'])
         campos = {
-            'titulo': tk.StringVar(value="INFORME DE INCIDENTE Y SEGURIDAD - ARESITOS"),
-            'autor': tk.StringVar(value=""),
-            'fecha': tk.StringVar(value=""),
-            'resumen': tk.StringVar(value=""),
-            'objetivos': tk.StringVar(value=""),
-            'alcance': tk.StringVar(value=""),
-            'recomendaciones': tk.StringVar(value="")
+            'organizacion': tk.StringVar(value=""),
+            'contacto': tk.StringVar(value=""),
+            'correo': tk.StringVar(value=""),
+            'telefono': tk.StringVar(value=""),
+            'titulo': tk.StringVar(value=""),
+            'fecha_deteccion': tk.StringVar(value=""),
+            'fecha_inicio': tk.StringVar(value=""),
+            'descripcion': tk.StringVar(value=""),
+            'tipo': tk.StringVar(value=""),
+            'sistemas_afectados': tk.StringVar(value=""),
+            'acciones': tk.StringVar(value=""),
+            'impacto': tk.StringVar(value=""),
+            'datos_comprometidos': tk.StringVar(value=""),
+            'observaciones': tk.StringVar(value="")
         }
         if self.reporte_actual and isinstance(self.reporte_actual, dict):
             resumen = self.reporte_actual.get('resumen', {})
+            campos['organizacion'].set(self.reporte_actual.get('organizacion', campos['organizacion'].get()))
+            campos['contacto'].set(self.reporte_actual.get('contacto', campos['contacto'].get()))
+            campos['correo'].set(self.reporte_actual.get('correo', campos['correo'].get()))
+            campos['telefono'].set(self.reporte_actual.get('telefono', campos['telefono'].get()))
             campos['titulo'].set(self.reporte_actual.get('titulo', campos['titulo'].get()))
-            campos['autor'].set(self.reporte_actual.get('autor', campos['autor'].get()))
-            campos['fecha'].set(self.reporte_actual.get('fecha_generacion', campos['fecha'].get()))
-            campos['resumen'].set(resumen.get('resumen_ejecutivo', campos['resumen'].get()))
-            campos['objetivos'].set(resumen.get('objetivos', campos['objetivos'].get()))
-            campos['alcance'].set(resumen.get('alcance', campos['alcance'].get()))
-            campos['recomendaciones'].set(resumen.get('recomendaciones', campos['recomendaciones'].get()))
+            campos['fecha_deteccion'].set(self.reporte_actual.get('fecha_deteccion', campos['fecha_deteccion'].get()))
+            campos['fecha_inicio'].set(self.reporte_actual.get('fecha_inicio', campos['fecha_inicio'].get()))
+            campos['descripcion'].set(self.reporte_actual.get('descripcion', campos['descripcion'].get()))
+            campos['tipo'].set(self.reporte_actual.get('tipo', campos['tipo'].get()))
+            campos['sistemas_afectados'].set(self.reporte_actual.get('sistemas_afectados', campos['sistemas_afectados'].get()))
+            campos['acciones'].set(self.reporte_actual.get('acciones', campos['acciones'].get()))
+            campos['impacto'].set(self.reporte_actual.get('impacto', campos['impacto'].get()))
+            campos['datos_comprometidos'].set(self.reporte_actual.get('datos_comprometidos', campos['datos_comprometidos'].get()))
+            campos['observaciones'].set(self.reporte_actual.get('observaciones', campos['observaciones'].get()))
         row = 0
         text_widgets = {}
-        for label, var in [('Título', 'titulo'), ('Autor', 'autor'), ('Fecha', 'fecha'),
-                           ('Resumen Ejecutivo', 'resumen'), ('Objetivos', 'objetivos'),
-                           ('Alcance', 'alcance'), ('Recomendaciones', 'recomendaciones')]:
+        labels = [
+            ("Nombre de la organización", 'organizacion'),
+            ("Persona de contacto", 'contacto'),
+            ("Correo electrónico", 'correo'),
+            ("Teléfono", 'telefono'),
+            ("Título del incidente", 'titulo'),
+            ("Fecha y hora de detección", 'fecha_deteccion'),
+            ("Fecha y hora de inicio", 'fecha_inicio'),
+            ("Descripción breve del incidente", 'descripcion'),
+            ("Tipo de incidente", 'tipo'),
+            ("Sistemas o servicios afectados", 'sistemas_afectados'),
+            ("Acciones tomadas", 'acciones'),
+            ("Impacto estimado", 'impacto'),
+            ("Datos comprometidos", 'datos_comprometidos'),
+            ("Observaciones relevantes", 'observaciones')
+        ]
+        for label, var in labels:
             tk.Label(ventana, text=label+':', bg=colors['bg_primary'], fg=colors['fg_accent'], font=("Arial", 11, "bold")).grid(row=row, column=0, sticky='e', padx=8, pady=4)
-            if var in ['resumen', 'objetivos', 'alcance', 'recomendaciones']:
+            if var in ['descripcion', 'acciones', 'impacto', 'datos_comprometidos', 'observaciones', 'sistemas_afectados']:
                 entry = tk.Text(ventana, height=3, width=48, bg=colors['bg_primary'], fg=colors['fg_primary'], insertbackground=colors['fg_accent'], font=("Consolas", 10))
                 entry.insert('1.0', campos[var].get())
                 entry.grid(row=row, column=1, padx=8, pady=4)
@@ -112,44 +140,36 @@ class VistaReportes(tk.Frame):
         self._abrir_ventana_edicion_reporte(guardar_con_campos)
 
     def _generar_reporte_profesional_txt(self, campos):
-        """Genera el texto plano profesional del reporte con los campos editados y los datos técnicos."""
-        # Portada
+        """Genera el texto plano profesional del reporte de incidente siguiendo el estándar CISA, en castellano y corregido ortográficamente."""
         line = lambda c: c*80
-        secciones = [line('='), campos['titulo'], line('='),
-                     f"Fecha de generación: {campos['fecha']}",
-                     f"Autor/Analista: {campos['autor']}", ""]
-        # Resumen ejecutivo y objetivos
-        secciones += ["--- RESUMEN EJECUTIVO ---",
-                     f"Resumen: {campos['resumen']}",
-                     f"Objetivos: {campos['objetivos']}",
-                     f"Alcance: {campos['alcance']}",
-                     f"Recomendaciones: {campos['recomendaciones']}", ""]
-        # Hallazgos y evidencias técnicas
-        secciones.append("--- HALLAZGOS Y EVIDENCIAS TÉCNICAS ---")
-        # Incluir datos técnicos de los módulos seleccionados
-        if self.reporte_actual and isinstance(self.reporte_actual, dict):
-            modulos = [
-                ("DASHBOARD", self.reporte_actual.get('dashboard', {})),
-                ("ESCANEO", self.reporte_actual.get('escaneo', {})),
-                ("MONITOREO", self.reporte_actual.get('monitoreo', {})),
-                ("FIM", self.reporte_actual.get('fim', {})),
-                ("SIEM", self.reporte_actual.get('siem', {})),
-                ("CUARENTENA", self.reporte_actual.get('cuarentena', {})),
-                ("TERMINAL PRINCIPAL", self.reporte_actual.get('terminal_principal', {})),
-            ]
-            for nombre, datos in modulos:
-                secciones.append(line('-'))
-                secciones.append(f"[ {nombre} ]")
-                if isinstance(datos, dict):
-                    for k, v in datos.items():
-                        secciones.append(f"{k}: {v}")
-                elif isinstance(datos, str):
-                    secciones.append(datos)
-                else:
-                    secciones.append(str(datos))
-        secciones.append("")
-        secciones.append(line('='))
-        secciones.append("Reporte generado por ARESITOS - https://github.com/DogSoulDev/aresitos")
+        secciones = [
+            line('='),
+            "INFORME DE INCIDENTE DE CIBERSEGURIDAD - ARESITOS", line('='),
+            f"Nombre de la organización: {campos.get('organizacion','')}",
+            f"Persona de contacto: {campos.get('contacto','')}",
+            f"Correo electrónico: {campos.get('correo','')}",
+            f"Teléfono: {campos.get('telefono','')}",
+            "",
+            f"Título del incidente: {campos.get('titulo','')}",
+            f"Fecha y hora de detección: {campos.get('fecha_deteccion','')}",
+            f"Fecha y hora de inicio: {campos.get('fecha_inicio','')}",
+            f"Descripción breve del incidente: {campos.get('descripcion','')}",
+            f"Tipo de incidente: {campos.get('tipo','')}",
+            f"Sistemas o servicios afectados: {campos.get('sistemas_afectados','')}",
+            "",
+            "--- ACCIONES TOMADAS ---",
+            f"Acciones de contención, erradicación y recuperación: {campos.get('acciones','')}",
+            "",
+            "--- IMPACTO ESTIMADO ---",
+            f"Impacto en operaciones: {campos.get('impacto','')}",
+            f"Datos comprometidos: {campos.get('datos_comprometidos','')}",
+            "",
+            "--- INFORMACIÓN ADICIONAL ---",
+            f"Observaciones relevantes: {campos.get('observaciones','')}",
+            "",
+            line('='),
+            "Reporte generado por ARESITOS - https://github.com/DogSoulDev/aresitos"
+        ]
         return '\n'.join(secciones)
     def _actualizar_texto_reporte_seguro(self, texto):
         def _update():
@@ -665,12 +685,32 @@ class VistaReportes(tk.Frame):
                 filetypes=[("Archivo JSON", "*.json"), ("Todos los archivos", "*.*")]
             )
             if archivo:
+                # Estructura profesional alineada con CISA, en castellano
+                datos = self.reporte_actual.copy() if isinstance(self.reporte_actual, dict) else {}
+                reporte_json = {
+                    "organizacion": datos.get('organizacion', ''),
+                    "contacto": datos.get('contacto', ''),
+                    "correo": datos.get('correo', ''),
+                    "telefono": datos.get('telefono', ''),
+                    "titulo": datos.get('titulo', ''),
+                    "fecha_deteccion": datos.get('fecha_deteccion', ''),
+                    "fecha_inicio": datos.get('fecha_inicio', ''),
+                    "descripcion": datos.get('descripcion', ''),
+                    "tipo": datos.get('tipo', ''),
+                    "sistemas_afectados": datos.get('sistemas_afectados', ''),
+                    "acciones": datos.get('acciones', ''),
+                    "impacto": datos.get('impacto', ''),
+                    "datos_comprometidos": datos.get('datos_comprometidos', ''),
+                    "observaciones": datos.get('observaciones', ''),
+                    "generado_por": "ARESITOS",
+                    "fecha_exportacion": datetime.datetime.now().isoformat()
+                }
                 import json
                 with open(archivo, 'w', encoding='utf-8') as f:
-                    json.dump(self.reporte_actual, f, indent=2, ensure_ascii=False)
+                    json.dump(reporte_json, f, indent=2, ensure_ascii=False)
                 usuario = getpass.getuser()
-                fecha = datetime.datetime.now().isoformat()
-                resumen = f"Autor: {self.reporte_actual.get('autor','')}, Fecha: {self.reporte_actual.get('fecha_generacion','')}, Archivo: {archivo}"
+                fecha = reporte_json["fecha_exportacion"]
+                resumen = f"Organización: {reporte_json.get('organizacion','')}, Título: {reporte_json.get('titulo','')}, Archivo: {archivo}"
                 self.logger.log(f"[EXPORTACIÓN JSON] Usuario: {usuario}, Fecha: {fecha}, {resumen}", nivel="INFO", modulo="REPORTES")
                 self._log_terminal(f"[EXPORTACIÓN JSON] Usuario: {usuario}, Fecha: {fecha}, {resumen}", modulo="REPORTES", nivel="INFO")
                 messagebox.showinfo("Éxito", f"Reporte guardado correctamente en {archivo}")
