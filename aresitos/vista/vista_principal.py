@@ -260,8 +260,8 @@ class VistaPrincipal(tk.Frame):
         
         # 9. MANTENIMIENTO - Nueva pestaña al final
         try:
-            from vista.vista_mantenimiento import VistaMantenimiento
-            from controlador.controlador_mantenimiento import ControladorMantenimiento
+            from aresitos.vista.vista_mantenimiento import VistaMantenimiento
+            from aresitos.controlador.controlador_mantenimiento import ControladorMantenimiento
             self.vista_mantenimiento = VistaMantenimiento(self.notebook, ControladorMantenimiento())
             self.notebook.add(self.vista_mantenimiento, text="Mantenimiento")
         except Exception as e:
