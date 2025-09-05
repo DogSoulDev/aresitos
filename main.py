@@ -80,7 +80,12 @@ def main():
     """Función principal que redirige al login GUI con flujo escalonado"""
     print("ARESITOS - Sistema de Seguridad Cibernética")
     print("=" * 50)
-    
+
+    # Añadir la raíz del proyecto al sys.path para evitar errores de importación
+    directorio_actual = Path(__file__).parent.resolve()
+    if str(directorio_actual) not in sys.path:
+        sys.path.insert(0, str(directorio_actual))
+
     # Issue 23/24: Verificación de estabilidad del sistema
     if "--verify" in sys.argv or "--verificar" in sys.argv:
         estable = verificacion_estabilidad_sistema()
@@ -88,7 +93,7 @@ def main():
             sys.exit(1)
         else:
             print("Sistema verificado - continuando con inicio normal...")
-    
+
     # Verificar Kali Linux antes de continuar
     if not verificar_kali_linux():
         if verificar_modo_desarrollo():
@@ -99,40 +104,39 @@ def main():
             print("  Sistema operativo no compatible detectado")
             print("  Para desarrollo: usar --dev o --desarrollo")
             sys.exit(1)
-    
+
     # Configurar permisos básicos de archivos antes de continuar
     configurar_permisos_basicos()
-    
+
     # Verificar si existe vista login
-    directorio_actual = Path(__file__).parent.resolve()
     vista_login_path = directorio_actual / 'aresitos' / 'vista' / 'vista_login.py'
     if vista_login_path.exists():
         print("Iniciando con interfaz de login...")
         try:
             # Verificar tkinter antes de importar
             verificar_tkinter()
-            
+
             # Importar y ejecutar vista login directamente
-            sys.path.insert(0, str(directorio_actual))
-            
+            # sys.path.insert(0, str(directorio_actual))  # Ya añadido arriba
+
             # Importar la clase principal del login
             from aresitos.vista.vista_login import LoginAresitos
-            
+
             # Crear y ejecutar login con flujo completo
             print("Creando aplicación de login...")
             app_login = LoginAresitos()
             print("Aplicación de login creada")
-            
+
             print("Iniciando interfaz gráfica...")
             # Ejecutar GUI - esto manejará todo el flujo automáticamente
             try:
                 app_login.root.mainloop()
             except KeyboardInterrupt:
                 print("\nGracias por usar Aresitos, ¡nos vemos!")
-            
+
             print("Sesión de login finalizada")
             return
-            
+
         except ImportError as e:
             print(f"Error importando vista login: {e}")
             print(f"Detalles: {str(e)}")
@@ -141,7 +145,7 @@ def main():
             print(f"Error ejecutando vista login: {e}")
             print(f"Detalles: {str(e)}")
             print("Intentando con método clásico...")
-    
+
     # Fallback al método original solo si falla el login
     print("Usando método de inicio clásico...")
     iniciar_aplicacion_clasica()
