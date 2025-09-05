@@ -1,4 +1,3 @@
-
 # -*- coding: utf-8 -*-
 """
 PRINCIPIOS DE SEGURIDAD ARESITOS (NO MODIFICAR SIN AUDITORÍA)
@@ -258,6 +257,15 @@ class VistaPrincipal(tk.Frame):
             self.notebook.add(self.vista_reportes, text="Reportes")
         except Exception as e:
             print(f"Error creando vista reportes: {e}")
+        
+        # 9. MANTENIMIENTO - Nueva pestaña al final
+        try:
+            from vista.vista_mantenimiento import VistaMantenimiento
+            from controlador.controlador_mantenimiento import ControladorMantenimiento
+            self.vista_mantenimiento = VistaMantenimiento(self.notebook, ControladorMantenimiento())
+            self.notebook.add(self.vista_mantenimiento, text="Mantenimiento")
+        except Exception as e:
+            print(f"Error creando vista mantenimiento: {e}")
     
     def crear_barra_estado(self):
         """Crea la barra de estado inferior estilo Burp"""
