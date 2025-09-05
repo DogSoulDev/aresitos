@@ -542,10 +542,11 @@ class VistaMonitoreo(tk.Frame):
         self.cuarentena_entry = tk.Entry(cuarentena_frame, width=32, font=('Consolas', 10))
         self.cuarentena_entry.pack(side="left", padx=(0, 5))
         self.cuarentena_entry.insert(0, "Ruta del archivo a poner en cuarentena")
-        btn_cuarentena = tk.Button(cuarentena_frame, text="Poner en cuarentena",
+        btn_cuarentena = tk.Button(cuarentena_frame, text="🛡️ Aislar archivo (Cuarentena)",
                                    command=self._poner_en_cuarentena_desde_entry,
-                                   bg="#ff5555", fg='white', font=("Arial", 10, "bold"), relief='flat', padx=10, pady=5)
-        btn_cuarentena.pack(side="left")
+                                   bg="#ff5555", fg='white', font=("Arial", 11, "bold"), relief='raised', padx=14, pady=7,
+                                   activebackground="#ffd9b3", activeforeground="#232629")
+        btn_cuarentena.pack(side="left", padx=(0, 5))
 
         self.label_estado = tk.Label(control_frame, text="Estado: Detenido",
                                    bg='#2b2b2b', fg='#ffffff',
@@ -564,23 +565,23 @@ class VistaMonitoreo(tk.Frame):
         """Pone en cuarentena el archivo especificado en el campo de entrada."""
         ruta = self.cuarentena_entry.get().strip()
         if not ruta or ruta == "Ruta del archivo a poner en cuarentena":
-            self.log_to_terminal("Debe especificar la ruta del archivo a poner en cuarentena.")
+            self.log_to_terminal("⚠️ Por favor, ingrese la ruta del archivo que desea aislar en cuarentena.")
             return
         if not hasattr(self, 'controlador') or not self.controlador or not hasattr(self.controlador, 'controlador_cuarentena'):
-            self.log_to_terminal("Controlador de cuarentena no disponible.")
+            self.log_to_terminal("❌ No se pudo acceder al sistema de cuarentena. Verifique la configuración.")
             return
         try:
             resultado = self.controlador.controlador_cuarentena.cuarentenar_archivo(ruta, razon="Manual desde Monitoreo")
             if resultado.get('exito'):
-                self.log_to_terminal(f"Archivo puesto en cuarentena: {ruta}")
+                self.log_to_terminal(f"✅ El archivo ha sido aislado exitosamente en cuarentena: {ruta}")
                 if hasattr(self, '_enviar_a_reportes'):
                     self._enviar_a_reportes('poner_en_cuarentena', f"Archivo puesto en cuarentena: {ruta}", False)
             else:
-                self.log_to_terminal(f"Error poniendo en cuarentena: {resultado.get('mensaje','sin mensaje')}")
+                self.log_to_terminal(f"❌ No se pudo aislar el archivo: {resultado.get('mensaje','sin mensaje')}")
                 if hasattr(self, '_enviar_a_reportes'):
                     self._enviar_a_reportes('poner_en_cuarentena', f"Error: {resultado.get('mensaje','sin mensaje')}", True)
         except Exception as e:
-            self.log_to_terminal(f"Excepción poniendo en cuarentena: {e}")
+            self.log_to_terminal(f"❌ Error inesperado al aislar el archivo: {e}")
             if hasattr(self, '_enviar_a_reportes'):
                 self._enviar_a_reportes('poner_en_cuarentena', str(e), True)
 
