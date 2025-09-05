@@ -101,46 +101,11 @@ class ControladorEscaneo(ControladorBase):
     
     def __init__(self, modelo_principal):
         super().__init__(modelo_principal, "ControladorEscaneo")
-        
         self.modelo_principal = modelo_principal
-        
-        # Inicializar componentes inmediatamente para compatibilidad
-        try:
-            # Usar modelos existentes o crear mocks
-            if SIEM_DISPONIBLE:
-                self.siem = SIEMKali2025()
-            else:
-                self.siem = None
-                
-            if ESCANEADOR_DISPONIBLE:
-                self.escáner = EscaneadorKali2025()
-            else:
-                self.escáner = None
-            
-            # Inicializar escáner Kali 2025 si está disponible
-            if ESCANEADOR_DISPONIBLE:
-                try:
-                    self.escaner_kali2025 = EscaneadorKali2025()
-                    self.logger.info("Escaneador Kali2025 inicializado correctamente")
-                except Exception as e:
-                    self.logger.warning(f"Error inicializando Escaneador Kali2025: {e}")
-                    self.escaner_kali2025 = None
-            else:
-                self.escaner_kali2025 = None
-                self.logger.warning("Escaneador Kali2025 no disponible")
-            
-            # Verificar que el escáner esté funcionando
-            if self.escáner:
-                self.logger.info("Escaneador inicializado correctamente")
-            else:
-                self.logger.warning("Escaneador no inicializado - funcionalidad limitada")
-                
-        except Exception as e:
-            self.logger.error(f"Error inicializando componentes: {e}")
-            self.siem = None
-            self.escáner = None
-        
-        # Inicializar atributos de estado
+        self.siem = None
+        self.escáner = None
+        self.escaner_kali2025 = None
+        self.info_sistema = {}
         self._lock_escaneo = threading.Lock()
         self._estado_escaneo = {
             'escaneo_en_progreso': False,
@@ -149,8 +114,48 @@ class ControladorEscaneo(ControladorBase):
             'total_escaneos_realizados': 0
         }
         self._redes_permitidas = [
-            '192.168.0.0/16', '10.0.0.0/8', '172.16.0.0/12', '127.0.0.1/32'
+            '127.0.0.0/8', '10.0.0.0/8', '172.16.0.0/12', '192.168.0.0/16', '169.254.0.0/16'
         ]
+        try:
+            # Detectar sistema operativo y usuario
+            import platform, os, socket
+            self.info_sistema['os'] = platform.system()
+            self.info_sistema['os_version'] = platform.version()
+            self.info_sistema['hostname'] = socket.gethostname()
+            self.info_sistema['user'] = os.getenv('USER') or os.getenv('USERNAME') or 'root'
+            self.info_sistema['home'] = os.path.expanduser('~')
+            self.info_sistema['cwd'] = os.getcwd()
+            # Detectar IP principal
+            try:
+                s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+                s.connect(('8.8.8.8', 80))
+                self.info_sistema['ip'] = s.getsockname()[0]
+                s.close()
+            except Exception:
+                self.info_sistema['ip'] = '127.0.0.1'
+            # Detectar carpetas clave
+            self.info_sistema['base_dir'] = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..'))
+            self.info_sistema['data_dir'] = os.path.join(self.info_sistema['base_dir'], 'data')
+            self.info_sistema['logs_dir'] = os.path.join(self.info_sistema['base_dir'], 'logs')
+            self.info_sistema['reportes_dir'] = os.path.join(self.info_sistema['base_dir'], 'reportes')
+            # Inicializar SIEM y escáner
+            if SIEM_DISPONIBLE:
+                self.siem = SIEMKali2025()
+            if ESCANEADOR_DISPONIBLE:
+                self.escáner = EscaneadorKali2025()
+                self.escaner_kali2025 = self.escáner
+            # Verificar permisos sudo
+            import subprocess
+            try:
+                check_sudo = subprocess.run(['sudo', '-n', 'true'], capture_output=True, timeout=3)
+                self.info_sistema['sudo'] = (check_sudo.returncode == 0)
+            except Exception:
+                self.info_sistema['sudo'] = False
+            # Log de inicialización
+            self.logger.info(f"Inicialización completa: {self.info_sistema}")
+        except Exception as e:
+            self.logger.error(f"Error en inicialización robusta: {e}")
+            self.info_sistema['error'] = str(e)
     
     def _log_siem_seguro(self, tipo_evento, mensaje):
         """Registrar evento en SIEM de forma segura."""
@@ -1360,7 +1365,8 @@ class ControladorEscaneo(ControladorBase):
             return {"error": "EscaneadorKali2025 no disponible"}
         
         try:
-            herramientas = self.escaner_kali2025.verificar_herramientas()
+            # Usar el atributo 'herramientas_disponibles' del escáner
+            herramientas = getattr(self.escaner_kali2025, 'herramientas_disponibles', {})
             total_herramientas = len(herramientas) if herramientas else 0
             return {
                 "exito": True,
