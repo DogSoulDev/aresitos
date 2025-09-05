@@ -533,6 +533,7 @@ class VistaFIM(tk.Frame):
             if resultado.get('exito'):
                 self.log_to_terminal(f"Archivo puesto en cuarentena: {ruta}")
                 self._enviar_a_reportes('poner_en_cuarentena', f"Archivo puesto en cuarentena: {ruta}", False)
+                self.cuarentena_entry.delete(0, tk.END)
             else:
                 self.log_to_terminal(f"Error poniendo en cuarentena: {resultado.get('mensaje','sin mensaje')}")
                 self._enviar_a_reportes('poner_en_cuarentena', f"Error: {resultado.get('mensaje','sin mensaje')}", True)
@@ -653,7 +654,7 @@ class VistaFIM(tk.Frame):
             
             if self.controlador:
                 self._log_terminal("Conectando con controlador FIM avanzado", "FIM", "INFO")
-                resultado = self.controlador.iniciar_monitoreo_continuo()
+                resultado = self.controlador.iniciar_monitoreo()
                 
                 # Variables de control de fases
                 fases_completadas = 0

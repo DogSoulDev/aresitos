@@ -7,6 +7,7 @@ Cumple los principios de seguridad, MVC y robustez de ARESITOS.
 import tkinter as tk
 from tkinter import ttk, scrolledtext, messagebox, filedialog
 import os
+import datetime
 from aresitos.utils.logger_aresitos import LoggerAresitos
 from aresitos.modelo.modelo_cuarentena import CuarentenaKali2025
 from aresitos.controlador.controlador_cuarentena import ControladorCuarentena
@@ -175,6 +176,20 @@ class VistaCuarentena(tk.Frame):
                 self.dropdown_vars_archivos[iid] = cb
             self.texto_estado.config(text=f"{len(archivos)} archivos/amenazas en cuarentena.")
             self.logger.log(f"Actualizada la lista de archivos en cuarentena ({len(archivos)} elementos)", nivel="INFO", modulo="CUARENTENA")
+            # Sincronizar con reportes
+            try:
+                vista_reportes = None
+                if hasattr(self.master, 'vista_reportes'):
+                    vista_reportes = getattr(self.master, 'vista_reportes', None)
+                else:
+                    vistas = getattr(self.master, 'vistas', None)
+                    if vistas and hasattr(vistas, 'get'):
+                        vista_reportes = vistas.get('reportes', None)
+                if vista_reportes:
+                    datos = {'archivos': archivos, 'timestamp': datetime.datetime.now().isoformat()}
+                    vista_reportes.set_datos_modulo('cuarentena', datos)
+            except Exception:
+                pass
         except Exception as e:
             self.texto_estado.config(text=f"Error actualizando lista de archivos: {e}")
             self.logger.log(f"Error actualizando lista de archivos en cuarentena: {e}", nivel="ERROR", modulo="CUARENTENA")

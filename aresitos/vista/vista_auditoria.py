@@ -72,6 +72,26 @@ class VistaAuditoria(tk.Frame):
         # Registrar en logger centralizado
         if hasattr(self, 'logger') and self.logger:
             self.logger.log(mensaje, nivel=nivel, modulo=modulo)
+        # Sincronizar con reportes
+        try:
+            vista_reportes = None
+            if hasattr(self.master, 'vista_reportes'):
+                vista_reportes = getattr(self.master, 'vista_reportes', None)
+            else:
+                vistas = getattr(self.master, 'vistas', None)
+                if vistas and hasattr(vistas, 'get'):
+                    vista_reportes = vistas.get('reportes', None)
+            if vista_reportes:
+                import datetime
+                datos = {
+                    'timestamp': datetime.datetime.now().isoformat(),
+                    'modulo': 'auditoria',
+                    'mensaje': mensaje,
+                    'nivel': nivel
+                }
+                vista_reportes.set_datos_modulo('auditoria', datos)
+        except Exception:
+            pass
 
     def crear_interfaz(self):
         self.configure(bg=self.colors['bg_primary'])

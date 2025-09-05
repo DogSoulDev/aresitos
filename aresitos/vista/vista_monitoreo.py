@@ -79,7 +79,7 @@ class VistaMonitoreo(tk.Frame):
                 contenido = self.text_monitor.get(1.0, 'end-1c')
             datos = {
                 'timestamp': datetime.datetime.now().isoformat(),
-                'modulo': 'Monitoreo',
+                'modulo': 'monitoreo',
                 'estado': 'activo' if hasattr(self, 'flag_monitoreo') and getattr(self.flag_monitoreo, 'is_set', lambda: False)() == False else 'inactivo',
                 'resumen': contenido[-2000:] if len(contenido) > 2000 else contenido,
                 'estadisticas': {
@@ -89,6 +89,19 @@ class VistaMonitoreo(tk.Frame):
                     'alertas': contenido.lower().count('alerta'),
                 }
             }
+            # Sincronizar con reportes
+            try:
+                vista_reportes = None
+                if hasattr(self.master, 'vista_reportes'):
+                    vista_reportes = getattr(self.master, 'vista_reportes', None)
+                else:
+                    vistas = getattr(self.master, 'vistas', None)
+                    if vistas and hasattr(vistas, 'get'):
+                        vista_reportes = vistas.get('reportes', None)
+                if vista_reportes:
+                    vista_reportes.set_datos_modulo('monitoreo', datos)
+            except Exception:
+                pass
             return datos
         except Exception as e:
             return {

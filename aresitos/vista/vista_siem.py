@@ -17,7 +17,7 @@ import os
 import subprocess
 import logging
 import platform
-from datetime import datetime
+from datetime import datetime, timedelta
 
 try:
     from aresitos.vista.burp_theme import burp_theme
@@ -39,9 +39,8 @@ class VistaSIEM(tk.Frame):
                 if vistas and hasattr(vistas, 'get'):
                     vista_reportes = vistas.get('reportes', None)
             if vista_reportes:
-                import datetime
                 datos = {
-                    'timestamp': datetime.datetime.now().isoformat(),
+                    'timestamp': datetime.now().isoformat(),
                     'modulo': 'siem',
                     'comando': comando,
                     'salida': salida,
@@ -1789,7 +1788,7 @@ class VistaSIEM(tk.Frame):
             self._log_terminal(f"    DETALLES: {detalles}", "SIEM", "INFO")
         
         # También actualizar la interfaz SIEM
-        timestamp = __import__('datetime').datetime.now().strftime("%H:%M:%S")
+        timestamp = datetime.now().strftime("%H:%M:%S")
         evento_msg = f"[{timestamp}] {indicator} {tipo} [{severidad}]: {descripcion}\n"
         if detalles:
             evento_msg += f"    └─ {detalles}\n"
@@ -3218,7 +3217,7 @@ ls -la "$OUTPUT_DIR/"
                 # CONFIGURACIÓN 7: Crear archivo de configuración
                 config_alertas = {
                     'version': '1.0',
-                    'timestamp': __import__('datetime').datetime.now().isoformat(),
+                    'timestamp': datetime.now().isoformat(),
                     'umbrales_sistema': umbrales_sistema,
                     'alertas_red': alertas_red,
                     'archivos_vigilados': archivos_vigilados,
@@ -4000,7 +3999,7 @@ ls -la "$OUTPUT_DIR/"
             VistaDashboard.log_actividad_global(mensaje, modulo, nivel)
             
             # También mostrar en la interfaz SIEM para retroalimentación inmediata
-            timestamp = __import__('datetime').datetime.now().strftime("%H:%M:%S")
+            timestamp = datetime.now().strftime("%H:%M:%S")
             mensaje_formateado = f"[{timestamp}] {mensaje}\n"
             
             # Actualizar la interfaz SIEM de forma segura
