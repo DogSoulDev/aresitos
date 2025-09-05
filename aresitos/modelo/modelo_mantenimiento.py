@@ -20,18 +20,13 @@ class ModeloMantenimiento:
 		fecha = datetime.datetime.now().strftime('%Y%m%d_%H%M%S')
 		backup_root = os.path.join(os.getcwd(), "data", "backups")
 		backup_dir = os.path.join(backup_root, f"backup_aresitos_{fecha}")
-		try:
-			os.makedirs(backup_root, exist_ok=True)
-		except Exception as e:
-			vista.mostrar_log(f"[ERROR] No se pudo crear la carpeta de backups: {e}")
-			return {'error': str(e)}
 		sudo_manager = get_sudo_manager()
 		try:
 			if sudo_manager.is_sudo_active():
-				# Crear carpeta backup con sudo
-				resultado = sudo_manager.execute_sudo_command(f"mkdir -p '{backup_dir}'")
+				# Crear carpeta backup_root y backup_dir con sudo
+				resultado = sudo_manager.execute_sudo_command(f"mkdir -p '{backup_root}' '{backup_dir}'")
 				if resultado.returncode != 0:
-					vista.mostrar_log(f"[ERROR] No se pudo crear la carpeta de backup con permisos elevados: {resultado.stderr}")
+					vista.mostrar_log(f"[ERROR] No se pudo crear la carpeta de backups con permisos elevados: {resultado.stderr}")
 					return {'error': resultado.stderr}
 				# Copiar carpetas clave con sudo (usando tar para robustez)
 				carpetas = ["configuración", "data", "logs"]
@@ -45,7 +40,12 @@ class ModeloMantenimiento:
 				vista.mostrar_log(f"[OK] Copia de seguridad creada correctamente en: {backup_dir} (con permisos elevados)")
 				return {'ok': True, 'ruta': backup_dir}
 			else:
-				os.makedirs(backup_dir, exist_ok=True)
+				try:
+					os.makedirs(backup_root, exist_ok=True)
+					os.makedirs(backup_dir, exist_ok=True)
+				except Exception as e:
+					vista.mostrar_log(f"[ERROR] No se pudo crear la carpeta de backups: {e}")
+					return {'error': str(e)}
 				carpetas = ["configuración", "data", "logs"]
 				for carpeta in carpetas:
 					if os.path.exists(carpeta):
@@ -91,6 +91,11 @@ class ModeloMantenimiento:
 							if resultado.returncode != 0:
 								vista.mostrar_log(f"[ERROR] No se pudo eliminar {destino}: {resultado.stderr}")
 								return {'error': resultado.stderr}
+						# Crear carpeta destino si no existe
+						resultado = sudo_manager.execute_sudo_command(f"mkdir -p '{destino}'")
+						if resultado.returncode != 0:
+							vista.mostrar_log(f"[ERROR] No se pudo crear la carpeta destino {destino}: {resultado.stderr}")
+							return {'error': resultado.stderr}
 						# Extraer backup con permisos elevados
 						resultado = sudo_manager.execute_sudo_command(f"tar -xf '{tar_path}' -C '{os.getcwd()}'")
 						if resultado.returncode != 0:
@@ -108,6 +113,7 @@ class ModeloMantenimiento:
 								shutil.rmtree(destino)
 							else:
 								os.remove(destino)
+						os.makedirs(destino, exist_ok=True)
 						shutil.copytree(origen, destino)
 				vista.mostrar_log(f"[OK] Restauración completada desde: {backup_dir} (sin permisos elevados)")
 				return {'ok': True}
