@@ -43,9 +43,6 @@ class ControladorMantenimiento:
         vista.mostrar_log("[INFO] Restaurando copia de seguridad...")
         self.modelo.restaurar_backup(vista)
 
-    def ver_logs_actualizacion(self, vista):
-        logs = self.modelo.obtener_logs_actualizacion()
-        vista.mostrar_log(logs)
 
     def limpiar_temporales(self, vista):
         resultado = ejecutar_comando_sistema(["find", "/tmp", "-name", "*aresitos*", "-delete"])

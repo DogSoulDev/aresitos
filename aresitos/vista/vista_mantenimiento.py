@@ -11,7 +11,7 @@ PRINCIPIOS DE SEGURIDAD ARESITOS (NO MODIFICAR SIN AUDITORÍA)
 """
 import tkinter as tk
 from tkinter import messagebox, scrolledtext, ttk
-from burp_theme import burp_theme
+from aresitos.vista.burp_theme import burp_theme
 
 class VistaMantenimiento(tk.Frame):
     def __init__(self, master, controlador):
@@ -59,7 +59,6 @@ class VistaMantenimiento(tk.Frame):
             ("Crear copia de seguridad", self._on_backup),
             ("Restaurar copia de seguridad", self._on_restore),
             ("Seleccionar copia de seguridad para restaurar", self._on_seleccionar_backup),
-            ("Ver registros de actualización", self._on_ver_logs),
             ("Limpiar archivos temporales", self._on_limpiar),
             ("Reiniciar ARESITOS", self._on_reiniciar)
         ]
@@ -100,8 +99,6 @@ class VistaMantenimiento(tk.Frame):
     def _on_seleccionar_backup(self):
         self.controlador.restaurar_backup(self)
 
-    def _on_ver_logs(self):
-        self.controlador.ver_logs_actualizacion(self)
 
     def _on_limpiar(self):
         self.controlador.limpiar_temporales(self)
