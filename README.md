@@ -11,7 +11,7 @@
 
 ## Descripción
 
-ARESITOS es una suite profesional para auditoría y gestión de ciberseguridad, desarrollada como parte del TFM en la UCAM y el Campus Internacional de Ciberseguridad. Integra módulos de escaneo, SIEM, FIM, cuarentena, reportes y utilidades forenses, siguiendo estándares y buenas prácticas.
+ARESITOS es una Herramienta de Ciberseguridad profesional para auditoría y gestión, desarrollada como parte del TFM en la UCAM y el Campus Internacional de Ciberseguridad. Integra módulos de escaneo, SIEM, FIM, cuarentena, reportes y utilidades forenses, siguiendo estándares y buenas prácticas.
 
 ---
 
