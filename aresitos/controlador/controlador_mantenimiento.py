@@ -28,19 +28,20 @@ class ControladorMantenimiento:
         import os
         from aresitos.utils.sudo_manager import get_sudo_manager
         sudo_manager = get_sudo_manager()
-        vista.mostrar_log("[INFORMACIÓN] Iniciando la actualización de ARESITOS desde el repositorio oficial...")
+        vista.mostrar_log("[INFORMACIÓN] Forzando la actualización de ARESITOS desde el repositorio oficial...")
         repo_dir = os.getcwd()
-        # Configurar el directorio como seguro para git
         ejecutar_comando_sistema(["git", "config", "--global", "--add", "safe.directory", repo_dir])
-        # Usar sudo si está activo
         if sudo_manager.is_sudo_active():
-            resultado = sudo_manager.execute_sudo_command("git pull origin master")
-            stdout = resultado.stdout if hasattr(resultado, 'stdout') else str(resultado)
-            stderr = resultado.stderr if hasattr(resultado, 'stderr') else ''
+            # Forzar actualización: fetch y reset --hard
+            resultado_fetch = sudo_manager.execute_sudo_command("git fetch origin master")
+            resultado_reset = sudo_manager.execute_sudo_command("git reset --hard origin/master")
+            stdout = (resultado_fetch.stdout if hasattr(resultado_fetch, 'stdout') else str(resultado_fetch)) + "\n" + (resultado_reset.stdout if hasattr(resultado_reset, 'stdout') else str(resultado_reset))
+            stderr = (resultado_fetch.stderr if hasattr(resultado_fetch, 'stderr') else '') + "\n" + (resultado_reset.stderr if hasattr(resultado_reset, 'stderr') else '')
         else:
-            resultado = ejecutar_comando_sistema(["git", "pull", "origin", "master"])
-            stdout = resultado.get('stdout', '')
-            stderr = resultado.get('stderr', '')
+            resultado_fetch = ejecutar_comando_sistema(["git", "fetch", "origin", "master"])
+            resultado_reset = ejecutar_comando_sistema(["git", "reset", "--hard", "origin/master"])
+            stdout = resultado_fetch.get('stdout', '') + "\n" + resultado_reset.get('stdout', '')
+            stderr = resultado_fetch.get('stderr', '') + "\n" + resultado_reset.get('stderr', '')
         if stdout:
             vista.mostrar_log(stdout)
         if stderr:
