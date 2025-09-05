@@ -31,7 +31,7 @@ ARESITOS representa una solución profesional, académica y práctica para la ge
 
 
 
-ARESITOS es una suite profesional de ciberseguridad para Kali Linux, desarrollada íntegramente en Python 3 estándar (sin dependencias externas) y basada en arquitectura Modelo-Vista-Controlador (MVC). Su objetivo es centralizar y automatizar todas las fases de una auditoría técnica, integrando en una sola interfaz:
+ARESITOS es una Herramienta de Ciberseguridad profesional para Kali Linux, desarrollada íntegramente en Python 3 estándar (sin dependencias externas) y basada en arquitectura Modelo-Vista-Controlador (MVC). Su objetivo es centralizar y automatizar todas las fases de una auditoría técnica, integrando en una sola interfaz:
 
 - **Escaneo de vulnerabilidades**: análisis de puertos, servicios, configuraciones y detección de debilidades mediante herramientas nativas y bases de datos actualizadas.
 - **SIEM**: correlación y análisis de eventos de seguridad en tiempo real, con alertas y trazabilidad.
@@ -40,11 +40,11 @@ ARESITOS es una suite profesional de ciberseguridad para Kali Linux, desarrollad
 - **Auditoría avanzada**: integración con herramientas como Lynis, Chkrootkit y Linpeas para análisis profundo y recomendaciones técnicas.
 - **Gestión de wordlists, diccionarios y cheatsheets**: recursos actualizables y personalizables para pentesting, fuerza bruta, análisis semántico y respuesta ante incidentes, integrados en los módulos de escaneo y monitoreo.
 - **Panel principal y dashboard**: métricas del sistema, estado de módulos, logs en tiempo real y acceso rápido a todas las funciones.
-- **Terminal integrado**: ejecución segura de comandos y scripts desde la propia interfaz, con gestión avanzada de privilegios.
+   - **Terminal integrado**: ejecución de comandos y scripts desde la propia interfaz, con registro y trazabilidad.
 - **Integración de terminales externas**: ahora puedes incluir información de todas las terminales externas abiertas en Kali Linux en el reporte final, permitiendo trazabilidad y auditoría avanzada del entorno.
 - **Generación de reportes profesionales**: el usuario puede crear un informe integral y estructurado que consolida todos los hallazgos, análisis y resultados obtenidos durante la auditoría, exportable en múltiples formatos (TXT, JSON, CSV) y adaptado a los estándares del sector.
 
-ARESITOS automatiza la verificación e instalación de todas las herramientas requeridas, gestiona privilegios de forma segura y centraliza la documentación, trazabilidad y exportación de evidencias técnicas. Todo el flujo está diseñado para ser visual, ágil y robusto, facilitando el trabajo tanto a expertos como a equipos de ciberseguridad que buscan eficiencia, profundidad y rigor en sus operaciones.
+ARESITOS automatiza la verificación e instalación de todas las herramientas requeridas y centraliza la documentación, trazabilidad y exportación de evidencias técnicas. Todo el flujo está diseñado para ser visual, ágil y robusto, facilitando el trabajo tanto a expertos como a equipos de ciberseguridad que buscan eficiencia, profundidad y rigor en sus operaciones.
 
 ---
 
@@ -164,7 +164,7 @@ ARESITOS cuenta con una interfaz profesional y modular. A continuación, se mues
 
 ## Arquitectura y estructura del proyecto
 
-**Modelo-Vista-Controlador (MVC) + Principios SOLID**
+**Modelo-Vista-Controlador (MVC)**
 
 ```
 aresitos/
@@ -275,17 +275,12 @@ aresitos/
 **Explicación concreta:**
 - El proyecto sigue una arquitectura estricta MVC, donde cada carpeta tiene una responsabilidad clara y separada.
 - Los controladores gestionan la lógica de negocio y la interacción entre la interfaz gráfica (vistas) y los datos (modelos).
-- El sistema es robusto, modular, seguro y fácilmente extensible, cumpliendo los principios SOLID y DRY.
-
+- El sistema es robusto, modular y fácilmente extensible.
 - **Cuarentena:** aislamiento de archivos sospechosos, preservación de evidencia.
-- **Informes:** exportación en JSON, TXT, CSV.
+- **Informes:** exportación en JSON, TXT, CSV, con plantilla profesional ISO/IEC 27001.
 - **Inteligencia:** base de datos de vulnerabilidades, listas de palabras, diccionarios, cheatsheets.
 - **Auditoría:** integración con lynis y chkrootkit.
 - **Registros:** carpeta `logs/` con resultados de escaneo y actividad.
-
-**Sanitización y seguridad:**
-- Validación de extensiones, nombres, rutas y tipos MIME en la subida de archivos.
-- Módulo de sanitización en `utils/sanitizador_archivos.py`.
 
 
 ## Resumen de la Guía Técnica y del Programa ARESITOS
@@ -298,10 +293,9 @@ ARESITOS es una suite profesional de ciberseguridad para Kali Linux, desarrollad
 ### Características principales
 
 - **Arquitectura modular y extensible:** Separación clara entre lógica de negocio, interfaz y datos.
-- **Gestión avanzada de privilegios:** Uso seguro y controlado de sudo/root durante la ejecución.
 - **Automatización de herramientas Kali:** Instalación, verificación y actualización centralizada de utilidades críticas y opcionales.
 - **Flujo visual profesional:** Desde la instalación hasta la generación de informes, con paneles dedicados para cada función.
-- **Portabilidad y seguridad:** Todas las rutas y configuraciones son dinámicas y relativas al proyecto, sin rutas absolutas.
+- **Portabilidad:** Todas las rutas y configuraciones son dinámicas y relativas al proyecto, sin rutas absolutas.
 
 
 ### Instalación y uso
@@ -437,8 +431,84 @@ Si la instalación rápida falla o tienes un entorno personalizado, puedes insta
 ---
 
 
-## DEDICATORIA
+## Reportes profesionales ISO/IEC 27001
 
+ARESITOS permite generar reportes profesionales de incidentes y auditoría siguiendo la estructura recomendada por la norma ISO/IEC 27001. El informe incluye:
+
+- Portada (organización, contacto, fecha, título)
+- Resumen ejecutivo
+- Descripción del incidente
+- Cronología
+- Acciones tomadas
+- Impacto y análisis
+- Lecciones aprendidas
+- Recomendaciones
+- Anexos
+
+Ejemplo resumido de reporte:
+
+```
+================================================================================
+INFORME DE INCIDENTE DE SEGURIDAD DE LA INFORMACIÓN - ISO/IEC 27001
+================================================================================
+Organización: Ejemplo S.A.
+Persona de contacto: Juan Pérez
+Correo electrónico: juan.perez@ejemplo.com
+Teléfono: +34 600 123 456
+Fecha de generación del informe: 2025-09-05 12:00
+
+--------------------------------------------------------------------------------
+RESUMEN EJECUTIVO
+--------------------------------------------------------------------------------
+Título del incidente: Acceso no autorizado a base de datos
+Fecha y hora de detección: 2025-09-04 18:30
+Fecha y hora de inicio: 2025-09-04 18:00
+Tipo de incidente: Intrusión
+Sistemas o servicios afectados: Servidor SQL principal
+
+--------------------------------------------------------------------------------
+DESCRIPCIÓN DEL INCIDENTE
+--------------------------------------------------------------------------------
+Descripción detallada: Se detectó acceso no autorizado mediante credenciales comprometidas...
+
+--------------------------------------------------------------------------------
+CRONOLOGÍA DEL INCIDENTE
+--------------------------------------------------------------------------------
+(Incluya aquí la secuencia de eventos relevantes, si aplica)
+
+--------------------------------------------------------------------------------
+ACCIONES TOMADAS
+--------------------------------------------------------------------------------
+Acciones de contención, erradicación y recuperación: Contraseña cambiada, acceso bloqueado, análisis forense realizado...
+
+--------------------------------------------------------------------------------
+IMPACTO Y ANÁLISIS
+--------------------------------------------------------------------------------
+Impacto en operaciones: Breve interrupción del servicio
+Datos comprometidos: Tabla clientes
+
+--------------------------------------------------------------------------------
+LECCIONES APRENDIDAS
+--------------------------------------------------------------------------------
+(Incluya aquí las lecciones aprendidas y mejoras identificadas, si aplica)
+
+--------------------------------------------------------------------------------
+RECOMENDACIONES
+--------------------------------------------------------------------------------
+(Incluya aquí recomendaciones para evitar incidentes similares)
+
+--------------------------------------------------------------------------------
+ANEXOS
+--------------------------------------------------------------------------------
+Observaciones y documentación adicional: Informe forense adjunto
+
+================================================================================
+Reporte generado por ARESITOS conforme a ISO/IEC 27001 - https://github.com/DogSoulDev/aresitos
+```
+
+El reporte puede exportarse en TXT, JSON y PDF, y es válido para auditorías, análisis forense y cumplimiento normativo.
+
+## DEDICATORIA
 
 En memoria de Ares
 *25 de abril de 2013 - 5 de agosto de 2025*
