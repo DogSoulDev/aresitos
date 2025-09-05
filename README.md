@@ -4,7 +4,6 @@
 
 
 > **Recomendación importante:**
-> Antes de instalar o ejecutar ARESITOS, asegúrate de que tu sistema Kali Linux esté completamente actualizado para evitar problemas de dependencias o incompatibilidades:
 > ```sh
 > sudo apt update && sudo apt upgrade -y
 > ```
@@ -27,55 +26,6 @@ ARESITOS representa una solución profesional, académica y práctica para la ge
 ---
 
 
-# Descripción general
-
-
-
-ARESITOS es una Herramienta de Ciberseguridad profesional para Kali Linux, desarrollada íntegramente en Python 3 estándar (sin dependencias externas) y basada en arquitectura Modelo-Vista-Controlador (MVC). Su objetivo es centralizar y automatizar todas las fases de una auditoría técnica, integrando en una sola interfaz:
-
-- **Escaneo de vulnerabilidades**: análisis de puertos, servicios, configuraciones y detección de debilidades mediante herramientas nativas y bases de datos actualizadas.
-- **SIEM**: correlación y análisis de eventos de seguridad en tiempo real, con alertas y trazabilidad.
-- **FIM (File Integrity Monitoring)**: monitorización de la integridad de archivos críticos, detección de cambios y generación de alertas forenses.
-- **Cuarentena y monitoreo**: aislamiento y análisis de archivos sospechosos, vigilancia de procesos y recursos del sistema.
-- **Auditoría avanzada**: integración con herramientas como Lynis, Chkrootkit y Linpeas para análisis profundo y recomendaciones técnicas.
-- **Gestión de wordlists, diccionarios y cheatsheets**: recursos actualizables y personalizables para pentesting, fuerza bruta, análisis semántico y respuesta ante incidentes, integrados en los módulos de escaneo y monitoreo.
-- **Panel principal y dashboard**: métricas del sistema, estado de módulos, logs en tiempo real y acceso rápido a todas las funciones.
-   - **Terminal integrado**: ejecución de comandos y scripts desde la propia interfaz, con registro y trazabilidad.
-- **Integración de terminales externas**: ahora puedes incluir información de todas las terminales externas abiertas en Kali Linux en el reporte final, permitiendo trazabilidad y auditoría avanzada del entorno.
-- **Generación de reportes profesionales**: el usuario puede crear un informe integral y estructurado que consolida todos los hallazgos, análisis y resultados obtenidos durante la auditoría, exportable en múltiples formatos (TXT, JSON, CSV) y adaptado a los estándares del sector.
-
-ARESITOS automatiza la verificación e instalación de todas las herramientas requeridas y centraliza la documentación, trazabilidad y exportación de evidencias técnicas. Todo el flujo está diseñado para ser visual, ágil y robusto, facilitando el trabajo tanto a expertos como a equipos de ciberseguridad que buscan eficiencia, profundidad y rigor en sus operaciones.
-
----
-
-
-
-## Instalación rápida (Kali Linux recomendada)
-
-
-> ⚠️ **Advertencia importante sobre la instalación de herramientas**
->
-> Cuando utilices el **Configurador de Herramientas Kali** para instalar las herramientas faltantes, el proceso puede tardar varios minutos. Algunas utilidades avanzadas (como Nuclei o Httpx) se instalan mediante Go y requieren descargas y compilación adicionales.
->
-> **Ten paciencia y no cierres la aplicación** hasta que el proceso finalice y se muestre el mensaje de instalación completa.
-
-```bash
-# 1. Clona el repositorio y accede a la carpeta
-git clone https://github.com/DogSoulDev/aresitos.git
-cd aresitos
-
-# 2. Da permisos de ejecución a los scripts principales
-chmod +x configurar_kali.sh main.py
-
-# 3. Ejecuta el script de configuración (como root o con sudo)
-sudo ./configurar_kali.sh
-
-# 4. (Opcional) Si tienes problemas de permisos, da ejecución a todos los .py
-find . -name "*.py" -exec chmod +x {} \;
-
-# 5. Inicia la aplicación
-python3 main.py
-```
 
 Si tienes errores de acceso a carpetas:
 ```bash
@@ -106,8 +56,8 @@ python3 main.py --dev
 
 ## Flujo de uso
 1. **Inicio de sesión**: Verificación automática de entorno, dependencias, permisos y privilegios.
-2. **Herramientas**: Detección, verificación visual (check verde/cruz roja) e instalación guiada de todas las herramientas requeridas.
-3. **Principal**: Acceso al panel principal, escaneo, SIEM, FIM, cuarentena, monitoreo y reportes.
+2. **Herramientas**: Detección, verificación visual (marca verde/cruz roja) e instalación guiada de todas las herramientas requeridas.
+3. **Panel principal**: Acceso al panel principal, escaneo, SIEM, FIM, cuarentena, monitoreo y reportes.
 
 ---
 
@@ -121,13 +71,9 @@ ARESITOS cuenta con una interfaz profesional y modular. A continuación, se mues
 **Explicación:** Pantalla de instalación y verificación de entorno. Aquí se comprueba que todas las dependencias y herramientas estén listas antes de iniciar.
 
 ### 2. Login
+### 2. Inicio de sesión
 ![Login](aresitos/recursos/capturas/2_login.png)
-**Explicación:** Acceso seguro al sistema. Se validan permisos, entorno y usuario antes de permitir el uso de la suite.
-
-### 3. Herramientas
-![Herramientas](aresitos/recursos/capturas/3_herramientas.png)
-**Explicación:** Panel de verificación e instalación de herramientas críticas y opcionales de Kali Linux. Permite instalar, actualizar y comprobar el estado de cada utilidad.
-
+**Acceso seguro al sistema. Se validan permisos, entorno y usuario antes de permitir el uso de la suite.**
 ### 4. Dashboard
 ![Dashboard](aresitos/recursos/capturas/4_dashboard.png)
 **Explicación:** Panel principal con métricas del sistema, estado de módulos, registros en tiempo real y acceso rápido a las funciones principales.
@@ -164,7 +110,7 @@ ARESITOS cuenta con una interfaz profesional y modular. A continuación, se mues
 
 ## Arquitectura y estructura del proyecto
 
-**Modelo-Vista-Controlador (MVC)**
+El proyecto sigue el patrón **Modelo-Vista-Controlador (MVC)**, asegurando una separación clara entre la lógica de negocio, la interfaz gráfica y el manejo de datos. La estructura modular facilita el mantenimiento, la escalabilidad y la integración de nuevas funcionalidades.
 
 ```
 aresitos/
@@ -273,42 +219,10 @@ aresitos/
 ```
 
 **Explicación concreta:**
-- El proyecto sigue una arquitectura estricta MVC, donde cada carpeta tiene una responsabilidad clara y separada.
-- Los controladores gestionan la lógica de negocio y la interacción entre la interfaz gráfica (vistas) y los datos (modelos).
-- El sistema es robusto, modular y fácilmente extensible.
-- **Cuarentena:** aislamiento de archivos sospechosos, preservación de evidencia.
-- **Informes:** exportación en JSON, TXT, CSV, con plantilla profesional ISO/IEC 27001.
-- **Inteligencia:** base de datos de vulnerabilidades, listas de palabras, diccionarios, cheatsheets.
-- **Auditoría:** integración con lynis y chkrootkit.
-- **Registros:** carpeta `logs/` con resultados de escaneo y actividad.
-
-
-## Resumen de la Guía Técnica y del Programa ARESITOS
-
-### ¿Qué es ARESITOS?
-
-ARESITOS es una suite profesional de ciberseguridad para Kali Linux, desarrollada en Python 3 puro (sin dependencias externas), con arquitectura Modelo-Vista-Controlador (MVC) y una interfaz gráfica robusta basada en Tkinter. Integra módulos de escaneo de vulnerabilidades, SIEM, FIM, cuarentena, dashboard, reportes y utilidades forenses, todo gestionado bajo principios SOLID y DRY. El sistema automatiza la verificación e instalación de herramientas nativas de Kali, garantizando robustez, seguridad y compatibilidad total con entornos forenses y de auditoría.
 
 
 ### Características principales
 
-- **Arquitectura modular y extensible:** Separación clara entre lógica de negocio, interfaz y datos.
-- **Automatización de herramientas Kali:** Instalación, verificación y actualización centralizada de utilidades críticas y opcionales.
-- **Flujo visual profesional:** Desde la instalación hasta la generación de informes, con paneles dedicados para cada función.
-- **Portabilidad:** Todas las rutas y configuraciones son dinámicas y relativas al proyecto, sin rutas absolutas.
-
-
-### Instalación y uso
-
-1. Clona el repositorio y accede a la carpeta:
-   ```bash
-   git clone https://github.com/DogSoulDev/aresitos.git
-   cd aresitos
-   ```
-2. Inicia la aplicación:
-   ```bash
-   python3 main.py
-   ```
 3. Para modo desarrollo (otros sistemas):
    ```bash
    python3 main.py --dev
@@ -320,11 +234,11 @@ ARESITOS es una suite profesional de ciberseguridad para Kali Linux, desarrollad
 
 ### Documentación técnica
 
-- **Guía técnica completa:** Explica la arquitectura, el flujo de uso, la integración de herramientas, la política de rutas, la gestión de privilegios y las mejores prácticas de seguridad. Incluye tablas de herramientas, diagramas y capturas de pantalla.
    - Ver [`documentacion/GUIA_TECNICA_ARESITOS.md`](documentacion/GUIA_TECNICA_ARESITOS.md)
-- **Guía de instalación:** Instrucciones paso a paso para instalar y ejecutar ARESITOS en Kali Linux, requisitos, solución de problemas y recomendaciones.
    - Ver [`documentacion/GUIA_INSTALACION.md`](documentacion/GUIA_INSTALACION.md)
+ **Guía técnica completa:** Detalla la arquitectura, el flujo de uso, la integración de herramientas, la gestión de rutas y privilegios, así como las mejores prácticas de seguridad. Incluye tablas comparativas, diagramas y capturas de pantalla.
 
+ **Guía de instalación:** Proporciona instrucciones detalladas para instalar y ejecutar ARESITOS en Kali Linux, requisitos, solución de problemas y recomendaciones avanzadas.
 
 Repositorio oficial: https://github.com/DogSoulDev/aresitos
 Correo electrónico: dogsouldev@protonmail.com
@@ -350,35 +264,22 @@ Correo electrónico: dogsouldev@protonmail.com
 
 
 **Atribución obligatoria:**
-- Creador: DogSoulDev
-- Contacto: dogsouldev@protonmail.com
-- Fuente: https://github.com/DogSoulDev/aresitos
-- Licencia: Open Source No Comercial
-
-
-**Código de ética:**
-- Solo sistemas autorizados (permiso explícito).
-- Propósitos constructivos.
-- Divulgación responsable.
-- Prohibido el hacking malicioso o el daño intencional.
-
+ Autor: DogSoulDev
+ Contacto: dogsouldev@protonmail.com
+ Repositorio: https://github.com/DogSoulDev/aresitos
 ---
 
 
-## Reconocimientos y agradecimientos
 
 Este proyecto no habría sido posible sin el apoyo y la formación recibidos en el Campus Internacional de Ciberseguridad y la Universidad Católica San Antonio de Murcia (UCAM).
-
 ---
-
 
 
 
 ## Instalación manual paso a paso (alternativa)
 
 Si la instalación rápida falla o tienes un entorno personalizado, puedes instalar ARESITOS manualmente siguiendo estos pasos:
-
-1. **Clona el repositorio y entra en la carpeta:**
+1. **Clona el repositorio y accede a la carpeta:**
    ```sh
    git clone https://github.com/DogSoulDev/aresitos.git
    cd aresitos
@@ -435,15 +336,6 @@ Si la instalación rápida falla o tienes un entorno personalizado, puedes insta
 
 ARESITOS permite generar reportes profesionales de incidentes y auditoría siguiendo la estructura recomendada por la norma ISO/IEC 27001. El informe incluye:
 
-- Portada (organización, contacto, fecha, título)
-- Resumen ejecutivo
-- Descripción del incidente
-- Cronología
-- Acciones tomadas
-- Impacto y análisis
-- Lecciones aprendidas
-- Recomendaciones
-- Anexos
 
 Ejemplo resumido de reporte:
 
@@ -513,5 +405,8 @@ El reporte puede exportarse en TXT, JSON y PDF, y es válido para auditorías, a
 En memoria de Ares
 *25 de abril de 2013 - 5 de agosto de 2025*
 Hasta que volvamos a vernos.
+**En memoria de Ares**
+*25 de abril de 2013 - 5 de agosto de 2025*
+Hasta que volvamos a encontrarnos.
 
 ---
