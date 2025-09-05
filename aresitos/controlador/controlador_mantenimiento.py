@@ -19,56 +19,80 @@ except ImportError:
 class ControladorMantenimiento:
     def __init__(self, modelo=None):
         if modelo is None:
-            from modelo import modelo_mantenimiento
+            from aresitos.modelo import modelo_mantenimiento
             self.modelo = modelo_mantenimiento.ModeloMantenimiento()
         else:
             self.modelo = modelo
 
     def actualizar_aresitos(self, vista):
         import os
+        from aresitos.utils.sudo_manager import get_sudo_manager
+        sudo_manager = get_sudo_manager()
         vista.mostrar_log("[INFORMACIÓN] Iniciando la actualización de ARESITOS desde el repositorio oficial...")
-        # Configurar el directorio como seguro para git
         repo_dir = os.getcwd()
+        # Configurar el directorio como seguro para git
         ejecutar_comando_sistema(["git", "config", "--global", "--add", "safe.directory", repo_dir])
-        resultado = ejecutar_comando_sistema(["git", "pull", "origin", "master"])
-        if resultado['stdout']:
-            vista.mostrar_log(resultado['stdout'])
-        if resultado['stderr']:
-            vista.mostrar_log("[ADVERTENCIA] " + resultado['stderr'])
-        ejecutar_comando_sistema(["chmod", "+x", "configurar_kali.sh"])
-        ejecutar_comando_sistema(["chmod", "+x", "main.py"])
+        # Usar sudo si está activo
+        if sudo_manager.is_sudo_active():
+            resultado = sudo_manager.execute_sudo_command("git pull origin master")
+            stdout = resultado.stdout if hasattr(resultado, 'stdout') else str(resultado)
+            stderr = resultado.stderr if hasattr(resultado, 'stderr') else ''
+        else:
+            resultado = ejecutar_comando_sistema(["git", "pull", "origin", "master"])
+            stdout = resultado.get('stdout', '')
+            stderr = resultado.get('stderr', '')
+        if stdout:
+            vista.mostrar_log(stdout)
+        if stderr:
+            vista.mostrar_log("[ADVERTENCIA] " + stderr)
+            if "Permission denied" in stderr:
+                vista.mostrar_log("[ERROR] No tienes permisos suficientes para actualizar el repositorio. Ejecuta ARESITOS como root/sudo.")
+        # Actualizar permisos de scripts usando sudo si está activo
+        if sudo_manager.is_sudo_active():
+            sudo_manager.execute_sudo_command("chmod +x configurar_kali.sh")
+            sudo_manager.execute_sudo_command("chmod +x main.py")
+        else:
+            ejecutar_comando_sistema(["chmod", "+x", "configurar_kali.sh"])
+            ejecutar_comando_sistema(["chmod", "+x", "main.py"])
         vista.mostrar_log("[INFORMACIÓN] Permisos de los scripts actualizados.")
 
     def crear_backup(self, vista):
         vista.mostrar_log("[INFORMACIÓN] Creando copia de seguridad...")
-        try:
-            resultado = self.modelo.crear_backup(vista)
-            if resultado and 'ok' in resultado:
-                vista.mostrar_log("[INFORMACIÓN] Copia de seguridad creada correctamente.")
-            else:
-                vista.mostrar_log("[ADVERTENCIA] No se pudo crear la copia de seguridad.")
-        except Exception as e:
-            vista.mostrar_log(f"[ERROR] {str(e)}")
+        resultado = self.modelo.crear_backup(vista)
+        if resultado and 'ok' in resultado:
+            vista.mostrar_log(f"[INFORMACIÓN] Copia de seguridad creada correctamente en: {resultado.get('ruta', '')}")
+        elif resultado and 'error' in resultado:
+            vista.mostrar_log(f"[ERROR] No se pudo crear la copia de seguridad: {resultado['error']}")
+        else:
+            vista.mostrar_log("[ADVERTENCIA] No se pudo crear la copia de seguridad.")
 
     def restaurar_backup(self, vista):
         vista.mostrar_log("[INFORMACIÓN] Restaurando copia de seguridad...")
-        try:
-            resultado = self.modelo.restaurar_backup(vista)
-            if resultado and 'ok' in resultado:
-                vista.mostrar_log("[INFORMACIÓN] Copia de seguridad restaurada correctamente.")
-            else:
-                vista.mostrar_log("[ADVERTENCIA] No se pudo restaurar la copia de seguridad.")
-        except Exception as e:
-            vista.mostrar_log(f"[ERROR] {str(e)}")
+        resultado = self.modelo.restaurar_backup(vista)
+        if resultado and 'ok' in resultado:
+            vista.mostrar_log("[INFORMACIÓN] Copia de seguridad restaurada correctamente.")
+        elif resultado and 'error' in resultado:
+            vista.mostrar_log(f"[ERROR] No se pudo restaurar la copia de seguridad: {resultado['error']}")
+        else:
+            vista.mostrar_log("[ADVERTENCIA] No se pudo restaurar la copia de seguridad.")
 
 
     def limpiar_temporales(self, vista):
+        from aresitos.utils.sudo_manager import get_sudo_manager
         vista.mostrar_log("[INFORMACIÓN] Eliminando archivos temporales de ARESITOS...")
-        resultado = ejecutar_comando_sistema(["find", "/tmp", "-name", "*aresitos*", "-delete"])
-        if resultado['returncode'] == 0:
-            vista.mostrar_log("[INFORMACIÓN] Archivos temporales eliminados correctamente.")
+        sudo_manager = get_sudo_manager()
+        if sudo_manager.is_sudo_active():
+            resultado = sudo_manager.execute_sudo_command("find /tmp -name '*aresitos*' -delete")
+            if resultado.returncode == 0:
+                vista.mostrar_log("[INFORMACIÓN] Archivos temporales eliminados correctamente (con permisos elevados).")
+            else:
+                vista.mostrar_log(f"[ADVERTENCIA] Error al eliminar temporales: {resultado.stderr}")
         else:
-            vista.mostrar_log(f"[ADVERTENCIA] Error al eliminar temporales: {resultado['stderr']}")
+            resultado = ejecutar_comando_sistema(["find", "/tmp", "-name", "*aresitos*", "-delete"])
+            if resultado['returncode'] == 0:
+                vista.mostrar_log("[INFORMACIÓN] Archivos temporales eliminados correctamente.")
+            else:
+                vista.mostrar_log(f"[ADVERTENCIA] Error al eliminar temporales: {resultado['stderr']}")
 
     def reiniciar_aresitos(self, vista):
         vista.mostrar_log("[INFORMACIÓN] Reiniciando ARESITOS...")
