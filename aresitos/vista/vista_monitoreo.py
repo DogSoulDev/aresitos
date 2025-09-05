@@ -50,6 +50,45 @@ class ThreadSafeFlag:
             self.flag = False
 
 class VistaMonitoreo(tk.Frame):
+    def verificar_sudo_y_pedirlo(self):
+        """Verifica si el usuario tiene permisos sudo activos y muestra ventana si no los tiene, con tema Burp."""
+        if SUDO_MANAGER_DISPONIBLE:
+            sudo_manager = SudoManager()
+            if not sudo_manager.is_sudo_active():
+                # Usar ventana personalizada con tema Burp
+                from aresitos.vista.burp_theme import BurpTheme
+                theme = BurpTheme()
+                popup = tk.Toplevel(self)
+                popup.title("Permisos requeridos - ARESITOS")
+                popup.configure(bg=theme.get_color('bg_primary'))
+                popup.geometry("420x210")
+                popup.resizable(False, False)
+                # Cabecera
+                header = tk.Label(popup, text="Permisos SUDO requeridos", bg=theme.get_color('bg_primary'), fg=theme.get_color('fg_accent'), font=("Arial", 15, "bold"))
+                header.pack(pady=(18, 6))
+                # Mensaje
+                msg = tk.Label(popup, text="Para ejecutar un escaneo completo y seguro, se requieren permisos sudo.\n¿Desea reiniciar la aplicación con sudo o reautenticarse?", bg=theme.get_color('bg_primary'), fg=theme.get_color('fg_secondary'), font=("Arial", 11), justify="center")
+                msg.pack(pady=(0, 16))
+                # Botones
+                btn_frame = tk.Frame(popup, bg=theme.get_color('bg_primary'))
+                btn_frame.pack(pady=(0, 10))
+                def on_reiniciar():
+                    popup.destroy()
+                    messagebox.showinfo(
+                        "Reiniciar con sudo",
+                        "Por favor, cierre y reinicie ARESITOS desde una terminal con 'sudo python main.py' para habilitar todos los módulos de escaneo."
+                    )
+                def on_cancelar():
+                    popup.destroy()
+                btn_reiniciar = tk.Button(btn_frame, text="Reiniciar con sudo", command=on_reiniciar, bg=theme.get_color('button_active'), fg=theme.get_color('button_fg'), font=("Arial", 11, "bold"), relief="raised", padx=16, pady=7, activebackground=theme.get_color('highlight'))
+                btn_reiniciar.pack(side="left", padx=(0, 16))
+                btn_cancelar = tk.Button(btn_frame, text="Cancelar", command=on_cancelar, bg=theme.get_color('button_bg'), fg=theme.get_color('button_fg'), font=("Arial", 11), relief="raised", padx=16, pady=7, activebackground=theme.get_color('tab_normal'))
+                btn_cancelar.pack(side="left")
+                # Esperar respuesta
+                popup.grab_set()
+                self.wait_window(popup)
+                return False
+        return True
     def cancelar_monitoreo(self):
         """Cancelar el monitoreo general (no solo red) de forma segura."""
         import tkinter.messagebox as messagebox
@@ -712,8 +751,13 @@ class VistaMonitoreo(tk.Frame):
         pass
 
     def iniciar_monitoreo(self):
-        """Iniciar monitoreo completo usando el controlador, con fallback a monitoreo básico."""
+        """Iniciar monitoreo completo usando el controlador, con verificación de sudo y fallback a monitoreo básico."""
         try:
+            if not self.verificar_sudo_y_pedirlo():
+                if self.text_monitor is not None:
+                    self.text_monitor.insert(tk.END, "[ERROR] Permisos insuficientes para escaneo completo.\n")
+                self.log_to_terminal("Permisos insuficientes para escaneo completo.")
+                return
             if hasattr(self, 'controlador') and self.controlador and hasattr(self.controlador, 'iniciar_monitoreo'):
                 resultado = self.controlador.iniciar_monitoreo()
                 if resultado.get('exito'):
