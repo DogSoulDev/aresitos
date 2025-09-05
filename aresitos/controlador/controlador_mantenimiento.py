@@ -49,37 +49,13 @@ class ControladorMantenimiento:
             resultado_log = ejecutar_comando_sistema(["git", "log", "-n", "3", "origin/master", "--pretty=format:%h %an %ad %s"])
             diff_out = resultado_diff.get('stdout', '').strip()
             log_out = resultado_log.get('stdout', '').strip()
-        # 3. Mensajes claros
+        # 3. Mensajes claros y simplificados para el usuario
         if diff_out:
-            vista.mostrar_log("[INFORMACIÓN] Archivos modificados en la actualización:")
-            vista.mostrar_log(diff_out)
-            vista.mostrar_log("[INFORMACIÓN] Últimos commits traídos:")
-            # Mostrar commits con links
-            for linea in log_out.splitlines():
-                partes = linea.split()
-                if len(partes) >= 4:
-                    hash_commit = partes[0]
-                    autor = partes[1]
-                    fecha = ' '.join(partes[2:4])
-                    mensaje = ' '.join(partes[4:])
-                    link = f"https://github.com/DogSoulDev/aresitos/commit/{hash_commit}"
-                    vista.mostrar_log(f"- {mensaje} ({autor}, {fecha})\n  Ver commit: {link}")
-                else:
-                    vista.mostrar_log(linea)
-            vista.mostrar_log("[INFORMACIÓN] ARESITOS se ha actualizado correctamente.")
+            vista.mostrar_log("[INFORMACIÓN] El programa ARESITOS se ha actualizado correctamente.")
         else:
-            vista.mostrar_log("[INFORMACIÓN] ARESITOS ya estaba actualizado. No hay cambios nuevos.")
-        # 4. Errores
-        # Manejo robusto de stderr para dict y CompletedProcess
-        def get_stderr(res):
-            if isinstance(res, dict):
-                return res.get('stderr', '')
-            return getattr(res, 'stderr', '') if hasattr(res, 'stderr') else ''
-        stderr = get_stderr(resultado_fetch) + "\n" + get_stderr(resultado_reset)
-        # Solo mostrar advertencia si NO hubo cambios y el error es relevante
-        if stderr.strip() and not diff_out:
-            if "Permission denied" in stderr:
-                vista.mostrar_log("[ADVERTENCIA] No tienes permisos suficientes para actualizar el repositorio. Ejecuta ARESITOS como root/sudo.")
+            vista.mostrar_log("[INFORMACIÓN] El programa ARESITOS ya estaba actualizado. No hay cambios nuevos.")
+        vista.mostrar_log("Para más información visita el repositorio oficial: https://github.com/DogSoulDev/aresitos")
+    # 4. Ocultar errores y advertencias irrelevantes para el usuario final
         # 5. Permisos de scripts
         if sudo_manager.is_sudo_active():
             sudo_manager.execute_sudo_command("chmod +x configurar_kali.sh")
