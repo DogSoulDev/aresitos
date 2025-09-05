@@ -76,10 +76,10 @@ class ControladorMantenimiento:
                 return res.get('stderr', '')
             return getattr(res, 'stderr', '') if hasattr(res, 'stderr') else ''
         stderr = get_stderr(resultado_fetch) + "\n" + get_stderr(resultado_reset)
-        if stderr.strip():
-            vista.mostrar_log("[ADVERTENCIA] " + stderr)
+        # Solo mostrar advertencia si NO hubo cambios y el error es relevante
+        if stderr.strip() and not diff_out:
             if "Permission denied" in stderr:
-                vista.mostrar_log("[ERROR] No tienes permisos suficientes para actualizar el repositorio. Ejecuta ARESITOS como root/sudo.")
+                vista.mostrar_log("[ADVERTENCIA] No tienes permisos suficientes para actualizar el repositorio. Ejecuta ARESITOS como root/sudo.")
         # 5. Permisos de scripts
         if sudo_manager.is_sudo_active():
             sudo_manager.execute_sudo_command("chmod +x configurar_kali.sh")
