@@ -314,31 +314,53 @@ class VistaAuditoria(tk.Frame):
             ("Detectar Rootkits", "rkhunter --check --sk --nocolors || chkrootkit", self.colors['warning'],
              "Analiza el sistema en busca de rootkits y malware usando herramientas nativas de Linux/Kali. Muestra hallazgos críticos y sugerencias de seguridad."),
             ("Auditoría nuclei", "nuclei -update-templates && nuclei -l targets.txt -o nuclei_report.txt", self.colors['info'],
-             "Ejecuta un escaneo de vulnerabilidades profesional con nuclei. Requiere tener nuclei instalado y actualizado."),
-            ("Scan httpx", "httpx -u http://localhost:80", self.colors['fg_accent'],
-             "Realiza un escaneo rápido de servicios web usando httpx para detectar tecnologías, títulos y estado HTTP."),
+             "Ejecuta un escaneo de vulnerabilidades profesional con nuclei. Requiere tener nuclei instalado y actualizado. El archivo 'targets.txt' debe existir y contener los objetivos (uno por línea)."),
+            ("Scan httpx", "httpx -u http://localhost:80 -title -sc -tech-detect", self.colors['fg_accent'],
+             "Realiza un escaneo rápido de servicios web usando httpx para detectar tecnologías, títulos y estado HTTP. Para escaneo masivo usa 'httpx -l lista.txt -title -sc -tech-detect'. El archivo 'lista.txt' debe existir y contener los objetivos."),
         ]
+        import shutil
         for text, comando, color, ayuda in buttons:
-            def make_cmd(cmd, ayuda_text):
+            def make_cmd(cmd, ayuda_text, tool_name=None):
                 def ejecutar_y_reportar():
                     self.actualizar_info_panel(text, ayuda_text)
                     self.log_terminal(f"[EJECUTANDO] {cmd}")
+                    # Validar instalación si corresponde
+                    if tool_name:
+                        if not shutil.which(tool_name):
+                            msg = f"[ERROR] La herramienta '{tool_name}' no está instalada o no se encuentra en el PATH."
+                            self.log_terminal(msg, nivel="ERROR")
+                            self._enviar_a_reportes(text, cmd, msg, True)
+                            return
                     import subprocess
                     try:
                         resultado = subprocess.run(cmd, shell=True, capture_output=True, text=True, timeout=120)
                         salida = resultado.stdout.strip()
                         error = resultado.stderr.strip()
                         if salida:
-                            self.log_terminal(salida)
+                            self.log_terminal(f"[RESULTADO] {salida}")
                             self._enviar_a_reportes(text, cmd, salida, False)
                         if error:
-                            self.log_terminal(error, nivel="ERROR")
+                            self.log_terminal(f"[ERROR] {error}", nivel="ERROR")
                             self._enviar_a_reportes(text, cmd, error, True)
+                        if not salida and not error:
+                            msg = "[INFO] El comando no produjo salida. Verifique parámetros o permisos."
+                            self.log_terminal(msg)
+                            self._enviar_a_reportes(text, cmd, msg, False)
                     except Exception as e:
                         self.log_terminal(f"[ERROR] {e}", nivel="ERROR")
                         self._enviar_a_reportes(text, cmd, str(e), True)
                 return ejecutar_y_reportar
-            btn = tk.Button(section_frame, text=text, command=make_cmd(comando, ayuda),
+            # Detectar herramienta principal para validación
+            tool = None
+            if "nuclei" in comando:
+                tool = "nuclei"
+            elif "httpx" in comando:
+                tool = "httpx"
+            elif "rkhunter" in comando:
+                tool = "rkhunter"
+            elif "chkrootkit" in comando:
+                tool = "chkrootkit"
+            btn = tk.Button(section_frame, text=text, command=make_cmd(comando, ayuda, tool),
                            bg=color, fg=self.colors['bg_primary'],
                            font=('Arial', 9, 'bold'), relief='flat',
                            padx=10, pady=5)
@@ -392,11 +414,15 @@ class VistaAuditoria(tk.Frame):
                         salida = resultado.stdout.strip()
                         error = resultado.stderr.strip()
                         if salida:
-                            self.log_terminal(salida)
+                            self.log_terminal(f"[RESULTADO] {salida}")
                             self._enviar_a_reportes(text, cmd, salida, False)
                         if error:
-                            self.log_terminal(error, nivel="ERROR")
+                            self.log_terminal(f"[ERROR] {error}", nivel="ERROR")
                             self._enviar_a_reportes(text, cmd, error, True)
+                        if not salida and not error:
+                            msg = "[INFO] El comando no produjo salida. Verifique parámetros o permisos."
+                            self.log_terminal(msg)
+                            self._enviar_a_reportes(text, cmd, msg, False)
                     except Exception as e:
                         self.log_terminal(f"[ERROR] {e}", nivel="ERROR")
                         self._enviar_a_reportes(text, cmd, str(e), True)

@@ -42,18 +42,17 @@ class VistaCuarentena(tk.Frame):
             self.colors = {
                 'bg_primary': '#232629',
                 'bg_secondary': '#282a36',
-                'fg_primary': '#f8f8f2',
-                'fg_secondary': '#bbbbbb',
-                'fg_accent': '#ffaa00',
-                'button_bg': '#ffaa00',
-                'button_fg': 'black',
+                'fg_primary': '#ffffff',
+                'fg_secondary': '#bfbfbf',
+                'fg_accent': '#ff6633',
+                'button_bg': '#ffb86c',
+                'button_fg': '#232629',
                 'success': '#50fa7b',
-                'warning': '#f1fa8c',
+                'warning': '#ffb86c',
                 'danger': '#ff5555',
-                'info': '#007acc'
+                'info': '#8be9fd'
             }
-        self.configure(bg=self.colors['bg_primary'])
-        self._crear_interfaz()
+
 
     def _crear_interfaz(self):
         # Título
@@ -264,6 +263,7 @@ class VistaCuarentena(tk.Frame):
                 res = self.modelo.eliminar_archivo_cuarentena(archivo)
                 self.logger.log(f"Eliminado archivo de cuarentena: {archivo}", nivel="INFO", modulo="CUARENTENA")
                 self.actualizar_lista_archivos()
+                self._finalizar_cuarentena()
             except Exception as e:
                 self.logger.log(f"Error eliminando archivo de cuarentena: {e}", nivel="ERROR", modulo="CUARENTENA")
                 messagebox.showerror("Error", f"No se pudo eliminar: {e}")
@@ -279,6 +279,7 @@ class VistaCuarentena(tk.Frame):
                 res = self.modelo.restaurar_archivo_cuarentena(archivo)
                 self.logger.log(f"Restaurado archivo de cuarentena: {archivo}", nivel="INFO", modulo="CUARENTENA")
                 self.actualizar_lista_archivos()
+                self._finalizar_cuarentena()
             except Exception as e:
                 self.logger.log(f"Error restaurando archivo de cuarentena: {e}", nivel="ERROR", modulo="CUARENTENA")
                 messagebox.showerror("Error", f"No se pudo restaurar: {e}")
@@ -356,4 +357,23 @@ class VistaCuarentena(tk.Frame):
         res = self.modelo.poner_en_cuarentena(ruta_archivo, tipo_amenaza, razon)
         self.logger.log(f"Archivo puesto en cuarentena por otro módulo: {ruta_archivo} - {tipo_amenaza}", nivel="WARNING", modulo="CUARENTENA")
         self.actualizar_lista_archivos()
+        self._finalizar_cuarentena()
         return res
+
+    def _finalizar_cuarentena(self):
+        """Finalizar proceso de cuarentena y enviar datos a Reportes."""
+        try:
+            archivos = self.modelo.listar_archivos_cuarentena()
+            from aresitos.vista.vista_reportes import VistaReportes
+            vista_reportes = None
+            if hasattr(self.master, 'vista_reportes'):
+                vista_reportes = getattr(self.master, 'vista_reportes', None)
+            else:
+                vistas = getattr(self.master, 'vistas', None)
+                if vistas and hasattr(vistas, 'get'):
+                    vista_reportes = vistas.get('reportes', None)
+            if vista_reportes:
+                datos = {'archivos': archivos, 'timestamp': datetime.datetime.now().isoformat()}
+                vista_reportes.set_datos_modulo('cuarentena', datos)
+        except Exception:
+            pass

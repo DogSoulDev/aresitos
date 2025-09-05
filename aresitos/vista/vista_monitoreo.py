@@ -1855,6 +1855,22 @@ class VistaMonitoreo(tk.Frame):
         self.thread_red = None
         if self.text_monitor is not None:
             self.text_monitor.insert(tk.END, "\n=== MONITOREO DE RED FINALIZADO ===\n")
+
+        # Enviar resultados a Reportes automáticamente
+        try:
+            from aresitos.vista.vista_reportes import VistaReportes
+            vista_reportes = None
+            if hasattr(self.master, 'vista_reportes'):
+                vista_reportes = getattr(self.master, 'vista_reportes', None)
+            else:
+                vistas = getattr(self.master, 'vistas', None)
+                if vistas and hasattr(vistas, 'get'):
+                    vista_reportes = vistas.get('reportes', None)
+            if vista_reportes and hasattr(self, 'obtener_datos_para_reporte'):
+                datos = self.obtener_datos_para_reporte()
+                vista_reportes.set_datos_modulo('monitoreo', datos)
+        except Exception:
+            pass
     
     def cancelar_monitoreo_red(self):
         """Cancelar el monitoreo de red con advertencia profesional."""

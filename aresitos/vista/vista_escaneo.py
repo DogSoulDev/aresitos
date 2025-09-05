@@ -1223,12 +1223,26 @@ class VistaEscaneo(tk.Frame):
         self.proceso_activo = False
         self.btn_escanear.config(state="normal")
         self.btn_cancelar_escaneo.config(state="disabled")
-        
         # Resetear barra de progreso
         self.progress_bar['value'] = 0
         self.progress_label.config(text="Estado: Listo")
-        
         self.thread_escaneo = None
+
+        # Enviar resultados a Reportes automáticamente
+        try:
+            from aresitos.vista.vista_reportes import VistaReportes
+            vista_reportes = None
+            if hasattr(self.master, 'vista_reportes'):
+                vista_reportes = getattr(self.master, 'vista_reportes', None)
+            else:
+                vistas = getattr(self.master, 'vistas', None)
+                if vistas and hasattr(vistas, 'get'):
+                    vista_reportes = vistas.get('reportes', None)
+            if vista_reportes and hasattr(self, 'obtener_datos_para_reporte'):
+                datos = self.obtener_datos_para_reporte()
+                vista_reportes.set_datos_modulo('escaneo', datos)
+        except Exception:
+            pass
 
     def _escaneo_integral_kali(self, objetivo):
         """Escaneo integral usando herramientas nativas de Kali Linux.""" 

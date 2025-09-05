@@ -90,24 +90,59 @@ class VistaSIEM(tk.Frame):
 
         # Botones de configuración de alertas (definir lista una vez)
         buttons_alertas = [
-            (" Detectar Intrusion", self.detectar_intrusion, '#d9534f'),
-            (" Activar IDS", self.activar_ids, '#5cb85c'),
-            (" Monitor Honeypot", self.monitor_honeypot, '#404040'),
+            ("Detectar Intrusion", self.detectar_intrusion, '#d9534f'),
+            ("Activar IDS", self.activar_ids, '#5cb85c'),
+            ("Monitor Honeypot", self.monitor_honeypot, '#404040'),
             ("WARNING Eventos Críticos", self.eventos_criticos, '#f0ad4e'),
-            (" Brute Force", self.detectar_brute_force, '#404040'),
-            (" Notificaciones", self.configurar_notificaciones, '#404040'),
-            (" Actualizar Reglas", self.actualizar_reglas, '#404040'),
-            (" Exportar Alertas", self.exportar_alertas, '#404040')
+            ("Brute Force", self.detectar_brute_force, '#404040'),
+            ("Notificaciones", self.configurar_notificaciones, '#404040'),
+            ("Actualizar Reglas", self.actualizar_reglas, '#404040'),
+            ("Exportar Alertas", self.exportar_alertas, '#404040'),
+            ("Cancelar Correlación", self.cancelar_correlacion, '#d9534f')
         ]
-        if self.theme:
-            for text, command, bg_color in buttons_alertas:
+        for text, command, bg_color in buttons_alertas:
+            if self.theme:
                 btn = tk.Button(right_frame, text=text, command=command,
                               bg=bg_color, fg='white', font=('Arial', 9))
                 btn.pack(fill=tk.X, pady=2)
-        else:
-            for text, command, _ in buttons_alertas:
+            else:
                 ttk.Button(right_frame, text=text, command=command).pack(fill=tk.X, pady=2)
-        # ...existing code for right panel and buttons...
+    def correlacionar_eventos_avanzado(self):
+        """Correlación avanzada de eventos de seguridad en hilo cancelable."""
+        if hasattr(self, 'correlacion_thread') and self.correlacion_thread and self.correlacion_thread.is_alive():
+            self._actualizar_texto_analisis("Ya hay una correlación en curso. Cancélala antes de iniciar otra.\n")
+            return
+        self._cancelar_correlacion = False
+        def run_correlacion():
+            try:
+                self._actualizar_texto_analisis("🔗 INICIANDO CORRELACIÓN AVANZADA DE EVENTOS\n" + "=" * 70 + "\n")
+                # 1. Correlación de intentos de acceso fallidos
+                if self._cancelar_correlacion: return
+                self._correlacionar_intentos_acceso()
+                # 2. Correlación de actividad de red y procesos
+                if self._cancelar_correlacion: return
+                self._correlacionar_red_procesos()
+                # 3. Correlación de modificaciones de archivos y logins
+                if self._cancelar_correlacion: return
+                self._correlacionar_archivos_logins()
+                # 4. Análisis de cadenas de eventos sospechosos
+                if self._cancelar_correlacion: return
+                self._analizar_cadenas_eventos()
+                self._actualizar_texto_analisis("\nCORRELACIÓN AVANZADA COMPLETADA\n")
+                self.log_to_terminal("Correlación avanzada de eventos completada")
+            except Exception as e:
+                error_msg = f"Error en correlación avanzada: {str(e)}"
+                self._actualizar_texto_analisis(f"ERROR: {error_msg}\n")
+                self.log_to_terminal(error_msg)
+        self.correlacion_thread = threading.Thread(target=run_correlacion, daemon=True)
+        self.correlacion_thread.start()
+
+    def cancelar_correlacion(self):
+        """Cancelar la correlación avanzada si está en curso."""
+        self._cancelar_correlacion = True
+        if hasattr(self, 'correlacion_thread') and self.correlacion_thread and self.correlacion_thread.is_alive():
+            self._actualizar_texto_analisis("Cancelando correlación avanzada...\n")
+            self.log_to_terminal("Correlación avanzada cancelada por el usuario")
     def _actualizar_texto_siem_seguro(self, texto):
         def _update():
             try:
@@ -4371,28 +4406,6 @@ ls -la "$OUTPUT_DIR/"
         except Exception as e:
             self._actualizar_texto_analisis(f"Error analizando patrones temporales: {str(e)}\n")
     
-    def correlacionar_eventos_avanzado(self):
-        """Correlación avanzada de eventos de seguridad."""
-        try:
-            self._actualizar_texto_analisis("🔗 INICIANDO CORRELACIÓN AVANZADA DE EVENTOS\n")
-            self._actualizar_texto_analisis("=" * 70 + "\n")
-            
-            # 1. Correlación de intentos de acceso fallidos
-            self._correlacionar_intentos_acceso()
-            
-            # 2. Correlación de actividad de red y procesos
-            self._correlacionar_red_procesos()
-            
-            # 3. Correlación de modificaciones de archivos y logins
-            self._correlacionar_archivos_logins()
-            
-            # 4. Análisis de cadenas de eventos sospechosos
-            self._analizar_cadenas_eventos()
-            
-            self._actualizar_texto_analisis("\nCORRELACIÓN AVANZADA COMPLETADA\n")
-            self.log_to_terminal("Correlación avanzada de eventos completada")
-            
-        except Exception as e:
             error_msg = f"Error en correlación avanzada: {str(e)}"
             self._actualizar_texto_analisis(f"ERROR: {error_msg}\n")
             self.log_to_terminal(error_msg)
