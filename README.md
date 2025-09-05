@@ -1,344 +1,144 @@
 ![ARESITOS](aresitos/recursos/aresitos.png)
 # ARESITOS - Herramienta de Ciberseguridad
 
-
-
-> **Recomendación importante:**
-> ```sh
-> sudo apt update && sudo apt upgrade -y
-> ```
-
----
-
-
-## Proyecto TFM - UCAM - Campus Internacional de Ciberseguridad
-
 <div align="center">
    <img src="aresitos/recursos/tfm/logo_tele.png" alt="Logo TFM" width="120" style="margin:10px;"/>
    <img src="aresitos/recursos/tfm/logo_uni.png" alt="Logo UCAM" width="120" style="margin:10px;"/>
    <img src="aresitos/recursos/tfm/logo.png" alt="Logo Ciberseguridad" width="120" style="margin:10px;"/>
 </div>
 
-Este proyecto ha sido desarrollado como parte del Trabajo Fin de Máster (TFM) en Ciberseguridad de la Universidad Católica San Antonio de Murcia (UCAM), en colaboración con el Campus Internacional de Ciberseguridad.
+---
 
-ARESITOS representa una solución profesional, académica y práctica para la gestión y automatización de auditorías de seguridad, integrando los estándares y mejores prácticas del sector.
+## Descripción
+
+ARESITOS es una suite profesional para auditoría y gestión de ciberseguridad, desarrollada como parte del TFM en la UCAM y el Campus Internacional de Ciberseguridad. Integra módulos de escaneo, SIEM, FIM, cuarentena, reportes y utilidades forenses, siguiendo estándares y buenas prácticas.
 
 ---
 
+## Instalación rápida en Kali Linux
 
-
-Si tienes errores de acceso a carpetas:
 ```bash
+# Clona el repositorio y accede a la carpeta
+sudo apt update && sudo apt upgrade -y
+sudo apt install -y python3 python3-tk python3-venv nmap masscan nuclei gobuster ffuf feroxbuster wireshark autopsy sleuthkit hashdeep testdisk bulk-extractor dc3dd guymager git curl wget sqlite3
+
+git clone https://github.com/DogSoulDev/aresitos.git
+cd aresitos
+chmod +x configurar_kali.sh main.py
+find . -name "*.py" -exec chmod +x {} \;
 chmod -R 755 data/ logs/ configuración/
+sudo ./configurar_kali.sh
+python3 main.py
 ```
 
-### Herramientas forenses opcionales
-```bash
-sudo apt install kali-tools-forensics wireshark autopsy sleuthkit hashdeep testdisk bulk-extractor dc3dd guymager
-```
+> Si tienes errores de acceso a carpetas:
+> ```bash
+> chmod -R 755 data/ logs/ configuración/
+> ```
 
-### Modo desarrollo (otros sistemas)
-```bash
-python3 main.py --dev
-```
-
-> **Nota:** El modo desarrollo solo habilita la interfaz gráfica y utilidades básicas. Las funciones avanzadas requieren Kali Linux y privilegios adecuados.
-
-### Requisitos principales
-- **Python:** 3.8 o superior
-- **Sistema operativo:** Kali Linux 2025 (recomendado, soporte parcial en otros Linux)
-- **Dependencias nativas:** nmap, masscan, nuclei, gobuster, ffuf, feroxbuster, wireshark, autopsy, sleuthkit, hashdeep, testdisk, foremost, bulk-extractor, dc3dd, guymager, git, curl, wget, sqlite3, python3-tk, python3-venv
-- **Espacio en disco ocupado (instalación base):** ~19 MB
-- **RAM recomendada:** mínimo 1 GB libre (uso típico bajo, depende de los módulos activos)
-- **Espacio recomendado para datos:** 20 MB libres adicionales para bases de datos, cuarentena y reportes
+> Para modo desarrollo (otros sistemas):
+> ```bash
+> python3 main.py --dev
+> ```
 
 ---
-
-## Flujo de uso
-1. **Inicio de sesión**: Verificación automática de entorno, dependencias, permisos y privilegios.
-2. **Herramientas**: Detección, verificación visual (marca verde/cruz roja) e instalación guiada de todas las herramientas requeridas.
-3. **Panel principal**: Acceso al panel principal, escaneo, SIEM, FIM, cuarentena, monitoreo y reportes.
-
----
-
 
 ## Capturas de pantalla y explicación de módulos
 
-ARESITOS cuenta con una interfaz profesional y modular. A continuación, se muestran capturas de cada sección principal, junto con una breve explicación de su función:
-
 ### 1. Instalación y entorno
 ![Instalación](aresitos/recursos/capturas/1_instalacion.png)
-**Explicación:** Pantalla de instalación y verificación de entorno. Aquí se comprueba que todas las dependencias y herramientas estén listas antes de iniciar.
+Pantalla de instalación y verificación de entorno.
 
-### 2. Login
 ### 2. Inicio de sesión
 ![Login](aresitos/recursos/capturas/2_login.png)
-**Acceso seguro al sistema. Se validan permisos, entorno y usuario antes de permitir el uso de la suite.**
-### 4. Dashboard
+Acceso seguro al sistema.
+
+### 3. Dashboard
 ![Dashboard](aresitos/recursos/capturas/4_dashboard.png)
-**Explicación:** Panel principal con métricas del sistema, estado de módulos, registros en tiempo real y acceso rápido a las funciones principales.
+Panel principal con métricas y acceso rápido.
 
-### 5. Escaneo
+### 4. Escaneo
 ![Escaneo](aresitos/recursos/capturas/5_escaneo.png)
-**Explicación:** Módulo de escaneo de vulnerabilidades. Permite analizar puertos, servicios, configuraciones y detectar debilidades usando herramientas nativas y bases de datos actualizadas.
+Escaneo de vulnerabilidades y servicios.
 
-### 6. SIEM
+### 5. SIEM
 ![SIEM](aresitos/recursos/capturas/6_SIEM.png)
-**Explicación:** Sistema de gestión y correlación de eventos de seguridad. Analiza registros, detecta anomalías y muestra alertas en tiempo real.
+Correlación de eventos y alertas en tiempo real.
 
-### 7. FIM (File Integrity Monitoring)
+### 6. FIM
 ![FIM](aresitos/recursos/capturas/7_FIM.png)
-**Explicación:** Monitoriza la integridad de archivos críticos del sistema. Detecta cambios no autorizados y genera alertas forenses.
+Monitorización de integridad de archivos.
 
-### 8. Monitoreo y Cuarentena
+### 7. Monitoreo y Cuarentena
 ![Monitoreo y Cuarentena](aresitos/recursos/capturas/8_Monitoreo y Cuarentena.png)
-**Explicación:** Supervisa procesos, recursos y amenazas. Permite aislar archivos sospechosos en cuarentena y analizar su comportamiento.
+Supervisión de procesos y aislamiento de amenazas.
 
-### 9. Auditoría
+### 8. Auditoría
 ![Auditoría](aresitos/recursos/capturas/9_Auditoria.png)
-**Explicación:** Herramientas de auditoría profesional (Lynis, Chkrootkit, Linpeas, etc.). Permite ejecutar análisis avanzados y obtener recomendaciones de seguridad.
+Herramientas avanzadas de auditoría.
 
-### 10. Wordlists y Diccionarios
+### 9. Wordlists y Diccionarios
 ![Wordlists y Diccionarios](aresitos/recursos/capturas/10_wordlistsydiccionarios.png)
-**Explicación:** Gestión de listas de palabras y diccionarios para escaneo, fuerza bruta y análisis. Permite cargar, validar y actualizar recursos de forma segura.
+Gestión de recursos para escaneo y fuerza bruta.
 
-### 11. Reportes
+### 10. Reportes
 ![Reportes](aresitos/recursos/capturas/11_reportes.png)
-**Explicación:** Generación, visualización y exportación de informes profesionales en múltiples formatos (TXT, JSON, CSV). Incluye terminal integrado para trazabilidad completa.
+Generación y exportación de informes profesionales.
 
 ---
 
 ## Arquitectura y estructura del proyecto
 
-El proyecto sigue el patrón **Modelo-Vista-Controlador (MVC)**, asegurando una separación clara entre la lógica de negocio, la interfaz gráfica y el manejo de datos. La estructura modular facilita el mantenimiento, la escalabilidad y la integración de nuevas funcionalidades.
+El proyecto sigue el patrón Modelo-Vista-Controlador (MVC), con estructura modular y separación clara entre lógica, interfaz y datos.
 
 ```
 aresitos/
-├── controlador/           # Lógica de negocio, orquestación de módulos y flujos
-│   ├── __init__.py
-│   ├── controlador_principal.py      # Punto de entrada de la lógica de control
-│   ├── controlador_escaneo.py        # Lógica de escaneo de vulnerabilidades
-│   ├── controlador_reportes.py       # Generación y gestión de reportes
-│   ├── controlador_dashboard.py      # Dashboard y métricas
-│   ├── controlador_fim.py            # Integridad de archivos (FIM)
-│   ├── controlador_cuarentena.py     # Gestión de cuarentena
-│   ├── controlador_siem.py           # SIEM y correlación de eventos
-│   ├── controlador_monitoreo.py      # Monitoreo de procesos y recursos
-│   ├── controlador_herramientas.py   # Instalación/verificación de herramientas
-│   ├── controlador_auditoria.py      # Auditoría avanzada (lynis, chkrootkit, etc)
-│   ├── controlador_componentes.py    # Componentes auxiliares
-│   ├── controlador_configuracion.py  # Configuración avanzada
-│   └── ...
-├── modelo/                # Modelos de datos, acceso a bases SQLite, wordlists, diccionarios, cuarentena, FIM, SIEM, reportes
-│   ├── __init__.py
-│   ├── modelo_principal.py          # Modelo principal de la aplicación
-│   ├── modelo_cuarentena.py         # Gestión de archivos en cuarentena
-│   ├── modelo_fim.py                # Integridad de archivos (FIM)
-│   ├── modelo_dashboard.py          # Métricas y datos de dashboard
-│   ├── modelo_diccionarios.py       # Diccionarios y wordlists
-│   ├── modelo_escaneador.py         # Escaneo de vulnerabilidades
-│   ├── modelo_escaneador_base.py    # Base para escaneadores
-│   ├── modelo_monitor.py            # Monitoreo de recursos
-│   ├── modelo_reportes.py           # Reportes y exportación
-│   ├── modelo_siem.py               # SIEM y eventos
-│   ├── modelo_sistema.py            # Información del sistema
-│   ├── modelo_wordlists.py          # Gestión de wordlists
-│   ├── modelo_wordlists_gestor.py   # Gestor de wordlists
-│   └── ...
-├── vista/                  # Interfaz gráfica Tkinter: paneles, terminal integrado, dashboard, escaneo, reportes, monitoreo, herramientas
-│   ├── __init__.py
-│   ├── vista_principal.py           # Vista principal y orquestación de paneles
-│   ├── vista_dashboard.py           # Dashboard de métricas y terminal
-│   ├── vista_escaneo.py             # Panel de escaneo de vulnerabilidades
-│   ├── vista_reportes.py            # Panel de reportes
-│   ├── vista_monitoreo.py           # Monitoreo y cuarentena
-│   ├── vista_herramientas_kali.py   # Instalación/verificación de herramientas
-│   ├── vista_auditoria.py           # Auditoría avanzada
-│   ├── vista_fim.py                 # Integridad de archivos
-│   ├── vista_login.py               # Login y control de acceso
-│   ├── vista_datos.py               # Visualización de datos
-│   ├── burp_theme.py                # Temas visuales
-│   ├── terminal_mixin.py            # Terminal integrado
-│   └── ...
-├── utils/                  # Utilidades y módulos auxiliares: configuración, detección de red, sanitización, permisos, sistema, logging, etc.
-│   ├── __init__.py
-│   ├── configurar.py                 # Configuración y utilidades generales
-│   ├── detector_red.py               # Detección de red y objetivos
-│   ├── detector_sistema.py           # Detección robusta de sistema operativo/distribución
-│   ├── permisos_sistema.py           # Verificación de root/admin multiplataforma
-│   ├── sanitizador_archivos.py       # Sanitización y validación de archivos
-│   ├── gestor_permisos.py            # Gestión avanzada de permisos
-│   ├── logger_aresitos.py            # Logging centralizado
-│   ├── sudo_manager.py               # Gestión de privilegios y sudo
-│   ├── detener_procesos.py           # Control de procesos
-│   ├── thread_safe_gui.py            # GUI thread-safe
-│   ├── crash_fix_kali.py             # Fixes para Kali
-│   └── ...
-├── recursos/               # Imágenes, capturas de pantalla y recursos gráficos
-│   ├── aresitos.ico
-│   ├── aresitos.png
-│   ├── capturas/                    # Capturas de pantalla para documentación
-│   │   ├── 1_instalacion.png
-│   │   ├── 2_login.png
-│   │   ├── ...
-│   └── ...
-├── data/                   # Datos persistentes: bases de datos SQLite, cuarentena, wordlists, diccionarios, cheatsheets
-│   ├── fim_kali2025.db               # Base de datos de integridad de archivos
-│   ├── cuarentena_kali2025.db        # Base de datos de cuarentena
-│   ├── siem_aresitos.db              # Base de datos SIEM
-│   ├── siem_kali2025.db              # Base de datos SIEM alternativa
-│   ├── vulnerability_database.json   # Base de datos de vulnerabilidades
-│   ├── wordlists/                    # Wordlists para escaneo y fuerza bruta
-│   ├── diccionarios/                 # Diccionarios
-│   ├── cheatsheets/                  # Cheatsheets
-│   ├── cuarentena/                   # Archivos y metadatos de cuarentena
-│   │   ├── archivos/
-│   │   ├── metadatos/
-│   │   ├── respaldos/
-│   │   └── ...
-│   └── ...
-├── configuración/          # Archivos de configuración JSON, textos, mapas de navegación, traducciones
-│   ├── aresitos_config_completo.json # Configuración global
-│   ├── textos_castellano_corregido.json # Traducciones y textos
-│   ├── MAPA_NAVEGACION_ESCANEADOR.md # Mapa de navegación
-│   └── ...
-├── logs/                   # Resultados de escaneo, actividad y logs de la aplicación
-│   ├── aresitos_errores.log
-│   ├── ...
-├── reportes/               # Reportes generados (JSON, TXT, CSV)
-├── documentacion/          # Manuales técnicos, arquitectura, guías de instalación y uso
-│   ├── GUIA_TECNICA_ARESITOS.md
-│   ├── GUIA_INSTALACION.md
-│   └── ...
-├── main.py                 # Script principal de arranque de la aplicación
-├── configurar_kali.sh      # Script de configuración y dependencias para Kali Linux
-├── requirements.txt        # Requisitos Python (solo para desarrollo, no se usan librerías externas en producción)
-├── pyproject.toml          # Configuración de proyecto Python
-├── LICENSE                 # Licencia del proyecto
-└── README.md               # Documentación principal del proyecto
+├── controlador/           # Lógica de negocio y orquestación
+├── modelo/                # Modelos de datos y acceso a bases
+├── vista/                 # Interfaz gráfica Tkinter
+├── utils/                 # Utilidades y módulos auxiliares
+├── recursos/              # Imágenes y capturas
+├── data/                  # Bases de datos y recursos
+├── configuración/         # Configuración y textos
+├── logs/                  # Resultados y actividad
+├── reportes/              # Informes generados
+├── documentacion/         # Manuales y guías
+├── main.py                # Script principal
+├── configurar_kali.sh     # Script de configuración
+├── requirements.txt       # Requisitos Python
+├── LICENSE                # Licencia
+└── README.md              # Documentación principal
 ```
-
-**Explicación concreta:**
-
-
-### Características principales
-
-3. Para modo desarrollo (otros sistemas):
-   ```bash
-   python3 main.py --dev
-   ```
-
-
-> Consulta la guía de instalación completa en [`documentacion/GUIA_INSTALACION.md`](documentacion/GUIA_INSTALACION.md).
-
-
-### Documentación técnica
-
-   - Ver [`documentacion/GUIA_TECNICA_ARESITOS.md`](documentacion/GUIA_TECNICA_ARESITOS.md)
-   - Ver [`documentacion/GUIA_INSTALACION.md`](documentacion/GUIA_INSTALACION.md)
- **Guía técnica completa:** Detalla la arquitectura, el flujo de uso, la integración de herramientas, la gestión de rutas y privilegios, así como las mejores prácticas de seguridad. Incluye tablas comparativas, diagramas y capturas de pantalla.
-
- **Guía de instalación:** Proporciona instrucciones detalladas para instalar y ejecutar ARESITOS en Kali Linux, requisitos, solución de problemas y recomendaciones avanzadas.
-
-Repositorio oficial: https://github.com/DogSoulDev/aresitos
-Correo electrónico: dogsouldev@protonmail.com
-
----
-
-
 
 ---
 
 ## Licencia y uso ético
 
-
 **Licencia Open Source No Comercial**
-
-
-**Permitido:**
-- Educación, investigación, pruebas en sistemas propios o autorizados, proyectos de código abierto sin monetización, aprendizaje y comunidad.
-
-
-**Prohibido:**
-- Venta, consultoría comercial, productos comerciales, monetización, SaaS o servicios gestionados.
-
+- Permitido: Educación, investigación, pruebas en sistemas propios o autorizados, proyectos de código abierto sin monetización.
+- Prohibido: Venta, consultoría comercial, productos comerciales, monetización, SaaS o servicios gestionados.
 
 **Atribución obligatoria:**
- Autor: DogSoulDev
- Contacto: dogsouldev@protonmail.com
- Repositorio: https://github.com/DogSoulDev/aresitos
----
-
-
-
-Este proyecto no habría sido posible sin el apoyo y la formación recibidos en el Campus Internacional de Ciberseguridad y la Universidad Católica San Antonio de Murcia (UCAM).
----
-
-
-
-## Instalación manual paso a paso (alternativa)
-
-Si la instalación rápida falla o tienes un entorno personalizado, puedes instalar ARESITOS manualmente siguiendo estos pasos:
-1. **Clona el repositorio y accede a la carpeta:**
-   ```sh
-   git clone https://github.com/DogSoulDev/aresitos.git
-   cd aresitos
-   ```
-2. **Instala las dependencias del sistema (Kali Linux):**
-   ```sh
-   sudo apt update && sudo apt install -y python3 python3-tk python3-venv nmap masscan nuclei gobuster ffuf feroxbuster wireshark autopsy sleuthkit hashdeep testdisk bulk-extractor dc3dd guymager git curl wget sqlite3
-   ```
-3. **Da permisos de ejecución a los scripts principales:**
-   ```sh
-   chmod +x configurar_kali.sh main.py
-   ```
-4. **Configura permisos para los archivos Python (opcional):**
-   ```sh
-   find . -name "*.py" -exec chmod +x {} \;
-   ```
-5. **Configura permisos para carpetas de datos y registros:**
-   ```sh
-   chmod -R 755 data/ logs/ configuración/
-   ```
-6. **Ejecuta el script de configuración (como root o con sudo):**
-   ```sh
-   sudo ./configurar_kali.sh
-   ```
-7. **Inicia la aplicación:**
-   ```sh
-   python3 main.py
-   ```
-
-> **Nota:** Si usas otra distribución Linux, adapta los comandos de instalación de dependencias a tu gestor de paquetes (por ejemplo, `apt`, `dnf`, `yum`, `zypper`, etc.).
+- Autor: DogSoulDev
+- Contacto: dogsouldev@protonmail.com
+- Repositorio: https://github.com/DogSoulDev/aresitos
 
 ---
-
-
-## Solución de problemas de instalación
-
-- Si ves errores de permisos, ejecuta:
-  ```sh
-  chmod -R 755 data/ logs/ configuración/
-  find . -name "*.py" -exec chmod +x {} \;
-  ```
-- Si falta alguna dependencia, instálala manualmente con `sudo apt install <paquete>`.
-- Si usas un entorno Python gestionado (externally-managed), instala dependencias vía APT, no con pip.
-- Si tienes problemas con la interfaz gráfica, asegúrate de tener instalado `python3-tk`.
-- Si el script de configuración no detecta alguna herramienta, instálala manualmente y vuelve a ejecutar el script.
-- Consulta la guía `documentacion/GUIA_INSTALACION.md` para más detalles y soluciones avanzadas.
-
----
-
----
-
 
 ## Reportes profesionales ISO/IEC 27001
 
-ARESITOS permite generar reportes profesionales de incidentes y auditoría siguiendo la estructura recomendada por la norma ISO/IEC 27001. El informe incluye:
+ARESITOS permite generar reportes siguiendo la estructura recomendada por la norma ISO/IEC 27001:
+- Portada (organización, contacto, fecha, título)
+- Resumen ejecutivo
+- Descripción del incidente
+- Cronología
+- Acciones tomadas
+- Impacto y análisis
+- Lecciones aprendidas
+- Recomendaciones
+- Anexos
 
-
-Ejemplo resumido de reporte:
-
+Ejemplo:
 ```
 ================================================================================
 INFORME DE INCIDENTE DE SEGURIDAD DE LA INFORMACIÓN - ISO/IEC 27001
@@ -348,65 +148,31 @@ Persona de contacto: Juan Pérez
 Correo electrónico: juan.perez@ejemplo.com
 Teléfono: +34 600 123 456
 Fecha de generación del informe: 2025-09-05 12:00
-
---------------------------------------------------------------------------------
-RESUMEN EJECUTIVO
---------------------------------------------------------------------------------
-Título del incidente: Acceso no autorizado a base de datos
-Fecha y hora de detección: 2025-09-04 18:30
-Fecha y hora de inicio: 2025-09-04 18:00
-Tipo de incidente: Intrusión
-Sistemas o servicios afectados: Servidor SQL principal
-
---------------------------------------------------------------------------------
-DESCRIPCIÓN DEL INCIDENTE
---------------------------------------------------------------------------------
-Descripción detallada: Se detectó acceso no autorizado mediante credenciales comprometidas...
-
---------------------------------------------------------------------------------
-CRONOLOGÍA DEL INCIDENTE
---------------------------------------------------------------------------------
-(Incluya aquí la secuencia de eventos relevantes, si aplica)
-
---------------------------------------------------------------------------------
-ACCIONES TOMADAS
---------------------------------------------------------------------------------
-Acciones de contención, erradicación y recuperación: Contraseña cambiada, acceso bloqueado, análisis forense realizado...
-
---------------------------------------------------------------------------------
-IMPACTO Y ANÁLISIS
---------------------------------------------------------------------------------
-Impacto en operaciones: Breve interrupción del servicio
-Datos comprometidos: Tabla clientes
-
---------------------------------------------------------------------------------
-LECCIONES APRENDIDAS
---------------------------------------------------------------------------------
-(Incluya aquí las lecciones aprendidas y mejoras identificadas, si aplica)
-
---------------------------------------------------------------------------------
-RECOMENDACIONES
---------------------------------------------------------------------------------
-(Incluya aquí recomendaciones para evitar incidentes similares)
-
---------------------------------------------------------------------------------
-ANEXOS
---------------------------------------------------------------------------------
-Observaciones y documentación adicional: Informe forense adjunto
-
+...
 ================================================================================
 Reporte generado por ARESITOS conforme a ISO/IEC 27001 - https://github.com/DogSoulDev/aresitos
 ```
 
-El reporte puede exportarse en TXT, JSON y PDF, y es válido para auditorías, análisis forense y cumplimiento normativo.
+---
+
+## Solución de problemas
+
+- Si ves errores de permisos:
+  ```bash
+  chmod -R 755 data/ logs/ configuración/
+  find . -name "*.py" -exec chmod +x {} \;
+  ```
+- Si falta alguna dependencia:
+  ```bash
+  sudo apt install <paquete>
+  ```
+- Si tienes problemas con la interfaz gráfica, instala `python3-tk`.
+- Consulta la guía `documentacion/GUIA_INSTALACION.md` para más detalles.
+
+---
 
 ## DEDICATORIA
 
-En memoria de Ares
-*25 de abril de 2013 - 5 de agosto de 2025*
-Hasta que volvamos a vernos.
 **En memoria de Ares**
 *25 de abril de 2013 - 5 de agosto de 2025*
 Hasta que volvamos a encontrarnos.
-
----
