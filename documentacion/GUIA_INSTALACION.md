@@ -1,4 +1,3 @@
-
 # Guía de Instalación - ARESITOS
 
 
@@ -82,7 +81,7 @@ python3 main.py
 
 
 ### Inicio de la aplicación
-Al ejecutar `python3 main.py`, se iniciará la interfaz gráfica de login y el panel principal de ARESITOS.
+Al ejecutar `python3 main.py`, se iniciará la interfaz gráfica de inicio de sesión y el panel principal de ARESITOS.
 
 
 ## Configuración automática

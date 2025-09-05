@@ -1,5 +1,3 @@
-
-
 ![ARESITOS](aresitos/recursos/aresitos.png)
 # ARESITOS - Herramienta de Ciberseguridad
 
@@ -39,10 +37,11 @@ ARESITOS es una suite profesional de ciberseguridad para Kali Linux, desarrollad
 - **SIEM**: correlación y análisis de eventos de seguridad en tiempo real, con alertas y trazabilidad.
 - **FIM (File Integrity Monitoring)**: monitorización de la integridad de archivos críticos, detección de cambios y generación de alertas forenses.
 - **Cuarentena y monitoreo**: aislamiento y análisis de archivos sospechosos, vigilancia de procesos y recursos del sistema.
-- **Auditoría avanzada**: integración con herramientas como lynis, chkrootkit y linpeas para análisis profundo y recomendaciones técnicas.
+- **Auditoría avanzada**: integración con herramientas como Lynis, Chkrootkit y Linpeas para análisis profundo y recomendaciones técnicas.
 - **Gestión de wordlists, diccionarios y cheatsheets**: recursos actualizables y personalizables para pentesting, fuerza bruta, análisis semántico y respuesta ante incidentes, integrados en los módulos de escaneo y monitoreo.
 - **Panel principal y dashboard**: métricas del sistema, estado de módulos, logs en tiempo real y acceso rápido a todas las funciones.
 - **Terminal integrado**: ejecución segura de comandos y scripts desde la propia interfaz, con gestión avanzada de privilegios.
+- **Integración de terminales externas**: ahora puedes incluir información de todas las terminales externas abiertas en Kali Linux en el reporte final, permitiendo trazabilidad y auditoría avanzada del entorno.
 - **Generación de reportes profesionales**: el usuario puede crear un informe integral y estructurado que consolida todos los hallazgos, análisis y resultados obtenidos durante la auditoría, exportable en múltiples formatos (TXT, JSON, CSV) y adaptado a los estándares del sector.
 
 ARESITOS automatiza la verificación e instalación de todas las herramientas requeridas, gestiona privilegios de forma segura y centraliza la documentación, trazabilidad y exportación de evidencias técnicas. Todo el flujo está diseñado para ser visual, ágil y robusto, facilitando el trabajo tanto a expertos como a equipos de ciberseguridad que buscan eficiencia, profundidad y rigor en sus operaciones.
@@ -56,7 +55,7 @@ ARESITOS automatiza la verificación e instalación de todas las herramientas re
 
 > ⚠️ **Advertencia importante sobre la instalación de herramientas**
 >
-> Cuando utilices el **Configurador de Herramientas Kali** para instalar las herramientas faltantes, el proceso puede tardar varios minutos. Algunas utilidades avanzadas (como nuclei o httpx) se instalan mediante Go y requieren descargas y compilación adicionales.
+> Cuando utilices el **Configurador de Herramientas Kali** para instalar las herramientas faltantes, el proceso puede tardar varios minutos. Algunas utilidades avanzadas (como Nuclei o Httpx) se instalan mediante Go y requieren descargas y compilación adicionales.
 >
 > **Ten paciencia y no cierres la aplicación** hasta que el proceso finalice y se muestre el mensaje de instalación completa.
 
@@ -151,7 +150,7 @@ ARESITOS cuenta con una interfaz profesional y modular. A continuación, se mues
 
 ### 9. Auditoría
 ![Auditoría](aresitos/recursos/capturas/9_Auditoria.png)
-**Explicación:** Herramientas de auditoría profesional (lynis, chkrootkit, linpeas, etc.). Permite ejecutar análisis avanzados y obtener recomendaciones de seguridad.
+**Explicación:** Herramientas de auditoría profesional (Lynis, Chkrootkit, Linpeas, etc.). Permite ejecutar análisis avanzados y obtener recomendaciones de seguridad.
 
 ### 10. Wordlists y Diccionarios
 ![Wordlists y Diccionarios](aresitos/recursos/capturas/10_wordlistsydiccionarios.png)

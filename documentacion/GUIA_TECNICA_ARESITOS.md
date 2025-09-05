@@ -1,4 +1,3 @@
-
 # 🛡️ Guía Técnica Completa de Aresitos
 # 📸 Vista general del flujo de Aresitos
 
@@ -83,7 +82,7 @@ Todas las rutas de recursos, datos y configuraciones en ARESITOS son relativas a
 ![Pantalla de login](../aresitos/recursos/capturas/2_login.png)
 
 **Pantalla de login segura:**
-Al iniciar Aresitos, se presenta una pantalla de autenticación que protege el acceso a la suite, garantizando que solo usuarios autorizados puedan operar las herramientas avanzadas.
+Al iniciar Aresitos, se presenta una pantalla de inicio de sesión que protege el acceso a la suite, garantizando que solo usuarios autorizados puedan operar las herramientas avanzadas.
 
 *Pantalla de login segura*
 
@@ -371,14 +370,18 @@ self._log_terminal("ERROR Error en proceso", "SIEM", "ERROR")
 
 ---
 
-- **Red:** `nmap`, `ss`, `ip`, `ifconfig`, `ping`, `tcpdump`, `netstat`
-- **Procesos:** `ps`, `kill`, `top`
-- **Archivos:** `find`, `ls`, `stat`, `chmod`, `chown`, `cat`, `tail`, `head`
-- **Integridad:** `sha256sum`, `md5sum`, `aide`, `tripwire`, `samhain`
-- **Usuarios y permisos:** `useradd`, `groupadd`, `passwd`, `sudo`, `crontab`
-- **Logs:** `journalctl`, `logger`, `/var/log/*`
-- **Paquetería:** `apt`, `dpkg`
-- **Forense:** `rkhunter`, `chkrootkit`, `lynis`, `clamav`
+## 6.1. Integración de terminales externas en reportes
+
+Desde la versión 2025-09, ARESITOS permite detectar y agregar información de todas las terminales externas abiertas en Kali Linux al reporte final. Esta función se activa desde el módulo de reportes mediante un checkbox específico. Al generar el informe, se recopila el estado, cantidad y detalles (PID, comando, argumentos) de cada terminal externa detectada, permitiendo una trazabilidad completa del entorno y facilitando auditorías avanzadas.
+
+**Ventajas:**
+- Permite documentar el contexto real de trabajo y comandos ejecutados fuera de la aplicación.
+- Mejora la trazabilidad y la transparencia en auditorías forenses.
+- Facilita la detección de actividades paralelas o sospechosas durante el análisis.
+
+**Cómo usarlo:**
+- Marca la opción "Terminales externas abiertas en Kali" en el panel de reportes.
+- Al generar el informe, se incluirá una sección detallada con la información de todas las terminales externas detectadas.
 
 ---
 
@@ -608,7 +611,7 @@ OK /etc/passwd: Permisos correctos (644), Tamaño: 2782 bytes
    FUNCIÓN: Lista de usuarios del sistema - modificaciones indican creación de cuentas maliciosas
 ALERTA /etc/shadow: Permisos anómalos (666, esperado 640)
    RIESGO: Hashes de contraseñas - cambios no autorizados indican compromiso de cuentas
-   ACCIÓN: Revisar cambios recientes y verificar integridad
+   ACCIÓN: Revisar cambios recientes y verificar el cumplimiento de políticas de seguridad
    HASH: 1a2b3c4d5e6f7g8h...
 
 FASE 3: RESUMEN DEL ANÁLISIS FIM
