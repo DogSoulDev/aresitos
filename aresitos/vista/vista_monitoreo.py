@@ -50,6 +50,22 @@ class ThreadSafeFlag:
             self.flag = False
 
 class VistaMonitoreo(tk.Frame):
+    def cancelar_monitoreo(self):
+        """Cancelar el monitoreo general (no solo red) de forma segura."""
+        import tkinter.messagebox as messagebox
+        if not messagebox.askyesno("Confirmar acción crítica", "¿Está seguro que desea cancelar el monitoreo general? Esta acción puede afectar la supervisión en curso."):
+            self.log_to_terminal("Operación de cancelación de monitoreo cancelada por el usuario.")
+            return
+        self.flag_monitoreo.set()
+        if self.text_monitor is not None:
+            self.text_monitor.insert(tk.END, "\n Monitoreo general cancelado por el usuario.\n")
+        if self.btn_iniciar_monitor is not None:
+            self.btn_iniciar_monitor.config(state="normal")
+        if self.btn_detener_monitor is not None:
+            self.btn_detener_monitor.config(state="disabled")
+        if self.label_estado is not None:
+            self.label_estado.config(text="Estado: Detenido")
+        self.log_to_terminal("Monitoreo general cancelado correctamente.")
     def _enviar_a_reportes(self, accion, mensaje, error=False):
         """Helper estándar para enviar información al módulo de Reportes de forma robusta y silenciosa."""
         try:
@@ -491,8 +507,8 @@ class VistaMonitoreo(tk.Frame):
         )
         self.btn_iniciar_monitor.pack(side="left", padx=(0, 8), pady=4)
         self.btn_detener_monitor = tk.Button(
-            control_frame, text=" Detener Monitoreo",
-            command=self.detener_monitoreo,
+            control_frame, text=" Cancelar Monitoreo",
+            command=self.cancelar_monitoreo,
             state="disabled",
             bg="#ff5555", fg="#ffffff",
             font=("Arial", 11, "bold"),
