@@ -31,24 +31,56 @@ class ControladorMantenimiento:
         vista.mostrar_log("[INFORMACIÓN] Forzando la actualización de ARESITOS desde el repositorio oficial...")
         repo_dir = os.getcwd()
         ejecutar_comando_sistema(["git", "config", "--global", "--add", "safe.directory", repo_dir])
+        # 1. Fetch y reset
         if sudo_manager.is_sudo_active():
-            # Forzar actualización: fetch y reset --hard
             resultado_fetch = sudo_manager.execute_sudo_command("git fetch origin master")
             resultado_reset = sudo_manager.execute_sudo_command("git reset --hard origin/master")
-            stdout = (resultado_fetch.stdout if hasattr(resultado_fetch, 'stdout') else str(resultado_fetch)) + "\n" + (resultado_reset.stdout if hasattr(resultado_reset, 'stdout') else str(resultado_reset))
-            stderr = (resultado_fetch.stderr if hasattr(resultado_fetch, 'stderr') else '') + "\n" + (resultado_reset.stderr if hasattr(resultado_reset, 'stderr') else '')
         else:
             resultado_fetch = ejecutar_comando_sistema(["git", "fetch", "origin", "master"])
             resultado_reset = ejecutar_comando_sistema(["git", "reset", "--hard", "origin/master"])
-            stdout = resultado_fetch.get('stdout', '') + "\n" + resultado_reset.get('stdout', '')
-            stderr = resultado_fetch.get('stderr', '') + "\n" + resultado_reset.get('stderr', '')
-        if stdout:
-            vista.mostrar_log(stdout)
-        if stderr:
+        # 2. Ver si hubo cambios
+        if sudo_manager.is_sudo_active():
+            resultado_diff = sudo_manager.execute_sudo_command("git diff --name-status HEAD@{1} HEAD")
+            resultado_log = sudo_manager.execute_sudo_command("git log -n 3 origin/master --pretty=format:'%h %an %ad %s'")
+            diff_out = resultado_diff.stdout.strip() if hasattr(resultado_diff, 'stdout') else str(resultado_diff)
+            log_out = resultado_log.stdout.strip() if hasattr(resultado_log, 'stdout') else str(resultado_log)
+        else:
+            resultado_diff = ejecutar_comando_sistema(["git", "diff", "--name-status", "HEAD@{1}", "HEAD"])
+            resultado_log = ejecutar_comando_sistema(["git", "log", "-n", "3", "origin/master", "--pretty=format:%h %an %ad %s"])
+            diff_out = resultado_diff.get('stdout', '').strip()
+            log_out = resultado_log.get('stdout', '').strip()
+        # 3. Mensajes claros
+        if diff_out:
+            vista.mostrar_log("[INFORMACIÓN] Archivos modificados en la actualización:")
+            vista.mostrar_log(diff_out)
+            vista.mostrar_log("[INFORMACIÓN] Últimos commits traídos:")
+            # Mostrar commits con links
+            for linea in log_out.splitlines():
+                partes = linea.split()
+                if len(partes) >= 4:
+                    hash_commit = partes[0]
+                    autor = partes[1]
+                    fecha = ' '.join(partes[2:4])
+                    mensaje = ' '.join(partes[4:])
+                    link = f"https://github.com/DogSoulDev/aresitos/commit/{hash_commit}"
+                    vista.mostrar_log(f"- {mensaje} ({autor}, {fecha})\n  Ver commit: {link}")
+                else:
+                    vista.mostrar_log(linea)
+            vista.mostrar_log("[INFORMACIÓN] ARESITOS se ha actualizado correctamente.")
+        else:
+            vista.mostrar_log("[INFORMACIÓN] ARESITOS ya estaba actualizado. No hay cambios nuevos.")
+        # 4. Errores
+        # Manejo robusto de stderr para dict y CompletedProcess
+        def get_stderr(res):
+            if isinstance(res, dict):
+                return res.get('stderr', '')
+            return getattr(res, 'stderr', '') if hasattr(res, 'stderr') else ''
+        stderr = get_stderr(resultado_fetch) + "\n" + get_stderr(resultado_reset)
+        if stderr.strip():
             vista.mostrar_log("[ADVERTENCIA] " + stderr)
             if "Permission denied" in stderr:
                 vista.mostrar_log("[ERROR] No tienes permisos suficientes para actualizar el repositorio. Ejecuta ARESITOS como root/sudo.")
-        # Actualizar permisos de scripts usando sudo si está activo
+        # 5. Permisos de scripts
         if sudo_manager.is_sudo_active():
             sudo_manager.execute_sudo_command("chmod +x configurar_kali.sh")
             sudo_manager.execute_sudo_command("chmod +x main.py")
