@@ -73,7 +73,6 @@ class VistaGestionDatos(tk.Frame):
 
         self.ruta_wordlists = self._get_base_dir() / "data" / "wordlists"
         self.ruta_diccionarios = self._get_base_dir() / "data" / "diccionarios"
-        self.ruta_cheatsheets = self._get_base_dir() / "data" / "cheatsheets"
         # Mostrar wordlists por defecto
         self.tipo_actual = "wordlists"
         self.archivo_seleccionado = None
@@ -137,11 +136,7 @@ class VistaGestionDatos(tk.Frame):
                                             bg='#404040', fg='white', font=('Arial', 11),
                                             relief='flat', padx=20, pady=8)
             self.btn_diccionarios.pack(side=tk.LEFT, padx=(0, 10))
-            self.btn_cheatsheets = tk.Button(selector_frame, text=" Cheatsheets", 
-                                            command=lambda: self.cambiar_tipo("cheatsheets"),
-                                            bg='#404040', fg='white', font=('Arial', 11),
-                                            relief='flat', padx=20, pady=8)
-            self.btn_cheatsheets.pack(side=tk.LEFT)
+            # Eliminado botón Cheatsheets
         else:
             self.btn_wordlists = ttk.Button(selector_frame, text=" Wordlists", 
                                           command=lambda: self.cambiar_tipo("wordlists"))
@@ -149,9 +144,7 @@ class VistaGestionDatos(tk.Frame):
             self.btn_diccionarios = ttk.Button(selector_frame, text=" Diccionarios", 
                                              command=lambda: self.cambiar_tipo("diccionarios"))
             self.btn_diccionarios.pack(side=tk.LEFT, padx=(0, 10))
-            self.btn_cheatsheets = ttk.Button(selector_frame, text=" Cheatsheets", 
-                                             command=lambda: self.cambiar_tipo("cheatsheets"))
-            self.btn_cheatsheets.pack(side=tk.LEFT)
+            # Eliminado botón Cheatsheets
     
     def crear_panel_archivos(self, parent):
         """Crear panel de lista de archivos."""
@@ -341,15 +334,9 @@ class VistaGestionDatos(tk.Frame):
                 if nuevo_tipo == "wordlists":
                     self.btn_wordlists['bg'] = '#ff6633'
                     self.btn_diccionarios['bg'] = '#404040'
-                    self.btn_cheatsheets['bg'] = '#404040'
                 elif nuevo_tipo == "diccionarios":
                     self.btn_wordlists['bg'] = '#404040'
                     self.btn_diccionarios['bg'] = '#ff6633'
-                    self.btn_cheatsheets['bg'] = '#404040'
-                elif nuevo_tipo == "cheatsheets":
-                    self.btn_wordlists['bg'] = '#404040'
-                    self.btn_diccionarios['bg'] = '#404040'
-                    self.btn_cheatsheets['bg'] = '#ff6633'
             
             # Limpiar selección y contenido
             self.archivo_seleccionado = None
@@ -391,10 +378,7 @@ class VistaGestionDatos(tk.Frame):
             ruta = self.ruta_diccionarios
             extensiones = ['.json']
             tipo_str = "diccionarios"
-        elif self.tipo_actual == "cheatsheets":
-            ruta = self.ruta_cheatsheets
-            extensiones = ['.txt', '.md']
-            tipo_str = "cheatsheets"
+    # Eliminado cheatsheets
         else:
             ruta = self.ruta_wordlists
             extensiones = ['.txt', '.json']
@@ -1115,9 +1099,7 @@ class VistaGestionDatos(tk.Frame):
             elif self.tipo_actual == "diccionarios":
                 carpeta_path = str(self.ruta_diccionarios.resolve())
                 tipo_carpeta = "diccionarios"
-            elif self.tipo_actual == "cheatsheets":
-                carpeta_path = str(self.ruta_cheatsheets.resolve())
-                tipo_carpeta = "cheatsheets"
+            # Eliminado cheatsheets
             else:
                 carpeta_path = str(self.ruta_wordlists.resolve())
                 tipo_carpeta = "wordlists"
