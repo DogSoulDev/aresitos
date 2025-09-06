@@ -104,7 +104,7 @@ class VistaAuditoria(tk.Frame):
         # Título arriba
         titulo_frame = tk.Frame(main_frame, bg=self.colors['bg_primary'])
         titulo_frame.pack(fill=tk.X, pady=(10, 10))
-        titulo = tk.Label(titulo_frame, text="Auditoría de Seguridad del Sistema",
+        titulo = tk.Label(titulo_frame, text="Auditoría de seguridad del sistema",
             bg=self.colors['bg_primary'], fg=self.colors['fg_accent'],
             font=('Arial', 16, 'bold'))
         titulo.pack(pady=10)
@@ -128,7 +128,7 @@ class VistaAuditoria(tk.Frame):
     def crear_terminal_integrado(self, parent=None):
         if parent is None:
             parent = self
-        terminal_frame = tk.LabelFrame(parent, text="Terminal Auditoría", bg=self.colors['bg_primary'], fg=self.colors['fg_accent'])
+        terminal_frame = tk.LabelFrame(parent, text="Terminal de auditoría", bg=self.colors['bg_primary'], fg=self.colors['fg_accent'])
         terminal_frame.pack(fill="both", expand=True, padx=5, pady=5)
 
         self.terminal_output = scrolledtext.ScrolledText(
@@ -145,7 +145,7 @@ class VistaAuditoria(tk.Frame):
         entrada_frame = tk.Frame(terminal_frame, bg='#1e1e1e')
         entrada_frame.pack(fill="x", padx=5, pady=2)
 
-        tk.Label(entrada_frame, text="COMANDO:",
+        tk.Label(entrada_frame, text="Comando:",
                  bg='#1e1e1e', fg='#00ff00',
                  font=("Arial", 9, "bold")).pack(side="left", padx=(0, 5))
 
@@ -161,7 +161,7 @@ class VistaAuditoria(tk.Frame):
 
         ejecutar_btn = tk.Button(
             entrada_frame,
-            text="EJECUTAR",
+            text="Ejecutar",
             command=self.ejecutar_comando_entry,
             bg='#2d5aa0',
             fg='white',
@@ -174,9 +174,9 @@ class VistaAuditoria(tk.Frame):
         self._actualizar_terminal("Terminal ARESITOS - Auditoría v2.0\n")
         from datetime import datetime
         self._actualizar_terminal(f"Iniciado: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}\n")
-        self._actualizar_terminal("Sistema: Kali Linux - Security Audit Tools\n")
+        self._actualizar_terminal("Sistema: Kali Linux - Herramientas de auditoría de seguridad\n")
         self._actualizar_terminal("="*60 + "\n")
-        self._actualizar_terminal("LOG Auditoría en tiempo real\n\n")
+        self._actualizar_terminal("Log de auditoría en tiempo real\n\n")
 
     def _actualizar_terminal(self, texto, modo=None):
         if hasattr(self, 'terminal_output') and self.terminal_output:
@@ -190,10 +190,10 @@ class VistaAuditoria(tk.Frame):
 
     def _mostrar_info_seguridad(self):
         info = (
-            "\n[INFO SEGURIDAD]\n"
+            "\n[INFORMACIÓN DE SEGURIDAD]\n"
             "- Utilice siempre comandos validados y auditados.\n"
             "- No ejecute comandos peligrosos sin comprender su efecto.\n"
-            "- Revise los logs de auditoría para detectar anomalías.\n"
+            "- Revise los registros de auditoría para detectar anomalías.\n"
             "- Mantenga el sistema y las herramientas actualizadas.\n"
         )
         self.log_terminal(info)
@@ -207,9 +207,9 @@ class VistaAuditoria(tk.Frame):
                 self._actualizar_terminal("="*60 + "\n")
                 self._actualizar_terminal("Terminal ARESITOS - Auditoría v2.0\n")
                 self._actualizar_terminal(f"Limpiado: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}\n")
-                self._actualizar_terminal("Sistema: Kali Linux - Security Audit Tools\n")
+                self._actualizar_terminal("Sistema: Kali Linux - Herramientas de auditoría de seguridad\n")
                 self._actualizar_terminal("="*60 + "\n")
-                self._actualizar_terminal("LOG Terminal Auditoría reiniciado\n\n")
+                self._actualizar_terminal("Log de terminal de auditoría reiniciado\n\n")
         except Exception as e:
             print(f"Error limpiando terminal Auditoría: {e}")
     
@@ -268,14 +268,14 @@ class VistaAuditoria(tk.Frame):
                 self._enviar_a_reportes("terminal", comando, str(e), True)
     
     def abrir_logs_auditoria(self):
-        self.log_terminal("[INFO] Función para abrir logs aún no implementada.")
+        self.log_terminal("[INFO] Función para abrir registros aún no implementada.")
     
     def _crear_seccion_deteccion_malware(self, parent):
         section_frame = tk.Frame(parent, bg=self.colors['bg_secondary'])
         section_frame.pack(fill=tk.X, pady=5)
-        tk.Label(section_frame, text="Detección de Malware", 
-                bg=self.colors['bg_secondary'], fg=self.colors['fg_primary'],
-                font=('Arial', 10, 'bold')).pack(anchor=tk.W, pady=(5, 5))
+        tk.Label(section_frame, text="Detección de malware", 
+                 bg=self.colors['bg_secondary'], fg=self.colors['fg_primary'],
+                 font=('Arial', 10, 'bold')).pack(anchor=tk.W, pady=(5, 5))
         # Botones adaptados: solo muestran info en terminal
         buttons = [
             ("Detectar Rootkits", "rkhunter --check --sk --nocolors || chkrootkit", self.colors['warning'],
@@ -477,43 +477,56 @@ class VistaAuditoria(tk.Frame):
             self.log_terminal(f"[ERROR] No se pudo leer sshd_config: {e}", nivel="ERROR")
             return
         # Crear ventana de edición
-        editor = tk.Toplevel(self)
-        editor.title("Editar configuración SSH")
-        editor.geometry("700x600")
-        editor.configure(bg=self.colors['bg_secondary'])
-        tk.Label(editor, text="Edite la configuración SSH con precaución.", bg=self.colors['bg_secondary'], fg=self.colors['danger'], font=("Arial", 11, "bold")).pack(pady=8)
-        text_area = scrolledtext.ScrolledText(editor, wrap=tk.WORD, font=("Consolas", 10), bg="#222", fg="#eee", insertbackground="#eee")
-        text_area.pack(fill=tk.BOTH, expand=True, padx=10, pady=10)
-        text_area.insert(tk.END, contenido)
-        def guardar_cambios():
-            nuevo_contenido = text_area.get(1.0, tk.END)
-            # Validación básica: no permitir líneas vacías al inicio, ni comandos peligrosos
-            if "PermitRootLogin yes" in nuevo_contenido:
-                if not messagebox.askyesno("Advertencia de Seguridad", "Estás permitiendo el login de root por SSH. ¿Seguro que quieres continuar?"):
-                    return
+        def editar_configuracion_ssh(self):
+            import shutil
+            import tempfile
+            ruta_ssh = "/etc/ssh/sshd_config"
+            backup_path = f"{ruta_ssh}.backup_{datetime.datetime.now().strftime('%Y%m%d_%H%M%S')}"
             try:
-                shutil.copy2(ruta_ssh, backup_path)
-                with open(ruta_ssh, 'w', encoding='utf-8') as f:
-                    f.write(nuevo_contenido)
-                self.log_terminal(f"[OK] Configuración SSH guardada. Backup en {backup_path}")
-                messagebox.showinfo("Éxito", f"Configuración SSH guardada y backup creado en {backup_path}")
+                # Leer contenido actual
+                with open(ruta_ssh, 'r', encoding='utf-8') as f:
+                    contenido = f.read()
             except Exception as e:
-                self.log_terminal(f"[ERROR] No se pudo guardar sshd_config: {e}", nivel="ERROR")
-                messagebox.showerror("Error", f"No se pudo guardar sshd_config: {e}")
-        btn_guardar = tk.Button(editor, text="Guardar cambios", command=guardar_cambios, bg=self.colors['success'], fg='white', font=("Arial", 10, "bold"))
-        btn_guardar.pack(pady=10)
+                self.log_terminal(f"[ERROR] No se pudo leer sshd_config: {e}", nivel="ERROR")
+                return
+            # Crear ventana de edición
+            editor = tk.Toplevel(self)
+            editor.title("Editar configuración de SSH")
+            editor.geometry("700x600")
+            editor.configure(bg=self.colors['bg_secondary'])
+            tk.Label(editor, text="Edite la configuración de SSH con precaución.", bg=self.colors['bg_secondary'], fg=self.colors['danger'], font=("Arial", 11, "bold")).pack(pady=8)
+            text_area = scrolledtext.ScrolledText(editor, wrap=tk.WORD, font=("Consolas", 10), bg="#222", fg="#eee", insertbackground="#eee")
+            text_area.pack(fill=tk.BOTH, expand=True, padx=10, pady=10)
+            text_area.insert(tk.END, contenido)
+            def guardar_cambios():
+                nuevo_contenido = text_area.get(1.0, tk.END)
+                # Validación básica: no permitir líneas vacías al inicio, ni comandos peligrosos
+                if "PermitRootLogin yes" in nuevo_contenido:
+                    if not messagebox.askyesno("Advertencia de Seguridad", "Estás permitiendo el login de root por SSH. ¿Seguro que quieres continuar?"):
+                        return
+                try:
+                    shutil.copy2(ruta_ssh, backup_path)
+                    with open(ruta_ssh, 'w', encoding='utf-8') as f:
+                        f.write(nuevo_contenido)
+                    self.log_terminal(f"[OK] Configuración SSH guardada. Backup en {backup_path}")
+                    messagebox.showinfo("Éxito", f"Configuración SSH guardada y backup creado en {backup_path}")
+                except Exception as e:
+                    self.log_terminal(f"[ERROR] No se pudo guardar sshd_config: {e}", nivel="ERROR")
+                    messagebox.showerror("Error", f"No se pudo guardar sshd_config: {e}")
+            btn_guardar = tk.Button(editor, text="Guardar cambios", command=guardar_cambios, bg=self.colors['success'], fg='white', font=("Arial", 10, "bold"))
+            btn_guardar.pack(pady=10)
     
     def _crear_seccion_utilidades(self, parent):
         section_frame = tk.Frame(parent, bg=self.colors['bg_secondary'])
         section_frame.pack(fill=tk.X, pady=5)
         tk.Label(section_frame, text="Utilidades", 
-                bg=self.colors['bg_secondary'], fg=self.colors['fg_primary'],
-                font=('Arial', 10, 'bold')).pack(anchor=tk.W, pady=(5, 5))
+                 bg=self.colors['bg_secondary'], fg=self.colors['fg_primary'],
+                 font=('Arial', 10, 'bold')).pack(anchor=tk.W, pady=(5, 5))
         # Botones adaptados: solo los que tienen sentido en el nuevo flujo
         buttons = [
-            ("Guardar Resultados", self.guardar_auditoria, self.colors['info'],
+            ("Guardar resultados", self.guardar_auditoria, self.colors['info'],
              "Permite guardar en un archivo de texto todos los resultados y hallazgos de la auditoría."),
-            ("Limpiar Pantalla", self.limpiar_auditoria, self.colors['warning'],
+            ("Limpiar pantalla", self.limpiar_auditoria, self.colors['warning'],
              "Limpia la terminal de auditoría y reinicia la cabecera de la pantalla."),
         ]
         for text, command, color, ayuda in buttons:
@@ -526,7 +539,7 @@ class VistaAuditoria(tk.Frame):
             btn.pack(fill=tk.X, pady=2)
 
         # BOTÓN PONER EN CUARENTENA
-        cuarentena_label = tk.Label(section_frame, text="Cuarentena de Archivos", 
+        cuarentena_label = tk.Label(section_frame, text="Cuarentena de archivos", 
                                   bg=self.colors['bg_secondary'], fg=self.colors['danger'],
                                   font=('Arial', 10, 'bold'))
         cuarentena_label.pack(anchor="w", padx=10, pady=(10, 2))
@@ -545,10 +558,10 @@ class VistaAuditoria(tk.Frame):
         """Pone en cuarentena el archivo especificado en el campo de entrada."""
         ruta = self.cuarentena_entry.get().strip()
         if not ruta or ruta == "Ruta del archivo a poner en cuarentena":
-            self.log_terminal("Debe especificar la ruta del archivo a poner en cuarentena.")
+            self.log_terminal("Debe especificar la ruta del archivo que desea poner en cuarentena.")
             return
         if not hasattr(self, 'controlador') or not self.controlador or not hasattr(self.controlador, 'controlador_cuarentena'):
-            self.log_terminal("Controlador de cuarentena no disponible.")
+            self.log_terminal("El controlador de cuarentena no está disponible.")
             return
         try:
             resultado = self.controlador.controlador_cuarentena.cuarentenar_archivo(ruta, razon="Manual desde Auditoría")
@@ -556,10 +569,10 @@ class VistaAuditoria(tk.Frame):
                 self.log_terminal(f"Archivo puesto en cuarentena: {ruta}")
                 self._enviar_a_reportes('poner_en_cuarentena', f"Archivo puesto en cuarentena: {ruta}", False)
             else:
-                self.log_terminal(f"Error poniendo en cuarentena: {resultado.get('mensaje','sin mensaje')}")
+                self.log_terminal(f"Error al poner en cuarentena: {resultado.get('mensaje','sin mensaje')}")
                 self._enviar_a_reportes('poner_en_cuarentena', f"Error: {resultado.get('mensaje','sin mensaje')}", True)
         except Exception as e:
-            self.log_terminal(f"Excepción poniendo en cuarentena: {e}")
+            self.log_terminal(f"Excepción al poner en cuarentena: {e}")
             self._enviar_a_reportes('poner_en_cuarentena', str(e), True)
     
     # Método eliminado: ejecutar_lynis (no se usa en el nuevo flujo)
@@ -571,17 +584,17 @@ class VistaAuditoria(tk.Frame):
         # Guardar el contenido del terminal integrado
         contenido = self.terminal_output.get(1.0, tk.END)
         if not contenido.strip():
-            messagebox.showwarning("Advertencia", "No hay resultados para guardar")
+            messagebox.showwarning("Advertencia", "No hay resultados para guardar.")
             return
         archivo = filedialog.asksaveasfilename(
-            title="Guardar Resultados de Auditoria",
+            title="Guardar resultados de auditoría",
             defaultextension=".txt",
             filetypes=[("Archivo de texto", "*.txt"), ("Todos los archivos", "*.*")]
         )
         if archivo:
             with open(archivo, 'w', encoding='utf-8') as f:
                 f.write(contenido)
-            messagebox.showinfo("Exito", f"Auditoria guardada en {archivo}")
+            messagebox.showinfo("Éxito", f"Auditoría guardada en {archivo}")
     
     def limpiar_auditoria(self):
         self.limpiar_terminal_auditoria()
