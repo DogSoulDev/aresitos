@@ -13,15 +13,47 @@
 
 ARESITOS es una Herramienta de Ciberseguridad profesional para auditoría y gestión, desarrollada como parte del TFM en la UCAM y el Campus Internacional de Ciberseguridad. Integra módulos de escaneo, SIEM, FIM, cuarentena, reportes y utilidades forenses, siguiendo estándares y buenas prácticas.
 
+### ¿Qué puede hacer realmente ARESITOS desde el punto de vista defensivo (Blue Team)?
+
+Como desarrollador, quiero ser claro y honesto sobre lo que ARESITOS ofrece. No es una solución mágica ni un producto comercial, sino una herramienta práctica pensada para ayudar en tareas defensivas de ciberseguridad, especialmente en entornos Linux/Kali.
+
+ARESITOS integra varias utilidades y módulos que permiten:
+
+- Ejecutar escaneos de red y vulnerabilidades con herramientas conocidas (nmap, masscan, nuclei, gobuster, ffuf, feroxbuster). El objetivo es facilitar la detección de servicios y posibles vectores de ataque, pero siempre usando motores externos, no desarrollos propios.
+
+- Monitorizar eventos y correlacionar alertas básicas en tiempo real (SIEM). El sistema puede detectar patrones simples de fuerza bruta, actividad sospechosa y mostrar información útil, pero no pretende competir con SIEMs profesionales.
+
+- Comprobar la integridad de archivos críticos (FIM) y detectar cambios inesperados. Esto ayuda a identificar manipulaciones o incidentes, aunque la monitorización es local y depende de la configuración del usuario.
+
+- Aislar archivos y procesos sospechosos en cuarentena, permitiendo su análisis posterior con herramientas forenses externas (sleuthkit, autopsy, hashdeep, testdisk, bulk-extractor, etc.). No se realiza análisis avanzado dentro del programa, solo se facilita el flujo.
+
+- Realizar auditorías básicas de configuración y buscar rootkits con utilidades como lynis, aide, debsums, chkrootkit y rkhunter. El programa automatiza la ejecución y muestra los resultados, pero no interpreta ni recomienda acciones.
+
+- Gestionar diccionarios y wordlists para fuerza bruta y auditoría, centralizando recursos que suelen estar dispersos.
+
+- Generar reportes automáticos siguiendo la estructura ISO/IEC 27001, para documentar hallazgos y acciones. Los informes se basan en los datos recogidos por los módulos, sin análisis avanzado.
+
+Ventajas reales para el Blue Team:
+
+- Centraliza y automatiza tareas defensivas habituales, ahorrando tiempo y evitando errores manuales.
+- Permite tener una visión rápida del estado del sistema y de los servicios expuestos.
+- Facilita la documentación y la respuesta ante incidentes, aunque la profundidad depende de las herramientas externas.
+- Todo el código es abierto y auditable, sin dependencias ocultas ni telemetría.
+
+Limitaciones:
+
+- No sustituye soluciones profesionales ni comerciales. Es una ayuda para equipos pequeños, laboratorios, formación o entornos donde no se dispone de grandes recursos.
+- La correlación de eventos y la monitorización son básicas y dependen de la configuración y del uso correcto de las herramientas.
+- El análisis forense y la remediación requieren conocimientos técnicos y el uso de herramientas externas.
+
+En resumen, ARESITOS busca ser una caja de herramientas defensiva, honesta y útil, sin prometer más de lo que realmente puede hacer. Si tienes dudas, sugerencias o quieres mejorar el proyecto, cualquier aportación es bienvenida.
 ---
 
 ## Instalación rápida en Kali Linux
 
-```bash
-# Clona el repositorio y accede a la carpeta
-sudo apt update && sudo apt upgrade -y
-sudo apt install -y python3 python3-tk python3-venv nmap masscan nuclei gobuster ffuf feroxbuster wireshark autopsy sleuthkit hashdeep testdisk bulk-extractor dc3dd guymager git curl wget sqlite3
 
+```bash
+# Instalación rápida en Kali Linux
 git clone https://github.com/DogSoulDev/aresitos.git
 cd aresitos
 chmod +x configurar_kali.sh main.py
@@ -31,15 +63,17 @@ sudo ./configurar_kali.sh
 python3 main.py
 ```
 
-> Si tienes errores de acceso a carpetas:
-> ```bash
-> chmod -R 755 data/ logs/ configuración/
-> ```
+Todas las herramientas necesarias se instalarán y verificarán automáticamente desde la interfaz gráfica de ARESITOS. No es necesario instalar manualmente los paquetes del sistema, el programa lo gestiona por ti.
 
-> Para modo desarrollo (otros sistemas):
-> ```bash
-> python3 main.py --dev
-> ```
+Si tienes errores de acceso a carpetas:
+```bash
+chmod -R 755 data/ logs/ configuración/
+```
+
+Para modo desarrollo (otros sistemas):
+```bash
+python3 main.py --dev
+```
 
 ---
 
