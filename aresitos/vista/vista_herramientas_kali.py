@@ -406,7 +406,7 @@ LISTO PARA: Escaneos de vulnerabilidades en entornos Kali Linux 2025
                 'nmap', 'masscan', 'nuclei', 'ffuf', 'feroxbuster', 'nikto', 'whatweb', 'dirb', 'gobuster',
                 # Forense y análisis
                 'sleuthkit', 'tsk_recover', 'tsk_loaddb', 'tsk_gettimes', 'tsk_comparedir', 'tsk_imageinfo',
-                'testdisk', 'bulk-extractor', 'hashdeep', 'dc3dd', 'guymager', 'foremost', 'binwalk', 'exiftool', 'yara',
+                'testdisk', 'bulk-extractor', 'hashdeep', 'dc3dd', 'guymager', 'foremost', 'binwalk', 'exiftool', 'yara', 'autopsy',
                 # Seguridad y auditoría
                 'clamav', 'clamav-daemon', 'chkrootkit', 'rkhunter', 'lynis', 'auditd', 'aide', 'debsums', 'rsyslog', 'logrotate', 'logwatch',
                 # Análisis avanzado y red
@@ -414,14 +414,16 @@ LISTO PARA: Escaneos de vulnerabilidades en entornos Kali Linux 2025
                 # Utilidades del sistema
                 'ps', 'ss', 'lsof', 'netstat', 'top', 'free', 'df', 'uname', 'who', 'last',
                 'find', 'stat', 'grep', 'awk', 'sort', 'uniq', 'wc', 'tail', 'head',
-                'systemctl', 'ip', 'route', 'wget', 'curl', 'diff', 'ls', 'chmod', 'chown',
+                'systemctl', 'ip', 'route', 'wget', 'curl', 'diff', 'ls', 'chmod', 'chown', 'git',
                 'lsmod', 'kill', 'pgrep', 'pkill', 'sha256sum', 'md5sum', 'sha1sum', 'sha512sum',
                 'iptables', 'cat', 'less', 'more', 'pwd', 'mkdir', 'rm', 'cp', 'mv',
                 # Editores y gestores
                 'nano', 'vim', 'vi', 'gedit', 'mousepad',
                 'thunar', 'nautilus', 'dolphin', 'xdg-open',
                 # Herramientas base de verificación
-                'which', 'whereis', 'type', 'command'
+                'which', 'whereis', 'type', 'command',
+                # Python y dependencias
+                'python3', 'python3-tk', 'python3-venv', 'sqlite3'
             ]
             
             herramientas_faltantes = []
@@ -593,12 +595,13 @@ LISTO PARA: Escaneos de vulnerabilidades en entornos Kali Linux 2025
             # 3. Instalar herramientas APT
             paquetes = [
                 'nmap', 'masscan', 'nuclei', 'ffuf', 'feroxbuster', 'nikto', 'whatweb', 'dirb', 'gobuster',
-                'sleuthkit', 'testdisk', 'plaso', 'bulk-extractor', 'hashdeep', 'dc3dd', 'guymager', 'foremost', 'binwalk', 'exiftool', 'yara',
+                'sleuthkit', 'testdisk', 'plaso', 'bulk-extractor', 'hashdeep', 'dc3dd', 'guymager', 'foremost', 'binwalk', 'exiftool', 'yara', 'autopsy',
                 'clamav', 'clamav-daemon', 'chkrootkit', 'rkhunter', 'lynis', 'auditd', 'aide', 'debsums', 'rsyslog', 'logrotate', 'logwatch',
                 'tcpdump', 'wireshark', 'tshark', 'strace', 'ltrace', 'gdb', 'osquery', 'file', 'hexdump',
                 'procps', 'iproute2', 'net-tools', 'util-linux', 'findutils', 'grep', 'gawk',
-                'coreutils', 'systemd', 'wget', 'curl', 'diffutils',
-                'nano', 'vim', 'gedit', 'mousepad', 'thunar', 'nautilus', 'dolphin', 'xdg-open'
+                'coreutils', 'systemd', 'wget', 'curl', 'diffutils', 'git',
+                'nano', 'vim', 'gedit', 'mousepad', 'thunar', 'nautilus', 'dolphin', 'xdg-open',
+                'python3', 'python3-tk', 'python3-venv', 'sqlite3'
             ]
             self.after(0, self._actualizar_texto, "Actualizando repositorios...\n")
             sudo_manager.execute_sudo_command('apt update', timeout=120)
