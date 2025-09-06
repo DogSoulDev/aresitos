@@ -126,91 +126,57 @@ class VistaAuditoria(tk.Frame):
         self.crear_terminal_integrado(parent=right_frame)
 
     def crear_terminal_integrado(self, parent=None):
-        try:
-            if parent is None:
-                parent = self
-            terminal_frame = tk.LabelFrame(
-                parent,
-                text="Terminal ARESITOS - Auditoría",
-                bg=self.colors['bg_secondary'],
-                fg=self.colors['fg_primary'],
-                font=("Arial", 10, "bold")
-            )
-            terminal_frame.pack(fill="both", expand=True, padx=5, pady=5)
+        if parent is None:
+            parent = self
+        terminal_frame = tk.LabelFrame(parent, text="Terminal Auditoría", bg=self.colors['bg_primary'], fg=self.colors['fg_accent'])
+        terminal_frame.pack(fill="both", expand=True, padx=5, pady=5)
 
-            controles_frame = tk.Frame(terminal_frame, bg=self.colors['bg_secondary'])
-            controles_frame.pack(fill="x", padx=5, pady=2)
+        self.terminal_output = scrolledtext.ScrolledText(
+            terminal_frame,
+            height=12,
+            bg='#000000',
+            fg='#00ff00',
+            font=("Consolas", 10),
+            insertbackground='#00ff00',
+            selectbackground='#333333'
+        )
+        self.terminal_output.pack(fill="both", expand=True, padx=5, pady=5)
 
-            btn_limpiar = tk.Button(
-                controles_frame,
-                text="LIMPIAR",
-                command=self.limpiar_terminal_auditoria,
-                bg=self.colors.get('warning', '#ffaa00'),
-                fg='white',
-                font=("Arial", 8, "bold"),
-                height=1
-            )
-            btn_limpiar.pack(side="left", padx=2, fill="x", expand=True)
+        entrada_frame = tk.Frame(terminal_frame, bg='#1e1e1e')
+        entrada_frame.pack(fill="x", padx=5, pady=2)
 
-            btn_logs = tk.Button(
-                controles_frame,
-                text="VER LOGS",
-                command=self.abrir_logs_auditoria,
-                bg=self.colors.get('info', '#007acc'),
-                fg='white',
-                font=("Arial", 8, "bold"),
-                height=1
-            )
-            btn_logs.pack(side="left", padx=2, fill="x", expand=True)
+        tk.Label(entrada_frame, text="COMANDO:",
+                 bg='#1e1e1e', fg='#00ff00',
+                 font=("Arial", 9, "bold")).pack(side="left", padx=(0, 5))
 
-            self.terminal_output = scrolledtext.ScrolledText(
-                terminal_frame,
-                height=12,
-                bg='#000000',
-                fg='#00ff00',
-                font=("Consolas", 10),
-                insertbackground='#00ff00',
-                selectbackground='#333333'
-            )
-            self.terminal_output.pack(fill="both", expand=True, padx=5, pady=5)
+        self.comando_entry = tk.Entry(
+            entrada_frame,
+            bg='#000000',
+            fg='#00ff00',
+            font=("Consolas", 9),
+            insertbackground='#00ff00'
+        )
+        self.comando_entry.pack(side="left", fill="x", expand=True, padx=(0, 5))
+        self.comando_entry.bind("<Return>", self.ejecutar_comando_entry)
 
-            entrada_frame = tk.Frame(terminal_frame, bg='#1e1e1e')
-            entrada_frame.pack(fill="x", padx=5, pady=2)
+        ejecutar_btn = tk.Button(
+            entrada_frame,
+            text="EJECUTAR",
+            command=self.ejecutar_comando_entry,
+            bg='#2d5aa0',
+            fg='white',
+            font=("Arial", 8, "bold")
+        )
+        ejecutar_btn.pack(side="right")
 
-            tk.Label(entrada_frame, text="COMANDO:",
-                    bg='#1e1e1e', fg='#00ff00',
-                    font=("Arial", 9, "bold")).pack(side="left", padx=(0, 5))
-
-            self.comando_entry = tk.Entry(
-                entrada_frame,
-                bg='#000000',
-                fg='#00ff00',
-                font=("Consolas", 9),
-                insertbackground='#00ff00'
-            )
-            self.comando_entry.pack(side="left", fill="x", expand=True, padx=(0, 5))
-            self.comando_entry.bind("<Return>", self.ejecutar_comando_entry)
-
-            ejecutar_btn = tk.Button(
-                entrada_frame,
-                text="EJECUTAR",
-                command=self.ejecutar_comando_entry,
-                bg='#2d5aa0',
-                fg='white',
-                font=("Arial", 8, "bold")
-            )
-            ejecutar_btn.pack(side="right")
-
-            # Mensaje inicial
-            self._actualizar_terminal("="*60 + "\n")
-            self._actualizar_terminal("Terminal ARESITOS - Auditoría v2.0\n")
-            from datetime import datetime
-            self._actualizar_terminal(f"Iniciado: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}\n")
-            self._actualizar_terminal("Sistema: Kali Linux - Security Audit Tools\n")
-            self._actualizar_terminal("="*60 + "\n")
-            self._actualizar_terminal("LOG Auditoría en tiempo real\n\n")
-        except Exception as e:
-            print(f"Error creando terminal integrado en Vista Auditoría: {e}")
+        # Mensaje inicial
+        self._actualizar_terminal("="*60 + "\n")
+        self._actualizar_terminal("Terminal ARESITOS - Auditoría v2.0\n")
+        from datetime import datetime
+        self._actualizar_terminal(f"Iniciado: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}\n")
+        self._actualizar_terminal("Sistema: Kali Linux - Security Audit Tools\n")
+        self._actualizar_terminal("="*60 + "\n")
+        self._actualizar_terminal("LOG Auditoría en tiempo real\n\n")
 
     def _actualizar_terminal(self, texto, modo=None):
         if hasattr(self, 'terminal_output') and self.terminal_output:
@@ -218,6 +184,7 @@ class VistaAuditoria(tk.Frame):
                 self.terminal_output.delete(1.0, tk.END)
             self.terminal_output.insert(tk.END, texto)
             self.terminal_output.see(tk.END)
+    # ...existing code...
     def actualizar_info_panel(self, titulo_accion, descripcion):
         pass  # Paneles de info eliminados, función dummy
 
@@ -315,7 +282,7 @@ class VistaAuditoria(tk.Frame):
              "Analiza el sistema en busca de rootkits y malware usando herramientas nativas de Linux/Kali. Muestra hallazgos críticos y sugerencias de seguridad."),
             ("Auditoría nuclei", "nuclei -update-templates && nuclei -l targets.txt -o nuclei_report.txt", self.colors['info'],
              "Ejecuta un escaneo de vulnerabilidades profesional con nuclei. Requiere tener nuclei instalado y actualizado. El archivo 'targets.txt' debe existir y contener los objetivos (uno por línea)."),
-            ("Scan httpx", "httpx -u http://localhost:80 -title -sc -tech-detect", self.colors['fg_accent'],
+            ("Scan httpx", "httpx http://localhost:80 -title -sc -tech-detect", self.colors['fg_accent'],
              "Realiza un escaneo rápido de servicios web usando httpx para detectar tecnologías, títulos y estado HTTP. Para escaneo masivo usa 'httpx -l lista.txt -title -sc -tech-detect'. El archivo 'lista.txt' debe existir y contener los objetivos."),
         ]
         import shutil
@@ -323,6 +290,21 @@ class VistaAuditoria(tk.Frame):
             def make_cmd(cmd, ayuda_text, tool_name=None):
                 def ejecutar_y_reportar():
                     self.actualizar_info_panel(text, ayuda_text)
+                    import os
+                    # Comprobación especial para nuclei y targets.txt
+                    if text == "Auditoría nuclei":
+                        if not os.path.exists("targets.txt"):
+                            msg = "[ERROR] El archivo 'targets.txt' no existe. Crea el archivo y añade los objetivos (uno por línea) antes de ejecutar nuclei."
+                            self.log_terminal(msg, nivel="ERROR")
+                            self._enviar_a_reportes(text, cmd, msg, True)
+                            return
+                    # Comprobación especial para httpx y lista.txt
+                    if text == "Scan httpx" and "-l lista.txt" in cmd:
+                        if not os.path.exists("lista.txt"):
+                            msg = "[ERROR] El archivo 'lista.txt' no existe. Crea el archivo y añade los objetivos (uno por línea) antes de ejecutar httpx en modo masivo."
+                            self.log_terminal(msg, nivel="ERROR")
+                            self._enviar_a_reportes(text, cmd, msg, True)
+                            return
                     self.log_terminal(f"[EJECUTANDO] {cmd}")
                     # Validar instalación si corresponde
                     if tool_name:
@@ -392,25 +374,45 @@ class VistaAuditoria(tk.Frame):
         section_frame = tk.Frame(parent, bg=self.colors['bg_secondary'])
         section_frame.pack(fill=tk.X, pady=5)
         tk.Label(section_frame, text="Configuraciones", 
-                bg=self.colors['bg_secondary'], fg=self.colors['fg_primary'],
-                font=('Arial', 10, 'bold')).pack(anchor=tk.W, pady=(5, 5))
+                 bg=self.colors['bg_secondary'], fg=self.colors['fg_primary'],
+                 font=('Arial', 10, 'bold')).pack(anchor=tk.W, pady=(5, 5))
         # Botones adaptados: solo muestran info en terminal
         buttons = [
             ("Configuración SSH", "cat /etc/ssh/sshd_config", self.colors['fg_accent'],
              "Audita la configuración del servicio SSH para detectar debilidades y malas prácticas."),
-            ("Políticas de Contraseña", "cat /etc/login.defs", self.colors['danger'],
-             "Verifica las políticas de contraseñas del sistema y detecta usuarios sin contraseña o configuraciones débiles."),
-            ("Análisis SUID/SGID", "find / -perm /6000 -type f 2>/dev/null", self.colors['warning'],
+            ("Editar SSH", self.editar_configuracion_ssh, self.colors['info'],
+             "Edita de forma segura la configuración SSH. Se realiza copia de seguridad y validación antes de guardar."),
+            ("Políticas de Contraseña", self._auditar_politicas_contrasena, self.colors['danger'],
+             "Verifica las políticas de contraseñas, usuarios sin contraseña y configuraciones débiles."),
+            ("Análisis SUID/SGID", "find / -perm -4000 -type f 2>/dev/null && find / -perm -2000 -type f 2>/dev/null", self.colors['warning'],
              "Busca archivos con permisos SUID/SGID que pueden ser explotados para escalar privilegios."),
+            ("Auditoría Lynis", "lynis audit system", self.colors['info'],
+             "Ejecuta un escaneo completo de seguridad con Lynis y muestra el resumen de hallazgos."),
+            ("Escaneo ClamAV /home", "clamscan -r /home", self.colors['success'],
+             "Escanea el directorio /home en busca de malware usando ClamAV."),
+            ("Escaneo ClamAV /tmp", "clamscan -r /tmp", self.colors['success'],
+             "Escanea el directorio /tmp en busca de malware usando ClamAV."),
+            ("linpeas (privesc)", "./linpeas.sh -a -r", self.colors['fg_accent'],
+             "Ejecuta linpeas con los parámetros recomendados para detectar vectores de escalada de privilegios."),
+            ("pspy (monitor de procesos)", "./pspy64 -pf -i 1000", self.colors['info'],
+             "Ejecuta pspy para monitorizar procesos y tareas programadas sin privilegios root."),
+            ("Usuarios sin contraseña", "awk -F: '($2 == \"\") {print $1}' /etc/shadow", self.colors['danger'],
+             "Lista los usuarios del sistema que no tienen contraseña definida."),
+            ("Tareas programadas (cron)", "crontab -l && ls -al /etc/cron* && cat /etc/crontab", self.colors['warning'],
+             "Muestra todas las tareas programadas y cron jobs del sistema."),
+            ("Servicios de red abiertos", "ss -tuln", self.colors['fg_accent'],
+             "Lista los servicios de red y puertos abiertos en el sistema."),
         ]
         for text, comando, color, ayuda in buttons:
             def make_cmd(cmd, ayuda_text):
+                if callable(cmd):
+                    return lambda: (self.actualizar_info_panel(text, ayuda_text), cmd())
                 def ejecutar_y_reportar():
                     self.actualizar_info_panel(text, ayuda_text)
                     self.log_terminal(f"[EJECUTANDO] {cmd}")
                     import subprocess
                     try:
-                        resultado = subprocess.run(cmd, shell=True, capture_output=True, text=True, timeout=120)
+                        resultado = subprocess.run(cmd, shell=True, capture_output=True, text=True, timeout=180)
                         salida = resultado.stdout.strip()
                         error = resultado.stderr.strip()
                         if salida:
@@ -428,10 +430,78 @@ class VistaAuditoria(tk.Frame):
                         self._enviar_a_reportes(text, cmd, str(e), True)
                 return ejecutar_y_reportar
             btn = tk.Button(section_frame, text=text, command=make_cmd(comando, ayuda),
-                           bg=color, fg=self.colors['bg_primary'],
-                           font=('Arial', 9, 'bold'), relief='flat',
-                           padx=10, pady=5)
+                            bg=color, fg=self.colors['bg_primary'],
+                            font=('Arial', 9, 'bold'), relief='flat',
+                            padx=10, pady=5)
             btn.pack(fill=tk.X, pady=2)
+
+    def _auditar_politicas_contrasena(self):
+        """Audita políticas de contraseña y usuarios sin contraseña."""
+        self.actualizar_info_panel("Políticas de Contraseña", "Verifica políticas y usuarios sin contraseña.")
+        import subprocess
+        try:
+            self.log_terminal("[EJECUTANDO] cat /etc/login.defs")
+            resultado = subprocess.run("cat /etc/login.defs", shell=True, capture_output=True, text=True, timeout=30)
+            self.log_terminal(resultado.stdout)
+            self._enviar_a_reportes("Políticas de Contraseña", "cat /etc/login.defs", resultado.stdout, False)
+            self.log_terminal("[EJECUTANDO] grep PASS_* en /etc/login.defs")
+            resultado2 = subprocess.run("grep -E 'PASS_MAX_DAYS|PASS_MIN_DAYS|PASS_MIN_LEN|PASS_WARN_AGE' /etc/login.defs", shell=True, capture_output=True, text=True, timeout=30)
+            self.log_terminal(resultado2.stdout)
+            self._enviar_a_reportes("Políticas de Contraseña", "grep PASS_*", resultado2.stdout, False)
+            self.log_terminal("[EJECUTANDO] Usuarios sin contraseña (awk en /etc/shadow)")
+            resultado3 = subprocess.run("awk -F: '($2 == \"\") {print $1}' /etc/shadow", shell=True, capture_output=True, text=True, timeout=30)
+            if resultado3.stdout.strip():
+                self.log_terminal("[ALERTA] Usuarios sin contraseña:\n" + resultado3.stdout, nivel="WARNING")
+                self._enviar_a_reportes("Políticas de Contraseña", "awk /etc/shadow", resultado3.stdout, True)
+            else:
+                self.log_terminal("No se detectaron usuarios sin contraseña.")
+            self.log_terminal("[EJECUTANDO] chage -l root")
+            resultado4 = subprocess.run("chage -l root", shell=True, capture_output=True, text=True, timeout=30)
+            self.log_terminal(resultado4.stdout)
+            self._enviar_a_reportes("Políticas de Contraseña", "chage -l root", resultado4.stdout, False)
+        except Exception as e:
+            self.log_terminal(f"[ERROR] Auditoría de políticas de contraseña: {e}", nivel="ERROR")
+            self._enviar_a_reportes("Políticas de Contraseña", "error", str(e), True)
+
+    def editar_configuracion_ssh(self):
+        """Permite editar /etc/ssh/sshd_config de forma segura, con backup y validación."""
+        import shutil
+        import tempfile
+        ruta_ssh = "/etc/ssh/sshd_config"
+        backup_path = f"{ruta_ssh}.backup_{datetime.datetime.now().strftime('%Y%m%d_%H%M%S')}"
+        try:
+            # Leer contenido actual
+            with open(ruta_ssh, 'r', encoding='utf-8') as f:
+                contenido = f.read()
+        except Exception as e:
+            self.log_terminal(f"[ERROR] No se pudo leer sshd_config: {e}", nivel="ERROR")
+            return
+        # Crear ventana de edición
+        editor = tk.Toplevel(self)
+        editor.title("Editar configuración SSH")
+        editor.geometry("700x600")
+        editor.configure(bg=self.colors['bg_secondary'])
+        tk.Label(editor, text="Edite la configuración SSH con precaución.", bg=self.colors['bg_secondary'], fg=self.colors['danger'], font=("Arial", 11, "bold")).pack(pady=8)
+        text_area = scrolledtext.ScrolledText(editor, wrap=tk.WORD, font=("Consolas", 10), bg="#222", fg="#eee", insertbackground="#eee")
+        text_area.pack(fill=tk.BOTH, expand=True, padx=10, pady=10)
+        text_area.insert(tk.END, contenido)
+        def guardar_cambios():
+            nuevo_contenido = text_area.get(1.0, tk.END)
+            # Validación básica: no permitir líneas vacías al inicio, ni comandos peligrosos
+            if "PermitRootLogin yes" in nuevo_contenido:
+                if not messagebox.askyesno("Advertencia de Seguridad", "Estás permitiendo el login de root por SSH. ¿Seguro que quieres continuar?"):
+                    return
+            try:
+                shutil.copy2(ruta_ssh, backup_path)
+                with open(ruta_ssh, 'w', encoding='utf-8') as f:
+                    f.write(nuevo_contenido)
+                self.log_terminal(f"[OK] Configuración SSH guardada. Backup en {backup_path}")
+                messagebox.showinfo("Éxito", f"Configuración SSH guardada y backup creado en {backup_path}")
+            except Exception as e:
+                self.log_terminal(f"[ERROR] No se pudo guardar sshd_config: {e}", nivel="ERROR")
+                messagebox.showerror("Error", f"No se pudo guardar sshd_config: {e}")
+        btn_guardar = tk.Button(editor, text="Guardar cambios", command=guardar_cambios, bg=self.colors['success'], fg='white', font=("Arial", 10, "bold"))
+        btn_guardar.pack(pady=10)
     
     def _crear_seccion_utilidades(self, parent):
         section_frame = tk.Frame(parent, bg=self.colors['bg_secondary'])
