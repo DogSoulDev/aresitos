@@ -205,13 +205,6 @@ Reporte generado por ARESITOS conforme a ISO/IEC 27001 - https://github.com/DogS
 
 ---
 
-## DEDICATORIA
-
-**En memoria de Ares**
-*25 de abril de 2013 - 5 de agosto de 2025*
-Hasta que volvamos a encontrarnos.
-
----
 
 ## Escaneo de red y gestión de cuarentena
 
@@ -232,3 +225,12 @@ Si deseas que solo quede abierta la ventana de ARESITOS y no el terminal, tienes
 Esta es una limitación estándar en Linux y no depende de ARESITOS. La recomendación oficial es usar el acceso directo gráfico para la mejor experiencia de usuario.
 
 ---
+
+## DEDICATORIA
+
+**En memoria de Ares**
+*25 de abril de 2013 - 5 de agosto de 2025*
+Hasta que volvamos a encontrarnos.
+
+---
+
