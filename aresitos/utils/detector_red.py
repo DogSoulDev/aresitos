@@ -28,6 +28,20 @@ import logging
 
 
 class DetectorRed:
+    @staticmethod
+    def obtener_dns() -> str:
+        """Detecta el servidor DNS configurado en el sistema (Kali/Linux)."""
+        try:
+            # Leer /etc/resolv.conf
+            with open('/etc/resolv.conf', 'r') as f:
+                for line in f:
+                    if line.strip().startswith('nameserver'):
+                        partes = line.strip().split()
+                        if len(partes) == 2:
+                            return partes[1]
+            return "No detectado"
+        except Exception:
+            return "No detectado"
     """Detector automático de configuración de red para Kali Linux"""
     
     @staticmethod

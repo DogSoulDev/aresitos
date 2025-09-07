@@ -26,65 +26,37 @@ class VistaEscaneo(tk.Frame):
         self._actualizar_terminal_seguro(formatted_msg)
 
     def _mostrar_resultados_escaneo_kali(self, resultado):
-        """Mostrar resultados del escaneo Kali 2025 de forma organizada."""
+        """Mostrar solo resultados técnicos útiles del escaneo."""
         try:
-            datos = resultado.get("resultado", {})
-            objetivo = datos.get("objetivo", "N/A")
-            self._actualizar_texto_seguro("=" * 60 + "\n")
-            self._actualizar_texto_seguro("           RESULTADOS DEL ESCANEO KALI 2025\n")
-            self._actualizar_texto_seguro("=" * 60 + "\n\n")
-            self._actualizar_texto_seguro(f"OBJETIVO ESCANEADO: {objetivo}\n")
-            self._actualizar_texto_seguro(f"TIMESTAMP: {datos.get('timestamp', 'N/A')}\n")
-            herramientas = datos.get("herramientas_utilizadas", [])
-            if herramientas:
-                self._actualizar_texto_seguro(f"HERRAMIENTAS UTILIZADAS: {', '.join(herramientas)}\n\n")
-            resumen = datos.get("resumen", {})
-            if resumen:
-                self._actualizar_texto_seguro("--- RESUMEN EJECUTIVO ---\n")
-                self._actualizar_texto_seguro(f"Puertos Abiertos: {resumen.get('puertos_abiertos', 0)}\n")
-                self._actualizar_texto_seguro(f"Servicios Detectados: {resumen.get('servicios_detectados', 0)}\n")
-                self._actualizar_texto_seguro(f"Vulnerabilidades: {resumen.get('vulnerabilidades_encontradas', 0)}\n")
-                self._actualizar_texto_seguro(f"Herramientas Utilizadas: {resumen.get('herramientas_utilizadas', 0)}\n\n")
-            fases = datos.get("fases", {})
-            # FASE 1: Masscan
-            if "masscan" in fases:
-                masscan_data = fases["masscan"]
-                self._actualizar_texto_seguro("--- FASE 1: MASSCAN (Reconocimiento Rápido) ---\n")
-                if masscan_data.get("exito"):
-                    puertos = masscan_data.get("puertos", [])
-                    self._actualizar_texto_seguro(f"PUERTOS ENCONTRADOS: {len(puertos)}\n")
-                    for puerto in puertos[:10]:
-                        self._actualizar_texto_seguro(f"  - {puerto['ip']}:{puerto['puerto']}/{puerto['protocolo']}\n")
-                    if len(puertos) > 10:
-                        self._actualizar_texto_seguro(f"  ... y {len(puertos) - 10} puertos más\n")
-                else:
-                    self._actualizar_texto_seguro("ERROR en masscan o no ejecutado\n")
-                self._actualizar_texto_seguro("\n")
-            # FASE 2: Nmap
-            if "nmap" in fases:
-                nmap_data = fases["nmap"]
-                self._actualizar_texto_seguro("--- FASE 2: NMAP (Análisis Detallado) ---\n")
-                if nmap_data.get("exito"):
-                    puertos = nmap_data.get("puertos", [])
-                    self._actualizar_texto_seguro(f"SERVICIOS IDENTIFICADOS: {len(puertos)}\n")
-                    for servicio in puertos[:8]:
-                        puerto = servicio.get("puerto", "N/A")
-                        protocolo = servicio.get("protocolo", "N/A")
-                        servicio_name = servicio.get("servicio", "desconocido")
-                        version = servicio.get("version", "")
-                        self._actualizar_texto_seguro(f"  - Puerto {puerto}/{protocolo}: {servicio_name} {version}\n")
-                    if len(puertos) > 8:
-                        self._actualizar_texto_seguro(f"  ... y {len(puertos) - 8} servicios más\n")
-                    if "sistema_operativo" in nmap_data:
-                        self._actualizar_texto_seguro(f"SISTEMA OPERATIVO: {nmap_data['sistema_operativo']}\n")
-                else:
-                    self._actualizar_texto_seguro("ERROR en nmap o no ejecutado\n")
-                self._actualizar_texto_seguro("\n")
-            self._actualizar_texto_seguro("=" * 60 + "\n")
-            self._log_terminal("CONTROLADOR Escaneo Kali 2025 completado exitosamente", "ESCANEADOR", "SUCCESS")
+            fases = resultado.get("fases", {})
+            # Puertos abiertos
+            masscan = fases.get("masscan", {})
+            puertos = masscan.get("puertos_abiertos", [])
+            if puertos:
+                self._actualizar_texto_seguro("Puertos abiertos detectados:\n")
+                for p in puertos:
+                    self._actualizar_texto_seguro(f"  - {p['ip']}:{p['puerto']}/{p['protocolo']}\n")
+            # Servicios detectados
+            nmap = fases.get("nmap", {})
+            servicios = nmap.get("servicios", [])
+            if servicios:
+                self._actualizar_texto_seguro("Servicios detectados:\n")
+                for s in servicios:
+                    self._actualizar_texto_seguro(f"  - Puerto {s.get('puerto', 'N/A')}/{s.get('protocolo', 'N/A')}: {s.get('servicio', 'desconocido')} {s.get('version', '')}\n")
+            # Vulnerabilidades detectadas
+            nuclei = fases.get("nuclei", {})
+            if nuclei:
+                for p in puertos:
+                    objetivo_puerto = f"{p['ip']}:{p['puerto']}"
+                    vulns = nuclei.get("vulnerabilidades", [])
+                    if vulns:
+                        self._actualizar_texto_seguro(f"Vulnerabilidades en {objetivo_puerto}:\n")
+                        for v in vulns[:5]:
+                            self._actualizar_texto_seguro(f"  - {v}\n")
+                        if len(vulns) > 5:
+                            self._actualizar_texto_seguro(f"  ... y {len(vulns) - 5} vulnerabilidades más\n")
         except Exception as e:
             self._actualizar_texto_seguro(f"Error mostrando resultados: {str(e)}\n")
-            self._log_terminal(f"Error mostrando resultados: {str(e)}", "ESCANEADOR", "ERROR")
     def set_controlador(self, controlador):
         self.controlador = controlador
     @staticmethod
@@ -185,12 +157,23 @@ class VistaEscaneo(tk.Frame):
         self.top_buttons_frame.pack(fill="x", pady=(8, 2))
 
         self.btn_escanear = tk.Button(
-            self.top_buttons_frame, text="Escanear Sistema",
+            self.top_buttons_frame, text="Escanear Red",
             command=self.ejecutar_escaneo,
             font=("Arial", 12, "bold"), relief='raised', padx=18, pady=8, bd=2,
             bg='#ffb86c', fg='#232629', activebackground='#fffae3', activeforeground='#ff5555'
         )
         self.btn_escanear.pack(side="left", padx=(8, 8), pady=4)
+
+        # Entrada para agregar IP manualmente a cuarentena
+        self.entry_ip_cuarentena = tk.Entry(self.top_buttons_frame, font=("Arial", 11), width=18)
+        self.entry_ip_cuarentena.pack(side="left", padx=(8, 2), pady=4)
+        self.btn_agregar_ip_cuarentena = tk.Button(
+            self.top_buttons_frame, text="Agregar IP a cuarentena",
+            command=self.agregar_ip_manual_a_cuarentena,
+            font=("Arial", 11), relief='raised', padx=8, pady=6, bd=2,
+            bg=self.colors['danger'], fg='#ffffff', activebackground='#ff5555', activeforeground='#232629'
+        )
+        self.btn_agregar_ip_cuarentena.pack(side="left", padx=2, pady=4)
 
         self.btn_actualizar_bases = tk.Button(
             self.top_buttons_frame, text="Actualizar Bases",
@@ -199,14 +182,6 @@ class VistaEscaneo(tk.Frame):
             bg='#8be9fd', fg='#232629', activebackground='#e3f6ff', activeforeground='#ff5555'
         )
         self.btn_actualizar_bases.pack(side="left", padx=8, pady=4)
-
-        self.btn_cuarentena = tk.Button(
-            self.top_buttons_frame, text="Mandar a cuarentena",
-            command=self.mandar_a_cuarentena,
-            font=("Arial", 12, "bold"), relief='raised', padx=18, pady=8, bd=2,
-            bg=self.colors['danger'], fg='#ffffff', activebackground='#ff5555', activeforeground='#232629'
-        )
-        self.btn_cuarentena.pack(side="left", padx=8, pady=4)
 
         self.btn_cancelar_escaneo = tk.Button(
             self.top_buttons_frame, text="Cancelar",
@@ -332,26 +307,70 @@ class VistaEscaneo(tk.Frame):
     def _ejecutar_escaneo_async(self):
         """Ejecutar escaneo completo del sistema usando el escaneador avanzado Kali 2025."""
         import subprocess
+        from aresitos.utils.detector_red import DetectorRed
         self._actualizar_texto_seguro("HERRAMIENTAS: masscan, nmap, nuclei, gobuster, ffuf\n\n")
-        # Determinar objetivo usando DetectorRed
+        # Determinar objetivos: IP, red local, DNS
         objetivos = []
-        if DetectorRed:
-            try:
-                self.detector_red = DetectorRed()
-                objetivos = self.detector_red.obtener_objetivos_escaneo()
-                if not objetivos:
-                    objetivos = ["127.0.0.1"]
-                self._log_terminal(f"CONTROLADOR Red detectada automáticamente: {objetivos}", "ESCANEADOR", "INFO")
-            except Exception as e:
-                self._log_terminal(f"CONTROLADOR Error detección automática: {e}", "ESCANEADOR", "WARNING")
+        dns_detectado = "No detectado"
+        try:
+            ip_local, red_cidr = DetectorRed.obtener_objetivos_escaneo()
+            dns_detectado = DetectorRed.obtener_dns()
+            objetivos = [ip_local, red_cidr]
+            if dns_detectado and dns_detectado != "No detectado":
+                objetivos.append(dns_detectado)
+            if not objetivos:
                 objetivos = ["127.0.0.1"]
-        else:
+        except Exception:
             objetivos = ["127.0.0.1"]
+        # Mostrar objetivos y DNS juntos
+        try:
+            self._actualizar_texto_seguro(f"Objetivos escaneados: {', '.join(objetivos)}\nDNS detectado: {dns_detectado}\n")
+        except Exception:
+            pass
         # Ejecutar escaneo integral para cada objetivo
         for objetivo in objetivos:
             resultado = self._escaneo_integral_kali(objetivo)
             self.ultimos_resultados = resultado
             self._mostrar_resultados_escaneo_kali(resultado)
+    def agregar_ip_manual_a_cuarentena(self):
+        """Permite al usuario agregar manualmente una IP, vulnerabilidad, DNS, etc. a cuarentena desde la UI."""
+        from tkinter import messagebox
+        ip_manual = self.entry_ip_cuarentena.get().strip()
+        controlador_cuarentena = getattr(self.controlador, 'controlador_cuarentena', None)
+        if not ip_manual and (not hasattr(self, 'ultimos_resultados') or not self.ultimos_resultados):
+            messagebox.showwarning("Cuarentena", "Debes ingresar una IP o realizar un escaneo para poner elementos en cuarentena.")
+            return
+        if controlador_cuarentena:
+            # Si hay IP manual, ponerla en cuarentena
+            if ip_manual:
+                controlador_cuarentena.poner_ip_en_cuarentena(ip_manual, tipo_amenaza="manual", razon="Agregada manualmente por el usuario")
+                messagebox.showinfo("Cuarentena", f"IP/DNS/vulnerabilidad '{ip_manual}' puesta en cuarentena correctamente.")
+                self.entry_ip_cuarentena.delete(0, tk.END)
+            # Si hay resultados de escaneo, poner IPs, DNS y vulnerabilidades en cuarentena
+            if hasattr(self, 'ultimos_resultados') and self.ultimos_resultados:
+                ips_cuarentena = []
+                dns_cuarentena = self.ultimos_resultados.get('dns', None)
+                vulns_cuarentena = []
+                fases = self.ultimos_resultados.get('fases', {})
+                for fase in fases.values():
+                    if 'puertos' in fase:
+                        for p in fase['puertos']:
+                            if 'ip' in p:
+                                ips_cuarentena.append(p['ip'])
+                    if 'vulnerabilidades' in fase:
+                        vulns_cuarentena.extend(fase['vulnerabilidades'])
+                elementos = set(ips_cuarentena)
+                if dns_cuarentena:
+                    elementos.add(dns_cuarentena)
+                elementos.update(vulns_cuarentena)
+                if elementos:
+                    for elem in elementos:
+                        controlador_cuarentena.poner_ip_en_cuarentena(elem, tipo_amenaza="escaneo", razon="Detectado en escaneo")
+                    messagebox.showinfo("Cuarentena", f"Elementos puestos en cuarentena: {', '.join(elementos)}")
+                else:
+                    messagebox.showinfo("Cuarentena", "No se detectaron elementos para poner en cuarentena.")
+        else:
+            messagebox.showerror("Cuarentena", "No se encontró el controlador de cuarentena en el controlador principal.")
         self._finalizar_escaneo()
 
     def _finalizar_escaneo(self):
@@ -388,36 +407,6 @@ class VistaEscaneo(tk.Frame):
             "resultados": getattr(self, "ultimos_resultados", []),
             "timestamp": getattr(self, "ultimo_timestamp", "")
         }
-    def mandar_a_cuarentena(self):
-        """Envía las IPs detectadas en el último escaneo a cuarentena usando el controlador real."""
-        from tkinter import messagebox
-        try:
-            if not hasattr(self, 'ultimos_resultados') or not self.ultimos_resultados:
-                messagebox.showwarning("Cuarentena", "No hay resultados de escaneo para enviar a cuarentena.")
-                return
-            # Buscar IPs detectadas en el último escaneo
-            ips_cuarentena = []
-            fases = self.ultimos_resultados.get('fases', {})
-            for fase in fases.values():
-                if 'puertos' in fase:
-                    for p in fase['puertos']:
-                        if 'ip' in p:
-                            ips_cuarentena.append(p['ip'])
-            if not ips_cuarentena:
-                messagebox.showinfo("Cuarentena", "No se detectaron IPs para poner en cuarentena.")
-                return
-            # Usar el controlador de cuarentena
-            controlador_cuarentena = getattr(self.controlador, 'controlador_cuarentena', None)
-            if controlador_cuarentena:
-                resultados = []
-                for ip in set(ips_cuarentena):
-                    res = controlador_cuarentena.poner_ip_en_cuarentena(ip, tipo_amenaza="escaneo", razon="Detectada en escaneo")
-                    resultados.append(res)
-                messagebox.showinfo("Cuarentena", f"IPs puestas en cuarentena: {', '.join(set(ips_cuarentena))}")
-            else:
-                messagebox.showerror("Cuarentena", "No se encontró el controlador de cuarentena en el controlador principal.")
-        except Exception as e:
-            messagebox.showerror("Cuarentena", f"Error al poner en cuarentena: {str(e)}")
 
     def cancelar_escaneo(self):
         """Cancela el escaneo en curso deteniendo el hilo si está activo."""
@@ -484,38 +473,46 @@ class VistaEscaneo(tk.Frame):
 
     def _escaneo_integral_kali(self, objetivo):
         """Escaneo integral usando herramientas nativas de Kali Linux."""
-        import subprocess
-        resultados = {"fases": {}}
-        self._actualizar_texto_seguro(f"\nFASE 1: Escaneo de puertos con masscan...\n")
+        # Usar el modelo real de escaneo
         try:
-            masscan_cmd = ["masscan", objetivo, "-p1-1000", "--rate=1000"]
-            resultado_masscan = subprocess.run(masscan_cmd, capture_output=True, text=True, timeout=60)
-            puertos = []
-            if resultado_masscan.returncode == 0 and resultado_masscan.stdout.strip():
-                for linea in resultado_masscan.stdout.strip().split("\n"):
-                    if "open" in linea.lower():
-                        partes = linea.split()
-                        if len(partes) >= 4:
-                            ip = partes[3]
-                            puerto = partes[-1].split("/")[0]
-                            protocolo = partes[-1].split("/")[1] if "/" in partes[-1] else "tcp"
-                            puertos.append({"ip": ip, "puerto": puerto, "protocolo": protocolo})
-            resultados["fases"]["masscan"] = {"exito": True, "puertos": puertos}
+            from aresitos.modelo.modelo_escaneador import EscaneadorKali2025
+            escaneador = EscaneadorKali2025()
+            self._actualizar_texto_seguro(f"\nFASE 1: Escaneo de puertos con masscan...\n")
+            resultado_masscan = escaneador.escaneo_rapido_masscan(objetivo)
+            puertos = resultado_masscan.get("puertos_abiertos", [])
+            self._actualizar_texto_seguro(f"Puertos abiertos detectados: {len(puertos)}\n")
+            for p in puertos:
+                self._actualizar_texto_seguro(f"  - {p['ip']}:{p['puerto']}/{p['protocolo']}\n")
+
+            self._actualizar_texto_seguro(f"\nFASE 2: Escaneo de servicios con nmap...\n")
+            puertos_numeros = [int(p['puerto']) for p in puertos]
+            resultado_nmap = escaneador.escaneo_detallado_nmap(objetivo, puertos_numeros)
+            servicios = resultado_nmap.get("servicios", [])
+            self._actualizar_texto_seguro(f"Servicios detectados: {len(servicios)}\n")
+            for s in servicios:
+                self._actualizar_texto_seguro(f"  - Puerto {s.get('puerto', 'N/A')}/{s.get('protocolo', 'N/A')}: {s.get('servicio', 'desconocido')} {s.get('version', '')}\n")
+
+            self._actualizar_texto_seguro(f"\nFASE 3: Escaneo de vulnerabilidades con nuclei...\n")
+            for p in puertos:
+                objetivo_puerto = f"{p['ip']}:{p['puerto']}"
+                resultado_nuclei = escaneador.escaneo_vulnerabilidades_nuclei(objetivo_puerto)
+                vulns = resultado_nuclei.get("vulnerabilidades", [])
+                self._actualizar_texto_seguro(f"Vulnerabilidades en {objetivo_puerto}: {len(vulns)}\n")
+                for v in vulns[:5]:
+                    self._actualizar_texto_seguro(f"  - {v}\n")
+                if len(vulns) > 5:
+                    self._actualizar_texto_seguro(f"  ... y {len(vulns) - 5} vulnerabilidades más\n")
+            resultados = {
+                "fases": {
+                    "masscan": resultado_masscan,
+                    "nmap": resultado_nmap,
+                    "nuclei": "OK"
+                }
+            }
+            return resultados
         except Exception as e:
-            resultados["fases"]["masscan"] = {"exito": False, "error": str(e)}
-        self._actualizar_texto_seguro(f"\nFASE 2: Escaneo de puertos con nmap...\n")
-        try:
-            nmap_cmd = ["nmap", "-sS", "-T4", objetivo]
-            resultado_nmap = subprocess.run(nmap_cmd, capture_output=True, text=True, timeout=120)
-            puertos_abiertos = []
-            if resultado_nmap.returncode == 0 and resultado_nmap.stdout.strip():
-                for linea in resultado_nmap.stdout.split("\n"):
-                    if "open" in linea and ("tcp" in linea or "udp" in linea):
-                        puertos_abiertos.append({"puerto": linea.strip()})
-            resultados["fases"]["nmap"] = {"exito": True, "puertos": puertos_abiertos}
-        except Exception as e:
-            resultados["fases"]["nmap"] = {"exito": False, "error": str(e)}
-        return resultados
+            self._actualizar_texto_seguro(f"Error en escaneo integral: {str(e)}\n")
+            return {"exito": False, "error": str(e)}
 
     def _escaneo_avanzado_multiherramienta(self, objetivo):
         """Escaneo avanzado usando múltiples herramientas profesionales."""
