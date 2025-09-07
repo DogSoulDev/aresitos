@@ -498,7 +498,7 @@ class VistaMonitoreo(tk.Frame):
         self.btn_monitoreo.pack(side="left", padx=(0, 8), pady=4)
 
         self.btn_cuarentena = tk.Button(
-            nav_frame, text="Mandar a cuarentena",
+            nav_frame, text="Cuarentena",
             command=lambda: self.mostrar_pestana('cuarentena'),
             bg='#ff6633', fg='#232629', font=("Arial", 10), relief='raised', padx=8, pady=4,
             activebackground="#ffd9b3", activeforeground="#232629"
@@ -579,11 +579,11 @@ class VistaMonitoreo(tk.Frame):
         self.cuarentena_entry = tk.Entry(cuarentena_frame, width=32, font=('Consolas', 10))
         self.cuarentena_entry.pack(side="left", padx=(0, 5))
         self.cuarentena_entry.insert(0, "Ruta del archivo a poner en cuarentena")
-        btn_cuarentena = tk.Button(cuarentena_frame, text="Mandar a cuarentena",
-                                   command=self._poner_en_cuarentena_desde_entry,
-                                   bg="#ff5555", fg='white', font=("Arial", 11, "bold"), relief='raised', padx=14, pady=7,
-                                   activebackground="#ffd9b3", activeforeground="#232629")
-        btn_cuarentena.pack(side="left", padx=(0, 5))
+        self.btn_cuarentena_monitoreo = tk.Button(cuarentena_frame, text="Cuarentena",
+            command=self._poner_en_cuarentena_desde_entry,
+            bg="#ff5555", fg='white', font=("Arial", 11, "bold"), relief='raised', padx=14, pady=7,
+            activebackground="#ffd9b3", activeforeground="#232629")
+        self.btn_cuarentena_monitoreo.pack(side="left", padx=(0, 5))
 
         self.label_estado = tk.Label(control_frame, text="Estado: Detenido",
                                    bg='#2b2b2b', fg='#ffffff',

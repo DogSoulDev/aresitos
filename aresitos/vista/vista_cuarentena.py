@@ -98,6 +98,7 @@ class VistaCuarentena(tk.Frame):
         ttk.Button(btn_frame_a, text="Restaurar", command=self.restaurar_archivo_seleccionado, style='Burp.TButton').pack(side=tk.LEFT, padx=5)
         ttk.Button(btn_frame_a, text="Ver Detalles", command=self.ver_detalles_archivo, style='Burp.TButton').pack(side=tk.LEFT, padx=5)
         self.notebook.add(self.frame_archivos, text="Archivos")
+        self.notebook.add(self.frame_archivos, text="Cuarentena")
         # --- TABLA DE IPs SOSPECHOSAS ---
         self.frame_ips = tk.Frame(self.notebook, bg=self.colors['bg_primary'])
         self.lista_ips = ttk.Treeview(self.frame_ips, columns=("IP", "Motivo", "Fecha", "Estado", "Acción"), show="headings")
