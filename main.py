@@ -76,6 +76,16 @@ def verificar_tkinter():
         else:
             raise Exception(f"Error con tkinter: {e}")
 
+# --- Fragmento para cerrar el terminal y dejar solo la GUI en Kali Linux ---
+if sys.platform.startswith('linux') and os.getenv('DISPLAY'):
+    try:
+        # Solo relanzar si estamos en terminal interactiva y no en modo desarrollo
+        if os.isatty(sys.stdin.fileno()) and not verificar_modo_desarrollo():
+            os.system('nohup python3 main.py &')
+            sys.exit()
+    except Exception:
+        pass
+
 def main():
     """Función principal que redirige al login GUI con flujo escalonado"""
     print("ARESITOS - Sistema de Seguridad Cibernética")
