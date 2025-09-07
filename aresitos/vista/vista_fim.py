@@ -230,26 +230,25 @@ class VistaFIM(tk.Frame):
             )
             terminal_frame.pack(fill="both", expand=True)
 
+            # Controles de terminal (igual que monitoreo)
             controles_frame = tk.Frame(terminal_frame, bg=self.colors['bg_secondary'])
             controles_frame.pack(fill="x", padx=5, pady=2)
-
             btn_limpiar = tk.Button(
                 controles_frame,
                 text="LIMPIAR",
                 command=self.limpiar_terminal_fim,
-                bg=self.colors.get('warning', '#ffaa00'),
-                fg=self.colors.get('button_fg', 'white'),
+                bg="#ffaa00",
+                fg='white',
                 font=("Arial", 8, "bold"),
                 height=1
             )
             btn_limpiar.pack(side="left", padx=2, fill="x", expand=True)
-
             btn_logs = tk.Button(
                 controles_frame,
                 text="VER LOGS",
                 command=self.abrir_logs_fim,
-                bg=self.colors.get('info', '#007acc'),
-                fg=self.colors.get('button_fg', 'white'),
+                bg="#007acc",
+                fg='white',
                 font=("Arial", 8, "bold"),
                 height=1
             )
@@ -258,41 +257,28 @@ class VistaFIM(tk.Frame):
             self.terminal_output = scrolledtext.ScrolledText(
                 terminal_frame,
                 height=6,
-                font=("Consolas", 8)
+                bg='#000000',
+                fg='#00ff00',
+                font=("Consolas", 8),
+                insertbackground='#00ff00',
+                selectbackground='#333333'
             )
-            burp_theme.configure_text_widget(self.terminal_output)
             self.terminal_output.pack(fill="both", expand=True, padx=5, pady=5)
 
-            entrada_frame = tk.Frame(terminal_frame, bg=self.colors['bg_secondary'])
+            entrada_frame = tk.Frame(terminal_frame, bg='#1e1e1e')
             entrada_frame.pack(fill="x", padx=5, pady=2)
-
-            tk.Label(entrada_frame, text="COMANDO:",
-                    bg=self.colors['bg_secondary'], fg=self.colors['fg_accent'],
-                    font=("Arial", 9, "bold")).pack(side="left", padx=(0, 5))
-
-            self.comando_entry = tk.Entry(
-                entrada_frame,
-                font=("Consolas", 9)
-            )
+            tk.Label(entrada_frame, text="COMANDO:", bg='#1e1e1e', fg='#00ff00', font=("Arial", 9, "bold")).pack(side="left", padx=(0, 5))
+            self.comando_entry = tk.Entry(entrada_frame, bg='#000000', fg='#00ff00', font=("Consolas", 9), insertbackground='#00ff00')
             self.comando_entry.pack(side="left", fill="x", expand=True, padx=(0, 5))
-            burp_theme.configure_text_widget(self.comando_entry)
             self.comando_entry.bind("<Return>", self.ejecutar_comando_entry)
-
-            ejecutar_btn = tk.Button(
-                entrada_frame,
-                text="EJECUTAR",
-                command=self.ejecutar_comando_entry,
-                bg=self.colors.get('button_bg', '#2d5aa0'),
-                fg=self.colors.get('button_fg', 'white'),
-                font=("Arial", 8, "bold")
-            )
+            ejecutar_btn = tk.Button(entrada_frame, text="EJECUTAR", command=self.ejecutar_comando_entry, bg='#2d5aa0', fg='white', font=("Arial", 8, "bold"))
             ejecutar_btn.pack(side="right")
 
             import datetime
             self.terminal_output.insert(tk.END, "="*60 + "\n")
             self.terminal_output.insert(tk.END, "Terminal ARESITOS - FIM v2.0\n")
             self.terminal_output.insert(tk.END, f"Iniciado: {datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')}\n")
-            self.terminal_output.insert(tk.END, f"Sistema: Kali Linux - File Integrity Monitoring\n")
+            self.terminal_output.insert(tk.END, "Sistema: Kali Linux - File Integrity Monitoring\n")
             self.terminal_output.insert(tk.END, "="*60 + "\n")
             self.terminal_output.insert(tk.END, "LOG Monitoreo FIM en tiempo real\n\n")
 
