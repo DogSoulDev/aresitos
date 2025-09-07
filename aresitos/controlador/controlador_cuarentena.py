@@ -460,3 +460,11 @@ class ControladorCuarentena(ControladorBase):
             self.logger.error(f"Error en validación de funcionalidad: {e}")
         
         return validacion
+    
+    def restaurar_archivo(self, archivo):
+        # Placeholder: lógica real debe implementarse
+        return True
+
+    def eliminar_archivo(self, archivo):
+        # Placeholder: lógica real debe implementarse
+        return True

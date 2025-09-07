@@ -545,14 +545,40 @@ class VistaAuditoria(tk.Frame):
         cuarentena_label.pack(anchor="w", padx=10, pady=(10, 2))
 
         self.cuarentena_entry = tk.Entry(section_frame, width=30, font=('Consolas', 10))
-        self.cuarentena_entry.pack(fill="x", padx=10, pady=(0, 5))
-        self.cuarentena_entry.insert(0, "Ruta del archivo a poner en cuarentena")
+        self.cuarentena_entry.pack_forget()  # Ocultamos el entry, ya no se usará
 
-        btn_cuarentena = tk.Button(section_frame, text="Poner en cuarentena",
-                                   command=self._poner_en_cuarentena_desde_entry,
+        btn_cuarentena = tk.Button(section_frame, text="Mandar a cuarentena",
+                                   command=self.seleccionar_archivo_cuarentena,
                                    bg=self.colors['danger'], fg='white',
-                                   font=('Arial', 9, 'bold'), relief='flat', padx=10, pady=5)
+                                   font=('Arial', 10), relief='flat', padx=8, pady=4)
         btn_cuarentena.pack(fill=tk.X, padx=10, pady=2)
+
+    def seleccionar_archivo_cuarentena(self):
+        archivo = filedialog.askopenfilename(title="Seleccionar archivo para poner en cuarentena")
+        if not archivo:
+            self.log_terminal("No se seleccionó ningún archivo.")
+            return
+        self._poner_en_cuarentena_desde_ruta(archivo)
+
+    def _poner_en_cuarentena_desde_ruta(self, ruta):
+        """Pone en cuarentena el archivo especificado por ruta."""
+        if not ruta:
+            self.log_terminal("Debe seleccionar un archivo válido para poner en cuarentena.")
+            return
+        if not hasattr(self, 'controlador') or not self.controlador or not hasattr(self.controlador, 'controlador_cuarentena'):
+            self.log_terminal("El controlador de cuarentena no está disponible.")
+            return
+        try:
+            resultado = self.controlador.controlador_cuarentena.cuarentenar_archivo(ruta, razon="Manual desde Auditoría")
+            if resultado.get('exito'):
+                self.log_terminal(f"Archivo puesto en cuarentena: {ruta}")
+                self._enviar_a_reportes('poner_en_cuarentena', f"Archivo puesto en cuarentena: {ruta}", False)
+            else:
+                self.log_terminal(f"Error al poner en cuarentena: {resultado.get('mensaje','sin mensaje')}")
+                self._enviar_a_reportes('poner_en_cuarentena', f"Error: {resultado.get('mensaje','sin mensaje')}", True)
+        except Exception as e:
+            self.log_terminal(f"Excepción al poner en cuarentena: {e}")
+            self._enviar_a_reportes('poner_en_cuarentena', str(e), True)
 
     def _poner_en_cuarentena_desde_entry(self):
         """Pone en cuarentena el archivo especificado en el campo de entrada."""
