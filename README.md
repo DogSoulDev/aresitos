@@ -220,3 +220,15 @@ El módulo de escaneo de red permite detectar servicios, vulnerabilidades, IPs y
 Ahora, el usuario puede aislar manualmente cualquier IP, DNS o vulnerabilidad detectada, garantizando un proceso más robusto y transparente. La cuarentena se gestiona desde un único punto, facilitando el análisis y la respuesta ante incidentes.
 
 ---
+
+### Nota importante sobre el terminal en Kali Linux
+
+Cuando ejecutas ARESITOS desde el terminal (por ejemplo, con `python3 main.py`), el terminal permanecerá abierto mientras la aplicación esté en uso. Esto ocurre porque, por diseño del sistema operativo, ningún programa puede cerrar el terminal que lo inició automáticamente.
+
+Si deseas que solo quede abierta la ventana de ARESITOS y no el terminal, tienes dos opciones:
+- Cierra el terminal manualmente después de que se abra la interfaz gráfica de ARESITOS. El programa seguirá funcionando normalmente.
+- Utiliza un acceso directo gráfico (.desktop) o inicia ARESITOS desde el menú de aplicaciones de Kali Linux. Así, la aplicación se abrirá directamente en modo gráfico, sin terminal externo.
+
+Esta es una limitación estándar en Linux y no depende de ARESITOS. La recomendación oficial es usar el acceso directo gráfico para la mejor experiencia de usuario.
+
+---

@@ -335,3 +335,13 @@ Este nuevo flujo elimina el antiguo botón "Mandar a cuarentena", centralizando 
 - Posibilidad de aislar manualmente cualquier IP, DNS o vulnerabilidad.
 - Visualización técnica clara y detallada de los resultados del escaneo.
 - Mayor robustez y transparencia en la gestión de amenazas.
+
+### Nota importante sobre el terminal y la ejecución en Kali Linux
+
+Cuando ejecutas ARESITOS desde el terminal (por ejemplo, con `python3 main.py`), el terminal permanecerá abierto mientras la aplicación esté en uso. Esto es una limitación del sistema operativo: ningún programa puede cerrar el terminal que lo inició automáticamente.
+
+Si quieres trabajar únicamente con la interfaz gráfica y sin terminal abierto, tienes dos opciones:
+- Cierra el terminal manualmente después de que se abra la ventana de ARESITOS. La aplicación seguirá funcionando sin problemas.
+- Utiliza un acceso directo gráfico (.desktop) o inicia ARESITOS desde el menú de aplicaciones de Kali Linux. Así, solo tendrás abierta la ventana del programa.
+
+Esta es una limitación estándar en Linux y no depende de ARESITOS. Se recomienda el uso del acceso directo gráfico para una experiencia óptima.
