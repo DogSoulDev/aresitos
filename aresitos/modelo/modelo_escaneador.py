@@ -71,9 +71,9 @@ class EscaneadorKali2025(_EscaneadorBase):  # type: ignore
         # Fallback: usar una ruta temporal vacía
         return self._get_temp_file("empty_wordlist.txt")
 
-    def escaneo_rapido_masscan(self, objetivo: str, puertos: str = "1-65535") -> Dict[str, Any]:
+    def escaneo_rapido_masscan(self, objetivo: str, puertos: str = "1-65535", callback_terminal=None, callback_progreso=None) -> Dict[str, Any]:
         """
-        Escaneo inicial rápido con masscan para identificar puertos abiertos
+        Escaneo inicial rápido con masscan para identificar puertos abiertos, mostrando el comando y progreso en tiempo real.
         """
         import subprocess, json
         self.log(f"[START] Iniciando escaneo rápido masscan: {objetivo}")
@@ -85,11 +85,18 @@ class EscaneadorKali2025(_EscaneadorBase):  # type: ignore
                 'masscan',
                 objetivo,
                 '-p', puertos,
-                '--rate', '1000',
+                '--rate', '10000',
+                '--open',
                 '--output-format', 'json',
                 '--output-filename', output_file
             ]
+            if callback_terminal:
+                callback_terminal(f"[MASSCAN] Ejecutando: {' '.join(cmd)}\n")
+            if callback_progreso:
+                callback_progreso(10)
             result = subprocess.run(cmd, capture_output=True, text=True, timeout=300)
+            if callback_progreso:
+                callback_progreso(30)
             if result.returncode == 0:
                 try:
                     with open(output_file, 'r') as f:
@@ -105,6 +112,8 @@ class EscaneadorKali2025(_EscaneadorBase):  # type: ignore
                                     'timestamp': item['timestamp']
                                 })
                     self.log(f"OK Masscan completado: {len(puertos_abiertos)} puertos encontrados")
+                    if callback_progreso:
+                        callback_progreso(40)
                     return {
                         "exito": True,
                         "puertos_abiertos": puertos_abiertos,
@@ -164,9 +173,9 @@ class EscaneadorKali2025(_EscaneadorBase):  # type: ignore
             self.log(f"Error procesando ffuf: {e}")
         return resultados
     
-    def escaneo_detallado_nmap(self, objetivo: str, puertos_encontrados: Optional[List[int]] = None) -> Dict[str, Any]:
+    def escaneo_detallado_nmap(self, objetivo: str, puertos_encontrados: Optional[List[int]] = None, callback_terminal=None, callback_progreso=None) -> Dict[str, Any]:
         """
-        Escaneo detallado con nmap basado en puertos encontrados por masscan
+        Escaneo detallado con nmap basado en puertos encontrados por masscan, mostrando el comando y progreso en tiempo real.
         """
         self.log(f"ANALIZANDO Iniciando escaneo detallado nmap: {objetivo}")
         if 'nmap' not in self.herramientas_disponibles:
@@ -182,13 +191,18 @@ class EscaneadorKali2025(_EscaneadorBase):  # type: ignore
             # Archivos temporales
             output_xml = self._get_temp_file("nmap_output.xml")
             output_txt = self._get_temp_file("nmap_output.txt")
-            # Comando nmap completo
+            # Comando nmap avanzado
             cmd = [
                 'nmap',
+                '-sS',  # SYN scan (stealth)
                 '-sV',  # Detección de versiones
                 '-sC',  # Scripts por defecto
                 '-O',   # Detección de OS
-                '--version-intensity', '5',
+                '--script', 'vuln',  # Scripts de vulnerabilidad
+                '--reason',  # Mostrar razón de estado de puerto
+                '--traceroute',  # Trazado de ruta
+                '--version-intensity', '9',  # Intensidad máxima
+                '-T4',  # Velocidad alta
                 '-oX', output_xml,
                 '-oN', output_txt
             ]
@@ -197,12 +211,19 @@ class EscaneadorKali2025(_EscaneadorBase):  # type: ignore
             else:
                 cmd.append('--top-ports=1000')
             cmd.append(objetivo)
-            # Ejecutar nmap
-            result = subprocess.run(cmd, capture_output=True, text=True, timeout=600)
+            if callback_terminal:
+                callback_terminal(f"[NMAP] Ejecutando: {' '.join(cmd)}\n")
+            if callback_progreso:
+                callback_progreso(50)
+            result = subprocess.run(cmd, capture_output=True, text=True, timeout=900)
+            if callback_progreso:
+                callback_progreso(80)
             if result.returncode == 0:
                 # Procesar resultados
                 servicios = self._procesar_resultados_nmap(output_txt)
                 self.log(f"OK Nmap completado: {len(servicios)} servicios detectados")
+                if callback_progreso:
+                    callback_progreso(90)
                 return {
                     "exito": True,
                     "servicios": servicios,
@@ -325,9 +346,9 @@ class EscaneadorKali2025(_EscaneadorBase):  # type: ignore
             self.log(f"OK Error ejecutando ffuf: {e}")
             return {"error": str(e)}
     
-    def escaneo_completo_kali2025(self, objetivo: str) -> Dict[str, Any]:
+    def escaneo_completo_kali2025(self, objetivo: str, callback_terminal=None, callback_progreso=None) -> Dict[str, Any]:
         """
-        Escaneo completo usando todas las herramientas Kali 2025 disponibles
+        Escaneo completo usando todas las herramientas Kali 2025 disponibles, mostrando comandos y progreso en tiempo real.
         """
         self.log(f"[START] INICIANDO ESCANEO COMPLETO KALI 2025: {objetivo}")
         resultados = {
@@ -339,7 +360,9 @@ class EscaneadorKali2025(_EscaneadorBase):  # type: ignore
         try:
             # FASE 1: Escaneo rápido con masscan
             self.log("FASE 1: Reconocimiento inicial con masscan")
-            resultado_masscan = self.escaneo_rapido_masscan(objetivo)
+            if callback_progreso:
+                callback_progreso(0)
+            resultado_masscan = self.escaneo_rapido_masscan(objetivo, puertos="1-65535", callback_terminal=callback_terminal, callback_progreso=callback_progreso)
             resultados["fases"]["masscan"] = resultado_masscan
             if resultado_masscan.get("exito"):
                 resultados["herramientas_utilizadas"].append("masscan")
@@ -348,12 +371,16 @@ class EscaneadorKali2025(_EscaneadorBase):  # type: ignore
                 puertos_encontrados = None
             # FASE 2: Escaneo detallado con nmap
             self.log("FASE 2: Análisis detallado con nmap")
-            resultado_nmap = self.escaneo_detallado_nmap(objetivo, puertos_encontrados)
+            resultado_nmap = self.escaneo_detallado_nmap(objetivo, puertos_encontrados, callback_terminal=callback_terminal, callback_progreso=callback_progreso)
             resultados["fases"]["nmap"] = resultado_nmap
             if resultado_nmap.get("exito"):
                 resultados["herramientas_utilizadas"].append("nmap")
             # FASE 3: Escaneo de vulnerabilidades con nuclei
             self.log("FASE 3: Detección de vulnerabilidades con nuclei")
+            if callback_terminal:
+                callback_terminal(f"[NUCLEI] Ejecutando: nuclei -target {objetivo} -json -severity medium,high,critical\n")
+            if callback_progreso:
+                callback_progreso(92)
             resultado_nuclei = self.escaneo_vulnerabilidades_nuclei(objetivo)
             resultados["fases"]["nuclei"] = resultado_nuclei
             if resultado_nuclei.get("exito"):
@@ -364,22 +391,28 @@ class EscaneadorKali2025(_EscaneadorBase):  # type: ignore
                 self.log("FASE 4: Análisis web con gobuster y ffuf")
                 for servicio_web in servicios_web:
                     url = f"http://{servicio_web['ip']}:{servicio_web['puerto']}"
-                    # Gobuster
+                    if callback_terminal:
+                        callback_terminal(f"[GOBUSTER] Ejecutando: gobuster dir -u {url} ...\n")
                     resultado_gobuster = self.escaneo_web_gobuster(url)
                     resultados["fases"][f"gobuster_{servicio_web['puerto']}"] = resultado_gobuster
                     if resultado_gobuster.get("exito"):
                         resultados["herramientas_utilizadas"].append("gobuster")
-                    # FFUF
+                    if callback_terminal:
+                        callback_terminal(f"[FFUF] Ejecutando: ffuf -u {url}/FUZZ ...\n")
                     resultado_ffuf = self.fuzzing_web_ffuf(url)
                     resultados["fases"][f"ffuf_{servicio_web['puerto']}"] = resultado_ffuf
                     if resultado_ffuf.get("exito"):
                         resultados["herramientas_utilizadas"].append("ffuf")
                 # FASE 5: Análisis de red y procesos locales con netstat, ss, lsof, ps
                 self.log("FASE 5: Análisis de red y procesos locales con netstat, ss, lsof, ps")
+                if callback_terminal:
+                    callback_terminal(f"[NETSTAT] Ejecutando: netstat -tunlp\n")
                 resultado_netstat = self.escaneo_netstat()
                 resultados["fases"]["netstat"] = resultado_netstat
                 if resultado_netstat.get("exito"):
                     resultados["herramientas_utilizadas"].append("netstat")
+            if callback_progreso:
+                callback_progreso(100)
             return resultados
         except Exception as e:
             self.log(f"Error en escaneo_completo_kali2025: {e}")

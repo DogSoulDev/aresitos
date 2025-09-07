@@ -472,44 +472,26 @@ class VistaEscaneo(tk.Frame):
             return {"exito": False, "error": error_msg}
 
     def _escaneo_integral_kali(self, objetivo):
-        """Escaneo integral usando herramientas nativas de Kali Linux."""
-        # Usar el modelo real de escaneo
+        """Escaneo integral usando herramientas nativas de Kali Linux, mostrando comandos y progreso en tiempo real."""
         try:
             from aresitos.modelo.modelo_escaneador import EscaneadorKali2025
             escaneador = EscaneadorKali2025()
+            def terminal_callback(msg):
+                self._actualizar_terminal_seguro(msg)
+            def progreso_callback(valor):
+                self.progress_bar['value'] = valor
+                self.progress_label.config(text=f"Progreso: {valor}%")
+                self.update_idletasks()
             self._actualizar_texto_seguro(f"\nFASE 1: Escaneo de puertos con masscan...\n")
-            resultado_masscan = escaneador.escaneo_rapido_masscan(objetivo)
-            puertos = resultado_masscan.get("puertos_abiertos", [])
-            self._actualizar_texto_seguro(f"Puertos abiertos detectados: {len(puertos)}\n")
-            for p in puertos:
-                self._actualizar_texto_seguro(f"  - {p['ip']}:{p['puerto']}/{p['protocolo']}\n")
-
-            self._actualizar_texto_seguro(f"\nFASE 2: Escaneo de servicios con nmap...\n")
-            puertos_numeros = [int(p['puerto']) for p in puertos]
-            resultado_nmap = escaneador.escaneo_detallado_nmap(objetivo, puertos_numeros)
-            servicios = resultado_nmap.get("servicios", [])
-            self._actualizar_texto_seguro(f"Servicios detectados: {len(servicios)}\n")
-            for s in servicios:
-                self._actualizar_texto_seguro(f"  - Puerto {s.get('puerto', 'N/A')}/{s.get('protocolo', 'N/A')}: {s.get('servicio', 'desconocido')} {s.get('version', '')}\n")
-
-            self._actualizar_texto_seguro(f"\nFASE 3: Escaneo de vulnerabilidades con nuclei...\n")
-            for p in puertos:
-                objetivo_puerto = f"{p['ip']}:{p['puerto']}"
-                resultado_nuclei = escaneador.escaneo_vulnerabilidades_nuclei(objetivo_puerto)
-                vulns = resultado_nuclei.get("vulnerabilidades", [])
-                self._actualizar_texto_seguro(f"Vulnerabilidades en {objetivo_puerto}: {len(vulns)}\n")
-                for v in vulns[:5]:
-                    self._actualizar_texto_seguro(f"  - {v}\n")
-                if len(vulns) > 5:
-                    self._actualizar_texto_seguro(f"  ... y {len(vulns) - 5} vulnerabilidades más\n")
-            resultados = {
-                "fases": {
-                    "masscan": resultado_masscan,
-                    "nmap": resultado_nmap,
-                    "nuclei": "OK"
-                }
-            }
-            return resultados
+            resultado = escaneador.escaneo_completo_kali2025(
+                objetivo,
+                callback_terminal=terminal_callback,
+                callback_progreso=progreso_callback
+            )
+            self._mostrar_resultados_escaneo_kali(resultado)
+            self.progress_bar['value'] = 100
+            self.progress_label.config(text="Estado: Escaneo completado")
+            return resultado
         except Exception as e:
             self._actualizar_texto_seguro(f"Error en escaneo integral: {str(e)}\n")
             return {"exito": False, "error": str(e)}

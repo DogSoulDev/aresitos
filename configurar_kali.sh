@@ -101,9 +101,7 @@ install_tools() {
     # Lista de herramientas ESENCIALES para escaneador profesional
     ESSENTIAL_TOOLS=(
         # Python y herramientas básicas (CRÍTICAS)
-        "python3-dev"
-        "python3-venv" 
-        "python3-tk"
+    "python3-dev"
         "curl"
         "wget"
         "git"
