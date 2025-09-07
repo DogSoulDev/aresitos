@@ -210,3 +210,13 @@ Reporte generado por ARESITOS conforme a ISO/IEC 27001 - https://github.com/DogS
 **En memoria de Ares**
 *25 de abril de 2013 - 5 de agosto de 2025*
 Hasta que volvamos a encontrarnos.
+
+---
+
+## Escaneo de red y gestión de cuarentena
+
+El módulo de escaneo de red permite detectar servicios, vulnerabilidades, IPs y DNS asociados al sistema operativo y la red del usuario. Tras cada escaneo, toda la información técnica útil (incluyendo IPs, DNS y vulnerabilidades detectadas) puede ser puesta en cuarentena de forma centralizada mediante el botón "Agregar IP a cuarentena". Se ha eliminado el botón "Mandar a cuarentena" para simplificar el flujo y evitar duplicidades.
+
+Ahora, el usuario puede aislar manualmente cualquier IP, DNS o vulnerabilidad detectada, garantizando un proceso más robusto y transparente. La cuarentena se gestiona desde un único punto, facilitando el análisis y la respuesta ante incidentes.
+
+---

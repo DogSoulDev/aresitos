@@ -322,3 +322,16 @@ resultado = sudo.ejecutar_comando_privilegiado(comando)
 ```python
 
 ### 12.6. Logging centralizado y seguro
+
+---
+### Flujo técnico de escaneo y cuarentena
+
+Tras realizar un escaneo de red, el sistema muestra todos los resultados técnicos relevantes: IPs, DNS y vulnerabilidades detectadas. La gestión de cuarentena se realiza exclusivamente desde el botón "Agregar IP a cuarentena", que permite aislar cualquier elemento detectado (IP, DNS, vulnerabilidad) o introducido manualmente por el usuario.
+
+Este nuevo flujo elimina el antiguo botón "Mandar a cuarentena", centralizando toda la funcionalidad en una única acción y mejorando la experiencia de uso. El proceso es más intuitivo y evita errores, asegurando que ningún elemento relevante quede fuera del aislamiento.
+
+**Ventajas del nuevo flujo:**
+- Centralización de la cuarentena en un solo botón.
+- Posibilidad de aislar manualmente cualquier IP, DNS o vulnerabilidad.
+- Visualización técnica clara y detallada de los resultados del escaneo.
+- Mayor robustez y transparencia en la gestión de amenazas.
