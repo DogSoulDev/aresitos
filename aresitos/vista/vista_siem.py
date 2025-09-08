@@ -749,13 +749,15 @@ class VistaSIEM(tk.Frame):
 
         # Solo botones de handlers implementados
         botones = [
-            ("ExifTool", getattr(self, 'usar_exiftool', None), '#8be9fd'),
-            ("Photorec", getattr(self, 'usar_photorec', None), '#50fa7b'),
-            ("Hexdump", getattr(self, 'usar_hexdump', None), '#ffb86c'),
-            ("XXD", getattr(self, 'usar_xxd', None), '#bd93f9'),
-            ("Hashdeep", getattr(self, 'usar_hashdeep', None), '#ff5555'),
-            ("TestDisk", getattr(self, 'usar_testdisk', None), '#f1fa8c'),
-            ("Bulk Extractor", getattr(self, 'usar_bulk_extractor', None), '#ff79c6'),
+            ("PDFiD (Análisis PDF)", getattr(self, 'usar_pdfid', None), '#ffb86c'),
+            ("YARA (Detección de malware)", getattr(self, 'usar_yara', None), '#bd93f9'),
+            ("ExifTool (Metadatos de archivos)", getattr(self, 'usar_exiftool', None), '#8be9fd'),
+            ("Photorec (Recuperación de archivos)", getattr(self, 'usar_photorec', None), '#50fa7b'),
+            ("Hexdump (Visualización hexadecimal)", getattr(self, 'usar_hexdump', None), '#ffb86c'),
+            ("XXD (Editor hexadecimal)", getattr(self, 'usar_xxd', None), '#bd93f9'),
+            ("Hashdeep (Hashes recursivos)", getattr(self, 'usar_hashdeep', None), '#ff5555'),
+            ("TestDisk (Recuperación de particiones)", getattr(self, 'usar_testdisk', None), '#f1fa8c'),
+            ("Bulk Extractor (Extracción masiva de artefactos)", getattr(self, 'usar_bulk_extractor', None), '#ff79c6'),
         ]
         for text, cmd, color in botones:
             if callable(cmd):
@@ -802,126 +804,179 @@ class VistaSIEM(tk.Frame):
         except Exception as e:
             self._actualizar_texto_forense(f"ERROR instalando herramientas: {str(e)}\n")
 
+    def usar_pdfid(self):
+        def ejecutar():
+            from tkinter import filedialog
+            archivo = filedialog.askopenfilename(title="Selecciona un archivo PDF para analizar", filetypes=[("PDF files", "*.pdf"), ("Todos", "*.*")])
+            if not archivo:
+                return
+            salida = f"PDFID - Detección de amenazas en PDF\n{'='*50}\nArchivo: {archivo}\n"
+            es_error = False
+            try:
+                sudo_manager = get_sudo_manager()
+                comando = f"pdfid.py '{archivo}'"
+                resultado = sudo_manager.execute_sudo_command(comando, timeout=60)
+                if resultado.returncode == 0:
+                    salida += resultado.stdout
+                else:
+                    salida += f"ERROR ejecutando pdfid: {resultado.stderr}\n"
+                    es_error = True
+            except Exception as e:
+                salida += f"ERROR usando pdfid: {str(e)}\n"
+                es_error = True
+            self._actualizar_texto_forense(salida)
+            self._enviar_a_reportes('pdfid', salida, es_error)
+        threading.Thread(target=ejecutar, daemon=True).start()
+
+    def usar_yara(self):
+        def ejecutar():
+            from tkinter import filedialog
+            regla = filedialog.askopenfilename(title="Selecciona archivo de reglas YARA", filetypes=[("YARA rules", "*.yar;*.yara"), ("Todos", "*.*")])
+            if not regla:
+                return
+            archivo = filedialog.askopenfilename(title="Selecciona archivo a analizar con YARA", filetypes=[("Todos", "*.*")])
+            if not archivo:
+                return
+            salida = f"YARA - Detección de malware y amenazas\n{'='*50}\nRegla: {regla}\nArchivo: {archivo}\n"
+            es_error = False
+            try:
+                sudo_manager = get_sudo_manager()
+                comando = f"yara '{regla}' '{archivo}'"
+                resultado = sudo_manager.execute_sudo_command(comando, timeout=60)
+                if resultado.returncode == 0:
+                    salida += resultado.stdout
+                else:
+                    salida += f"ERROR ejecutando yara: {resultado.stderr}\n"
+                    es_error = True
+            except Exception as e:
+                salida += f"ERROR usando yara: {str(e)}\n"
+                es_error = True
+            self._actualizar_texto_forense(salida)
+            self._enviar_a_reportes('yara', salida, es_error)
+        threading.Thread(target=ejecutar, daemon=True).start()
     # ...existing code...
     # === NUEVOS HANDLERS FORENSE ===
     def usar_exiftool(self):
         def ejecutar():
-            salida = "EXIFTOOL - Metadatos de archivos\n" + "="*50 + "\n"
+            from tkinter import filedialog
+            archivo = filedialog.askopenfilename(title="Selecciona un archivo para analizar metadatos", filetypes=[("Todos", "*.*")])
+            if not archivo:
+                return
+            salida = "EXIFTOOL - Metadatos de archivos\n" + "="*50 + f"\nArchivo: {archivo}\n"
             es_error = False
             try:
-                import subprocess
-                try:
-                    resultado = subprocess.run(['exiftool', '-ver'], capture_output=True, text=True, timeout=10)
-                    if resultado.returncode == 0:
-                        salida += "OK exiftool disponible\n\n"
-                        salida += "Comandos útiles:\n  exiftool archivo.jpg\n  exiftool -a -u -g1 archivo.docx\n  exiftool -r carpeta/\n\n"
-                    else:
-                        salida += "ERROR ejecutando exiftool\n"
-                        es_error = True
-                except FileNotFoundError:
-                    salida += "exiftool no encontrado. Instalar: sudo apt install exiftool\n"
+                sudo_manager = get_sudo_manager()
+                comando = f"exiftool '{archivo}'"
+                resultado = sudo_manager.execute_sudo_command(comando, timeout=60)
+                if resultado.returncode == 0:
+                    salida += resultado.stdout
+                else:
+                    salida += f"ERROR ejecutando exiftool: {resultado.stderr}\n"
                     es_error = True
             except Exception as e:
                 salida += f"ERROR usando exiftool: {str(e)}\n"
                 es_error = True
             self._actualizar_texto_forense(salida)
-            self._enviar_a_reportes('exiftool -ver', salida, es_error)
+            self._enviar_a_reportes('exiftool', salida, es_error)
         threading.Thread(target=ejecutar, daemon=True).start()
 
     def usar_photorec(self):
         def ejecutar():
-            salida = "PHOTOREC - Recuperación de archivos\n" + "="*50 + "\n"
+            from tkinter import filedialog
+            imagen = filedialog.askopenfilename(title="Selecciona una imagen de disco para recuperar archivos", filetypes=[("Todos", "*.*")])
+            if not imagen:
+                return
+            carpeta_salida = filedialog.askdirectory(title="Selecciona carpeta de salida para archivos recuperados")
+            if not carpeta_salida:
+                return
+            salida = f"PHOTOREC - Recuperación de archivos\n{'='*50}\nImagen: {imagen}\nCarpeta salida: {carpeta_salida}\n"
             es_error = False
             try:
-                import subprocess
-                try:
-                    resultado = subprocess.run(['photorec', '--version'], capture_output=True, text=True, timeout=10)
-                    if resultado.returncode == 0:
-                        salida += "OK photorec disponible\n\n"
-                        salida += "Comando: photorec\n  photorec (interfaz interactiva)\n  photorec /log /d carpeta_salida imagen.dd\n\n"
-                    else:
-                        salida += "ERROR ejecutando photorec\n"
-                        es_error = True
-                except FileNotFoundError:
-                    salida += "photorec no encontrado. Instalar: sudo apt install testdisk\n"
+                sudo_manager = get_sudo_manager()
+                comando = f"photorec /log /d '{carpeta_salida}' '{imagen}'"
+                resultado = sudo_manager.execute_sudo_command(comando, timeout=300)
+                if resultado.returncode == 0:
+                    salida += resultado.stdout
+                else:
+                    salida += f"ERROR ejecutando photorec: {resultado.stderr}\n"
                     es_error = True
             except Exception as e:
                 salida += f"ERROR usando photorec: {str(e)}\n"
                 es_error = True
             self._actualizar_texto_forense(salida)
-            self._enviar_a_reportes('photorec --version', salida, es_error)
+            self._enviar_a_reportes('photorec', salida, es_error)
         threading.Thread(target=ejecutar, daemon=True).start()
 
     def usar_hexdump(self):
         def ejecutar():
-            salida = "HEXDUMP - Visualización hexadecimal\n" + "="*50 + "\n"
+            from tkinter import filedialog
+            archivo = filedialog.askopenfilename(title="Selecciona un archivo binario para ver en hexadecimal", filetypes=[("Todos", "*.*")])
+            if not archivo:
+                return
+            salida = f"HEXDUMP - Visualización hexadecimal\n{'='*50}\nArchivo: {archivo}\n"
             es_error = False
             try:
-                import subprocess
-                try:
-                    resultado = subprocess.run(['hexdump', '--version'], capture_output=True, text=True, timeout=10)
-                    if resultado.returncode == 0:
-                        salida += "OK hexdump disponible\n\n"
-                        salida += "Comandos:\n  hexdump -C archivo.bin\n  hexdump -n 256 archivo.bin\n\n"
-                    else:
-                        salida += "ERROR ejecutando hexdump\n"
-                        es_error = True
-                except FileNotFoundError:
-                    salida += "hexdump no encontrado. Instalar: sudo apt install bsdmainutils\n"
+                sudo_manager = get_sudo_manager()
+                comando = f"hexdump -C '{archivo}'"
+                resultado = sudo_manager.execute_sudo_command(comando, timeout=60)
+                if resultado.returncode == 0:
+                    salida += resultado.stdout
+                else:
+                    salida += f"ERROR ejecutando hexdump: {resultado.stderr}\n"
                     es_error = True
             except Exception as e:
                 salida += f"ERROR usando hexdump: {str(e)}\n"
                 es_error = True
             self._actualizar_texto_forense(salida)
-            self._enviar_a_reportes('hexdump --version', salida, es_error)
+            self._enviar_a_reportes('hexdump', salida, es_error)
         threading.Thread(target=ejecutar, daemon=True).start()
 
     def usar_xxd(self):
         def ejecutar():
-            salida = "XXD - Editor hexadecimal\n" + "="*50 + "\n"
+            from tkinter import filedialog
+            archivo = filedialog.askopenfilename(title="Selecciona un archivo binario para ver en hexadecimal (xxd)", filetypes=[("Todos", "*.*")])
+            if not archivo:
+                return
+            salida = f"XXD - Editor hexadecimal\n{'='*50}\nArchivo: {archivo}\n"
             es_error = False
             try:
-                import subprocess
-                try:
-                    resultado = subprocess.run(['xxd', '-h'], capture_output=True, text=True, timeout=10)
-                    if resultado.returncode == 0:
-                        salida += "OK xxd disponible\n\n"
-                        salida += "Comandos:\n  xxd archivo.bin\n  xxd -r archivo.hex > archivo.bin\n\n"
-                    else:
-                        salida += "ERROR ejecutando xxd\n"
-                        es_error = True
-                except FileNotFoundError:
-                    salida += "xxd no encontrado. Instalar: sudo apt install xxd\n"
+                sudo_manager = get_sudo_manager()
+                comando = f"xxd '{archivo}'"
+                resultado = sudo_manager.execute_sudo_command(comando, timeout=60)
+                if resultado.returncode == 0:
+                    salida += resultado.stdout
+                else:
+                    salida += f"ERROR ejecutando xxd: {resultado.stderr}\n"
                     es_error = True
             except Exception as e:
                 salida += f"ERROR usando xxd: {str(e)}\n"
                 es_error = True
             self._actualizar_texto_forense(salida)
-            self._enviar_a_reportes('xxd -h', salida, es_error)
+            self._enviar_a_reportes('xxd', salida, es_error)
         threading.Thread(target=ejecutar, daemon=True).start()
 
     def usar_hashdeep(self):
         def ejecutar():
-            salida = "HASHDEEP - Hashes recursivos\n" + "="*50 + "\n"
+            from tkinter import filedialog
+            carpeta = filedialog.askdirectory(title="Selecciona una carpeta para calcular hashes recursivos")
+            if not carpeta:
+                return
+            salida = f"HASHDEEP - Hashes recursivos\n{'='*50}\nCarpeta: {carpeta}\n"
             es_error = False
             try:
-                import subprocess
-                try:
-                    resultado = subprocess.run(['hashdeep', '-v'], capture_output=True, text=True, timeout=10)
-                    if resultado.returncode == 0:
-                        salida += "OK hashdeep disponible\n\n"
-                        salida += "Comandos:\n  hashdeep -r carpeta/\n  hashdeep -c md5,sha1,sha256 archivo\n\n"
-                    else:
-                        salida += "ERROR ejecutando hashdeep\n"
-                        es_error = True
-                except FileNotFoundError:
-                    salida += "hashdeep no encontrado. Instalar: sudo apt install hashdeep\n"
+                sudo_manager = get_sudo_manager()
+                comando = f"hashdeep -r '{carpeta}'"
+                resultado = sudo_manager.execute_sudo_command(comando, timeout=120)
+                if resultado.returncode == 0:
+                    salida += resultado.stdout
+                else:
+                    salida += f"ERROR ejecutando hashdeep: {resultado.stderr}\n"
                     es_error = True
             except Exception as e:
                 salida += f"ERROR usando hashdeep: {str(e)}\n"
                 es_error = True
             self._actualizar_texto_forense(salida)
-            self._enviar_a_reportes('hashdeep -v', salida, es_error)
+            self._enviar_a_reportes('hashdeep', salida, es_error)
         threading.Thread(target=ejecutar, daemon=True).start()
 
     def usar_testdisk(self):
@@ -929,71 +984,74 @@ class VistaSIEM(tk.Frame):
             salida = "TESTDISK - Recuperación de particiones\n" + "="*50 + "\n"
             es_error = False
             try:
-                import subprocess
-                try:
-                    resultado = subprocess.run(['testdisk', '--version'], capture_output=True, text=True, timeout=10)
-                    if resultado.returncode == 0:
-                        salida += "OK testdisk disponible\n\n"
-                        salida += "Comando: testdisk\n  testdisk (interfaz interactiva)\n\n"
-                    else:
-                        salida += "ERROR ejecutando testdisk\n"
-                        es_error = True
-                except FileNotFoundError:
-                    salida += "testdisk no encontrado. Instalar: sudo apt install testdisk\n"
+                sudo_manager = get_sudo_manager()
+                comando = "testdisk"
+                resultado = sudo_manager.execute_sudo_command(comando, timeout=300)
+                if resultado.returncode == 0:
+                    salida += resultado.stdout
+                else:
+                    salida += f"ERROR ejecutando testdisk: {resultado.stderr}\n"
                     es_error = True
             except Exception as e:
                 salida += f"ERROR usando testdisk: {str(e)}\n"
                 es_error = True
             self._actualizar_texto_forense(salida)
-            self._enviar_a_reportes('testdisk --version', salida, es_error)
+            self._enviar_a_reportes('testdisk', salida, es_error)
         threading.Thread(target=ejecutar, daemon=True).start()
 
     def usar_bulk_extractor(self):
         def ejecutar():
-            salida = "BULK_EXTRACTOR - Extracción masiva de artefactos\n" + "="*50 + "\n"
+            from tkinter import filedialog
+            imagen = filedialog.askopenfilename(title="Selecciona una imagen de disco para extraer artefactos", filetypes=[("Todos", "*.*")])
+            if not imagen:
+                return
+            carpeta_salida = filedialog.askdirectory(title="Selecciona carpeta de salida para artefactos extraídos")
+            if not carpeta_salida:
+                return
+            salida = f"BULK_EXTRACTOR - Extracción masiva de artefactos\n{'='*50}\nImagen: {imagen}\nCarpeta salida: {carpeta_salida}\n"
             es_error = False
             try:
-                import subprocess
-                try:
-                    resultado = subprocess.run(['bulk_extractor', '-V'], capture_output=True, text=True, timeout=10)
-                    if resultado.returncode == 0:
-                        salida += "OK bulk_extractor disponible\n\n"
-                        salida += "Comando:\n  bulk_extractor -o salida/ imagen.dd\n\n"
-                    else:
-                        salida += "ERROR ejecutando bulk_extractor\n"
-                        es_error = True
-                except FileNotFoundError:
-                    salida += "bulk_extractor no encontrado. Instalar: sudo apt install bulk-extractor\n"
+                sudo_manager = get_sudo_manager()
+                comando = f"bulk_extractor -o '{carpeta_salida}' '{imagen}'"
+                resultado = sudo_manager.execute_sudo_command(comando, timeout=300)
+                if resultado.returncode == 0:
+                    salida += resultado.stdout
+                else:
+                    salida += f"ERROR ejecutando bulk_extractor: {resultado.stderr}\n"
                     es_error = True
             except Exception as e:
                 salida += f"ERROR usando bulk_extractor: {str(e)}\n"
                 es_error = True
             self._actualizar_texto_forense(salida)
-            self._enviar_a_reportes('bulk_extractor -V', salida, es_error)
+            self._enviar_a_reportes('bulk_extractor', salida, es_error)
         threading.Thread(target=ejecutar, daemon=True).start()
 
     def usar_dc3dd(self):
         def ejecutar():
+            from tkinter import simpledialog
             salida = "DC3DD - Clonado forense avanzado\n" + "="*50 + "\n"
             es_error = False
             try:
-                import subprocess
-                try:
-                    resultado = subprocess.run(['dc3dd', '--version'], capture_output=True, text=True, timeout=10)
-                    if resultado.returncode == 0:
-                        salida += "OK dc3dd disponible\n\n"
-                        salida += "Comando:\n  dc3dd if=/dev/sdX of=imagen.dd hash=sha256 log=log.txt\n\n"
-                    else:
-                        salida += "ERROR ejecutando dc3dd\n"
-                        es_error = True
-                except FileNotFoundError:
-                    salida += "dc3dd no encontrado. Instalar: sudo apt install dc3dd\n"
+                sudo_manager = get_sudo_manager()
+                # Solicitar parámetros al usuario
+                origen = simpledialog.askstring("Origen", "Dispositivo de origen (ej: /dev/sdX):")
+                destino = simpledialog.askstring("Destino", "Archivo de destino (ej: imagen.dd):")
+                if not origen or not destino:
+                    salida += "Parámetros no especificados.\n"
                     es_error = True
+                else:
+                    comando = f"dc3dd if={origen} of={destino} hash=sha256 log=log.txt"
+                    resultado = sudo_manager.execute_sudo_command(comando, timeout=300)
+                    if resultado.returncode == 0:
+                        salida += resultado.stdout
+                    else:
+                        salida += f"ERROR ejecutando dc3dd: {resultado.stderr}\n"
+                        es_error = True
             except Exception as e:
                 salida += f"ERROR usando dc3dd: {str(e)}\n"
                 es_error = True
             self._actualizar_texto_forense(salida)
-            self._enviar_a_reportes('dc3dd --version', salida, es_error)
+            self._enviar_a_reportes('dc3dd', salida, es_error)
         threading.Thread(target=ejecutar, daemon=True).start()
 
     def usar_guymager(self):
@@ -1001,23 +1059,19 @@ class VistaSIEM(tk.Frame):
             salida = "GUYMAGER - Adquisición forense de discos (GUI)\n" + "="*50 + "\n"
             es_error = False
             try:
-                import subprocess
-                try:
-                    resultado = subprocess.run(['guymager', '--version'], capture_output=True, text=True, timeout=10)
-                    if resultado.returncode == 0:
-                        salida += "OK guymager disponible\n\n"
-                        salida += "Comando: guymager (interfaz gráfica)\n\n"
-                    else:
-                        salida += "ERROR ejecutando guymager\n"
-                        es_error = True
-                except FileNotFoundError:
-                    salida += "guymager no encontrado. Instalar: sudo apt install guymager\n"
+                sudo_manager = get_sudo_manager()
+                comando = "guymager"
+                resultado = sudo_manager.execute_sudo_command(comando, timeout=300)
+                if resultado.returncode == 0:
+                    salida += resultado.stdout
+                else:
+                    salida += f"ERROR ejecutando guymager: {resultado.stderr}\n"
                     es_error = True
             except Exception as e:
                 salida += f"ERROR usando guymager: {str(e)}\n"
                 es_error = True
             self._actualizar_texto_forense(salida)
-            self._enviar_a_reportes('guymager --version', salida, es_error)
+            self._enviar_a_reportes('guymager', salida, es_error)
         threading.Thread(target=ejecutar, daemon=True).start()
     
     def _inicializar_mensajes(self):
