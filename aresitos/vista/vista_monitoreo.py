@@ -487,21 +487,17 @@ class VistaMonitoreo(tk.Frame):
         parent = parent if parent is not None else self.notebook
         nav_frame = tk.Frame(parent, bg='#2b2b2b')
         nav_frame.pack(fill="x", pady=(0, 10))
-        self.btn_monitoreo = tk.Button(
+        self.btn_monitoreo = ttk.Button(
             nav_frame, text=" Monitoreo Sistema",
             command=lambda: self.mostrar_pestana('monitoreo'),
-            bg="#ffb86c", fg="#232629",
-            font=("Arial", 11, "bold"),
-            relief="raised", bd=2, padx=16, pady=8,
-            activebackground="#ffd9b3", activeforeground="#ff6633"
+            style='Burp.TButton', width=16
         )
         self.btn_monitoreo.pack(side="left", padx=(0, 8), pady=4)
 
-        self.btn_cuarentena = tk.Button(
+        self.btn_cuarentena = ttk.Button(
             nav_frame, text="Cuarentena",
             command=lambda: self.mostrar_pestana('cuarentena'),
-            bg='#ff6633', fg='#232629', font=("Arial", 10), relief='raised', padx=8, pady=4,
-            activebackground="#ffd9b3", activeforeground="#232629"
+            style='Burp.TButton', width=16
         )
         self.btn_cuarentena.pack(side="left", padx=8, pady=4)
     
@@ -510,18 +506,18 @@ class VistaMonitoreo(tk.Frame):
         # Actualizar colores de botones
         if pestana == 'monitoreo':
             if self.btn_monitoreo is not None:
-                self.btn_monitoreo.configure(bg='#ff6633')
+                pass  # ttk.Button no soporta 'bg', el color se define en el style
             if self.btn_cuarentena is not None:
-                self.btn_cuarentena.configure(bg='#404040')
+                pass  # ttk.Button no soporta 'bg', el color se define en el style
             if self.frame_cuarentena is not None:
                 self.frame_cuarentena.pack_forget()
             if self.frame_monitor is not None:
                 self.frame_monitor.pack(fill="both", expand=True)
         else:
             if self.btn_monitoreo is not None:
-                self.btn_monitoreo.configure(bg='#404040')
+                pass  # ttk.Button no soporta 'bg', el color se define en el style
             if self.btn_cuarentena is not None:
-                self.btn_cuarentena.configure(bg='#ff6633')
+                pass  # ttk.Button no soporta 'bg', el color se define en el style
             if self.frame_monitor is not None:
                 self.frame_monitor.pack_forget()
             if self.frame_cuarentena is not None:
@@ -534,42 +530,30 @@ class VistaMonitoreo(tk.Frame):
         # Frame de controles con tema
         control_frame = tk.Frame(self.frame_monitor, bg='#2b2b2b')
         control_frame.pack(fill="x", pady=(10, 10))
-        self.btn_iniciar_monitor = tk.Button(
+        self.btn_iniciar_monitor = ttk.Button(
             control_frame, text=" Iniciar Monitoreo", 
             command=self.iniciar_monitoreo,
-            bg="#50fa7b", fg="#232629",
-            font=("Arial", 11, "bold"),
-            relief="raised", bd=2, padx=16, pady=8,
-            activebackground="#a8ffb3", activeforeground="#ff6633"
+            style='Burp.TButton', width=16
         )
         self.btn_iniciar_monitor.pack(side="left", padx=(0, 8), pady=4)
-        self.btn_detener_monitor = tk.Button(
+        self.btn_detener_monitor = ttk.Button(
             control_frame, text=" Cancelar Monitoreo",
             command=self.cancelar_monitoreo,
             state="disabled",
-            bg="#ff5555", fg="#ffffff",
-            font=("Arial", 11, "bold"),
-            relief="raised", bd=2, padx=16, pady=8,
-            activebackground="#ffb3b3", activeforeground="#232629"
+            style='Burp.TButton', width=16
         )
         self.btn_detener_monitor.pack(side="left", padx=(0, 8), pady=4)
-        self.btn_red = tk.Button(
+        self.btn_red = ttk.Button(
             control_frame, text=" Monitorear Red", 
             command=self.monitorear_red,
-            bg="#8be9fd", fg="#232629",
-            font=("Arial", 11, "bold"),
-            relief="raised", bd=2, padx=16, pady=8,
-            activebackground="#b3f0ff", activeforeground="#ff6633"
+            style='Burp.TButton', width=16
         )
         self.btn_red.pack(side="left", padx=(0, 8), pady=4)
-        self.btn_cancelar_red = tk.Button(
+        self.btn_cancelar_red = ttk.Button(
             control_frame, text=" Cancelar Red", 
             command=self.cancelar_monitoreo_red,
             state="disabled",
-            bg="#ffb86c", fg="#232629",
-            font=("Arial", 11, "bold"),
-            relief="raised", bd=2, padx=16, pady=8,
-            activebackground="#ffd9b3", activeforeground="#ff6633"
+            style='Burp.TButton', width=16
         )
         self.btn_cancelar_red.pack(side="left", padx=(0, 8), pady=4)
 
@@ -579,10 +563,9 @@ class VistaMonitoreo(tk.Frame):
         self.cuarentena_entry = tk.Entry(cuarentena_frame, width=32, font=('Consolas', 10))
         self.cuarentena_entry.pack(side="left", padx=(0, 5))
         self.cuarentena_entry.insert(0, "Ruta del archivo a poner en cuarentena")
-        self.btn_cuarentena_monitoreo = tk.Button(cuarentena_frame, text="Cuarentena",
+        self.btn_cuarentena_monitoreo = ttk.Button(cuarentena_frame, text="Cuarentena",
             command=self._poner_en_cuarentena_desde_entry,
-            bg="#ff5555", fg='white', font=("Arial", 11, "bold"), relief='raised', padx=14, pady=7,
-            activebackground="#ffd9b3", activeforeground="#232629")
+            style='Burp.TButton', width=16)
         self.btn_cuarentena_monitoreo.pack(side="left", padx=(0, 5))
 
         self.label_estado = tk.Label(control_frame, text="Estado: Detenido",

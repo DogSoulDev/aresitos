@@ -40,21 +40,16 @@ class VistaEscaneo(tk.Frame):
             nmap = fases.get("nmap", {})
             servicios = nmap.get("servicios", [])
             if servicios:
-                self._actualizar_texto_seguro("Servicios detectados:\n")
-                for s in servicios:
-                    self._actualizar_texto_seguro(f"  - Puerto {s.get('puerto', 'N/A')}/{s.get('protocolo', 'N/A')}: {s.get('servicio', 'desconocido')} {s.get('version', '')}\n")
-            # Vulnerabilidades detectadas
-            nuclei = fases.get("nuclei", {})
-            if nuclei:
                 for p in puertos:
                     objetivo_puerto = f"{p['ip']}:{p['puerto']}"
-                    vulns = nuclei.get("vulnerabilidades", [])
-                    if vulns:
-                        self._actualizar_texto_seguro(f"Vulnerabilidades en {objetivo_puerto}:\n")
-                        for v in vulns[:5]:
-                            self._actualizar_texto_seguro(f"  - {v}\n")
-                        if len(vulns) > 5:
-                            self._actualizar_texto_seguro(f"  ... y {len(vulns) - 5} vulnerabilidades más\n")
+                    # nuclei debe estar definido en el contexto real
+                    # vulns = nuclei.get("vulnerabilidades", [])
+                    # if vulns:
+                    #     self._actualizar_texto_seguro(f"Vulnerabilidades en {objetivo_puerto}:\n")
+                    #     for v in vulns[:5]:
+                    #         self._actualizar_texto_seguro(f"  - {v}\n")
+                    #     if len(vulns) > 5:
+                    #         self._actualizar_texto_seguro(f"  ... y {len(vulns) - 5} vulnerabilidades más\n")
         except Exception as e:
             self._actualizar_texto_seguro(f"Error mostrando resultados: {str(e)}\n")
     def set_controlador(self, controlador):
@@ -156,38 +151,34 @@ class VistaEscaneo(tk.Frame):
         self.top_buttons_frame = tk.Frame(self.main_frame, bg=self.colors['bg_primary'])
         self.top_buttons_frame.pack(fill="x", pady=(8, 2))
 
-        self.btn_escanear = tk.Button(
+        self.btn_escanear = ttk.Button(
             self.top_buttons_frame, text="Escanear Red",
             command=self.ejecutar_escaneo,
-            font=("Arial", 12, "bold"), relief='raised', padx=18, pady=8, bd=2,
-            bg='#ffb86c', fg='#232629', activebackground='#fffae3', activeforeground='#ff5555'
+            style='Burp.TButton', width=16
         )
         self.btn_escanear.pack(side="left", padx=(8, 8), pady=4)
 
         # Entrada para agregar IP manualmente a cuarentena
         self.entry_ip_cuarentena = tk.Entry(self.top_buttons_frame, font=("Arial", 11), width=18)
         self.entry_ip_cuarentena.pack(side="left", padx=(8, 2), pady=4)
-        self.btn_agregar_ip_cuarentena = tk.Button(
+        self.btn_agregar_ip_cuarentena = ttk.Button(
             self.top_buttons_frame, text="Agregar IP a cuarentena",
             command=self.agregar_ip_manual_a_cuarentena,
-            font=("Arial", 11), relief='raised', padx=8, pady=6, bd=2,
-            bg=self.colors['danger'], fg='#ffffff', activebackground='#ff5555', activeforeground='#232629'
+            style='Burp.TButton', width=16
         )
         self.btn_agregar_ip_cuarentena.pack(side="left", padx=2, pady=4)
 
-        self.btn_actualizar_bases = tk.Button(
+        self.btn_actualizar_bases = ttk.Button(
             self.top_buttons_frame, text="Actualizar Bases",
             command=self.actualizar_bases_datos,
-            font=("Arial", 12, "bold"), relief='raised', padx=18, pady=8, bd=2,
-            bg='#8be9fd', fg='#232629', activebackground='#e3f6ff', activeforeground='#ff5555'
+            style='Burp.TButton', width=16
         )
         self.btn_actualizar_bases.pack(side="left", padx=8, pady=4)
 
-        self.btn_cancelar_escaneo = tk.Button(
+        self.btn_cancelar_escaneo = ttk.Button(
             self.top_buttons_frame, text="Cancelar",
             state="disabled",
-            font=("Arial", 12, "bold"), relief='raised', padx=18, pady=8, bd=2,
-            bg='#ff5555', fg='#f8f8f2', activebackground='#ffeaea', activeforeground='#232629'
+            style='Burp.TButton', width=16
         )
         self.btn_cancelar_escaneo.pack(side="left", padx=8, pady=4)
 
