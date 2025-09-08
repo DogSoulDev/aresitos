@@ -90,15 +90,15 @@ class VistaSIEM(tk.Frame):
 
         # Botones de configuración de alertas (definir lista una vez)
         buttons_alertas = [
-            ("Detectar Intrusion", self.detectar_intrusion, '#d9534f'),
-            ("Activar IDS", self.activar_ids, '#5cb85c'),
-            ("Monitor Honeypot", self.monitor_honeypot, '#404040'),
-            ("WARNING Eventos Críticos", self.eventos_criticos, '#f0ad4e'),
-            ("Brute Force", self.detectar_brute_force, '#404040'),
-            ("Notificaciones", self.configurar_notificaciones, '#404040'),
-            ("Actualizar Reglas", self.actualizar_reglas, '#404040'),
-            ("Exportar Alertas", self.exportar_alertas, '#404040'),
-            ("Cancelar Correlación", self.cancelar_correlacion, '#d9534f')
+            ("Detectar Intrusion (Análisis de accesos no autorizados)", self.detectar_intrusion, '#d9534f'),
+            ("Activar IDS (Sistema de detección de intrusos)", self.activar_ids, '#5cb85c'),
+            ("Monitor Honeypot (Simulación de sistemas para atraer atacantes)", self.monitor_honeypot, '#404040'),
+            ("WARNING Eventos Críticos (Alertas de eventos graves)", self.eventos_criticos, '#f0ad4e'),
+            ("Brute Force (Detección de ataques de fuerza bruta)", self.detectar_brute_force, '#404040'),
+            ("Notificaciones (Configuración de avisos de seguridad)", self.configurar_notificaciones, '#404040'),
+            ("Actualizar Reglas (Actualizar reglas de correlación)", self.actualizar_reglas, '#404040'),
+            ("Exportar Alertas (Exportar eventos detectados)", self.exportar_alertas, '#404040'),
+            ("Detener cualquier Correlación (Detiene todos los motores)", self.cancelar_correlacion, '#d9534f')
         ]
         for text, command, bg_color in buttons_alertas:
             if self.theme:
@@ -138,11 +138,22 @@ class VistaSIEM(tk.Frame):
         self.correlacion_thread.start()
 
     def cancelar_correlacion(self):
-        """Cancelar la correlación avanzada si está en curso."""
+        """Cancelar cualquier ejecución activa en el Motor de Correlación."""
         self._cancelar_correlacion = True
+        # Cancelar correlación avanzada
         if hasattr(self, 'correlacion_thread') and self.correlacion_thread and self.correlacion_thread.is_alive():
             self._actualizar_texto_analisis("Cancelando correlación avanzada...\n")
             self.log_to_terminal("Correlación avanzada cancelada por el usuario")
+        # Cancelar otros hilos relacionados
+        for attr in dir(self):
+            if attr.endswith('_thread') and hasattr(getattr(self, attr), 'is_alive'):
+                thread_obj = getattr(self, attr)
+                if thread_obj and thread_obj.is_alive():
+                    self._actualizar_texto_analisis(f"Cancelando ejecución: {attr}\n")
+                    self.log_to_terminal(f"Ejecución cancelada: {attr}")
+                    # No se puede forzar el stop, pero se puede usar una bandera
+                    if hasattr(self, f'_cancelar_{attr}'):
+                        setattr(self, f'_cancelar_{attr}', True)
     def _actualizar_texto_siem_seguro(self, texto):
         def _update():
             try:
@@ -788,15 +799,15 @@ class VistaSIEM(tk.Frame):
 
     def instalar_herramientas_forenses(self):
         """Instala todas las herramientas forenses recomendadas con apt."""
-        import subprocess
+        from aresitos.utils.sudo_manager import execute_sudo
         herramientas = [
             "sleuthkit", "binwalk", "foremost", "strings", "dcfldd", "exiftool", "testdisk",
             "bulk-extractor", "dc3dd", "guymager", "hashdeep", "bsdmainutils", "xxd"
         ]
         self._actualizar_texto_forense("Instalando herramientas forenses recomendadas...\n")
         try:
-            comando = ["sudo", "apt", "install", "-y"] + herramientas
-            resultado = subprocess.run(comando, capture_output=True, text=True, timeout=300)
+            comando = f"apt install -y {' '.join(herramientas)}"
+            resultado = execute_sudo(comando, timeout=300)
             if resultado.returncode == 0:
                 self._actualizar_texto_forense("Herramientas instaladas correctamente.\n")
             else:
@@ -813,9 +824,9 @@ class VistaSIEM(tk.Frame):
             salida = f"PDFID - Detección de amenazas en PDF\n{'='*50}\nArchivo: {archivo}\n"
             es_error = False
             try:
-                sudo_manager = get_sudo_manager()
+                from aresitos.utils.sudo_manager import execute_sudo
                 comando = f"pdfid.py '{archivo}'"
-                resultado = sudo_manager.execute_sudo_command(comando, timeout=60)
+                resultado = execute_sudo(comando, timeout=60)
                 if resultado.returncode == 0:
                     salida += resultado.stdout
                 else:
@@ -840,9 +851,9 @@ class VistaSIEM(tk.Frame):
             salida = f"YARA - Detección de malware y amenazas\n{'='*50}\nRegla: {regla}\nArchivo: {archivo}\n"
             es_error = False
             try:
-                sudo_manager = get_sudo_manager()
+                from aresitos.utils.sudo_manager import execute_sudo
                 comando = f"yara '{regla}' '{archivo}'"
-                resultado = sudo_manager.execute_sudo_command(comando, timeout=60)
+                resultado = execute_sudo(comando, timeout=60)
                 if resultado.returncode == 0:
                     salida += resultado.stdout
                 else:
@@ -865,9 +876,9 @@ class VistaSIEM(tk.Frame):
             salida = "EXIFTOOL - Metadatos de archivos\n" + "="*50 + f"\nArchivo: {archivo}\n"
             es_error = False
             try:
-                sudo_manager = get_sudo_manager()
+                from aresitos.utils.sudo_manager import execute_sudo
                 comando = f"exiftool '{archivo}'"
-                resultado = sudo_manager.execute_sudo_command(comando, timeout=60)
+                resultado = execute_sudo(comando, timeout=60)
                 if resultado.returncode == 0:
                     salida += resultado.stdout
                 else:
@@ -2197,7 +2208,8 @@ class VistaSIEM(tk.Frame):
                             # 1. INFORMACIÓN BÁSICA DEL ARCHIVO
                             self.after(0, self._actualizar_texto_analisis, "\n1. INFORMACIÓN BÁSICA:\n")
                             try:
-                                resultado_wc = subprocess.run(['wc', '-l', log_path], capture_output=True, text=True, timeout=5)
+                                from aresitos.utils.sudo_manager import execute_sudo
+                                resultado_wc = execute_sudo(f"wc -l '{log_path}'", timeout=5)
                                 if resultado_wc.returncode == 0:
                                     lineas_total = resultado_wc.stdout.strip().split()[0]
                                     linea = f"   • Total de líneas: {lineas_total}\n"
@@ -2253,7 +2265,7 @@ class VistaSIEM(tk.Frame):
                             ]
                             for patron, descripcion, nivel in patrones_seguridad:
                                 try:
-                                    resultado_grep = subprocess.run(['grep', '-i', patron, log_path], capture_output=True, text=True, timeout=10)
+                                    resultado_grep = execute_sudo(f"grep -i '{patron}' '{log_path}'", timeout=10)
                                     if resultado_grep.returncode == 0 and resultado_grep.stdout.strip():
                                         coincidencias = resultado_grep.stdout.strip().split('\n')
                                         count = len(coincidencias)
@@ -2280,11 +2292,10 @@ class VistaSIEM(tk.Frame):
                                         linea = f"   [OK] {descripcion}: Sin eventos\n"
                                         self.after(0, self._actualizar_texto_analisis, linea)
                                         salida_reporte += linea
-                                except subprocess.TimeoutExpired:
+                                except Exception as e:
                                     linea = f"   [TIMEOUT] {descripcion}: Análisis excedió tiempo límite\n"
                                     self.after(0, self._actualizar_texto_analisis, linea)
                                     salida_reporte += linea
-                                except Exception as e:
                                     linea = f"   [ERROR] {descripcion}: {e}\n"
                                     self.after(0, self._actualizar_texto_analisis, linea)
                                     salida_reporte += linea
@@ -2294,7 +2305,7 @@ class VistaSIEM(tk.Frame):
                                 self.after(0, self._actualizar_texto_analisis, "\n3. ANÁLISIS DE IPs SOSPECHOSAS:\n")
                                 salida_reporte += "\n3. ANÁLISIS DE IPs SOSPECHOSAS:\n"
                                 try:
-                                    resultado_ips = subprocess.run(['bash', '-c', f"grep 'Failed password' {log_path} | awk '{{print $(NF-3)}}' | sort | uniq -c | sort -nr | head -5"], capture_output=True, text=True, timeout=15)
+                                    resultado_ips = execute_sudo(f"bash -c \"grep 'Failed password' '{log_path}' | awk '{{print $(NF-3)}}' | sort | uniq -c | sort -nr | head -5\"", timeout=15)
                                     if resultado_ips.returncode == 0 and resultado_ips.stdout.strip():
                                         self.after(0, self._actualizar_texto_analisis, "   TOP 5 IPs con intentos fallidos:\n")
                                         for linea in resultado_ips.stdout.strip().split('\n'):
@@ -2317,9 +2328,9 @@ class VistaSIEM(tk.Frame):
                             self.after(0, self._actualizar_texto_analisis, "\n4. EVENTOS RECIENTES (Últimas 5 entradas):\n")
                             try:
                                 if any(x in log_path for x in ['wtmp', 'lastlog', 'faillog']):
-                                    resultado = subprocess.run(['last', '-n', '5', '-f', log_path], capture_output=True, text=True, timeout=10)
+                                    resultado = execute_sudo(f"last -n 5 -f '{log_path}'", timeout=10)
                                 else:
-                                    resultado = subprocess.run(['tail', '-n', '5', log_path], capture_output=True, text=True, timeout=10)
+                                    resultado = execute_sudo(f"tail -n 5 '{log_path}'", timeout=10)
                                 if resultado.returncode == 0 and resultado.stdout.strip():
                                     lineas = resultado.stdout.strip().split('\n')
                                     for i, linea in enumerate(lineas, 1):
@@ -2400,7 +2411,7 @@ class VistaSIEM(tk.Frame):
         def ejecutar():
             try:
                 self.after(0, self._actualizar_texto_analisis, " Buscando patrones sospechosos...\n")
-                
+                from aresitos.utils.sudo_manager import execute_sudo
                 patrones_sospechosos = [
                     "Failed password",
                     "Invalid user",
@@ -2408,17 +2419,19 @@ class VistaSIEM(tk.Frame):
                     "POSSIBLE BREAK-IN ATTEMPT",
                     "refused connect"
                 ]
-                
                 for patron in patrones_sospechosos:
                     self.after(0, self._actualizar_texto_analisis, f" Buscando: {patron}\n")
-                    # Aquí iría la búsqueda real en los logs
-                    import time
-                    time.sleep(0.5)
-                
+                    try:
+                        resultado = execute_sudo(f"grep -i '{patron}' /var/log/auth.log", timeout=5)
+                        if resultado.returncode == 0 and resultado.stdout.strip():
+                            self.after(0, self._actualizar_texto_analisis, f"   Coincidencias encontradas: {len(resultado.stdout.strip().split(chr(10)))}\n")
+                        else:
+                            self.after(0, self._actualizar_texto_analisis, "   Sin coincidencias\n")
+                    except Exception as e:
+                        self.after(0, self._actualizar_texto_analisis, f"   [ERROR] {e}\n")
                 self.after(0, self._actualizar_texto_analisis, "OK Búsqueda de patrones completada\n\n")
             except Exception as e:
                 self.after(0, self._actualizar_texto_analisis, f"ERROR buscando patrones: {str(e)}\n")
-        
         threading.Thread(target=ejecutar, daemon=True).start()
     
     # Métodos de la pestaña Alertas
@@ -2436,38 +2449,27 @@ class VistaSIEM(tk.Frame):
         self.log_to_terminal("Activando sistema IDS/IPS con Suricata...")
         def ejecutar_ids():
             try:
-                self.after(0, self._actualizar_texto_alertas, " Activando sistema IDS/IPS real...\n")
-                
+                self.after(0, self._actualizar_texto_alertas, "Activando sistema IDS/IPS real (Suricata)...\n")
                 import subprocess
                 import os
-                
+                from aresitos.utils.sudo_manager import execute_sudo, is_sudo_available
                 # Verificar si Suricata está instalado
-                sudo_manager = get_sudo_manager()
-                try:
-                    resultado = subprocess.run(['which', 'suricata'], capture_output=True, text=True)
-                    if resultado.returncode != 0:
-                        self.after(0, self._actualizar_texto_alertas, "ERROR Suricata no encontrado. Instalando...\n")
-                        
-                        # Verificar sudo antes de instalar
-                        if not is_sudo_available():
-                            self.after(0, self._actualizar_texto_alertas, "ERROR: No hay permisos sudo disponibles\n")
-                            self.after(0, self._actualizar_texto_alertas, "Reinicie ARESITOS e ingrese contraseña correcta\n")
-                            return
-                        
-                        install = sudo_manager.execute_sudo_command('apt update', timeout=60)
-                        install = sudo_manager.execute_sudo_command('apt install -y suricata', timeout=120)
-                        if install.returncode != 0:
-                            self.after(0, self._actualizar_texto_alertas, "ERROR instalando Suricata\n")
-                            return
-                        self.after(0, self._actualizar_texto_alertas, "OK Suricata instalado correctamente\n")
-                except Exception as e:
-                    self.after(0, self._actualizar_texto_alertas, f"ERROR verificando Suricata: {e}\n")
-                    return
-                
+                resultado = subprocess.run(['which', 'suricata'], capture_output=True, text=True)
+                if resultado.returncode != 0:
+                    self.after(0, self._actualizar_texto_alertas, "ERROR Suricata no encontrado. Instalando...\n")
+                    if not is_sudo_available():
+                        self.after(0, self._actualizar_texto_alertas, "ERROR: No hay permisos sudo disponibles\n")
+                        self.after(0, self._actualizar_texto_alertas, "Reinicie ARESITOS e ingrese contraseña correcta\n")
+                        return
+                    install = execute_sudo('apt update', timeout=60)
+                    install = execute_sudo('apt install -y suricata', timeout=120)
+                    salida_install = install.stdout if hasattr(install, 'stdout') else str(install)
+                    if install.returncode != 0:
+                        self.after(0, self._actualizar_texto_alertas, f"ERROR instalando Suricata\n{salida_install}\n")
+                        return
+                    self.after(0, self._actualizar_texto_alertas, f"OK Suricata instalado correctamente\n{salida_install}\n")
                 # Configurar Suricata
-                self.after(0, self._actualizar_texto_alertas, " Configurando Suricata...\n")
-                
-                # Verificar configuración
+                self.after(0, self._actualizar_texto_alertas, "Configurando Suricata...\n")
                 config_paths = ['/etc/suricata/suricata.yaml', '/usr/local/etc/suricata/suricata.yaml']
                 config_found = False
                 for config_path in config_paths:
@@ -2482,7 +2484,8 @@ class VistaSIEM(tk.Frame):
                 # Actualizar reglas
                 self.after(0, self._actualizar_texto_alertas, " Actualizando reglas de detección...\n")
                 try:
-                    update_rules = sudo_manager.execute_sudo_command('suricata-update', timeout=30)
+                    from aresitos.utils.sudo_manager import execute_sudo
+                    update_rules = execute_sudo('suricata-update', timeout=30)
                     if update_rules.returncode == 0:
                         self.after(0, self._actualizar_texto_alertas, "OK Reglas actualizadas correctamente\n")
                     else:
@@ -2534,18 +2537,19 @@ class VistaSIEM(tk.Frame):
                                 else:
                                     # El proceso no existe, remover pidfile obsoleto
                                     self.after(0, self._actualizar_texto_alertas, "INFO Removiendo pidfile obsoleto\n")
-                                    sudo_manager.execute_sudo_command(f'rm -f {pidfile_path}', timeout=10)
+                                    from aresitos.utils.sudo_manager import execute_sudo
+                                    execute_sudo(f'rm -f {pidfile_path}', timeout=10)
                         except (FileNotFoundError, ValueError, PermissionError):
                             # Si hay error leyendo el pidfile, intentar removerlo
-                            sudo_manager.execute_sudo_command(f'rm -f {pidfile_path}', timeout=10)
+                            execute_sudo(f'rm -f {pidfile_path}', timeout=10)
                         
                         # Crear directorio para logs si no existe
                         if not os.path.exists(log_dir):
-                            sudo_manager.execute_sudo_command(f'mkdir -p {log_dir}', timeout=10)
+                            execute_sudo(f'mkdir -p {log_dir}', timeout=10)
                         
                         # Comando para iniciar Suricata usando SudoManager
                         self.after(0, self._actualizar_texto_alertas, f" Ejecutando: suricata -i {interface} -D\n")
-                        resultado_suricata = sudo_manager.execute_sudo_command(
+                        resultado_suricata = execute_sudo(
                             f'suricata -c /etc/suricata/suricata.yaml -i {interface} -D --pidfile {pidfile_path}', 
                             timeout=30
                         )
@@ -2816,10 +2820,15 @@ class VistaSIEM(tk.Frame):
     
     def monitor_honeypot(self):
         """Monitorear honeypots."""
-        self._actualizar_texto_alertas(" Monitoreando honeypots...\n")
-        self._actualizar_texto_alertas(" Verificando trampas de seguridad...\n")
-        self._actualizar_texto_alertas(" Detectando actividad maliciosa...\n")
-        self._actualizar_texto_alertas("OK Honeypots operativos\n\n")
+        self._actualizar_texto_alertas("Monitorizando honeypot (Simulación de sistemas para atraer atacantes)...\n")
+        try:
+            from aresitos.utils.sudo_manager import execute_sudo
+            comando = "conpot"
+            resultado = execute_sudo(comando)
+            salida = resultado.stdout if hasattr(resultado, 'stdout') else str(resultado)
+            self._actualizar_texto_alertas(f"[Conpot] Estado:\n{salida}\n")
+        except Exception as e:
+            self._actualizar_texto_alertas(f"Error ejecutando honeypot: {str(e)}\n")
     
     # Métodos de la pestaña Forense
     
@@ -3476,10 +3485,19 @@ ls -la "$OUTPUT_DIR/"
     
     def detectar_brute_force(self):
         """Detectar ataques de fuerza bruta."""
-        self._actualizar_texto_alertas(" Detectando ataques de fuerza bruta...\n")
-        self._actualizar_texto_alertas(" Analizando patrones de autenticación...\n")
-        self._actualizar_texto_alertas(" Verificando intentos de login repetidos...\n")
-        self._actualizar_texto_alertas("OK Sistema de detección de brute force activo\n\n")
+        self._actualizar_texto_alertas("Detectando ataques de fuerza bruta (Análisis de intentos fallidos y patrones sospechosos)...\n")
+        try:
+            from aresitos.utils.sudo_manager import execute_sudo
+            comando = "fail2ban-client status"
+            resultado = execute_sudo(comando)
+            salida = resultado.stdout if hasattr(resultado, 'stdout') else str(resultado)
+            self._actualizar_texto_alertas(f"[Fail2ban] Estado:\n{salida}\n")
+            comando_logwatch = "logwatch --detail high --service sshd --range today"
+            resultado_logwatch = execute_sudo(comando_logwatch)
+            salida_logwatch = resultado_logwatch.stdout if hasattr(resultado_logwatch, 'stdout') else str(resultado_logwatch)
+            self._actualizar_texto_alertas(f"[Logwatch] Resumen SSH:\n{salida_logwatch}\n")
+        except Exception as e:
+            self._actualizar_texto_alertas(f"Error ejecutando detección de fuerza bruta: {str(e)}\n")
     
     def configurar_notificaciones(self):
         """Configurar notificaciones."""
@@ -3491,10 +3509,19 @@ ls -la "$OUTPUT_DIR/"
     
     def actualizar_reglas(self):
         """Actualizar reglas de correlación."""
-        self._actualizar_texto_alertas(" Actualizando reglas de correlación...\n")
-        self._actualizar_texto_alertas(" Descargando nuevas firmas...\n")
-        self._actualizar_texto_alertas(" Aplicando configuración...\n")
-        self._actualizar_texto_alertas("OK Reglas actualizadas correctamente\n\n")
+        self._actualizar_texto_alertas("Actualizando reglas de correlación (IDS/IPS)...\n")
+        try:
+            from aresitos.utils.sudo_manager import execute_sudo
+            comando_snort = "snort -T -c /etc/snort/snort.conf"
+            resultado_snort = execute_sudo(comando_snort)
+            salida_snort = resultado_snort.stdout if hasattr(resultado_snort, 'stdout') else str(resultado_snort)
+            self._actualizar_texto_alertas(f"[Snort] Test de reglas:\n{salida_snort}\n")
+            comando_suricata = "suricata-update"
+            resultado_suricata = execute_sudo(comando_suricata)
+            salida_suricata = resultado_suricata.stdout if hasattr(resultado_suricata, 'stdout') else str(resultado_suricata)
+            self._actualizar_texto_alertas(f"[Suricata] Actualización de reglas:\n{salida_suricata}\n")
+        except Exception as e:
+            self._actualizar_texto_alertas(f"Error actualizando reglas: {str(e)}\n")
     
     def exportar_alertas(self):
         """Exportar alertas a archivo."""
