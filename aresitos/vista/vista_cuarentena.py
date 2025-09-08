@@ -285,9 +285,15 @@ class VistaCuarentena(tk.Frame):
         ruta = valores[0]
         hash_archivo = valores[1]
         tipo = valores[2]
-        import subprocess
         try:
-            resultado = subprocess.run(f"clamscan '{ruta}'", shell=True, capture_output=True, text=True, timeout=60)
+            from aresitos.utils.sudo_manager import SudoManager
+            sudo_manager = SudoManager()
+            comando = f"clamscan '{ruta}'"
+            if sudo_manager.is_sudo_active():
+                resultado = sudo_manager.execute_sudo_command(comando, timeout=60)
+            else:
+                import subprocess
+                resultado = subprocess.run(comando, shell=True, capture_output=True, text=True, timeout=60)
             salida = resultado.stdout.strip()
             error = resultado.stderr.strip()
             mensaje = f"\n[ANÁLISIS DE ARCHIVO]\nRuta: {ruta}\nHash SHA256: {hash_archivo}\nTipo de amenaza: {tipo}\n\nResultado ClamAV:\n{salida}"

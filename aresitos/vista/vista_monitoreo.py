@@ -199,23 +199,15 @@ class VistaMonitoreo(tk.Frame):
     # (Elimina el __init__ duplicado, ya está el correcto más abajo)
 
     def ejecutar_comando_entry(self, event=None):
-        """Ejecutar comando desde la entrada, validando privilegios y usando SudoManager si es necesario."""
+        """Ejecutar comando desde la entrada SIEMPRE como root usando SudoManager."""
         comando = self.comando_entry.get().strip() if hasattr(self, 'comando_entry') else ''
         if not comando:
             return
         if self.terminal_output:
             self.terminal_output.insert(tk.END, f"\n$ {comando}\n")
             self.terminal_output.see(tk.END)
-        # Validar privilegios y ejecutar comando seguro
         try:
-            if SUDO_MANAGER_DISPONIBLE:
-                sudo_manager = SudoManager()
-                if sudo_manager.is_sudo_active():
-                    resultado = self._ejecutar_comando_seguro(comando.split(), timeout=15, usar_sudo=True)
-                else:
-                    resultado = self._ejecutar_comando_seguro(comando.split(), timeout=15)
-            else:
-                resultado = self._ejecutar_comando_seguro(comando.split(), timeout=15)
+            resultado = self._ejecutar_comando_seguro(comando.split(), timeout=15, usar_sudo=True)
             if self.terminal_output:
                 if resultado['success']:
                     self.terminal_output.insert(tk.END, resultado['output']+"\n")
@@ -235,24 +227,52 @@ class VistaMonitoreo(tk.Frame):
         from pathlib import Path
         return Path(os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..", "..")))
 
-    def _ejecutar_comando_seguro(self, comando, timeout=10, usar_sudo=False):
-        """Ejecuta un comando del sistema de forma segura y robusta, devolviendo un dict estándar."""
+    def _ejecutar_comando_seguro(self, comando, timeout=10, usar_sudo=True):
+        """Ejecuta un comando del sistema de forma segura y robusta, siempre como root si es posible."""
         import subprocess
-        import platform
         try:
-            resultado = subprocess.run(
-                comando,
-                capture_output=True,
-                text=True,
-                timeout=timeout,
-                check=False
-            )
-            return {
-                'success': resultado.returncode == 0,
-                'output': resultado.stdout,
-                'error': resultado.stderr,
-                'returncode': resultado.returncode
-            }
+            if SUDO_MANAGER_DISPONIBLE:
+                sudo_manager = SudoManager()
+                if usar_sudo and sudo_manager.is_sudo_active():
+                    # Convertir lista a string si necesario
+                    if isinstance(comando, list):
+                        comando_str = ' '.join(comando)
+                    else:
+                        comando_str = str(comando)
+                    resultado = sudo_manager.execute_sudo_command(comando_str, timeout=timeout)
+                else:
+                    if isinstance(comando, list):
+                        comando_str = ' '.join(comando)
+                    else:
+                        comando_str = str(comando)
+                    resultado = subprocess.run(
+                        comando_str,
+                        shell=True,
+                        capture_output=True,
+                        text=True,
+                        timeout=timeout,
+                        check=False
+                    )
+                return {
+                    'success': resultado.returncode == 0,
+                    'output': resultado.stdout,
+                    'error': resultado.stderr,
+                    'returncode': resultado.returncode
+                }
+            else:
+                resultado = subprocess.run(
+                    comando,
+                    capture_output=True,
+                    text=True,
+                    timeout=timeout,
+                    check=False
+                )
+                return {
+                    'success': resultado.returncode == 0,
+                    'output': resultado.stdout,
+                    'error': resultado.stderr,
+                    'returncode': resultado.returncode
+                }
         except subprocess.TimeoutExpired:
             return {
                 'success': False,

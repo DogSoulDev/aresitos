@@ -423,7 +423,7 @@ LISTO PARA: Escaneos de vulnerabilidades en entornos Kali Linux 2025
                 # Herramientas base de verificación
                 'which', 'whereis', 'type', 'command',
                 # Python y dependencias
-                'python3', 'python3-tk', 'python3-venv', 'sqlite3'
+                'python3', 'sqlite3'
             ]
             
             herramientas_faltantes = []
@@ -601,7 +601,7 @@ LISTO PARA: Escaneos de vulnerabilidades en entornos Kali Linux 2025
                 'procps', 'iproute2', 'net-tools', 'util-linux', 'findutils', 'grep', 'gawk',
                 'coreutils', 'systemd', 'wget', 'curl', 'diffutils', 'git',
                 'nano', 'vim', 'gedit', 'mousepad', 'thunar', 'nautilus', 'dolphin', 'xdg-open',
-                'python3', 'python3-tk', 'python3-venv', 'sqlite3'
+                'python3', 'sqlite3'
             ]
             self.after(0, self._actualizar_texto, "Actualizando repositorios...\n")
             sudo_manager.execute_sudo_command('apt update', timeout=120)

@@ -489,16 +489,22 @@ class VistaEscaneo(tk.Frame):
 
     def _escaneo_avanzado_multiherramienta(self, objetivo):
         """Escaneo avanzado usando múltiples herramientas profesionales."""
-        import subprocess
+        from aresitos.utils.sudo_manager import SudoManager
         resultados = {"herramientas": {}}
         herramientas = [
             ("gobuster", ["gobuster", "dir", "-u", f"http://{objetivo}", "-w", "/usr/share/wordlists/dirb/common.txt"]),
             ("nuclei", ["nuclei", "-u", objetivo]),
             ("ffuf", ["ffuf", "-u", f"http://{objetivo}/FUZZ", "-w", "/usr/share/wordlists/dirb/common.txt"])
         ]
+        sudo_manager = SudoManager()
         for nombre, cmd in herramientas:
             try:
-                resultado = subprocess.run(cmd, capture_output=True, text=True, timeout=60)
+                comando_str = ' '.join(cmd)
+                if sudo_manager.is_sudo_active():
+                    resultado = sudo_manager.execute_sudo_command(comando_str, timeout=60)
+                else:
+                    import subprocess
+                    resultado = subprocess.run(cmd, capture_output=True, text=True, timeout=60)
                 resultados["herramientas"][nombre] = resultado.stdout if resultado.returncode == 0 else resultado.stderr
             except Exception as e:
                 resultados["herramientas"][nombre] = f"Error: {str(e)}"
@@ -507,12 +513,18 @@ class VistaEscaneo(tk.Frame):
 
     def _escaneo_red_completa(self, rango_red=None):
         """Escaneo completo de una red local."""
-        import subprocess
+        from aresitos.utils.sudo_manager import SudoManager
         self._actualizar_texto_seguro(f"Escaneo de red: {rango_red}\n")
         hosts_activos = []
         try:
             nmap_cmd = ["nmap", "-sn", rango_red]
-            resultado_red = subprocess.run(nmap_cmd, capture_output=True, text=True, timeout=60)
+            sudo_manager = SudoManager()
+            comando_str = ' '.join(nmap_cmd)
+            if sudo_manager.is_sudo_active():
+                resultado_red = sudo_manager.execute_sudo_command(comando_str, timeout=60)
+            else:
+                import subprocess
+                resultado_red = subprocess.run(nmap_cmd, capture_output=True, text=True, timeout=60)
             if resultado_red.returncode == 0:
                 for linea in resultado_red.stdout.split("\n"):
                     if "Nmap scan report for" in linea:
