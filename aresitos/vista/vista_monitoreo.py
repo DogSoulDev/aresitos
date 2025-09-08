@@ -583,9 +583,14 @@ class VistaMonitoreo(tk.Frame):
         self.cuarentena_entry = tk.Entry(cuarentena_frame, width=32, font=('Consolas', 10))
         self.cuarentena_entry.pack(side="left", padx=(0, 5))
         self.cuarentena_entry.insert(0, "Ruta del archivo a poner en cuarentena")
-        self.btn_cuarentena_monitoreo = ttk.Button(cuarentena_frame, text="Cuarentena",
+        self.btn_cuarentena_monitoreo = tk.Button(
+            cuarentena_frame, text="Agregar a Cuarentena",
             command=self._poner_en_cuarentena_desde_entry,
-            style='Burp.TButton', width=16)
+            bg="#ffb86c", fg="#232629",
+            font=("Arial", 11, "bold"),
+            relief="raised", bd=2, padx=12, pady=6,
+            activebackground="#ffd9b3", activeforeground="#ff6633"
+        )
         self.btn_cuarentena_monitoreo.pack(side="left", padx=(0, 5))
 
         self.label_estado = tk.Label(control_frame, text="Estado: Detenido",
@@ -670,7 +675,7 @@ class VistaMonitoreo(tk.Frame):
         control_frame = tk.Frame(self.frame_cuarentena, bg='#2b2b2b')
         control_frame.pack(fill="x", pady=(10, 10))
         self.btn_agregar_cuarentena = tk.Button(
-            control_frame, text=" Agregar Archivo",
+            control_frame, text="Agregar a Cuarentena",
             command=self.agregar_a_cuarentena,
             bg="#ffb86c", fg="#232629",
             font=("Arial", 11, "bold"),

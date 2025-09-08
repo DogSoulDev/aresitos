@@ -247,10 +247,14 @@ class VistaSIEM(tk.Frame):
         self.cuarentena_entry.pack(fill="x", padx=10, pady=(0, 5))
         self.cuarentena_entry.insert(0, "Ruta del archivo a poner en cuarentena")
 
-        btn_cuarentena = tk.Button(contenido_frame, text="Poner en cuarentena",
-                                   command=self._poner_en_cuarentena_desde_entry,
-                                   bg=self.colors['danger'], fg='white',
-                                   font=('Arial', 10, 'bold'), relief='flat', padx=15, pady=8)
+        btn_cuarentena = tk.Button(
+            contenido_frame, text="Agregar a Cuarentena",
+            command=self._poner_en_cuarentena_desde_entry,
+            bg="#ffb86c", fg="#232629",
+            font=("Arial", 11, "bold"),
+            relief="raised", bd=2, padx=12, pady=6,
+            activebackground="#ffd9b3", activeforeground="#ff6633"
+        )
         btn_cuarentena.pack(fill="x", padx=10, pady=5)
 
         # Notebook para múltiples pestañas con tema
