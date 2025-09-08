@@ -214,31 +214,25 @@ class VistaAuditoria(tk.Frame):
             print(f"Error limpiando terminal Auditoría: {e}")
     
     def ejecutar_comando_entry(self, event=None):
+        """Ejecutar comando desde la entrada SIEMPRE como root usando SudoManager."""
         comando = self.comando_entry.get().strip()
         if not comando:
             return
         self.log_terminal(f"> {comando}")
         self.comando_entry.delete(0, tk.END)
         def run_and_report():
-            self._ejecutar_comando_async(comando, reportar=True)
+            resultado = self._ejecutar_comando_seguro(comando, timeout=30, usar_sudo=True)
+            if resultado.get('output'):
+                self.log_terminal(resultado['output'])
+            if resultado.get('error'):
+                self.log_terminal(resultado['error'], nivel="ERROR")
         thread = threading.Thread(target=run_and_report)
         thread.daemon = True
         thread.start()
     
-    def _ejecutar_comando_async(self, comando, reportar=False):
+    def _ejecutar_comando_seguro(self, comando, timeout=30, usar_sudo=True):
+        """Ejecuta un comando del sistema de forma segura y robusta, siempre como root si es posible."""
         try:
-            # Comandos especiales de ARESITOS
-            if comando == "info-seguridad":
-                self._mostrar_info_seguridad()
-                if reportar:
-                    self._enviar_a_reportes("info-seguridad", comando, "[INFO SEGURIDAD]", False)
-                return
-            elif comando in ["clear", "cls"]:
-                self.limpiar_terminal_auditoria()
-                if reportar:
-                    self._enviar_a_reportes("limpiar", comando, "Pantalla limpiada", False)
-                return
-
             import platform
             if platform.system() == "Windows":
                 import subprocess
@@ -247,25 +241,48 @@ class VistaAuditoria(tk.Frame):
                     comando_completo,
                     capture_output=True,
                     text=True,
-                    timeout=30
+                    timeout=timeout
                 )
+                return {
+                    'success': resultado.returncode == 0,
+                    'output': resultado.stdout,
+                    'error': resultado.stderr,
+                    'returncode': resultado.returncode
+                }
             else:
-                # Usar el gestor de sudo para ejecutar comandos en Linux
-                sudo_manager = get_sudo_manager()
-                resultado = sudo_manager.execute_sudo_command(comando, timeout=30)
-
-            if resultado.stdout:
-                self.log_terminal(resultado.stdout)
-                if reportar:
-                    self._enviar_a_reportes("terminal", comando, resultado.stdout, False)
-            if resultado.stderr:
-                self.log_terminal(resultado.stderr, nivel="ERROR")
-                if reportar:
-                    self._enviar_a_reportes("terminal", comando, resultado.stderr, True)
+                from aresitos.utils.sudo_manager import SudoManager
+                sudo_manager = SudoManager()
+                if usar_sudo and sudo_manager.is_sudo_active():
+                    resultado = sudo_manager.execute_sudo_command(comando, timeout=timeout)
+                    return {
+                        'success': resultado.returncode == 0 if hasattr(resultado, 'returncode') else True,
+                        'output': resultado.stdout if hasattr(resultado, 'stdout') else str(resultado),
+                        'error': resultado.stderr if hasattr(resultado, 'stderr') else '',
+                        'returncode': resultado.returncode if hasattr(resultado, 'returncode') else 0
+                    }
+                else:
+                    import subprocess
+                    resultado = subprocess.run(
+                        comando,
+                        shell=True,
+                        capture_output=True,
+                        text=True,
+                        timeout=timeout,
+                        check=False
+                    )
+                    return {
+                        'success': resultado.returncode == 0,
+                        'output': resultado.stdout,
+                        'error': resultado.stderr,
+                        'returncode': resultado.returncode
+                    }
         except Exception as e:
-            self.log_terminal(f"[ERROR] {e}", nivel="ERROR")
-            if reportar:
-                self._enviar_a_reportes("terminal", comando, str(e), True)
+            return {
+                'success': False,
+                'output': '',
+                'error': str(e),
+                'returncode': None
+            }
     
     def abrir_logs_auditoria(self):
         self.log_terminal("[INFO] Función para abrir registros aún no implementada.")
@@ -308,29 +325,25 @@ class VistaAuditoria(tk.Frame):
                     self.log_terminal(f"[EJECUTANDO] {cmd}")
                     # Validar instalación si corresponde
                     if tool_name:
+                        import shutil
                         if not shutil.which(tool_name):
                             msg = f"[ERROR] La herramienta '{tool_name}' no está instalada o no se encuentra en el PATH."
                             self.log_terminal(msg, nivel="ERROR")
                             self._enviar_a_reportes(text, cmd, msg, True)
                             return
-                    import subprocess
-                    try:
-                        resultado = subprocess.run(cmd, shell=True, capture_output=True, text=True, timeout=120)
-                        salida = resultado.stdout.strip()
-                        error = resultado.stderr.strip()
-                        if salida:
-                            self.log_terminal(f"[RESULTADO] {salida}")
-                            self._enviar_a_reportes(text, cmd, salida, False)
-                        if error:
-                            self.log_terminal(f"[ERROR] {error}", nivel="ERROR")
-                            self._enviar_a_reportes(text, cmd, error, True)
-                        if not salida and not error:
-                            msg = "[INFO] El comando no produjo salida. Verifique parámetros o permisos."
-                            self.log_terminal(msg)
-                            self._enviar_a_reportes(text, cmd, msg, False)
-                    except Exception as e:
-                        self.log_terminal(f"[ERROR] {e}", nivel="ERROR")
-                        self._enviar_a_reportes(text, cmd, str(e), True)
+                    resultado = self._ejecutar_comando_seguro(cmd, timeout=120, usar_sudo=True)
+                    salida = resultado.get('output', '').strip()
+                    error = resultado.get('error', '').strip()
+                    if salida:
+                        self.log_terminal(f"[RESULTADO] {salida}")
+                        self._enviar_a_reportes(text, cmd, salida, False)
+                    if error:
+                        self.log_terminal(f"[ERROR] {error}", nivel="ERROR")
+                        self._enviar_a_reportes(text, cmd, error, True)
+                    if not salida and not error:
+                        msg = "[INFO] El comando no produjo salida. Verifique parámetros o permisos."
+                        self.log_terminal(msg)
+                        self._enviar_a_reportes(text, cmd, msg, False)
                 return ejecutar_y_reportar
             # Detectar herramienta principal para validación
             tool = None
@@ -410,24 +423,19 @@ class VistaAuditoria(tk.Frame):
                 def ejecutar_y_reportar():
                     self.actualizar_info_panel(text, ayuda_text)
                     self.log_terminal(f"[EJECUTANDO] {cmd}")
-                    import subprocess
-                    try:
-                        resultado = subprocess.run(cmd, shell=True, capture_output=True, text=True, timeout=180)
-                        salida = resultado.stdout.strip()
-                        error = resultado.stderr.strip()
-                        if salida:
-                            self.log_terminal(f"[RESULTADO] {salida}")
-                            self._enviar_a_reportes(text, cmd, salida, False)
-                        if error:
-                            self.log_terminal(f"[ERROR] {error}", nivel="ERROR")
-                            self._enviar_a_reportes(text, cmd, error, True)
-                        if not salida and not error:
-                            msg = "[INFO] El comando no produjo salida. Verifique parámetros o permisos."
-                            self.log_terminal(msg)
-                            self._enviar_a_reportes(text, cmd, msg, False)
-                    except Exception as e:
-                        self.log_terminal(f"[ERROR] {e}", nivel="ERROR")
-                        self._enviar_a_reportes(text, cmd, str(e), True)
+                    resultado = self._ejecutar_comando_seguro(cmd, timeout=180, usar_sudo=True)
+                    salida = resultado.get('output', '').strip()
+                    error = resultado.get('error', '').strip()
+                    if salida:
+                        self.log_terminal(f"[RESULTADO] {salida}")
+                        self._enviar_a_reportes(text, cmd, salida, False)
+                    if error:
+                        self.log_terminal(f"[ERROR] {error}", nivel="ERROR")
+                        self._enviar_a_reportes(text, cmd, error, True)
+                    if not salida and not error:
+                        msg = "[INFO] El comando no produjo salida. Verifique parámetros o permisos."
+                        self.log_terminal(msg)
+                        self._enviar_a_reportes(text, cmd, msg, False)
                 return ejecutar_y_reportar
             btn = tk.Button(section_frame, text=text, command=make_cmd(comando, ayuda),
                             bg=color, fg=self.colors['bg_primary'],

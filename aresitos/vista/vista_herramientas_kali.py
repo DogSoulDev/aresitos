@@ -440,6 +440,8 @@ LISTO PARA: Escaneos de vulnerabilidades en entornos Kali Linux 2025
                 'rsyslog': ['rsyslogd'],
                 'osqueryi': ['osqueryi'],
             }
+            from aresitos.utils.sudo_manager import get_sudo_manager, is_sudo_available
+            sudo_manager = get_sudo_manager()
             for herramienta in herramientas:
                 # Omitir comprobación de 'osqueryi' y 'osquery' (no OK ni FALTA, simplemente ignorar)
                 if herramienta in ('osquery', 'osqueryi'):
@@ -454,9 +456,9 @@ LISTO PARA: Escaneos de vulnerabilidades en entornos Kali Linux 2025
                         ok = False
                         import os
                         for binario in binarios_especiales[herramienta]:
-                            # Buscar en PATH
-                            result = subprocess.run(['which', binario], capture_output=True, text=True, timeout=5)
-                            if result.returncode == 0:
+                            # Buscar en PATH usando SudoManager
+                            resultado = sudo_manager.execute_sudo_command(f"which {binario}", timeout=5)
+                            if hasattr(resultado, 'returncode') and resultado.returncode == 0:
                                 ok = True
                                 break
                             # Buscar en /usr/bin y /usr/local/bin
@@ -473,17 +475,14 @@ LISTO PARA: Escaneos de vulnerabilidades en entornos Kali Linux 2025
                             herramientas_faltantes.append(herramienta)
                             self.after(0, self._actualizar_texto, f"ERROR {herramienta} - FALTANTE\n")
                         continue
-                    # Verificación estándar
-                    result = subprocess.run(['which', herramienta], capture_output=True, text=True, timeout=5)
-                    if result.returncode == 0:
+                    # Verificación estándar usando SudoManager
+                    resultado = sudo_manager.execute_sudo_command(f"which {herramienta}", timeout=5)
+                    if hasattr(resultado, 'returncode') and resultado.returncode == 0:
                         herramientas_ok.append(herramienta)
                         self.after(0, self._actualizar_texto, f"OK {herramienta} - OK\n")
                     else:
                         herramientas_faltantes.append(herramienta)
                         self.after(0, self._actualizar_texto, f"ERROR {herramienta} - FALTANTE\n")
-                except subprocess.TimeoutExpired:
-                    herramientas_faltantes.append(herramienta)
-                    self.after(0, self._actualizar_texto, f"ERROR {herramienta} - TIMEOUT\n")
                 except Exception as e:
                     herramientas_faltantes.append(herramienta)
                     self.after(0, self._actualizar_texto, f"ERROR {herramienta} - ERROR: {e}\n")
