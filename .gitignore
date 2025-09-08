@@ -157,3 +157,7 @@ __new_file_*
 *.pfx
 secrets/
 credentials/
+
+# === ÍNDICES DE DICCIONARIOS Y WORDLISTS ===
+data/diccionarios/INDICE_DICCIONARIOS_CARGADOS.md
+data/wordlists/INDICE_WORDLISTS_CARGADAS.md
