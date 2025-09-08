@@ -82,7 +82,7 @@ class VistaMonitoreo(tk.Frame):
                     popup.destroy()
                 btn_reiniciar = tk.Button(btn_frame, text="Reiniciar con sudo", command=on_reiniciar, bg=theme.get_color('button_active'), fg=theme.get_color('button_fg'), font=("Arial", 11, "bold"), relief="raised", padx=16, pady=7, activebackground=theme.get_color('highlight'))
                 btn_reiniciar.pack(side="left", padx=(0, 16))
-                btn_cancelar = tk.Button(btn_frame, text="Cancelar", command=on_cancelar, bg=theme.get_color('button_bg'), fg=theme.get_color('button_fg'), font=("Arial", 11), relief="raised", padx=16, pady=7, activebackground=theme.get_color('tab_normal'))
+                btn_cancelar = ttk.Button(btn_frame, text="Cancelar", command=on_cancelar, style='Burp.TButton', width=16)
                 btn_cancelar.pack(side="left")
                 # Esperar respuesta
                 popup.grab_set()

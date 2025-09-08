@@ -420,70 +420,38 @@ class VistaDashboard(tk.Frame):
         botones_control_frame.pack(fill="x", pady=5)
         
         # Botón para activar/desactivar captura de logs
-        self.btn_toggle_logs = tk.Button(
+        self.btn_toggle_logs = ttk.Button(
             botones_control_frame,
-            text="ACTIVAR CAPTURA LOGS",
+            text="Activar Captura Logs",
             command=self.toggle_captura_logs,
-            bg='#ffb86c',  # naranja
-            fg='#232629',
-            font=("Arial", 12, "bold"),
-            height=2,
-            relief="raised",
-            activebackground='#fffae3',
-            activeforeground='#ff5555',
-            padx=18,
-            pady=8
+            style='Burp.TButton', width=16
         )
         self.btn_toggle_logs.pack(side="left", padx=6, pady=4, fill="x", expand=True)
         
         # Botón para limpiar terminal
-        btn_limpiar = tk.Button(
+        btn_limpiar = ttk.Button(
             botones_control_frame,
-            text="🧹 LIMPIAR",
+            text="Limpiar Terminal",
             command=self.limpiar_terminal,
-            bg='#8be9fd',  # azul claro
-            fg='#232629',
-            font=("Arial", 12, "bold"),
-            height=2,
-            relief="raised",
-            activebackground='#e3f6ff',
-            activeforeground='#ff5555',
-            padx=18,
-            pady=8
+            style='Burp.TButton', width=16
         )
         btn_limpiar.pack(side="left", padx=6, pady=4, fill="x", expand=True)
         
         # Botón para abrir carpeta de logs
-        btn_ver_logs = tk.Button(
+        btn_ver_logs = ttk.Button(
             botones_control_frame,
-            text="LOGS VER LOGS",
+            text="Ver Logs Recientes",
             command=self.abrir_carpeta_logs,
-            bg='#50fa7b',  # verde
-            fg='#232629',
-            font=("Arial", 12, "bold"),
-            height=2,
-            relief="raised",
-            activebackground='#e3ffe3',
-            activeforeground='#ff5555',
-            padx=18,
-            pady=8
+            style='Burp.TButton', width=16
         )
         btn_ver_logs.pack(side="left", padx=6, pady=4, fill="x", expand=True)
         
         # Botón para abrir terminal externo
-        btn_terminal_externo = tk.Button(
+        btn_terminal_externo = ttk.Button(
             botones_control_frame,
-            text="TERMINAL KALI",
+            text="Terminal Externo",
             command=self.abrir_terminal_kali,
-            bg='#ff5555',  # rojo
-            fg='#f8f8f2',
-            font=("Arial", 12, "bold"),
-            height=2,
-            relief="raised",
-            activebackground='#ffeaea',
-            activeforeground='#232629',
-            padx=18,
-            pady=8
+            style='Burp.TButton', width=16
         )
         btn_terminal_externo.pack(side="left", padx=6, pady=4, fill="x", expand=True)
         
@@ -639,16 +607,14 @@ class VistaDashboard(tk.Frame):
             self.activar_captura_logs()
             self.captura_logs_activa = True
             self.btn_toggle_logs.config(
-                text="ACTIVO CAPTURA ACTIVA",
-                bg='#00aa00'
+                text="ACTIVO CAPTURA ACTIVA"
             )
             self.escribir_terminal("ACTIVAR CAPTURA DE LOGS ACTIVADA", "[SISTEMA]")
         else:
             self.desactivar_captura_logs()
             self.captura_logs_activa = False
             self.btn_toggle_logs.config(
-                text="ACTIVAR CAPTURA LOGS", 
-                bg='#ff4444'
+                text="ACTIVAR CAPTURA LOGS"
             )
             self.escribir_terminal("ACTIVO CAPTURA DE LOGS DESACTIVADA", "[SISTEMA]")
     

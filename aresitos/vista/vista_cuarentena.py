@@ -94,7 +94,7 @@ class VistaCuarentena(tk.Frame):
         btn_frame_a = tk.Frame(self.frame_archivos, bg=self.colors['bg_primary'])
         btn_frame_a.pack(fill=tk.X, pady=5)
         self.btn_agregar = ttk.Button(
-            btn_frame_a, text="Agregar Archivo",
+            btn_frame_a, text="Agregar a Cuarentena",
             command=getattr(self, 'agregar_a_cuarentena', lambda: None),
             style='Burp.TButton', width=16
         )
@@ -108,6 +108,10 @@ class VistaCuarentena(tk.Frame):
         self.btn_listar.pack(side="left", padx=(0, 8), pady=4)
         self.notebook.add(self.frame_archivos, text="Archivos")
         self.notebook.add(self.frame_archivos, text="Cuarentena")
+        # Si existe una pestaña de Monitoreo Sistem, cámbiala por Monitoreo S.
+        for idx in range(self.notebook.index('end')):
+            if self.notebook.tab(idx, 'text') == 'Monitoreo Sistem':
+                self.notebook.tab(idx, text='Monitoreo S.')
         # --- TABLA DE IPs SOSPECHOSAS ---
         self.frame_ips = tk.Frame(self.notebook, bg=self.colors['bg_primary'])
         self.lista_ips = ttk.Treeview(self.frame_ips, columns=("IP", "Motivo", "Fecha", "Estado", "Acción"), show="headings")
@@ -134,24 +138,30 @@ class VistaCuarentena(tk.Frame):
         # Botones principales debajo de la tabla de IPs
         btn_frame_ip = tk.Frame(self.frame_ips, bg=self.colors['bg_primary'])
         btn_frame_ip.pack(fill=tk.X, pady=5)
-        self.btn_actualizar_ip = ttk.Button(
+        self.btn_actualizar_ip = tk.Button(
             btn_frame_ip, text="Actualizar",
             command=getattr(self, 'actualizar_lista_ips', lambda: None),
-            style='Burp.TButton', width=16
+            bg=self.colors['button_bg'] if self.theme else 'lightgray',
+            fg='white' if self.theme else 'black',
+            font=('Arial', 10, 'bold'), relief='raised', padx=8, pady=4
         )
         self.btn_actualizar_ip.pack(side="left", padx=5)
 
-        self.btn_eliminar_ip = ttk.Button(
+        self.btn_eliminar_ip = tk.Button(
             btn_frame_ip, text="Eliminar",
             command=getattr(self, 'eliminar_ip_seleccionada', lambda: None),
-            style='Burp.TButton', width=16
+            bg=self.colors['danger'] if self.theme else 'lightgray',
+            fg='white' if self.theme else 'black',
+            font=('Arial', 10, 'bold'), relief='raised', padx=8, pady=4
         )
         self.btn_eliminar_ip.pack(side="left", padx=5)
 
-        self.btn_ver_detalles_ip = ttk.Button(
+        self.btn_ver_detalles_ip = tk.Button(
             btn_frame_ip, text="Ver Detalles",
             command=getattr(self, 'ver_detalles_ip', lambda: None),
-            style='Burp.TButton', width=16
+            bg=self.colors['info'] if self.theme else 'lightgray',
+            fg='white' if self.theme else 'black',
+            font=('Arial', 10, 'bold'), relief='raised', padx=8, pady=4
         )
         self.btn_ver_detalles_ip.pack(side="left", padx=5)
         self.notebook.add(self.frame_ips, text="IPs sospechosas")
@@ -162,12 +172,6 @@ class VistaCuarentena(tk.Frame):
         tk.Label(filtro_frame, text="Buscar:", bg=self.colors['bg_primary'], fg=self.colors['fg_primary']).pack(side=tk.LEFT)
         self.entry_busqueda = tk.Entry(filtro_frame, width=30)
         self.entry_busqueda.pack(side=tk.LEFT, padx=5)
-        ttk.Button(filtro_frame, text="Filtrar", command=self.filtrar_archivos, style='Burp.TButton').pack(side=tk.LEFT)
-        ttk.Button(filtro_frame, text="Limpiar", command=self.limpiar_filtro_archivos, style='Burp.TButton').pack(side=tk.LEFT)
-
-        # Inicializar las listas
-        self.actualizar_lista_archivos()
-        self.actualizar_lista_ips()
 
     # --- MÉTODOS DE ACCIÓN PARA ARCHIVOS ---
     def filtrar_archivos(self):

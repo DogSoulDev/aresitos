@@ -101,12 +101,11 @@ class VistaSIEM(tk.Frame):
             ("Detener cualquier Correlación (Detiene todos los motores)", self.cancelar_correlacion, '#d9534f')
         ]
         for text, command, bg_color in buttons_alertas:
-            if self.theme:
-                btn = tk.Button(right_frame, text=text, command=command,
-                              bg=bg_color, fg='white', font=('Arial', 9))
-                btn.pack(fill=tk.X, pady=2)
-            else:
-                ttk.Button(right_frame, text=text, command=command).pack(fill=tk.X, pady=2)
+            btn = tk.Button(right_frame, text=text, command=command,
+                            bg=bg_color if self.theme else 'lightgray',
+                            fg='white' if self.theme else 'black',
+                            font=('Arial', 10, 'bold'), relief='raised', padx=8, pady=4)
+            btn.pack(fill=tk.X, pady=2)
     def correlacionar_eventos_avanzado(self):
         """Correlación avanzada de eventos de seguridad en hilo cancelable."""
         if hasattr(self, 'correlacion_thread') and self.correlacion_thread and self.correlacion_thread.is_alive():
@@ -183,7 +182,7 @@ class VistaSIEM(tk.Frame):
         self.monitoreo_activo = False  # Para control del monitoreo en tiempo real
         self.cache_alertas = {}  # Para evitar spam de alertas repetitivas
         self.ultima_verificacion = {}  # Timestamps de últimas verificaciones
-        
+        self._cancelar_herramientas_forenses = False  # Bandera para cancelar herramientas forenses
         # Configurar tema y colores de manera consistente
         if BURP_THEME_AVAILABLE and burp_theme:
             self.theme = burp_theme
@@ -258,13 +257,10 @@ class VistaSIEM(tk.Frame):
         self.cuarentena_entry.pack(fill="x", padx=10, pady=(0, 5))
         self.cuarentena_entry.insert(0, "Ruta del archivo a poner en cuarentena")
 
-        btn_cuarentena = tk.Button(
+        btn_cuarentena = ttk.Button(
             contenido_frame, text="Agregar a Cuarentena",
             command=self._poner_en_cuarentena_desde_entry,
-            bg="#ffb86c", fg="#232629",
-            font=("Arial", 11, "bold"),
-            relief="raised", bd=2, padx=12, pady=6,
-            activebackground="#ffd9b3", activeforeground="#ff6633"
+            style='Burp.TButton', width=16
         )
         btn_cuarentena.pack(fill="x", padx=10, pady=5)
 
@@ -564,7 +560,7 @@ class VistaSIEM(tk.Frame):
         buttons_monitoreo = [
             ("Iniciar SIEM", self.iniciar_siem, self.colors['success']),
             ("Detener SIEM", self.detener_siem, self.colors['danger']),
-            ("Actualizar Dashboard", self.actualizar_dashboard, self.colors['button_bg']),
+            ("Actualizar Pantalla", self.actualizar_dashboard, self.colors['button_bg']),
             ("Ver Estadísticas", self.mostrar_estadisticas, self.colors['button_bg']),
             ("Configurar Alertas", self.configurar_alertas, self.colors['button_bg']),
             ("Eventos de Seguridad", self.eventos_seguridad, self.colors['button_bg'])
@@ -572,10 +568,11 @@ class VistaSIEM(tk.Frame):
         
         for text, command, bg_color in buttons_monitoreo:
             btn = tk.Button(right_frame, text=text, command=command,
-                          bg=bg_color, fg='white', font=('Arial', 9),
-                          relief='flat', padx=10, pady=5,
-                          activebackground=self.colors['fg_accent'],
-                          activeforeground='white')
+                            bg=bg_color if self.theme else 'lightgray',
+                            fg='white' if self.theme else 'black',
+                            font=('Arial', 10, 'bold'), relief='raised', padx=8, pady=4,
+                            activebackground=self.colors['fg_accent'],
+                            activeforeground='white')
             if text == "Detener SIEM":
                 btn.config(state="disabled")
                 self.btn_detener_siem = btn
@@ -770,6 +767,19 @@ class VistaSIEM(tk.Frame):
             ("TestDisk (Recuperación de particiones)", getattr(self, 'usar_testdisk', None), '#f1fa8c'),
             ("Bulk Extractor (Extracción masiva de artefactos)", getattr(self, 'usar_bulk_extractor', None), '#ff79c6'),
         ]
+        # Botón para detener todas las herramientas forenses
+        def detener_herramientas_forenses():
+            self._cancelar_herramientas_forenses = True
+            for attr in dir(self):
+                if attr.endswith('_thread') and ('forense' in attr or 'pdfid' in attr or 'yara' in attr):
+                    thread_obj = getattr(self, attr)
+                    if thread_obj and hasattr(thread_obj, 'is_alive') and thread_obj.is_alive():
+                        self._actualizar_texto_forense(f"Cancelando ejecución: {attr}\n")
+                        self.log_to_terminal(f"Ejecución forense cancelada: {attr}")
+                        if hasattr(self, f'_cancelar_{attr}'):
+                            setattr(self, f'_cancelar_{attr}', True)
+        tk.Button(left_frame, text="Detener Herramientas Forenses (PDFiD, YARA, etc)", command=detener_herramientas_forenses,
+                  bg='#d9534f', fg='white', font=('Arial', 10, 'bold'), relief='groove', padx=8, pady=4).pack(fill=tk.X, pady=(0, 2))
         for text, cmd, color in botones:
             if callable(cmd):
                 tk.Button(left_frame, text=text, command=cmd,
