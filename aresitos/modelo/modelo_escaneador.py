@@ -73,9 +73,10 @@ class EscaneadorKali2025(_EscaneadorBase):  # type: ignore
 
     def escaneo_rapido_masscan(self, objetivo: str, puertos: str = "1-65535", callback_terminal=None, callback_progreso=None) -> Dict[str, Any]:
         """
-        Escaneo inicial rápido con masscan para identificar puertos abiertos, mostrando el comando y progreso en tiempo real.
+        Escaneo inicial rápido con masscan usando SudoManager para identificar puertos abiertos, mostrando el comando y progreso en tiempo real.
         """
-        import subprocess, json
+        import json
+        from aresitos.utils.sudo_manager import get_sudo_manager
         self.log(f"[START] Iniciando escaneo rápido masscan: {objetivo}")
         output_file = self._get_temp_file("masscan_output.json")
         if 'masscan' not in self.herramientas_disponibles:
@@ -90,14 +91,16 @@ class EscaneadorKali2025(_EscaneadorBase):  # type: ignore
                 '--output-format', 'json',
                 '--output-filename', output_file
             ]
+            cmd_str = ' '.join(cmd)
             if callback_terminal:
-                callback_terminal(f"[MASSCAN] Ejecutando: {' '.join(cmd)}\n")
+                callback_terminal(f"[MASSCAN] Ejecutando: {cmd_str}\n")
             if callback_progreso:
                 callback_progreso(10)
-            result = subprocess.run(cmd, capture_output=True, text=True, timeout=300)
+            sudo_manager = get_sudo_manager()
+            result = sudo_manager.execute_sudo_command(cmd_str, timeout=300)
             if callback_progreso:
                 callback_progreso(30)
-            if result.returncode == 0:
+            if hasattr(result, 'returncode') and result.returncode == 0:
                 try:
                     with open(output_file, 'r') as f:
                         datos = json.load(f)
@@ -124,8 +127,9 @@ class EscaneadorKali2025(_EscaneadorBase):  # type: ignore
                     self.log(f"OK Error procesando resultados masscan: {e}")
                     return {"error": f"Error procesando resultados: {e}"}
             else:
-                self.log(f"OK Error masscan: {result.stderr}")
-                return {"error": result.stderr}
+                error_msg = getattr(result, 'stderr', 'Error desconocido')
+                self.log(f"OK Error masscan: {error_msg}")
+                return {"error": error_msg}
         except Exception as e:
             self.log(f"OK Error ejecutando masscan: {e}")
             return {"error": str(e)}
@@ -215,10 +219,13 @@ class EscaneadorKali2025(_EscaneadorBase):  # type: ignore
                 callback_terminal(f"[NMAP] Ejecutando: {' '.join(cmd)}\n")
             if callback_progreso:
                 callback_progreso(50)
-            result = subprocess.run(cmd, capture_output=True, text=True, timeout=900)
+            from aresitos.utils.sudo_manager import get_sudo_manager
+            cmd_str = ' '.join(cmd)
+            sudo_manager = get_sudo_manager()
+            result = sudo_manager.execute_sudo_command(cmd_str, timeout=900)
             if callback_progreso:
                 callback_progreso(80)
-            if result.returncode == 0:
+            if hasattr(result, 'returncode') and result.returncode == 0:
                 # Procesar resultados
                 servicios = self._procesar_resultados_nmap(output_txt)
                 self.log(f"OK Nmap completado: {len(servicios)} servicios detectados")
@@ -232,8 +239,9 @@ class EscaneadorKali2025(_EscaneadorBase):  # type: ignore
                     "herramienta": "nmap"
                 }
             else:
-                self.log(f"OK Error nmap: {result.stderr}")
-                return {"error": result.stderr}
+                error_msg = getattr(result, 'stderr', 'Error desconocido')
+                self.log(f"OK Error nmap: {error_msg}")
+                return {"error": error_msg}
         except Exception as e:
             self.log(f"OK Error ejecutando nmap: {e}")
             return {"error": str(e)}
@@ -261,8 +269,10 @@ class EscaneadorKali2025(_EscaneadorBase):  # type: ignore
                 '-o', output_file,
                 '--no-error'
             ]
-            # Ejecutar gobuster
-            result = subprocess.run(cmd, capture_output=True, text=True, timeout=300)
+            from aresitos.utils.sudo_manager import get_sudo_manager
+            cmd_str = ' '.join(cmd)
+            sudo_manager = get_sudo_manager()
+            result = sudo_manager.execute_sudo_command(cmd_str, timeout=300)
             # Procesar resultados (gobuster siempre retorna 0)
             directorios = self._procesar_resultados_gobuster(output_file)
             self.log(f"OK Gobuster completado: {len(directorios)} directorios encontrados")
@@ -294,8 +304,10 @@ class EscaneadorKali2025(_EscaneadorBase):  # type: ignore
                 '-severity', 'medium,high,critical',
                 '-concurrency', '25'
             ]
-            # Ejecutar nuclei
-            result = subprocess.run(cmd, capture_output=True, text=True, timeout=600)
+            from aresitos.utils.sudo_manager import get_sudo_manager
+            cmd_str = ' '.join(cmd)
+            sudo_manager = get_sudo_manager()
+            result = sudo_manager.execute_sudo_command(cmd_str, timeout=600)
             # Procesar resultados JSON
             vulnerabilidades = self._procesar_resultados_nuclei(output_file)
             self.log(f"OK Nuclei completado: {len(vulnerabilidades)} vulnerabilidades encontradas")
@@ -331,8 +343,10 @@ class EscaneadorKali2025(_EscaneadorBase):  # type: ignore
                 '-mc', '200,204,301,302,307,401,403',  # Match codes
                 '-t', '40'  # Threads
             ]
-            # Ejecutar ffuf
-            result = subprocess.run(cmd, capture_output=True, text=True, timeout=300)
+            from aresitos.utils.sudo_manager import get_sudo_manager
+            cmd_str = ' '.join(cmd)
+            sudo_manager = get_sudo_manager()
+            result = sudo_manager.execute_sudo_command(cmd_str, timeout=300)
             # Procesar resultados
             resultados = self._procesar_resultados_ffuf(output_file)
             self.log(f"OK FFUF completado: {len(resultados)} endpoints encontrados")
@@ -444,10 +458,14 @@ class EscaneadorKali2025(_EscaneadorBase):  # type: ignore
         if 'netstat' not in self.herramientas_disponibles:
             return {"error": "netstat no disponible"}
         try:
+            from aresitos.utils.sudo_manager import get_sudo_manager
             cmd = ['netstat', '-tunlp']
-            result = subprocess.run(cmd, capture_output=True, text=True, timeout=30)
+            cmd_str = ' '.join(cmd)
+            sudo_manager = get_sudo_manager()
+            result = sudo_manager.execute_sudo_command(cmd_str, timeout=30)
             conexiones = []
-            for line in result.stdout.splitlines():
+            stdout = getattr(result, 'stdout', '')
+            for line in stdout.splitlines():
                 if line.startswith('tcp') or line.startswith('udp'):
                     partes = line.split()
                     if len(partes) >= 7:
@@ -469,10 +487,14 @@ class EscaneadorKali2025(_EscaneadorBase):  # type: ignore
         if 'ss' not in self.herramientas_disponibles:
             return {"error": "ss no disponible"}
         try:
+            from aresitos.utils.sudo_manager import get_sudo_manager
             cmd = ['ss', '-tunlp']
-            result = subprocess.run(cmd, capture_output=True, text=True, timeout=30)
+            cmd_str = ' '.join(cmd)
+            sudo_manager = get_sudo_manager()
+            result = sudo_manager.execute_sudo_command(cmd_str, timeout=30)
             conexiones = []
-            for line in result.stdout.splitlines():
+            stdout = getattr(result, 'stdout', '')
+            for line in stdout.splitlines():
                 if line.startswith('tcp') or line.startswith('udp'):
                     partes = line.split()
                     if len(partes) >= 6:
@@ -494,10 +516,14 @@ class EscaneadorKali2025(_EscaneadorBase):  # type: ignore
         if 'lsof' not in self.herramientas_disponibles:
             return {"error": "lsof no disponible"}
         try:
+            from aresitos.utils.sudo_manager import get_sudo_manager
             cmd = ['lsof', '-i']
-            result = subprocess.run(cmd, capture_output=True, text=True, timeout=30)
+            cmd_str = ' '.join(cmd)
+            sudo_manager = get_sudo_manager()
+            result = sudo_manager.execute_sudo_command(cmd_str, timeout=30)
             archivos = []
-            for line in result.stdout.splitlines():
+            stdout = getattr(result, 'stdout', '')
+            for line in stdout.splitlines():
                 if not line.startswith('COMMAND') and line:
                     partes = line.split()
                     if len(partes) >= 9:
@@ -519,10 +545,14 @@ class EscaneadorKali2025(_EscaneadorBase):  # type: ignore
         if 'ps' not in self.herramientas_disponibles:
             return {"error": "ps no disponible"}
         try:
+            from aresitos.utils.sudo_manager import get_sudo_manager
             cmd = ['ps', 'aux']
-            result = subprocess.run(cmd, capture_output=True, text=True, timeout=30)
+            cmd_str = ' '.join(cmd)
+            sudo_manager = get_sudo_manager()
+            result = sudo_manager.execute_sudo_command(cmd_str, timeout=30)
             procesos = []
-            for line in result.stdout.splitlines():
+            stdout = getattr(result, 'stdout', '')
+            for line in stdout.splitlines():
                 if not line.startswith('USER') and line:
                     partes = line.split(None, 10)
                     if len(partes) == 11:
