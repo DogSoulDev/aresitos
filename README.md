@@ -206,7 +206,7 @@ Esta es una limitación estándar en Linux y no depende de ARESITOS. La recomend
 
 **En memoria de Ares**
 *25 de abril de 2013 - 5 de agosto de 2025*
-Hasta que volvamos a encontrarnos.
+Hasta que volvamos a vernos.
 
 ---
 

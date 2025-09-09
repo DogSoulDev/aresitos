@@ -30,6 +30,15 @@ except ImportError:
 from aresitos.vista.terminal_mixin import TerminalMixin
 
 class VistaFIM(tk.Frame, TerminalMixin):
+    def agregar_ruta_critica(self):
+        """Agrega una ruta crítica personalizada a la lista y actualiza el monitoreo."""
+        ruta = self.ruta_entry.get().strip()
+        if ruta and ruta not in self.rutas_sensibles_kali and ruta not in self.rutas_personalizadas:
+            self.rutas_personalizadas.append(ruta)
+            self.log_to_terminal(f"Ruta crítica agregada: {ruta}")
+            self.ruta_entry.delete(0, tk.END)
+        else:
+            self.log_to_terminal("La ruta ya está en la lista o es inválida.")
     def _enviar_a_reportes(self, comando, salida, es_error=False):
         """Envía la información de la ejecución a la vista de reportes si está disponible."""
         try:
@@ -131,6 +140,8 @@ class VistaFIM(tk.Frame, TerminalMixin):
                 'danger': '#dc3545',
                 'info': '#17a2b8'
             }
+        self.crear_interfaz()
+        self.rutas_personalizadas = []
         self.crear_interfaz()
         # No deshabilitar botones por privilegios al iniciar. Feedback solo al intentar usar funciones avanzadas.
 
@@ -439,8 +450,17 @@ class VistaFIM(tk.Frame, TerminalMixin):
                                       font=('Arial', 10),
                                       relief='flat', padx=15, pady=8)
         self.btn_verificar.pack(fill="x", padx=10, pady=5)
+        # Campo y botón para agregar rutas críticas personalizadas
+        ruta_frame = tk.Frame(left_frame, bg=self.colors['bg_secondary'])
+        ruta_frame.pack(fill="x", padx=10, pady=(10, 5))
+        ruta_label = tk.Label(ruta_frame, text="Agregar ruta crítica:", bg=self.colors['bg_secondary'], fg=self.colors['fg_accent'], font=('Arial', 10))
+        ruta_label.pack(side="left", padx=(0, 5))
+        self.ruta_entry = tk.Entry(ruta_frame, width=30)
+        self.ruta_entry.pack(side="left", padx=(0, 5))
+        btn_agregar_ruta = tk.Button(ruta_frame, text="Agregar", command=self.agregar_ruta_critica, bg=self.colors['button_bg'], fg=self.colors['button_fg'], font=('Arial', 9, 'bold'))
+        btn_agregar_ruta.pack(side="left")
 
-        # NUEVOS BOTONES FASE 3.3 - FIM AVANZADO
+        # Botón Monitoreo Avanzado
         self.btn_monitoreo_avanzado = tk.Button(left_frame, text="Monitoreo Avanzado",
                                                command=self.monitoreo_avanzado_kali,
                                                bg='#6f42c1', fg='white',
@@ -448,8 +468,7 @@ class VistaFIM(tk.Frame, TerminalMixin):
                                                relief='flat', padx=15, pady=8)
         self.btn_monitoreo_avanzado.pack(fill="x", padx=10, pady=5)
 
-    # Botón de Análisis Forense eliminado porque el método no está definido
-
+        # Botón Monitoreo Tiempo Real
         self.btn_tiempo_real = tk.Button(left_frame, text="Monitoreo Tiempo Real",
                                         command=self.iniciar_monitoreo_tiempo_real,
                                         bg='#28a745', fg='white',
@@ -457,7 +476,7 @@ class VistaFIM(tk.Frame, TerminalMixin):
                                         relief='flat', padx=15, pady=8)
         self.btn_tiempo_real.pack(fill="x", padx=10, pady=5)
 
-        # BOTÓN PONER EN CUARENTENA
+        # Botón y campo de cuarentena
         cuarentena_label = tk.Label(left_frame, text="Cuarentena de Archivos", 
                                   bg=self.colors['bg_secondary'], fg=self.colors['danger'],
                                   font=('Arial', 11, 'bold'))
