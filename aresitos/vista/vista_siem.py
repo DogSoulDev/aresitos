@@ -285,8 +285,67 @@ class VistaSIEM(tk.Frame, TerminalMixin):
 
         # Pestaña 4: Forense Digital
         self.crear_tab_forense()
-        # Crear terminal inferior estandarizado
-        self.crear_terminal_inferior(self, titulo_vista="SIEM", altura_terminal=12)
+
+        # Terminal inferior estandarizado (igual que FIM, con controles y campo de comando)
+        terminal_frame = tk.LabelFrame(
+            self,
+            text="Terminal ARESITOS - SIEM",
+            bg=self.colors['bg_secondary'],
+            fg=self.colors['fg_primary'],
+            font=("Arial", 10, "bold")
+        )
+        terminal_frame.pack(fill="both", expand=True, padx=5, pady=(0, 8))
+
+        controles_frame = tk.Frame(terminal_frame, bg=self.colors['bg_secondary'])
+        controles_frame.pack(fill="x", padx=5, pady=2)
+        btn_limpiar = tk.Button(
+            controles_frame,
+            text="LIMPIAR",
+            command=self.limpiar_terminal_siem,
+            bg="#ffaa00",
+            fg='white',
+            font=("Arial", 8, "bold"),
+            height=1
+        )
+        btn_limpiar.pack(side="left", padx=2, fill="x", expand=True)
+        btn_logs = tk.Button(
+            controles_frame,
+            text="VER LOGS",
+            command=self.abrir_logs_siem,
+            bg="#007acc",
+            fg='white',
+            font=("Arial", 8, "bold"),
+            height=1
+        )
+        btn_logs.pack(side="left", padx=2, fill="x", expand=True)
+
+        self.mini_terminal = scrolledtext.ScrolledText(
+            terminal_frame,
+            height=8,
+            bg='#000000',
+            fg='#00ff00',
+            font=("Consolas", 10),
+            insertbackground='#00ff00',
+            selectbackground='#333333'
+        )
+        self.mini_terminal.pack(fill="both", expand=True, padx=5, pady=5)
+
+        entrada_frame = tk.Frame(terminal_frame, bg='#1e1e1e')
+        entrada_frame.pack(fill="x", padx=5, pady=2)
+        tk.Label(entrada_frame, text="COMANDO:", bg='#1e1e1e', fg='#00ff00', font=("Arial", 9, "bold")).pack(side="left", padx=(0, 5))
+        self.comando_entry = tk.Entry(entrada_frame, bg='#000000', fg='#00ff00', font=("Consolas", 9), insertbackground='#00ff00')
+        self.comando_entry.pack(side="left", fill="x", expand=True, padx=(0, 5))
+        self.comando_entry.bind("<Return>", self.ejecutar_comando_entry)
+        ejecutar_btn = tk.Button(entrada_frame, text="EJECUTAR", command=self.ejecutar_comando_entry, bg='#2d5aa0', fg='white', font=("Arial", 8, "bold"))
+        ejecutar_btn.pack(side="right")
+
+        # Mensaje inicial dinámico para SIEM
+        self.mini_terminal.insert(tk.END, "="*60 + "\n")
+        self.mini_terminal.insert(tk.END, "Terminal ARESITOS - SIEM v2.0\n")
+        self.mini_terminal.insert(tk.END, f"Iniciado: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}\n")
+        self.mini_terminal.insert(tk.END, "Sistema: Kali Linux - Security Information & Event Management\n")
+        self.mini_terminal.insert(tk.END, "="*60 + "\n")
+        self.mini_terminal.insert(tk.END, "LOG SIEM en tiempo real\n\n")
 
     def _poner_en_cuarentena_desde_entry(self):
         """Pone en cuarentena el archivo especificado en el campo de entrada."""
@@ -309,60 +368,7 @@ class VistaSIEM(tk.Frame, TerminalMixin):
             self.log_to_terminal(f"Excepción poniendo en cuarentena: {e}")
             self._enviar_a_reportes('poner_en_cuarentena', str(e), True)
     
-    def crear_terminal_integrado(self):
-        """Crear terminal integrado SIEM con diseño estándar coherente y tema burp_theme."""
-        try:
-            from aresitos.vista.burp_theme import burp_theme
-            terminal_frame = tk.LabelFrame(
-                self.paned_window,
-                text="Terminal ARESITOS - SIEM",
-                bg=self.colors['bg_secondary'],
-                fg=self.colors['fg_primary'],
-                font=("Arial", 10, "bold")
-            )
-            self.paned_window.add(terminal_frame, minsize=120)
-
-            # Controles de terminal (igual que monitoreo)
-            controles_frame = tk.Frame(terminal_frame, bg=self.colors['bg_secondary'])
-            controles_frame.pack(fill="x", padx=5, pady=2)
-            btn_limpiar = tk.Button(
-                controles_frame,
-                text="LIMPIAR",
-                command=self.limpiar_terminal_siem,
-                bg="#ffaa00",
-                fg='white',
-                font=("Arial", 8, "bold"),
-                height=1
-            )
-            btn_limpiar.pack(side="left", padx=2, fill="x", expand=True)
-            btn_logs = tk.Button(
-                controles_frame,
-                text="VER LOGS",
-                command=self.abrir_logs_siem,
-                bg="#007acc",
-                fg='white',
-                font=("Arial", 8, "bold"),
-                height=1
-            )
-            btn_logs.pack(side="left", padx=2, fill="x", expand=True)
-
-            self.crear_terminal_inferior(terminal_frame, titulo_vista="SIEM")
-
-            entrada_frame = tk.Frame(terminal_frame, bg='#1e1e1e')
-            entrada_frame.pack(fill="x", padx=5, pady=2)
-            tk.Label(entrada_frame, text="COMANDO:", bg='#1e1e1e', fg='#00ff00', font=("Arial", 9, "bold")).pack(side="left", padx=(0, 5))
-            self.comando_entry = tk.Entry(entrada_frame, bg='#000000', fg='#00ff00', font=("Consolas", 9), insertbackground='#00ff00')
-            self.comando_entry.pack(side="left", fill="x", expand=True, padx=(0, 5))
-            self.comando_entry.bind("<Return>", self.ejecutar_comando_entry)
-            ejecutar_btn = tk.Button(entrada_frame, text="EJECUTAR", command=self.ejecutar_comando_entry, bg='#2d5aa0', fg='white', font=("Arial", 8, "bold"))
-            ejecutar_btn.pack(side="right")
-
-            # La cabecera ya la pone crear_terminal_inferior
-
-            self.log_to_terminal("Terminal SIEM iniciado correctamente")
-
-        except Exception as e:
-            print(f"Error creando terminal integrado en Vista SIEM: {e}")
+    # El método crear_terminal_integrado queda obsoleto y se elimina. La terminal y el campo de comando se integran siempre al fondo usando crear_terminal_inferior.
     
     def limpiar_terminal_siem(self):
         """Limpiar terminal SIEM manteniendo cabecera."""

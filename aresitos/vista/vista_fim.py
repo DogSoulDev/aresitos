@@ -89,6 +89,7 @@ class VistaFIM(tk.Frame, TerminalMixin):
         self.proceso_monitoreo_activo = False
         self.thread_monitoreo = None
         self.logger = logging.getLogger(__name__)
+        self.rutas_personalizadas = []
         # Centralizar rutas críticas/sensibles de Kali Linux
         self.rutas_sensibles_kali = [
             '/etc/passwd', '/etc/shadow', '/etc/group', '/etc/sudoers', '/etc/security/', '/etc/login.defs',
@@ -140,10 +141,8 @@ class VistaFIM(tk.Frame, TerminalMixin):
                 'danger': '#dc3545',
                 'info': '#17a2b8'
             }
+        # Crear la interfaz una sola vez (no duplicar)
         self.crear_interfaz()
-        self.rutas_personalizadas = []
-        self.crear_interfaz()
-        # No deshabilitar botones por privilegios al iniciar. Feedback solo al intentar usar funciones avanzadas.
 
 
     def _es_root(self):
