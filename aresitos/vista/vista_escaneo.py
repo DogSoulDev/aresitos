@@ -26,30 +26,78 @@ class VistaEscaneo(tk.Frame):
         self._actualizar_terminal_seguro(formatted_msg)
 
     def _mostrar_resultados_escaneo_kali(self, resultado):
-        """Mostrar solo resultados técnicos útiles del escaneo."""
+        """Mostrar resultados claros, progreso y resumen final del escaneo."""
         try:
             fases = resultado.get("fases", {})
-            # Puertos abiertos
+            resumen = []
+            tiempo_inicio = resultado.get("timestamp", "")
+            objetivo = resultado.get("objetivo", "")
+            self._actualizar_texto_seguro(f"\n=== RESULTADOS DE ESCANEO PARA: {objetivo} ===\n")
+            self._actualizar_terminal_seguro(f"[INFO] Escaneo iniciado para {objetivo} ({tiempo_inicio})\n")
+            # FASE 1: MASSCAN
             masscan = fases.get("masscan", {})
             puertos = masscan.get("puertos_abiertos", [])
-            if puertos:
-                self._actualizar_texto_seguro("Puertos abiertos detectados:\n")
+            if masscan.get("exito"):
+                self._actualizar_texto_seguro(f"FASE 1: MASSCAN completado. Puertos abiertos detectados: {len(puertos)}\n")
+                self._actualizar_terminal_seguro(f"[OK] MASSCAN finalizado. Puertos abiertos: {len(puertos)}\n")
                 for p in puertos:
                     self._actualizar_texto_seguro(f"  - {p['ip']}:{p['puerto']}/{p['protocolo']}\n")
-            # Servicios detectados
+                resumen.append(f"Puertos abiertos: {len(puertos)}")
+            else:
+                self._actualizar_texto_seguro("FASE 1: MASSCAN falló o no disponible.\n")
+                self._actualizar_terminal_seguro(f"[ERROR] MASSCAN: {masscan.get('error', 'Sin detalles')}\n")
+            # FASE 2: NMAP
             nmap = fases.get("nmap", {})
             servicios = nmap.get("servicios", [])
-            if servicios:
-                for p in puertos:
-                    objetivo_puerto = f"{p['ip']}:{p['puerto']}"
-                    # nuclei debe estar definido en el contexto real
-                    # vulns = nuclei.get("vulnerabilidades", [])
-                    # if vulns:
-                    #     self._actualizar_texto_seguro(f"Vulnerabilidades en {objetivo_puerto}:\n")
-                    #     for v in vulns[:5]:
-                    #         self._actualizar_texto_seguro(f"  - {v}\n")
-                    #     if len(vulns) > 5:
-                    #         self._actualizar_texto_seguro(f"  ... y {len(vulns) - 5} vulnerabilidades más\n")
+            if nmap.get("exito"):
+                self._actualizar_texto_seguro(f"FASE 2: NMAP completado. Servicios detectados: {len(servicios)}\n")
+                self._actualizar_terminal_seguro(f"[OK] NMAP finalizado. Servicios detectados: {len(servicios)}\n")
+                for s in servicios:
+                    self._actualizar_texto_seguro(f"  - Puerto {s['puerto']}: {s['servicio']} ({s['estado']})\n")
+                resumen.append(f"Servicios detectados: {len(servicios)}")
+            else:
+                self._actualizar_texto_seguro("FASE 2: NMAP falló o no disponible.\n")
+                self._actualizar_terminal_seguro(f"[ERROR] NMAP: {nmap.get('error', 'Sin detalles')}\n")
+            # FASE 3: NUCLEI
+            nuclei = fases.get("nuclei", {})
+            vulns = nuclei.get("vulnerabilidades", [])
+            if nuclei.get("exito"):
+                self._actualizar_texto_seguro(f"FASE 3: NUCLEI completado. Vulnerabilidades encontradas: {len(vulns)}\n")
+                self._actualizar_terminal_seguro(f"[OK] NUCLEI finalizado. Vulnerabilidades: {len(vulns)}\n")
+                for v in vulns[:10]:
+                    self._actualizar_texto_seguro(f"  - {v.get('name', v.get('template_id', 'Desconocida'))} [{v.get('severity', '')}]\n")
+                if len(vulns) > 10:
+                    self._actualizar_texto_seguro(f"  ... y {len(vulns) - 10} vulnerabilidades más\n")
+                resumen.append(f"Vulnerabilidades: {len(vulns)}")
+            else:
+                self._actualizar_texto_seguro("FASE 3: NUCLEI falló o no disponible.\n")
+                self._actualizar_terminal_seguro(f"[ERROR] NUCLEI: {nuclei.get('error', 'Sin detalles')}\n")
+            # FASES WEB (GOBUSTER, FFUF)
+            for fase_nombre in fases:
+                if fase_nombre.startswith('gobuster_'):
+                    gobuster = fases[fase_nombre]
+                    dirs = gobuster.get('directorios', [])
+                    if gobuster.get('exito'):
+                        self._actualizar_texto_seguro(f"FASE WEB: GOBUSTER ({fase_nombre}) completado. Directorios encontrados: {len(dirs)}\n")
+                        self._actualizar_terminal_seguro(f"[OK] GOBUSTER {fase_nombre} finalizado. Directorios: {len(dirs)}\n")
+                        resumen.append(f"Directorios web: {len(dirs)}")
+                if fase_nombre.startswith('ffuf_'):
+                    ffuf = fases[fase_nombre]
+                    endpoints = ffuf.get('endpoints', [])
+                    if ffuf.get('exito'):
+                        self._actualizar_texto_seguro(f"FASE WEB: FFUF ({fase_nombre}) completado. Endpoints encontrados: {len(endpoints)}\n")
+                        self._actualizar_terminal_seguro(f"[OK] FFUF {fase_nombre} finalizado. Endpoints: {len(endpoints)}\n")
+                        resumen.append(f"Endpoints web: {len(endpoints)}")
+            # Tiempo de ejecución
+            tiempo = resultado.get("tiempo_ejecucion", None)
+            if tiempo:
+                self._actualizar_texto_seguro(f"\nTiempo total de escaneo: {tiempo} segundos\n")
+                self._actualizar_terminal_seguro(f"[INFO] Tiempo total de escaneo: {tiempo} segundos\n")
+            self._actualizar_texto_seguro("\n=== RESUMEN FINAL ===\n")
+            for r in resumen:
+                self._actualizar_texto_seguro(f"- {r}\n")
+            self._actualizar_texto_seguro("====================\n\n")
+            self._actualizar_terminal_seguro("[END] Escaneo finalizado.\n\n")
         except Exception as e:
             self._actualizar_texto_seguro(f"Error mostrando resultados: {str(e)}\n")
     def set_controlador(self, controlador):
@@ -392,12 +440,37 @@ class VistaEscaneo(tk.Frame):
         except Exception:
             pass
     def obtener_datos_para_reporte(self):
-        """Devuelve los datos relevantes del último escaneo para el módulo de reportes."""
-        # Puedes personalizar la estructura según lo que quieras reportar
-        return {
-            "resultados": getattr(self, "ultimos_resultados", []),
-            "timestamp": getattr(self, "ultimo_timestamp", "")
+        """Devuelve los datos completos y estructurados del último escaneo para el módulo de reportes."""
+        # Asegura que se incluyan todas las fases y métricas relevantes
+        resultado = getattr(self, "ultimos_resultados", {})
+        datos = {
+            "objetivo": resultado.get("objetivo", ""),
+            "timestamp": resultado.get("timestamp", ""),
+            "tiempo_ejecucion": resultado.get("tiempo_ejecucion", ""),
+            "fases": {},
+            "resumen": {},
         }
+        fases = resultado.get("fases", {})
+        # Fases principales
+        for fase in ["masscan", "nmap", "nuclei"]:
+            datos["fases"][fase] = fases.get(fase, {})
+        # Fases web y adicionales
+        for k in fases:
+            if k.startswith("gobuster_") or k.startswith("ffuf_") or k in ["netstat", "ss", "lsof", "ps"]:
+                datos["fases"][k] = fases[k]
+        # Resumen final
+        datos["resumen"] = {
+            "puertos_abiertos": len(fases.get("masscan", {}).get("puertos_abiertos", [])),
+            "servicios_detectados": len(fases.get("nmap", {}).get("servicios", [])),
+            "vulnerabilidades": len(fases.get("nuclei", {}).get("vulnerabilidades", [])),
+            "directorios_web": sum(len(f.get("directorios", [])) for k, f in fases.items() if k.startswith("gobuster_")),
+            "endpoints_web": sum(len(f.get("endpoints", [])) for k, f in fases.items() if k.startswith("ffuf_")),
+            "conexiones_netstat": len(fases.get("netstat", {}).get("conexiones", [])),
+            "conexiones_ss": len(fases.get("ss", {}).get("conexiones", [])),
+            "archivos_lsof": len(fases.get("lsof", {}).get("archivos", [])),
+            "procesos_ps": len(fases.get("ps", {}).get("procesos", [])),
+        }
+        return datos
 
     def cancelar_escaneo(self):
         """Cancela el escaneo en curso deteniendo el hilo si está activo."""
