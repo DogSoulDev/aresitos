@@ -65,6 +65,7 @@ class VistaPrincipal(tk.Frame):
         # Configurar el fondo de la ventana principal
         parent.configure(bg=self.theme.get_color('bg_primary'))
         self.configure(bg=self.theme.get_color('bg_primary'))
+
         # Configurar estilos TTK
         self.style = ttk.Style()
         self.theme.configure_ttk_style(self.style)
@@ -266,6 +267,14 @@ class VistaPrincipal(tk.Frame):
             self.notebook.add(self.vista_mantenimiento, text="Mantenimiento")
         except Exception as e:
             print(f"Error creando vista mantenimiento: {e}")
+
+        # 10. NOTICIAS - Última pestaña
+        try:
+            from aresitos.vista.vista_noticias import VistaNoticias
+            self.vista_noticias = VistaNoticias(self.notebook)
+            self.notebook.add(self.vista_noticias, text="Noticias")
+        except Exception as e:
+            print(f"Error creando vista noticias: {e}")
     
     def crear_barra_estado(self):
         """Crea la barra de estado inferior estilo Burp"""
