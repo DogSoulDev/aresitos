@@ -142,8 +142,8 @@ class VistaAuditoria(tk.Frame, TerminalMixin):
             bd=2,
             padx=18,
             pady=18,
-            wraplength=750,
-            height=12
+            wraplength=900,
+            height=24
         )
         self.info_panel.pack(fill=tk.X, padx=8, pady=(0, 20))
 
