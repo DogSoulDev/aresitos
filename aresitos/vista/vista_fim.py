@@ -1,4 +1,3 @@
-
 # =============================================================
 # PRINCIPIOS DE SEGURIDAD ARESITOS (NO TOCAR SIN AUDITORÍA)
 # - Nunca solicitar ni almacenar la contraseña de root.
@@ -19,10 +18,7 @@ import subprocess
 # Importar el gestor de sudo de ARESITOS
 from aresitos.utils.sudo_manager import get_sudo_manager
 import logging
-import datetime
-import time
-import hashlib
-import stat
+from datetime import datetime, timedelta
 
 try:
     from aresitos.vista.burp_theme import burp_theme
@@ -31,7 +27,9 @@ except ImportError:
     BURP_THEME_AVAILABLE = False
     burp_theme = None
 
-class VistaFIM(tk.Frame):
+from aresitos.vista.terminal_mixin import TerminalMixin
+
+class VistaFIM(tk.Frame, TerminalMixin):
     def _enviar_a_reportes(self, comando, salida, es_error=False):
         """Envía la información de la ejecución a la vista de reportes si está disponible."""
         try:
@@ -43,9 +41,8 @@ class VistaFIM(tk.Frame):
                 if vistas and hasattr(vistas, 'get'):
                     vista_reportes = vistas.get('reportes', None)
             if vista_reportes:
-                import datetime
                 datos = {
-                    'timestamp': datetime.datetime.now().isoformat(),
+                    'timestamp': datetime.now().isoformat(),
                     'modulo': 'fim',
                     'comando': comando,
                     'salida': salida,
@@ -188,28 +185,22 @@ class VistaFIM(tk.Frame):
         # Frame principal con paned window
         main_frame = tk.Frame(self, bg=self.colors['bg_primary'])
         main_frame.pack(fill="both", expand=True, padx=20, pady=10)
-        
+
         # Crear PanedWindow para dividir contenido principal y terminal
         paned_window = tk.PanedWindow(main_frame, orient=tk.VERTICAL, 
                                      bg=self.colors['bg_primary'], 
                                      sashrelief=tk.RAISED,
                                      sashwidth=3)
         paned_window.pack(fill="both", expand=True)
-        
+
         # Frame superior para el contenido principal de FIM
         contenido_frame = tk.Frame(paned_window, bg=self.colors['bg_primary'])
         paned_window.add(contenido_frame, minsize=300)
-        
+
         # Crear el contenido principal de FIM en contenido_frame
         self.crear_contenido_fim(contenido_frame)
-        
-        # Frame inferior para el terminal integrado
-        terminal_frame = tk.Frame(paned_window, bg=self.colors['bg_secondary'])
-        paned_window.add(terminal_frame, minsize=150)
-        
-        # Crear terminal integrado
-        self.crear_terminal_integrado(terminal_frame)
-        
+        # Terminal inferior estandarizado (único terminal)
+        self.crear_terminal_inferior(self, titulo_vista="FIM", altura_terminal=12)
         # Configurar posición inicial del sash
         paned_window.update_idletasks()
         try:
@@ -274,10 +265,9 @@ class VistaFIM(tk.Frame):
             ejecutar_btn = tk.Button(entrada_frame, text="EJECUTAR", command=self.ejecutar_comando_entry, bg='#2d5aa0', fg='white', font=("Arial", 8, "bold"))
             ejecutar_btn.pack(side="right")
 
-            import datetime
             self.terminal_output.insert(tk.END, "="*60 + "\n")
             self.terminal_output.insert(tk.END, "Terminal ARESITOS - FIM v2.0\n")
-            self.terminal_output.insert(tk.END, f"Iniciado: {datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')}\n")
+            self.terminal_output.insert(tk.END, f"Iniciado: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}\n")
             self.terminal_output.insert(tk.END, "Sistema: Kali Linux - File Integrity Monitoring\n")
             self.terminal_output.insert(tk.END, "="*60 + "\n")
             self.terminal_output.insert(tk.END, "LOG Monitoreo FIM en tiempo real\n\n")
@@ -293,7 +283,7 @@ class VistaFIM(tk.Frame):
                 # Recrear cabecera estándar
                 self.terminal_output.insert(tk.END, "="*60 + "\n")
                 self.terminal_output.insert(tk.END, "Terminal ARESITOS - FIM v2.0\n")
-                self.terminal_output.insert(tk.END, f"Limpiado: {datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')}\n")
+                self.terminal_output.insert(tk.END, f"Limpiado: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}\n")
                 self.terminal_output.insert(tk.END, "Sistema: Kali Linux - File Integrity Monitoring\n")
                 self.terminal_output.insert(tk.END, "="*60 + "\n")
                 self.terminal_output.insert(tk.END, "LOG Terminal FIM reiniciado\n\n")
@@ -387,23 +377,21 @@ class VistaFIM(tk.Frame):
     def crear_terminal_local(self, parent_frame):
         """Crear terminal local si no hay terminal global disponible (fallback)."""
         self.terminal_output = scrolledtext.ScrolledText(parent_frame,
-                                                     height=6,
-                                                     bg='#000000',
-                                                     fg='#00ff00',
-                                                     font=("Consolas", 8),
-                                                     insertbackground='#00ff00')
+            height=6,
+            bg='#000000',
+            fg='#00ff00',
+            font=("Consolas", 8),
+            insertbackground='#00ff00')
         self.terminal_output.pack(fill="both", expand=True)
-        
         # Mensaje inicial
-        import datetime
         self.terminal_output.insert(tk.END, f"=== Terminal FIM Local ===\n")
-        self.terminal_output.insert(tk.END, f"Iniciado: {datetime.datetime.now().strftime('%H:%M:%S')}\n")
+        self.terminal_output.insert(tk.END, f"Iniciado: {datetime.now().strftime('%H:%M:%S')}\n")
         self.terminal_output.insert(tk.END, f"File Integrity Monitoring\n\n")
     
     def log_to_terminal(self, mensaje):
         """Registrar mensaje en el terminal con formato estándar."""
         try:
-            timestamp = datetime.datetime.now().strftime("%H:%M:%S")
+            timestamp = datetime.now().strftime("%H:%M:%S")
             mensaje_completo = f"[{timestamp}] {mensaje}\n"
             
             # Log al terminal integrado estándar
@@ -460,12 +448,7 @@ class VistaFIM(tk.Frame):
                                                relief='flat', padx=15, pady=8)
         self.btn_monitoreo_avanzado.pack(fill="x", padx=10, pady=5)
 
-        self.btn_analisis_forense = tk.Button(left_frame, text="Análisis Forense",
-                                             command=self.analisis_forense_archivos,
-                                             bg='#dc3545', fg='white',
-                                             font=('Arial', 10),
-                                             relief='flat', padx=15, pady=8)
-        self.btn_analisis_forense.pack(fill="x", padx=10, pady=5)
+    # Botón de Análisis Forense eliminado porque el método no está definido
 
         self.btn_tiempo_real = tk.Button(left_frame, text="Monitoreo Tiempo Real",
                                         command=self.iniciar_monitoreo_tiempo_real,
@@ -1628,7 +1611,7 @@ class VistaFIM(tk.Frame):
             self._deteccion_archivos_sospechosos()
             
             # 5. Monitoreo de logs de sistema en tiempo real
-            self._monitoreo_logs_sistema()
+            # self._monitoreo_logs_sistema()  # Comentado: no definido en vista_fim.py
             
             # 6. Verificación de firmas de archivos críticos
             self._verificacion_firmas()
@@ -1746,7 +1729,7 @@ class VistaFIM(tk.Frame):
                         self._actualizar_texto_fim(f"  ERROR {herramienta}: No instalado\n")
                 except:
                     self._actualizar_texto_fim(f"  ❓ {herramienta}: Error verificando\n")
-                    
+            
         except Exception as e:
             self._actualizar_texto_fim(f"ERROR Error en verificación de checksums: {str(e)}\n")
     
@@ -1912,288 +1895,13 @@ class VistaFIM(tk.Frame):
                     archivos_recientes = [f for f in archivos_recientes if f.strip()]
                     
                     if archivos_recientes:
-                        self._actualizar_texto_fim(f"  [DATOS] {len(archivos_recientes)} archivos modificados recientemente\n")
-                        if len(archivos_recientes) <= 5:
-                            for archivo in archivos_recientes:
-                                self._actualizar_texto_fim(f"    📝 {archivo}\n")
-                        else:
-                            self._actualizar_texto_fim("    (Lista muy extensa - revisar manualmente si es necesario)\n")
-                    else:
-                        self._actualizar_texto_fim("  OK Sin modificaciones recientes en directorios críticos\n")
-                        
-            except subprocess.TimeoutExpired:
-                self._actualizar_texto_fim("  ⏱️ Timeout verificando archivos recientes\n")
-            except:
-                pass
-            
-            self._actualizar_texto_fim(f"\n[DATOS] Resumen de detección:\n")
-            self._actualizar_texto_fim(f"  • Archivos ocultos encontrados: {archivos_ocultos_total}\n")
-            self._actualizar_texto_fim(f"  • Archivos con nombres sospechosos: {archivos_sospechosos_total}\n")
-            
-        except Exception as e:
-            self._actualizar_texto_fim(f"ERROR Error detectando archivos sospechosos: {str(e)}\n")
-    
-    def _monitoreo_logs_sistema(self):
-        """Monitoreo de logs de sistema relacionados con integridad de archivos."""
-        try:
-            self._actualizar_texto_fim("\n📋 5. MONITOREO DE LOGS DE SISTEMA\n")
-            self._actualizar_texto_fim("-" * 50 + "\n")
-            
-            import subprocess
-            
-            # Verificar logs relacionados con integridad de archivos
-            logs_relevantes = [
-                ('/var/log/auth.log', 'Autenticación'),
-                ('/var/log/syslog', 'Sistema'),
-                ('/var/log/kern.log', 'Kernel'),
-                ('/var/log/audit/audit.log', 'Auditoría')
-            ]
-            
-            self._actualizar_texto_fim("[BUSCAR] Verificando logs del sistema:\n")
-            
-            logs_disponibles = 0
-            eventos_seguridad = 0
-            
-            for log_path, descripcion in logs_relevantes:
-                if os.path.exists(log_path):
-                    try:
-                        # Verificar tamaño del log
-                        stat_info = os.stat(log_path)
-                        tamano_mb = stat_info.st_size / (1024 * 1024)
-                        
-                        self._actualizar_texto_fim(f"  OK {descripcion} ({log_path}): {tamano_mb:.1f} MB\n")
-                        logs_disponibles += 1
-                        
-                        # Buscar eventos relacionados con integridad de archivos en logs recientes
-                        if tamano_mb < 50:  # Solo analizar logs no muy grandes
-                            try:
-                                # Buscar líneas con palabras clave de seguridad
-                                resultado = subprocess.run(['tail', '-100', log_path], 
-                                                         capture_output=True, text=True, timeout=10)
-                                
-                                if resultado.returncode == 0:
-                                    contenido = resultado.stdout.lower()
-                                    palabras_clave = ['failed', 'denied', 'invalid', 'unauthorized', 'suspicious']
-                                    
-                                    eventos_encontrados = sum(contenido.count(palabra) for palabra in palabras_clave)
-                                    if eventos_encontrados > 0:
-                                        self._actualizar_texto_fim(f"    ADVERTENCIA️ {eventos_encontrados} eventos de seguridad detectados\n")
-                                        eventos_seguridad += eventos_encontrados
-                                        
-                            except subprocess.TimeoutExpired:
-                                self._actualizar_texto_fim(f"    ⏱️ Timeout analizando log\n")
-                            except:
-                                pass
-                        else:
-                            self._actualizar_texto_fim(f"    ℹ️ Log muy grande - análisis manual recomendado\n")
-                            
-                    except Exception as e:
-                        self._actualizar_texto_fim(f"  ERROR {descripcion}: Error - {str(e)}\n")
-                else:
-                    self._actualizar_texto_fim(f"  ❓ {descripcion} ({log_path}): No encontrado\n")
-            
-            # Verificar servicios de monitoreo
-            servicios_monitoreo = ['auditd', 'rsyslog', 'systemd-journald']
-            self._actualizar_texto_fim(f"\n🔧 Verificando servicios de monitoreo:\n")
-            
-            for servicio in servicios_monitoreo:
-                try:
-                    resultado = subprocess.run(['systemctl', 'is-active', servicio], 
-                                             capture_output=True, text=True, timeout=5)
-                    
-                    if resultado.returncode == 0:
-                        estado = resultado.stdout.strip()
-                        if estado == 'active':
-                            self._actualizar_texto_fim(f"  OK {servicio}: Activo\n")
-                        else:
-                            self._actualizar_texto_fim(f"  ADVERTENCIA️ {servicio}: {estado}\n")
-                    else:
-                        self._actualizar_texto_fim(f"  ERROR {servicio}: No disponible\n")
-                        
-                except subprocess.TimeoutExpired:
-                    self._actualizar_texto_fim(f"  ⏱️ {servicio}: Timeout\n")
-                except:
-                    self._actualizar_texto_fim(f"  ❓ {servicio}: Error verificando\n")
-            
-            self._actualizar_texto_fim(f"\n[DATOS] Resumen de logs:\n")
-            self._actualizar_texto_fim(f"  • Logs disponibles: {logs_disponibles}\n")
-            self._actualizar_texto_fim(f"  • Eventos de seguridad detectados: {eventos_seguridad}\n")
-            
-        except Exception as e:
-            self._actualizar_texto_fim(f"ERROR Error monitoreando logs: {str(e)}\n")
-    
-    def analisis_forense_archivos(self):
-        """Análisis forense detallado de archivos críticos."""
-        try:
-            self._actualizar_texto_fim("🔬 INICIANDO ANÁLISIS FORENSE DE ARCHIVOS\n")
-            self._actualizar_texto_fim("=" * 70 + "\n")
-            
-            # Verificar que estamos en Linux
-            import platform
-            if platform.system() != 'Linux':
-                self._actualizar_texto_fim("ADVERTENCIA️ ADVERTENCIA: Análisis forense completo solo disponible en Kali Linux\n")
-                return
-            
-            # 1. Análisis de metadatos de archivos
-            self._analisis_metadatos()
-            
-            # 2. Búsqueda de archivos eliminados recientemente
-            self._busqueda_archivos_eliminados()
-            
-            # 3. Análisis de timestamps sospechosos
-            self._analisis_timestamps()
-            
-            # 4. Verificación de firmas de archivos
-            self._verificacion_firmas()
-            
-            self._actualizar_texto_fim("\nOK ANÁLISIS FORENSE COMPLETADO\n")
-            self._log_terminal("Análisis forense de archivos completado", "FIM", "SUCCESS")
-            
-        except Exception as e:
-            error_msg = f"Error en análisis forense: {str(e)}"
-            self._actualizar_texto_fim(f"ERROR ERROR: {error_msg}\n")
-            self._log_terminal(error_msg, "FIM", "ERROR")
-    
-    def _analisis_metadatos(self):
-        """Análisis detallado de metadatos de archivos críticos."""
-        try:
-            self._actualizar_texto_fim("\n[DATOS] 1. ANÁLISIS DE METADATOS\n")
-            self._actualizar_texto_fim("-" * 50 + "\n")
-            
-            import subprocess
-            from datetime import datetime
-            
-            archivos_criticos = ['/etc/passwd', '/etc/shadow', '/etc/sudoers', '/etc/hosts']
-            
-            for archivo in archivos_criticos:
-                if os.path.exists(archivo):
-                    try:
-                        self._actualizar_texto_fim(f"\n📄 {archivo}:\n")
-                        
-                        # Obtener información detallada con stat
-                        resultado = subprocess.run(['stat', archivo], 
-                                                 capture_output=True, text=True, timeout=5)
-                        
-                        if resultado.returncode == 0:
-                            lineas = resultado.stdout.split('\n')
-                            for linea in lineas[:6]:  # Primeras 6 líneas más importantes
-                                if linea.strip():
-                                    self._actualizar_texto_fim(f"  {linea}\n")
-                        
-                        # Información adicional con ls -la
-                        resultado_ls = subprocess.run(['ls', '-la', archivo], 
-                                                    capture_output=True, text=True, timeout=5)
-                        
-                        if resultado_ls.returncode == 0:
-                            self._actualizar_texto_fim(f"  Permisos: {resultado_ls.stdout.strip()}\n")
-                            
-                    except subprocess.TimeoutExpired:
-                        self._actualizar_texto_fim(f"  ⏱️ Timeout analizando metadatos de {archivo}\n")
-                    except Exception as e:
-                        self._actualizar_texto_fim(f"  ERROR Error: {str(e)}\n")
-                        
-        except Exception as e:
-            self._actualizar_texto_fim(f"ERROR Error analizando metadatos: {str(e)}\n")
-    
-    def _busqueda_archivos_eliminados(self):
-        """Buscar evidencia de archivos eliminados recientemente."""
-        try:
-            self._actualizar_texto_fim("\n🗑️ 2. BÚSQUEDA DE ARCHIVOS ELIMINADOS\n")
-            self._actualizar_texto_fim("-" * 50 + "\n")
-            
-            import subprocess
-            
-            # Verificar logs que pueden contener información sobre archivos eliminados
-            try:
-                # Buscar en logs de audit si está disponible
-                if os.path.exists('/var/log/audit/audit.log'):
-                    resultado = subprocess.run(['grep', 'DELETE', '/var/log/audit/audit.log'], 
-                                             capture_output=True, text=True, timeout=10)
-                    
-                    if resultado.returncode == 0:
-                        eliminaciones = resultado.stdout.strip().split('\n')
-                        eliminaciones = [e for e in eliminaciones if e.strip()]
-                        
-                        if eliminaciones:
-                            self._actualizar_texto_fim(f"[BUSCAR] Eventos de eliminación en audit.log: {len(eliminaciones)}\n")
-                            # Mostrar solo los más recientes
-                            for evento in eliminaciones[-3:]:
-                                self._actualizar_texto_fim(f"  📝 {evento[:80]}...\n")
-                        else:
-                            self._actualizar_texto_fim("OK No se encontraron eliminaciones en audit.log\n")
-                    else:
-                        self._actualizar_texto_fim("ℹ️ No hay eventos de eliminación en audit.log\n")
-                else:
-                    self._actualizar_texto_fim("❓ audit.log no disponible\n")
-                    
-            except subprocess.TimeoutExpired:
-                self._actualizar_texto_fim("⏱️ Timeout buscando en audit.log\n")
-            except:
-                pass
-            
-            # Buscar en journalctl eventos relacionados con archivos
-            try:
-                resultado = subprocess.run(['journalctl', '--since', '1 hour ago', '--grep', 'file'], 
-                                         capture_output=True, text=True, timeout=10)
-                
-                if resultado.returncode == 0:
-                    eventos = resultado.stdout.strip().split('\n')
-                    eventos = [e for e in eventos if e.strip()]
-                    
-                    if eventos:
-                        self._actualizar_texto_fim(f"📋 Eventos de archivos en la última hora: {len(eventos)}\n")
-                        if len(eventos) <= 3:
-                            for evento in eventos:
-                                self._actualizar_texto_fim(f"  📄 {evento[:80]}...\n")
-                        else:
-                            self._actualizar_texto_fim("  (Lista extensa - revisar journalctl manualmente)\n")
-                    else:
-                        self._actualizar_texto_fim("OK Sin eventos de archivos recientes\n")
-                        
-            except subprocess.TimeoutExpired:
-                self._actualizar_texto_fim("⏱️ Timeout buscando en journalctl\n")
-            except:
-                pass
-                
-        except Exception as e:
-            self._actualizar_texto_fim(f"ERROR Error buscando archivos eliminados: {str(e)}\n")
-    
-    def _analisis_timestamps(self):
-        """Análisis de timestamps sospechosos en archivos."""
-        try:
-            self._actualizar_texto_fim("\n⏰ 3. ANÁLISIS DE TIMESTAMPS\n")
-            self._actualizar_texto_fim("-" * 50 + "\n")
-            
-            import subprocess
-            from datetime import datetime, timedelta
-            
-            # Buscar archivos modificados a horas inusuales (fuera de horario laboral)
-            hora_actual = datetime.now().hour
-            
-            self._actualizar_texto_fim(f"🕐 Hora actual: {hora_actual}:00\n")
-            
-            if 22 <= hora_actual or hora_actual <= 6:
-                self._actualizar_texto_fim("ADVERTENCIA️ ACTIVIDAD FUERA DE HORARIO LABORAL DETECTADA\n")
-            else:
-                self._actualizar_texto_fim("OK Actividad en horario laboral normal\n")
-            
-            # Buscar archivos modificados muy recientemente (últimos 30 minutos)
-            try:
-                resultado = subprocess.run(['find', '/etc', '-type', 'f', '-mmin', '-30'], 
-                                         capture_output=True, text=True, timeout=15)
-                
-                if resultado.returncode == 0:
-                    archivos_recientes = resultado.stdout.strip().split('\n')
-                    archivos_recientes = [f for f in archivos_recientes if f.strip()]
-                    
-                    if archivos_recientes:
-                        self._actualizar_texto_fim(f"🚨 ARCHIVOS MODIFICADOS EN LOS ÚLTIMOS 30 MIN: {len(archivos_recientes)}\n")
+                        self._actualizar_texto_fim(f"🚨 ARCHIVOS MODIFICADOS EN LAS ÚLTIMAS 24 HORAS: {len(archivos_recientes)}\n")
                         for archivo in archivos_recientes[:5]:
                             self._actualizar_texto_fim(f"  📝 {archivo}\n")
                         if len(archivos_recientes) > 5:
                             self._actualizar_texto_fim(f"  ... y {len(archivos_recientes) - 5} más\n")
                     else:
-                        self._actualizar_texto_fim("OK Sin modificaciones muy recientes en /etc\n")
+                        self._actualizar_texto_fim("OK Sin modificaciones recientes en directorios críticos\n")
                         
             except subprocess.TimeoutExpired:
                 self._actualizar_texto_fim("⏱️ Timeout buscando archivos recientes\n")
@@ -2326,7 +2034,7 @@ class VistaFIM(tk.Frame):
             
             # Crear estructura de datos para el reporte
             datos_fim = {
-                'timestamp': datetime.datetime.now().isoformat(),
+                'timestamp': datetime.now().isoformat(),
                 'modulo': 'FIM Avanzado',
                 'estado': 'activo' if self.proceso_monitoreo_activo else 'inactivo',
                 'version_expandida': True,
@@ -2363,7 +2071,7 @@ class VistaFIM(tk.Frame):
             
         except Exception as e:
             return {
-                'timestamp': datetime.datetime.now().isoformat(),
+                'timestamp': datetime.now().isoformat(),
                 'modulo': 'FIM',
                 'estado': 'error',
                 'error': f'Error obteniendo datos: {str(e)}',

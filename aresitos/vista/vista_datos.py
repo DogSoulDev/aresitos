@@ -29,6 +29,29 @@ except ImportError:
     BURP_THEME_AVAILABLE = False
 
 class VistaGestionDatos(tk.Frame):
+    def cargar_archivos(self):
+        """Cargar lista de archivos según el tipo seleccionado."""
+        if not hasattr(self, 'lista_archivos'):
+            return
+        self.lista_archivos.delete(0, tk.END)
+        if self.tipo_actual == "wordlists":
+            ruta = self.ruta_wordlists
+            extensiones = ['.txt', '.json']
+        elif self.tipo_actual == "diccionarios":
+            ruta = self.ruta_diccionarios
+            extensiones = ['.json']
+        else:
+            ruta = self.ruta_wordlists
+            extensiones = ['.txt', '.json']
+        if ruta.exists():
+            archivos = []
+            for ext in extensiones:
+                archivos.extend(ruta.glob(f'*{ext}'))
+            archivos.sort(key=lambda x: x.name.lower())
+            for archivo in archivos:
+                self.lista_archivos.insert(tk.END, archivo.name)
+        else:
+            self.logger.warning(f"Carpeta no encontrada: {ruta}")
     @staticmethod
     def _get_base_dir():
         """Obtener la ruta base absoluta del proyecto ARESITOS."""
@@ -325,105 +348,40 @@ class VistaGestionDatos(tk.Frame):
     
     def cambiar_tipo(self, nuevo_tipo):
         """Cambiar entre wordlists y diccionarios."""
-        try:
-            self.logger.info(f"Cambiando tipo de gestión de datos a: {nuevo_tipo}")
-            self.tipo_actual = nuevo_tipo
-            
-            # Actualizar botones
-            if self.theme:
-                if nuevo_tipo == "wordlists":
-                    self.btn_wordlists['bg'] = '#ff6633'
-                    self.btn_diccionarios['bg'] = '#404040'
-                elif nuevo_tipo == "diccionarios":
-                    self.btn_wordlists['bg'] = '#404040'
-                    self.btn_diccionarios['bg'] = '#ff6633'
-            
-            # Limpiar selección y contenido
-            self.archivo_seleccionado = None
-            self._actualizar_contenido_seguro("", "clear")
-            
-            # Llamar al controlador para obtener datos específicos del tipo
-            if self.controlador:
-                if nuevo_tipo == "wordlists":
-                    wordlists_data = self.controlador.obtener_wordlists_disponibles()
-                    self.logger.info(f"Wordlists disponibles: {len(wordlists_data) if wordlists_data else 0}")
-                elif nuevo_tipo == "diccionarios":
-                    diccionarios_data = self.controlador.obtener_diccionarios_disponibles()
-                    self.logger.info(f"Diccionarios disponibles: {len(diccionarios_data) if diccionarios_data else 0}")
-                elif nuevo_tipo == "cheatsheets":
-                    # Si se quiere, se puede agregar lógica de cheatsheets aquí
-                    self.logger.info("Cheatsheets seleccionados")
-                # Actualizar estadísticas en la vista
-                self.actualizar_desde_controlador()
-            
-            # Recargar archivos
-            self.cargar_archivos()
-
-            # Mostrar/ocultar botón Limpiar
-            if hasattr(self, 'actualizar_boton_limpiar'):
-                self.actualizar_boton_limpiar()
-            
-        except Exception as e:
-            self.logger.error(f"Error cambiando tipo de gestión: {e}")
-    
-    def cargar_archivos(self):
-        """Cargar lista de archivos según el tipo seleccionado."""
-        self.lista_archivos.delete(0, tk.END)
-        
-        if self.tipo_actual == "wordlists":
-            ruta = self.ruta_wordlists
-            extensiones = ['.txt', '.json']
-            tipo_str = "wordlists"
-        elif self.tipo_actual == "diccionarios":
-            ruta = self.ruta_diccionarios
-            extensiones = ['.json']
-            tipo_str = "diccionarios"
-    # Eliminado cheatsheets
-        else:
-            ruta = self.ruta_wordlists
-            extensiones = ['.txt', '.json']
-            tipo_str = "wordlists"
-        
-        if ruta.exists():
-            archivos = []
-            for ext in extensiones:
-                archivos.extend(ruta.glob(f'*{ext}'))
-            
-            # Ordenar archivos
-            archivos.sort(key=lambda x: x.name.lower())
-            
-            # Mostrar información de refresco
-            self._log_terminal(f"Actualizando lista de {tipo_str}... Encontrados {len(archivos)} archivos", "GESTION")
-            
-            for archivo in archivos:
-                # ...existing code...
-                if archivo.suffix == '.json':
-                    icono = "📄"
-                else:
-                    icono = "📝"
-                self.lista_archivos.insert(tk.END, f"{icono} {archivo.name}")
-            
-            # Mensaje de confirmación
-            if archivos:
-                self._log_terminal(f"OK Lista de {tipo_str} actualizada correctamente", "GESTION")
-            else:
-                self._log_terminal(f"[WARNING] No se encontraron {tipo_str} en la carpeta", "GESTION", "WARNING")
-        else:
-            self._log_terminal(f"[FAIL] Carpeta de {tipo_str} no encontrada: {ruta}", "GESTION", "ERROR")
-    
-    def on_archivo_seleccionado(self, event):
-        """Manejar selección de archivo."""
+        self.logger.info(f"Cambiando tipo de gestión de datos a: {nuevo_tipo}")
+        self.tipo_actual = nuevo_tipo
+        # Actualizar botones
+        if self.theme:
+            if nuevo_tipo == "wordlists":
+                self.btn_wordlists['bg'] = '#ff6633'
+                self.btn_diccionarios['bg'] = '#404040'
+            elif nuevo_tipo == "diccionarios":
+                self.btn_wordlists['bg'] = '#404040'
+                self.btn_diccionarios['bg'] = '#ff6633'
+        # Limpiar selección y contenido
+        self.archivo_seleccionado = None
+        self._actualizar_contenido_seguro("", "clear")
+        # Llamar al controlador para obtener datos específicos del tipo
+        if self.controlador:
+            if nuevo_tipo == "wordlists":
+                wordlists_data = self.controlador.obtener_wordlists_disponibles()
+                self.logger.info(f"Wordlists disponibles: {len(wordlists_data) if wordlists_data else 0}")
+            elif nuevo_tipo == "diccionarios":
+                diccionarios_data = self.controlador.obtener_diccionarios_disponibles()
+                self.logger.info(f"Diccionarios disponibles: {len(diccionarios_data) if diccionarios_data else 0}")
+            elif nuevo_tipo == "cheatsheets":
+                self.logger.info("Cheatsheets seleccionados")
+            self.actualizar_desde_controlador()
+        self.cargar_archivos()
+    def on_archivo_seleccionado(self, event=None):
+        """Manejar selección de archivo en la lista."""
         selection = self.lista_archivos.curselection()
         if selection:
             nombre_archivo = self.lista_archivos.get(selection[0])
-            # ...existing code...
-            nombre_archivo = nombre_archivo.split(' ', 1)[1]
-            
             if self.tipo_actual == "wordlists":
                 archivo_path = self.ruta_wordlists / nombre_archivo
             else:
                 archivo_path = self.ruta_diccionarios / nombre_archivo
-            
             self.archivo_seleccionado = archivo_path
             self.mostrar_contenido_archivo()
     

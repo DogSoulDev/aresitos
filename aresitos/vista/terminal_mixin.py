@@ -1,4 +1,3 @@
-
 """
 PRINCIPIOS DE SEGURIDAD ARESITOS (NO MODIFICAR SIN AUDITORÍA)
 - Nunca solicitar ni almacenar la contraseña de root.
@@ -41,32 +40,34 @@ class TerminalMixin:
             'info': '#44aaff'
         }
     
-    def crear_terminal_integrado(self, parent_frame, titulo_vista="ARESITOS"):
-        """Crear terminal integrado en cualquier vista."""
+    def crear_terminal_inferior(self, parent_frame, titulo_vista="ARESITOS", comando_callback=None, altura_terminal=12):
+        """
+        Crear terminal y campo de comando en la parte inferior de la vista, con label 'COMANDO:' y altura configurable.
+        - parent_frame: Frame principal de la vista.
+        - titulo_vista: Nombre de la vista para mostrar en el terminal.
+        - comando_callback: función a ejecutar cuando se envía un comando.
+        - altura_terminal: altura del área de terminal (default 12).
+        """
         colors = self.get_colors()
-        
+        # Frame inferior para terminal y comando
+        frame_inferior = tk.Frame(parent_frame, bg=colors['bg_secondary'])
+        frame_inferior.pack(side="bottom", fill="x", padx=0, pady=0)
         # Título del terminal
-        titulo_terminal = tk.Label(parent_frame, 
-                                 text=f"Terminal ARESITOS - {titulo_vista}", 
-                                 bg=colors['bg_secondary'], 
-                                 fg=colors['fg_accent'],
-                                 font=('Arial', 11, 'bold'))
-        titulo_terminal.pack(anchor="w", padx=5, pady=(5, 0))
-        
-        # Frame para el terminal
-        terminal_content = tk.Frame(parent_frame, bg=colors['bg_secondary'])
-        terminal_content.pack(fill="both", expand=True, padx=5, pady=5)
-        
-        # Crear siempre un terminal local funcional
-        self.mini_terminal = scrolledtext.ScrolledText(terminal_content,
-                                                     height=8,
-                                                     bg='#000000',
-                                                     fg='#00ff00',
-                                                     font=("Consolas", 9),
-                                                     insertbackground='#00ff00',
-                                                     state='normal')
-        self.mini_terminal.pack(fill="both", expand=True)
-        
+        titulo_terminal = tk.Label(frame_inferior,
+                                   text=f"Terminal ARESITOS - {titulo_vista}",
+                                   bg=colors['bg_secondary'],
+                                   fg=colors['fg_accent'],
+                                   font=('Arial', 11, 'bold'))
+        titulo_terminal.pack(anchor="w", padx=8, pady=(6, 0))
+        # Terminal scrolledtext
+        self.mini_terminal = scrolledtext.ScrolledText(frame_inferior,
+                                                       height=altura_terminal,
+                                                       bg='#000000',
+                                                       fg='#00ff00',
+                                                       font=("Consolas", 10),
+                                                       insertbackground='#00ff00',
+                                                       state='normal')
+        self.mini_terminal.pack(fill="x", expand=False, padx=8, pady=(0, 4))
         # Mensaje inicial
         timestamp = datetime.datetime.now().strftime('%H:%M:%S')
         self.mini_terminal.insert(tk.END, f"=== Terminal {titulo_vista} ===\n")
@@ -74,6 +75,40 @@ class TerminalMixin:
         self.mini_terminal.insert(tk.END, f"Vista: {titulo_vista}\n")
         self.mini_terminal.insert(tk.END, f"Sistema: ARESITOS v2.0 - Kali Linux\n\n")
         self.mini_terminal.see(tk.END)
+        # Campo de entrada de comando con label
+        comando_frame = tk.Frame(frame_inferior, bg=colors['bg_secondary'])
+        comando_frame.pack(fill="x", padx=8, pady=(0, 8))
+        label_comando = tk.Label(comando_frame,
+                                 text="COMANDO:",
+                                 bg=colors['bg_secondary'],
+                                 fg='#00ff00',
+                                 font=("Arial", 9, "bold"))
+        label_comando.pack(side="left", padx=(0, 5))
+        self.comando_entry = tk.Entry(comando_frame,
+                                      font=("Consolas", 10),
+                                      bg='#222222',
+                                      fg='#00ff00',
+                                      insertbackground='#00ff00',
+                                      relief=tk.FLAT)
+        self.comando_entry.pack(side="left", fill="x", expand=True, padx=(0, 8))
+        self.comando_entry.bind("<Return>", lambda event: self._ejecutar_comando_terminal(comando_callback))
+        # Botón ejecutar unificado
+        btn_ejecutar = tk.Button(comando_frame,
+                                 text="EJECUTAR",
+                                 font=("Arial", 10, "bold"),
+                                 bg=colors['button_bg'] if 'button_bg' in colors else '#ffb86c',
+                                 fg=colors['button_fg'] if 'button_fg' in colors else '#232629',
+                                 command=lambda: self._ejecutar_comando_terminal(comando_callback))
+        btn_ejecutar.pack(side="right", padx=(8, 0))
+    def _ejecutar_comando_terminal(self, comando_callback):
+        """Ejecuta el comando ingresado y lo muestra en el terminal."""
+        comando = self.comando_entry.get()
+        if comando:
+            self.mini_terminal.insert(tk.END, f"$ {comando}\n")
+            self.mini_terminal.see(tk.END)
+            self.comando_entry.delete(0, tk.END)
+            if comando_callback:
+                comando_callback(comando)
     
     def crear_terminal_local(self, parent_frame, titulo_vista="ARESITOS"):
         """Crear terminal local si no hay terminal global disponible."""
@@ -122,40 +157,7 @@ class TerminalMixin:
             logging.debug(f'Error en excepción: {e}')
             pass  # Si no hay terminal, ignorar silenciosamente
     
-    def agregar_paned_window_con_terminal(self, parent_frame, titulo_vista="ARESITOS"):
-        """
-        Agregar PanedWindow con terminal a cualquier vista.
-        Retorna el frame de contenido donde se debe agregar el contenido principal.
-        """
-        colors = self.get_colors()
-        
-        # Crear PanedWindow para dividir contenido principal y terminal
-        paned_window = tk.PanedWindow(parent_frame, orient=tk.VERTICAL, 
-                                     bg=colors['bg_primary'], 
-                                     sashrelief=tk.RAISED,
-                                     sashwidth=3)
-        paned_window.pack(fill="both", expand=True)
-        
-        # Frame superior para el contenido principal
-        contenido_frame = tk.Frame(paned_window, bg=colors['bg_primary'])
-        paned_window.add(contenido_frame, minsize=300)
-        
-        # Frame inferior para el terminal integrado
-        terminal_frame = tk.Frame(paned_window, bg=colors['bg_secondary'])
-        paned_window.add(terminal_frame, minsize=150)
-        
-        # Crear terminal integrado
-        self.crear_terminal_integrado(terminal_frame, titulo_vista)
-        
-        # Configurar posición inicial del sash
-        paned_window.update_idletasks()
-        try:
-            paned_window.sash_place(0, 400, 0)  # Posición inicial del divisor
-        except (ValueError, TypeError, OSError) as e:
-            logging.debug(f'Error en excepción: {e}')
-            pass  # Si falla, usar posición por defecto
-        
-        return contenido_frame
+    # Método deprecated: usar crear_terminal_inferior directamente en el frame deseado
     
     def optimizar_terminal_memoria(self):
         """Optimizar memoria del terminal - Issue 21/24"""

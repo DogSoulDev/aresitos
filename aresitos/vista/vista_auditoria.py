@@ -19,6 +19,7 @@ import datetime
 # Importar el gestor de sudo de ARESITOS
 from aresitos.utils.sudo_manager import get_sudo_manager
 from aresitos.utils.logger_aresitos import LoggerAresitos
+from aresitos.vista.terminal_mixin import TerminalMixin
 
 try:
     from aresitos.vista.burp_theme import burp_theme
@@ -27,7 +28,7 @@ except ImportError:
     BURP_THEME_AVAILABLE = False
     burp_theme = None
 
-class VistaAuditoria(tk.Frame):
+class VistaAuditoria(tk.Frame, TerminalMixin):
     herramientas_apt = [
         'lynis', 'rkhunter', 'chkrootkit', 'clamav', 'nuclei', 'httpx', 'linpeas', 'pspy'
     ]
@@ -103,11 +104,32 @@ class VistaAuditoria(tk.Frame):
 
         # Título arriba
         titulo_frame = tk.Frame(main_frame, bg=self.colors['bg_primary'])
-        titulo_frame.pack(fill=tk.X, pady=(10, 10))
+        titulo_frame.pack(fill=tk.X, pady=(10, 5))
         titulo = tk.Label(titulo_frame, text="Auditoría de seguridad del sistema",
             bg=self.colors['bg_primary'], fg=self.colors['fg_accent'],
             font=('Arial', 16, 'bold'))
-        titulo.pack(pady=10)
+        titulo.pack(pady=5)
+
+        # Panel informativo dinámico
+        self.info_panel = tk.Label(
+            main_frame,
+            text=(
+                "Bienvenido a la Auditoría de Seguridad. Aquí puedes ejecutar análisis, revisar configuraciones y consultar resultados.\n"
+                "Utiliza los botones de la izquierda para iniciar acciones específicas. Los resultados y mensajes aparecerán en el terminal inferior.\n"
+                "Recuerda: Todos los comandos se ejecutan con privilegios auditados y nunca se solicita la contraseña de root."
+            ),
+            bg=self.colors['bg_secondary'],
+            fg=self.colors['fg_primary'],
+            font=('Arial', 11),
+            anchor="w",
+            justify="left",
+            relief="groove",
+            bd=2,
+            padx=12,
+            pady=8,
+            wraplength=700
+        )
+        self.info_panel.pack(fill=tk.X, padx=8, pady=(0, 10))
 
         # Frame horizontal para dividir botones y terminal
         content_frame = tk.Frame(main_frame, bg=self.colors['bg_primary'])
@@ -121,62 +143,10 @@ class VistaAuditoria(tk.Frame):
         self._crear_seccion_utilidades(left_frame)
 
         # Panel derecho: terminal integrado
-        right_frame = tk.Frame(content_frame, bg=self.colors['bg_primary'])
-        right_frame.pack(side=tk.RIGHT, fill=tk.BOTH, expand=True, pady=5)
-        self.crear_terminal_integrado(parent=right_frame)
-
-    def crear_terminal_integrado(self, parent=None):
-        if parent is None:
-            parent = self
-        terminal_frame = tk.LabelFrame(parent, text="Terminal de auditoría", bg=self.colors['bg_primary'], fg=self.colors['fg_accent'])
-        terminal_frame.pack(fill="both", expand=True, padx=5, pady=5)
-
-        self.terminal_output = scrolledtext.ScrolledText(
-            terminal_frame,
-            height=12,
-            bg='#000000',
-            fg='#00ff00',
-            font=("Consolas", 10),
-            insertbackground='#00ff00',
-            selectbackground='#333333'
-        )
-        self.terminal_output.pack(fill="both", expand=True, padx=5, pady=5)
-
-        entrada_frame = tk.Frame(terminal_frame, bg='#1e1e1e')
-        entrada_frame.pack(fill="x", padx=5, pady=2)
-
-        tk.Label(entrada_frame, text="Comando:",
-                 bg='#1e1e1e', fg='#00ff00',
-                 font=("Arial", 9, "bold")).pack(side="left", padx=(0, 5))
-
-        self.comando_entry = tk.Entry(
-            entrada_frame,
-            bg='#000000',
-            fg='#00ff00',
-            font=("Consolas", 9),
-            insertbackground='#00ff00'
-        )
-        self.comando_entry.pack(side="left", fill="x", expand=True, padx=(0, 5))
-        self.comando_entry.bind("<Return>", self.ejecutar_comando_entry)
-
-        ejecutar_btn = tk.Button(
-            entrada_frame,
-            text="Ejecutar",
-            command=self.ejecutar_comando_entry,
-            bg='#2d5aa0',
-            fg='white',
-            font=("Arial", 8, "bold")
-        )
-        ejecutar_btn.pack(side="right")
-
-        # Mensaje inicial
-        self._actualizar_terminal("="*60 + "\n")
-        self._actualizar_terminal("Terminal ARESITOS - Auditoría v2.0\n")
-        from datetime import datetime
-        self._actualizar_terminal(f"Iniciado: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}\n")
-        self._actualizar_terminal("Sistema: Kali Linux - Herramientas de auditoría de seguridad\n")
-        self._actualizar_terminal("="*60 + "\n")
-        self._actualizar_terminal("Log de auditoría en tiempo real\n\n")
+        # Eliminar terminal personalizado, solo usar el estandarizado
+        # self.crear_terminal_integrado(parent=right_frame)
+        # Crear terminal inferior estandarizado
+        self.crear_terminal_inferior(self, titulo_vista="Auditoría")
 
     def _actualizar_terminal(self, texto, modo=None):
         if hasattr(self, 'terminal_output') and self.terminal_output:
@@ -184,9 +154,14 @@ class VistaAuditoria(tk.Frame):
                 self.terminal_output.delete(1.0, tk.END)
             self.terminal_output.insert(tk.END, texto)
             self.terminal_output.see(tk.END)
-    # ...existing code...
     def actualizar_info_panel(self, titulo_accion, descripcion):
-        pass  # Paneles de info eliminados, función dummy
+        """
+        Actualiza el panel informativo superior con el título y la descripción de la acción seleccionada.
+        Todo el texto se muestra en castellano.
+        """
+        texto = f"{titulo_accion}\n{descripcion}"
+        if hasattr(self, 'info_panel') and self.info_panel:
+            self.info_panel.config(text=texto)
 
     def _mostrar_info_seguridad(self):
         info = (

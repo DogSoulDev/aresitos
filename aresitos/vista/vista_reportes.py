@@ -25,7 +25,9 @@ except ImportError:
     BURP_THEME_AVAILABLE = False
     burp_theme = None
 
-class VistaReportes(tk.Frame):
+from aresitos.vista.terminal_mixin import TerminalMixin
+
+class VistaReportes(tk.Frame, TerminalMixin):
     def _abrir_ventana_edicion_reporte(self, callback_guardar):
         import tkinter as tk
         ventana = tk.Toplevel(self)
@@ -222,14 +224,13 @@ class VistaReportes(tk.Frame):
     
     # --- NUEVO: Almacenamiento persistente de datos de módulos para reportes ---
     def inicializar_datos_modulos(self):
-        """Inicializa los atributos de datos de cada módulo para sincronización."""
-        self._datos_dashboard = None
-        self._datos_escaneo = None
-        self._datos_monitoreo = None
-        self._datos_fim = None
-        self._datos_siem = None
-        self._datos_cuarentena = None
-        self._datos_terminal_principal = None
+        self._datos_dashboard = {}
+        self._datos_escaneo = {}
+        self._datos_monitoreo = {}
+        self._datos_fim = {}
+        self._datos_siem = {}
+        self._datos_cuarentena = {}
+        self._datos_terminal_principal = {}
 
     def set_datos_modulo(self, modulo, datos):
         """Permite a los controladores o vistas de cada módulo actualizar sus datos para reportes."""
@@ -311,12 +312,9 @@ class VistaReportes(tk.Frame):
 
     # --- Métodos de logging seguro y actualización de reporte ---
     def log_to_terminal(self, texto, modulo="REPORTES", nivel="INFO"):
-        if hasattr(self, 'terminal_output'):
-            try:
-                self.terminal_output.insert('end', f"[{modulo}][{nivel}] {texto}\n")
-                self.terminal_output.see('end')
-            except Exception:
-                pass
+        if hasattr(self, 'mini_terminal'):
+            self.mini_terminal.insert('end', f"[{modulo}][{nivel}] {texto}\n")
+            self.mini_terminal.see('end')
     def _actualizar_reporte_seguro(self, texto, modo="replace"):
         if hasattr(self, 'reporte_text'):
             try:
@@ -581,6 +579,9 @@ class VistaReportes(tk.Frame):
         )
         btn_informe_kali.pack(fill=tk.X, pady=2, padx=6)
 
+        # Crear terminal inferior estandarizado
+        self.crear_terminal_inferior(self, titulo_vista="Reportes")
+
     def exportar_pdf(self):
         """Exportar el reporte mostrado a PDF usando enscript y ps2pdf (nativo Kali)."""
         import tempfile, os, subprocess
@@ -632,9 +633,9 @@ class VistaReportes(tk.Frame):
         
     # ... (widgets de análisis Kali solo deben estar en crear_interfaz)
         
-        # Crear terminal integrado
-        self.crear_terminal_integrado()
-    
+        # Crear terminal inferior estandarizado
+        self.crear_terminal_inferior(self, titulo_vista="Reportes")
+
     def generar_reporte_completo(self):
         self.log_to_terminal("Generando reporte completo del sistema...")
         def generar():
@@ -1113,170 +1114,4 @@ class VistaReportes(tk.Frame):
 # RESUMEN: Vista para generación y gestión de reportes del sistema. Permite generar 
 # reportes completos con datos de escaneo, monitoreo y utilidades, guardar en 
 # formato JSON y TXT, cargar reportes existentes y gestionar archivos de reportes.
-    
-    def crear_terminal_integrado(self):
-        """Crear terminal integrado Reportes con diseño estándar coherente."""
-        try:
-            # Frame del terminal estilo dashboard
-            terminal_frame = tk.LabelFrame(
-                self.paned_window,
-                text="Terminal ARESITOS - Reportes",
-                bg=self.colors['bg_secondary'],
-                fg=self.colors['fg_primary'],
-                font=("Arial", 10, "bold")
-            )
-            self.paned_window.add(terminal_frame, minsize=120)
-            
-            # Frame para controles del terminal (compacto)
-            controles_frame = tk.Frame(terminal_frame, bg=self.colors['bg_secondary'])
-            controles_frame.pack(fill="x", padx=5, pady=2)
-            
-            # Botón limpiar terminal (estilo dashboard, compacto)
-            btn_limpiar = tk.Button(
-                controles_frame,
-                text="LIMPIAR",
-                command=self.limpiar_terminal_reportes,
-                bg=self.colors.get('warning', '#ffaa00'),
-                fg='white',
-                font=("Arial", 8, "bold"),
-                height=1
-            )
-            btn_limpiar.pack(side="left", padx=2, fill="x", expand=True)
-            
-            # Botón ver logs (estilo dashboard, compacto)
-            btn_logs = tk.Button(
-                controles_frame,
-                text="VER LOGS",
-                command=self.abrir_logs_reportes,
-                bg=self.colors.get('info', '#007acc'),
-                fg='white',
-                font=("Arial", 8, "bold"),
-                height=1
-            )
-            btn_logs.pack(side="left", padx=2, fill="x", expand=True)
-            
-            # Área de terminal (misma estética que dashboard, más pequeña)
-            self.terminal_output = scrolledtext.ScrolledText(
-                terminal_frame,
-                height=6,  # Más pequeño que dashboard
-                bg='#000000',  # Terminal negro estándar
-                fg='#00ff00',  # Terminal verde estándar
-                font=("Consolas", 8),  # Fuente menor que dashboard
-                insertbackground='#00ff00',
-                selectbackground='#333333'
-            )
-            self.terminal_output.pack(fill="both", expand=True, padx=5, pady=5)
-            
-            # Frame para entrada de comandos (como Dashboard)
-            entrada_frame = tk.Frame(terminal_frame, bg='#1e1e1e')
-            entrada_frame.pack(fill="x", padx=5, pady=2)
-            
-            tk.Label(entrada_frame, text="COMANDO:",
-                    bg='#1e1e1e', fg='#00ff00',
-                    font=("Arial", 9, "bold")).pack(side="left", padx=(0, 5))
-            
-            self.comando_entry = tk.Entry(
-                entrada_frame,
-                bg='#000000',
-                fg='#00ff00',
-                font=("Consolas", 9),
-                insertbackground='#00ff00'
-            )
-            self.comando_entry.pack(side="left", fill="x", expand=True, padx=(0, 5))
-            self.comando_entry.bind("<Return>", self.ejecutar_comando_entry)
-            
-            ejecutar_btn = tk.Button(
-                entrada_frame,
-                text="EJECUTAR",
-                command=self.ejecutar_comando_entry,
-                bg='#2d5aa0',
-                fg='white',
-                font=("Arial", 8, "bold")
-            )
-            ejecutar_btn.pack(side="right")
-            
-            # Mensaje inicial estilo dashboard
-            import datetime
-            self.terminal_output.insert(tk.END, "="*60 + "\n")
-            self.terminal_output.insert(tk.END, "Terminal ARESITOS - Reportes v2.0\n")
-            self.terminal_output.insert(tk.END, f"Iniciado: {datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')}\n")
-            self.terminal_output.insert(tk.END, f"Sistema: Kali Linux - Reports Management\n")
-            self.terminal_output.insert(tk.END, "="*60 + "\n")
-            self.terminal_output.insert(tk.END, "LOG Generación de reportes\n\n")
-            
-            self.log_to_terminal("Terminal Reportes iniciado correctamente")
-            
-        except Exception as e:
-            print(f"Error creando terminal integrado en Vista Reportes: {e}")
-    
-    def limpiar_terminal_reportes(self):
-        """Limpiar terminal Reportes manteniendo cabecera."""
-        try:
-            import datetime
-            if hasattr(self, 'terminal_output'):
-                self.terminal_output.delete(1.0, tk.END)
-                # Recrear cabecera estándar
-                self.terminal_output.insert(
-                    tk.END,
-                    "="*60 + "\n"
-                )
-                self.terminal_output.insert(
-                    tk.END,
-                    "Terminal ARESITOS - Reportes v2.0\n"
-                )
-                self.terminal_output.insert(
-                    tk.END,
-                    f"Iniciado: {datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')}\n"
-                )
-                self.terminal_output.insert(
-                    tk.END,
-                    f"Sistema: Kali Linux - Reports Management\n"
-                )
-                self.terminal_output.insert(
-                    tk.END,
-                    "="*60 + "\n"
-                )
-                self.terminal_output.insert(
-                    tk.END,
-                    "LOG Generación de reportes\n\n"
-                )
-        except Exception as e:
-            print(f"Error limpiando terminal Reportes: {e}")
-    
-    def abrir_logs_reportes(self):
-        """Abrir ventana de logs del sistema (Kali) para análisis."""
-        try:
-            # from aresitos.vista.vista_logs import VistaLogs  # Desactivado: archivo no existe
-            # ventana_logs = VistaLogs(self)  # Desactivado: clase no existe
-            pass
-        except Exception as e:
-            messagebox.showerror("Error", f"Error al abrir logs: {str(e)}")
-    
-    def ejecutar_comando_entry(self, event=None):
-        """Ejecutar comando ingresado en la terminal integrada."""
-        try:
-            comando = self.comando_entry.get().strip()
-            if not comando:
-                return
-            self.log_to_terminal(f"Ejecutando comando: {comando}", "TERMINAL", "INFO")
-            from aresitos.utils.sudo_manager import get_sudo_manager
-            sudo_manager = get_sudo_manager()
-            # Ejecutar comando en thread separado
-            def ejecutar():
-                try:
-                    # Limitar tiempo de ejecución a 10 segundos
-                    resultado = sudo_manager.execute_sudo_command(comando, timeout=10)
-                    salida = resultado.stdout.strip() if resultado.stdout else "Comando ejecutado sin salida."
-                    error = resultado.stderr.strip() if resultado.stderr else ""
-                    if salida:
-                        self.log_to_terminal(f"Salida:\n{salida}", "TERMINAL", "INFO")
-                    if error:
-                        self.log_to_terminal(f"Error:\n{error}", "TERMINAL", "ERROR")
-                except Exception as e:
-                    self.log_to_terminal(f"Error ejecutando comando: {str(e)}", "TERMINAL", "ERROR")
-            thread = threading.Thread(target=ejecutar)
-            thread.daemon = True
-            thread.start()
-        except Exception as e:
-            self.log_to_terminal(f"Error en entrada de comando: {str(e)}", "TERMINAL", "ERROR")
 

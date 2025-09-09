@@ -18,6 +18,7 @@ import subprocess
 import logging
 import platform
 from datetime import datetime, timedelta
+from aresitos.vista.terminal_mixin import TerminalMixin
 
 try:
     from aresitos.vista.burp_theme import burp_theme
@@ -27,7 +28,7 @@ except ImportError:
     BURP_THEME_AVAILABLE = False
     burp_theme = None
 
-class VistaSIEM(tk.Frame):
+class VistaSIEM(tk.Frame, TerminalMixin):
     def _enviar_a_reportes(self, comando, salida, es_error=False):
         """Envía la información de la ejecución a la vista de reportes si está disponible."""
         try:
@@ -156,15 +157,15 @@ class VistaSIEM(tk.Frame):
     def _actualizar_texto_siem_seguro(self, texto):
         def _update():
             try:
-                if hasattr(self, 'terminal_output') and self.terminal_output.winfo_exists():
-                    self.terminal_output.insert(tk.END, texto)
-                    self.terminal_output.see(tk.END)
+                if hasattr(self, 'mini_terminal') and self.mini_terminal.winfo_exists():
+                    self.mini_terminal.insert(tk.END, texto)
+                    self.mini_terminal.see(tk.END)
             except (tk.TclError, AttributeError):
                 pass
         self.after(0, _update)
 
     def _actualizar_estado_seguro(self, texto):
-        # No existe label_estado, así que loguea en el área principal de texto terminal_output
+        # No existe label_estado, así que loguea en el área principal de texto mini_terminal
         self._actualizar_texto_siem_seguro(f"[ESTADO] {texto}\n")
     @staticmethod
     def _get_base_dir():
@@ -284,9 +285,8 @@ class VistaSIEM(tk.Frame):
 
         # Pestaña 4: Forense Digital
         self.crear_tab_forense()
-
-        # Crear terminal integrado
-        self.crear_terminal_integrado()
+        # Crear terminal inferior estandarizado
+        self.crear_terminal_inferior(self, titulo_vista="SIEM", altura_terminal=12)
 
     def _poner_en_cuarentena_desde_entry(self):
         """Pone en cuarentena el archivo especificado en el campo de entrada."""
@@ -346,16 +346,7 @@ class VistaSIEM(tk.Frame):
             )
             btn_logs.pack(side="left", padx=2, fill="x", expand=True)
 
-            self.terminal_output = scrolledtext.ScrolledText(
-                terminal_frame,
-                height=6,
-                bg='#000000',
-                fg='#00ff00',
-                font=("Consolas", 8),
-                insertbackground='#00ff00',
-                selectbackground='#333333'
-            )
-            self.terminal_output.pack(fill="both", expand=True, padx=5, pady=5)
+            self.crear_terminal_inferior(terminal_frame, titulo_vista="SIEM")
 
             entrada_frame = tk.Frame(terminal_frame, bg='#1e1e1e')
             entrada_frame.pack(fill="x", padx=5, pady=2)
@@ -366,13 +357,7 @@ class VistaSIEM(tk.Frame):
             ejecutar_btn = tk.Button(entrada_frame, text="EJECUTAR", command=self.ejecutar_comando_entry, bg='#2d5aa0', fg='white', font=("Arial", 8, "bold"))
             ejecutar_btn.pack(side="right")
 
-            self._actualizar_terminal_seguro("="*60 + "\n")
-            self._actualizar_terminal_seguro("Terminal ARESITOS - SIEM v2.0\n")
-            from datetime import datetime
-            self._actualizar_terminal_seguro(f"Iniciado: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}\n")
-            self._actualizar_terminal_seguro("Sistema: Kali Linux - Security Information & Event Management\n")
-            self._actualizar_terminal_seguro("="*60 + "\n")
-            self._actualizar_terminal_seguro("LOG Monitoreo SIEM en tiempo real\n\n")
+            # La cabecera ya la pone crear_terminal_inferior
 
             self.log_to_terminal("Terminal SIEM iniciado correctamente")
 
@@ -382,15 +367,9 @@ class VistaSIEM(tk.Frame):
     def limpiar_terminal_siem(self):
         """Limpiar terminal SIEM manteniendo cabecera."""
         try:
-            if hasattr(self, 'terminal_output'):
-                self._actualizar_terminal_seguro("", "clear")
-                # Recrear cabecera estándar
-                self._actualizar_terminal_seguro("="*60 + "\n")
-                self._actualizar_terminal_seguro("Terminal ARESITOS - SIEM v2.0\n")
-                self._actualizar_terminal_seguro(f"Limpiado: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}\n")
-                self._actualizar_terminal_seguro("Sistema: Kali Linux - Security Information & Event Management\n")
-                self._actualizar_terminal_seguro("="*60 + "\n")
-                self._actualizar_terminal_seguro("LOG Terminal SIEM reiniciado\n\n")
+            if hasattr(self, 'mini_terminal'):
+                self.mini_terminal.delete(1.0, tk.END)
+                self.crear_terminal_inferior(self.mini_terminal.master, titulo_vista="SIEM")
         except Exception as e:
             print(f"Error limpiando terminal SIEM: {e}")
     
@@ -428,63 +407,63 @@ class VistaSIEM(tk.Frame):
             try:
                 resultado = subprocess.run(comando_completo, capture_output=True, text=True, timeout=30)
                 if resultado.stdout:
-                    self.terminal_output.insert(tk.END, resultado.stdout)
+                    self.mini_terminal.insert(tk.END, resultado.stdout)
                     salida += resultado.stdout
                 if resultado.stderr:
-                    self.terminal_output.insert(tk.END, f"ERROR: {resultado.stderr}")
+                    self.mini_terminal.insert(tk.END, f"ERROR: {resultado.stderr}")
                     salida += f"ERROR: {resultado.stderr}"
                     es_error = True
             except subprocess.TimeoutExpired:
-                self.terminal_output.insert(tk.END, "ERROR: Comando timeout (30s)\n")
+                self.mini_terminal.insert(tk.END, "ERROR: Comando timeout (30s)\n")
                 salida += "ERROR: Comando timeout (30s)\n"
                 es_error = True
             except Exception as e:
-                self.terminal_output.insert(tk.END, f"ERROR ejecutando comando: {e}\n")
+                self.mini_terminal.insert(tk.END, f"ERROR ejecutando comando: {e}\n")
                 salida += f"ERROR ejecutando comando: {e}\n"
                 es_error = True
         else:
             try:
                 resultado = sudo_manager.execute_sudo_command(comando, timeout=30)
                 if resultado.stdout:
-                    self.terminal_output.insert(tk.END, resultado.stdout)
+                    self.mini_terminal.insert(tk.END, resultado.stdout)
                     salida += resultado.stdout
                 if resultado.stderr:
-                    self.terminal_output.insert(tk.END, f"ERROR: {resultado.stderr}")
+                    self.mini_terminal.insert(tk.END, f"ERROR: {resultado.stderr}")
                     salida += f"ERROR: {resultado.stderr}"
                     es_error = True
             except Exception as e:
-                self.terminal_output.insert(tk.END, f"ERROR ejecutando comando: {e}\n")
+                self.mini_terminal.insert(tk.END, f"ERROR ejecutando comando: {e}\n")
                 salida += f"ERROR ejecutando comando: {e}\n"
                 es_error = True
-        self.terminal_output.see(tk.END)
+        self.mini_terminal.see(tk.END)
         # Enviar a reportes
         self._enviar_a_reportes(comando, salida, es_error)
     
     def _mostrar_ayuda_comandos(self):
         """Mostrar ayuda de comandos disponibles."""
         try:
-            self.terminal_output.insert(tk.END, "\n" + "="*60 + "\n")
-            self.terminal_output.insert(tk.END, "  COMANDOS DISPONIBLES EN ARESITOS v2.0\n")
-            self.terminal_output.insert(tk.END, "="*60 + "\n\n")
-            self.terminal_output.insert(tk.END, "🔧 COMANDOS ESPECIALES:\n")
-            self.terminal_output.insert(tk.END, "   ayuda-comandos, info-seguridad, clear/cls\n\n")
-            self.terminal_output.insert(tk.END, "="*60 + "\n")
+            self.mini_terminal.insert(tk.END, "\n" + "="*60 + "\n")
+            self.mini_terminal.insert(tk.END, "  COMANDOS DISPONIBLES EN ARESITOS v2.0\n")
+            self.mini_terminal.insert(tk.END, "="*60 + "\n\n")
+            self.mini_terminal.insert(tk.END, "🔧 COMANDOS ESPECIALES:\n")
+            self.mini_terminal.insert(tk.END, "   ayuda-comandos, info-seguridad, clear/cls\n\n")
+            self.mini_terminal.insert(tk.END, "="*60 + "\n")
         except Exception as e:
-            self.terminal_output.insert(tk.END, f"Error mostrando ayuda: {e}\n")
-        self.terminal_output.see(tk.END)
+            self.mini_terminal.insert(tk.END, f"Error mostrando ayuda: {e}\n")
+        self.mini_terminal.see(tk.END)
     
     def _mostrar_info_seguridad(self):
         """Mostrar información de seguridad actual."""
         try:
-            self.terminal_output.insert(tk.END, "\n" + "="*60 + "\n")
-            self.terminal_output.insert(tk.END, "🔐 INFORMACIÓN DE SEGURIDAD ARESITOS\n")
-            self.terminal_output.insert(tk.END, "="*60 + "\n\n")
-            self.terminal_output.insert(tk.END, "Estado: Seguridad estándar, sin validación restrictiva.\n")
-            self.terminal_output.insert(tk.END, "Para más detalles revise la configuración y logs.\n")
-            self.terminal_output.insert(tk.END, "="*60 + "\n")
+            self.mini_terminal.insert(tk.END, "\n" + "="*60 + "\n")
+            self.mini_terminal.insert(tk.END, "🔐 INFORMACIÓN DE SEGURIDAD ARESITOS\n")
+            self.mini_terminal.insert(tk.END, "="*60 + "\n\n")
+            self.mini_terminal.insert(tk.END, "Estado: Seguridad estándar, sin validación restrictiva.\n")
+            self.mini_terminal.insert(tk.END, "Para más detalles revise la configuración y logs.\n")
+            self.mini_terminal.insert(tk.END, "="*60 + "\n")
         except Exception as e:
-            self.terminal_output.insert(tk.END, f"Error mostrando info seguridad: {e}\n")
-        self.terminal_output.see(tk.END)
+            self.mini_terminal.insert(tk.END, f"Error mostrando info seguridad: {e}\n")
+        self.mini_terminal.see(tk.END)
     
     def abrir_logs_siem(self):
         """Abrir carpeta de logs SIEM."""
@@ -509,9 +488,9 @@ class VistaSIEM(tk.Frame):
             mensaje_completo = f"[{timestamp}] {mensaje}\n"
             
             # Log al terminal integrado estándar
-            if hasattr(self, 'terminal_output'):
-                self.terminal_output.insert(tk.END, mensaje_completo)
-                self.terminal_output.see(tk.END)
+            if hasattr(self, 'mini_terminal'):
+                self.mini_terminal.insert(tk.END, mensaje_completo)
+                self.mini_terminal.see(tk.END)
                     
         except Exception as e:
             print(f"Error en log_to_terminal: {e}")
@@ -4748,25 +4727,24 @@ ls -la "$OUTPUT_DIR/"
             }
     
     def _actualizar_terminal_seguro(self, texto, modo="append"):
-        """Actualizar terminal_output de forma segura desde threads."""
+        """Actualizar mini_terminal de forma segura desde threads."""
         def _update():
             try:
-                if hasattr(self, 'terminal_output') and self.terminal_output.winfo_exists():
+                if hasattr(self, 'mini_terminal') and self.mini_terminal.winfo_exists():
                     if modo == "clear":
-                        self.terminal_output.delete(1.0, tk.END)
+                        self.mini_terminal.delete(1.0, tk.END)
                     elif modo == "replace":
-                        self.terminal_output.delete(1.0, tk.END)
-                        self.terminal_output.insert(1.0, texto)
+                        self.mini_terminal.delete(1.0, tk.END)
+                        self.mini_terminal.insert(1.0, texto)
                     elif modo == "append":
-                        self.terminal_output.insert(tk.END, texto)
+                        self.mini_terminal.insert(tk.END, texto)
                     elif modo == "insert_start":
-                        self.terminal_output.insert(1.0, texto)
-                    self.terminal_output.see(tk.END)
-                    if hasattr(self.terminal_output, 'update'):
-                        self.terminal_output.update()
+                        self.mini_terminal.insert(1.0, texto)
+                    self.mini_terminal.see(tk.END)
+                    if hasattr(self.mini_terminal, 'update'):
+                        self.mini_terminal.update()
             except (tk.TclError, AttributeError):
                 pass
-        
         try:
             self.after_idle(_update)
         except (tk.TclError, AttributeError):
