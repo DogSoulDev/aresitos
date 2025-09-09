@@ -110,9 +110,24 @@ class VistaAuditoria(tk.Frame, TerminalMixin):
             font=('Arial', 16, 'bold'))
         titulo.pack(pady=5)
 
-        # Panel informativo dinámico
+        # Frame horizontal para dividir botones, info y terminal
+        content_frame = tk.Frame(main_frame, bg=self.colors['bg_primary'])
+        content_frame.pack(fill=tk.BOTH, expand=True)
+
+        # Panel izquierdo: botones
+        left_frame = tk.Frame(content_frame, bg=self.colors['bg_secondary'])
+        left_frame.pack(side=tk.LEFT, fill=tk.Y, padx=(0, 10), pady=5)
+        self._crear_seccion_deteccion_malware(left_frame)
+        self._crear_seccion_configuraciones(left_frame)
+        self._crear_seccion_utilidades(left_frame)
+
+        # Panel derecho: info y terminal
+        right_frame = tk.Frame(content_frame, bg=self.colors['bg_primary'])
+        right_frame.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
+
+        # Panel informativo dinámico (ahora a la derecha de los botones)
         self.info_panel = tk.Label(
-            main_frame,
+            right_frame,
             text=(
                 "Bienvenido a la Auditoría de Seguridad. Aquí puedes ejecutar análisis, revisar configuraciones y consultar resultados.\n"
                 "Utiliza los botones de la izquierda para iniciar acciones específicas. Los resultados y mensajes aparecerán en el terminal inferior.\n"
@@ -131,20 +146,6 @@ class VistaAuditoria(tk.Frame, TerminalMixin):
         )
         self.info_panel.pack(fill=tk.X, padx=8, pady=(0, 10))
 
-        # Frame horizontal para dividir botones y terminal
-        content_frame = tk.Frame(main_frame, bg=self.colors['bg_primary'])
-        content_frame.pack(fill=tk.BOTH, expand=True)
-
-        # Panel izquierdo: botones
-        left_frame = tk.Frame(content_frame, bg=self.colors['bg_secondary'])
-        left_frame.pack(side=tk.LEFT, fill=tk.Y, padx=(0, 10), pady=5)
-        self._crear_seccion_deteccion_malware(left_frame)
-        self._crear_seccion_configuraciones(left_frame)
-        self._crear_seccion_utilidades(left_frame)
-
-        # Panel derecho: terminal integrado
-        # Eliminar terminal personalizado, solo usar el estandarizado
-        # self.crear_terminal_integrado(parent=right_frame)
         # Crear terminal inferior estandarizado
         self.crear_terminal_inferior(self, titulo_vista="Auditoría")
 
