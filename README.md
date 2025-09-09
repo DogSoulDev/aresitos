@@ -175,28 +175,10 @@ ARESITOS permite generar reportes siguiendo la estructura recomendada por la nor
 Ejemplo:
 ```
 ================================================================================
-INFORME DE INCIDENTE DE SEGURIDAD DE LA INFORMACIÓN - ISO/IEC 27001
-================================================================================
-Organización: Ejemplo S.A.
-Persona de contacto: Juan Pérez
 Correo electrónico: juan.perez@ejemplo.com
 Teléfono: +34 600 123 456
-Fecha de generación del informe: 2025-09-05 12:00
-...
-================================================================================
-Reporte generado por ARESITOS conforme a ISO/IEC 27001 - https://github.com/DogSoulDev/aresitos
-```
-
----
-
-## Solución de problemas
 
 - Si ves errores de permisos:
-  ```bash
-  chmod -R 755 data/ logs/ configuración/
-  find . -name "*.py" -exec chmod +x {} \;
-  ```
-- Si falta alguna dependencia:
   ```bash
   sudo apt install <paquete>
   ```
@@ -208,15 +190,9 @@ Reporte generado por ARESITOS conforme a ISO/IEC 27001 - https://github.com/DogS
 
 ## Escaneo de red y gestión de cuarentena
 
-El módulo de escaneo de red permite detectar servicios, vulnerabilidades, IPs y DNS asociados al sistema operativo y la red del usuario. Tras cada escaneo, toda la información técnica útil (incluyendo IPs, DNS y vulnerabilidades detectadas) puede ser puesta en cuarentena de forma centralizada mediante el botón "Agregar IP a cuarentena". Se ha eliminado el botón "Mandar a cuarentena" para simplificar el flujo y evitar duplicidades.
-
-Ahora, el usuario puede aislar manualmente cualquier IP, DNS o vulnerabilidad detectada, garantizando un proceso más robusto y transparente. La cuarentena se gestiona desde un único punto, facilitando el análisis y la respuesta ante incidentes.
 
 ---
-
 ### Nota importante sobre el terminal en Kali Linux
-
-Cuando ejecutas ARESITOS desde el terminal (por ejemplo, con `python3 main.py`), el terminal permanecerá abierto mientras la aplicación esté en uso. Esto ocurre porque, por diseño del sistema operativo, ningún programa puede cerrar el terminal que lo inició automáticamente.
 
 Si deseas que solo quede abierta la ventana de ARESITOS y no el terminal, tienes dos opciones:
 - Cierra el terminal manualmente después de que se abra la interfaz gráfica de ARESITOS. El programa seguirá funcionando normalmente.

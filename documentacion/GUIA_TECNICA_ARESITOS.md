@@ -108,33 +108,13 @@ from aresitos.modelo.modelo_principal import ModeloPrincipal
 # ...código de inicialización...
 ```
 
-ARESITOS implementa trazabilidad, concurrencia y ejecución de comandos mediante los siguientes componentes técnicos:
-
-
 ## Logging centralizado
-Todos los módulos registran eventos, errores y auditoría en archivos de log mediante `logger_aresitos.py`. El logging es seguro para hilos (thread-safe) y permite registrar operaciones críticas, exportar logs y mantener la trazabilidad de todas las acciones relevantes. Los logs se muestran en tiempo real en la terminal integrada y se almacenan en la carpeta `logs/`.
-Ejemplo técnico:
-```python
-self._log_terminal("OK Operación completada", "MONITOREO", "SUCCESS")
-```
 
 ## Threading seguro y concurrencia
-Las tareas intensivas (escaneo, monitoreo, análisis forense) se ejecutan en hilos separados usando `threading.Thread` para no bloquear la interfaz gráfica. El módulo `thread_safe_gui.py` garantiza la actualización segura de widgets desde tareas en segundo plano, evitando bloqueos y condiciones de carrera.
-Ejemplo técnico:
-```python
-def tarea_larga():
-	# ...código de escaneo o monitoreo...
 	pass
 hilo = threading.Thread(target=tarea_larga)
-hilo.daemon = True
-hilo.start()
-```
 
 ## Terminal integrada
-El dashboard y cada módulo clave incluyen una terminal integrada basada en `scrolledtext.ScrolledText` de Tkinter. Permite ejecutar comandos del sistema, mostrar logs en tiempo real, limpiar la salida y abrir terminales externas. La ejecución de comandos se realiza mediante `subprocess.run`, a veces con privilegios elevados gestionados por `sudo_manager.py`.
-Ejemplo técnico:
-```python
-self.terminal_output.insert('end', resultado.stdout)
 ```
 Características avanzadas:
 - Redirección de stdout/stderr y logging thread-safe
