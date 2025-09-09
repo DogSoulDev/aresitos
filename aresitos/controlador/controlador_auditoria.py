@@ -114,35 +114,19 @@ class ControladorAuditoria(ControladorBase):
     
     def _validar_herramienta_disponible(self, herramienta: str) -> bool:
         """
-        Valida si una herramienta está disponible en el sistema.
-        
-        Args:
-            herramienta: Nombre de la herramienta a validar
-            
-        Returns:
-            bool: True si la herramienta está disponible
+        Valida si una herramienta está disponible en el sistema usando SudoManager.
         """
         try:
-            resultado = subprocess.run(
-                ['which', herramienta], 
-                capture_output=True, 
-                text=True, 
-                timeout=5
-            )
+            from aresitos.utils.sudo_manager import get_sudo_manager
+            sudo_manager = get_sudo_manager()
+            resultado = sudo_manager.execute_sudo_command(f'which {herramienta}', timeout=5)
             return resultado.returncode == 0
         except Exception:
             return False
     
     def _ejecutar_comando_seguro(self, comando: List[str], timeout: int = 300) -> Dict[str, Any]:
         """
-        Ejecuta un comando de forma segura con manejo de errores.
-        
-        Args:
-            comando: Lista con el comando y argumentos
-            timeout: Tiempo límite en segundos
-            
-        Returns:
-            Diccionario con resultado del comando
+        Ejecuta un comando de forma segura con manejo de errores usando SudoManager.
         """
         resultado = {
             'exito': False,
@@ -151,27 +135,17 @@ class ControladorAuditoria(ControladorBase):
             'stderr': '',
             'error': None
         }
-        
         try:
-            proceso = subprocess.run(
-                comando,
-                capture_output=True,
-                text=True,
-                timeout=timeout
-            )
-            
+            from aresitos.utils.sudo_manager import get_sudo_manager
+            sudo_manager = get_sudo_manager()
+            cmd_str = ' '.join(comando)
+            proceso = sudo_manager.execute_sudo_command(cmd_str, timeout=timeout)
             resultado['exito'] = proceso.returncode == 0
             resultado['codigo_salida'] = proceso.returncode
             resultado['stdout'] = proceso.stdout
             resultado['stderr'] = proceso.stderr
-            
-        except subprocess.TimeoutExpired:
-            resultado['error'] = f'Timeout ejecutando comando: {" ".join(comando)}'
-        except FileNotFoundError:
-            resultado['error'] = f'Comando no encontrado: {comando[0]}'
         except Exception as e:
             resultado['error'] = str(e)
-            
         return resultado
     
     def ejecutar_auditoria_lynis(self) -> Dict[str, Any]:

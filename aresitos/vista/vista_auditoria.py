@@ -231,7 +231,7 @@ class VistaAuditoria(tk.Frame):
         thread.start()
     
     def _ejecutar_comando_seguro(self, comando, timeout=30, usar_sudo=True):
-        """Ejecuta un comando del sistema de forma segura y robusta, siempre como root si es posible."""
+        """Ejecuta un comando del sistema de forma segura y robusta, siempre como root usando SudoManager si no es Windows."""
         try:
             import platform
             if platform.system() == "Windows":
@@ -250,32 +250,15 @@ class VistaAuditoria(tk.Frame):
                     'returncode': resultado.returncode
                 }
             else:
-                from aresitos.utils.sudo_manager import SudoManager
-                sudo_manager = SudoManager()
-                if usar_sudo and sudo_manager.is_sudo_active():
-                    resultado = sudo_manager.execute_sudo_command(comando, timeout=timeout)
-                    return {
-                        'success': resultado.returncode == 0 if hasattr(resultado, 'returncode') else True,
-                        'output': resultado.stdout if hasattr(resultado, 'stdout') else str(resultado),
-                        'error': resultado.stderr if hasattr(resultado, 'stderr') else '',
-                        'returncode': resultado.returncode if hasattr(resultado, 'returncode') else 0
-                    }
-                else:
-                    import subprocess
-                    resultado = subprocess.run(
-                        comando,
-                        shell=True,
-                        capture_output=True,
-                        text=True,
-                        timeout=timeout,
-                        check=False
-                    )
-                    return {
-                        'success': resultado.returncode == 0,
-                        'output': resultado.stdout,
-                        'error': resultado.stderr,
-                        'returncode': resultado.returncode
-                    }
+                from aresitos.utils.sudo_manager import get_sudo_manager
+                sudo_manager = get_sudo_manager()
+                resultado = sudo_manager.execute_sudo_command(comando, timeout=timeout)
+                return {
+                    'success': resultado.returncode == 0 if hasattr(resultado, 'returncode') else True,
+                    'output': resultado.stdout if hasattr(resultado, 'stdout') else str(resultado),
+                    'error': resultado.stderr if hasattr(resultado, 'stderr') else '',
+                    'returncode': resultado.returncode if hasattr(resultado, 'returncode') else 0
+                }
         except Exception as e:
             return {
                 'success': False,
@@ -444,32 +427,55 @@ class VistaAuditoria(tk.Frame):
             btn.pack(fill=tk.X, pady=2)
 
     def _auditar_politicas_contrasena(self):
-        """Audita políticas de contraseña y usuarios sin contraseña."""
+        """Audita políticas de contraseña y usuarios sin contraseña usando SudoManager."""
         self.actualizar_info_panel("Políticas de Contraseña", "Verifica políticas y usuarios sin contraseña.")
-        import subprocess
         try:
-            self.log_terminal("[EJECUTANDO] cat /etc/login.defs")
-            resultado = subprocess.run("cat /etc/login.defs", shell=True, capture_output=True, text=True, timeout=30)
-            self.log_terminal(resultado.stdout)
-            self._enviar_a_reportes("Políticas de Contraseña", "cat /etc/login.defs", resultado.stdout, False)
-            self.log_terminal("[EJECUTANDO] grep PASS_* en /etc/login.defs")
-            resultado2 = subprocess.run("grep -E 'PASS_MAX_DAYS|PASS_MIN_DAYS|PASS_MIN_LEN|PASS_WARN_AGE' /etc/login.defs", shell=True, capture_output=True, text=True, timeout=30)
-            self.log_terminal(resultado2.stdout)
-            self._enviar_a_reportes("Políticas de Contraseña", "grep PASS_*", resultado2.stdout, False)
-            self.log_terminal("[EJECUTANDO] Usuarios sin contraseña (awk en /etc/shadow)")
-            resultado3 = subprocess.run("awk -F: '($2 == \"\") {print $1}' /etc/shadow", shell=True, capture_output=True, text=True, timeout=30)
-            if resultado3.stdout.strip():
-                self.log_terminal("[ALERTA] Usuarios sin contraseña:\n" + resultado3.stdout, nivel="WARNING")
-                self._enviar_a_reportes("Políticas de Contraseña", "awk /etc/shadow", resultado3.stdout, True)
-            else:
+            from aresitos.utils.sudo_manager import get_sudo_manager
+            sudo_manager = get_sudo_manager()
+            cmds = [
+                ("cat /etc/login.defs", "cat /etc/login.defs"),
+                ("grep -E 'PASS_MAX_DAYS|PASS_MIN_DAYS|PASS_MIN_LEN|PASS_WARN_AGE' /etc/login.defs", "grep PASS_*"),
+                ("awk -F: '($2 == \"\") {print $1}' /etc/shadow", "awk /etc/shadow"),
+                ("chage -l root", "chage -l root")
+            ]
+            for cmd, label in cmds:
+                self.log_terminal(f"[EJECUTANDO] {cmd}")
+                resultado = sudo_manager.execute_sudo_command(cmd, timeout=30)
+                salida = getattr(resultado, 'stdout', '')
+                error = getattr(resultado, 'stderr', '')
+                if salida:
+                    if label == "awk /etc/shadow" and salida.strip():
+                        self.log_terminal("[ALERTA] Usuarios sin contraseña:\n" + salida, nivel="WARNING")
+                        self._enviar_a_reportes("Políticas de Contraseña", label, salida, True)
+                    else:
+                        self.log_terminal(salida)
+                        self._enviar_a_reportes("Políticas de Contraseña", label, salida, False)
+                if error:
+                    self.log_terminal(f"[ERROR] {error}", nivel="ERROR")
+                    self._enviar_a_reportes("Políticas de Contraseña", label, error, True)
+            if not salida:
                 self.log_terminal("No se detectaron usuarios sin contraseña.")
-            self.log_terminal("[EJECUTANDO] chage -l root")
-            resultado4 = subprocess.run("chage -l root", shell=True, capture_output=True, text=True, timeout=30)
-            self.log_terminal(resultado4.stdout)
-            self._enviar_a_reportes("Políticas de Contraseña", "chage -l root", resultado4.stdout, False)
         except Exception as e:
             self.log_terminal(f"[ERROR] Auditoría de políticas de contraseña: {e}", nivel="ERROR")
             self._enviar_a_reportes("Políticas de Contraseña", "error", str(e), True)
+    def destroy(self):
+        """Garantiza que no queden procesos ni threads abiertos al cerrar la vista."""
+        # Finalizar cualquier thread de auditoría si existe
+        try:
+            if hasattr(self, 'terminal_output'):
+                self.terminal_output = None
+            # Si hay threads en ejecución, intentar detenerlos
+            import threading
+            for t in threading.enumerate():
+                if t is not threading.current_thread() and hasattr(t, 'daemon') and t.daemon:
+                    try:
+                        t.join(timeout=1)
+                    except Exception:
+                        pass
+        except Exception:
+            pass
+        # Llamar al destroy original
+        super().destroy()
 
     def editar_configuracion_ssh(self):
         """Permite editar /etc/ssh/sshd_config de forma segura, con backup y validación."""
@@ -616,6 +622,9 @@ class VistaAuditoria(tk.Frame):
     
     def guardar_auditoria(self):
         # Guardar el contenido del terminal integrado
+        if not hasattr(self, 'terminal_output') or self.terminal_output is None:
+            messagebox.showwarning("Advertencia", "No hay resultados para guardar.")
+            return
         contenido = self.terminal_output.get(1.0, tk.END)
         if not contenido.strip():
             messagebox.showwarning("Advertencia", "No hay resultados para guardar.")
