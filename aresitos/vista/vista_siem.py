@@ -537,12 +537,12 @@ class VistaSIEM(tk.Frame, TerminalMixin):
         
         # Botones de monitoreo con textos claros
         buttons_monitoreo = [
-            ("Iniciar SIEM", self.iniciar_siem, self.colors['success']),
-            ("Detener SIEM", self.detener_siem, self.colors['danger']),
-            ("Actualizar Pantalla", self.actualizar_dashboard, self.colors['button_bg']),
-            ("Ver Estadísticas", self.mostrar_estadisticas, self.colors['button_bg']),
-            ("Configurar Alertas", self.configurar_alertas, self.colors['button_bg']),
-            ("Eventos de Seguridad", self.eventos_seguridad, self.colors['button_bg'])
+            ("Iniciar SIEM (Activa el monitoreo y protección de eventos)", self.iniciar_siem, self.colors['success']),
+            ("Detener SIEM (Desactiva el monitoreo y protección)", self.detener_siem, self.colors['danger']),
+            ("Actualizar Pantalla (Refresca el dashboard de eventos)", self.actualizar_dashboard, self.colors['button_bg']),
+            ("Ver Estadísticas (Muestra estadísticas de seguridad)", self.mostrar_estadisticas, self.colors['button_bg']),
+            ("Configurar Alertas (Gestiona reglas y avisos de seguridad)", self.configurar_alertas, self.colors['button_bg']),
+            ("Eventos de Seguridad (Lista los eventos detectados)", self.eventos_seguridad, self.colors['button_bg'])
         ]
         
         for text, command, bg_color in buttons_monitoreo:
@@ -581,17 +581,51 @@ class VistaSIEM(tk.Frame, TerminalMixin):
             insertbackground='white' if self.theme else 'black',
             font=('Consolas', 9))
         self.siem_analisis_text.pack(fill=tk.BOTH, expand=True, pady=(10, 0))
-        
+
         # Panel superior - Selección de logs
         if self.theme:
             top_frame = tk.Frame(main_frame, bg='#2b2b2b')
             label_logs = tk.Label(top_frame, text="Fuentes de Logs de Kali Linux", 
                                 bg='#2b2b2b', fg='#ff6633', font=('Arial', 12, 'bold'))
             label_logs.pack(anchor=tk.W, pady=(0, 5))
+            top_frame.pack(fill=tk.X, pady=(0, 10))
         else:
             top_frame = ttk.LabelFrame(main_frame, text="Fuentes de Logs", padding=10)
-        top_frame.pack(fill=tk.X, pady=(0, 10))
-        
+            top_frame.pack(fill=tk.X, pady=(0, 10))
+
+        # Botones de análisis
+        if self.theme:
+            btn_frame = tk.Frame(top_frame, bg='#2b2b2b')
+        else:
+            btn_frame = tk.Frame(top_frame)
+        btn_frame.pack(fill=tk.X, pady=10)
+        if self.theme:
+            btn_analizar = tk.Button(btn_frame, text="Analizar Logs Seleccionados (Procesa los logs marcados)", 
+                                   command=self.analizar_logs_seleccionados,
+                                   bg='#ff6633', fg='white', font=('Arial', 10))
+            btn_analizar.pack(side=tk.LEFT, padx=5)
+            btn_buscar = tk.Button(btn_frame, text="Buscar Patrones (Busca patrones de ataque)", 
+                                 command=self.buscar_patrones,
+                                 bg='#404040', fg='white', font=('Arial', 10))
+            btn_buscar.pack(side=tk.LEFT, padx=5)
+            btn_patrones = tk.Button(btn_frame, text="Análisis Avanzado (Detección avanzada de amenazas)", 
+                                   command=self.analizar_patrones_avanzados,
+                                   bg='#d9534f', fg='white', font=('Arial', 10))
+            btn_patrones.pack(side=tk.LEFT, padx=5)
+            btn_correlacion = tk.Button(btn_frame, text="Correlación (Relaciona eventos sospechosos)", 
+                                      command=self.correlacionar_eventos_avanzado,
+                                      bg='#5bc0de', fg='white', font=('Arial', 10))
+            btn_correlacion.pack(side=tk.LEFT, padx=5)
+        else:
+            ttk.Button(btn_frame, text="Analizar Logs Seleccionados (Procesa los logs marcados)", 
+                      command=self.analizar_logs_seleccionados).pack(side=tk.LEFT, padx=5)
+            ttk.Button(btn_frame, text="Buscar Patrones (Busca patrones de ataque)", 
+                      command=self.buscar_patrones).pack(side=tk.LEFT, padx=5)
+            ttk.Button(btn_frame, text="Análisis Avanzado (Detección avanzada de amenazas)", 
+                      command=self.analizar_patrones_avanzados).pack(side=tk.LEFT, padx=5)
+            ttk.Button(btn_frame, text="Correlación (Relaciona eventos sospechosos)", 
+                      command=self.correlacionar_eventos_avanzado).pack(side=tk.LEFT, padx=5)
+
         # Lista de archivos de log comunes en Kali
         if self.theme:
             logs_frame = tk.Frame(top_frame, bg='#2b2b2b')
