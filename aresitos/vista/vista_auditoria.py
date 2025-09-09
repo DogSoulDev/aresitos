@@ -135,16 +135,17 @@ class VistaAuditoria(tk.Frame, TerminalMixin):
             ),
             bg=self.colors['bg_secondary'],
             fg=self.colors['fg_primary'],
-            font=('Arial', 11),
-            anchor="w",
+            font=('Arial', 12),
+            anchor="nw",
             justify="left",
             relief="groove",
             bd=2,
-            padx=12,
-            pady=8,
-            wraplength=700
+            padx=18,
+            pady=18,
+            wraplength=750,
+            height=12
         )
-        self.info_panel.pack(fill=tk.X, padx=8, pady=(0, 10))
+        self.info_panel.pack(fill=tk.X, padx=8, pady=(0, 20))
 
         # Crear terminal inferior estandarizado
         self.crear_terminal_inferior(self, titulo_vista="Auditoría")
