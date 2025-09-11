@@ -823,9 +823,6 @@ class LoginAresitos:
                 self.password_entry.config(state=tk.DISABLED)
                 self.skip_btn.config(state=tk.DISABLED)
                 
-                # INSTALACIÓN AUTOMÁTICA DE HERRAMIENTAS KALI
-                self.escribir_log(" Configurando herramientas de Kali Linux...")
-                self.instalar_herramientas_kali_automatico(password)
                 
                 # Si ya completo verificación, habilitar continuar
                 if self.verificacion_completada:
@@ -864,80 +861,7 @@ class LoginAresitos:
             self.password_entry.delete(0, tk.END)
             messagebox.showerror("Error", "Error de verificación")
     
-    def instalar_herramientas_kali_automatico(self, password):
-        """Instalar automáticamente herramientas faltantes de Kali Linux"""
-        try:
-            self.escribir_log(" Iniciando instalación automática de herramientas...")
-            
-            # Lista de herramientas críticas para Kali
-            herramientas_criticas = [
-                'nmap', 'masscan', 'nikto', 'sqlmap', 'hydra', 
-                'lynis', 'rkhunter', 'chkrootkit', 'tcpdump',
-                'net-tools', 'netstat-nat'
-            ]
-            
-            herramientas_a_instalar = []
-            for herramienta in herramientas_criticas:
-                if herramienta in self.herramientas_faltantes:
-                    herramientas_a_instalar.append(herramienta)
-            
-            if not herramientas_a_instalar:
-                self.escribir_log("OK Todas las herramientas críticas ya están instaladas")
-                return
-            
-            self.escribir_log(f" Instalando {len(herramientas_a_instalar)} herramientas faltantes...")
-            
-            # Ejecutar instalación en background
-            import threading
-            thread = threading.Thread(
-                target=self._ejecutar_instalacion_herramientas,
-                args=(herramientas_a_instalar, password),
-                daemon=True
-            )
-            thread.start()
-            
-        except Exception as e:
-            self.escribir_log(f"ERROR en instalación automática: {e}")
     
-    def _ejecutar_instalacion_herramientas(self, herramientas, password):
-        """Ejecutar instalación de herramientas en thread separado usando SudoManager"""
-        try:
-            self.escribir_log(" Actualizando repositorios...")
-            result = self.sudo_manager.execute_sudo_command('apt update', timeout=60)
-            if result.returncode == 0:
-                self.escribir_log("OK Repositorios actualizados")
-            else:
-                self.escribir_log("WARNING al actualizar repositorios")
-            herramientas_seguras = [h for h in herramientas if h not in HERRAMIENTAS_PROBLEMATICAS]
-            herramientas_problematicas = [h for h in herramientas if h in HERRAMIENTAS_PROBLEMATICAS]
-            if herramientas_problematicas:
-                self.escribir_log(f"ADVERTENCIA️  Omitiendo herramientas problemáticas: {', '.join(herramientas_problematicas)}")
-                self.escribir_log("[SUGERENCIA] Instale manualmente con: sudo apt install <herramienta>")
-            for herramienta in herramientas_seguras[:8]:
-                self.escribir_log(f" Instalando {herramienta}...")
-                timeout_herramienta = 60
-                if herramienta in ['nmap', 'wireshark', 'burpsuite']:
-                    timeout_herramienta = 180
-                elif herramienta in ['python3', 'curl', 'wget', 'git']:
-                    timeout_herramienta = 30
-                try:
-                    result = self.sudo_manager.execute_sudo_command(f'apt install -y {herramienta}', timeout=timeout_herramienta)
-                    if result.returncode == 0:
-                        self.escribir_log(f"OK {herramienta} instalado correctamente")
-                        if herramienta in self.herramientas_faltantes:
-                            self.herramientas_faltantes.remove(herramienta)
-                    else:
-                        self.escribir_log(f"ERROR Error instalando {herramienta}")
-                        if "package not found" in result.stderr.lower():
-                            self.escribir_log(f"[SUGERENCIA] {herramienta} no disponible en repositorios")
-                        elif "timeout" in str(result.stderr).lower():
-                            self.escribir_log(f"⏱️  {herramienta} timeout - requiere instalación manual")
-                except Exception as e:
-                    self.escribir_log(f"ERROR Error inesperado con {herramienta}: {e}")
-            self.escribir_log(" Instalación automática completada")
-            self.utils_seguridad.limpiar_memoria_string(password)
-        except Exception as e:
-            self.escribir_log(f"ERROR en instalación: {e}")
 
     def continuar_sin_root(self):
         """Continuar sin permisos de root"""
