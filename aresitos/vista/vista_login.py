@@ -755,7 +755,17 @@ class LoginAresitos:
             if os.access(config_file, os.R_OK | os.W_OK):
                 self.escribir_log("Archivo de configuración accesible")
             else:
-                self.escribir_log("Archivo de configuración no accesible")
+                # No bloquear el flujo por un archivo de configuración inaccesible.
+                # Mostrar advertencia y permitir continuar con funcionalidad limitada.
+                self.escribir_log("Archivo de configuración no accesible - se permite continuar pero algunas funciones pueden estar limitadas")
+                try:
+                    # Habilitar botón continuar para no dejar al usuario bloqueado
+                    if hasattr(self, 'continue_btn') and self.continue_btn.winfo_exists():
+                        self.continue_btn.config(state=tk.NORMAL, bg=self.accent_orange)
+                except Exception:
+                    pass
+                # Sugerencia útil para el usuario
+                self.escribir_log("Sugerencia: Verifique permisos de 'configuración/aresitos_config.json' o ejecute: sudo ./configurar_kali.sh")
                 
         except (IOError, OSError, PermissionError, FileNotFoundError):
             pass

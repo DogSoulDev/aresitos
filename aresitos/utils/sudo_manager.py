@@ -15,6 +15,7 @@ import time
 import subprocess
 import threading
 import gc  # Issue 21/24 - Optimización de memoria
+import shlex
 from typing import Optional
 
 
@@ -44,15 +45,12 @@ class SudoManager:
         """Marcar sudo como autenticado"""
         self.sudo_authenticated = True
         self.sudo_password = password
-        self.sudo_timestamp = time.time()
+        # Mantener la sesión activa hasta que se llame a clear_sudo()
         self.session_active = True
         
-        # Configurar variables de entorno para mantener sudo
+        # Configurar variable de entorno para indicar que ARESITOS tiene sudo
         if password:
             os.environ['ARESITOS_SUDO_ACTIVE'] = '1'
-            # Renovar sudo timestamp
-            self._renovar_sudo_timestamp()
-    
     def _renovar_sudo_timestamp(self):
         """Renovar el timestamp de sudo para mantener la sesión activa - Issue 21/24 optimizado"""
         try:
@@ -74,14 +72,11 @@ class SudoManager:
     
     def is_sudo_active(self) -> bool:
         """Verificar si sudo está activo"""
-        if not self.sudo_authenticated:
+        # Consideramos sudo activo mientras la sesión no haya sido cerrada explícitamente
+        try:
+            return bool(self.sudo_authenticated and self.session_active)
+        except Exception:
             return False
-        
-        # Verificar si han pasado más de 15 minutos (timeout typical de sudo)
-        if self.sudo_timestamp and (time.time() - self.sudo_timestamp) > 900:  # 15 minutos
-            return False
-        
-        return self.session_active
     
     def get_sudo_command(self, command: str) -> str:
         """Obtener comando con sudo apropiado"""
@@ -91,17 +86,26 @@ class SudoManager:
     
     def execute_sudo_command(self, command: str, timeout: int = 30) -> subprocess.CompletedProcess:
         """Ejecutar comando con sudo usando las credenciales guardadas - sin límite de timeout"""
+        # Ejecutamos comandos a través de sudo si la sesión está activa.
+        # Usamos la forma segura cuando disponemos de la contraseña en memoria
         if self.is_sudo_active() and self.sudo_password:
-            # Renovar timestamp antes de ejecutar
-            self._renovar_sudo_timestamp()
-            full_command = f"echo '{self.sudo_password}' | sudo -S {command}"
-            result = subprocess.run(
-                full_command,
-                shell=True,
-                text=True,
-                capture_output=True,
-                check=False
-            )
+            # Construir comando como lista cuando sea posible
+            # Si el comando es una cadena compuesta, caemos a shell para compatibilidad
+            try:
+                # Intentar ejecutar como lista si el comando no contiene tuberías o redirecciones
+                if isinstance(command, str) and any(c in command for c in ['|', '>', '<', ';', '&']):
+                    full_command = f"echo '{self.sudo_password}' | sudo -S {command}"
+                    result = subprocess.run(full_command, shell=True, text=True, capture_output=True, check=False)
+                else:
+                    # Ejecutar como lista para mayor seguridad
+                    cmd_list = ['sudo', '-S'] + (shlex.split(command) if isinstance(command, str) else command)
+                    # subprocess.run no admite pasar la password por stdin si usamos list sin shell;
+                    # por simplicidad aquí enviamos la contraseña vía input cuando es necesario
+                    result = subprocess.run(cmd_list, input=self.sudo_password + '\n', text=True, capture_output=True, check=False, timeout=timeout)
+            except Exception:
+                # Fallback a ejecución por shell en caso de error construyendo la cadena
+                full_command = f"echo '{self.sudo_password}' | sudo -S {command}"
+                result = subprocess.run(full_command, shell=True, text=True, capture_output=True, check=False)
             # Optimización de memoria - limpiar variables grandes
             if hasattr(result, 'stdout') and len(result.stdout) > 10000:  # >10KB
                 gc.collect()
@@ -113,7 +117,8 @@ class SudoManager:
                 shell=True,
                 text=True,
                 capture_output=True,
-                check=False
+                check=False,
+                timeout=timeout
             )
     
     def clear_sudo(self):
