@@ -34,12 +34,23 @@ data/cuarentena/
 data/temp/
 
 # === CONFIGURACIONES SENSIBLES ===
+# NOTE: the project's configuration folder is named with an accent: "configuración/".
+# Previous entries referenced the misspelled directory "configuracion/" and caused
+# confusion. Do NOT ignore the real `configuración/` directory or the tracked
+# configuration files it contains (they are committed to the repository).
+# If you need to ignore local-only config files, list them explicitly and avoid
+# patterns that could match the repository's actual configuration files.
+# (Keeping the old misspelled patterns for backward compatibility for local setups)
 configuracion/*.backup
 configuracion/*.temp
 configuracion/.env
 configuracion/config_local.json
 .env.local
 .env.*.local
+
+# Ensure the actual accented folder and its committed files are not ignored
+!configuración/
+!configuración/*.json
 
 # === BASES DE DATOS Y CACHES ===
 data/fim_database.json.backup
