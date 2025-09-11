@@ -98,6 +98,7 @@ data/cheatsheets/*.txt text eol=lf encoding=utf-8
 
 # Configuración específica
 configuracion/*.json text eol=lf encoding=utf-8
+configuración/*.json text eol=lf encoding=utf-8
 aresitos_config*.json text eol=lf encoding=utf-8
 
 # === PREVENCIÓN DE CONFLICTOS ===

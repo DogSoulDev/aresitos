@@ -250,5 +250,6 @@ include-package-data = true
 aresitos = [
 
     "recursos/cheatsheets/*.md",
-    "configuracion/*.json"
+    "configuracion/*.json",
+    "configuración/*.json"
 ]

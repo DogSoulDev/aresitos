@@ -418,14 +418,17 @@ $REAL_USER ALL=(ALL) NOPASSWD: /usr/bin/clamdscan
     $REAL_USER ALL=(ALL) NOPASSWD: /usr/bin/exiftool
 
 # === ACCESO A LOGS DEL SISTEMA PARA SIEM ===
-$REAL_USER ALL=(ALL) NOPASSWD: /bin/cat /var/log/auth.log*
-$REAL_USER ALL=(ALL) NOPASSWD: /bin/cat /var/log/syslog*
-$REAL_USER ALL=(ALL) NOPASSWD: /bin/cat /var/log/kern.log*
-$REAL_USER ALL=(ALL) NOPASSWD: /bin/cat /var/log/daemon.log*
-$REAL_USER ALL=(ALL) NOPASSWD: /bin/cat /var/log/mail.log*
-$REAL_USER ALL=(ALL) NOPASSWD: /bin/tail /var/log/*
-$REAL_USER ALL=(ALL) NOPASSWD: /usr/bin/head /var/log/*
-$REAL_USER ALL=(ALL) NOPASSWD: /usr/bin/grep * /var/log/*
+# Grant explicit, minimal read access to specific log files only. Avoid
+# wildcard sudoers rules (e.g. /var/log/*, tail/grep on /var/log) because
+# they can be abused to read arbitrary files or escalate access.
+if [[ -f /var/log/auth.log ]]; then
+    echo "$REAL_USER ALL=(ALL) NOPASSWD: /bin/cat /var/log/auth.log" >> "$SUDO_FILE"
+fi
+if [[ -f /var/log/syslog ]]; then
+    echo "$REAL_USER ALL=(ALL) NOPASSWD: /bin/cat /var/log/syslog" >> "$SUDO_FILE"
+fi
+# Avoid adding broad rules such as: /bin/tail /var/log/* or /usr/bin/grep * /var/log/*
+# If more logs are required, add explicit entries for each path.
 
 # === COMANDOS DE SISTEMA PARA ANÁLISIS ===
 $REAL_USER ALL=(ALL) NOPASSWD: /usr/bin/journalctl

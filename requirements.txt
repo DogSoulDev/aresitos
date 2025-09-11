@@ -176,6 +176,11 @@
 # - CERO bibliotecas externas
 # ===================================================================
 
+# NOTE: This repository intentionally ships with zero pip requirements for
+# production/runtime. The sections below document suggested Kali packages
+# and optional developer dependencies. Do NOT add runtime requirements here
+# unless strictly necessary for cross-platform or runtime functionality.
+
 # === NOTAS SEGURIDAD ===
 # ===================================================================
 # IMPORTANTE:
