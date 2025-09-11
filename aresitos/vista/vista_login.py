@@ -2,6 +2,7 @@ import os
 import sys
 import platform
 import shutil
+import tempfile
 import tkinter as tk
 from tkinter import ttk, messagebox, scrolledtext
 import threading
@@ -667,53 +668,108 @@ class LoginAresitos:
     
     def _detectar_rutas_proyecto(self):
         """Detectar posibles rutas del proyecto ARESITOS"""
+        # Empezar desde el directorio del archivo e ir subiendo buscando marcadores
         script_dir = os.path.dirname(os.path.abspath(__file__))
-        aresitos_root = os.path.dirname(os.path.dirname(script_dir))
-        
-        user_home = os.path.expanduser("~")
-        rutas_posibles = [
-            aresitos_root,  # Ruta calculada desde el script
-            os.path.join(user_home, "aresitos"),
-            os.path.join(user_home, "Desktop", "aresitos"),
-            os.path.join(user_home, "Ares-Aegis"),
-            os.path.join(user_home, "Desktop", "Ares-Aegis")
-        ]
-        
+        candidate_set = []
+
+        # 1) Si el usuario ha definido una variable de entorno personalizada, respetarla
+        env_home = os.environ.get('ARESITOS_HOME')
+        if env_home:
+            candidate_set.append(env_home)
+
+        # 2) Ruta basada en el script
+        current = os.path.dirname(os.path.dirname(script_dir))
+        candidate_set.append(current)
+
+        # 3) Buscar hacia arriba hasta la raíz del filesystem buscando marcadores
+        # incluir el script de instalación como marcador de proyecto
+        markers = ['main.py', 'configuración', 'configurar_kali.sh', os.path.join('aresitos', '__init__.py')]
+        path = current
+        while True:
+            found = False
+            for m in markers:
+                check = os.path.join(path, m) if not os.path.isabs(m) else m
+                if os.path.exists(check):
+                    candidate_set.insert(0, path)
+                    found = True
+                    break
+            if found:
+                break
+
+            parent = os.path.dirname(path)
+            if parent == path:
+                break
+            path = parent
+
+        # 4) Añadir ubicaciones comunes en el home del usuario
+        user_home = os.path.expanduser('~')
+        candidate_set.extend([
+            os.path.join(user_home, 'aresitos'),
+            os.path.join(user_home, 'Desktop', 'aresitos'),
+            os.path.join(user_home, 'Ares-Aegis'),
+            os.path.join(user_home, 'Desktop', 'Ares-Aegis')
+        ])
+
+        # 5) Incluir cwd como último recurso
+        try:
+            cwd = os.getcwd()
+            candidate_set.append(cwd)
+        except Exception:
+            pass
+
+        # Normalizar y devolver rutas únicas preservando orden
+        seen = set()
+        rutas_posibles = []
+        for p in candidate_set:
+            try:
+                pabs = os.path.abspath(p)
+            except Exception:
+                continue
+            if pabs not in seen:
+                seen.add(pabs)
+                rutas_posibles.append(pabs)
+
         return rutas_posibles
     
     def _ejecutar_comandos_permisos(self, ruta_proyecto, password):
         """Ejecutar comandos de permisos para una ruta específica"""
-        # Lista de comandos para configurar permisos
-        comandos_permisos = [
-            # Permisos básicos para el proyecto (más seguros)
-            f"chmod -R 755 {shlex.quote(ruta_proyecto)}",
-            f"chown -R $USER:$USER {shlex.quote(ruta_proyecto)}",
-            
-            # Permisos seguros para configuración (solo escritura para propietario)
-            f"chmod -R 755 {shlex.quote(os.path.join(ruta_proyecto, 'configuración'))}",
-            f"chmod 644 {shlex.quote(os.path.join(ruta_proyecto, 'configuración', 'aresitos_config.json'))} 2>/dev/null || true",
-            f"chmod 644 {shlex.quote(os.path.join(ruta_proyecto, 'configuración', 'aresitos_config_kali.json'))} 2>/dev/null || true",
-            
-            # Permisos seguros para data y logs (solo usuario puede escribir)
-            f"chmod -R 755 {shlex.quote(os.path.join(ruta_proyecto, 'data'))} 2>/dev/null || true",
-            f"chmod -R 755 {shlex.quote(os.path.join(ruta_proyecto, 'logs'))} 2>/dev/null || true",
-            
-            # Ejecutables Python
-            f"find {shlex.quote(ruta_proyecto)} -name '*.py' -exec chmod +x {{}} \\;",
-            f"chmod +x {shlex.quote(os.path.join(ruta_proyecto, 'main.py'))}",
-            
-            # Crear directorios necesarios con permisos seguros
-            f"mkdir -p {shlex.quote(os.path.join(ruta_proyecto, 'logs'))} && chmod 755 {shlex.quote(os.path.join(ruta_proyecto, 'logs'))}",
-            f"mkdir -p {shlex.quote(os.path.join('/tmp', 'aresitos_quarantine'))} && chmod 755 {shlex.quote(os.path.join('/tmp', 'aresitos_quarantine'))}",
-            
-            # Herramientas de Kali Linux
-            f"chmod +x {os.path.join('/usr/bin', 'nmap')} 2>/dev/null || true",
-            f"chmod +x {os.path.join('/usr/bin', 'masscan')} 2>/dev/null || true",
-            f"chmod +x {os.path.join('/usr/bin', 'nikto')} 2>/dev/null || true",
-            f"chmod +x {os.path.join('/usr/bin', 'lynis')} 2>/dev/null || true",
-            f"chmod +x {os.path.join('/usr/bin', 'rkhunter')} 2>/dev/null || true",
-            f"chmod +x {os.path.join('/usr/bin', 'chkrootkit')} 2>/dev/null || true"
-        ]
+        # Construir lista de comandos de forma segura y dinámica
+        comandos_permisos = []
+
+        # Permisos básicos para el proyecto (más seguros)
+        comandos_permisos.append(f"chmod -R 755 {shlex.quote(ruta_proyecto)}")
+        comandos_permisos.append(f"chown -R $USER:$USER {shlex.quote(ruta_proyecto)}")
+
+        # Permisos para la carpeta de configuración y archivos
+        conf_dir = os.path.join(ruta_proyecto, 'configuración')
+        comandos_permisos.append(f"chmod -R 755 {shlex.quote(conf_dir)}")
+        comandos_permisos.append(f"chmod 644 {shlex.quote(os.path.join(conf_dir, 'aresitos_config.json'))} 2>/dev/null || true")
+        comandos_permisos.append(f"chmod 644 {shlex.quote(os.path.join(conf_dir, 'aresitos_config_kali.json'))} 2>/dev/null || true")
+
+        # Permisos para data y logs
+        comandos_permisos.append(f"chmod -R 755 {shlex.quote(os.path.join(ruta_proyecto, 'data'))} 2>/dev/null || true")
+        comandos_permisos.append(f"chmod -R 755 {shlex.quote(os.path.join(ruta_proyecto, 'logs'))} 2>/dev/null || true")
+
+        # Ejecutables Python
+        comandos_permisos.append(f"find {shlex.quote(ruta_proyecto)} -name '*.py' -exec chmod +x {{}} \\;")
+        comandos_permisos.append(f"chmod +x {shlex.quote(os.path.join(ruta_proyecto, 'main.py'))}")
+
+        # Crear directorios necesarios con permisos seguros (usar el tmp del sistema)
+        logs_dir = os.path.join(ruta_proyecto, 'logs')
+        tmp_quarantine = os.path.join(tempfile.gettempdir(), 'aresitos_quarantine')
+        comandos_permisos.append(f"mkdir -p {shlex.quote(logs_dir)} && chmod 755 {shlex.quote(logs_dir)}")
+        comandos_permisos.append(f"mkdir -p {shlex.quote(tmp_quarantine)} && chmod 755 {shlex.quote(tmp_quarantine)}")
+
+        # Herramientas de Kali: solo aplicar chmod si se encuentra la ruta real del binario
+        posibles_herramientas = ['nmap', 'masscan', 'nikto', 'lynis', 'rkhunter', 'chkrootkit']
+        for t in posibles_herramientas:
+            ruta_bin = shutil.which(t)
+            if ruta_bin:
+                comandos_permisos.append(f"chmod +x {shlex.quote(ruta_bin)} 2>/dev/null || true")
+        # Asegurarse de que el script de instalación local sea ejecutable si existe
+        script_instalador = os.path.join(ruta_proyecto, 'configurar_kali.sh')
+        if os.path.exists(script_instalador):
+            comandos_permisos.append(f"chmod +x {shlex.quote(script_instalador)} 2>/dev/null || true")
         
         # Ejecutar cada comando con sudo
         for i, comando in enumerate(comandos_permisos, 1):
@@ -752,6 +808,12 @@ class LoginAresitos:
             
             if os.access(main_py, os.X_OK):
                 self.escribir_log("main.py ejecutable")
+            # Loguear la ruta absoluta del archivo de configuración que se intenta usar
+            try:
+                self.escribir_log(f"Comprobando accesibilidad de: {os.path.abspath(config_file)}")
+            except Exception:
+                pass
+
             if os.access(config_file, os.R_OK | os.W_OK):
                 self.escribir_log("Archivo de configuración accesible")
             else:
