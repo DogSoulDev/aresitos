@@ -51,13 +51,6 @@ Todas las rutas de recursos, datos y configuraciones en ARESITOS son relativas a
 
 
 ## Notas
-- **Privilegios root persistentes:** Mientras ARESITOS esté abierto, los privilegios root (sudo) se mantienen activos para permitir instalaciones y operaciones avanzadas sin cortes. El root se libera automáticamente al cerrar la aplicación.
-- Para modo desarrollo en otros sistemas: `python3 main.py --dev`
-- Si tienes problemas de dependencias, ejecuta de nuevo `sudo ./configurar_kali.sh`.
-- Consulta la documentación técnica en la carpeta `documentacion/`.
-
-
-### Instalación de herramientas opcionales
 El script de configuración instala automáticamente las herramientas opcionales recomendadas para análisis forense y pentesting. Si alguna herramienta opcional no se instala, ARESITOS seguirá funcionando, pero con funcionalidad limitada en algunos módulos avanzados.
 
 
@@ -507,7 +500,6 @@ COMPLETADO CONFIGURACIÓN COMPLETADA
 ### ⚠️ **Advertencias Normales (No son errores)**
 Estos mensajes son normales y no impiden el funcionamiento:
 ```
-[WARN] No se pudo instalar rustscan (continuando...)
 [WARN] Detectado entorno Python externally-managed (Kali Linux 2024+)
 [WARN] No se pudo instalar python3-sqlite3 vía APT
 [WARN] No se pudo instalar python3-json vía APT
@@ -547,14 +539,7 @@ sudo apt update && sudo apt install python3-tk
 sudo ./configurar_kali.sh  # Reejecutar configuración
 ```
 
-**Si rustscan no está disponible:**
-```bash
-# ARESITOS funciona sin rustscan, usa nmap como alternativa
-# Para instalar rustscan manualmente:
-curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
-source ~/.cargo/env
-cargo install rustscan
-```
+ 
 
 **Si fallan las dependencias Python:**
 ```bash

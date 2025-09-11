@@ -170,7 +170,7 @@ def verificar_kali_linux_criptografico() -> bool:
 # Herramientas requeridas para Aresitos (Kali Linux especializado)
 HERRAMIENTAS_REQUERIDAS = [
     # Scanners de red criticos modernizados
-    'nmap', 'masscan', 'zmap', 'rustscan', 'dnsenum', 'dnsrecon', 'fierce',
+    'nmap', 'masscan', 'zmap', 'dnsenum', 'dnsrecon', 'fierce',
     'sublist3r', 'amass', 'gobuster', 'feroxbuster', 'httpx', 'wfuzz',
     
     # Analisis de vulnerabilidades

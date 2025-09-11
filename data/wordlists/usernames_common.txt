@@ -522,7 +522,6 @@ nuclei
 jaeles
 qscan
 masscan
-rustscan
 sx
 unicornscan
 zmap

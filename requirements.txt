@@ -70,7 +70,6 @@
 # 
 # ESCANEO RED Y VULNERABILIDADES (MODERNAS):
 # - nmap (escaneo puertos SYN, deteccion OS/servicios)
-# - rustscan (escaneo ultrarrápido en Rust)
 # - masscan (escaneo masivo alta velocidad)
 # - naabu (descubrimiento puertos Go)
 # - nikto (analisis vulnerabilidades web)
@@ -115,7 +114,7 @@
 # Comando unico para instalar todas las herramientas MODERNAS:
 # 
 # sudo apt update && sudo apt install -y \
-#   nmap rustscan masscan naabu nikto gobuster feroxbuster httpx nuclei sqlmap \
+#   nmap masscan naabu nikto gobuster feroxbuster httpx nuclei sqlmap \
 #   chkrootkit lynis inotify-tools \
 #   tcpdump iftop htop curl wget binwalk exiftool
 # 

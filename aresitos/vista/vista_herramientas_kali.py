@@ -600,7 +600,9 @@ LISTO PARA: Escaneos de vulnerabilidades en entornos Kali Linux 2025
                 'procps', 'iproute2', 'net-tools', 'util-linux', 'findutils', 'grep', 'gawk',
                 'coreutils', 'systemd', 'wget', 'curl', 'diffutils', 'git',
                 'nano', 'vim', 'gedit', 'mousepad', 'thunar', 'nautilus', 'dolphin', 'xdg-open',
-                'python3', 'sqlite3'
+                'python3', 'sqlite3',
+                # Añadidos por cobertura: herramientas detectadas en el repo pero no en el instalador
+                'sqlmap', 'wfuzz'
             ]
             self.after(0, self._actualizar_texto, "Actualizando repositorios...\n")
             sudo_manager.execute_sudo_command('apt update', timeout=120)
@@ -611,14 +613,17 @@ LISTO PARA: Escaneos de vulnerabilidades en entornos Kali Linux 2025
             # 4. Instalar httpx y nuclei con go install
             go_path = shutil.which("go")
             if go_path:
-                self.after(0, self._actualizar_texto, "Instalando httpx (go install)...\n")
+                # Instalar herramientas escritas en Go (projectdiscovery y similares)
+                self.after(0, self._actualizar_texto, "Instalando herramientas Go (httpx, nuclei, subfinder, naabu)...\n")
                 sudo_manager.execute_sudo_command(f"{go_path} install -v github.com/projectdiscovery/httpx/cmd/httpx@latest", timeout=180)
-                self.after(0, self._actualizar_texto, "Instalando nuclei (go install)...\n")
                 sudo_manager.execute_sudo_command(f"{go_path} install -v github.com/projectdiscovery/nuclei/v3/cmd/nuclei@latest", timeout=180)
-                # Mover binarios de ~/go/bin a /usr/local/bin
+                # Añadir subfinder y naabu (instalación vía go)
+                sudo_manager.execute_sudo_command(f"{go_path} install -v github.com/projectdiscovery/subfinder/v2/cmd/subfinder@latest", timeout=180)
+                sudo_manager.execute_sudo_command(f"{go_path} install -v github.com/projectdiscovery/naabu/v2/cmd/naabu@latest", timeout=180)
+                # Mover binarios de ~/go/bin a /usr/local/bin para que estén en PATH global
                 import os
                 home = os.path.expanduser("~")
-                for tool in ["httpx", "nuclei"]:
+                for tool in ["httpx", "nuclei", "subfinder", "naabu"]:
                     src = os.path.join(home, "go", "bin", tool)
                     dst = f"/usr/local/bin/{tool}"
                     if os.path.exists(src):

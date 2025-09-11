@@ -8,8 +8,7 @@ Angry IP Scanner - Fast and friendly network scanner
 Advanced IP Scanner - Network scanner for Windows
 SuperScan - TCP/UDP port scanner for Windows
 SX - Multi-threaded network scanner
-Rustscan - Modern port scanner written in Rust
-RustScan - Ultra-fast port scanner with Nmap integration
+ 
 Metasploit - Penetration testing framework
 Cobalt Strike - Commercial adversary simulation and red team platform
 Empire - PowerShell and Python post-exploitation framework

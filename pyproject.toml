@@ -81,7 +81,7 @@ docs = [
 # ===================================================================
 # ARESITOS integra herramientas Kali via subprocess.run():
 # 
-# ESCANEO: nmap, rustscan, masscan, nikto, gobuster, feroxbuster, httpx, nuclei, sqlmap
+# ESCANEO: nmap, masscan, nikto, gobuster, feroxbuster, httpx, nuclei, sqlmap
 # MALWARE: linpeas, pspy, chkrootkit 
 # AUDITORIA: lynis, linpeas, pspy, systemctl
 # MONITOREO: ss, lsof, tcpdump, iftop, ps, top
@@ -94,7 +94,7 @@ docs = [
 #   tcpdump iftop htop curl wget inotify-tools
 # 
 # INSTALACION MANUAL REQUERIDA:
-# - rustscan: cargo install rustscan
+#
 # - httpx: go install github.com/projectdiscovery/httpx/cmd/httpx@latest
 # - linpeas: wget https://github.com/carlospolop/PEASS-ng/releases/latest/download/linpeas.sh
 # - pspy64: wget https://github.com/DominicBreuker/pspy/releases/latest/download/pspy64

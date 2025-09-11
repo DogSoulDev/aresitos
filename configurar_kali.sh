@@ -140,7 +140,7 @@ install_tools() {
     
     # Lista de herramientas AVANZADAS para escaneador profesional
     ADVANCED_TOOLS=(
-    # Herramientas de escaneador avanzado (todas disponibles via APT)
+        # Herramientas de escaneador avanzado (todas disponibles via APT)
     "ffuf"                 # Fuzzer web rápido (VERIFICADO en repos Kali)
     "feroxbuster"          # Scanner de directorios Rust (VERIFICADO en repos Kali)
     "nuclei"               # Motor de vulnerabilidades (VERIFICADO en repos Kali)
@@ -718,7 +718,7 @@ verify_setup() {
     done
     
     # Verificar herramientas avanzadas
-    for tool in "masscan" "rustscan" "nuclei" "gobuster"; do
+    for tool in "masscan" "nuclei" "gobuster"; do
         if command -v "$tool" >/dev/null 2>&1; then
             print_success "AVANZADO $tool disponible"
             ((ADVANCED_TOOLS_OK++))
@@ -918,7 +918,7 @@ main() {
     echo
     print_info "🎯 CAPACIDADES DEL ESCANEADOR PROFESIONAL:"
     echo "  • Escaneo integral con nmap (detección de servicios y scripts)"
-    echo "  • Escaneo masivo rápido con masscan/rustscan" 
+    echo "  • Escaneo masivo rápido con masscan" 
     echo "  • Detección de vulnerabilidades con nuclei"
     echo "  • Enumeración de directorios web con gobuster/ffuf"
     echo "  • Escaneo de redes completas con análisis automático"

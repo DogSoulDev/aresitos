@@ -117,7 +117,7 @@ class DetenerProcesos:
             try:
                 callback_actualizacion("=== CANCELANDO ESCANEO ===\n")
                 procesos_escaneo = [
-                    'nmap', 'masscan', 'zmap', 'rustscan', 'unicornscan',
+                    'nmap', 'masscan', 'zmap', 'unicornscan',
                     'dirb', 'gobuster', 'dirbuster', 'ffuf', 'wfuzz',
                     'nikto', 'sqlmap', 'nuclei', 'whatweb'
                 ]

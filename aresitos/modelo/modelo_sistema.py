@@ -25,7 +25,7 @@ class ModeloUtilidadesSistema:
     def __init__(self):
         # Herramientas Kali Linux modernas - fácil instalación con apt
         self.herramientas_kali = {
-            'escaneo_red': ['nmap', 'rustscan', 'masscan', 'naabu'],
+            'escaneo_red': ['nmap', 'masscan', 'naabu'],
             'auditoria_sistema': ['lynis', 'linpeas', 'pspy', 'chkrootkit'],
             'monitoreo_red': ['netstat', 'ss', 'lsof', 'tcpdump', 'iftop'],
             'firewall': ['iptables', 'ufw', 'firewalld', 'nftables'],

@@ -35,7 +35,7 @@ class ControladorHerramientas(ControladorBase):
         # KALI OPTIMIZATION: Herramientas modernas de fácil instalación
         self.herramientas_permitidas = {
             # Reconocimiento y Escaneo (MODERNAS)
-            'nmap', 'rustscan', 'masscan', 'naabu', 'hping3',
+            'nmap', 'masscan', 'naabu', 'hping3',
             'traceroute', 'ping', 'fping', 'arping', 'nbtscan',
             
             # Aplicaciones Web (ACTUALIZADAS)
@@ -219,7 +219,7 @@ class ControladorHerramientas(ControladorBase):
             
             # Herramientas de Kali instaladas (MODERNAS)
             herramientas_instaladas = []
-            herramientas_core = ['nmap', 'rustscan', 'sqlmap', 'gobuster', 'nikto', 'httpx', 'nuclei']
+            herramientas_core = ['nmap', 'sqlmap', 'gobuster', 'nikto', 'httpx', 'nuclei']
             
             for herramienta in herramientas_core:
                 try:
