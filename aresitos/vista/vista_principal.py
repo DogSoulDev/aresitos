@@ -12,11 +12,8 @@ PRINCIPIOS DE SEGURIDAD ARESITOS (NO MODIFICAR SIN AUDITORÍA)
 
 import tkinter as tk
 from tkinter import ttk
-import logging
-import os
 import gc  # Issue 21/24 - Optimización de memoria
 import threading  # Issue 21/24 - Gestión de hilos
-from tkinter import messagebox
 
 # Importar todas las vistas disponibles
 from aresitos.vista.vista_dashboard import VistaDashboard
@@ -33,27 +30,57 @@ try:
     BURP_THEME_AVAILABLE = True
 except ImportError:
     BURP_THEME_AVAILABLE = False
-    burp_theme = None
+    # Clase dummy para compatibilidad cuando burp_theme no está disponible
+    class DummyTheme:
+        def get_color(self, key):
+            colors = {
+                'bg_primary': '#2b2b2b',
+                'bg_secondary': '#3c3c3c',
+                'bg_tertiary': '#4d4d4d',
+                'fg_primary': '#ffffff',
+                'fg_secondary': '#cccccc',
+                'fg_accent': '#ff6633'
+            }
+            return colors.get(key, '#ffffff')
+        
+        def configure_ttk_style(self, style):
+            pass
+    
+    burp_theme = DummyTheme()  # type: ignore
 
 class VistaPrincipal(tk.Frame):
     @staticmethod
     def _get_base_dir():
         """Obtener la ruta base absoluta del proyecto ARESITOS."""
-        import os
         from pathlib import Path
+        import os
         return Path(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 
     def __init__(self, parent):
         super().__init__(parent)
         self.controlador = None
+        self.theme = None  # Inicializar theme en __init__
         # Configurar logger global ARESITOS correctamente
         from aresitos.utils.logger_aresitos import LoggerAresitos
         self.logger = LoggerAresitos.get_instance()
         # Inicializar tema visual
-        if BURP_THEME_AVAILABLE and burp_theme:
-            self.theme = burp_theme
-        else:
-            self.theme = None
+        self.theme = burp_theme  # Usar directamente (DummyTheme si no está disponible)
+        
+        # Inicializar atributos que se asignan en métodos posteriores
+        self.style = None
+        self.notebook = None
+        self.vista_dashboard = None
+        self.vista_escaneo = None
+        self.vista_siem = None
+        self.vista_fim = None
+        self.vista_monitoreo = None
+        self.vista_auditoria = None
+        self.vista_gestion_datos = None
+        self.vista_reportes = None
+        self.vista_mantenimiento = None
+        self.vista_noticias = None
+        self.status_label = None
+        
         self.crear_widgets()
 
     # ...existing code...
@@ -89,17 +116,17 @@ class VistaPrincipal(tk.Frame):
         self.logger.log("Controlador principal establecido en VistaPrincipal", modulo="PRINCIPAL", nivel="INFO")
         # Configurar controladores para todas las vistas
         if hasattr(self, 'vista_dashboard'):
-            self.vista_dashboard.set_controlador(controlador)
+            self.vista_dashboard.set_controlador(controlador)  # type: ignore
             self.logger.log("OK Vista Dashboard conectada", modulo="PRINCIPAL", nivel="INFO")
         else:
             self.logger.log("WARN Vista Dashboard no disponible", modulo="PRINCIPAL", nivel="WARNING")
         if hasattr(self.controlador, 'controlador_escaneador'):
-            self.vista_escaneo.set_controlador(self.controlador.controlador_escaneador)
+            self.vista_escaneo.set_controlador(self.controlador.controlador_escaneador)  # type: ignore
             self.logger.log("OK Vista Escaneo conectada", modulo="PRINCIPAL", nivel="INFO")
         else:
             self.logger.log("WARN Controlador Escaneador no disponible", modulo="PRINCIPAL", nivel="WARNING")
         if hasattr(self.controlador, 'controlador_monitoreo'):
-            self.vista_monitoreo.set_controlador(self.controlador.controlador_monitoreo)
+            self.vista_monitoreo.set_controlador(self.controlador.controlador_monitoreo)  # type: ignore
             self.logger.log("OK Vista Monitoreo conectada", modulo="PRINCIPAL", nivel="INFO")
         else:
             self.logger.log("WARN Controlador Monitoreo no disponible", modulo="PRINCIPAL", nivel="WARNING")
@@ -111,23 +138,23 @@ class VistaPrincipal(tk.Frame):
             self.logger.log("WARN Controlador Auditoría no disponible", modulo="PRINCIPAL", nivel="WARNING")
         if hasattr(self, 'vista_gestion_datos'):
             # Vista unificada para wordlists y diccionarios
-            self.vista_gestion_datos.set_controlador(self.controlador)
+            self.vista_gestion_datos.set_controlador(self.controlador)  # type: ignore
             self.logger.log("OK Vista Gestión Datos conectada", modulo="PRINCIPAL", nivel="INFO")
         else:
             self.logger.log("WARN Vista Gestión Datos no disponible", modulo="PRINCIPAL", nivel="WARNING")
         if hasattr(self.controlador, 'controlador_reportes'):
-            self.vista_reportes.set_controlador(self.controlador.controlador_reportes)
+            self.vista_reportes.set_controlador(self.controlador.controlador_reportes)  # type: ignore
             self.logger.log("OK Vista Reportes conectada", modulo="PRINCIPAL", nivel="INFO")
         else:
             self.logger.log("WARN Controlador Reportes no disponible", modulo="PRINCIPAL", nivel="WARNING")
         # Conectar FIM y SIEM correctamente
         if hasattr(self.controlador, 'controlador_fim'):
-            self.vista_fim.set_controlador(self.controlador.controlador_fim)
+            self.vista_fim.set_controlador(self.controlador.controlador_fim)  # type: ignore
             self.logger.log("OK Vista FIM conectada", modulo="PRINCIPAL", nivel="INFO")
         else:
             self.logger.log("WARN Controlador FIM no disponible", modulo="PRINCIPAL", nivel="WARNING")
         if hasattr(self.controlador, 'controlador_siem'):
-            self.vista_siem.set_controlador(self.controlador.controlador_siem)
+            self.vista_siem.set_controlador(self.controlador.controlador_siem)  # type: ignore
             self.logger.log("OK Vista SIEM conectada", modulo="PRINCIPAL", nivel="INFO")
         else:
             self.logger.log("WARN Controlador SIEM no disponible", modulo="PRINCIPAL", nivel="WARNING")
@@ -136,12 +163,10 @@ class VistaPrincipal(tk.Frame):
     
     def obtener_terminal_integrado(self):
         """Obtener referencia al terminal integrado global del dashboard."""
-        from aresitos.vista.vista_dashboard import VistaDashboard
         return VistaDashboard.obtener_terminal_global()
     
     def log_actividad(self, mensaje, modulo="GENERAL", nivel="INFO"):
         """Registrar actividad en el terminal integrado global."""
-        from aresitos.vista.vista_dashboard import VistaDashboard
         VistaDashboard.log_actividad_global(mensaje, modulo, nivel)
 
     def crear_widgets(self):
@@ -332,7 +357,7 @@ class VistaPrincipal(tk.Frame):
                 self.actualizar_estado("Sistema inicializado - Aresitos")
                 # Verificar y actualizar sub-vistas que tienen el método actualizar_desde_controlador
                 if hasattr(self, 'vista_gestion_datos') and hasattr(self.vista_gestion_datos, 'actualizar_desde_controlador'):
-                    self.vista_gestion_datos.actualizar_desde_controlador()
+                    self.vista_gestion_datos.actualizar_desde_controlador()  # type: ignore
                 # Actualizar vista principal después de un breve delay para permitir que los controladores se inicialicen
                 self.after(100, self._actualizar_estado_componentes)
             else:
@@ -355,11 +380,11 @@ class VistaPrincipal(tk.Frame):
     def actualizar_estado(self, mensaje):
         """Actualiza el mensaje de la barra de estado"""
         if hasattr(self, 'status_label'):
-            self.status_label.configure(text=mensaje)
+            self.status_label.configure(text=mensaje)  # type: ignore
     
     def optimizar_sistema_completo(self):
-        """Issue 21/24: Optimización global del sistema aresitos"""
-        """Optimizar memoria y rendimiento de todas las vistas activas"""
+        """Issue 21/24: Optimización global del sistema aresitos.
+        Optimizar memoria y rendimiento de todas las vistas activas."""
         try:
             optimizaciones_realizadas = []
             # Optimizar SudoManager

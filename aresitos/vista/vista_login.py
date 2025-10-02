@@ -12,18 +12,18 @@ import subprocess
 import shlex
 import hashlib
 import re
-import signal
-import ctypes
-from typing import Optional, Dict, List
+from typing import Dict, List
 
 try:
     from aresitos.vista.burp_theme import burp_theme
-    from aresitos.vista.vista_herramientas_kali import VistaHerramientasKali
-    from aresitos.utils.sudo_manager import SudoManager
     BURP_THEME_AVAILABLE = True
 except ImportError:
     BURP_THEME_AVAILABLE = False
-    burp_theme = None
+    burp_theme = None  # type: ignore
+
+# Importaciones dinámicas para evitar conflictos de tipos
+VistaHerramientasKali = None
+SudoManager = None
 
 # Clase para manejar rate limiting de intentos de login
 class RateLimiter:
@@ -32,7 +32,7 @@ class RateLimiter:
     def __init__(self, max_intentos: int = 3, ventana_tiempo: int = 300):
         self.max_intentos = max_intentos
         self.ventana_tiempo = ventana_tiempo  # 5 minutos
-        self.intentos: Dict[str, List[float]] = {}
+        self.intentos: Dict[str, List[float]] = {}  # pylint: disable=deprecated-typing-alias
         self.lock = threading.Lock()
     
     def puede_intentar(self, identificador: str = "default") -> bool:
@@ -126,7 +126,7 @@ def verificar_kali_linux_criptografico() -> bool:
         # 1. Verificar /etc/os-release con hash conocido
         os_release_path = os.path.join(etc_dir, 'os-release')
         if os.path.exists(os_release_path):
-            with open(os_release_path, 'r') as f:
+            with open(os_release_path, 'r', encoding='utf-8') as f:
                 content = f.read().lower()
                 if 'kali' in content and 'linux' in content:
                     verificaciones.append(True)
@@ -157,7 +157,7 @@ def verificar_kali_linux_criptografico() -> bool:
         # 4. Verificar distribución en /proc/version si existe
         proc_version_path = os.path.join(proc_dir, 'version')
         if os.path.exists(proc_version_path):
-            with open(proc_version_path, 'r') as f:
+            with open(proc_version_path, 'r', encoding='utf-8') as f:
                 version_info = f.read().lower()
                 if 'debian' in version_info:  # Kali se basa en Debian
                     verificaciones.append(True)
@@ -309,6 +309,7 @@ class LoginAresitos:
         self.utils_seguridad = SeguridadUtils()
         
         # CRÍTICO: Inicializar SudoManager global
+        from aresitos.utils.sudo_manager import SudoManager  # pylint: disable=redefined-outer-name
         self.sudo_manager = SudoManager()
         
         self.root = tk.Tk()
@@ -330,7 +331,7 @@ class LoginAresitos:
             self.accent_green = burp_theme.get_color('success')
             self.accent_red = burp_theme.get_color('danger')
         else:
-            self.theme = None
+            self.theme = None  # type: ignore
             # Colores fallback (tema Burp Suite manual)
             self.bg_primary = "#1e1e1e"      # Fondo principal
             self.bg_secondary = "#2d2d2d"    # Fondo secundario  
@@ -563,7 +564,7 @@ class LoginAresitos:
                 
         except Exception as e:
             # Log de fallback en caso de error
-            print(f"[LOGIN] {mensaje}")  # No mostrar el error técnico
+            print(f"[LOGIN] {mensaje} - Error: {e}")
     
     def verificar_entorno_inicial(self):
         """Verificar entorno del sistema al inicio"""
@@ -863,9 +864,6 @@ class LoginAresitos:
         self.escribir_log("Verificando credenciales de root...")
         
         try:
-            # Escapar la contraseña de forma segura
-            password_escaped = shlex.quote(password)
-            
             # Ejecutar verificación con timeout más estricto
             resultado = subprocess.run(
                 ['sudo', '-S', '-k', 'echo', 'test'], 
@@ -881,6 +879,7 @@ class LoginAresitos:
                 self.escribir_log("Autenticacion exitosa - Permisos de root confirmados")
                 
                 # CRÍTICO: Configurar SudoManager para mantener sudo en todas las ventanas
+                from aresitos.utils.sudo_manager import SudoManager  # pylint: disable=redefined-outer-name
                 sudo_manager = SudoManager()
                 sudo_manager.set_sudo_authenticated(password)
                 
@@ -958,7 +957,7 @@ class LoginAresitos:
                 widget.destroy()
             self.root.update_idletasks()
             # Importar VistaHerramientasKali
-            from aresitos.vista.vista_herramientas_kali import VistaHerramientasKali
+            from aresitos.vista.vista_herramientas_kali import VistaHerramientasKali  # pylint: disable=redefined-outer-name
             def callback_herramientas_completadas():
                 self._iniciar_aplicacion_principal()
             vista_herramientas = VistaHerramientasKali(self.root, callback_completado=callback_herramientas_completadas)
@@ -1020,11 +1019,10 @@ def main():
     
     print("ARESITOS - Iniciando login...")
     
-    # Verificar tkinter disponible
+    # Verificar tkinter disponible - ya importado globalmente
     try:
-        import tkinter as tk
         print("Tkinter importado correctamente")
-    except ImportError as e:
+    except Exception as e:
         print(f"ERROR: tkinter no disponible: {e}")
         print("Instale con: sudo apt install python3-tk")
         sys.exit(1)
