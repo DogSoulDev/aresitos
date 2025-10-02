@@ -102,13 +102,19 @@ class VistaDashboard(tk.Frame):
     @staticmethod
     def _get_base_dir():
         """Obtener la ruta base absoluta del proyecto ARESITOS."""
-        return os.path.abspath(os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..'))
+        return os.path.abspath(
+            os.path.join(
+                os.path.dirname(os.path.abspath(__file__)), '..', '..'
+            )
+        )
     def obtener_datos_para_reporte(self):
-        """Devuelve un resumen profesional y completo del estado del Dashboard para reportes ARESITOS."""
+        """Devuelve un resumen profesional y completo del estado del
+        Dashboard para reportes ARESITOS."""
         try:
             # Estado del sistema desde el controlador si está disponible
             estado_sistema = None
-            if self.controlador and hasattr(self.controlador, 'obtener_estado_sistema'):
+            if (self.controlador and
+                    hasattr(self.controlador, 'obtener_estado_sistema')):
                 try:
                     resultado = self.controlador.obtener_estado_sistema()
                     if isinstance(resultado, dict) and resultado.get('exito'):
@@ -116,7 +122,9 @@ class VistaDashboard(tk.Frame):
                     else:
                         estado_sistema = resultado
                 except Exception as e:
-                    estado_sistema = {'error': f'Error obteniendo estado: {str(e)}'}
+                    estado_sistema = {
+                        'error': f'Error obteniendo estado: {str(e)}'
+                    }
             else:
                 estado_sistema = {'info': 'Controlador no disponible'}
 
@@ -124,9 +132,13 @@ class VistaDashboard(tk.Frame):
             logs_terminal = ""
             if hasattr(self, 'terminal_output'):
                 try:
-                    logs_terminal = self.terminal_output.get(1.0, 'end-1c')[-3000:]
+                    logs_terminal = self.terminal_output.get(
+                        1.0, 'end-1c'
+                    )[-3000:]
                 except Exception:
-                    logs_terminal = "No se pudo capturar logs del terminal integrado."
+                    logs_terminal = (
+                        "No se pudo capturar logs del terminal integrado."
+                    )
 
             # Métricas y recursos
             # Métricas (si existen)
@@ -140,10 +152,14 @@ class VistaDashboard(tk.Frame):
                 recursos['cpu'] = os.cpu_count()
                 recursos['platform'] = platform.platform()
                 recursos['memoria_total_mb'] = 'No disponible'
-                recursos['usuario'] = os.getenv('USERNAME') or os.getenv('USER')
+                recursos['usuario'] = (
+                    os.getenv('USERNAME') or os.getenv('USER')
+                )
                 recursos['directorio_actual'] = os.getcwd()
             except Exception:
-                recursos['error'] = 'No se pudo obtener información de recursos.'
+                recursos['error'] = (
+                    'No se pudo obtener información de recursos.'
+                )
 
             # Servicios activos (si existen)
             servicios = getattr(self, 'servicios_activos', [])
@@ -798,6 +814,7 @@ class VistaDashboard(tk.Frame):
                 # Intentar con diferentes encodings
                 encodings = ['latin-1', 'cp1252', 'iso-8859-1']
                 contenido = None
+                encoding = 'unknown'  # Inicializar variable
                 
                 for encoding in encodings:
                     try:

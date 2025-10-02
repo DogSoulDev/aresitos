@@ -43,7 +43,9 @@ class ControladorPrincipal(ControladorBase):
             self.gestor_componentes = GestorComponentes(modelo_principal)
             self.logger.info("Gestor de componentes inicializado")
         except Exception as e:
-            self.logger.error(f"Error inicializando gestor de componentes: {e}")
+            self.logger.error(
+                f"Error inicializando gestor de componentes: {e}"
+            )
             self.gestor_componentes = None
         
         # Estado general del sistema
@@ -70,12 +72,18 @@ class ControladorPrincipal(ControladorBase):
             self.controlador_auditoria = ControladorAuditoria(modelo_principal)
             self.controlador_reportes = ControladorReportes(modelo_principal)
             self.controlador_monitoreo = ControladorMonitoreo(modelo_principal)
-            self.controlador_herramientas = ControladorHerramientas(modelo_principal)
+            self.controlador_herramientas = ControladorHerramientas(
+                modelo_principal
+            )
             self.controlador_fim = ControladorFIM(modelo_principal)
             self.controlador_siem = ControladorSIEM(modelo_principal)
-            self.controlador_cuarentena = ControladorCuarentena(modelo_principal)
+            self.controlador_cuarentena = ControladorCuarentena(
+                modelo_principal
+            )
 
-            self.logger.info("Controladores específicos inicializados correctamente.")
+            self.logger.info(
+                "Controladores específicos inicializados correctamente."
+            )
         except Exception as e:
             import traceback
             mensaje_error = f"[ARESITOS] Error crítico al inicializar los controladores específicos: {e}\n" \
@@ -197,7 +205,7 @@ class ControladorPrincipal(ControladorBase):
         try:
             self.logger.info("Verificando salud del sistema...")
             
-            verificaciones = {
+            verificaciones: Dict[str, Any] = {
                 'sistema_iniciado': self._estado_sistema['iniciado'],
                 'gestor_componentes_disponible': self.gestor_componentes is not None,
                 'tiempo_actividad_ok': True,

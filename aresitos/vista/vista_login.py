@@ -72,7 +72,9 @@ class SeguridadUtils:
             return False
         
         # Caracteres peligrosos para inyección de comandos
-        caracteres_peligrosos = ['&', ';', '|', '`', '$', '<', '>', '\n', '\r', '\\', '"']
+        caracteres_peligrosos = [
+            '&', ';', '|', '`', '$', '<', '>', '\n', '\r', '\\', '"'
+        ]
         
         # Verificar caracteres peligrosos
         if any(char in entrada for char in caracteres_peligrosos):
@@ -100,9 +102,15 @@ class SeguridadUtils:
     def sanitizar_para_log(mensaje: str) -> str:
         """Sanitizar mensaje para logging seguro"""
         # Remover posibles contraseñas
-        mensaje = re.sub(r'password[=:\s]+\S+', 'password=***', mensaje, flags=re.IGNORECASE)
-        mensaje = re.sub(r'contraseña[=:\s]+\S+', 'contraseña=***', mensaje, flags=re.IGNORECASE)
-        mensaje = re.sub(r'pass[=:\s]+\S+', 'pass=***', mensaje, flags=re.IGNORECASE)
+        mensaje = re.sub(
+            r'password[=:\s]+\S+', 'password=***', mensaje, flags=re.IGNORECASE
+        )
+        mensaje = re.sub(
+            r'contraseña[=:\s]+\S+', 'contraseña=***', mensaje, flags=re.IGNORECASE
+        )
+        mensaje = re.sub(
+            r'pass[=:\s]+\S+', 'pass=***', mensaje, flags=re.IGNORECASE
+        )
         
         # Limitar longitud
         if len(mensaje) > 500:
@@ -138,7 +146,9 @@ def verificar_kali_linux_criptografico() -> bool:
             os.path.join(usr_share_dir, 'kali-themes'),
             os.path.join(usr_share_dir, 'applications', 'kali-linux.desktop')
         ]
-        dirs_encontrados = sum(1 for d in directorios_kali if os.path.exists(d))
+        dirs_encontrados = sum(
+            1 for d in directorios_kali if os.path.exists(d)
+        )
         if dirs_encontrados >= 2:  # Al menos 2 de 4
             verificaciones.append(True)
 
@@ -150,7 +160,9 @@ def verificar_kali_linux_criptografico() -> bool:
             os.path.join(usr_bin_dir, 'nikto'),
             os.path.join(usr_share_dir, 'wordlists')
         ]
-        tools_encontradas = sum(1 for t in herramientas_kali if os.path.exists(t))
+        tools_encontradas = sum(
+            1 for t in herramientas_kali if os.path.exists(t)
+        )
         if tools_encontradas >= 3:  # Al menos 3 de 5
             verificaciones.append(True)
 
@@ -241,7 +253,8 @@ PUERTOS_CRITICOS = [
 ]
 
 def verificar_kali_linux_estricto():
-    """Verificar estrictamente que estamos en Kali Linux usando método criptográfico"""
+    """Verificar estrictamente que estamos en Kali Linux usando
+    método criptográfico"""
     return verificar_kali_linux_criptografico()
 
 def verificar_permisos_admin_seguro():
@@ -283,12 +296,15 @@ def verificar_permisos_admin_seguro():
         # Método 3: Verificar variable de entorno como último recurso
         return os.environ.get('USER') == 'root'
         
-    except (subprocess.TimeoutExpired, subprocess.CalledProcessError, FileNotFoundError):
+    except (
+        subprocess.TimeoutExpired, subprocess.CalledProcessError, FileNotFoundError
+    ):
         return False
 
 class LoginAresitos:
     """
-    Interfaz grafica de login para Aresitos con verificación completa del sistema.
+    Interfaz grafica de login para Aresitos con verificación completa
+    del sistema.
     Exclusivamente para Kali Linux con tema Burp Suite.
     Implementa medidas de seguridad avanzadas.
     """
@@ -360,13 +376,17 @@ class LoginAresitos:
         self.es_kali = True  # Ya verificado
         self.herramientas_disponibles = []
         self.herramientas_faltantes = []
-        self.session_id = hashlib.sha256(str(time.time()).encode()).hexdigest()[:16]
+        self.session_id = hashlib.sha256(
+            str(time.time()).encode()
+        ).hexdigest()[:16]
         
         # Crear interfaz
         self.crear_interfaz()
         
         # Auto-verificar entorno al inicio
-        threading.Thread(target=self.verificar_entorno_inicial, daemon=True).start()
+        threading.Thread(
+            target=self.verificar_entorno_inicial, daemon=True
+        ).start()
         
     def centrar_ventana(self):
         """Centrar la ventana en la pantalla"""
@@ -433,7 +453,9 @@ class LoginAresitos:
             bd=5
         )
         self.password_entry.pack(fill=tk.X, padx=10, pady=(0, 10))
-        self.password_entry.bind('<Return>', lambda e: self.verificar_password())
+        self.password_entry.bind(
+            '<Return>', lambda e: self.verificar_password()
+        )
         
         # Botones de login
         btn_frame = tk.Frame(login_frame, bg=self.bg_secondary)
@@ -530,7 +552,8 @@ class LoginAresitos:
         """Escribir mensaje en el area de logs de forma segura"""
         try:
             # Verificar que el widget y la ventana aún existen
-            if not hasattr(self, 'log_text') or not self.log_text or not self.log_text.winfo_exists():
+            if (not hasattr(self, 'log_text') or not self.log_text or
+                    not self.log_text.winfo_exists()):
                 print(f"[LOGIN] {mensaje}")
                 return
                 
@@ -577,7 +600,9 @@ class LoginAresitos:
             # Verificar permisos
             es_root = verificar_permisos_admin_seguro()
             
-            self.escribir_log("Bienvenido a ARESITOS - Sistema de Seguridad Cibernetica")
+            self.escribir_log(
+                "Bienvenido a ARESITOS - Sistema de Seguridad Cibernetica"
+            )
             self.escribir_log(f"Sistema detectado: {sistema} {version}")
             self.escribir_log(f"Usuario actual: {usuario}")
             self.escribir_log("Kali Linux detectado - Entorno optimo")
