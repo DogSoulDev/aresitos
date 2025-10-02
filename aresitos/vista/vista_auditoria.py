@@ -13,6 +13,7 @@ import tkinter as tk
 from tkinter import scrolledtext, messagebox, filedialog
 import threading
 import datetime
+import subprocess
 
 # Importar el gestor de sudo de ARESITOS
 from aresitos.utils.sudo_manager import get_sudo_manager
@@ -245,12 +246,12 @@ class VistaAuditoria(tk.Frame, TerminalMixin):
                     'error': resultado.stderr if hasattr(resultado, 'stderr') else '',
                     'returncode': resultado.returncode if hasattr(resultado, 'returncode') else 0
                 }
-        except Exception as e:
+        except (OSError, ValueError, TypeError) as e:
             return {
                 'success': False,
                 'output': '',
                 'error': str(e),
-                'returncode': None
+                'returncode': -1
             }
 
     def abrir_logs_auditoria(self):

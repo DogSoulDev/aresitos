@@ -390,7 +390,7 @@ class VistaReportes(tk.Frame, TerminalMixin):
             else:
                 self._log_terminal(f"✓ {total_con_datos} de {len(modulos)} módulos tienen datos disponibles", "REPORTES", "INFO")
 
-        except Exception as e:
+        except (AttributeError, KeyError, TypeError) as e:
             self._log_terminal(f"Error verificando módulos: {e}", "REPORTES", "ERROR")
 
     # --- Métodos de obtención de datos de cada módulo ---
@@ -433,7 +433,7 @@ class VistaReportes(tk.Frame, TerminalMixin):
                 'terminales_encontradas': len(terminales),
                 'detalles': terminales
             }
-        except Exception as e:
+        except (OSError, FileNotFoundError, PermissionError) as e:
             return {'estado': 'error', 'info': str(e)}
 
     # --- Métodos de logging seguro y actualización de reporte ---
@@ -452,7 +452,7 @@ class VistaReportes(tk.Frame, TerminalMixin):
                 else:
                     self.reporte_text.insert('end', texto)
                 self.reporte_text.see('end')
-            except Exception:
+            except (tk.TclError, AttributeError):
                 pass
 
     def __init__(self, parent):
@@ -773,7 +773,7 @@ class VistaReportes(tk.Frame, TerminalMixin):
             self.logger.log(f"[EXPORTACIÓN PDF] Usuario: {usuario}, Fecha: {fecha}, Archivo: {pdf_destino}", nivel="INFO", modulo="REPORTES")
             self._log_terminal(f"[EXPORTACIÓN PDF] Usuario: {usuario}, Fecha: {fecha}, Archivo: {pdf_destino}", modulo="REPORTES", nivel="INFO")
             messagebox.showinfo("Éxito", f"Reporte exportado correctamente a {pdf_destino}")
-        except Exception as e:
+        except (ImportError, OSError, PermissionError, ValueError) as e:
             self.logger.log(f"[EXPORTACIÓN PDF][ERROR] {str(e)}", nivel="ERROR", modulo="REPORTES")
             self._log_terminal(f"[EXPORTACIÓN PDF][ERROR] {str(e)}", modulo="REPORTES", nivel="ERROR")
             messagebox.showerror("Error", f"Error exportando PDF: {str(e)}")
