@@ -28,13 +28,16 @@ except ImportError:
 
 class VistaAuditoria(tk.Frame, TerminalMixin):
     herramientas_apt = [
-        'lynis', 'rkhunter', 'chkrootkit', 'clamav', 'nuclei', 'httpx', 'linpeas', 'pspy'
+        'lynis', 'rkhunter', 'chkrootkit', 'clamav',
+        'nuclei', 'httpx', 'linpeas', 'pspy'
     ]
 
     def __init__(self, *args, root_session=None, controlador=None, **kwargs):
         """
-        root_session: objeto o token de sesión root pasado desde el login principal.
-        Debe mantenerse en memoria en todas las vistas importantes para evitar problemas de permisos.
+        root_session: objeto o token de sesión root pasado desde el login
+                      principal.
+        Debe mantenerse en memoria en todas las vistas importantes para
+        evitar problemas de permisos.
         """
         super().__init__(*args, **kwargs)
         self.root_session = root_session
@@ -57,9 +60,12 @@ class VistaAuditoria(tk.Frame, TerminalMixin):
         self.logger = LoggerAresitos.get_instance()
         self.crear_interfaz()
 
-    # Métodos eliminados: _es_root, _deshabilitar_todo_auditoria_por_root, set_controlador, analizar_servicios, verificar_permisos
-    # Todos estos métodos dependían de atributos y lógica de seguridad eliminados.
-    # El logger se mantiene para mostrar información en el terminal y enviarla a Reportes.
+    # Métodos eliminados: _es_root, _deshabilitar_todo_auditoria_por_root,
+    # set_controlador, analizar_servicios, verificar_permisos
+    # Todos estos métodos dependían de atributos y lógica de seguridad
+    # eliminados.
+    # El logger se mantiene para mostrar información en el terminal y
+    # enviarla a Reportes.
     def log_terminal(self, mensaje, modulo="AUDITORIA", nivel="INFO"):
         # Muestra en terminal y envía a Reportes (Dashboard)
         self._actualizar_terminal(mensaje + "\n")
@@ -102,7 +108,8 @@ class VistaAuditoria(tk.Frame, TerminalMixin):
         # Título arriba
         titulo_frame = tk.Frame(main_frame, bg=self.colors['bg_primary'])
         titulo_frame.pack(fill=tk.X, pady=(10, 5))
-        titulo = tk.Label(titulo_frame, text="Auditoría de seguridad del sistema",
+        titulo = tk.Label(
+            titulo_frame, text="Auditoría de seguridad del sistema",
             bg=self.colors['bg_primary'], fg=self.colors['fg_accent'],
             font=('Arial', 16, 'bold'))
         titulo.pack(pady=5)
@@ -126,9 +133,13 @@ class VistaAuditoria(tk.Frame, TerminalMixin):
         self.info_panel = tk.Label(
             right_frame,
             text=(
-                "Bienvenido a la Auditoría de Seguridad. Aquí puedes ejecutar análisis, revisar configuraciones y consultar resultados.\n"
-                "Utiliza los botones de la izquierda para iniciar acciones específicas. Los resultados y mensajes aparecerán en el terminal inferior.\n"
-                "Recuerda: Todos los comandos se ejecutan con privilegios auditados y nunca se solicita la contraseña de root."
+                "Bienvenido a la Auditoría de Seguridad. Aquí puedes ejecutar "
+                "análisis, revisar configuraciones y consultar resultados.\n"
+                "Utiliza los botones de la izquierda para iniciar acciones "
+                "específicas. Los resultados y mensajes aparecerán en el "
+                "terminal inferior.\n"
+                "Recuerda: Todos los comandos se ejecutan con privilegios "
+                "auditados y nunca se solicita la contraseña de root."
             ),
             bg=self.colors['bg_secondary'],
             fg=self.colors['fg_primary'],
@@ -155,7 +166,8 @@ class VistaAuditoria(tk.Frame, TerminalMixin):
             self.terminal_output.see(tk.END)
     def actualizar_info_panel(self, titulo_accion, descripcion):
         """
-        Actualiza el panel informativo superior con el título y la descripción de la acción seleccionada.
+        Actualiza el panel informativo superior con el título y la
+        descripción de la acción seleccionada.
         Todo el texto se muestra en castellano.
         """
         texto = f"{titulo_accion}\n{descripcion}"
@@ -171,7 +183,8 @@ class VistaAuditoria(tk.Frame, TerminalMixin):
             "- Mantenga el sistema y las herramientas actualizadas.\n"
         )
         self.log_terminal(info)
-    # Método eliminado: _ejecutar_comando_seguro (ya no se usa validación ni gestor de permisos)
+    # Método eliminado: _ejecutar_comando_seguro
+    # (ya no se usa validación ni gestor de permisos)
 
     def limpiar_terminal_auditoria(self):
         try:

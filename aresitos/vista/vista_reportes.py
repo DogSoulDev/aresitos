@@ -34,8 +34,11 @@ class VistaReportes(tk.Frame, TerminalMixin):
         ventana.transient(self.winfo_toplevel())
         ventana.grab_set()
         colors = getattr(self, 'colors', {
-            'bg_primary': '#2b2b2b', 'fg_primary': '#ffffff', 'fg_accent': '#ff6633',
-            'button_bg': '#ffb86c', 'button_fg': '#232629'
+            'bg_primary': '#2b2b2b',
+            'fg_primary': '#ffffff',
+            'fg_accent': '#ff6633',
+            'button_bg': '#ffb86c',
+            'button_fg': '#232629'
         })
         ventana.configure(bg=colors['bg_primary'])
         campos = {
@@ -55,20 +58,56 @@ class VistaReportes(tk.Frame, TerminalMixin):
             'observaciones': tk.StringVar(value="")
         }
         if self.reporte_actual and isinstance(self.reporte_actual, dict):
-            campos['organizacion'].set(self.reporte_actual.get('organizacion', campos['organizacion'].get()))
-            campos['contacto'].set(self.reporte_actual.get('contacto', campos['contacto'].get()))
-            campos['correo'].set(self.reporte_actual.get('correo', campos['correo'].get()))
-            campos['telefono'].set(self.reporte_actual.get('telefono', campos['telefono'].get()))
-            campos['titulo'].set(self.reporte_actual.get('titulo', campos['titulo'].get()))
-            campos['fecha_deteccion'].set(self.reporte_actual.get('fecha_deteccion', campos['fecha_deteccion'].get()))
-            campos['fecha_inicio'].set(self.reporte_actual.get('fecha_inicio', campos['fecha_inicio'].get()))
-            campos['descripcion'].set(self.reporte_actual.get('descripcion', campos['descripcion'].get()))
-            campos['tipo'].set(self.reporte_actual.get('tipo', campos['tipo'].get()))
-            campos['sistemas_afectados'].set(self.reporte_actual.get('sistemas_afectados', campos['sistemas_afectados'].get()))
-            campos['acciones'].set(self.reporte_actual.get('acciones', campos['acciones'].get()))
-            campos['impacto'].set(self.reporte_actual.get('impacto', campos['impacto'].get()))
-            campos['datos_comprometidos'].set(self.reporte_actual.get('datos_comprometidos', campos['datos_comprometidos'].get()))
-            campos['observaciones'].set(self.reporte_actual.get('observaciones', campos['observaciones'].get()))
+            campos['organizacion'].set(
+                self.reporte_actual.get('organizacion', campos['organizacion'].get())
+            )
+            campos['contacto'].set(
+                self.reporte_actual.get('contacto', campos['contacto'].get())
+            )
+            campos['correo'].set(
+                self.reporte_actual.get('correo', campos['correo'].get())
+            )
+            campos['telefono'].set(
+                self.reporte_actual.get('telefono', campos['telefono'].get())
+            )
+            campos['titulo'].set(
+                self.reporte_actual.get('titulo', campos['titulo'].get())
+            )
+            campos['fecha_deteccion'].set(
+                self.reporte_actual.get(
+                    'fecha_deteccion', campos['fecha_deteccion'].get()
+                )
+            )
+            campos['fecha_inicio'].set(
+                self.reporte_actual.get('fecha_inicio', campos['fecha_inicio'].get())
+            )
+            campos['descripcion'].set(
+                self.reporte_actual.get('descripcion', campos['descripcion'].get())
+            )
+            campos['tipo'].set(
+                self.reporte_actual.get('tipo', campos['tipo'].get())
+            )
+            campos['sistemas_afectados'].set(
+                self.reporte_actual.get(
+                    'sistemas_afectados', campos['sistemas_afectados'].get()
+                )
+            )
+            campos['acciones'].set(
+                self.reporte_actual.get('acciones', campos['acciones'].get())
+            )
+            campos['impacto'].set(
+                self.reporte_actual.get('impacto', campos['impacto'].get())
+            )
+            campos['datos_comprometidos'].set(
+                self.reporte_actual.get(
+                    'datos_comprometidos', campos['datos_comprometidos'].get()
+                )
+            )
+            campos['observaciones'].set(
+                self.reporte_actual.get(
+                    'observaciones', campos['observaciones'].get()
+                )
+            )
         row = 0
         text_widgets = {}
         labels = [
@@ -88,14 +127,31 @@ class VistaReportes(tk.Frame, TerminalMixin):
             ("Observaciones relevantes", 'observaciones')
         ]
         for label, var in labels:
-            tk.Label(ventana, text=label+':', bg=colors['bg_primary'], fg=colors['fg_accent'], font=("Arial", 11, "bold")).grid(row=row, column=0, sticky='e', padx=8, pady=4)
-            if var in ['descripcion', 'acciones', 'impacto', 'datos_comprometidos', 'observaciones', 'sistemas_afectados']:
-                text_entry = tk.Text(ventana, height=3, width=48, bg=colors['bg_primary'], fg=colors['fg_primary'], insertbackground=colors['fg_accent'], font=("Consolas", 10))
+            label_widget = tk.Label(
+                ventana, text=label+':',
+                bg=colors['bg_primary'], fg=colors['fg_accent'],
+                font=("Arial", 11, "bold")
+            )
+            label_widget.grid(row=row, column=0, sticky='e', padx=8, pady=4)
+            text_fields = [
+                'descripcion', 'acciones', 'impacto', 'datos_comprometidos',
+                'observaciones', 'sistemas_afectados'
+            ]
+            if var in text_fields:
+                text_entry = tk.Text(
+                    ventana, height=3, width=48,
+                    bg=colors['bg_primary'], fg=colors['fg_primary'],
+                    insertbackground=colors['fg_accent'], font=("Consolas", 10)
+                )
                 text_entry.insert('1.0', campos[var].get())
                 text_entry.grid(row=row, column=1, padx=8, pady=4)
                 text_widgets[var] = text_entry
             else:
-                entry = tk.Entry(ventana, textvariable=campos[var], width=50, bg=colors['bg_primary'], fg=colors['fg_primary'], insertbackground=colors['fg_accent'], font=("Consolas", 10))
+                entry = tk.Entry(
+                    ventana, textvariable=campos[var], width=50,
+                    bg=colors['bg_primary'], fg=colors['fg_primary'],
+                    insertbackground=colors['fg_accent'], font=("Consolas", 10)
+                )
                 entry.grid(row=row, column=1, padx=8, pady=4)
             row += 1
         def on_guardar():
@@ -107,8 +163,11 @@ class VistaReportes(tk.Frame, TerminalMixin):
                     datos[k] = campos[k].get().strip()
             ventana.destroy()
             callback_guardar(datos)
-        btn_guardar = tk.Button(ventana, text="Generar y Guardar Reporte", command=on_guardar,
-                                bg=colors['button_bg'], fg=colors['button_fg'], font=("Arial", 12, "bold"), relief='raised', padx=18, pady=8)
+        btn_guardar = tk.Button(
+            ventana, text="Generar y Guardar Reporte", command=on_guardar,
+            bg=colors['button_bg'], fg=colors['button_fg'],
+            font=("Arial", 12, "bold"), relief='raised', padx=18, pady=8
+        )
         btn_guardar.grid(row=row, column=0, columnspan=2, pady=12)
 
     # ...existing code...
@@ -119,7 +178,10 @@ class VistaReportes(tk.Frame, TerminalMixin):
             archivo = filedialog.asksaveasfilename(
                 title="Guardar Reporte TXT",
                 defaultextension=".txt",
-                filetypes=[("Archivo de texto", "*.txt"), ("Todos los archivos", "*.*")]
+                filetypes=[
+                    ("Archivo de texto", "*.txt"),
+                    ("Todos los archivos", "*.*")
+                ]
             )
             if archivo:
                 try:
@@ -128,7 +190,12 @@ class VistaReportes(tk.Frame, TerminalMixin):
                     import getpass
                     usuario = getpass.getuser()
                     fecha = datetime.datetime.now().isoformat()
-                    resumen = f"Título: {campos.get('titulo','')}, Autor: {campos.get('autor','')}, Fecha: {campos.get('fecha','')}, Archivo: {archivo}"
+                    resumen = (
+                        f"Título: {campos.get('titulo','')}, "
+                        f"Autor: {campos.get('autor','')}, "
+                        f"Fecha: {campos.get('fecha','')}, "
+                        f"Archivo: {archivo}"
+                    )
                     self.logger.log(f"[EXPORTACIÓN TXT] Usuario: {usuario}, Fecha: {fecha}, {resumen}", nivel="INFO", modulo="REPORTES")
                     self._log_terminal(f"[EXPORTACIÓN TXT] Usuario: {usuario}, Fecha: {fecha}, {resumen}", modulo="REPORTES", nivel="INFO")
                     messagebox.showinfo("Éxito", f"Reporte guardado correctamente en {archivo}")

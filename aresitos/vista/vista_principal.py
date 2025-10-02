@@ -54,7 +54,9 @@ class VistaPrincipal(tk.Frame):
         """Obtener la ruta base absoluta del proyecto ARESITOS."""
         from pathlib import Path
         import os
-        return Path(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
+        return Path(
+            os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
+        )
 
     def __init__(self, parent):
         super().__init__(parent)
@@ -64,7 +66,8 @@ class VistaPrincipal(tk.Frame):
         from aresitos.utils.logger_aresitos import LoggerAresitos
         self.logger = LoggerAresitos.get_instance()
         # Inicializar tema visual
-        self.theme = burp_theme  # Usar directamente (DummyTheme si no está disponible)
+        # Usar directamente (DummyTheme si no está disponible)
+        self.theme = burp_theme
         
         # Inicializar atributos que se asignan en métodos posteriores
         self.style = None
@@ -106,22 +109,36 @@ class VistaPrincipal(tk.Frame):
                            padding=[20, 8],
                            borderwidth=1)
         self.style.map('Custom.TNotebook.Tab',
-                     background=[('selected', self.theme.get_color('fg_accent')),
-                               ('active', self.theme.get_color('bg_tertiary'))],
-                     foreground=[('selected', self.theme.get_color('bg_primary')),
-                               ('active', self.theme.get_color('fg_primary'))])
+                     background=[
+                         ('selected', self.theme.get_color('fg_accent')),
+                         ('active', self.theme.get_color('bg_tertiary'))
+                     ],
+                     foreground=[
+                         ('selected', self.theme.get_color('bg_primary')),
+                         ('active', self.theme.get_color('fg_primary'))
+                     ])
 
     def set_controlador(self, controlador):
         self.controlador = controlador
-        self.logger.log("Controlador principal establecido en VistaPrincipal", modulo="PRINCIPAL", nivel="INFO")
+        self.logger.log(
+            "Controlador principal establecido en VistaPrincipal",
+            modulo="PRINCIPAL", nivel="INFO"
+        )
         # Configurar controladores para todas las vistas
         if hasattr(self, 'vista_dashboard'):
             self.vista_dashboard.set_controlador(controlador)  # type: ignore
-            self.logger.log("OK Vista Dashboard conectada", modulo="PRINCIPAL", nivel="INFO")
+            self.logger.log(
+                "OK Vista Dashboard conectada", modulo="PRINCIPAL", nivel="INFO"
+            )
         else:
-            self.logger.log("WARN Vista Dashboard no disponible", modulo="PRINCIPAL", nivel="WARNING")
+            self.logger.log(
+                "WARN Vista Dashboard no disponible",
+                modulo="PRINCIPAL", nivel="WARNING"
+            )
         if hasattr(self.controlador, 'controlador_escaneador'):
-            self.vista_escaneo.set_controlador(self.controlador.controlador_escaneador)  # type: ignore
+            self.vista_escaneo.set_controlador(  # type: ignore
+                self.controlador.controlador_escaneador
+            )
             self.logger.log("OK Vista Escaneo conectada", modulo="PRINCIPAL", nivel="INFO")
         else:
             self.logger.log("WARN Controlador Escaneador no disponible", modulo="PRINCIPAL", nivel="WARNING")
