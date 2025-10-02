@@ -32,7 +32,7 @@ class RateLimiter:
     def __init__(self, max_intentos: int = 3, ventana_tiempo: int = 300):
         self.max_intentos = max_intentos
         self.ventana_tiempo = ventana_tiempo  # 5 minutos
-        self.intentos: Dict[str, List[float]] = {}  # pylint: disable=deprecated-typing-alias
+        self.intentos: Dict[str, List[float]] = {}  # pylint: disable=unsubscriptable-object
         self.lock = threading.Lock()
     
     def puede_intentar(self, identificador: str = "default") -> bool:
@@ -585,7 +585,7 @@ class LoginAresitos:
                 # Si hay cualquier error con tkinter, usar print como fallback
                 print(f"[LOGIN] {mensaje_seguro}")
                 
-        except Exception as e:
+        except (AttributeError, tk.TclError, OSError) as e:
             # Log de fallback en caso de error
             print(f"[LOGIN] {mensaje} - Error: {e}")
     
@@ -623,7 +623,7 @@ class LoginAresitos:
             # Desactivada la verificación de herramientas para el login
             self.continue_btn.config(state=tk.NORMAL, bg=self.accent_green)
             
-        except Exception as e:
+        except (OSError, subprocess.SubprocessError, FileNotFoundError) as e:
             self.escribir_log(f"Error verificando entorno: {e}")
     
     def verificar_herramientas_inicial(self):
@@ -672,7 +672,7 @@ class LoginAresitos:
             
             self.verificacion_completada = True
             
-        except Exception as e:
+        except (OSError, AttributeError, IndexError) as e:
             self.escribir_log(f"Error verificando herramientas: {e}")
     
     def configurar_permisos_aresitos(self, password):
@@ -689,7 +689,7 @@ class LoginAresitos:
             else:
                 self.escribir_log("WARNING No se encontró directorio válido del proyecto")
                 
-        except Exception as e:
+        except (subprocess.SubprocessError, OSError, ValueError) as e:
             self.escribir_log(f"Error configurando permisos: {type(e).__name__}")
     
     def _detectar_rutas_proyecto(self):

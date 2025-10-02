@@ -199,7 +199,7 @@ class VistaReportes(tk.Frame, TerminalMixin):
                     self.logger.log(f"[EXPORTACIÓN TXT] Usuario: {usuario}, Fecha: {fecha}, {resumen}", nivel="INFO", modulo="REPORTES")
                     self._log_terminal(f"[EXPORTACIÓN TXT] Usuario: {usuario}, Fecha: {fecha}, {resumen}", modulo="REPORTES", nivel="INFO")
                     messagebox.showinfo("Éxito", f"Reporte guardado correctamente en {archivo}")
-                except Exception as e:
+                except (OSError, PermissionError, UnicodeEncodeError) as e:
                     self.logger.log(f"[EXPORTACIÓN TXT][ERROR] {str(e)}", nivel="ERROR", modulo="REPORTES")
                     self._log_terminal(f"[EXPORTACIÓN TXT][ERROR] {str(e)}", modulo="REPORTES", nivel="ERROR")
                     messagebox.showerror("Error", f"Error al guardar texto: {str(e)}")
@@ -368,7 +368,7 @@ class VistaReportes(tk.Frame, TerminalMixin):
                         var_checkbox.set(False)
                     self._log_terminal(f"⚠ Módulo {modulo.upper()} sin datos - checkbox deshabilitado", "REPORTES", "WARNING")
                     
-        except Exception as e:
+        except (AttributeError, KeyError, TypeError) as e:
             self._log_terminal(f"Error verificando datos del módulo {modulo}: {e}", "REPORTES", "ERROR")
     
     def verificar_todos_los_modulos(self):
