@@ -30,7 +30,7 @@ try:
     BURP_THEME_AVAILABLE = True
 except ImportError:
     BURP_THEME_AVAILABLE = False
-    burp_theme = None
+    burp_theme = None  # type: ignore
 
 class TerminalIntegradoHandler(logging.Handler):
     """Handler personalizado para mostrar logs en el terminal integrado."""
@@ -38,7 +38,7 @@ class TerminalIntegradoHandler(logging.Handler):
     def __init__(self, terminal_widget):
         super().__init__()
         self.terminal_widget = terminal_widget
-        self.queue = queue.Queue()
+        self.queue: queue.Queue = queue.Queue()
         
     def emit(self, record):
         """Emitir log al terminal integrado."""
@@ -150,8 +150,8 @@ class VistaDashboard(tk.Frame):
             recursos = {}
             try:
                 recursos['cpu'] = os.cpu_count()
-                recursos['platform'] = platform.platform()
-                recursos['memoria_total_mb'] = 'No disponible'
+                recursos['platform'] = str(platform.platform())
+                recursos['memoria_total_mb'] = 0  # No disponible
                 recursos['usuario'] = (
                     os.getenv('USERNAME') or os.getenv('USER')
                 )

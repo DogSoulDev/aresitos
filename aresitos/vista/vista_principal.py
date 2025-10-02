@@ -254,7 +254,7 @@ class VistaPrincipal(tk.Frame):
         try:
             self.vista_dashboard = VistaDashboard(self.notebook)
             self.notebook.add(self.vista_dashboard, text="Dashboard")
-        except Exception as e:
+        except (ImportError, tk.TclError, AttributeError) as e:
             print(f"Error creando vista dashboard: {e}")
 
         # 2. ESCANEO - Funcionalidad principal de escaneo
@@ -265,14 +265,14 @@ class VistaPrincipal(tk.Frame):
         try:
             self.vista_siem = VistaSIEM(self.notebook)
             self.notebook.add(self.vista_siem, text="SIEM")
-        except Exception as e:
+        except (ImportError, tk.TclError, AttributeError) as e:
             print(f"Error creando vista SIEM: {e}")
 
         # 4. FIM - File Integrity Monitoring
         try:
             self.vista_fim = VistaFIM(self.notebook)
             self.notebook.add(self.vista_fim, text="FIM")
-        except Exception as e:
+        except (ImportError, tk.TclError, AttributeError) as e:
             print(f"Error creando vista FIM: {e}")
 
         # 5. MONITOREO Y CUARENTENA - Monitoreo del sistema
@@ -283,14 +283,14 @@ class VistaPrincipal(tk.Frame):
         try:
             self.vista_auditoria = VistaAuditoria(self.notebook)
             self.notebook.add(self.vista_auditoria, text="Auditoría")
-        except Exception as e:
-            print(f"Error creando vista auditoría: {e}")
+        except (ImportError, tk.TclError, AttributeError) as e:
+            print(f"Error creando vista monitoreo: {e}")
 
         # 7. WORDLISTS & DICCIONARIOS - Gestión de datos unificados
         try:
             self.vista_gestion_datos = VistaGestionDatos(self.notebook)
             self.notebook.add(self.vista_gestion_datos, text="Wordlists y Diccionarios")
-        except Exception as e:
+        except (ImportError, tk.TclError, AttributeError) as e:
             print(f"Error creando vista gestión de datos: {e}")
 
         # 8. REPORTES - Generación y visualización de reportes
@@ -298,7 +298,7 @@ class VistaPrincipal(tk.Frame):
             self.vista_reportes = VistaReportes(self.notebook)
             self.vista_reportes.crear_interfaz()
             self.notebook.add(self.vista_reportes, text="Reportes")
-        except Exception as e:
+        except (ImportError, tk.TclError, AttributeError) as e:
             print(f"Error creando vista reportes: {e}")
 
         # 9. MANTENIMIENTO - Nueva pestaña al final
@@ -307,7 +307,7 @@ class VistaPrincipal(tk.Frame):
             from aresitos.controlador.controlador_mantenimiento import ControladorMantenimiento
             self.vista_mantenimiento = VistaMantenimiento(self.notebook, ControladorMantenimiento())
             self.notebook.add(self.vista_mantenimiento, text="Mantenimiento")
-        except Exception as e:
+        except (ImportError, tk.TclError, AttributeError) as e:
             print(f"Error creando vista mantenimiento: {e}")
 
         # 10. NOTICIAS - Última pestaña

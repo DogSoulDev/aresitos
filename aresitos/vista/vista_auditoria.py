@@ -222,7 +222,6 @@ class VistaAuditoria(tk.Frame, TerminalMixin):
         try:
             import platform
             if platform.system() == "Windows":
-                import subprocess
                 comando_completo = ["cmd", "/c", comando]
                 resultado = subprocess.run(
                     comando_completo,
