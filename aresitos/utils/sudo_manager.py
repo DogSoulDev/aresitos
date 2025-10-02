@@ -3,8 +3,10 @@
 ARESITOS - Gestor Global de Sudo
 ===============================
 
-Gestor singleton para mantener el estado de sudo entre todas las ventanas de ARESITOS.
-Permite que las herramientas mantengan permisos root sin solicitar contraseña repetidamente.
+Gestor singleton para mantener el estado de sudo entre todas las
+ventanas de ARESITOS.
+Permite que las herramientas mantengan permisos root sin solicitar
+contraseña repetidamente.
 
 Autor: DogSoulDev
 Fecha: 22 de Agosto de 2025
@@ -30,7 +32,7 @@ class SudoManager:
             with cls._lock:
                 if cls._instance is None:
                     cls._instance = super(SudoManager, cls).__new__(cls)
-                    cls._instance._initialized = False
+                    cls._instance._initialized = False  # type: ignore
         return cls._instance
     
     def __init__(self):
@@ -52,10 +54,12 @@ class SudoManager:
         if password:
             os.environ['ARESITOS_SUDO_ACTIVE'] = '1'
     def _renovar_sudo_timestamp(self):
-        """Renovar el timestamp de sudo para mantener la sesión activa - Issue 21/24 optimizado"""
+        """Renovar el timestamp de sudo para mantener la sesión activa
+        - Issue 21/24 optimizado"""
         try:
             if self.sudo_password:
-                # Ejecutar comando sudo simple para renovar timestamp con timeout optimizado
+                # Ejecutar comando sudo simple para renovar timestamp
+                # con timeout optimizado
                 result = subprocess.run(
                     ['sudo', '-S', '-v'],
                     input=self.sudo_password + '\n',

@@ -12,10 +12,11 @@ PRINCIPIOS DE SEGURIDAD ARESITOS (NO MODIFICAR SIN AUDITORÍA)
 """
 
 import logging
-from typing import Optional
+# from typing import Optional  # No utilizado
 
 class ModeloPrincipal:
-    """Modelo principal de la aplicación que coordina todos los gestores de datos."""
+    """Modelo principal de la aplicación que coordina todos los
+    gestores de datos."""
     
     def __init__(self):
         self.logger = logging.getLogger(__name__)
@@ -38,7 +39,9 @@ class ModeloPrincipal:
             
             # Inicializar gestor de wordlists
             try:
-                from aresitos.modelo.modelo_wordlists_gestor import ModeloGestorWordlists
+                from aresitos.modelo.modelo_wordlists_gestor import (
+                    ModeloGestorWordlists
+                )
                 self.gestor_wordlists = ModeloGestorWordlists()
                 print("Gestor de Wordlists inicializado")
             except Exception as e:
@@ -46,7 +49,9 @@ class ModeloPrincipal:
             
             # Inicializar gestor de diccionarios
             try:
-                from aresitos.modelo.modelo_diccionarios import ModeloGestorDiccionarios
+                from aresitos.modelo.modelo_diccionarios import (
+                    ModeloGestorDiccionarios
+                )
                 self.gestor_diccionarios = ModeloGestorDiccionarios()
                 print("Gestor de Diccionarios inicializado")
             except Exception as e:
@@ -54,7 +59,9 @@ class ModeloPrincipal:
             
             # Inicializar componentes avanzados
             try:
-                from aresitos.modelo.modelo_escaneador import EscaneadorKali2025
+                from aresitos.modelo.modelo_escaneador import (
+                    EscaneadorKali2025
+                )
                 self.escaneador_avanzado = EscaneadorKali2025()
                 print("Escaneador Avanzado inicializado")
             except Exception as e:
