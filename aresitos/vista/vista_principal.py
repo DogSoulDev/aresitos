@@ -42,10 +42,10 @@ except ImportError:
                 'fg_accent': '#ff6633'
             }
             return colors.get(key, '#ffffff')
-        
+
         def configure_ttk_style(self, style):
             pass
-    
+
     burp_theme = DummyTheme()  # type: ignore
 
 class VistaPrincipal(tk.Frame):
@@ -68,7 +68,7 @@ class VistaPrincipal(tk.Frame):
         # Inicializar tema visual
         # Usar directamente (DummyTheme si no está disponible)
         self.theme = burp_theme
-        
+
         # Inicializar atributos que se asignan en métodos posteriores
         self.style = None
         self.notebook = None
@@ -83,7 +83,7 @@ class VistaPrincipal(tk.Frame):
         self.vista_mantenimiento = None
         self.vista_noticias = None
         self.status_label = None
-        
+
         self.crear_widgets()
 
     # ...existing code...
@@ -100,7 +100,7 @@ class VistaPrincipal(tk.Frame):
         self.style = ttk.Style()
         self.theme.configure_ttk_style(self.style)
         # Aplicar estilos específicos para el notebook
-        self.style.configure('Custom.TNotebook', 
+        self.style.configure('Custom.TNotebook',
                            background=self.theme.get_color('bg_primary'),
                            borderwidth=0)
         self.style.configure('Custom.TNotebook.Tab',
@@ -177,11 +177,11 @@ class VistaPrincipal(tk.Frame):
             self.logger.log("WARN Controlador SIEM no disponible", modulo="PRINCIPAL", nivel="WARNING")
         # Inicializar vista con datos del controlador
         self.actualizar_vista_principal()
-    
+
     def obtener_terminal_integrado(self):
         """Obtener referencia al terminal integrado global del dashboard."""
         return VistaDashboard.obtener_terminal_global()
-    
+
     def log_actividad(self, mensaje, modulo="GENERAL", nivel="INFO"):
         """Registrar actividad en el terminal integrado global."""
         VistaDashboard.log_actividad_global(mensaje, modulo, nivel)
@@ -192,16 +192,16 @@ class VistaPrincipal(tk.Frame):
             self.configure(bg=self.theme.get_color('bg_primary'))
         else:
             self.configure(bg='#2b2b2b')  # Fallback al tema Burp Suite
-            
+
         # Barra de título estilo Burp Suite
         self.crear_barra_titulo()
-        
+
         # Notebook principal con tema
         self.crear_notebook_principal()
-        
+
         # Barra de estado
         self.crear_barra_estado()
-    
+
     def crear_barra_titulo(self):
         """Crea la barra de título."""
         # Frame de título
@@ -238,7 +238,7 @@ class VistaPrincipal(tk.Frame):
             bg='#3c3c3c'
         )
         info_label.pack(side="right", padx=15, pady=10)
-    
+
     def crear_notebook_principal(self):
         """Crea el notebook principal con estilo Burp Suite"""
         if self.theme:
@@ -246,53 +246,53 @@ class VistaPrincipal(tk.Frame):
         else:
             self.notebook = ttk.Notebook(self)
         self.notebook.pack(fill="both", expand=True, padx=2, pady=2)
-        
+
         # ORDEN DE PESTAÑAS REQUERIDO:
         # 1. Dashboard, 2. Escaneo, 3. SIEM, 4. FIM, 5. Monitoreo y Cuarentena, 6. Auditoría, 7. Wordlists y Diccionarios, 8. Reportes
-        
+
         # 1. DASHBOARD - Primera pestaña con métricas en tiempo real
         try:
             self.vista_dashboard = VistaDashboard(self.notebook)
             self.notebook.add(self.vista_dashboard, text="Dashboard")
         except Exception as e:
             print(f"Error creando vista dashboard: {e}")
-        
+
         # 2. ESCANEO - Funcionalidad principal de escaneo
         self.vista_escaneo = VistaEscaneo(self.notebook)
         self.notebook.add(self.vista_escaneo, text="Escaneo")
-        
+
         # 3. SIEM - Security Information & Event Management
         try:
             self.vista_siem = VistaSIEM(self.notebook)
             self.notebook.add(self.vista_siem, text="SIEM")
         except Exception as e:
             print(f"Error creando vista SIEM: {e}")
-        
+
         # 4. FIM - File Integrity Monitoring
         try:
             self.vista_fim = VistaFIM(self.notebook)
             self.notebook.add(self.vista_fim, text="FIM")
         except Exception as e:
             print(f"Error creando vista FIM: {e}")
-        
+
         # 5. MONITOREO Y CUARENTENA - Monitoreo del sistema
         self.vista_monitoreo = VistaMonitoreo(self.notebook)
         self.notebook.add(self.vista_monitoreo, text="Monitoreo y Cuarentena")
-        
+
         # 6. AUDITORÍA - Auditoría de seguridad avanzada
         try:
             self.vista_auditoria = VistaAuditoria(self.notebook)
             self.notebook.add(self.vista_auditoria, text="Auditoría")
         except Exception as e:
             print(f"Error creando vista auditoría: {e}")
-        
+
         # 7. WORDLISTS & DICCIONARIOS - Gestión de datos unificados
         try:
             self.vista_gestion_datos = VistaGestionDatos(self.notebook)
             self.notebook.add(self.vista_gestion_datos, text="Wordlists y Diccionarios")
         except Exception as e:
             print(f"Error creando vista gestión de datos: {e}")
-        
+
         # 8. REPORTES - Generación y visualización de reportes
         try:
             self.vista_reportes = VistaReportes(self.notebook)
@@ -300,7 +300,7 @@ class VistaPrincipal(tk.Frame):
             self.notebook.add(self.vista_reportes, text="Reportes")
         except Exception as e:
             print(f"Error creando vista reportes: {e}")
-        
+
         # 9. MANTENIMIENTO - Nueva pestaña al final
         try:
             from aresitos.vista.vista_mantenimiento import VistaMantenimiento
@@ -317,7 +317,7 @@ class VistaPrincipal(tk.Frame):
             self.notebook.add(self.vista_noticias, text="Noticias")
         except Exception as e:
             print(f"Error creando vista noticias: {e}")
-    
+
     def crear_barra_estado(self):
         """Crea la barra de estado inferior estilo Burp"""
         if self.theme:
@@ -326,7 +326,7 @@ class VistaPrincipal(tk.Frame):
             status_frame = tk.Frame(self, bg='#f0f0f0', height=25)
         status_frame.pack(fill="x", padx=2, pady=(0, 2))
         status_frame.pack_propagate(False)
-        
+
         # Estado de la aplicación
         if self.theme:
             self.status_label = tk.Label(
@@ -345,7 +345,7 @@ class VistaPrincipal(tk.Frame):
                 bg='#f0f0f0'
             )
         self.status_label.pack(side="left", padx=10, pady=3)
-        
+
         # Información técnica
         if self.theme:
             tech_label = tk.Label(
@@ -364,7 +364,7 @@ class VistaPrincipal(tk.Frame):
                 bg='#f0f0f0'
             )
         tech_label.pack(side="right", padx=10, pady=3)
-    
+
     def actualizar_vista_principal(self):
         """Actualiza la vista principal con datos del controlador"""
         try:
@@ -382,7 +382,7 @@ class VistaPrincipal(tk.Frame):
         except Exception as e:
             self.logger.log(f"Error actualizando vista principal: {e}", modulo="PRINCIPAL", nivel="ERROR")
             self.actualizar_estado("Error en inicialización del sistema")
-    
+
     def _actualizar_estado_componentes(self):
         """Método auxiliar para actualizar el estado de los componentes"""
         try:
@@ -393,12 +393,12 @@ class VistaPrincipal(tk.Frame):
                 self.logger.log("Estado de componentes actualizado correctamente", modulo="PRINCIPAL", nivel="INFO")
         except Exception as e:
             self.logger.log(f"Error actualizando estado de componentes: {e}", modulo="PRINCIPAL", nivel="ERROR")
-    
+
     def actualizar_estado(self, mensaje):
         """Actualiza el mensaje de la barra de estado"""
         if hasattr(self, 'status_label'):
             self.status_label.configure(text=mensaje)  # type: ignore
-    
+
     def optimizar_sistema_completo(self):
         """Issue 21/24: Optimización global del sistema aresitos.
         Optimizar memoria y rendimiento de todas las vistas activas."""

@@ -164,52 +164,52 @@ def iniciar_aplicacion_clasica():
     """Metodo de inicio clasico sin login GUI"""
     try:
         import tkinter as tk
-        
+
         # Importar módulos principales
         from aresitos.vista.vista_principal import VistaPrincipal
-        from aresitos.controlador.controlador_principal import ControladorPrincipal  
+        from aresitos.controlador.controlador_principal import ControladorPrincipal
         from aresitos.modelo.modelo_principal import ModeloPrincipal
-        
+
         print("Módulos principales cargados")
-        
+
         # Crear aplicación principal con tema Burp Suite
         root = tk.Tk()
         root.title("ARESITOS - Sistema de Seguridad Cibernética")
         root.geometry("1400x900")
-        
+
         # CRÍTICO: Configurar tema oscuro para la ventana principal
         root.configure(bg='#2b2b2b')
-        
+
         # Inicializar MVC
         print("Inicializando componentes MVC...")
         modelo = ModeloPrincipal()
         vista = VistaPrincipal(root)
-        
+
         # CRÍTICO: Hacer que la vista ocupe toda la ventana
         vista.pack(fill="both", expand=True)
-        
+
         controlador = ControladorPrincipal(modelo)
-        
+
         # CRÍTICO: Conectar controlador a la vista
         vista.set_controlador(controlador)
-        
+
         # Centrar ventana
         root.update_idletasks()
         x = (root.winfo_screenwidth() // 2) - (1400 // 2)
         y = (root.winfo_screenheight() // 2) - (900 // 2)
         root.geometry(f"1400x900+{x}+{y}")
-        
+
         print("ARESITOS iniciado exitosamente")
         print("Dashboard completo cargado - Funcional")
         print("Tema Burp Suite aplicado")
         print("Herramientas Kali Linux configuradas")
-        
+
         # Ejecutar aplicación
         try:
             root.mainloop()
         except KeyboardInterrupt:
             print("\nGracias por usar Aresitos, ¡nos vemos!")
-        
+
     except ImportError as e:
         print(f"Error importando módulos: {e}")
         print("  Verifique la instalación de ARESITOS")
@@ -225,20 +225,20 @@ def verificar_permisos_inicio():
         try:
             import subprocess
             # Verificar si tenemos capacidades para herramientas de red
-            result = subprocess.run(["getcap", "/usr/bin/nmap"], 
+            result = subprocess.run(["getcap", "/usr/bin/nmap"],
                                   capture_output=True, text=True, timeout=5)
-            
+
             if "cap_net_raw" not in result.stdout:
                 print("AVISO: nmap podría no tener permisos para SYN scan")
                 print("  Para funcionalidad completa: sudo python configurar.py")
-            
+
             # Verificar sudo sin contraseña
-            result_sudo = subprocess.run(["sudo", "-n", "true"], 
+            result_sudo = subprocess.run(["sudo", "-n", "true"],
                                        capture_output=True, timeout=5)
             if result_sudo.returncode != 0:
                 print("sudo requiere contraseña - use el login GUI")
                 print("  Ejecute: python -m aresitos.vista.vista_login")
-                
+
         except (subprocess.TimeoutExpired, subprocess.CalledProcessError, FileNotFoundError):
             pass  # No mostrar errores si no se puede verificar
 
@@ -246,9 +246,9 @@ def verificacion_estabilidad_sistema():
     """Issue 23/24: Verificación final de estabilidad del sistema"""
     """Verificar integridad y estabilidad de todos los componentes de aresitos"""
     print("\n=== VERIFICACIÓN DE ESTABILIDAD ARESITOS ===")
-    
+
     verificaciones = []
-    
+
     # Verificar estructura de archivos críticos
     base_dir = Path(__file__).parent.resolve()
     archivos_criticos = [
@@ -280,11 +280,11 @@ def verificacion_estabilidad_sistema():
             verificaciones.append(f"Directorio: {directorio}")
         else:
             verificaciones.append(f"Directorio faltante: {directorio}")
-    
+
     # Mostrar resultados
     for verificacion in verificaciones:
         print(f"  {verificacion}")
-    
+
     errores = [v for v in verificaciones if "faltante" in v]
     if errores:
         print(f"\nERRORES DETECTADOS: {len(errores)}")

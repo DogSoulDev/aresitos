@@ -198,7 +198,7 @@ class VistaAuditoria(tk.Frame, TerminalMixin):
                 self._actualizar_terminal("Log de terminal de auditoría reiniciado\n\n")
         except Exception as e:
             print(f"Error limpiando terminal Auditoría: {e}")
-    
+
     def ejecutar_comando_entry(self, _=None):
         """Ejecutar comando desde la entrada SIEMPRE como root usando SudoManager."""
         comando = self.comando_entry.get().strip()
@@ -215,7 +215,7 @@ class VistaAuditoria(tk.Frame, TerminalMixin):
         thread = threading.Thread(target=run_and_report)
         thread.daemon = True
         thread.start()
-    
+
     def _ejecutar_comando_seguro(self, comando, timeout=30):
         """Ejecuta un comando del sistema de forma segura y robusta, siempre como root usando SudoManager si no es Windows."""
         try:
@@ -252,12 +252,12 @@ class VistaAuditoria(tk.Frame, TerminalMixin):
                 'error': str(e),
                 'returncode': None
             }
-    
+
     def abrir_logs_auditoria(self):
         """Abrir y mostrar registros de auditoría del sistema usando herramientas nativas de Kali."""
         try:
             self.log_terminal("[INFO] Abriendo registros de auditoría del sistema...")
-            
+
             # Lista de logs importantes del sistema
             logs_importantes = [
                 ("/var/log/auth.log", "Autenticación"),
@@ -267,14 +267,14 @@ class VistaAuditoria(tk.Frame, TerminalMixin):
                 ("/var/log/faillog", "Fallos de login"),
                 ("/var/log/wtmp", "Logins/Logouts")
             ]
-            
+
             def procesar_logs():
                 for ruta_log, descripcion in logs_importantes:
                     try:
                         import os
                         if os.path.exists(ruta_log):
                             self.log_terminal(f"[ANALIZANDO] {descripcion} - {ruta_log}")
-                            
+
                             # Obtener últimas 20 líneas del log
                             resultado = self._ejecutar_comando_seguro(f"tail -20 {ruta_log}", timeout=30)
                             if resultado.get('output'):
@@ -291,7 +291,7 @@ class VistaAuditoria(tk.Frame, TerminalMixin):
                             self.log_terminal(f"[INFO] {ruta_log} no existe en este sistema")
                     except Exception as e:
                         self.log_terminal(f"[ERROR] Error procesando {ruta_log}: {e}")
-                
+
                 # Análisis adicional con journalctl si está disponible
                 try:
                     import shutil
@@ -308,20 +308,20 @@ class VistaAuditoria(tk.Frame, TerminalMixin):
                             self.log_terminal("[INFO] No hay errores recientes en journalctl")
                 except Exception as e:
                     self.log_terminal(f"[ERROR] Error con journalctl: {e}")
-                
+
                 self.log_terminal("[COMPLETADO] Análisis de logs de auditoría terminado")
-            
+
             # Ejecutar en hilo separado para no bloquear la interfaz
             thread = threading.Thread(target=procesar_logs, daemon=True)
             thread.start()
-            
+
         except Exception as e:
             self.log_terminal(f"[ERROR] Error abriendo logs de auditoría: {e}", nivel="ERROR")
-    
+
     def _crear_seccion_deteccion_malware(self, parent):
         section_frame = tk.Frame(parent, bg=self.colors['bg_secondary'])
         section_frame.pack(fill=tk.X, pady=5)
-        tk.Label(section_frame, text="Detección de malware", 
+        tk.Label(section_frame, text="Detección de malware",
                  bg=self.colors['bg_secondary'], fg=self.colors['fg_primary'],
                  font=('Arial', 10, 'bold')).pack(anchor=tk.W, pady=(5, 5))
         # Botones adaptados: solo muestran info en terminal
@@ -412,11 +412,11 @@ class VistaAuditoria(tk.Frame, TerminalMixin):
                 vista_reportes.set_datos_modulo('auditoria', datos)
         except Exception:
             pass
-    
+
     def _crear_seccion_configuraciones(self, parent):
         section_frame = tk.Frame(parent, bg=self.colors['bg_secondary'])
         section_frame.pack(fill=tk.X, pady=5)
-        tk.Label(section_frame, text="Configuraciones", 
+        tk.Label(section_frame, text="Configuraciones",
                  bg=self.colors['bg_secondary'], fg=self.colors['fg_primary'],
                  font=('Arial', 10, 'bold')).pack(anchor=tk.W, pady=(5, 5))
         # Botones adaptados: solo muestran info en terminal
@@ -528,7 +528,7 @@ class VistaAuditoria(tk.Frame, TerminalMixin):
         import shutil
         ruta_ssh = "/etc/ssh/sshd_config"
         backup_path = f"{ruta_ssh}.backup_{datetime.datetime.now().strftime('%Y%m%d_%H%M%S')}"
-        
+
         try:
             # Leer contenido actual
             with open(ruta_ssh, 'r', encoding='utf-8') as f:
@@ -536,7 +536,7 @@ class VistaAuditoria(tk.Frame, TerminalMixin):
         except Exception as e:
             self.log_terminal(f"[ERROR] No se pudo leer sshd_config: {e}", nivel="ERROR")
             return
-            
+
         # Crear ventana de edición
         editor = tk.Toplevel(self)
         editor.title("Editar configuración de SSH")
@@ -546,7 +546,7 @@ class VistaAuditoria(tk.Frame, TerminalMixin):
         text_area = scrolledtext.ScrolledText(editor, wrap=tk.WORD, font=("Consolas", 10), bg="#222", fg="#eee", insertbackground="#eee")
         text_area.pack(fill=tk.BOTH, expand=True, padx=10, pady=10)
         text_area.insert(tk.END, contenido)
-        
+
         def guardar_cambios():
             nuevo_contenido = text_area.get(1.0, tk.END)
             # Validación básica: no permitir líneas vacías al inicio, ni comandos peligrosos
@@ -563,14 +563,14 @@ class VistaAuditoria(tk.Frame, TerminalMixin):
             except Exception as e:
                 self.log_terminal(f"[ERROR] No se pudo guardar sshd_config: {e}", nivel="ERROR")
                 messagebox.showerror("Error", f"No se pudo guardar sshd_config: {e}")
-                
+
         btn_guardar = tk.Button(editor, text="Guardar cambios", command=guardar_cambios, bg=self.colors['success'], fg='white', font=("Arial", 10, "bold"))
         btn_guardar.pack(pady=10)
-    
+
     def _crear_seccion_utilidades(self, parent):
         section_frame = tk.Frame(parent, bg=self.colors['bg_secondary'])
         section_frame.pack(fill=tk.X, pady=5)
-        tk.Label(section_frame, text="Utilidades", 
+        tk.Label(section_frame, text="Utilidades",
                  bg=self.colors['bg_secondary'], fg=self.colors['fg_primary'],
                  font=('Arial', 10, 'bold')).pack(anchor=tk.W, pady=(5, 5))
         # Botones adaptados: solo los que tienen sentido en el nuevo flujo
@@ -594,7 +594,7 @@ class VistaAuditoria(tk.Frame, TerminalMixin):
             btn.pack(fill=tk.X, pady=2)
 
         # BOTÓN PONER EN CUARENTENA
-        cuarentena_label = tk.Label(section_frame, text="Cuarentena de archivos", 
+        cuarentena_label = tk.Label(section_frame, text="Cuarentena de archivos",
                                   bg=self.colors['bg_secondary'], fg=self.colors['danger'],
                                   font=('Arial', 10, 'bold'))
         cuarentena_label.pack(anchor="w", padx=10, pady=(10, 2))
@@ -655,12 +655,12 @@ class VistaAuditoria(tk.Frame, TerminalMixin):
         except Exception as e:
             self.log_terminal(f"Excepción al poner en cuarentena: {e}")
             self._enviar_a_reportes('poner_en_cuarentena', str(e), True)
-    
+
     # Método eliminado: ejecutar_lynis (no se usa en el nuevo flujo)
-    
+
     # Métodos eliminados: cancelar_auditoria, detectar_rootkits (no se usan en el nuevo flujo)
 
-    
+
     def guardar_auditoria(self):
         # Guardar el contenido del terminal integrado
         if not hasattr(self, 'terminal_output') or self.terminal_output is None:
@@ -679,19 +679,19 @@ class VistaAuditoria(tk.Frame, TerminalMixin):
             with open(archivo, 'w', encoding='utf-8') as f:
                 f.write(contenido)
             messagebox.showinfo("Éxito", f"Auditoría guardada en {archivo}")
-    
+
     def generar_reporte_auditoria_completo(self):
         """Genera un reporte completo de auditoría ejecutando automáticamente las principales verificaciones."""
         try:
-            self.actualizar_info_panel("Reporte de Auditoría Completo", 
+            self.actualizar_info_panel("Reporte de Auditoría Completo",
                                      "Ejecutando automáticamente las principales verificaciones de seguridad del sistema.")
-            
+
             def ejecutar_auditoria_completa():
                 self.log_terminal("="*60)
                 self.log_terminal("REPORTE DE AUDITORÍA COMPLETA - ARESITOS")
                 self.log_terminal(f"Fecha: {datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
                 self.log_terminal("="*60)
-                
+
                 # Lista de verificaciones automáticas
                 verificaciones = [
                     ("Configuración SSH", "cat /etc/ssh/sshd_config | grep -E '^(Port|PermitRootLogin|PasswordAuthentication|PubkeyAuthentication)'"),
@@ -708,16 +708,16 @@ class VistaAuditoria(tk.Frame, TerminalMixin):
                     ("Memoria del sistema", "free -h"),
                     ("Información del kernel", "uname -a"),
                 ]
-                
+
                 for nombre, comando in verificaciones:
                     try:
                         self.log_terminal(f"\n[VERIFICANDO] {nombre}")
                         self.log_terminal("-" * 40)
-                        
+
                         resultado = self._ejecutar_comando_seguro(comando, timeout=60)
                         salida = resultado.get('output', '').strip()
                         error = resultado.get('error', '').strip()
-                        
+
                         if salida:
                             # Limitar salida para evitar spam
                             lineas = salida.split('\n')
@@ -729,7 +729,7 @@ class VistaAuditoria(tk.Frame, TerminalMixin):
                                 for linea in lineas:
                                     if linea.strip():
                                         self.log_terminal(f"  {linea}")
-                            
+
                             # Enviar a reportes
                             self._enviar_a_reportes(f"Auditoría: {nombre}", comando, salida, False)
                         elif error:
@@ -737,26 +737,26 @@ class VistaAuditoria(tk.Frame, TerminalMixin):
                             self._enviar_a_reportes(f"Auditoría: {nombre}", comando, error, True)
                         else:
                             self.log_terminal("  [INFO] Sin resultados para mostrar")
-                            
+
                     except Exception as e:
                         self.log_terminal(f"  [ERROR] Error en verificación {nombre}: {e}")
-                
+
                 self.log_terminal("\n" + "="*60)
                 self.log_terminal("REPORTE DE AUDITORÍA COMPLETADO")
                 self.log_terminal("="*60)
                 self.log_terminal("💡 Revise los resultados anteriores para identificar posibles problemas de seguridad")
                 self.log_terminal("💡 Use 'Guardar resultados' para exportar este reporte a un archivo")
-            
+
             # Ejecutar en hilo separado
             thread = threading.Thread(target=ejecutar_auditoria_completa, daemon=True)
             thread.start()
-            
+
         except Exception as e:
             self.log_terminal(f"[ERROR] Error generando reporte de auditoría: {e}", nivel="ERROR")
-    
+
     def limpiar_auditoria(self):
         self.limpiar_terminal_auditoria()
-    
+
     # Métodos eliminados: cancelar_rootkits, ejecutar_nuclei, ejecutar_httpx, analizar_suid_sgid, auditar_ssh, verificar_password_policy (no se usan en el nuevo flujo)
 
     # El logger global ahora es log_terminal

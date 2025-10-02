@@ -284,7 +284,7 @@ class VistaReportes(tk.Frame, TerminalMixin):
         """Obtener la ruta base absoluta del proyecto ARESITOS."""
         from pathlib import Path
         return Path(os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..")))
-    
+
     # --- NUEVO: Almacenamiento persistente de datos de módulos para reportes ---
     def inicializar_datos_modulos(self):
         self._datos_dashboard = {}
@@ -311,7 +311,7 @@ class VistaReportes(tk.Frame, TerminalMixin):
             self._datos_cuarentena = datos
         elif modulo == 'terminal_principal':
             self._datos_terminal_principal = datos
-        
+
         # Verificar y habilitar checkbox dinámicamente
         self._verificar_y_habilitar_checkbox(modulo, datos)
 
@@ -332,7 +332,7 @@ class VistaReportes(tk.Frame, TerminalMixin):
         elif modulo == 'terminal_principal':
             return self._datos_terminal_principal
         return None
-    
+
     def _verificar_y_habilitar_checkbox(self, modulo, datos):
         """Verifica si hay datos disponibles y habilita el checkbox correspondiente."""
         try:
@@ -342,7 +342,7 @@ class VistaReportes(tk.Frame, TerminalMixin):
                 if isinstance(datos, dict):
                     # Para diccionarios, verificar que no estén vacíos y tengan contenido útil
                     tiene_datos = bool(datos and any(
-                        key for key, value in datos.items() 
+                        key for key, value in datos.items()
                         if value is not None and value != "" and value != []
                     ))
                 elif isinstance(datos, (list, tuple)):
@@ -351,7 +351,7 @@ class VistaReportes(tk.Frame, TerminalMixin):
                 else:
                     # Para otros tipos, verificar que no sean None o vacíos
                     tiene_datos = bool(datos)
-            
+
             # Habilitar/deshabilitar checkbox si existe
             if modulo in self.checkboxes and hasattr(self.checkboxes[modulo], 'config'):
                 if tiene_datos:
@@ -367,29 +367,29 @@ class VistaReportes(tk.Frame, TerminalMixin):
                     if var_checkbox:
                         var_checkbox.set(False)
                     self._log_terminal(f"⚠ Módulo {modulo.upper()} sin datos - checkbox deshabilitado", "REPORTES", "WARNING")
-                    
+
         except (AttributeError, KeyError, TypeError) as e:
             self._log_terminal(f"Error verificando datos del módulo {modulo}: {e}", "REPORTES", "ERROR")
-    
+
     def verificar_todos_los_modulos(self):
         """Verifica todos los módulos y actualiza el estado de sus checkboxes."""
         try:
             modulos = ['dashboard', 'escaneo', 'monitoreo', 'fim', 'siem', 'cuarentena']
             self._log_terminal("Verificando disponibilidad de datos en todos los módulos...", "REPORTES", "INFO")
-            
+
             total_con_datos = 0
             for modulo in modulos:
                 datos = self.get_datos_modulo(modulo)
                 self._verificar_y_habilitar_checkbox(modulo, datos)
                 if datos:
                     total_con_datos += 1
-            
+
             if total_con_datos == 0:
                 self._log_terminal("⚠ NINGÚN módulo tiene datos disponibles para generar reportes", "REPORTES", "WARNING")
                 self._log_terminal("💡 Ejecute escaneos, inicie monitoreo, o use otras funcionalidades para generar datos", "REPORTES", "INFO")
             else:
                 self._log_terminal(f"✓ {total_con_datos} de {len(modulos)} módulos tienen datos disponibles", "REPORTES", "INFO")
-                
+
         except Exception as e:
             self._log_terminal(f"Error verificando módulos: {e}", "REPORTES", "ERROR")
 
@@ -463,7 +463,7 @@ class VistaReportes(tk.Frame, TerminalMixin):
         self.logger = LoggerAresitos.get_instance()
         self.reporte_actual = None
         self.vista_principal = parent  # Referencia al padre para acceder al terminal
-        
+
         # Inicializar atributos de datos de módulos
         self._datos_dashboard = {}
         self._datos_escaneo = {}
@@ -472,7 +472,7 @@ class VistaReportes(tk.Frame, TerminalMixin):
         self._datos_siem = {}
         self._datos_cuarentena = {}
         self._datos_terminal_principal = {}
-        
+
         self.inicializar_datos_modulos()  # Inicializa almacenamiento de datos de módulos
         # Configurar tema y colores de manera consistente
         if BURP_THEME_AVAILABLE and burp_theme:
@@ -483,7 +483,7 @@ class VistaReportes(tk.Frame, TerminalMixin):
             burp_theme.configure_ttk_style(style)
             self.colors = {
                 'bg_primary': burp_theme.get_color('bg_primary'),
-                'bg_secondary': burp_theme.get_color('bg_secondary'), 
+                'bg_secondary': burp_theme.get_color('bg_secondary'),
                 'fg_primary': burp_theme.get_color('fg_primary'),
                 'fg_secondary': burp_theme.get_color('fg_secondary'),
                 'fg_accent': burp_theme.get_color('fg_accent'),
@@ -498,7 +498,7 @@ class VistaReportes(tk.Frame, TerminalMixin):
             self.theme = None  # type: ignore
             self.colors = {
                 'bg_primary': 'white',
-                'bg_secondary': '#f0f0f0', 
+                'bg_secondary': '#f0f0f0',
                 'fg_primary': 'black',
                 'fg_secondary': 'gray',
                 'fg_accent': 'black',
@@ -509,45 +509,45 @@ class VistaReportes(tk.Frame, TerminalMixin):
                 'danger': 'red',
                 'info': 'blue'
             }
-            
 
 
-    
+
+
     def set_controlador(self, controlador):
         self.controlador = controlador
-    
+
     def crear_interfaz(self):
         # PanedWindow principal para dividir contenido y terminal
         self.paned_window = tk.PanedWindow(self, orient="vertical", bg=self.colors['bg_primary'])  # pylint: disable=attribute-defined-outside-init
         self.paned_window.pack(fill="both", expand=True, padx=5, pady=5)
-        
+
         # Frame superior para el contenido principal
         contenido_frame = tk.Frame(self.paned_window, bg=self.colors['bg_primary'])
         self.paned_window.add(contenido_frame, minsize=400)
-        
+
         # Frame título con tema
         titulo_frame = tk.Frame(contenido_frame, bg=self.colors['bg_primary'])
         titulo_frame.pack(fill=tk.X, pady=(10, 10))
-        
+
         # Título con tema Burp Suite
         titulo = tk.Label(titulo_frame, text="Generación y Gestión de Reportes",
                          font=('Arial', 16, 'bold'),
                          bg=self.colors['bg_primary'], fg=self.colors['fg_accent'])
         titulo.pack()
-        
+
         # Frame principal con tema
         main_frame = tk.Frame(contenido_frame, bg=self.colors['bg_primary'])
         main_frame.pack(fill=tk.BOTH, expand=True, padx=10, pady=10)
-        
+
         # Panel izquierdo con tema
         left_frame = tk.Frame(main_frame, bg=self.colors['bg_secondary'])
         left_frame.pack(side=tk.LEFT, fill=tk.BOTH, expand=True, padx=(0, 10))
-        
+
         left_label = tk.Label(left_frame, text="Contenido del Reporte",
                              font=('Arial', 12, 'bold'),
                              bg=self.colors['bg_secondary'], fg=self.colors['fg_accent'])
         left_label.pack(anchor=tk.W, pady=(0, 5))
-        
+
         # Área de texto con tema Burp Suite
         self.reporte_text = scrolledtext.ScrolledText(left_frame, height=25, width=70,  # pylint: disable=attribute-defined-outside-init
                                                      bg=self.colors['bg_secondary'],
@@ -576,7 +576,7 @@ class VistaReportes(tk.Frame, TerminalMixin):
             "Este informe está diseñado para ser claro, profesional y útil tanto para usuarios técnicos como para responsables de seguridad.\n\n"
         )
         self.reporte_text.insert('end', explicacion)
-        
+
         # Panel derecho con tema
         right_frame = tk.Frame(main_frame, bg=self.colors['bg_secondary'])
         right_frame.pack(side=tk.RIGHT, fill=tk.Y)
@@ -608,23 +608,23 @@ class VistaReportes(tk.Frame, TerminalMixin):
         self.checkboxes = {}  # pylint: disable=attribute-defined-outside-init
 
         check_style = {'font': ('Arial', 11, 'bold'), 'bg': self.colors['bg_secondary'], 'activebackground': self.colors['bg_secondary'], 'fg': self.colors['fg_primary'], 'anchor': 'w', 'padx': 12, 'pady': 4}
-        
+
         # Crear checkboxes y almacenar referencias
         self.checkboxes['dashboard'] = tk.Checkbutton(config_frame, text="Dashboard (Resumen del sistema)", variable=self.incluir_dashboard, command=self.actualizar_reporte, **check_style, state='disabled')
         self.checkboxes['dashboard'].pack(fill=tk.X, pady=2)
-        
+
         self.checkboxes['escaneo'] = tk.Checkbutton(config_frame, text="Escaneo (Vulnerabilidades)", variable=self.incluir_escaneo, command=self.actualizar_reporte, **check_style, state='disabled')
         self.checkboxes['escaneo'].pack(fill=tk.X, pady=2)
-        
+
         self.checkboxes['monitoreo'] = tk.Checkbutton(config_frame, text="Monitoreo (Procesos y eventos)", variable=self.incluir_monitoreo, command=self.actualizar_reporte, **check_style, state='disabled')
         self.checkboxes['monitoreo'].pack(fill=tk.X, pady=2)
-        
+
         self.checkboxes['fim'] = tk.Checkbutton(config_frame, text="FIM (Integridad de archivos)", variable=self.incluir_fim, command=self.actualizar_reporte, **check_style, state='disabled')
         self.checkboxes['fim'].pack(fill=tk.X, pady=2)
-        
+
         self.checkboxes['siem'] = tk.Checkbutton(config_frame, text="SIEM (Eventos de seguridad)", variable=self.incluir_siem, command=self.actualizar_reporte, **check_style, state='disabled')
         self.checkboxes['siem'].pack(fill=tk.X, pady=2)
-        
+
         self.checkboxes['cuarentena'] = tk.Checkbutton(config_frame, text="Cuarentena (Amenazas aisladas)", variable=self.incluir_cuarentena, command=self.actualizar_reporte, **check_style, state='disabled')
         self.checkboxes['cuarentena'].pack(fill=tk.X, pady=2)
         tk.Checkbutton(config_frame, text="Terminales externas abiertas en Kali (incluir información de terminales externas en el reporte)", variable=self.incluir_terminales_externas, command=self.actualizar_reporte, **check_style).pack(fill=tk.X, pady=2)
@@ -726,7 +726,7 @@ class VistaReportes(tk.Frame, TerminalMixin):
 
         # Crear terminal inferior estandarizado
         self.crear_terminal_inferior(self, titulo_vista="Reportes")
-        
+
         # Verificar datos disponibles en los módulos al inicializar
         self.after(1000, self.verificar_todos_los_modulos)  # Verificar después de 1 segundo para permitir inicialización
 
@@ -777,7 +777,7 @@ class VistaReportes(tk.Frame, TerminalMixin):
             self.logger.log(f"[EXPORTACIÓN PDF][ERROR] {str(e)}", nivel="ERROR", modulo="REPORTES")
             self._log_terminal(f"[EXPORTACIÓN PDF][ERROR] {str(e)}", modulo="REPORTES", nivel="ERROR")
             messagebox.showerror("Error", f"Error exportando PDF: {str(e)}")
-        
+
     # ... (widgets de análisis Kali solo deben estar en crear_interfaz)
 
     def generar_reporte_completo(self):
@@ -837,7 +837,7 @@ class VistaReportes(tk.Frame, TerminalMixin):
         thread.daemon = True
         thread.start()
         gc.collect()
-    
+
     def mostrar_reporte(self, reporte):
         self._actualizar_reporte_seguro("", "clear")
         try:
@@ -929,13 +929,13 @@ class VistaReportes(tk.Frame, TerminalMixin):
             self._actualizar_reporte_seguro(texto_reporte, "replace")
         except Exception as e:
             self._actualizar_reporte_seguro(f"Error al mostrar reporte: {str(e)}")
-    
+
     def actualizar_reporte(self):
         if self.reporte_actual:
             self.mostrar_reporte(self.reporte_actual)
         else:
             messagebox.showwarning("Advertencia", "No hay reporte generado para actualizar")
-    
+
     def guardar_json(self):
         import getpass
         try:
@@ -980,8 +980,8 @@ class VistaReportes(tk.Frame, TerminalMixin):
             self.logger.log(f"[EXPORTACIÓN JSON][ERROR] {str(e)}", nivel="ERROR", modulo="REPORTES")
             self._log_terminal(f"[EXPORTACIÓN JSON][ERROR] {str(e)}", modulo="REPORTES", nivel="ERROR")
             messagebox.showerror("Error", f"Error al guardar JSON: {str(e)}")
-    
-    
+
+
     def cargar_reporte(self):
         """Cargar reporte desde archivo, sin validaciones ni sanitización."""
         try:
@@ -1002,46 +1002,46 @@ class VistaReportes(tk.Frame, TerminalMixin):
                 messagebox.showinfo("Éxito", f"Reporte cargado desde {os.path.basename(archivo)}")
         except Exception as e:
             messagebox.showerror("Error", f"Error al cargar reporte: {str(e)}")
-    
+
     def listar_reportes(self):
         try:
             if not self.controlador:
                 messagebox.showerror("Error", "Controlador no configurado")
                 return
-            
+
             reportes = self.controlador.listar_reportes_guardados()
-            
+
             self._actualizar_reporte_seguro("", "clear")
             self._actualizar_reporte_seguro(" REPORTES GUARDADOS\n")
             self._actualizar_reporte_seguro("=" * 50 + "\n\n")
-            
+
             if reportes:
                 for i, reporte in enumerate(reportes, 1):
                     self._actualizar_reporte_seguro(f"{i}. {reporte}\n")
             else:
                 self._actualizar_reporte_seguro("No se encontraron reportes guardados.\n")
-                
+
         except Exception as e:
             messagebox.showerror("Error", f"Error al listar reportes: {str(e)}")
-    
+
     def limpiar_reporte(self):
         respuesta = messagebox.askyesno("Confirmar", "¿Está seguro de que desea limpiar la vista?")
         if respuesta:
             self.reporte_text.delete(1.0, tk.END)
             self.reporte_actual = None
-    
+
     def _log_terminal(self, mensaje, modulo="REPORTES", nivel="INFO"):
         """Registrar mensaje en el terminal integrado global."""
         try:
             # Usar el terminal global de VistaDashboard
             from aresitos.vista.vista_dashboard import VistaDashboard
             VistaDashboard.log_actividad_global(mensaje, modulo, nivel)
-            
+
         except Exception as e:
             # Fallback a consola si hay problemas
             print(f"[{modulo}] {mensaje}")
             print(f"Error logging a terminal: {e}")
-    
+
     def analizar_logs_kali(self):
         """Análisis avanzado de logs usando herramientas nativas de Kali con permisos seguros."""
         from aresitos.utils.sudo_manager import get_sudo_manager
@@ -1085,7 +1085,7 @@ class VistaReportes(tk.Frame, TerminalMixin):
         thread = threading.Thread(target=realizar_analisis)
         thread.daemon = True
         thread.start()
-    
+
     def generar_estadisticas_kali(self):
         """Generar estadísticas del sistema usando comandos nativos de Kali con permisos seguros."""
         from aresitos.utils.sudo_manager import get_sudo_manager
@@ -1140,7 +1140,7 @@ class VistaReportes(tk.Frame, TerminalMixin):
         thread = threading.Thread(target=generar)
         thread.daemon = True
         thread.start()
-    
+
     def generar_informe_seguridad(self):
         """Generar informe de seguridad usando herramientas de Kali con permisos seguros."""
         from aresitos.utils.sudo_manager import get_sudo_manager
@@ -1196,7 +1196,7 @@ class VistaReportes(tk.Frame, TerminalMixin):
         thread = threading.Thread(target=generar_informe)
         thread.daemon = True
         thread.start()
-    
+
     def comparar_reportes_kali(self):
         """Comparar reportes usando herramientas de línea de comandos de Kali Linux, sin validación restrictiva."""
         try:
@@ -1210,13 +1210,13 @@ class VistaReportes(tk.Frame, TerminalMixin):
                 title="Seleccionar segundo reporte",
                 filetypes=[("Archivos de reporte", "*.json *.txt"), ("Todos los archivos", "*.*")]
             )
-            
+
             if not archivo2:
                 return
-            
+
             # VALIDAR SEGUNDO ARCHIVO
             # Sin validación ni sanitización, solo comparar archivos directamente
-            
+
             def realizar_comparacion():
                 try:
                     from aresitos.utils.sudo_manager import get_sudo_manager
@@ -1251,11 +1251,11 @@ class VistaReportes(tk.Frame, TerminalMixin):
             thread = threading.Thread(target=realizar_comparacion)
             thread.daemon = True
             thread.start()
-            
+
         except Exception as e:
             messagebox.showerror("Error", f"Error al comparar reportes: {str(e)}")
 
-# RESUMEN: Vista para generación y gestión de reportes del sistema. Permite generar 
-# reportes completos con datos de escaneo, monitoreo y utilidades, guardar en 
+# RESUMEN: Vista para generación y gestión de reportes del sistema. Permite generar
+# reportes completos con datos de escaneo, monitoreo y utilidades, guardar en
 # formato JSON y TXT, cargar reportes existentes y gestionar archivos de reportes.
 
