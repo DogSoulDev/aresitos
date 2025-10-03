@@ -14,6 +14,7 @@ from tkinter import ttk, scrolledtext, messagebox, filedialog
 import threading
 import json
 import os
+import subprocess
 import logging
 import datetime
 import gc  # Issue 21/24 - Optimización de memoria
@@ -831,7 +832,7 @@ class VistaReportes(tk.Frame, TerminalMixin):
                     self.log_to_terminal("REPORTE Reporte mostrado en pantalla")
                 else:
                     self._actualizar_reporte_seguro(" Error al generar el reporte")
-            except Exception as e:
+            except (AttributeError, KeyError, TypeError, RuntimeError) as e:
                 self._actualizar_reporte_seguro(f" Error durante la generación: {str(e)}")
         thread = threading.Thread(target=generar, name="ReporteCompleto")
         thread.daemon = True
@@ -927,7 +928,7 @@ class VistaReportes(tk.Frame, TerminalMixin):
             else:
                 texto_reporte = str(reporte)
             self._actualizar_reporte_seguro(texto_reporte, "replace")
-        except Exception as e:
+        except (AttributeError, TypeError, KeyError, ValueError) as e:
             self._actualizar_reporte_seguro(f"Error al mostrar reporte: {str(e)}")
 
     def actualizar_reporte(self):
@@ -976,7 +977,7 @@ class VistaReportes(tk.Frame, TerminalMixin):
                 self.logger.log(f"[EXPORTACIÓN JSON] Usuario: {usuario}, Fecha: {fecha}, {resumen}", nivel="INFO", modulo="REPORTES")
                 self._log_terminal(f"[EXPORTACIÓN JSON] Usuario: {usuario}, Fecha: {fecha}, {resumen}", modulo="REPORTES", nivel="INFO")
                 messagebox.showinfo("Éxito", f"Reporte guardado correctamente en {archivo}")
-        except Exception as e:
+        except (OSError, PermissionError, TypeError, ValueError) as e:
             self.logger.log(f"[EXPORTACIÓN JSON][ERROR] {str(e)}", nivel="ERROR", modulo="REPORTES")
             self._log_terminal(f"[EXPORTACIÓN JSON][ERROR] {str(e)}", modulo="REPORTES", nivel="ERROR")
             messagebox.showerror("Error", f"Error al guardar JSON: {str(e)}")
@@ -1000,7 +1001,7 @@ class VistaReportes(tk.Frame, TerminalMixin):
                     self._actualizar_reporte_seguro("", "clear")
                     self._actualizar_reporte_seguro(contenido, "replace")
                 messagebox.showinfo("Éxito", f"Reporte cargado desde {os.path.basename(archivo)}")
-        except Exception as e:
+        except (OSError, PermissionError, UnicodeDecodeError, ValueError) as e:
             messagebox.showerror("Error", f"Error al cargar reporte: {str(e)}")
 
     def listar_reportes(self):
@@ -1021,7 +1022,7 @@ class VistaReportes(tk.Frame, TerminalMixin):
             else:
                 self._actualizar_reporte_seguro("No se encontraron reportes guardados.\n")
 
-        except Exception as e:
+        except (OSError, AttributeError, TypeError) as e:
             messagebox.showerror("Error", f"Error al listar reportes: {str(e)}")
 
     def limpiar_reporte(self):
@@ -1037,7 +1038,7 @@ class VistaReportes(tk.Frame, TerminalMixin):
             from aresitos.vista.vista_dashboard import VistaDashboard
             VistaDashboard.log_actividad_global(mensaje, modulo, nivel)
 
-        except Exception as e:
+        except (AttributeError, ImportError, tk.TclError) as e:
             # Fallback a consola si hay problemas
             print(f"[{modulo}] {mensaje}")
             print(f"Error logging a terminal: {e}")
@@ -1080,7 +1081,7 @@ class VistaReportes(tk.Frame, TerminalMixin):
                 texto_analisis = json.dumps(analisis, indent=2, ensure_ascii=False)
                 self.reporte_text.insert(tk.END, texto_analisis)
                 self._log_terminal("Análisis de logs completado", "REPORTES", "INFO")
-            except Exception as e:
+            except (subprocess.SubprocessError, OSError, UnicodeDecodeError, json.JSONDecodeError) as e:
                 self.reporte_text.insert(tk.END, f"Error en análisis: {str(e)}")
         thread = threading.Thread(target=realizar_analisis)
         thread.daemon = True

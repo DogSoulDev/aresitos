@@ -147,7 +147,8 @@ class VistaDashboard(tk.Frame):
                 metricas = {}
 
             # Recursos del sistema (solo nativo, sin librerías externas)
-            recursos = {}
+            from typing import Any
+            recursos: dict[str, Any] = {}
             try:
                 recursos['cpu'] = os.cpu_count()
                 recursos['platform'] = str(platform.platform())
@@ -224,7 +225,7 @@ class VistaDashboard(tk.Frame):
                 'button_fg': burp_theme.get_color('button_fg')
             }
         else:
-            self.theme = None
+            self.theme = None  # type: ignore
             self.colors = {
                 'bg_primary': '#f0f0f0',
                 'bg_secondary': '#ffffff',
@@ -526,7 +527,7 @@ class VistaDashboard(tk.Frame):
             btn = tk.Button(
                 botones_grid_frame,
                 text=descripcion,
-                command=lambda cmd=comando: self.ejecutar_comando_rapido(cmd),
+                command=lambda cmd=comando: self.ejecutar_comando_rapido(cmd),  # type: ignore
                 bg='#31363b',
                 fg='#ffb86c',
                 font=("Arial", 11, "bold"),

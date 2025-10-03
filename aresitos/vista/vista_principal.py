@@ -315,7 +315,7 @@ class VistaPrincipal(tk.Frame):
             from aresitos.vista.vista_noticias import VistaNoticias
             self.vista_noticias = VistaNoticias(self.notebook)
             self.notebook.add(self.vista_noticias, text="Noticias")
-        except Exception as e:
+        except (ImportError, tk.TclError, AttributeError) as e:
             print(f"Error creando vista noticias: {e}")
 
     def crear_barra_estado(self):

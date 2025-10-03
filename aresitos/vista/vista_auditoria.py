@@ -197,7 +197,7 @@ class VistaAuditoria(tk.Frame, TerminalMixin):
                 self._actualizar_terminal("Sistema: Kali Linux - Herramientas de auditoría de seguridad\n")
                 self._actualizar_terminal("="*60 + "\n")
                 self._actualizar_terminal("Log de terminal de auditoría reiniciado\n\n")
-        except Exception as e:
+        except (tk.TclError, AttributeError) as e:
             print(f"Error limpiando terminal Auditoría: {e}")
 
     def ejecutar_comando_entry(self, _=None):
@@ -315,7 +315,7 @@ class VistaAuditoria(tk.Frame, TerminalMixin):
             thread = threading.Thread(target=procesar_logs, daemon=True)
             thread.start()
 
-        except Exception as e:
+        except (OSError, AttributeError, ImportError) as e:
             self.log_terminal(f"[ERROR] Error abriendo logs de auditoría: {e}", nivel="ERROR")
 
     def _crear_seccion_deteccion_malware(self, parent):
